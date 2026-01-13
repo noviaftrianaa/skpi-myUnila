@@ -1,0 +1,44 @@
+Pendidikan:
+  type: object
+  properties:
+    id:
+      type: string
+    id_sdm:
+      type: string
+    nama_dosen:
+      type: string
+    id_jenjang_pendidikan:
+      type: string
+    nama_jenjang_pendidikan:
+      type: string
+      example: "S3"
+    nama_perguruan_tinggi:
+      type: string
+      example: "Institut Teknologi Bandung"
+    id_negara:
+      type: string
+    nama_negara:
+      type: string
+      example: "Indonesia"
+    program_studi:
+      type: string
+      example: "Teknik Informatika"
+    tahun_masuk:
+      type: string
+      example: "2010"
+    tahun_lulus:
+      type: string
+      example: "2015"
+    judul_tesis:
+      type: string
+      example: "Pengembangan Algoritma Machine Learning untuk Big Data"
+    ipk:
+      type: number
+      format: float
+      example: 3.85
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

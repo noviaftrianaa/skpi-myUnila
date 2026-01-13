@@ -1,0 +1,23 @@
+Pagination:
+  $ref: './common.yaml#/Pagination'
+
+Dosen:
+  $ref: './dosen.yaml#/Dosen'
+
+Penugasan:
+  $ref: './penugasan.yaml#/Penugasan'
+
+Penelitian:
+  $ref: './penelitian.yaml#/Penelitian'
+
+Publikasi:
+  $ref: './publikasi.yaml#/Publikasi'
+
+Pendidikan:
+  $ref: './pendidikan.yaml#/Pendidikan'
+
+Schedule:
+  $ref: './scheduler.yaml#/Schedule'
+
+SyncLog:
+  $ref: './sync-log.yaml#/SyncLog'

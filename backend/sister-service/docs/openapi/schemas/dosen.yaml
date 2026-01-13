@@ -1,0 +1,58 @@
+Dosen:
+  type: object
+  properties:
+    id_sdm:
+      type: string
+      description: ID SDM dari Sister
+      example: "abc12345-6789-0abc-def0-123456789012"
+    nidn:
+      type: string
+      example: "0012345678"
+    nama:
+      type: string
+      example: "Dr. Ahmad Sudirman, M.Kom."
+    jenis_kelamin:
+      type: string
+      enum: [L, P]
+      example: "L"
+    tempat_lahir:
+      type: string
+      example: "Bandar Lampung"
+    tanggal_lahir:
+      type: string
+      format: date
+      example: "1980-05-15"
+    id_unit_kerja:
+      type: string
+    nama_unit_kerja:
+      type: string
+      example: "Fakultas Teknik"
+    id_jabatan_fungsional:
+      type: string
+    nama_jabatan_fungsional:
+      type: string
+      example: "Lektor Kepala"
+    id_jenjang_pendidikan:
+      type: string
+    nama_jenjang_pendidikan:
+      type: string
+      example: "S3"
+    email:
+      type: string
+      format: email
+      example: "ahmad.sudirman@unila.ac.id"
+    no_hp:
+      type: string
+      example: "081234567890"
+    foto_url:
+      type: string
+      format: uri
+    status_aktif:
+      type: boolean
+      example: true
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

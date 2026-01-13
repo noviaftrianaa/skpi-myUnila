@@ -1,0 +1,71 @@
+list:
+  get:
+    tags:
+      - Penugasan
+    summary: Get List Penugasan
+    description: Mengambil daftar penugasan dosen dengan pagination
+    operationId: getPenugasanList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_sdm
+        in: query
+        description: Filter berdasarkan ID SDM dosen
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data penugasan
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/penugasan.yaml#/Penugasan'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Penugasan
+    summary: Get Statistik Penugasan
+    description: Mengambil statistik data penugasan
+    operationId: getPenugasanStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+
+sync:
+  post:
+    tags:
+      - Penugasan
+    summary: Sinkronisasi Penugasan
+    description: Melakukan sinkronisasi data penugasan dari Sister
+    operationId: syncPenugasan
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_sdm:
+                type: string
+                description: ID SDM dosen (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai

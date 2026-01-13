@@ -1,0 +1,41 @@
+UnauthorizedError:
+  description: Unauthorized - JWT token tidak valid atau tidak ada
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: "Unauthorized"
+
+NotFoundError:
+  description: Resource tidak ditemukan
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: "Resource not found"
+
+InternalServerError:
+  description: Internal server error
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: "Internal server error"

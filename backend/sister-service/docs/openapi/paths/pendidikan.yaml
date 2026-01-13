@@ -1,0 +1,60 @@
+list:
+  get:
+    tags:
+      - Pendidikan
+    summary: Get List Pendidikan Formal
+    description: Mengambil daftar riwayat pendidikan formal dosen
+    operationId: getPendidikanList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_sdm
+        in: query
+        description: Filter berdasarkan ID SDM dosen
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data pendidikan
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/pendidikan.yaml#/Pendidikan'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+sync:
+  post:
+    tags:
+      - Pendidikan
+    summary: Sinkronisasi Pendidikan
+    description: Melakukan sinkronisasi data pendidikan dari Sister
+    operationId: syncPendidikan
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_sdm:
+                type: string
+                description: ID SDM dosen (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai

@@ -1,0 +1,142 @@
+list:
+  get:
+    tags:
+      - Dosen
+    summary: Get List Dosen
+    description: Mengambil daftar dosen dengan pagination dan filter
+    operationId: getDosenList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: search
+        in: query
+        description: Cari berdasarkan nama atau NIDN
+        schema:
+          type: string
+      - name: id_unit_kerja
+        in: query
+        description: Filter berdasarkan unit kerja
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data dosen
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/dosen.yaml#/Dosen'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Dosen
+    summary: Get Statistik Dosen
+    description: Mengambil statistik data dosen
+    operationId: getDosenStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      example: 1500
+                    by_jenjang:
+                      type: object
+                      additionalProperties:
+                        type: integer
+                    by_jabatan_fungsional:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Dosen
+    summary: Sinkronisasi Dosen
+    description: Melakukan sinkronisasi data dosen dari Sister Kemdikbud
+    operationId: syncDosen
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_sdm:
+                type: string
+                description: ID SDM spesifik (opsional, jika kosong sync semua)
+              id_unit_kerja:
+                type: string
+                description: Filter berdasarkan unit kerja
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+
+detail:
+  get:
+    tags:
+      - Dosen
+    summary: Get Detail Dosen
+    description: Mengambil detail data dosen berdasarkan ID SDM
+    operationId: getDosenDetail
+    parameters:
+      - name: id_sdm
+        in: path
+        required: true
+        description: ID SDM Dosen
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil detail dosen
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/dosen.yaml#/Dosen'
+      '404':
+        description: Dosen tidak ditemukan

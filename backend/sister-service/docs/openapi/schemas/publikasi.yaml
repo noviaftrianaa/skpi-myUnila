@@ -1,0 +1,47 @@
+Publikasi:
+  type: object
+  properties:
+    id:
+      type: string
+    id_sdm:
+      type: string
+    nama_dosen:
+      type: string
+    judul:
+      type: string
+      example: "Machine Learning for Academic Data Analysis"
+    id_jenis_publikasi:
+      type: string
+    nama_jenis_publikasi:
+      type: string
+      example: "Jurnal Internasional"
+    nama_jurnal:
+      type: string
+      example: "IEEE Access"
+    volume:
+      type: string
+      example: "12"
+    nomor:
+      type: string
+      example: "3"
+    halaman:
+      type: string
+      example: "125-135"
+    tahun:
+      type: string
+      example: "2024"
+    doi:
+      type: string
+      example: "10.1109/ACCESS.2024.123456"
+    url:
+      type: string
+      format: uri
+    peran:
+      type: string
+      example: "Penulis Utama"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
