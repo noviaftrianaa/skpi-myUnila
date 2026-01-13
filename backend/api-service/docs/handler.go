@@ -108,7 +108,7 @@ var scalarHTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyUnila API Documentation</title>
+    <title>myUnila API Web Service Documentation</title>
     <link rel="icon" type="image/png" href="/docs/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -162,7 +162,7 @@ var scalarHTML = `<!DOCTYPE html>
                 <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="280" fill="#0B5EA8">myUnila</text>
             </svg>
         </div>
-        <div class="loading-subtext">Loading API Documentation...</div>
+        <div class="loading-subtext">Loading myUnila API Web Service Documentation...</div>
     </div>
 
     <script id="api-reference" data-url="/docs/openapi.json"></script>
@@ -199,10 +199,10 @@ var scalarHTML = `<!DOCTYPE html>
             hideDarkModeToggle: false,
             withDefaultFonts: true,
             metaData: {
-                title: 'MyUnila API',
-                description: 'API untuk integrasi data antar sistem di Universitas Lampung',
-                ogDescription: 'MyUnila API Documentation - Universitas Lampung',
-                ogTitle: 'MyUnila API Docs',
+                title: 'myUnila API Web Service',
+                description: 'API Web Service untuk platform myUnila - Universitas Lampung',
+                ogDescription: 'myUnila API Web Service Documentation - Universitas Lampung',
+                ogTitle: 'myUnila API Web Service Docs',
             },
             customCss: ` + "`" + `
                 /* Hide Scalar branding */
