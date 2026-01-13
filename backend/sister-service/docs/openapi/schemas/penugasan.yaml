@@ -1,0 +1,38 @@
+Penugasan:
+  type: object
+  properties:
+    id:
+      type: string
+    id_sdm:
+      type: string
+    nama_dosen:
+      type: string
+      example: "Dr. Ahmad Sudirman, M.Kom."
+    id_prodi:
+      type: string
+    nama_prodi:
+      type: string
+      example: "Teknik Informatika"
+    id_semester:
+      type: string
+    nama_semester:
+      type: string
+      example: "2024/2025 Ganjil"
+    jenis_penugasan:
+      type: string
+      example: "Dosen Tetap"
+    tanggal_mulai:
+      type: string
+      format: date
+    tanggal_selesai:
+      type: string
+      format: date
+    status:
+      type: string
+      example: "Aktif"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

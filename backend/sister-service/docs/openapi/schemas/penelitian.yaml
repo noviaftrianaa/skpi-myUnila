@@ -1,0 +1,38 @@
+Penelitian:
+  type: object
+  properties:
+    id:
+      type: string
+    id_sdm:
+      type: string
+    nama_dosen:
+      type: string
+    judul:
+      type: string
+      example: "Pengembangan Sistem Informasi Berbasis AI"
+    id_skim_kegiatan:
+      type: string
+    nama_skim_kegiatan:
+      type: string
+      example: "Penelitian Dasar"
+    tahun:
+      type: string
+      example: "2024"
+    sumber_dana:
+      type: string
+      example: "DIKTI"
+    jumlah_dana:
+      type: number
+      example: 50000000
+    peran:
+      type: string
+      example: "Ketua"
+    status:
+      type: string
+      example: "Selesai"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

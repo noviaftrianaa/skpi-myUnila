@@ -11,8 +11,8 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/swaggo/fiber-swagger v1.3.0
 	github.com/swaggo/swag v1.16.3
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -35,7 +35,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/swaggo/files v1.0.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect

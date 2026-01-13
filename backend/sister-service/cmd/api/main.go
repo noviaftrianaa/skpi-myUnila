@@ -19,7 +19,7 @@ import (
 	"sister-service/apps/sertifikasi_dosen"
 	"sister-service/apps/synclog"
 	"sister-service/apps/tugas_tambahan"
-	_ "sister-service/docs"
+	"sister-service/docs"
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
@@ -29,7 +29,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 // @title Sister Service API
@@ -102,6 +101,10 @@ func main() {
 		MaxAge:           12 * 3600,
 	}))
 
+	// Setup API Documentation (Scalar UI)
+	docs.SetupDocs(app)
+	log.Println("✅ API Documentation available at /docs")
+
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -109,14 +112,6 @@ func main() {
 			"service": config.Cfg.App.Name,
 			"version": "1.0.0",
 		})
-	})
-
-	// Swagger documentation
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
-
-	// Alias for consistent documentation URL across all services
-	app.Get("/api/documentation", func(c *fiber.Ctx) error {
-		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
 	})
 
 	// Initialize encryption service for API config

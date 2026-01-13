@@ -1,0 +1,60 @@
+list:
+  get:
+    tags:
+      - Penelitian
+    summary: Get List Penelitian
+    description: Mengambil daftar penelitian dan pengabdian dosen
+    operationId: getPenelitianList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_sdm
+        in: query
+        description: Filter berdasarkan ID SDM dosen
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data penelitian
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/penelitian.yaml#/Penelitian'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+sync:
+  post:
+    tags:
+      - Penelitian
+    summary: Sinkronisasi Penelitian
+    description: Melakukan sinkronisasi data penelitian dari Sister
+    operationId: syncPenelitian
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_sdm:
+                type: string
+                description: ID SDM dosen (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
