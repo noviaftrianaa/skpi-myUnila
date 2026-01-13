@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\UserContextController;
 use App\Http\Controllers\Api\Logger\LoggerController;
 use App\Http\Controllers\Api\Logger\KongLogController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\DocsController;
 
 /*
 |--------------------------------------------------------------------------
