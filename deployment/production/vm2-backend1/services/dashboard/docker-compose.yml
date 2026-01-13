@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  dashboard-service:
+    build:
+      context: ../../../../../backend/dashboard-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/dashboard-service:production
+    container_name: myunila-dashboard-service
+    ports:
+      - "8086:9000"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila Dashboard}"
+      APP_ENV: production
+      APP_KEY: "${DASHBOARD_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL}"
+      APP_APLIKASI_ID: "${APP_APLIKASI_ID}"
+
+      # Database (SQL Server)
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${DASHBOARD_DB_HOST}"
+      DB_PORT: "${DASHBOARD_DB_PORT}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Redis & Cache
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=dashboard,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
