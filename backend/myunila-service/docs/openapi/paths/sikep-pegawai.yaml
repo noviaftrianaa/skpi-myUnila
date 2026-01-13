@@ -1,0 +1,139 @@
+list:
+  get:
+    tags:
+      - SIKEP Pegawai
+    summary: Get List Pegawai
+    description: Mengambil daftar pegawai dari SIKEP dengan pagination dan filter
+    operationId: getSikepPegawaiList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: search
+        in: query
+        description: Cari berdasarkan nama atau NIP
+        schema:
+          type: string
+      - name: unit_kerja
+        in: query
+        description: Filter berdasarkan unit kerja
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data pegawai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/sikep-pegawai.yaml#/Pegawai'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - SIKEP Pegawai
+    summary: Get Statistik Pegawai
+    description: Mengambil statistik data pegawai dari SIKEP
+    operationId: getSikepPegawaiStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      example: 3500
+                    by_jenis_pegawai:
+                      type: object
+                      additionalProperties:
+                        type: integer
+                    by_unit_kerja:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - SIKEP Pegawai
+    summary: Sinkronisasi Pegawai
+    description: Melakukan sinkronisasi data pegawai dari SIKEP
+    operationId: syncSikepPegawai
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              unit_kerja:
+                type: string
+                description: Filter berdasarkan unit kerja (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+
+detail:
+  get:
+    tags:
+      - SIKEP Pegawai
+    summary: Get Detail Pegawai
+    description: Mengambil detail data pegawai berdasarkan ID
+    operationId: getSikepPegawaiDetail
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID Pegawai
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil detail pegawai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/sikep-pegawai.yaml#/Pegawai'
+      '404':
+        description: Pegawai tidak ditemukan

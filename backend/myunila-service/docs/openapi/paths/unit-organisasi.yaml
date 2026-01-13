@@ -1,0 +1,103 @@
+list:
+  get:
+    tags:
+      - ManAkses Unit Organisasi
+    summary: Get List Unit Organisasi
+    description: Mengambil daftar unit organisasi dari target database
+    operationId: getUnitOrganisasiList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: search
+        in: query
+        description: Cari berdasarkan nama unit
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data unit organisasi
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/unit-organisasi.yaml#/UnitOrganisasi'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - ManAkses Unit Organisasi
+    summary: Get Statistik Unit Organisasi
+    description: Mengambil statistik data unit organisasi
+    operationId: getUnitOrganisasiStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+
+sync:
+  post:
+    tags:
+      - ManAkses Unit Organisasi
+    summary: Sinkronisasi Unit Organisasi
+    description: Melakukan sinkronisasi data unit organisasi dari SMS
+    operationId: syncUnitOrganisasi
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+
+comparison:
+  get:
+    tags:
+      - ManAkses Unit Organisasi
+    summary: Get Data Comparison
+    description: Membandingkan data source (SMS) dengan target database
+    operationId: getUnitOrganisasiComparison
+    responses:
+      '200':
+        description: Berhasil mengambil perbandingan data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    source_count:
+                      type: integer
+                    target_count:
+                      type: integer
+                    missing_in_target:
+                      type: integer
+                    to_update:
+                      type: integer

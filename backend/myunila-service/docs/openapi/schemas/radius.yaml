@@ -1,0 +1,37 @@
+RadiusUser:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    username:
+      type: string
+      example: "ahmad.fauzi"
+    email:
+      type: string
+      example: "ahmad.fauzi@unila.ac.id"
+    nama:
+      type: string
+      example: "Ahmad Fauzi"
+    tipe_pengguna:
+      type: string
+      enum:
+        - dosen
+        - tendik
+        - mahasiswa
+      example: dosen
+    nip_nim:
+      type: string
+      example: "197501012000121001"
+    unit:
+      type: string
+      example: "Fakultas Teknik"
+    is_active:
+      type: boolean
+      example: true
+    last_login:
+      type: string
+      format: date-time
+    synced_at:
+      type: string
+      format: date-time

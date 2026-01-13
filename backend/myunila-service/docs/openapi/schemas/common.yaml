@@ -1,0 +1,31 @@
+Pagination:
+  type: object
+  properties:
+    page:
+      type: integer
+      example: 1
+    limit:
+      type: integer
+      example: 10
+    total:
+      type: integer
+      example: 100
+    total_pages:
+      type: integer
+      example: 10
+
+SyncStats:
+  type: object
+  properties:
+    total:
+      type: integer
+      example: 1000
+    synced:
+      type: integer
+      example: 950
+    failed:
+      type: integer
+      example: 50
+    last_sync:
+      type: string
+      format: date-time

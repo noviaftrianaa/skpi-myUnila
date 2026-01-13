@@ -1,0 +1,69 @@
+Success:
+  description: Operasi berhasil
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: true
+          message:
+            type: string
+            example: Operation successful
+
+BadRequest:
+  description: Request tidak valid
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          error:
+            type: string
+            example: Invalid request parameters
+
+Unauthorized:
+  description: Token tidak valid atau tidak ada
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          error:
+            type: string
+            example: Unauthorized
+
+NotFound:
+  description: Resource tidak ditemukan
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          error:
+            type: string
+            example: Resource not found
+
+InternalError:
+  description: Server error
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          error:
+            type: string
+            example: Internal server error
