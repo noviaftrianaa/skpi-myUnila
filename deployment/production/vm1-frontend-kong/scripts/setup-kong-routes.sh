@@ -789,6 +789,160 @@ else
     echo -e "${RED}  ✗ Failed to create JWT credential${NC}"
 fi
 
+###############################################################################
+# 7. Dashboard Service (Laravel)
+###############################################################################
+echo -e "${GREEN}[7/8] Setting up Dashboard Service...${NC}"
+
+# Create Dashboard Service
+# Note: Upstream is at VM2 (e.g., 192.168.120.42:8087)
+DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"dashboard-service\",
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8087}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000,
+    \"retries\": 3
+  }")
+
+DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
+
+if [ -z "$DASHBOARD_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
+else
+    echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
+
+    # Route: Protected endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    DASHBOARD_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-service-route",
+        "paths": ["/dashboard-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    DASHBOARD_ROUTE_ID=$(parse_json_id "$DASHBOARD_ROUTE")
+
+    if [ -n "$DASHBOARD_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 8. API Service (Go - OneData)
+###############################################################################
+echo -e "${GREEN}[8/8] Setting up API Service (OneData)...${NC}"
+
+# Create API Service
+# Note: Upstream is at VM2 (e.g., 192.168.120.42:8085)
+API_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"api-service\",
+    \"url\": \"${API_SERVICE_URL:-http://192.168.120.42:8085}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000,
+    \"retries\": 3
+  }")
+
+API_SERVICE_ID=$(parse_json_id "$API_SERVICE")
+
+if [ -z "$API_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create API service${NC}"
+else
+    echo -e "${GREEN}  ✓ API service created: $API_SERVICE_ID${NC}"
+
+    # Route: Protected endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "api-service-route",
+        "paths": ["/api-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    API_ROUTE_ID=$(parse_json_id "$API_ROUTE")
+
+    if [ -n "$API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
@@ -803,6 +957,8 @@ echo "  Sister (public photo): /sister-service/public/* → backend/public/*"
 echo "  Feeder (JWT required): /feeder-service/* → backend/*"
 echo "  MyUnila (JWT req):     /myunila-service/* → backend/*"
 echo "  MyUnila (public):      /myunila-service/public/* → backend/*"
+echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
+echo "  API/OneData (JWT req): /api-service/* → backend/*"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
