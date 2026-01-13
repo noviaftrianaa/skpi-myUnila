@@ -17,7 +17,7 @@ class DosenProfileController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/dosen/{id}",
+     *     path="/dosen/{id}",
      *     tags={"Dosen Profile"},
      *     summary="Get dosen profile by encrypted ID",
      *     description="Retrieve complete dosen profile including education, teaching, research, and publications",

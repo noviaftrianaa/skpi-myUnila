@@ -21,7 +21,7 @@ class UnilaProfileController extends Controller
     }
 
     #[OA\Get(
-        path: '/api/v1/unila/profile',
+        path: '/unila/profile',
         summary: 'Get Unila Profile Information',
         description: 'Mendapatkan informasi lengkap profil Universitas Lampung dari database',
         tags: ['Unila Profile'],

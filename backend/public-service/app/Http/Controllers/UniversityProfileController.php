@@ -35,7 +35,7 @@ class UniversityProfileController extends Controller
      * Get University Profile
      *
      * @OA\Get(
-     *     path="/api/v1/university-profile",
+     *     path="/university-profile",
      *     tags={"University Profile"},
      *     summary="Get complete university profile",
      *     description="Returns complete information about Universitas Lampung including vision, mission, faculties, statistics, and social media",
@@ -74,7 +74,7 @@ class UniversityProfileController extends Controller
      * Get Quick Facts
      *
      * @OA\Get(
-     *     path="/api/v1/university-profile/quick-facts",
+     *     path="/university-profile/quick-facts",
      *     tags={"University Profile"},
      *     summary="Get quick facts cards",
      *     description="Returns 6 quick fact cards for homepage display (students, lecturers, faculties, accreditation, campus area, established year)",
@@ -114,7 +114,7 @@ class UniversityProfileController extends Controller
      * Get Contact Information
      *
      * @OA\Get(
-     *     path="/api/v1/university-profile/contact",
+     *     path="/university-profile/contact",
      *     tags={"University Profile"},
      *     summary="Get contact information",
      *     description="Returns complete contact information including main office, departments, working hours, and location",

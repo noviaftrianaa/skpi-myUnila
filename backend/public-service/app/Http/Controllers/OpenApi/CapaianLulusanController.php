@@ -18,7 +18,7 @@ class CapaianLulusanController extends Controller
     }
 
     #[OA\Get(
-        path: '/api/v1/capaian-lulusan/statistics',
+        path: '/capaian-lulusan/statistics',
         summary: 'Get capaian lulusan statistics',
         tags: ['Capaian Lulusan'],
         responses: [

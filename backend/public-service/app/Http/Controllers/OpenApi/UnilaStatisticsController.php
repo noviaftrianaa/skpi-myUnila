@@ -24,7 +24,7 @@ class UnilaStatisticsController extends Controller
      * Get Universitas Lampung overall statistics
      */
     #[OA\Get(
-        path: '/api/v1/unila/statistics',
+        path: '/unila/statistics',
         operationId: 'getUnilaStatistics',
         summary: 'Get Universitas Lampung overall statistics',
         description: 'Returns overall statistics for Universitas Lampung including mahasiswa, dosen, tendik, fakultas, pascasarjana, program studi, guru besar, and publikasi',

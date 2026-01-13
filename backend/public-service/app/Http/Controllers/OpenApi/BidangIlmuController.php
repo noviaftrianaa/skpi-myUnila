@@ -17,7 +17,7 @@ class BidangIlmuController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/dosen/bidang-ilmu/{encrypted_id}",
+     *     path="/dosen/bidang-ilmu/{encrypted_id}",
      *     tags={"Bidang Ilmu"},
      *     summary="Get bidang ilmu for a dosen",
      *     description="Retrieve all bidang ilmu/keahlian for a specific dosen by encrypted ID",
