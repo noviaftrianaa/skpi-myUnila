@@ -1,0 +1,168 @@
+list:
+  get:
+    tags:
+      - Scheduler
+    summary: Get List Schedules
+    description: Mengambil daftar jadwal sinkronisasi
+    operationId: getScheduleList
+    responses:
+      '200':
+        description: Berhasil mengambil daftar schedule
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/scheduler.yaml#/Schedule'
+
+  post:
+    tags:
+      - Scheduler
+    summary: Create Schedule
+    description: Membuat jadwal sinkronisasi baru
+    operationId: createSchedule
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - cron_expression
+              - sync_type
+            properties:
+              name:
+                type: string
+                description: Nama schedule
+                example: Sync Mahasiswa Harian
+              cron_expression:
+                type: string
+                description: Cron expression (format standar cron)
+                example: "0 2 * * *"
+              sync_type:
+                type: string
+                description: Tipe sinkronisasi
+                enum: [mahasiswa, kelas_kuliah, nilai_perkuliahan, kurikulum, aktivitas_mahasiswa, prestasi]
+              params:
+                type: object
+                description: Parameter tambahan untuk sync
+              is_active:
+                type: boolean
+                default: true
+    responses:
+      '201':
+        description: Schedule berhasil dibuat
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/scheduler.yaml#/Schedule'
+
+detail:
+  get:
+    tags:
+      - Scheduler
+    summary: Get Schedule Detail
+    description: Mengambil detail jadwal berdasarkan ID
+    operationId: getScheduleDetail
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil detail schedule
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/scheduler.yaml#/Schedule'
+
+  put:
+    tags:
+      - Scheduler
+    summary: Update Schedule
+    description: Memperbarui jadwal sinkronisasi
+    operationId: updateSchedule
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              cron_expression:
+                type: string
+              sync_type:
+                type: string
+              params:
+                type: object
+              is_active:
+                type: boolean
+    responses:
+      '200':
+        description: Schedule berhasil diupdate
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/scheduler.yaml#/Schedule'
+
+  delete:
+    tags:
+      - Scheduler
+    summary: Delete Schedule
+    description: Menghapus jadwal sinkronisasi
+    operationId: deleteSchedule
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Schedule berhasil dihapus
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Schedule deleted successfully

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/apiconfig"
 	"github.com/myunila/feeder-service/apps/dashboard"
@@ -9,14 +10,15 @@ import (
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
+	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/nilai_konversi"
 	"github.com/myunila/feeder-service/apps/nilai_perkuliahan"
 	"github.com/myunila/feeder-service/apps/prestasi"
 	"github.com/myunila/feeder-service/apps/referensi"
 	"github.com/myunila/feeder-service/apps/rencana_evaluasi"
-	"github.com/myunila/feeder-service/apps/transkrip_nilai"
-	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/scheduler"
+	"github.com/myunila/feeder-service/apps/transkrip_nilai"
+	"github.com/myunila/feeder-service/docs"
 	"github.com/myunila/feeder-service/external/database"
 	"github.com/myunila/feeder-service/external/feeder_api"
 	"github.com/myunila/feeder-service/internal/config"
@@ -101,6 +103,10 @@ func main() {
 		ExposeHeaders:    "Content-Length",
 		MaxAge:           12 * 3600,
 	}))
+
+	// Setup API Documentation (Scalar UI)
+	docs.SetupDocs(app)
+	log.Println("✅ API Documentation available at /docs")
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -219,6 +225,7 @@ func main() {
 			"version": "1.0.0",
 			"message": "Feeder Service - Data Synchronization from Neo Feeder PDDIKTI",
 			"endpoints": fiber.Map{
+				"docs":                "/docs",
 				"health":              "/health",
 				"api":                 "/api/v1",
 				"mahasiswa":           "/api/v1/mahasiswa",

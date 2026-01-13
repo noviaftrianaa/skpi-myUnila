@@ -1,0 +1,107 @@
+list:
+  get:
+    tags:
+      - Kurikulum
+    summary: Get List Kurikulum
+    description: Mengambil daftar kurikulum dan matakuliah dengan pagination dan filter
+    operationId: getKurikulumList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_prodi
+        in: query
+        description: Filter berdasarkan ID program studi
+        schema:
+          type: string
+      - name: search
+        in: query
+        description: Cari berdasarkan nama matakuliah
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data kurikulum
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/kurikulum.yaml#/Kurikulum'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Kurikulum
+    summary: Get Statistik Kurikulum
+    description: Mengambil statistik data kurikulum
+    operationId: getKurikulumStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total_kurikulum:
+                      type: integer
+                    total_matakuliah:
+                      type: integer
+                    by_prodi:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Kurikulum
+    summary: Sinkronisasi Kurikulum
+    description: Melakukan sinkronisasi data kurikulum dari Feeder PDDIKTI
+    operationId: syncKurikulum
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_prodi:
+                type: string
+                description: ID program studi yang akan disinkronkan
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully

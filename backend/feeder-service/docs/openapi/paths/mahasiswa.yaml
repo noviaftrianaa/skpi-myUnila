@@ -1,0 +1,206 @@
+list:
+  get:
+    tags:
+      - Mahasiswa
+    summary: Get List Mahasiswa
+    description: Mengambil daftar mahasiswa dengan pagination dan filter
+    operationId: getMahasiswaList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: search
+        in: query
+        description: Cari berdasarkan nama atau NIM
+        schema:
+          type: string
+      - name: angkatan
+        in: query
+        description: Filter berdasarkan tahun angkatan
+        schema:
+          type: string
+      - name: id_prodi
+        in: query
+        description: Filter berdasarkan ID program studi
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data mahasiswa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/mahasiswa.yaml#/Mahasiswa'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Mahasiswa
+    summary: Get Statistik Mahasiswa
+    description: Mengambil statistik data mahasiswa
+    operationId: getMahasiswaStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      example: 25000
+                    by_angkatan:
+                      type: object
+                      additionalProperties:
+                        type: integer
+                    by_prodi:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Mahasiswa
+    summary: Sinkronisasi Mahasiswa
+    description: Melakukan sinkronisasi data mahasiswa dari Feeder PDDIKTI
+    operationId: syncMahasiswa
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              angkatan:
+                type: string
+                description: Tahun angkatan yang akan disinkronkan
+                example: "2024"
+              id_prodi:
+                type: string
+                description: ID program studi (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+                sync_id:
+                  type: string
+                  example: sync-mhs-2024-001
+
+helper-angkatan:
+  get:
+    tags:
+      - Mahasiswa
+    summary: Get List Angkatan
+    description: Mengambil daftar tahun angkatan yang tersedia
+    operationId: getMahasiswaHelperAngkatan
+    security: []
+    responses:
+      '200':
+        description: Berhasil mengambil daftar angkatan
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    type: string
+                  example: ["2024", "2023", "2022", "2021", "2020"]
+
+helper-prodi:
+  get:
+    tags:
+      - Mahasiswa
+    summary: Get List Program Studi
+    description: Mengambil daftar program studi yang tersedia
+    operationId: getMahasiswaHelperProdi
+    security: []
+    responses:
+      '200':
+        description: Berhasil mengambil daftar prodi
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id_prodi:
+                        type: string
+                      nama_prodi:
+                        type: string
+
+detail:
+  get:
+    tags:
+      - Mahasiswa
+    summary: Get Detail Mahasiswa
+    description: Mengambil detail data mahasiswa berdasarkan ID
+    operationId: getMahasiswaDetail
+    parameters:
+      - name: id_pd
+        in: path
+        required: true
+        description: ID Peserta Didik
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil detail mahasiswa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/mahasiswa.yaml#/Mahasiswa'
+      '404':
+        description: Mahasiswa tidak ditemukan

@@ -1,0 +1,139 @@
+list:
+  get:
+    tags:
+      - Kelas Kuliah
+    summary: Get List Kelas Kuliah
+    description: Mengambil daftar kelas kuliah dengan pagination dan filter
+    operationId: getKelasKuliahList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_prodi
+        in: query
+        description: Filter berdasarkan ID program studi
+        schema:
+          type: string
+      - name: id_semester
+        in: query
+        description: Filter berdasarkan ID semester
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data kelas kuliah
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/kelas-kuliah.yaml#/KelasKuliah'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Kelas Kuliah
+    summary: Get Statistik Kelas Kuliah
+    description: Mengambil statistik data kelas kuliah
+    operationId: getKelasKuliahStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    by_semester:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Kelas Kuliah
+    summary: Sinkronisasi Kelas Kuliah
+    description: Melakukan sinkronisasi data kelas kuliah dari Feeder PDDIKTI
+    operationId: syncKelasKuliah
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_semester:
+                type: string
+                description: ID semester yang akan disinkronkan
+                example: "20241"
+              id_prodi:
+                type: string
+                description: ID program studi (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+
+detail:
+  get:
+    tags:
+      - Kelas Kuliah
+    summary: Get Detail Kelas Kuliah
+    description: Mengambil detail data kelas kuliah berdasarkan ID
+    operationId: getKelasKuliahDetail
+    parameters:
+      - name: id_kls
+        in: path
+        required: true
+        description: ID Kelas Kuliah
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil detail kelas kuliah
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/kelas-kuliah.yaml#/KelasKuliah'
+      '404':
+        description: Kelas kuliah tidak ditemukan
