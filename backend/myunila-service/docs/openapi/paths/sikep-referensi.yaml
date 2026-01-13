@@ -1,0 +1,49 @@
+list:
+  get:
+    tags:
+      - SIKEP Referensi
+    summary: Get List Referensi
+    description: Mengambil daftar data referensi dari SIKEP
+    operationId: getSikepReferensiList
+    parameters:
+      - name: type
+        in: query
+        description: Tipe referensi
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data referensi
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    type: object
+
+metadata:
+  post:
+    tags:
+      - SIKEP Referensi
+    summary: Get Referensi Metadata
+    description: Mengambil metadata referensi dari SIKEP
+    operationId: getSikepReferensiMetadata
+    responses:
+      '200':
+        description: Berhasil mengambil metadata
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object

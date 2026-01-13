@@ -1,0 +1,137 @@
+list:
+  get:
+    tags:
+      - Scheduler
+    summary: Get List Schedules
+    description: Mengambil daftar jadwal sinkronisasi
+    operationId: getScheduleList
+    responses:
+      '200':
+        description: Berhasil mengambil daftar jadwal
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/scheduler.yaml#/Schedule'
+  post:
+    tags:
+      - Scheduler
+    summary: Create Schedule
+    description: Membuat jadwal sinkronisasi baru
+    operationId: createSchedule
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/scheduler.yaml#/ScheduleCreate'
+    responses:
+      '201':
+        description: Jadwal berhasil dibuat
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Schedule created successfully
+                data:
+                  $ref: '../schemas/scheduler.yaml#/Schedule'
+
+detail:
+  get:
+    tags:
+      - Scheduler
+    summary: Get Schedule by ID
+    description: Mengambil detail jadwal berdasarkan ID
+    operationId: getScheduleById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Detail jadwal
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../schemas/scheduler.yaml#/Schedule'
+      '404':
+        description: Jadwal tidak ditemukan
+  put:
+    tags:
+      - Scheduler
+    summary: Update Schedule
+    description: Memperbarui jadwal sinkronisasi
+    operationId: updateSchedule
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/scheduler.yaml#/ScheduleUpdate'
+    responses:
+      '200':
+        description: Jadwal berhasil diperbarui
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Schedule updated successfully
+  delete:
+    tags:
+      - Scheduler
+    summary: Delete Schedule
+    description: Menghapus jadwal sinkronisasi
+    operationId: deleteSchedule
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Jadwal berhasil dihapus
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Schedule deleted successfully

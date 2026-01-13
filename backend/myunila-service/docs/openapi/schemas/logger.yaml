@@ -1,0 +1,43 @@
+SyncLog:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    type:
+      type: string
+      enum:
+        - sikep_pegawai
+        - radius
+        - unit_organisasi
+      example: sikep_pegawai
+    status:
+      type: string
+      enum:
+        - success
+        - failed
+        - running
+      example: success
+    total_processed:
+      type: integer
+      example: 500
+    total_success:
+      type: integer
+      example: 495
+    total_failed:
+      type: integer
+      example: 5
+    duration_seconds:
+      type: number
+      format: float
+      example: 125.5
+    error_message:
+      type: string
+      nullable: true
+    started_at:
+      type: string
+      format: date-time
+    finished_at:
+      type: string
+      format: date-time
+      nullable: true

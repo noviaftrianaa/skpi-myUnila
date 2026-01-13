@@ -19,6 +19,7 @@ import (
 	"github.com/myunila/myunila-service/apps/radius"
 	"github.com/myunila/myunila-service/apps/sikep/pegawai"
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
+	"github.com/myunila/myunila-service/docs"
 	"github.com/myunila/myunila-service/external/database"
 	"github.com/myunila/myunila-service/external/radius_api"
 	"github.com/myunila/myunila-service/external/sikep_api"
@@ -174,6 +175,10 @@ func main() {
 		log.Printf("⚠️  Failed to start scheduler: %v", err)
 	}
 
+	// Setup API Documentation
+	docs.SetupDocs(app)
+	log.Println("✅ API Documentation available at /docs")
+
 	// Welcome message
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -181,6 +186,7 @@ func main() {
 			"version": "1.0.0",
 			"message": "MyUnila Service - Data Synchronization from External Systems",
 			"endpoints": fiber.Map{
+				"docs":             "/docs",
 				"health":           "/health",
 				"api":              "/api/v1",
 				"api_configs":      "/api/v1/api-configs",

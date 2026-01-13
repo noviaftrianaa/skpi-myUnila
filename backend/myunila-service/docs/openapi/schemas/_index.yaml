@@ -1,0 +1,29 @@
+# Common schemas
+Pagination:
+  $ref: './common.yaml#/Pagination'
+
+# SIKEP Pegawai
+Pegawai:
+  $ref: './sikep-pegawai.yaml#/Pegawai'
+PegawaiDetail:
+  $ref: './sikep-pegawai.yaml#/PegawaiDetail'
+
+# Radius
+RadiusUser:
+  $ref: './radius.yaml#/RadiusUser'
+
+# Unit Organisasi
+UnitOrganisasi:
+  $ref: './unit-organisasi.yaml#/UnitOrganisasi'
+
+# Scheduler
+Schedule:
+  $ref: './scheduler.yaml#/Schedule'
+
+# Logger
+SyncLog:
+  $ref: './logger.yaml#/SyncLog'
+
+# Monitoring
+ActiveProcess:
+  $ref: './monitoring.yaml#/ActiveProcess'
