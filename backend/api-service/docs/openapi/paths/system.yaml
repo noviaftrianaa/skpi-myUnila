@@ -1,0 +1,26 @@
+# System API Paths
+
+health:
+  get:
+    tags:
+      - System
+    summary: Health check
+    description: Mengecek status kesehatan service
+    operationId: healthCheck
+    responses:
+      '200':
+        description: Service healthy
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ok
+                service:
+                  type: string
+                  example: MyUnila API Service
+                version:
+                  type: string
+                  example: 1.0.0

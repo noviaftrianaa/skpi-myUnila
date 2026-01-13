@@ -1,0 +1,143 @@
+# Referensi API Paths
+
+semester:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar semester
+    description: Mengambil daftar semester dengan pagination dan filter. Memerlukan autentikasi JWT.
+    operationId: getSemesters
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: tahun_ajaran
+        in: query
+        description: Filter berdasarkan tahun ajaran
+        schema:
+          type: integer
+      - name: periode_aktif
+        in: query
+        description: Filter periode aktif (1=aktif, 0=tidak)
+        schema:
+          type: integer
+          enum: [0, 1]
+    responses:
+      '200':
+        description: Berhasil mengambil data semester
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tahun-ajaran:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tahun ajaran
+    description: Mengambil daftar tahun ajaran dengan pagination dan filter. Memerlukan autentikasi JWT.
+    operationId: getTahunAjarans
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: periode_aktif
+        in: query
+        description: Filter periode aktif (1=aktif, 0=tidak)
+        schema:
+          type: integer
+          enum: [0, 1]
+    responses:
+      '200':
+        description: Berhasil mengambil data tahun ajaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+agama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar agama
+    description: Mengambil daftar agama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getAgamas
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data agama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+wilayah:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar wilayah
+    description: |
+      Mengambil daftar wilayah dengan pagination dan filter level.
+
+      Level wilayah:
+      - 1 = Provinsi
+      - 2 = Kabupaten/Kota
+      - 3 = Kecamatan
+      - 4 = Kelurahan/Desa
+
+      Memerlukan autentikasi JWT.
+    operationId: getWilayahs
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: level
+        in: query
+        description: Level wilayah (1=Provinsi, 2=Kab/Kota, 3=Kecamatan, 4=Kelurahan)
+        schema:
+          type: integer
+          enum: [1, 2, 3, 4]
+      - name: id_induk_wilayah
+        in: query
+        description: Filter berdasarkan ID induk wilayah
+        schema:
+          type: string
+      - name: id_negara
+        in: query
+        description: Filter berdasarkan ID negara
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data wilayah
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'

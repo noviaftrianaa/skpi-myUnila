@@ -1,0 +1,121 @@
+# Common Schemas - Reusable across all services
+
+# =============================================================================
+# Pagination Parameters
+# =============================================================================
+parameters:
+  page:
+    name: page
+    in: query
+    description: Nomor halaman
+    schema:
+      type: integer
+      default: 1
+      minimum: 1
+
+  limit:
+    name: limit
+    in: query
+    description: Jumlah data per halaman (max 100)
+    schema:
+      type: integer
+      default: 20
+      minimum: 1
+      maximum: 100
+
+  search:
+    name: search
+    in: query
+    description: Kata kunci pencarian
+    schema:
+      type: string
+
+  sortBy:
+    name: sort_by
+    in: query
+    description: Kolom untuk sorting
+    schema:
+      type: string
+
+  order:
+    name: order
+    in: query
+    description: Urutan sorting
+    schema:
+      type: string
+      enum: [asc, desc]
+      default: asc
+
+# =============================================================================
+# Response Schemas
+# =============================================================================
+SuccessResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: Operasi berhasil
+    data:
+      type: object
+    timestamp:
+      type: string
+      format: date-time
+
+PaginatedResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: Berhasil mengambil data
+    data:
+      type: array
+      items:
+        type: object
+    meta:
+      $ref: '#/PaginationMeta'
+    timestamp:
+      type: string
+      format: date-time
+
+PaginationMeta:
+  type: object
+  properties:
+    page:
+      type: integer
+      example: 1
+    limit:
+      type: integer
+      example: 20
+    total:
+      type: integer
+      example: 100
+    total_pages:
+      type: integer
+      example: 5
+
+ErrorResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: false
+    message:
+      type: string
+      example: Terjadi kesalahan
+    error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: ERROR_CODE
+        details:
+          type: object
+    timestamp:
+      type: string
+      format: date-time

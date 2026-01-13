@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: myUnila API Web Service
+  description: |
+    Layanan API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
+
+    Untuk permintaan penambahan endpoint atau kustomisasi API, silakan hubungi tim pengembang melalui email tertera.
+  version: 1.0.0
+  contact:
+    name: Tim MyUnila
+    email: dev@unila.ac.id
+
+servers:
+  - url: http://localhost:8085
+    description: Local Development
+  - url: https://my.unila.ac.id/gateway/api-service
+    description: Production Server
+
+tags:
+  - name: Auth
+    description: Autentikasi dan manajemen token
+  - name: Referensi
+    description: Data referensi master (semester, tahun ajaran, agama, wilayah)
+  - name: System
+    description: System endpoints
+
+paths:
+  # Auth endpoints
+  /v1/auth/login:
+    $ref: './paths/auth.yaml#/login'
+  /v1/auth/check-token:
+    $ref: './paths/auth.yaml#/check-token'
+
+  # Referensi endpoints
+  /v1/referensi/semester:
+    $ref: './paths/referensi.yaml#/semester'
+  /v1/referensi/tahun-ajaran:
+    $ref: './paths/referensi.yaml#/tahun-ajaran'
+  /v1/referensi/agama:
+    $ref: './paths/referensi.yaml#/agama'
+  /v1/referensi/wilayah:
+    $ref: './paths/referensi.yaml#/wilayah'
+
+  # System endpoints
+  /health:
+    $ref: './paths/system.yaml#/health'
+
+components:
+  schemas:
+    $ref: './schemas/_index.yaml'
+
+  responses:
+    $ref: './responses/_index.yaml'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Masukkan JWT token

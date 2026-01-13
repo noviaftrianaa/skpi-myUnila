@@ -15,19 +15,7 @@ func NewHandler(svc Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// Login godoc
-// @Summary Login untuk mendapatkan access token
-// @Description Autentikasi pengguna dengan id_aplikasi, username, dan password untuk mendapatkan JWT token
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body LoginRequest true "Login credentials"
-// @Success 200 {object} response.Response{data=LoginResponse} "Login berhasil"
-// @Failure 400 {object} response.Response "Bad request - validasi gagal"
-// @Failure 401 {object} response.Response "Unauthorized - kredensial salah"
-// @Failure 403 {object} response.Response "Forbidden - pengguna tidak terdaftar di aplikasi"
-// @Failure 500 {object} response.Response "Internal server error"
-// @Router /v1/auth/login [post]
+// Login handles user authentication
 func (h *Handler) Login(c *fiber.Ctx) error {
 	var req LoginRequest
 
@@ -75,17 +63,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	return response.Success(c, "Berhasil Otentikasi", result)
 }
 
-// CheckToken godoc
-// @Summary Cek validitas token
-// @Description Memvalidasi JWT token dan mengembalikan informasi token serta user
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body CheckTokenRequest true "Token to check"
-// @Success 200 {object} response.Response{data=CheckTokenResponse} "Token info"
-// @Failure 400 {object} response.Response "Bad request - validasi gagal"
-// @Failure 500 {object} response.Response "Internal server error"
-// @Router /v1/auth/check-token [post]
+// CheckToken validates a JWT token
 func (h *Handler) CheckToken(c *fiber.Ctx) error {
 	var req CheckTokenRequest
 
