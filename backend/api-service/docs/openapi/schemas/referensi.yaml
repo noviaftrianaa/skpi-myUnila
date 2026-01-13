@@ -1,0 +1,83 @@
+# Referensi Schemas
+
+Semester:
+  type: object
+  properties:
+    id_smt:
+      type: string
+      example: "20241"
+    id_thn_ajaran:
+      type: integer
+      example: 2024
+    nm_smt:
+      type: string
+      example: "2024/2025 Ganjil"
+    smt:
+      type: integer
+      example: 1
+    a_periode_aktif:
+      type: integer
+      example: 1
+    tgl_mulai:
+      type: string
+      format: date-time
+    tgl_selesai:
+      type: string
+      format: date-time
+
+TahunAjaran:
+  type: object
+  properties:
+    id_thn_ajaran:
+      type: integer
+      example: 2024
+    nm_thn_ajaran:
+      type: string
+      example: "2024/2025"
+    a_periode_aktif:
+      type: integer
+      example: 1
+    tgl_mulai:
+      type: string
+      format: date-time
+    tgl_selesai:
+      type: string
+      format: date-time
+
+Agama:
+  type: object
+  properties:
+    id_agama:
+      type: integer
+      example: 1
+    nm_agama:
+      type: string
+      example: Islam
+
+Wilayah:
+  type: object
+  properties:
+    id_wil:
+      type: string
+      example: "180000"
+    id_negara:
+      type: string
+      example: "ID"
+    nm_wil:
+      type: string
+      example: Lampung
+    asal_wil:
+      type: string
+    kode_bps:
+      type: string
+    kode_dagri:
+      type: string
+    kode_keu:
+      type: string
+    id_induk_wilayah:
+      type: string
+      example: "000000"
+    id_level_wil:
+      type: integer
+      example: 1
+      description: "1=Provinsi, 2=Kab/Kota, 3=Kecamatan, 4=Kelurahan"

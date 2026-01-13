@@ -1,0 +1,55 @@
+# Auth API Paths
+
+login:
+  post:
+    tags:
+      - Auth
+    summary: Login untuk mendapatkan access token
+    description: Autentikasi pengguna dengan id_aplikasi, username, dan password untuk mendapatkan JWT token
+    operationId: login
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/LoginRequest'
+          example:
+            id_aplikasi: "your-app-uuid-here"
+            username: "your-username"
+            password: "your-password"
+    responses:
+      '200':
+        description: Login berhasil
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/LoginSuccessResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+
+check-token:
+  post:
+    tags:
+      - Auth
+    summary: Cek validitas token
+    description: Memvalidasi JWT token dan mengembalikan informasi token serta user
+    operationId: checkToken
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/CheckTokenRequest'
+    responses:
+      '200':
+        description: Token info
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/CheckTokenSuccessResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'

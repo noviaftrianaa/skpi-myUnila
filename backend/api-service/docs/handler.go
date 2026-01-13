@@ -1,21 +1,104 @@
 package docs
 
 import (
+	"encoding/json"
+	"log"
+	"sync"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/myunila/api-service/docs/openapi"
+	"gopkg.in/yaml.v3"
 )
+
+var (
+	compiledSpec     []byte
+	compiledSpecJSON []byte
+	specOnce         sync.Once
+	specErr          error
+)
+
+// loadCompiledSpec loads and compiles the OpenAPI spec from YAML files
+func loadCompiledSpec() error {
+	specOnce.Do(func() {
+		spec, err := openapi.LoadSpec()
+		if err != nil {
+			log.Printf("Error: Failed to load OpenAPI YAML spec: %v", err)
+			specErr = err
+			return
+		}
+		compiledSpec = spec.GetYAML()
+
+		// Convert to JSON for Scalar UI
+		var yamlData interface{}
+		if err := yaml.Unmarshal(compiledSpec, &yamlData); err != nil {
+			specErr = err
+			return
+		}
+		compiledSpecJSON, specErr = json.Marshal(convertYAMLToJSON(yamlData))
+	})
+	return specErr
+}
+
+// convertYAMLToJSON converts YAML maps to JSON-compatible maps
+func convertYAMLToJSON(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[string]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range x {
+			m[k] = convertYAMLToJSON(v)
+		}
+		return m
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{})
+		for k, v := range x {
+			m[k.(string)] = convertYAMLToJSON(v)
+		}
+		return m
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convertYAMLToJSON(v)
+		}
+	}
+	return i
+}
 
 // SetupSwagger mendaftarkan endpoint untuk API documentation
 func SetupSwagger(app *fiber.App) {
 	// Serve OpenAPI JSON spec
 	app.Get("/docs/openapi.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
-		return c.SendString(SwaggerInfo.ReadDoc())
+
+		if err := loadCompiledSpec(); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to load OpenAPI spec: " + err.Error(),
+			})
+		}
+
+		return c.Send(compiledSpecJSON)
+	})
+
+	// Serve OpenAPI YAML spec
+	app.Get("/docs/openapi.yaml", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/yaml")
+
+		if err := loadCompiledSpec(); err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to load OpenAPI spec: " + err.Error())
+		}
+
+		return c.Send(compiledSpec)
 	})
 
 	// Serve Scalar UI
 	app.Get("/docs", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
 		return c.SendString(scalarHTML)
+	})
+
+	// Serve favicon (logo Unila)
+	app.Get("/docs/favicon.png", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "image/png")
+		c.Set("Cache-Control", "public, max-age=31536000")
+		return c.SendFile("./docs/logo-unila.png")
 	})
 }
 
@@ -26,7 +109,8 @@ var scalarHTML = `<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyUnila API Documentation</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link rel="icon" type="image/png" href="/docs/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
@@ -53,32 +137,32 @@ var scalarHTML = `<!DOCTYPE html>
             pointer-events: none;
         }
         .loading-logo {
-            font-size: 4rem;
             margin-bottom: 1.5rem;
-            animation: bounce 1s ease infinite;
+            animation: pulse 2s ease-in-out infinite;
         }
-        .loading-text {
-            color: #e94560;
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
+        .loading-logo svg {
+            width: 280px;
+            height: auto;
         }
         .loading-subtext {
             color: #a0a0a0;
             font-size: 0.9rem;
             margin-top: 0.5rem;
         }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
         }
     </style>
 </head>
 <body>
     <div class="loading-screen" id="loading">
-        <div class="loading-logo">🚀</div>
-        <div class="loading-text">MyUnila API</div>
-        <div class="loading-subtext">Loading documentation...</div>
+        <div class="loading-logo">
+            <svg width="280" height="80" viewBox="0 0 1360 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="280" fill="#0B5EA8">myUnila</text>
+            </svg>
+        </div>
+        <div class="loading-subtext">Loading API Documentation...</div>
     </div>
 
     <script id="api-reference" data-url="/docs/openapi.json"></script>
@@ -87,7 +171,27 @@ var scalarHTML = `<!DOCTYPE html>
             theme: 'purple',
             layout: 'modern',
             darkMode: true,
-            hiddenClients: ['unirest'],
+            defaultHttpClient: {
+                targetKey: 'go',
+                clientKey: 'native',
+            },
+            hiddenClients: [
+                'c',
+                'clojure',
+                'csharp',
+                'dart',
+                'http',
+                'java',
+                'kotlin',
+                'objc',
+                'ocaml',
+                'powershell',
+                'r',
+                'ruby',
+                'shell',
+                'swift',
+                'unirest',
+            ],
             searchHotKey: 'k',
             showSidebar: true,
             hideModels: false,
@@ -123,9 +227,10 @@ var scalarHTML = `<!DOCTYPE html>
                     --scalar-background-1: #ffffff !important;
                     --scalar-background-2: #f8f9fa !important;
                     --scalar-background-3: #e9ecef !important;
-                    --scalar-color-accent: #16213e !important;
+                    --scalar-color-accent: #2563eb !important;
                     --scalar-button-1: #16213e !important;
                     --scalar-button-1-hover: #0f3460 !important;
+                    --scalar-sidebar-color-active: #2563eb !important;
                 }
 
                 /* Dark mode - custom dark blue theme */
@@ -133,9 +238,25 @@ var scalarHTML = `<!DOCTYPE html>
                     --scalar-background-1: #1a1a2e !important;
                     --scalar-background-2: #16213e !important;
                     --scalar-background-3: #0f3460 !important;
-                    --scalar-color-accent: #e94560 !important;
-                    --scalar-button-1: #e94560 !important;
-                    --scalar-button-1-hover: #ff6b6b !important;
+                    --scalar-color-accent: #60a5fa !important;
+                    --scalar-button-1: #60a5fa !important;
+                    --scalar-button-1-hover: #93c5fd !important;
+                    --scalar-sidebar-color-active: #60a5fa !important;
+                }
+
+                /* Sidebar active menu styling */
+                .sidebar-item.active,
+                .sidebar-item[data-active="true"],
+                .sidebar-item:focus {
+                    background-color: rgba(96, 165, 250, 0.15) !important;
+                }
+                .light-mode .sidebar-item.active,
+                .light-mode .sidebar-item[data-active="true"] {
+                    background-color: rgba(37, 99, 235, 0.1) !important;
+                }
+                .sidebar-item.active > span,
+                .sidebar-item[data-active="true"] > span {
+                    color: inherit !important;
                 }
 
                 /* Better mobile responsiveness */

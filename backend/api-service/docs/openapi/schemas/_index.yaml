@@ -1,0 +1,35 @@
+# Schema Index - All available schemas
+# Note: This file is used for documentation purposes
+# The actual schema merging happens in the Go loader
+
+# Common Schemas
+SuccessResponse:
+  $ref: './common.yaml#/SuccessResponse'
+PaginatedResponse:
+  $ref: './common.yaml#/PaginatedResponse'
+PaginationMeta:
+  $ref: './common.yaml#/PaginationMeta'
+ErrorResponse:
+  $ref: './common.yaml#/ErrorResponse'
+
+# Auth Schemas
+LoginRequest:
+  $ref: './auth.yaml#/LoginRequest'
+LoginResponse:
+  $ref: './auth.yaml#/LoginResponse'
+CheckTokenRequest:
+  $ref: './auth.yaml#/CheckTokenRequest'
+TokenData:
+  $ref: './auth.yaml#/TokenData'
+UserData:
+  $ref: './auth.yaml#/UserData'
+
+# Referensi Schemas
+Semester:
+  $ref: './referensi.yaml#/Semester'
+TahunAjaran:
+  $ref: './referensi.yaml#/TahunAjaran'
+Agama:
+  $ref: './referensi.yaml#/Agama'
+Wilayah:
+  $ref: './referensi.yaml#/Wilayah'

@@ -11,6 +11,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/api-service/apps/auth"
+	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
 	"github.com/myunila/api-service/external/database"
 	"github.com/myunila/api-service/external/redis"
@@ -127,9 +128,13 @@ func main() {
 	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
 	apiV1 := app.Group("/v1")
 
-	// Initialize Auth module
+	// Initialize Auth module (public - tanpa auth)
 	auth.Init(apiV1, db)
 	log.Println("✅ Auth module initialized")
+
+	// Initialize Referensi module (protected - dengan JWT auth middleware)
+	referensi.RegisterRoutes(apiV1, db)
+	log.Println("✅ Referensi module initialized")
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)

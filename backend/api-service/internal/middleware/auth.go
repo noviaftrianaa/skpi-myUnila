@@ -69,3 +69,8 @@ func GetClaims(c *fiber.Ctx) *jwt.Claims {
 	}
 	return claims
 }
+
+// JWTAuth adalah alias untuk AuthRequired
+func JWTAuth() fiber.Handler {
+	return AuthRequired()
+}
