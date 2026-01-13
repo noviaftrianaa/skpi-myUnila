@@ -660,6 +660,156 @@ else
     echo -e "${RED}  ✗ Failed to create JWT credential${NC}"
 fi
 
+###############################################################################
+# 7. Dashboard Service
+###############################################################################
+echo -e "${GREEN}[7/7] Setting up Dashboard Service...${NC}"
+
+# Create Dashboard Service
+DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "dashboard-service",
+    "url": "http://myunila-dashboard-service:9000",
+    "connect_timeout": 60000,
+    "write_timeout": 60000,
+    "read_timeout": 60000,
+    "retries": 3
+  }')
+
+DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
+
+if [ -z "$DASHBOARD_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
+else
+    echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
+
+    # Route: Protected /api/v1/* endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    DASHBOARD_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-api-v1-route",
+        "paths": ["/dashboard-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    DASHBOARD_API_ROUTE_ID=$(parse_json_id "$DASHBOARD_API_ROUTE")
+
+    if [ -n "$DASHBOARD_API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+fi
+
+###############################################################################
+# 8. API Service (Go - OneData)
+###############################################################################
+echo -e "${GREEN}[8/8] Setting up API Service (OneData)...${NC}"
+
+# Create API Service
+API_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "api-service",
+    "url": "http://myunila-api-service:8085",
+    "connect_timeout": 60000,
+    "write_timeout": 60000,
+    "read_timeout": 60000,
+    "retries": 3
+  }')
+
+API_SERVICE_ID=$(parse_json_id "$API_SERVICE")
+
+if [ -z "$API_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create API service${NC}"
+else
+    echo -e "${GREEN}  ✓ API service created: $API_SERVICE_ID${NC}"
+
+    # Route: Protected endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "api-service-route",
+        "paths": ["/api-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    API_ROUTE_ID=$(parse_json_id "$API_ROUTE")
+
+    if [ -n "$API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
@@ -673,6 +823,8 @@ echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
 echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
 echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
+echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
+echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"

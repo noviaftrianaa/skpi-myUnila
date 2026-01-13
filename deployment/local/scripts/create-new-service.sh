@@ -979,8 +979,11 @@ main() {
 
                 # Get service name
                 while true; do
-                    echo -n "Service name (lowercase, e.g., 'example', 'integration'): "
+                    echo -n "Service name (lowercase, tanpa '-service', e.g., 'dashboard', 'integration'): "
                     read service_name
+
+                    # Remove -service suffix if user accidentally added it
+                    service_name="${service_name%-service}"
 
                     if validate_service_name "$service_name"; then
                         break
@@ -1030,8 +1033,11 @@ main() {
 
                 # Get service name
                 while true; do
-                    echo -n "Service name (lowercase, e.g., 'example', 'integration'): "
+                    echo -n "Service name (lowercase, tanpa '-service', e.g., 'dashboard', 'integration'): "
                     read service_name
+
+                    # Remove -service suffix if user accidentally added it
+                    service_name="${service_name%-service}"
 
                     if validate_service_name "$service_name"; then
                         break

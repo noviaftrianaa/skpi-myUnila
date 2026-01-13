@@ -41,6 +41,7 @@ show_menu() {
     echo -e "  ${GREEN}8)${NC} Quick Rebuild - API Service Only"
     echo -e "  ${GREEN}9)${NC} Quick Rebuild - Frontend Only"
     echo -e "  ${GREEN}29)${NC} Quick Rebuild - Nginx Only"
+    echo -e "  ${GREEN}31)${NC} Quick Rebuild - Dashboard Only"
     echo ""
     echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
     echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
@@ -55,6 +56,7 @@ show_menu() {
     echo -e "  ${BLUE}15)${NC} Restart MyUnila Only"
     echo -e "  ${BLUE}16)${NC} Restart API Service Only"
     echo -e "  ${BLUE}30)${NC} Restart Nginx Only"
+    echo -e "  ${BLUE}32)${NC} Restart Dashboard Only"
     echo ""
     echo -e "  ${YELLOW}17)${NC} Show Container Status"
     echo -e "  ${YELLOW}18)${NC} Show Logs"
@@ -73,7 +75,7 @@ show_menu() {
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-30]: "
+    echo -n "Pilihan [0-32]: "
 }
 
 # Function to show container status
@@ -96,12 +98,13 @@ show_logs() {
     echo "  4) Feeder"
     echo "  5) MyUnila"
     echo "  6) API Service"
-    echo "  7) Nginx"
-    echo "  8) Redis"
-    echo "  9) MeiliSearch"
-    echo "  10) Kong"
+    echo "  7) Dashboard"
+    echo "  8) Nginx"
+    echo "  9) Redis"
+    echo "  10) MeiliSearch"
+    echo "  11) Kong"
     echo ""
-    read -p "Pilihan [1-10]: " log_choice
+    read -p "Pilihan [1-11]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
@@ -110,10 +113,11 @@ show_logs() {
         4) docker logs myunila-feeder-service --tail 100 -f ;;
         5) docker logs myunila-service --tail 100 -f ;;
         6) docker logs myunila-api-service --tail 100 -f ;;
-        7) docker logs myunila-nginx --tail 100 -f ;;
-        8) docker logs myunila-redis --tail 100 -f ;;
-        9) docker logs myunila-meilisearch --tail 100 -f ;;
-        10) docker logs myunila-kong --tail 100 -f ;;
+        7) docker logs myunila-dashboard-service --tail 100 -f ;;
+        8) docker logs myunila-nginx --tail 100 -f ;;
+        9) docker logs myunila-redis --tail 100 -f ;;
+        10) docker logs myunila-meilisearch --tail 100 -f ;;
+        11) docker logs myunila-kong --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -172,14 +176,22 @@ test_endpoints() {
         echo -e "${RED}✗ $API_STATUS${NC}"
     fi
 
+    echo -n "Dashboard:        "
+    DASHBOARD_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8087/api/health 2>/dev/null || echo "000")
+    if [ "$DASHBOARD_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $DASHBOARD_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $DASHBOARD_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
     echo "  Public:      http://localhost:8082"
     echo "  Auth:        http://localhost:8081"
     echo "  Sister:      http://localhost:8083"
     echo "  Feeder:      http://localhost:8084"
-    echo "  MyUnila:     http://localhost:8086"
     echo "  API Service: http://localhost:8085"
+    echo "  Dashboard:   http://localhost:8087"
     echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
@@ -261,6 +273,14 @@ while true; do
             ;;
         30)
             bash "$SCRIPT_DIR/restart-services.sh" nginx
+            read -p "Press Enter to continue..."
+            ;;
+        31)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" dashboard
+            read -p "Press Enter to continue..."
+            ;;
+        32)
+            bash "$SCRIPT_DIR/restart-services.sh" dashboard
             read -p "Press Enter to continue..."
             ;;
         17)
