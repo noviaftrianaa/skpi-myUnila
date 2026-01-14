@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	cache "github.com/myunila/api-service/external/redis"
 
 	"github.com/redis/go-redis/v9"
@@ -90,10 +92,19 @@ func (s *service) GetDiklatByID(ctx context.Context, ID string) (*Diklat, error)
 }
 
 func (s *service) CreateDiklat(ctx context.Context, params DiklatCreateRequest) (string, error) {
+	// Generate UUID untuk id_diklat jika belum ada
+	if params.IDDiklat == "" {
+		// Generate UUID dan convert ke uppercase (sesuai format database Anda)
+		params.IDDiklat = strings.ToUpper(uuid.New().String())
+		log.Printf("Generated new ID for diklat: %s", params.IDDiklat)
+	}
+
+	// Clear cache sebelum insert
 	if err := cache.DelByPattern(ctx, "diklatpaging:*"); err != nil {
 		log.Printf("Failed to delete cache for diklatpaging: %v", err)
 	}
 
+	// Call repository untuk insert ke database
 	return s.repo.CreateDiklat(ctx, params)
 }
 
