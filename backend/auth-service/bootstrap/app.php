@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckCrudPermission::class,
             'log.jwt.access' => \App\Http\Middleware\LogJwtAccess::class,
             'log.role.access' => \App\Http\Middleware\LogRoleAccess::class,
+            'require.developer' => \App\Http\Middleware\RequireDeveloper::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

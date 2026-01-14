@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/myunila/myunila-service/docs/openapi"
+	"github.com/myunila/myunila-service/internal/middleware"
 	"gopkg.in/yaml.v3"
 )
 
@@ -63,9 +64,13 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupDocs registers documentation endpoints
+// All docs endpoints are protected by JWT (via Kong) and require Developer role
 func SetupDocs(app *fiber.App) {
+	// Create a group for docs with Kong JWT auth and Developer role check
+	docsGroup := app.Group("/docs", middleware.KongAuth(), middleware.RequireDeveloper())
+
 	// Serve OpenAPI JSON spec
-	app.Get("/docs/openapi.json", func(c *fiber.Ctx) error {
+	docsGroup.Get("/openapi.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
 		if err := loadCompiledSpec(); err != nil {
@@ -78,7 +83,7 @@ func SetupDocs(app *fiber.App) {
 	})
 
 	// Serve OpenAPI YAML spec
-	app.Get("/docs/openapi.yaml", func(c *fiber.Ctx) error {
+	docsGroup.Get("/openapi.yaml", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/yaml")
 
 		if err := loadCompiledSpec(); err != nil {
@@ -88,13 +93,13 @@ func SetupDocs(app *fiber.App) {
 		return c.Send(compiledSpec)
 	})
 
-	// Serve Scalar UI
-	app.Get("/docs", func(c *fiber.Ctx) error {
+	// Serve Scalar UI (main docs page)
+	app.Get("/docs", middleware.KongAuth(), middleware.RequireDeveloper(), func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
 		return c.SendString(scalarHTML)
 	})
 
-	// Serve favicon (logo Unila)
+	// Serve favicon (no auth required for static assets)
 	app.Get("/docs/favicon.png", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "image/png")
 		c.Set("Cache-Control", "public, max-age=31536000")
