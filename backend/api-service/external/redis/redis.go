@@ -57,6 +57,32 @@ func Del(ctx context.Context, keys ...string) error {
 	return Client.Del(ctx, keys...).Err()
 }
 
+// Del menghapus key dengan pola tertentu
+func DelByPattern(ctx context.Context, key string) error {
+	var cursor uint64
+	var keys []string
+	for {
+		var err error
+		var scanKeys []string
+
+		scanKeys, cursor, err = Client.Scan(ctx, cursor, key, 100).Result()
+		if err != nil {
+			return err
+		}
+		keys = append(keys, scanKeys...)
+		if cursor == 0 {
+			break
+		}
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	if err := Client.Del(ctx, keys...).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Exists mengecek apakah key ada
 func Exists(ctx context.Context, key string) (bool, error) {
 	result, err := Client.Exists(ctx, key).Result()

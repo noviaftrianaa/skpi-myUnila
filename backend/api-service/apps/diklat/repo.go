@@ -2,6 +2,8 @@ package diklat
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,7 +13,8 @@ import (
 // Repository adalah interface untuk akses data diklat
 type Repository interface {
 	// Diklat operations
-	GetDiklat(ctx context.Context, params DiklatParams) ([]Diklat, int64, error)
+	GetDiklat(ctx context.Context, params DiklatParams) ([]*Diklat, int64, error)
+	GetDiklatByID(ctx context.Context, ID string) (*Diklat, error)
 	CreateDiklat(ctx context.Context, params DiklatCreateRequest) (string, error)
 	UpdateDiklat(ctx context.Context, params DiklatUpdateRequest) (string, error)
 	DeleteDiklat(ctx context.Context, IDDiklat string) error
@@ -27,10 +30,10 @@ func NewRepository(db *sqlx.DB) Repository {
 }
 
 // ============================================================================
-// Get Diklat
+// Get Diklats
 // ============================================================================
 
-func (r *repository) GetDiklat(ctx context.Context, params DiklatParams) ([]Diklat, int64, error) {
+func (r *repository) GetDiklat(ctx context.Context, params DiklatParams) ([]*Diklat, int64, error) {
 	params.NormalizePagination()
 
 	// Build WHERE clause
@@ -91,9 +94,9 @@ func (r *repository) GetDiklat(ctx context.Context, params DiklatParams) ([]Dikl
 	}
 	defer rows.Close()
 
-	var diklats []Diklat
+	var diklats []*Diklat
 	for rows.Next() {
-		var s Diklat
+		s := new(Diklat)
 		err := rows.Scan(
 			&s.IDDiklat, &s.JenisDiklat, &s.Kategori, &s.BidangKeilmuan, &s.NamaDiklat,
 			&s.Penyelenggara, &s.Tahun, &s.Peran, &s.Durasi, &s.NoSert,
@@ -107,6 +110,39 @@ func (r *repository) GetDiklat(ctx context.Context, params DiklatParams) ([]Dikl
 	}
 
 	return diklats, total, nil
+}
+
+// ============================================================================
+// Get Diklat By ID
+// ============================================================================
+
+func (r *repository) GetDiklatByID(ctx context.Context, ID string) (*Diklat, error) {
+	query := `
+		SELECT id_diklat, jenis_diklat, kategori, bidang_keilmuan, nama_diklat,
+		       penyelenggara, tahun, peran, durasi, no_sert,
+		       tgl_sert, tempat, tgl_mulai, tgl_selesai, sk_tugas,
+		       create_date, last_update, expired_date
+		FROM sdm.diklat
+		WHERE id_diklat = @p1
+		AND expired_date IS NULL
+	`
+
+	row := r.db.QueryRowContext(ctx, query, ID)
+
+	var result *Diklat
+	if err := row.Scan(
+		&result.IDDiklat, &result.JenisDiklat, &result.Kategori, &result.BidangKeilmuan, &result.NamaDiklat,
+		&result.Penyelenggara, &result.Tahun, &result.Peran, &result.Durasi, &result.NoSert,
+		&result.TglSert, &result.Tempat, &result.TglMulai, &result.TglSelesai, &result.SkTugas,
+		&result.CreateDate, &result.LastUpdate, &result.ExpiredDate,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("data diklat tidak ditemukan")
+		}
+		return nil, fmt.Errorf("scan diklat: %w", err)
+	}
+
+	return result, nil
 }
 
 // ============================================================================
