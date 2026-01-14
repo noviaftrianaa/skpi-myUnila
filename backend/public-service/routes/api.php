@@ -11,6 +11,7 @@ use App\Http\Controllers\OpenApi\MahasiswaStatisticsController;
 use App\Http\Controllers\OpenApi\DosenController;
 use App\Http\Controllers\OpenApi\DosenProfileController;
 use App\Http\Controllers\OpenApi\DosenSebaranController;
+use App\Http\Controllers\OpenApi\DosenInfografisController;
 use App\Http\Controllers\OpenApi\MahasiswaProfileController;
 use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PublikasiSebaranController;
@@ -136,6 +137,18 @@ Route::prefix('v1')->group(function () {
     Route::prefix('dosen-sebaran')->group(function () {
         Route::get('/fakultas', [DosenSebaranController::class, 'getSebaranByFakultas']);
         Route::get('/fakultas/{id_fakultas}/prodi', [DosenSebaranController::class, 'getSebaranByProdiInFakultas']);
+    });
+
+    // Dosen Infografis (Charts for Data Visualization)
+    Route::prefix('dosen-infografis')->group(function () {
+        Route::get('/heatmap/pendidikan-jabfung', [DosenInfografisController::class, 'getHeatmapPendidikanJabfung']);
+        Route::get('/heatmap/usia-pendidikan', [DosenInfografisController::class, 'getHeatmapUsiaPendidikan']);
+        Route::get('/heatmap/usia-jabfung', [DosenInfografisController::class, 'getHeatmapUsiaJabfung']);
+        Route::get('/heatmap/ikatan-status', [DosenInfografisController::class, 'getHeatmapIkatanStatus']);
+        Route::get('/sertifikasi-jabfung', [DosenInfografisController::class, 'getSertifikasiPerJabfung']);
+        Route::get('/gender-usia', [DosenInfografisController::class, 'getGenderUsia']);
+        Route::get('/tren-sertifikasi', [DosenInfografisController::class, 'getTrenSertifikasi']);
+        Route::get('/tren-jabfung', [DosenInfografisController::class, 'getTrenJabfung']);
     });
 
     // Publikasi
