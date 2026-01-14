@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gopkg.in/yaml.v3"
 	"sister-service/docs/openapi"
+	"sister-service/internal/middleware"
 )
 
 var (
@@ -60,8 +61,12 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupDocs registers documentation endpoints
+// All docs endpoints are protected by JWT (via Kong) and require Developer role
 func SetupDocs(app *fiber.App) {
-	app.Get("/docs/openapi.json", func(c *fiber.Ctx) error {
+	// Create a group for docs with Kong JWT auth and Developer role check
+	docsGroup := app.Group("/docs", middleware.KongAuth(), middleware.RequireDeveloper())
+
+	docsGroup.Get("/openapi.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		if err := loadCompiledSpec(); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -71,7 +76,7 @@ func SetupDocs(app *fiber.App) {
 		return c.Send(compiledSpecJSON)
 	})
 
-	app.Get("/docs/openapi.yaml", func(c *fiber.Ctx) error {
+	docsGroup.Get("/openapi.yaml", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/yaml")
 		if err := loadCompiledSpec(); err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to load OpenAPI spec: " + err.Error())
@@ -79,11 +84,13 @@ func SetupDocs(app *fiber.App) {
 		return c.Send(compiledSpec)
 	})
 
-	app.Get("/docs", func(c *fiber.Ctx) error {
+	// Serve Scalar UI (main docs page)
+	app.Get("/docs", middleware.KongAuth(), middleware.RequireDeveloper(), func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
 		return c.SendString(scalarHTML)
 	})
 
+	// Serve favicon (no auth required for static assets)
 	app.Get("/docs/favicon.png", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "image/png")
 		c.Set("Cache-Control", "public, max-age=31536000")
