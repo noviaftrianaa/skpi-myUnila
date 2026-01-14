@@ -30,7 +30,7 @@ func NewRepository(db *sqlx.DB) Repository {
 }
 
 // ============================================================================
-// Get Diklats
+// Get Diklat
 // ============================================================================
 
 func (r *repository) GetDiklat(ctx context.Context, params DiklatParams) ([]*Diklat, int64, error) {
