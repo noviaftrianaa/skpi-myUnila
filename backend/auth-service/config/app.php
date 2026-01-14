@@ -77,7 +77,7 @@ return [
     |
     */
 
-    'aplikasi_id' => env('APP_APLIKASI_ID'),
+    'aplikasi_id' => env('APLIKASI_ID'),
 
     /*
     |--------------------------------------------------------------------------
