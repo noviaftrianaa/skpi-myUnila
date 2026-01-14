@@ -58,18 +58,35 @@ interface KongInfo {
   };
 }
 
-// Mapping service to documentation URL
-// All services use consistent /api/documentation path
+// Mapping service to documentation URL via Kong Gateway (JWT Protected)
+// All docs routes go through Kong at /[service-name]/docs
+// Note: These URLs require valid JWT token with Developer role
+const KONG_GATEWAY_URL = "http://localhost:9800";
 const serviceDocsMap: Record<string, string> = {
-  "auth-service": "http://localhost:8081/api/documentation",
-  "public-service": "http://localhost:8082/api/documentation",
-  "sister-service": "http://localhost:8083/api/documentation",
+  "auth-service": `${KONG_GATEWAY_URL}/auth-service/docs`,
+  "public-service": `${KONG_GATEWAY_URL}/public-service/docs`,
+  "sister-service": `${KONG_GATEWAY_URL}/sister-service/docs`,
+  "feeder-service": `${KONG_GATEWAY_URL}/feeder-service/docs`,
+  "myunila-service": `${KONG_GATEWAY_URL}/myunila-service/docs`,
+  "api-service": `${KONG_GATEWAY_URL}/api-service/docs`,
+  "dashboard-service": `${KONG_GATEWAY_URL}/dashboard-service/docs`,
+};
+
+// Service display names for better UX
+const serviceDisplayNames: Record<string, string> = {
+  "auth-service": "Auth Service",
+  "public-service": "Public Service",
+  "sister-service": "Sister Service",
+  "feeder-service": "Feeder Service",
+  "myunila-service": "myUnila Integrator",
+  "api-service": "myUnila API Web Service",
+  "dashboard-service": "Dashboard Service",
 };
 
 export default function KongAdminPage() {
-  // Require authentication and Developer, Rektor, Wakil Rektor, or LP3M role
+  // Require authentication and Developer role only for API documentation access
   const { user, isLoading: authLoading } = useRequireAuth({
-    requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"]
+    requireRole: ["Developer"]
   });
   const router = useRouter();
 
@@ -411,14 +428,18 @@ export default function KongAdminPage() {
                 About API Documentation
               </h4>
               <p className="text-sm text-blue-700 mb-2">
-                Each service provides Swagger/OpenAPI documentation for developers.
-                Click the "API Documentation" button to explore endpoints, parameters,
+                Each service provides Scalar/OpenAPI documentation for developers.
+                Click the &quot;API Documentation&quot; button to explore endpoints, parameters,
                 and test API calls directly.
               </p>
+              <p className="text-xs text-blue-600 mb-2">
+                <strong>Protected Access:</strong> All documentation endpoints are protected
+                via Kong Gateway with JWT authentication. Only users with &quot;Developer&quot; role
+                can access the documentation.
+              </p>
               <p className="text-xs text-blue-600">
-                <strong>Note:</strong> Documentation is only available for services
-                that have Swagger UI configured (e.g., auth-service,
-                public-service, sister-service).
+                <strong>Available Services:</strong> auth-service, public-service,
+                sister-service, feeder-service, myunila-service, api-service.
               </p>
             </div>
           </div>
