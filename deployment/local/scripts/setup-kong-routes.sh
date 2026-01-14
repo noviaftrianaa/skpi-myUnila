@@ -811,6 +811,353 @@ else
 fi
 
 echo ""
+
+###############################################################################
+# 9. API Documentation Routes (Protected with JWT - Developer Role Only)
+###############################################################################
+echo -e "${GREEN}[9/9] Setting up API Documentation Routes (Protected)...${NC}"
+
+# Create a dedicated service for each docs endpoint that routes through Kong with JWT
+
+# Auth Service Docs
+echo -e "${YELLOW}  → Creating auth-service-docs route...${NC}"
+AUTH_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "auth-service-docs",
+    "url": "http://myunila-nginx:80/docs"
+  }')
+
+AUTH_DOCS_SERVICE_ID=$(parse_json_id "$AUTH_DOCS_SERVICE")
+
+if [ -n "$AUTH_DOCS_SERVICE_ID" ]; then
+    AUTH_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$AUTH_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "auth-service-docs-route",
+        "paths": ["/auth-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    AUTH_DOCS_ROUTE_ID=$(parse_json_id "$AUTH_DOCS_ROUTE")
+
+    if [ -n "$AUTH_DOCS_ROUTE_ID" ]; then
+        # Add CORS
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ auth-service-docs route created with JWT${NC}"
+    fi
+fi
+
+# Public Service Docs
+echo -e "${YELLOW}  → Creating public-service-docs route...${NC}"
+PUBLIC_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "public-service-docs",
+    "url": "http://myunila-nginx:81/docs"
+  }')
+
+PUBLIC_DOCS_SERVICE_ID=$(parse_json_id "$PUBLIC_DOCS_SERVICE")
+
+if [ -n "$PUBLIC_DOCS_SERVICE_ID" ]; then
+    PUBLIC_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$PUBLIC_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "public-service-docs-route",
+        "paths": ["/public-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    PUBLIC_DOCS_ROUTE_ID=$(parse_json_id "$PUBLIC_DOCS_ROUTE")
+
+    if [ -n "$PUBLIC_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ public-service-docs route created with JWT${NC}"
+    fi
+fi
+
+# Sister Service Docs
+echo -e "${YELLOW}  → Creating sister-service-docs route...${NC}"
+SISTER_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "sister-service-docs",
+    "url": "http://myunila-sister-service:8083/docs"
+  }')
+
+SISTER_DOCS_SERVICE_ID=$(parse_json_id "$SISTER_DOCS_SERVICE")
+
+if [ -n "$SISTER_DOCS_SERVICE_ID" ]; then
+    SISTER_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "sister-service-docs-route",
+        "paths": ["/sister-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    SISTER_DOCS_ROUTE_ID=$(parse_json_id "$SISTER_DOCS_ROUTE")
+
+    if [ -n "$SISTER_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ sister-service-docs route created with JWT${NC}"
+    fi
+fi
+
+# Feeder Service Docs
+echo -e "${YELLOW}  → Creating feeder-service-docs route...${NC}"
+FEEDER_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "feeder-service-docs",
+    "url": "http://myunila-feeder-service:8084/docs"
+  }')
+
+FEEDER_DOCS_SERVICE_ID=$(parse_json_id "$FEEDER_DOCS_SERVICE")
+
+if [ -n "$FEEDER_DOCS_SERVICE_ID" ]; then
+    FEEDER_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "feeder-service-docs-route",
+        "paths": ["/feeder-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    FEEDER_DOCS_ROUTE_ID=$(parse_json_id "$FEEDER_DOCS_ROUTE")
+
+    if [ -n "$FEEDER_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ feeder-service-docs route created with JWT${NC}"
+    fi
+fi
+
+# MyUnila Service Docs
+echo -e "${YELLOW}  → Creating myunila-service-docs route...${NC}"
+MYUNILA_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "myunila-service-docs",
+    "url": "http://myunila-service:8086/docs"
+  }')
+
+MYUNILA_DOCS_SERVICE_ID=$(parse_json_id "$MYUNILA_DOCS_SERVICE")
+
+if [ -n "$MYUNILA_DOCS_SERVICE_ID" ]; then
+    MYUNILA_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MYUNILA_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "myunila-service-docs-route",
+        "paths": ["/myunila-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    MYUNILA_DOCS_ROUTE_ID=$(parse_json_id "$MYUNILA_DOCS_ROUTE")
+
+    if [ -n "$MYUNILA_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ myunila-service-docs route created with JWT${NC}"
+    fi
+fi
+
+# API Service Docs
+echo -e "${YELLOW}  → Creating api-service-docs route...${NC}"
+API_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "api-service-docs",
+    "url": "http://myunila-api-service:8085/docs"
+  }')
+
+API_DOCS_SERVICE_ID=$(parse_json_id "$API_DOCS_SERVICE")
+
+if [ -n "$API_DOCS_SERVICE_ID" ]; then
+    API_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "api-service-docs-route",
+        "paths": ["/api-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    API_DOCS_ROUTE_ID=$(parse_json_id "$API_DOCS_ROUTE")
+
+    if [ -n "$API_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ api-service-docs route created with JWT${NC}"
+    fi
+fi
+
+echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
 echo -e "${GREEN}=========================================${NC}"
