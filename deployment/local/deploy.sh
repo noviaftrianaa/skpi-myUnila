@@ -40,47 +40,51 @@ show_menu() {
     echo -e "  ${GREEN}7)${NC} Quick Rebuild - MyUnila Only"
     echo -e "  ${GREEN}8)${NC} Quick Rebuild - API Service Only"
     echo -e "  ${GREEN}9)${NC} Quick Rebuild - Frontend Only"
-    echo -e "  ${GREEN}10)${NC} Quick Rebuild - Executive Only"
-    echo -e "  ${GREEN}29)${NC} Quick Rebuild - Nginx Only"
+    echo -e "  ${GREEN}10)${NC} Restart All Services"
+    echo -e "  ${GREEN}11)${NC} Restart Public Only"
+    echo -e "  ${GREEN}12)${NC} Restart Auth Only"
+    echo -e "  ${GREEN}13)${NC} Restart Sister Only"
+    echo -e "  ${GREEN}14)${NC} Restart Feeder Only"
+    echo -e "  ${GREEN}15)${NC} Restart MyUnila Only"
+    echo -e "  ${GREEN}16)${NC} Restart API Service Only"
+    echo -e "  ${GREEN}17)${NC} Restart Executive Only"
+    echo -e "  ${GREEN}18)${NC} Restart Nginx Only"
     echo ""
-    echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
-    echo -e "  ${CYAN}22)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
-    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - Public Only"
-    echo -e "  ${CYAN}24)${NC} Quick Dev Rebuild - Auth Only"
+    echo -e "  ${CYAN}--- Quick Rebuild (Individual Services) ---${NC}"
+    echo -e "  ${CYAN}19)${NC} Quick Rebuild - Public Only"
+    echo -e "  ${CYAN}20)${NC} Quick Rebuild - Auth Only"
+    echo -e "  ${CYAN}21)${NC} Quick Rebuild - Sister Only"
+    echo -e "  ${CYAN}22)${NC} Quick Rebuild - Feeder Only"
+    echo -e "  ${CYAN}23)${NC} Quick Rebuild - MyUnila Only"
+    echo -e "  ${CYAN}24)${NC} Quick Rebuild - API Service Only"
+    echo -e "  ${CYAN}25)${NC} Quick Rebuild - Frontend Only"
+    echo -e "  ${CYAN}26)${NC} Quick Rebuild - Executive Only"
+    echo -e "  ${CYAN}27)${NC} Quick Rebuild - Nginx Only"
     echo ""
-    echo -e "  ${BLUE}10)${NC} Restart All Services"
-    echo -e "  ${BLUE}11)${NC} Restart Public Only"
-    echo -e "  ${BLUE}12)${NC} Restart Auth Only"
-    echo -e "  ${BLUE}13)${NC} Restart Sister Only"
-    echo -e "  ${BLUE}14)${NC} Restart Feeder Only"
-    echo -e "  ${BLUE}15)${NC} Restart MyUnila Only"
-    echo -e "  ${BLUE}16)${NC} Restart API Service Only"
-    echo -e "  ${BLUE}17)${NC} Restart Executive Only"
-    echo -e "  ${BLUE}32)${NC} Restart Nginx Only"
+    echo -e "  ${YELLOW}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
+    echo -e "  ${YELLOW}28)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
+    echo -e "  ${YELLOW}29)${NC} Quick Dev Rebuild - Public Only"
+    echo -e "  ${YELLOW}30)${NC} Quick Dev Rebuild - Auth Only"
+    echo -e "  ${YELLOW}31)${NC} Quick Dev Rebuild - Executive Only"
     echo ""
-    echo -e "  ${YELLOW}18)${NC} Show Container Status"
-    echo -e "  ${YELLOW}19)${NC} Show Logs"
-    echo -e "  ${YELLOW}20)${NC} Test Endpoints"
-    echo -e "  ${YELLOW}21)${NC} Setup Kong Routes"
-    echo ""
-    echo -e "  ${RED}22)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
-    echo ""
-    echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
-    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
-    echo -e "  ${CYAN}24)${NC} Quick Dev Rebuild - Public Only"
-    echo -e "  ${CYAN}25)${NC} Quick Dev Rebuild - Auth Only"
+    echo -e "  ${BLUE}--- Other Operations ---${NC}"
+    echo -e "  ${BLUE}32)${NC} Show Container Status"
+    echo -e "  ${BLUE}33)${NC} Show Logs"
+    echo -e "  ${BLUE}34)${NC} Test Endpoints"
+    echo -e "  ${BLUE}35)${NC} Setup Kong Routes"
+    echo -e "  ${BLUE}36)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
     echo ""
     echo -e "  ${CYAN}--- Cache Management ---${NC}"
-    echo -e "  ${YELLOW}26)${NC} Clear All Cache (Redis + Laravel)"
-    echo -e "  ${YELLOW}27)${NC} Clear Redis Cache Only"
-    echo -e "  ${YELLOW}28)${NC} Clear Laravel Cache Only (all services)"
+    echo -e "  ${CYAN}37)${NC} Clear All Cache (Redis + Laravel)"
+    echo -e "  ${CYAN}38)${NC} Clear Redis Cache Only"
+    echo -e "  ${CYAN}39)${NC} Clear Laravel Cache Only (all services)"
     echo ""
-    echo -e "  ${CYAN}--- Service Generator ---${NC}"
-    echo -e "  ${GREEN}30)${NC} Create New Service (Laravel atau Go)"
+    echo -e "  ${GREEN}--- Service Generator ---${NC}"
+    echo -e "  ${GREEN}40)${NC} Create New Service (Laravel atau Go)"
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-32]: "
+    echo -n "Pilihan [0-40]: "
 }
 
 # Function to show container status
@@ -218,89 +222,153 @@ while true; do
             read -p "Press Enter to continue..."
             ;;
         3)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" public
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "public"
             read -p "Press Enter to continue..."
             ;;
         4)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" auth
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "auth"
             read -p "Press Enter to continue..."
             ;;
         5)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" sister
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "sister"
             read -p "Press Enter to continue..."
             ;;
         6)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" feeder
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "feeder"
             read -p "Press Enter to continue..."
             ;;
         7)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" myunila
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "myunila"
             read -p "Press Enter to continue..."
             ;;
         8)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" api
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "api"
             read -p "Press Enter to continue..."
             ;;
         9)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "frontend"
             read -p "Press Enter to continue..."
             ;;
         10)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" executive
-            read -p "Press Enter to continue..."
-            ;;
-        29)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
+            bash "$SCRIPT_DIR/restart-services.sh" "all"
             read -p "Press Enter to continue..."
             ;;
         11)
-            bash "$SCRIPT_DIR/restart-services.sh" public
+            bash "$SCRIPT_DIR/restart-services.sh" "public"
             read -p "Press Enter to continue..."
             ;;
         12)
-            bash "$SCRIPT_DIR/restart-services.sh" auth
+            bash "$SCRIPT_DIR/restart-services.sh" "auth"
             read -p "Press Enter to continue..."
             ;;
         13)
-            bash "$SCRIPT_DIR/restart-services.sh" sister
+            bash "$SCRIPT_DIR/restart-services.sh" "sister"
             read -p "Press Enter to continue..."
             ;;
         14)
-            bash "$SCRIPT_DIR/restart-services.sh" feeder
+            bash "$SCRIPT_DIR/restart-services.sh" "feeder"
             read -p "Press Enter to continue..."
             ;;
         15)
-            bash "$SCRIPT_DIR/restart-services.sh" myunila
+            bash "$SCRIPT_DIR/restart-services.sh" "myunila"
             read -p "Press Enter to continue..."
             ;;
         16)
-            bash "$SCRIPT_DIR/restart-services.sh" api
+            bash "$SCRIPT_DIR/restart-services.sh" "api"
             read -p "Press Enter to continue..."
             ;;
         17)
-            bash "$SCRIPT_DIR/restart-services.sh" executive
-            read -p "Press Enter to continue..."
-            ;;
-        32)
-            bash "$SCRIPT_DIR/restart-services.sh" nginx
+            bash "$SCRIPT_DIR/restart-services.sh" "executive"
             read -p "Press Enter to continue..."
             ;;
         18)
-            show_status
+            bash "$SCRIPT_DIR/restart-services.sh" "nginx"
+            read -p "Press Enter to continue..."
             ;;
         19)
-            show_logs
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "public"
+            read -p "Press Enter to continue..."
             ;;
         20)
-            test_endpoints
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "auth"
+            read -p "Press Enter to continue..."
             ;;
         21)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "sister"
+            read -p "Press Enter to continue..."
+            ;;
+        22)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "feeder"
+            read -p "Press Enter to continue..."
+            ;;
+        23)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "myunila"
+            read -p "Press Enter to continue..."
+            ;;
+        24)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "api"
+            read -p "Press Enter to continue..."
+            ;;
+        25)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "frontend"
+            read -p "Press Enter to continue..."
+            ;;
+        26)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "executive"
+            read -p "Press Enter to continue..."
+            ;;
+        27)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" "nginx"
+            read -p "Press Enter to continue..."
+            ;;
+        28)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - All Laravel Services (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh"
+            read -p "Press Enter to continue..."
+            ;;
+        29)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - Public Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" "public"
+            read -p "Press Enter to continue..."
+            ;;
+        30)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - Auth Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" "auth"
+            read -p "Press Enter to continue..."
+            ;;
+        31)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - Executive Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" "executive"
+            read -p "Press Enter to continue..."
+            ;;
+        32)
+            show_status
+            ;;
+        33)
+            show_logs
+            ;;
+        34)
+            test_endpoints
+            ;;
+        35)
             echo ""
             echo -e "${GREEN}Running Kong Routes Setup...${NC}"
             bash "$SCRIPT_DIR/setup-kong-routes.sh"
             read -p "Press Enter to continue..."
             ;;
-        21)
+        36)
             echo ""
             echo -e "${YELLOW}Cleaning up Docker resources...${NC}"
             echo ""
@@ -323,31 +391,7 @@ while true; do
             echo ""
             read -p "Press Enter to continue..."
             ;;
-        22)
-            echo ""
-            echo -e "${CYAN}Quick Dev Rebuild - All Laravel Services (dengan cache)${NC}"
-            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
-            echo ""
-            bash "$SCRIPT_DIR/quick-dev-rebuild.sh"
-            read -p "Press Enter to continue..."
-            ;;
-        23)
-            echo ""
-            echo -e "${CYAN}Quick Dev Rebuild - Public Only (dengan cache)${NC}"
-            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
-            echo ""
-            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" public
-            read -p "Press Enter to continue..."
-            ;;
-        24)
-            echo ""
-            echo -e "${CYAN}Quick Dev Rebuild - Auth Only (dengan cache)${NC}"
-            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
-            echo ""
-            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" auth
-            read -p "Press Enter to continue..."
-            ;;
-        26)
+        37)
             echo ""
             echo -e "${CYAN}Clear All Cache (Redis + Laravel)${NC}"
             echo ""
@@ -367,7 +411,7 @@ while true; do
             echo -e "${GREEN}✓ All cache cleared!${NC}"
             read -p "Press Enter to continue..."
             ;;
-        27)
+        38)
             echo ""
             echo -e "${CYAN}Clear Redis Cache Only${NC}"
             echo ""
@@ -376,7 +420,7 @@ while true; do
             echo -e "${GREEN}✓ Redis cache cleared${NC}"
             read -p "Press Enter to continue..."
             ;;
-        28)
+        39)
             echo ""
             echo -e "${CYAN}Clear Laravel Cache Only (all services)${NC}"
             echo ""
@@ -390,10 +434,11 @@ while true; do
             echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."
             ;;
-        30)
+        40)
             echo ""
             echo -e "${GREEN}Running Create New Service Script...${NC}"
             bash "$SCRIPT_DIR/create-new-service.sh"
+            read -p "Press Enter to continue..."
             ;;
         0)
             echo ""

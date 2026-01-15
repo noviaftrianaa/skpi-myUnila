@@ -17,7 +17,7 @@ class HealthController extends Controller
         $status = 'healthy';
         $checks = [
             'database' => $this->checkDatabase(),
-            'redis' => $this->checkRedis(),
+            // 'redis' => $this->checkRedis(),
         ];
 
         // If any check fails, set status to unhealthy

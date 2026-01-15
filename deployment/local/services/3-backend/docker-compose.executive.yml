@@ -1,5 +1,5 @@
 # Versi docker-compose - menentukan format file konfigurasi
-version: '3.8'
+version: "3.8"
 
 # Definisi layanan (services) yang akan dijalankan dalam container
 services:
