@@ -18,8 +18,8 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redisConn *redis.Client) {
 
 	// Endpoints
 	ref.Get("/list", handler.GetDiklat)
-	ref.Get("/ambil", handler.GetDiklatByID)
-	ref.Get("/tambah", handler.CreateDiklat)
-	ref.Get("/ubah", handler.UpdateDiklat)
-	ref.Get("/hapus", handler.DeleteDiklat)
+	ref.Get("/ambil/:id", handler.GetDiklatByID)
+	ref.Post("/tambah", handler.CreateDiklat)
+	ref.Put("/ubah/:id", handler.UpdateDiklat)
+	ref.Delete("/hapus/:id", handler.DeleteDiklat)
 }

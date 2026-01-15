@@ -1,6 +1,8 @@
 package diklat
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/myunila/api-service/internal/response"
 )
@@ -52,6 +54,7 @@ func (h *Handler) CreateDiklat(c *fiber.Ctx) error {
 
 	ID, err := h.svc.CreateDiklat(c.Context(), req)
 	if err != nil {
+		log.Printf("Error service creating diklat: %v", err)
 		return response.InternalError(c, "Gagal membuat data diklat")
 	}
 

@@ -20,8 +20,14 @@ services:
     restart: always
     networks:
       - app-network
+    volumes:
+      - redis-data:/data
 
 networks:
   app-network:
     driver: bridge
-    
+
+volumes:
+  redis-data:
+    driver: local
+
