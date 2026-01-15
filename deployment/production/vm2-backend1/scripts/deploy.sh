@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# VM2 - Deploy Backend Services 1 (Public + Auth + API + Dashboard)
+# VM2 - Deploy Backend Services 1 (Public + Auth + Dashboard)
 # Server: 192.168.120.42
 # User: mybackend1
 ###############################################################################
@@ -19,7 +19,7 @@ DEPLOY_DIR="$APP_DIR/deployment/production/vm2-backend1"
 echo ""
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  Deploy Backend Services - VM2${NC}"
-echo -e "${BLUE}  Public + Auth + API + Dashboard${NC}"
+echo -e "${BLUE}  Public + Auth + Dashboard${NC}"
 echo -e "${BLUE}=========================================${NC}"
 echo ""
 
@@ -57,10 +57,6 @@ echo "  → Building Auth Service..."
 docker compose -f services/auth/docker-compose.yml build --no-cache auth-service
 echo ""
 
-echo "  → Building API Service..."
-docker compose -f services/api/docker-compose.yml build --no-cache api-service
-echo ""
-
 echo "  → Building Dashboard Service..."
 docker compose -f services/dashboard/docker-compose.yml build --no-cache dashboard-service
 echo ""
@@ -70,7 +66,6 @@ echo -e "${GREEN}[5/7] Stopping old containers...${NC}"
 docker compose -f services/nginx/docker-compose.yml down 2>/dev/null || true
 docker compose -f services/public/docker-compose.yml down 2>/dev/null || true
 docker compose -f services/auth/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/api/docker-compose.yml down 2>/dev/null || true
 docker compose -f services/dashboard/docker-compose.yml down 2>/dev/null || true
 echo ""
 
@@ -83,10 +78,6 @@ sleep 5
 
 echo "  → Starting Auth Service..."
 docker compose -f services/auth/docker-compose.yml up -d
-sleep 5
-
-echo "  → Starting API Service..."
-docker compose -f services/api/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting Dashboard Service..."
@@ -113,14 +104,12 @@ echo ""
 echo -e "${YELLOW}Service URLs:${NC}"
 echo "  Auth Service:      http://192.168.120.42:8081"
 echo "  Public Service:    http://192.168.120.42:8082"
-echo "  API Service:       http://192.168.120.42:8085"
 echo "  Dashboard Service: http://192.168.120.42:8086"
 echo ""
 
 echo -e "${YELLOW}Check logs:${NC}"
 echo "  docker logs myunila-public-service --tail 50"
 echo "  docker logs myunila-auth-service --tail 50"
-echo "  docker logs myunila-api-service --tail 50"
 echo "  docker logs myunila-dashboard-service --tail 50"
 echo "  docker logs myunila-nginx-vm2 --tail 50"
 echo ""

@@ -17,7 +17,7 @@ services:
       APP_NAME: "${API_APP_NAME:-MyUnila API Service}"
       APP_PORT: ":8085"
       APP_ENV: production
-      APP_URL: "${API_APP_URL:-http://192.168.120.42:8085}"
+      APP_URL: "${API_APP_URL:-http://192.168.120.43:8085}"
 
       # Database (SQL Server)
       DB_DRIVER: sqlserver
@@ -61,7 +61,7 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service=api,vm=vm2"
+        labels: "service=api,vm=vm3"
 
 networks:
   myunila-prod-network:
