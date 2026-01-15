@@ -40,6 +40,7 @@ show_menu() {
     echo -e "  ${GREEN}7)${NC} Quick Rebuild - MyUnila Only"
     echo -e "  ${GREEN}8)${NC} Quick Rebuild - API Service Only"
     echo -e "  ${GREEN}9)${NC} Quick Rebuild - Frontend Only"
+    echo -e "  ${GREEN}10)${NC} Quick Rebuild - Executive Only"
     echo -e "  ${GREEN}29)${NC} Quick Rebuild - Nginx Only"
     echo ""
     echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
@@ -54,26 +55,32 @@ show_menu() {
     echo -e "  ${BLUE}14)${NC} Restart Feeder Only"
     echo -e "  ${BLUE}15)${NC} Restart MyUnila Only"
     echo -e "  ${BLUE}16)${NC} Restart API Service Only"
-    echo -e "  ${BLUE}30)${NC} Restart Nginx Only"
+    echo -e "  ${BLUE}17)${NC} Restart Executive Only"
+    echo -e "  ${BLUE}32)${NC} Restart Nginx Only"
     echo ""
-    echo -e "  ${YELLOW}17)${NC} Show Container Status"
-    echo -e "  ${YELLOW}18)${NC} Show Logs"
-    echo -e "  ${YELLOW}19)${NC} Test Endpoints"
-    echo -e "  ${YELLOW}20)${NC} Setup Kong Routes"
+    echo -e "  ${YELLOW}18)${NC} Show Container Status"
+    echo -e "  ${YELLOW}19)${NC} Show Logs"
+    echo -e "  ${YELLOW}20)${NC} Test Endpoints"
+    echo -e "  ${YELLOW}21)${NC} Setup Kong Routes"
     echo ""
-    echo -e "  ${RED}21)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
+    echo -e "  ${RED}22)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
+    echo ""
+    echo -e "  ${CYAN}--- Quick Dev Rebuild (Dengan Cache, Lebih Cepat) ---${NC}"
+    echo -e "  ${CYAN}23)${NC} Quick Dev Rebuild - All Laravel (auth + public)"
+    echo -e "  ${CYAN}24)${NC} Quick Dev Rebuild - Public Only"
+    echo -e "  ${CYAN}25)${NC} Quick Dev Rebuild - Auth Only"
     echo ""
     echo -e "  ${CYAN}--- Cache Management ---${NC}"
-    echo -e "  ${YELLOW}25)${NC} Clear All Cache (Redis + Laravel)"
-    echo -e "  ${YELLOW}26)${NC} Clear Redis Cache Only"
-    echo -e "  ${YELLOW}27)${NC} Clear Laravel Cache Only (all services)"
+    echo -e "  ${YELLOW}26)${NC} Clear All Cache (Redis + Laravel)"
+    echo -e "  ${YELLOW}27)${NC} Clear Redis Cache Only"
+    echo -e "  ${YELLOW}28)${NC} Clear Laravel Cache Only (all services)"
     echo ""
     echo -e "  ${CYAN}--- Service Generator ---${NC}"
-    echo -e "  ${GREEN}28)${NC} Create New Service (Laravel atau Go)"
+    echo -e "  ${GREEN}30)${NC} Create New Service (Laravel atau Go)"
     echo ""
     echo -e "  ${RED}0)${NC} Exit"
     echo ""
-    echo -n "Pilihan [0-30]: "
+    echo -n "Pilihan [0-32]: "
 }
 
 # Function to show container status
@@ -96,12 +103,13 @@ show_logs() {
     echo "  4) Feeder"
     echo "  5) MyUnila"
     echo "  6) API Service"
-    echo "  7) Nginx"
-    echo "  8) Redis"
-    echo "  9) MeiliSearch"
-    echo "  10) Kong"
+    echo "  7) Executive"
+    echo "  8) Nginx"
+    echo "  9) Redis"
+    echo "  10) MeiliSearch"
+    echo "  11) Kong"
     echo ""
-    read -p "Pilihan [1-10]: " log_choice
+    read -p "Pilihan [1-11]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
@@ -110,10 +118,11 @@ show_logs() {
         4) docker logs myunila-feeder-service --tail 100 -f ;;
         5) docker logs myunila-service --tail 100 -f ;;
         6) docker logs myunila-api-service --tail 100 -f ;;
-        7) docker logs myunila-nginx --tail 100 -f ;;
-        8) docker logs myunila-redis --tail 100 -f ;;
-        9) docker logs myunila-meilisearch --tail 100 -f ;;
-        10) docker logs myunila-kong --tail 100 -f ;;
+        7) docker logs myunila-executive-service --tail 100 -f ;;
+        8) docker logs myunila-nginx --tail 100 -f ;;
+        9) docker logs myunila-redis --tail 100 -f ;;
+        10) docker logs myunila-meilisearch --tail 100 -f ;;
+        11) docker logs myunila-kong --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -172,6 +181,14 @@ test_endpoints() {
         echo -e "${RED}✗ $API_STATUS${NC}"
     fi
 
+    echo -n "Executive:        "
+    EXECUTIVE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8087/api/health 2>/dev/null || echo "000")
+    if [ "$EXECUTIVE_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $EXECUTIVE_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $EXECUTIVE_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
     echo "  Public:      http://localhost:8082"
@@ -180,6 +197,7 @@ test_endpoints() {
     echo "  Feeder:      http://localhost:8084"
     echo "  MyUnila:     http://localhost:8086"
     echo "  API Service: http://localhost:8085"
+    echo "  Executive:   http://localhost:8087"
     echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
@@ -227,12 +245,12 @@ while true; do
             bash "$SCRIPT_DIR/quick-rebuild.sh" frontend
             read -p "Press Enter to continue..."
             ;;
-        29)
-            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
+        10)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" executive
             read -p "Press Enter to continue..."
             ;;
-        10)
-            bash "$SCRIPT_DIR/restart-services.sh"
+        29)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" nginx
             read -p "Press Enter to continue..."
             ;;
         11)
@@ -259,20 +277,24 @@ while true; do
             bash "$SCRIPT_DIR/restart-services.sh" api
             read -p "Press Enter to continue..."
             ;;
-        30)
+        17)
+            bash "$SCRIPT_DIR/restart-services.sh" executive
+            read -p "Press Enter to continue..."
+            ;;
+        32)
             bash "$SCRIPT_DIR/restart-services.sh" nginx
             read -p "Press Enter to continue..."
             ;;
-        17)
+        18)
             show_status
             ;;
-        18)
+        19)
             show_logs
             ;;
-        19)
+        20)
             test_endpoints
             ;;
-        20)
+        21)
             echo ""
             echo -e "${GREEN}Running Kong Routes Setup...${NC}"
             bash "$SCRIPT_DIR/setup-kong-routes.sh"
@@ -325,7 +347,7 @@ while true; do
             bash "$SCRIPT_DIR/quick-dev-rebuild.sh" auth
             read -p "Press Enter to continue..."
             ;;
-        25)
+        26)
             echo ""
             echo -e "${CYAN}Clear All Cache (Redis + Laravel)${NC}"
             echo ""
@@ -339,11 +361,13 @@ while true; do
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
             echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
             docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Executive Service...${NC}"
+            docker exec myunila-executive-service php artisan optimize:clear 2>/dev/null || echo "Executive service not running"
             echo ""
             echo -e "${GREEN}✓ All cache cleared!${NC}"
             read -p "Press Enter to continue..."
             ;;
-        26)
+        27)
             echo ""
             echo -e "${CYAN}Clear Redis Cache Only${NC}"
             echo ""
@@ -352,7 +376,7 @@ while true; do
             echo -e "${GREEN}✓ Redis cache cleared${NC}"
             read -p "Press Enter to continue..."
             ;;
-        27)
+        28)
             echo ""
             echo -e "${CYAN}Clear Laravel Cache Only (all services)${NC}"
             echo ""
@@ -360,11 +384,13 @@ while true; do
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
             echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
             docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
+            echo -e "${BLUE}Clearing Laravel cache on Executive Service...${NC}"
+            docker exec myunila-executive-service php artisan optimize:clear 2>/dev/null || echo "Executive service not running"
             echo ""
             echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."
             ;;
-        28)
+        30)
             echo ""
             echo -e "${GREEN}Running Create New Service Script...${NC}"
             bash "$SCRIPT_DIR/create-new-service.sh"

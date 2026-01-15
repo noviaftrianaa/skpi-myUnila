@@ -10,6 +10,7 @@
 #   bash quick-rebuild.sh auth         # Rebuild only auth
 #   bash quick-rebuild.sh sister       # Rebuild only sister
 #   bash quick-rebuild.sh feeder       # Rebuild only feeder
+#   bash quick-rebuild.sh executive    # Rebuild only executive
 ###############################################################################
 
 # Colors
@@ -159,6 +160,12 @@ case "$SERVICE" in
     api)
         rebuild_service "api"
         ;;
+    executive)
+        rebuild_service "executive"
+        # Executive uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to executive-service...${NC}"
+        docker restart myunila-nginx 2>/dev/null || true
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -175,6 +182,7 @@ case "$SERVICE" in
         rebuild_service "feeder"
         rebuild_service "myunila"
         rebuild_service "api"
+        rebuild_service "executive"
         rebuild_nginx
         echo ""
         ;;
@@ -189,6 +197,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
+        echo "  bash quick-rebuild.sh executive    # Rebuild executive only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -231,5 +240,8 @@ fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "api" ]; then
     echo "  OneData:   curl http://localhost:8085/health"
     echo "  API Docs:  http://localhost:8085/api/docs"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "executive" ]; then
+    echo "  Executive: curl http://localhost:8087/api/health"
 fi
 echo ""

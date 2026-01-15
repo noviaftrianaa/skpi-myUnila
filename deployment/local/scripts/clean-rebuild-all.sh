@@ -63,6 +63,7 @@ docker compose -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.nginx.yml" 
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.myunila.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.feeder.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.sister.yml" down 2>/dev/null || true
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.executive.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.auth.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.public.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/2-gateway/docker-compose.kong.yml" down 2>/dev/null || true
@@ -135,6 +136,10 @@ echo "  → Building MyUnila Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.myunila.yml build --no-cache --pull myunila-service
 echo ""
 
+echo "  → Building Executive Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.executive.yml build --no-cache --pull executive-service
+echo ""
+
 echo "  → Building Frontend..."
 docker compose --env-file .env -f services/4-frontend/docker-compose.yml build --no-cache --pull frontend
 echo ""
@@ -174,6 +179,9 @@ docker compose --env-file .env -f services/3-backend/docker-compose.feeder.yml u
 
 echo "  → Starting MyUnila Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.myunila.yml up -d
+
+echo "  → Starting Executive Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.executive.yml up -d
 
 echo "  → Waiting for service volumes to be created..."
 sleep 10
@@ -225,6 +233,7 @@ echo "  Public Service:    http://localhost:8082"
 echo "  Sister Service:    http://localhost:8083"
 echo "  Feeder Service:    http://localhost:8084"
 echo "  MyUnila Service:   http://localhost:8086"
+echo "  Executive Service: http://localhost:8087"
 echo "  Kong Gateway:      http://localhost:9800"
 echo "  Kong Admin:        http://localhost:9801"
 echo "  Kong UI:           http://localhost:9803"
@@ -238,6 +247,7 @@ echo "  Auth Health:      curl http://localhost:8081/api/health"
 echo "  Sister Health:    curl http://localhost:8083/health"
 echo "  Feeder Health:    curl http://localhost:8084/health"
 echo "  MyUnila Health:   curl http://localhost:8086/health"
+echo "  Executive Health: curl http://localhost:8087/api/health"
 echo ""
 
 echo -e "${YELLOW}Next Steps:${NC}"
@@ -260,6 +270,7 @@ echo "  docker logs myunila-auth-service --tail 50"
 echo "  docker logs myunila-sister-service --tail 50"
 echo "  docker logs myunila-feeder-service --tail 50"
 echo "  docker logs myunila-service --tail 50"
+echo "  docker logs myunila-executive-service --tail 50"
 echo ""
 
 echo -e "${GREEN}Done!${NC}"

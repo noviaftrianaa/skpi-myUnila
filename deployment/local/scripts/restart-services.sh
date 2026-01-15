@@ -10,6 +10,7 @@
 #   bash restart-services.sh auth         # Restart only auth
 #   bash restart-services.sh sister       # Restart only sister
 #   bash restart-services.sh feeder       # Restart only feeder
+#   bash restart-services.sh executive    # Restart only executive
 ###############################################################################
 
 # Colors
@@ -77,6 +78,12 @@ case "$SERVICE" in
     myunila)
         restart_service "myunila"
         ;;
+    api)
+        restart_service "api"
+        ;;
+    executive)
+        restart_service "executive"
+        ;;
     redis)
         echo -e "${GREEN}Restarting Redis...${NC}"
         docker compose restart redis
@@ -103,6 +110,8 @@ case "$SERVICE" in
         restart_service "sister"
         restart_service "feeder"
         restart_service "myunila"
+        restart_service "api"
+        restart_service "executive"
 
         echo -e "${GREEN}Restarting Nginx...${NC}"
         docker compose restart nginx
@@ -122,6 +131,8 @@ case "$SERVICE" in
         echo "  bash restart-services.sh sister       # Restart sister only"
         echo "  bash restart-services.sh feeder       # Restart feeder only"
         echo "  bash restart-services.sh myunila      # Restart myunila only"
+        echo "  bash restart-services.sh api          # Restart api only"
+        echo "  bash restart-services.sh executive    # Restart executive only"
         echo "  bash restart-services.sh redis        # Restart redis only"
         echo "  bash restart-services.sh meilisearch  # Restart meilisearch only"
         echo "  bash restart-services.sh nginx        # Restart nginx only"

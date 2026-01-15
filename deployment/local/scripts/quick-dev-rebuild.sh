@@ -14,6 +14,7 @@
 #   bash quick-dev-rebuild.sh              # Rebuild all Laravel services
 #   bash quick-dev-rebuild.sh public       # Rebuild only public
 #   bash quick-dev-rebuild.sh auth         # Rebuild only auth
+#   bash quick-dev-rebuild.sh executive    # Rebuild only executive
 ###############################################################################
 
 # Colors
@@ -106,11 +107,18 @@ case "$SERVICE" in
         echo -e "${YELLOW}Restarting nginx to reconnect to auth-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
         ;;
+    executive)
+        rebuild_laravel_service "executive"
+        # Executive uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to executive-service...${NC}"
+        docker restart myunila-nginx 2>/dev/null || true
+        ;;
     all)
         echo "Rebuilding all Laravel services (with cache)..."
         echo ""
         rebuild_laravel_service "public"
         rebuild_laravel_service "auth"
+        rebuild_laravel_service "executive"
         echo ""
         # Restart nginx after all services are rebuilt
         echo -e "${YELLOW}Restarting nginx to reconnect to services...${NC}"
@@ -123,6 +131,7 @@ case "$SERVICE" in
         echo "  bash quick-dev-rebuild.sh              # Rebuild all Laravel services"
         echo "  bash quick-dev-rebuild.sh public       # Rebuild public only"
         echo "  bash quick-dev-rebuild.sh auth         # Rebuild auth only"
+        echo "  bash quick-dev-rebuild.sh executive    # Rebuild executive only"
         echo ""
         echo "For Go services (sister, feeder, myunila), use quick-rebuild.sh"
         echo ""
@@ -149,5 +158,8 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "public" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "auth" ]; then
     echo "  Auth:      curl http://localhost:8081/api/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "executive" ]; then
+    echo "  Executive: curl http://localhost:8087/api/health"
 fi
 echo ""

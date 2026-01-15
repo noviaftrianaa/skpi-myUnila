@@ -1,0 +1,211 @@
+# Versi docker-compose - menentukan format file konfigurasi
+version: '3.8'
+
+# Definisi layanan (services) yang akan dijalankan dalam container
+services:
+  # Nama layanan utama - Executive Service (Laravel Backend)
+  executive-service:
+    # Konfigurasi build image Docker dari Dockerfile
+    build:
+      # Lokasi Dockerfile relatif terhadap file ini (5 naik ke root, masuk ke executive-service)
+      context: ../../../../backend/executive-service
+      # Nama Dockerfile yang akan digunakan untuk build image
+      dockerfile: Dockerfile
+
+    # Nama image yang dihasilkan setelah build selesai
+    image: myunila/executive-service:latest
+
+    # Nama container saat berjalan (memudahkan identifikasi dengan docker ps)
+    container_name: myunila-executive-service
+
+    # Direktori kerja default di dalam container
+    working_dir: /var/www
+
+    # Memuat environment variables dari file .env utama project
+    env_file:
+      - ../../.env
+
+    # Environment variables spesifik untuk executive service
+    environment:
+      # ============================================================
+      # APLIKASI LARAVEL - Konfigurasi dasar aplikasi
+      # ============================================================
+      # Nama aplikasi - menggunakan variabel env atau default 'MyUnila Executive Service'
+      APP_NAME: "${EXECUTIVE_APP_NAME:-MyUnila Executive Service}"
+      # Environment aplikasi (local, staging, production) - default 'local'
+      APP_ENV: "${EXECUTIVE_APP_ENV:-local}"
+      # Encryption key Laravel - WAJIB diisi di .env (dihash dengan base64)
+      APP_KEY: "${EXECUTIVE_APP_KEY}"
+      # Mode debug Laravel - menampilkan error detail saat true (Hanya untuk development!)
+      APP_DEBUG: "${EXECUTIVE_APP_DEBUG:-true}"
+      # URL base aplikasi - untuk generate link di Laravel
+      APP_URL: "${EXECUTIVE_APP_URL}"
+      # ID aplikasi di database SSO (jika ada integrasi SSO)
+      APP_APLIKASI_ID: "${EXECUTIVE_APLIKASI_ID:-1}"
+
+      # ============================================================
+      # DATABASE - Koneksi ke SQL Server (Database Utama)
+      # ============================================================
+      # Tipe koneksi database - sqlsrv untuk SQL Server Microsoft
+      DB_CONNECTION: "${EXECUTIVE_DB_CONNECTION:-sqlsrv}"
+      # Host database - menggunakan host.docker.internal untuk akses host dari container
+      DB_HOST: "${EXECUTIVE_DB_HOST:-host.docker.internal}"
+      # Port SQL Server - default 1433
+      DB_PORT: "${EXECUTIVE_DB_PORT:-1433}"
+      # Nama database yang akan digunakan
+      DB_DATABASE: "${EXECUTIVE_DB_DATABASE}"
+      # Username untuk koneksi database
+      DB_USERNAME: "${EXECUTIVE_DB_USERNAME}"
+      # Password untuk koneksi database
+      DB_PASSWORD: "${EXECUTIVE_DB_PASSWORD}"
+      # Trust certificate SQL Server (true untuk development/SSL self-signed)
+      DB_TRUST_SERVER_CERTIFICATE: "${EXECUTIVE_DB_TRUST_CERTIFICATE:-true}"
+
+      # ============================================================
+      # CACHE & SESSION - Menggunakan Redis untuk performa
+      # ============================================================
+      # Host Redis - nama service redis di network docker
+      REDIS_HOST: "${EXECUTIVE_REDIS_HOST:-redis}"
+      # Port Redis - default 6379
+      REDIS_PORT: "${EXECUTIVE_REDIS_PORT:-6379}"
+      # Password Redis (opsional - kosong jika tanpa password)
+      REDIS_PASSWORD: "${EXECUTIVE_REDIS_PASSWORD:-}"
+      # Driver cache - menggunakan Redis untuk performa tinggi
+      CACHE_STORE: redis
+      # Prefix key cache - memudahkan identifikasi di Redis
+      CACHE_PREFIX: executive_
+      # Driver session - menyimpan session user di Redis (bukan file)
+      SESSION_DRIVER: redis
+      # Masa berlaku session dalam menit (120 menit = 2 jam)
+      SESSION_LIFETIME: "${EXECUTIVE_SESSION_LIFETIME:-120}"
+      # Koneksi queue - menggunakan Redis untuk antrian job Laravel
+      QUEUE_CONNECTION: redis
+
+      # ============================================================
+      # JWT AUTHENTICATION - Konfigurasi token JWT
+      # ============================================================
+      # Secret key untuk signing JWT - WAJIB sama di semua service yang menggunakan JWT
+      JWT_SECRET: "${JWT_SECRET}"
+      # Masa berlaku access token dalam menit (15 menit = default)
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      # Masa berlaku refresh token dalam menit (10080 menit = 7 hari)
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      # Algoritma enkripsi JWT - HS256 (HMAC with SHA-256)
+      JWT_ALGO: "${JWT_ALGO:-HS256}"
+
+      # ============================================================
+      # LAIN-LAIN - Timezone dan konfigurasi tambahan
+      # ============================================================
+      # Timezone aplikasi - WIB (Asia/Jakarta)
+      TZ: "${TZ:-Asia/Jakarta}"
+
+    # ============================================================
+    # VOLUMES - Mount direktori dari host ke container
+    # ============================================================
+    volumes:
+      # Volume untuk storage Laravel (file upload, cache, dll)
+      - executive_storage:/var/www/storage
+      # Volume khusus untuk logs - memudahkan backup dan monitoring
+      - executive_logs:/var/www/storage/logs
+
+      # ============================================================
+      # DEVELOPMENT MODE - Hot reload source code
+      # Memount direktori source code dengan :ro (read-only)
+      # Tidak perlu rebuild image saat ada perubahan code
+      # ============================================================
+      # Mount direktori app (logika bisnis Laravel)
+      - ../../../../backend/executive-service/app:/var/www/app:ro
+      # Mount direktori routes (API routes, web routes)
+      - ../../../../backend/executive-service/routes:/var/www/routes:ro
+      # Mount direktori config (konfigurasi Laravel)
+      - ../../../../backend/executive-service/config:/var/www/config:ro
+
+    # Network yang akan digunakan - myunila-network (shared network semua service)
+    networks:
+      - myunila-network
+
+    # Ketergantungan layanan - menunggu redis-check selesai sebelum start
+    depends_on:
+      - redis-check
+
+    # Kebijakan restart - restart container jika crash (kecuali saat di-stop manual)
+    restart: unless-stopped
+
+    # ============================================================
+    # HEALTH CHECK - Cek kesehatan container secara berkala
+    # ============================================================
+    healthcheck:
+      # Perintah untuk cek health - cek apakah PHP-FPM process running
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      # Interval antar cek health - 30 detik sekali
+      interval: 30s
+      # Timeout untuk setiap cek - 10 detik maksimal
+      timeout: 10s
+      # Jumlah retry gagal sebelum dianggap unhealthy - 3 kali
+      retries: 3
+      # Grace period - waktu tunggu sebelum health check dimulai (40 detik untuk startup)
+      start_period: 40s
+
+    # Konfigurasi logging - membatasi ukuran log file
+    logging:
+      # Driver logging - json-file (format JSON mudah di-parse)
+      driver: "json-file"
+      options:
+        # Ukuran maksimal satu file log - 50 MB
+        max-size: "50m"
+        # Jumlah file log maksimal yang disimpan - 5 file (total 250 MB)
+        max-file: "5"
+        # Label untuk identifikasi log di Docker
+        labels: "service=executive"
+
+  # ============================================================
+  # REDIS HEALTH CHECK - Service sementara untuk cek koneksi Redis
+  # ============================================================
+  redis-check:
+    # Image Redis Alpine (ringan) untuk menjalankan health check
+    image: redis:7-alpine
+    # Nama container health check
+    container_name: myunila-redis-check-executive
+    # Perintah yang dijalankan - loop hingga Redis siap menerima koneksi
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    # Network yang digunakan
+    networks:
+      - myunila-network
+    # Kebijakan restart - "no" artinya hanya jalan sekali lalu exit (service sementara)
+    restart: "no"
+
+# ============================================================
+# NETWORKS - Definisi jaringan container
+# ============================================================
+networks:
+  # Network myunila-network - external network (dibuat terpisah)
+  myunila-network:
+    # External = true berarti network sudah ada, tidak dibuat oleh file ini
+    external: true
+    # Nama fixed network - memastikan semua service connect ke network yang sama
+    name: myunila-network
+
+# ============================================================
+# VOLUMES - Definisi volume persistent (data tidak hilang saat container dihapus)
+# ============================================================
+volumes:
+  # Volume untuk storage aplikasi (file upload, cache Laravel, dll)
+  executive_storage:
+    # Driver volume - local (disimpan di disk host machine)
+    driver: local
+    # Nama volume - memudahkan manage dengan docker volume command
+    name: myunila-executive-storage
+
+  # Volume untuk logs aplikasi - terpisah untuk memudahkan backup log
+  executive_logs:
+    # Driver volume - local
+    driver: local
+    # Nama volume logs
+    name: myunila-executive-logs
