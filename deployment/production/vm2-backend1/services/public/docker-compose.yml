@@ -42,6 +42,11 @@ services:
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
 
+      # Session & Cache (use Redis)
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: default
+      CACHE_DRIVER: redis
+
       TZ: "${TIMEZONE:-Asia/Jakarta}"
 
     deploy:
@@ -105,6 +110,11 @@ services:
       REDIS_HOST: "${REDIS_HOST}"
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      # Session & Cache (use Redis)
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: default
+      CACHE_DRIVER: redis
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
 
