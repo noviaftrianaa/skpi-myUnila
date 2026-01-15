@@ -50,46 +50,46 @@ echo -e "${GREEN}[4/6] Building Services...${NC}"
 cd "$DEPLOY_DIR"
 
 echo "  → Building Sister Service..."
-docker compose -f services/sister/docker-compose.yml build --no-cache sister-service
+docker compose --env-file .env -f services/sister/docker-compose.yml build --no-cache sister-service
 echo ""
 
 echo "  → Building Feeder Service..."
-docker compose -f services/feeder/docker-compose.yml build --no-cache feeder-service
+docker compose --env-file .env -f services/feeder/docker-compose.yml build --no-cache feeder-service
 echo ""
 
 echo "  → Building API Service..."
-docker compose -f services/api/docker-compose.yml build --no-cache api-service
+docker compose --env-file .env -f services/api/docker-compose.yml build --no-cache api-service
 echo ""
 
 echo "  → Building MyUnila Service..."
-docker compose -f services/myunila/docker-compose.yml build --no-cache myunila-service
+docker compose --env-file .env -f services/myunila/docker-compose.yml build --no-cache myunila-service
 echo ""
 
 # Step 5: Stop old containers
 echo -e "${GREEN}[5/6] Stopping old containers...${NC}"
-docker compose -f services/sister/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/feeder/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/api/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/myunila/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/sister/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/feeder/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/api/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/myunila/docker-compose.yml down 2>/dev/null || true
 echo ""
 
 # Step 6: Start Services
 echo -e "${GREEN}[6/6] Starting Services...${NC}"
 
 echo "  → Starting Sister Service..."
-docker compose -f services/sister/docker-compose.yml up -d
+docker compose --env-file .env -f services/sister/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting Feeder Service..."
-docker compose -f services/feeder/docker-compose.yml up -d
+docker compose --env-file .env -f services/feeder/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting API Service..."
-docker compose -f services/api/docker-compose.yml up -d
+docker compose --env-file .env -f services/api/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting MyUnila Service..."
-docker compose -f services/myunila/docker-compose.yml up -d
+docker compose --env-file .env -f services/myunila/docker-compose.yml up -d
 sleep 5
 
 echo ""
