@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# VM3 - Deploy Backend Services 2 (Sister + Feeder + MyUnila)
+# VM3 - Deploy Backend Services 2 (Sister + Feeder + MyUnila + API)
 # Server: 192.168.120.43
 # User: mybackend2
 ###############################################################################
@@ -19,7 +19,7 @@ DEPLOY_DIR="$APP_DIR/deployment/production/vm3-backend2"
 echo ""
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  Deploy Backend Services - VM3${NC}"
-echo -e "${BLUE}  Sister + Feeder + MyUnila Services${NC}"
+echo -e "${BLUE}  Sister + Feeder + MyUnila + API${NC}"
 echo -e "${BLUE}=========================================${NC}"
 echo ""
 
@@ -57,6 +57,10 @@ echo "  → Building Feeder Service..."
 docker compose -f services/feeder/docker-compose.yml build --no-cache feeder-service
 echo ""
 
+echo "  → Building API Service..."
+docker compose -f services/api/docker-compose.yml build --no-cache api-service
+echo ""
+
 echo "  → Building MyUnila Service..."
 docker compose -f services/myunila/docker-compose.yml build --no-cache myunila-service
 echo ""
@@ -65,6 +69,7 @@ echo ""
 echo -e "${GREEN}[5/6] Stopping old containers...${NC}"
 docker compose -f services/sister/docker-compose.yml down 2>/dev/null || true
 docker compose -f services/feeder/docker-compose.yml down 2>/dev/null || true
+docker compose -f services/api/docker-compose.yml down 2>/dev/null || true
 docker compose -f services/myunila/docker-compose.yml down 2>/dev/null || true
 echo ""
 
@@ -77,6 +82,10 @@ sleep 5
 
 echo "  → Starting Feeder Service..."
 docker compose -f services/feeder/docker-compose.yml up -d
+sleep 5
+
+echo "  → Starting API Service..."
+docker compose -f services/api/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting MyUnila Service..."
@@ -99,12 +108,14 @@ echo ""
 echo -e "${YELLOW}Service URLs:${NC}"
 echo "  Sister Service:  http://192.168.120.43:8083"
 echo "  Feeder Service:  http://192.168.120.43:8084"
+echo "  API Service:     http://192.168.120.43:8085"
 echo "  MyUnila Service: http://192.168.120.43:8086"
 echo ""
 
 echo -e "${YELLOW}Check logs:${NC}"
 echo "  docker logs myunila-sister-service --tail 50"
 echo "  docker logs myunila-feeder-service --tail 50"
+echo "  docker logs myunila-api-service --tail 50"
 echo "  docker logs myunila-service --tail 50"
 echo ""
 
