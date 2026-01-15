@@ -33,11 +33,36 @@ export const getToken = (key: keyof typeof TOKEN_KEYS): string | null => {
 };
 
 /**
+ * Set cookie with proper options
+ */
+const setCookie = (name: string, value: string, days: number = 7): void => {
+  if (typeof window === 'undefined') return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  // Set cookie with path=/ so it's accessible by all services on localhost
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+};
+
+/**
+ * Remove cookie
+ */
+const removeCookie = (name: string): void => {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+};
+
+/**
  * Set token to storage (client-side only)
+ * Also saves access_token to cookie for browser-based API docs access
  */
 export const setToken = (key: keyof typeof TOKEN_KEYS, value: string): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEYS[key], value);
+
+  // Also save access token to cookie for browser-based docs access
+  if (key === 'ACCESS') {
+    setCookie('access_token', value, 7); // 7 days expiry
+  }
 };
 
 /**
@@ -54,6 +79,8 @@ export const removeToken = (key: keyof typeof TOKEN_KEYS): void => {
 export const clearTokens = (): void => {
   if (typeof window === 'undefined') return;
   Object.values(TOKEN_KEYS).forEach(key => localStorage.removeItem(key));
+  // Also clear the access_token cookie
+  removeCookie('access_token');
 };
 
 /**

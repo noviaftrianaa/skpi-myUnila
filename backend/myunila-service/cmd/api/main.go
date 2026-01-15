@@ -93,6 +93,15 @@ func main() {
 		log.Println("✅ Radius API client initialized")
 	}
 
+	// Initialize Redis client for caching (used by RequireDeveloper middleware)
+	redisClient := database.ConnectRedis()
+	if redisClient != nil {
+		database.SetGlobalRedisClient(redisClient)
+		log.Println("✅ Redis client connected successfully")
+	} else {
+		log.Println("⚠️  Redis client not available - will fallback to JWT role check")
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      config.Cfg.App.Name,

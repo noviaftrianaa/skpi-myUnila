@@ -28,11 +28,9 @@ class KongAuth
         $token = $this->extractToken($request);
 
         if (!$token) {
-            // If no auth header, Kong should have blocked this already
-            // But we still check for safety
             return response()->json([
                 'success' => false,
-                'message' => 'Missing authorization header',
+                'message' => 'Missing authorization header or cookie',
             ], 401);
         }
 
@@ -81,13 +79,20 @@ class KongAuth
 
     /**
      * Extract token from request.
+     * Supports both Authorization header and cookie.
      */
     private function extractToken(Request $request): ?string
     {
-        // Get from Authorization header
+        // Try Authorization header first
         $header = $request->header('Authorization');
         if ($header && str_starts_with($header, 'Bearer ')) {
             return substr($header, 7);
+        }
+
+        // Fallback to cookie for browser-based docs access
+        $cookieToken = $request->cookie('access_token');
+        if ($cookieToken) {
+            return $cookieToken;
         }
 
         return null;

@@ -64,9 +64,9 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupSwagger mendaftarkan endpoint untuk API documentation
-// All docs endpoints are protected by JWT (via Kong) and require Developer role
+// Protected by JWT auth (supports both header and cookie) and requires Developer role
 func SetupSwagger(app *fiber.App) {
-	// Create a group for docs with Kong JWT auth and Developer role check
+	// Docs group with auth middleware (supports cookie-based auth for browser access)
 	docsGroup := app.Group("/docs", middleware.KongAuth(), middleware.RequireDeveloper())
 
 	// Serve OpenAPI JSON spec
