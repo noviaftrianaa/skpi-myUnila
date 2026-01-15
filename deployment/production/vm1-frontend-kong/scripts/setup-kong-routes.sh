@@ -795,12 +795,12 @@ fi
 echo -e "${GREEN}[7/8] Setting up Dashboard Service...${NC}"
 
 # Create Dashboard Service
-# Note: Upstream is at VM2 (e.g., 192.168.120.42:8087)
+# Note: Upstream is at VM2 (e.g., 192.168.120.42:8086)
 DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"dashboard-service\",
-    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8087}\",
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8086}\",
     \"connect_timeout\": 60000,
     \"write_timeout\": 60000,
     \"read_timeout\": 60000,
@@ -873,12 +873,12 @@ echo ""
 echo -e "${GREEN}[8/8] Setting up API Service (OneData)...${NC}"
 
 # Create API Service
-# Note: Upstream is at VM2 (e.g., 192.168.120.42:8085)
+# Note: Upstream is at VM3 (e.g., 192.168.120.43:8085)
 API_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"api-service\",
-    \"url\": \"${API_SERVICE_URL:-http://192.168.120.42:8085}\",
+    \"url\": \"${API_SERVICE_URL:-http://192.168.120.43:8085}\",
     \"connect_timeout\": 60000,
     \"write_timeout\": 60000,
     \"read_timeout\": 60000,
@@ -1239,7 +1239,7 @@ API_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"api-service-docs\",
-    \"url\": \"${API_SERVICE_URL:-http://192.168.120.42:8085}/docs\"
+    \"url\": \"${API_SERVICE_URL:-http://192.168.120.43:8085}/docs\"
   }")
 
 API_DOCS_SERVICE_ID=$(parse_json_id "$API_DOCS_SERVICE")
@@ -1295,7 +1295,7 @@ DASHBOARD_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"dashboard-service-docs\",
-    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8087}/docs\"
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8086}/docs\"
   }")
 
 DASHBOARD_DOCS_SERVICE_ID=$(parse_json_id "$DASHBOARD_DOCS_SERVICE")
