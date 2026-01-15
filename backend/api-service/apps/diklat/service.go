@@ -70,7 +70,11 @@ func (s *service) GetDiklatByID(ctx context.Context, ID string) (*Diklat, error)
 		var diklat *Diklat
 		err = json.Unmarshal([]byte(cachedData), &diklat)
 		if err == nil {
+			log.Printf("Diklat fetched from cache: %s", ID)
 			return diklat, nil
+		}
+		if err != nil {
+			log.Printf("Failed to unmarshal cached diklat: %v", err)
 		}
 	}
 
