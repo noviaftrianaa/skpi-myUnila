@@ -29,27 +29,32 @@ type KongJWTClaims struct {
 
 // KongAuth trusts Kong Gateway's JWT validation
 // Kong already validated the JWT, we just extract user info from the token
+// Also supports reading token from cookie for browser-based docs access
 func KongAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get Authorization header (Kong will have already validated it)
+		var tokenString string
+
+		// Try Authorization header first
 		authHeader := c.Get("Authorization")
-		if authHeader == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "Missing authorization header",
-			})
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString = parts[1]
+			}
 		}
 
-		// Extract Bearer token
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "Invalid authorization header format",
-			})
+		// Fallback to cookie if no Authorization header
+		if tokenString == "" {
+			tokenString = c.Cookies("access_token")
 		}
 
-		tokenString := parts[1]
+		// If still no token, return unauthorized
+		if tokenString == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"success": false,
+				"message": "Missing authorization header or cookie",
+			})
+		}
 
 		// Parse JWT payload without verification (Kong already verified it)
 		tokenParts := strings.Split(tokenString, ".")

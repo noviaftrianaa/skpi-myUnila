@@ -8,7 +8,7 @@ Route::get('/', function () {
 });
 
 // API Documentation (Scalar UI)
-// Protected by Kong JWT auth and Developer role check
+// Protected by JWT auth (supports both header and cookie) and requires Developer role
 // Exclude from middleware that requires encryption/session
 Route::withoutMiddleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
@@ -16,7 +16,7 @@ Route::withoutMiddleware([
     \Illuminate\View\Middleware\ShareErrorsFromSession::class,
     \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
 ])->group(function () {
-    // Protected docs routes (Kong JWT + Developer role)
+    // Protected docs routes (Kong JWT from header or cookie + Developer role)
     Route::middleware(['kong.auth', 'require.developer'])->group(function () {
         Route::get('/docs', [DocsController::class, 'index']);
         Route::get('/docs/openapi.json', [DocsController::class, 'openApiJson']);

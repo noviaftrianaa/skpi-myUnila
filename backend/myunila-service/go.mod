@@ -3,6 +3,7 @@ module github.com/myunila/myunila-service
 go 1.21
 
 require (
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/google/uuid v1.5.0
 	github.com/jmoiron/sqlx v1.3.5

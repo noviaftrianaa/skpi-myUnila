@@ -18,6 +18,7 @@ import {
   FiRefreshCw,
   FiExternalLink,
   FiBook,
+  FiLock,
 } from "react-icons/fi";
 import {
   MdCheckCircle,
@@ -58,18 +59,16 @@ interface KongInfo {
   };
 }
 
-// Mapping service to documentation URL via Kong Gateway (JWT Protected)
-// All docs routes go through Kong at /[service-name]/docs
-// Note: These URLs require valid JWT token with Developer role
-const KONG_GATEWAY_URL = "http://localhost:9800";
+// Mapping service to documentation URL (Direct access to service ports)
+// Access is controlled at portal level via useRequireAppAccess
 const serviceDocsMap: Record<string, string> = {
-  "auth-service": `${KONG_GATEWAY_URL}/auth-service/docs`,
-  "public-service": `${KONG_GATEWAY_URL}/public-service/docs`,
-  "sister-service": `${KONG_GATEWAY_URL}/sister-service/docs`,
-  "feeder-service": `${KONG_GATEWAY_URL}/feeder-service/docs`,
-  "myunila-service": `${KONG_GATEWAY_URL}/myunila-service/docs`,
-  "api-service": `${KONG_GATEWAY_URL}/api-service/docs`,
-  "dashboard-service": `${KONG_GATEWAY_URL}/dashboard-service/docs`,
+  "auth-service": "http://localhost:8081/docs",
+  "public-service": "http://localhost:8082/docs",
+  "sister-service": "http://localhost:8083/docs",
+  "feeder-service": "http://localhost:8084/docs",
+  "api-service": "http://localhost:8085/docs",
+  "myunila-service": "http://localhost:8086/docs",
+  "dashboard-service": "http://localhost:9000/docs",
 };
 
 // Service display names for better UX
@@ -83,12 +82,37 @@ const serviceDisplayNames: Record<string, string> = {
   "dashboard-service": "Dashboard Service",
 };
 
+// Main services to display (filter out docs/public variants)
+const mainServices = [
+  "auth-service",
+  "public-service",
+  "sister-service",
+  "feeder-service",
+  "myunila-service",
+  "api-service",
+  "dashboard-service",
+];
+
+// Filter function to only show main services
+const isMainService = (serviceName: string): boolean => {
+  return mainServices.includes(serviceName);
+};
+
 export default function KongAdminPage() {
-  // Require authentication and Developer role only for API documentation access
-  const { user, isLoading: authLoading } = useRequireAuth({
-    requireRole: ["Developer"]
+  // Use role-based auth check - Developer role required
+  // This page doesn't have a backend service, so we use useRequireAuth instead of useRequireAppAccess
+  const { isLoading: authLoading, isAuthenticated, user } = useRequireAuth({
+    requireRole: "Developer",
   });
   const router = useRouter();
+
+  // Derive access state from auth
+  const hasAccess = isAuthenticated && user?.role === "Developer";
+  const accessMessage = !isAuthenticated
+    ? "Silakan login terlebih dahulu"
+    : !hasAccess
+      ? "Halaman ini hanya dapat diakses oleh Developer"
+      : "";
 
   const [services, setServices] = useState<KongService[]>([]);
   const [routes, setRoutes] = useState<KongRoute[]>([]);
@@ -130,10 +154,10 @@ export default function KongAdminPage() {
   };
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && hasAccess) {
       fetchKongData();
     }
-  }, [authLoading, user]);
+  }, [authLoading, hasAccess]);
 
   // Get routes for a service
   const getServiceRoutes = (serviceId: string) => {
@@ -141,12 +165,50 @@ export default function KongAdminPage() {
   };
 
   // Loading state
-  if (authLoading || isLoading) {
+  if (authLoading || (hasAccess && isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mb-4" color="primary" />
           <p className="text-gray-600">Loading Kong Admin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Access denied state
+  if (hasAccess === false) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Button
+            startContent={<FiArrowLeft />}
+            variant="light"
+            onPress={() => router.push("/portal")}
+            className="mb-6"
+          >
+            Back to Portal
+          </Button>
+          <Card className="bg-amber-50 border border-amber-200">
+            <CardBody className="p-8 text-center">
+              <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiLock className="w-10 h-10 text-amber-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-amber-800 mb-2">
+                Akses Tidak Diizinkan
+              </h2>
+              <p className="text-amber-700 mb-6">
+                {accessMessage || "Anda tidak memiliki akses ke halaman ini."}
+              </p>
+              <Button
+                color="warning"
+                variant="flat"
+                onPress={() => router.push("/portal")}
+              >
+                Kembali ke Portal
+              </Button>
+            </CardBody>
+          </Card>
         </div>
       </div>
     );
@@ -186,8 +248,9 @@ export default function KongAdminPage() {
     );
   }
 
-  // Stats calculations
-  const enabledServices = services.filter((s) => s.enabled !== false).length;
+  // Stats calculations - only count main services (not docs/public variants)
+  const filteredServices = services.filter(s => isMainService(s.name));
+  const enabledServices = filteredServices.filter((s) => s.enabled !== false).length;
   const totalRoutes = routes.length;
 
   return (
@@ -274,7 +337,8 @@ export default function KongAdminPage() {
           </p>
         </div>
 
-        {services.length === 0 ? (
+        {/* Filter to only show main services (not docs/public variants) */}
+        {services.filter(s => isMainService(s.name)).length === 0 ? (
           <Card className="bg-white shadow-lg border border-gray-100">
             <CardBody className="p-12 text-center">
               <FiServer className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -288,7 +352,7 @@ export default function KongAdminPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {services.map((service, index) => {
+            {services.filter(s => isMainService(s.name)).map((service, index) => {
               const serviceRoutes = getServiceRoutes(service.id);
               const docsUrl = serviceDocsMap[service.name];
 

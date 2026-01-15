@@ -61,9 +61,9 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupDocs registers documentation endpoints
-// All docs endpoints are protected by JWT (via Kong) and require Developer role
+// Protected by JWT auth (supports both header and cookie) and requires Developer role
 func SetupDocs(app *fiber.App) {
-	// Create a group for docs with Kong JWT auth and Developer role check
+	// Docs group with auth middleware (supports cookie-based auth for browser access)
 	docsGroup := app.Group("/docs", middleware.KongAuth(), middleware.RequireDeveloper())
 
 	docsGroup.Get("/openapi.json", func(c *fiber.Ctx) error {
@@ -90,7 +90,7 @@ func SetupDocs(app *fiber.App) {
 		return c.SendString(scalarHTML)
 	})
 
-	// Serve favicon (no auth required for static assets)
+	// Serve favicon (no auth needed for static assets)
 	app.Get("/docs/favicon.png", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "image/png")
 		c.Set("Cache-Control", "public, max-age=31536000")

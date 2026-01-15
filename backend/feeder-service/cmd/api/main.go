@@ -78,6 +78,8 @@ func main() {
 	// Initialize Redis client for caching
 	redisClient := database.ConnectRedis()
 	if redisClient != nil {
+		// Set global Redis client for middleware access (e.g., RequireDeveloper)
+		database.SetGlobalRedisClient(redisClient)
 		log.Println("✅ Redis client connected successfully")
 	} else {
 		log.Println("⚠️  Redis client not available - caching disabled")
