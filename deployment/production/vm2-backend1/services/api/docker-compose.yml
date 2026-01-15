@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  api-service:
+    build:
+      context: ../../../../../backend/api-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/api-service:production
+    container_name: myunila-api-service
+    ports:
+      - "8085:8085"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${API_APP_NAME:-MyUnila API Service}"
+      APP_PORT: ":8085"
+      APP_ENV: production
+      APP_URL: "${API_APP_URL:-http://192.168.120.42:8085}"
+
+      # Database (SQL Server)
+      DB_DRIVER: sqlserver
+      DB_HOST: "${API_DB_HOST}"
+      DB_PORT: "${API_DB_PORT:-1433}"
+      DB_DATABASE: "${API_DB_DATABASE}"
+      DB_USERNAME: "${API_DB_USERNAME}"
+      DB_PASSWORD: "${API_DB_PASSWORD}"
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+      DB_MAX_OPEN_CONNS: "25"
+      DB_MAX_IDLE_CONNS: "5"
+      DB_CONN_MAX_LIFETIME: "5m"
+
+      # Redis Configuration
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_DB: "${API_REDIS_DB:-2}"
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-900}"
+      JWT_ISSUER: "${JWT_ISSUER:-http://192.168.120.42}"
+
+      # Auth Cache Prefix (for reading user context)
+      AUTH_CACHE_PREFIX: "${AUTH_CACHE_PREFIX:-auth_}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=api,vm=vm2"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
