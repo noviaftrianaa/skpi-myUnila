@@ -50,9 +50,15 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         });
 
-        // Store token in localStorage
+        // Store token in localStorage and cookie
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
+          // Set cookie for Kong JWT plugin (API docs access)
+          // Cookie valid for 7 days, accessible on same domain
+          // Add Secure flag for HTTPS (production)
+          const isSecure = window.location.protocol === 'https:';
+          const secureFlag = isSecure ? '; Secure' : '';
+          document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
         }
       },
 
@@ -64,9 +70,11 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         });
 
-        // Clear token from localStorage
+        // Clear token from localStorage and cookie
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
+          // Clear cookie by setting expired date
+          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
       },
 
@@ -110,6 +118,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           });
+
+          // Ensure cookie is set for existing sessions (for API docs access)
+          const isSecure = window.location.protocol === 'https:';
+          const secureFlag = isSecure ? '; Secure' : '';
+          document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
         } catch (error) {
           console.error('Auth check failed:', error);
           set({
