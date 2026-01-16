@@ -2,14 +2,12 @@ openapi: 3.1.0
 info:
   title: MyUnila Integrator Service API
   description: |
-    API untuk sinkronisasi data dari sistem existing (SIKEP, Radius, ManAkses) ke MyUnila/OneData.
+    API untuk mengakses data dari sistem existing (SIKEP, Radius, ManAkses) yang tersinkronisasi ke MyUnila/OneData.
 
     ## Fitur Utama
-    - Sinkronisasi data pegawai dari SIKEP
-    - Sinkronisasi data pengguna dari Radius SSO
-    - Sinkronisasi unit organisasi dari ManAkses
-    - Manajemen scheduler untuk sinkronisasi otomatis
-    - Monitoring real-time proses sinkronisasi
+    - Data pegawai dari SIKEP
+    - Data pengguna dari Radius SSO
+    - Data unit organisasi dari ManAkses
 
     ## Authentication
     Sebagian besar endpoint memerlukan JWT Bearer token yang divalidasi melalui Kong Gateway.
@@ -34,21 +32,13 @@ tags:
   - name: Health
     description: Health check endpoint
   - name: SIKEP Pegawai
-    description: Sinkronisasi data pegawai dari SIKEP Unila
+    description: Data pegawai dari SIKEP Unila
   - name: SIKEP Referensi
     description: Data referensi dari SIKEP
   - name: Radius
-    description: Sinkronisasi data pengguna dari Radius SSO
+    description: Data pengguna dari Radius SSO
   - name: ManAkses Unit Organisasi
-    description: Sinkronisasi unit organisasi dari ManAkses
-  - name: Scheduler
-    description: Manajemen jadwal sinkronisasi otomatis
-  - name: Logger
-    description: Log sinkronisasi
-  - name: Monitoring
-    description: Monitoring proses sinkronisasi real-time
-  - name: API Config
-    description: Konfigurasi API eksternal
+    description: Data unit organisasi dari ManAkses
 
 paths:
   /health:
@@ -59,8 +49,6 @@ paths:
     $ref: './paths/sikep-pegawai.yaml#/list'
   /api/v1/sikep/pegawai/stats:
     $ref: './paths/sikep-pegawai.yaml#/stats'
-  /api/v1/sikep/pegawai/sync:
-    $ref: './paths/sikep-pegawai.yaml#/sync'
   /api/v1/sikep/pegawai/{id}:
     $ref: './paths/sikep-pegawai.yaml#/detail'
 
@@ -75,8 +63,6 @@ paths:
     $ref: './paths/radius.yaml#/list'
   /api/v1/radius/pengguna/stats:
     $ref: './paths/radius.yaml#/stats'
-  /api/v1/radius/sync:
-    $ref: './paths/radius.yaml#/sync'
   /api/v1/radius/stats:
     $ref: './paths/radius.yaml#/overall-stats'
 
@@ -85,24 +71,8 @@ paths:
     $ref: './paths/unit-organisasi.yaml#/list'
   /api/v1/manakses/unit-organisasi/stats:
     $ref: './paths/unit-organisasi.yaml#/stats'
-  /api/v1/manakses/unit-organisasi/sync:
-    $ref: './paths/unit-organisasi.yaml#/sync'
   /api/v1/manakses/unit-organisasi/comparison:
     $ref: './paths/unit-organisasi.yaml#/comparison'
-
-  # Scheduler
-  /api/v1/schedules:
-    $ref: './paths/scheduler.yaml#/list'
-  /api/v1/schedules/{id}:
-    $ref: './paths/scheduler.yaml#/detail'
-
-  # Logger
-  /api/v1/logger:
-    $ref: './paths/logger.yaml#/list'
-
-  # Monitoring
-  /api/v1/monitoring:
-    $ref: './paths/monitoring.yaml#/active'
 
 components:
   securitySchemes:
