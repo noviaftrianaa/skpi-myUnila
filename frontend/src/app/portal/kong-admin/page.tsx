@@ -59,17 +59,32 @@ interface KongInfo {
   };
 }
 
-// Mapping service to documentation URL (Direct access to service ports)
-// Access is controlled at portal level via useRequireAppAccess
-const serviceDocsMap: Record<string, string> = {
-  "auth-service": "http://localhost:8081/docs",
-  "public-service": "http://localhost:8082/docs",
-  "sister-service": "http://localhost:8083/docs",
-  "feeder-service": "http://localhost:8084/docs",
-  "api-service": "http://localhost:8085/docs",
-  "myunila-service": "http://localhost:8086/docs",
-  "dashboard-service": "http://localhost:9000/docs",
+// Get base URL for Kong gateway (from env or default to production)
+const getKongBaseUrl = () => {
+  // In production: https://my.unila.ac.id
+  // In local/dev: http://localhost:9800
+  if (typeof window !== "undefined") {
+    // Client-side: detect from current host
+    const host = window.location.hostname;
+    if (host === "my.unila.ac.id") {
+      return "https://my.unila.ac.id";
+    } else if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:9800";
+    }
+    // Fallback to protocol + host (for other environments)
+    return `${window.location.protocol}//${host}`;
+  }
+  // Server-side: default to production
+  return "https://my.unila.ac.id";
 };
+
+// Mapping service to documentation URL (via Kong gateway)
+// Access is controlled via JWT at Kong level + role check at portal level
+const getServiceDocsUrl = (serviceName: string): string => {
+  const baseUrl = getKongBaseUrl();
+  return `${baseUrl}/gateway/${serviceName}/docs`;
+};
+
 
 // Service display names for better UX
 const serviceDisplayNames: Record<string, string> = {
@@ -354,7 +369,7 @@ export default function KongAdminPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {services.filter(s => isMainService(s.name)).map((service, index) => {
               const serviceRoutes = getServiceRoutes(service.id);
-              const docsUrl = serviceDocsMap[service.name];
+              const docsUrl = mainServices.includes(service.name) ? getServiceDocsUrl(service.name) : null;
 
               return (
                 <motion.div

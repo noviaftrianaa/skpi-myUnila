@@ -967,7 +967,7 @@ if [ -n "$AUTH_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "auth-service-docs-route",
-        "paths": ["/auth-service/docs"],
+        "paths": ["/gateway/auth-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1025,7 +1025,7 @@ if [ -n "$PUBLIC_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "public-service-docs-route",
-        "paths": ["/public-service/docs"],
+        "paths": ["/gateway/public-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1081,7 +1081,7 @@ if [ -n "$SISTER_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "sister-service-docs-route",
-        "paths": ["/sister-service/docs"],
+        "paths": ["/gateway/sister-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1137,7 +1137,7 @@ if [ -n "$FEEDER_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "feeder-service-docs-route",
-        "paths": ["/feeder-service/docs"],
+        "paths": ["/gateway/feeder-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1193,7 +1193,7 @@ if [ -n "$MYUNILA_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "myunila-service-docs-route",
-        "paths": ["/myunila-service/docs"],
+        "paths": ["/gateway/myunila-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1249,7 +1249,7 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "api-service-docs-route",
-        "paths": ["/api-service/docs"],
+        "paths": ["/gateway/api-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1305,7 +1305,7 @@ if [ -n "$DASHBOARD_DOCS_SERVICE_ID" ]; then
       -H "Content-Type: application/json" \
       -d '{
         "name": "dashboard-service-docs-route",
-        "paths": ["/dashboard-service/docs"],
+        "paths": ["/gateway/dashboard-service/docs"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1363,13 +1363,13 @@ echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
 echo "  API/OneData (JWT req): /api-service/* → backend/*"
 echo ""
 echo -e "${YELLOW}API Documentation Routes (JWT + Developer role required):${NC}"
-echo "  Auth Docs:      /auth-service/docs/*"
-echo "  Public Docs:    /public-service/docs/*"
-echo "  Sister Docs:    /sister-service/docs/*"
-echo "  Feeder Docs:    /feeder-service/docs/*"
-echo "  MyUnila Docs:   /myunila-service/docs/*"
-echo "  API Docs:       /api-service/docs/*"
-echo "  Dashboard Docs: /dashboard-service/docs/*"
+echo "  Auth Docs:      /gateway/auth-service/docs/*"
+echo "  Public Docs:    /gateway/public-service/docs/*"
+echo "  Sister Docs:    /gateway/sister-service/docs/*"
+echo "  Feeder Docs:    /gateway/feeder-service/docs/*"
+echo "  MyUnila Docs:   /gateway/myunila-service/docs/*"
+echo "  API Docs:       /gateway/api-service/docs/*"
+echo "  Dashboard Docs: /gateway/dashboard-service/docs/*"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
