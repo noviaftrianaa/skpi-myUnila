@@ -140,12 +140,18 @@ case "$SERVICE" in
         # Public uses nginx as reverse proxy, need to restart nginx too
         echo -e "${YELLOW}Restarting nginx to reconnect to public-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
+        # Generate API docs
+        echo "  → Generating Public Service docs..."
+        docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Docs generated" || echo "    ⚠ Docs failed"
         ;;
     auth)
         rebuild_service "auth"
         # Auth uses nginx as reverse proxy, need to restart nginx too
         echo -e "${YELLOW}Restarting nginx to reconnect to auth-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
+        # Generate API docs
+        echo "  → Generating Auth Service docs..."
+        docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Docs generated" || echo "    ⚠ Docs failed"
         ;;
     sister)
         rebuild_service "sister"
@@ -180,6 +186,24 @@ case "$SERVICE" in
         rebuild_service "api"
         rebuild_service "dashboard"
         rebuild_nginx
+
+        # Setup Kong routes after all services are up
+        echo ""
+        echo -e "${GREEN}Setting up Kong routes...${NC}"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        if [ -f "$SCRIPT_DIR/setup-kong-routes.sh" ]; then
+            bash "$SCRIPT_DIR/setup-kong-routes.sh"
+        else
+            echo -e "${YELLOW}⚠ Kong routes script not found, skipping...${NC}"
+        fi
+
+        # Generate API documentation for Laravel services
+        echo ""
+        echo -e "${GREEN}Generating API documentation...${NC}"
+        echo "  → Generating Public Service docs..."
+        docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Public Service docs generated" || echo "    ⚠ Public Service docs failed"
+        echo "  → Generating Auth Service docs..."
+        docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Auth Service docs generated" || echo "    ⚠ Auth Service docs failed"
         echo ""
         ;;
     *)

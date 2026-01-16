@@ -204,7 +204,25 @@ echo ""
 echo "Waiting 20 seconds for all services to stabilize..."
 sleep 20
 
-# Step 8: Show status
+# Step 8: Setup Kong routes
+echo -e "${GREEN}[8/9] Setting up Kong routes...${NC}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/setup-kong-routes.sh" ]; then
+    bash "$SCRIPT_DIR/setup-kong-routes.sh"
+else
+    echo -e "${YELLOW}⚠ Kong routes script not found, skipping...${NC}"
+fi
+echo ""
+
+# Step 9: Generate API documentation for Laravel services
+echo -e "${GREEN}[9/9] Generating API documentation...${NC}"
+echo "  → Generating Public Service docs..."
+docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Public Service docs generated" || echo "    ⚠ Public Service docs failed or not available"
+echo "  → Generating Auth Service docs..."
+docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Auth Service docs generated" || echo "    ⚠ Auth Service docs failed or not available"
+echo ""
+
+# Step 10: Show status
 echo ""
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  Container Status${NC}"
