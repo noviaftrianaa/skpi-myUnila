@@ -57,6 +57,127 @@ type Wilayah struct {
 	ExpiredDate    *time.Time `db:"expired_date" json:"-"`
 }
 
+// Wilayah adalah entity dari tabel ref.aktifitas_kerjasama
+type AktifitasKerjasama struct {
+	IDAktKerjasama int        `db:"id_akt_kerjasama" json:"id_akt_kerjasama"`
+	NmAktKerjasama string     `db:"nm_akt_kerjasama" json:"nm_akt_kerjasama"`
+	Ket            *string    `db:"ket" json:"ket"`
+	CreateDate     time.Time  `db:"create_date" json:"-"`
+	LastUpdate     time.Time  `db:"last_update" json:"-"`
+	ExpiredDate    *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.basis_evaluasi
+type BasisEvaluasi struct {
+	IDBasisEvaluasi int        `db:"id_basis_evaluasi" json:"id_basis_evaluasi"`
+	NmBasisEvaluasi string     `db:"nm_basis_evaluasi" json:"nm_basis_evaluasi"`
+	CreateDate      time.Time  `db:"create_date" json:"-"`
+	LastUpdate      time.Time  `db:"last_update" json:"-"`
+	ExpiredDate     *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bentuk_kegiatan_kerjasama
+type BentukKegiatanKerjasama struct {
+	IDBntkGiatKerjasama int        `db:"id_bentuk_kegiatan_kerjasama" json:"id_bentuk_kegiatan_kerjasama"`
+	NmBntkGiatKerjasama string     `db:"nm_bentuk_kegiatan_kerjasama" json:"nm_bentuk_kegiatan_kerjasama"`
+	Ket                 *string    `db:"ket" json:"ket"`
+	CreateDate          time.Time  `db:"create_date" json:"-"`
+	LastUpdate          time.Time  `db:"last_update" json:"-"`
+	ExpiredDate         *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bentuk_pendidikan
+type BentukPendidikan struct {
+	IDBp        int        `db:"id_bp" json:"id_bp"`
+	NmBp        string     `db:"nm_bp" json:"nm_bp"`
+	AJenjPaud   int        `db:"a_jenj_paud" json:"a_jenj_paud"`
+	AJenjTk     int        `db:"a_jenj_tk" json:"a_jenj_tk"`
+	AJenjSd     int        `db:"a_jenj_sd" json:"a_jenj_sd"`
+	AJenjSmp    int        `db:"a_jenj_smp" json:"a_jenj_smp"`
+	AJenjSma    int        `db:"a_jenj_sma" json:"a_jenj_sma"`
+	AJenjTinggi int        `db:"a_jenj_tinggi" json:"a_jenj_tinggi"`
+	DirBina     string     `db:"dir_bina" json:"dir_bina"`
+	AAktif      int        `db:"a_aktif" json:"a_aktif"`
+	CreateDate  time.Time  `db:"create_date" json:"-"`
+	LastUpdate  time.Time  `db:"last_update" json:"-"`
+	ExpiredDate *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bidang_kerjasama
+type BidangKerjasama struct {
+	IDBidKerjasama int        `db:"id_bid_kerjasama" json:"id_bid_kerjasama"`
+	NmBidKerjasama string     `db:"nm_bid_kerjasama" json:"nm_bid_kerjasama"`
+	CreateDate     time.Time  `db:"create_date" json:"-"`
+	LastUpdate     time.Time  `db:"last_update" json:"-"`
+	ExpiredDate    *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bidang_pekerjaan
+type BidangPekerjaan struct {
+	IDBidKerja  int        `db:"id_bid_kerja" json:"id_bid_kerja"`
+	NmBidKerja  string     `db:"nm_bid_kerja" json:"nm_bid_kerja"`
+	CreateDate  time.Time  `db:"create_date" json:"-"`
+	LastUpdate  time.Time  `db:"last_update" json:"-"`
+	ExpiredDate *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bidang_studi
+type BidangStudi struct {
+	IDBidStudi         int        `db:"id_bid_studi" json:"id_bid_studi"`
+	IDIndukBidangStudi int        `db:"id_induk_bidang_studi" json:"id_induk_bidang_studi"`
+	KodeBidStudi       string     `db:"kode_bid_studi" json:"kode_bid_studi"`
+	NmBidStudi         string     `db:"nm_bid_studi" json:"nm_bid_studi"`
+	AKel               int        `db:"a_kel" json:"a_kel"`
+	AJenjPaud          int        `db:"a_jenj_paud" json:"a_jenj_paud"`
+	AJenjTk            int        `db:"a_jenj_tk" json:"a_jenj_tk"`
+	AJenjSd            int        `db:"a_jenj_sd" json:"a_jenj_sd"`
+	AJenjSmp           int        `db:"a_jenj_smp" json:"a_jenj_smp"`
+	AJenjSma           int        `db:"a_jenj_sma" json:"a_jenj_sma"`
+	AJenjTinggi        int        `db:"a_jenj_tinggi" json:"a_jenj_tinggi"`
+	CreateDate         time.Time  `db:"create_date" json:"-"`
+	LastUpdate         time.Time  `db:"last_update" json:"-"`
+	ExpiredDate        *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.bidang_usaha
+type BidangUsaha struct {
+	IDBu        int        `db:"id_bu" json:"id_bu"`
+	NmBu        string     `db:"nm_bu" json:"nm_bu"`
+	CreateDate  time.Time  `db:"create_date" json:"-"`
+	LastUpdate  time.Time  `db:"last_update" json:"-"`
+	ExpiredDate *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.fungsi_lab
+type FungsiLab struct {
+	IDFungsiLab int        `db:"id_fungsi_lab" json:"id_fungsi_lab"`
+	NmFungsiLab string     `db:"nm_fungsi_lab" json:"nm_fungsi_lab"`
+	CreateDate  time.Time  `db:"creat1e_date" json:"-"`
+	LastUpdate  time.Time  `db:"last_update" json:"-"`
+	ExpiredDate *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.gelar_akademik
+type GelarAkademik struct {
+	IDGelarAkad  int        `db:"id_gelar_akad" json:"id_gelar_akad"`
+	SingkatGelar string     `db:"singkat_gelar" json:"singkat_gelar"`
+	NmGelarAkad  string     `db:"nm_gelar_akad" json:"nm_gelar_akad"`
+	PosisiGelar  int        `db:"posisi_gelar" json:"posisi_gelar"`
+	CreateDate   time.Time  `db:"create_date" json:"-"`
+	LastUpdate   time.Time  `db:"last_update" json:"-"`
+	ExpiredDate  *time.Time `db:"expired_date" json:"-"`
+}
+
+// Wilayah adalah entity dari tabel ref.ikatan_kerja_sdm
+type IkatanKerjaSdm struct {
+	IDIkatanKerja  int        `db:"id_ikatan_kerja" json:"id_ikatan_kerja"`
+	NmIkatanKerja  string     `db:"nm_ikatan_kerja" json:"nm_ikatan_kerja"`
+	KetIkatanKerja string     `db:"ket_ikatan_kerja" json:"ket_ikatan_kerja"`
+	CreateDate     time.Time  `db:"create_date" json:"-"`
+	LastUpdate     time.Time  `db:"last_update" json:"-"`
+	ExpiredDate    *time.Time `db:"expired_date" json:"-"`
+}
+
 // ============================================================================
 // Query Parameters
 // ============================================================================
@@ -73,7 +194,7 @@ type PaginationParams struct {
 // WilayahParams untuk parameter khusus wilayah
 type WilayahParams struct {
 	PaginationParams
-	Level          *int    `query:"level"`           // 1=provinsi, 2=kab/kota, 3=kecamatan, 4=kelurahan
+	Level          *int    `query:"level"`            // 1=provinsi, 2=kab/kota, 3=kecamatan, 4=kelurahan
 	IDIndukWilayah *string `query:"id_induk_wilayah"` // filter berdasarkan induk
 	IDNegara       *string `query:"id_negara"`        // filter berdasarkan negara
 }
@@ -81,14 +202,45 @@ type WilayahParams struct {
 // SemesterParams untuk parameter khusus semester
 type SemesterParams struct {
 	PaginationParams
-	TahunAjaran   *int `query:"tahun_ajaran"`
-	PeriodeAktif  *int `query:"periode_aktif"` // 1=aktif, 0=tidak aktif
+	TahunAjaran  *int `query:"tahun_ajaran"`
+	PeriodeAktif *int `query:"periode_aktif"` // 1=aktif, 0=tidak aktif
 }
 
 // TahunAjaranParams untuk parameter khusus tahun ajaran
 type TahunAjaranParams struct {
 	PaginationParams
 	PeriodeAktif *int `query:"periode_aktif"` // 1=aktif, 0=tidak aktif
+}
+
+// BentukPendidikanParams untuk parameter khusus bentuk pendidikan
+type BentukPendidikanParams struct {
+	PaginationParams
+	JenjangPaud   *int    `query:"jenjang_paud"`   // Filter by jenjang paud
+	JenjangTk     *int    `query:"jenjang_tk"`     // Filter by jenjang tk
+	JenjangSd     *int    `query:"jenjang_sd"`     // Filter by jenjang sd
+	JenjangSmp    *int    `query:"jenjang_smp"`    // Filter by jenjang smp
+	JenjangSma    *int    `query:"jenjang_sma"`    // Filter by jenjang sma
+	JenjangTinggi *int    `query:"jenjang_tinggi"` // Filter by jenjang tinggi
+	DirBina       *string `query:"dir_bina"`       // Filter by dir_bina
+}
+
+// BidangStudiParams untuk parameter khusus bidang studi
+type BidangStudiParams struct {
+	PaginationParams
+	IDIndukBidangStudi *int `query:"id_induk_bidang_studi"` // Filter by id_induk_bidang_studi
+	Kelompok           *int `query:"kelompok"`              // Filter by kelompok
+	JenjangPaud        *int `query:"jenjang_paud"`          // Filter by jenjang paud
+	JenjangTk          *int `query:"jenjang_tk"`            // Filter by jenjang tk
+	JenjangSd          *int `query:"jenjang_sd"`            // Filter by jenjang sd
+	JenjangSmp         *int `query:"jenjang_smp"`           // Filter by jenjang smp
+	JenjangSma         *int `query:"jenjang_sma"`           // Filter by jenjang sma
+	JenjangTinggi      *int `query:"jenjang_tinggi"`        // Filter by jenjang tinggi
+}
+
+// GelarAkademikParams untuk parameter khusus gelar akademik
+type GelarAkademikParams struct {
+	PaginationParams
+	PosisiGelar *int `query:"posisi_gelar"` // Filter by posisi_gelar
 }
 
 // ============================================================================
