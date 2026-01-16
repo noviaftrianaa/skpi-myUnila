@@ -74,7 +74,7 @@ class DocsController extends Controller
         <div class="loading-subtext">Loading Auth Service API Documentation...</div>
     </div>
 
-    <script id="api-reference" data-url="/docs/openapi.json"></script>
+    <script id="api-reference" data-url="docs/openapi.json"></script>
     <script>
         var configuration = {
             theme: 'purple',

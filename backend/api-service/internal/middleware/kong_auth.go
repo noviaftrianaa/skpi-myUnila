@@ -11,21 +11,23 @@ import (
 )
 
 // KongJWTClaims represents the JWT claims from Kong header
+// Supports both flat structure (from auth-service) and nested user structure
 type KongJWTClaims struct {
-	ISS  string `json:"iss"`
-	IAT  int64  `json:"iat"`
-	EXP  int64  `json:"exp"`
-	NBF  int64  `json:"nbf"`
-	SUB  string `json:"sub"`
-	JTI  string `json:"jti"`
-	Type string `json:"type"`
-	User struct {
+	ISS      string `json:"iss"`
+	IAT      int64  `json:"iat"`
+	EXP      int64  `json:"exp"`
+	NBF      int64  `json:"nbf"`
+	SUB      string `json:"sub"`
+	JTI      string `json:"jti"`
+	Role     string `json:"role"`     // Flat structure: role at top level
+	Username string `json:"username"` // Flat structure: username at top level
+	User     struct {
 		ID       string `json:"id"`
 		Username string `json:"username"`
 		Email    string `json:"email"`
 		Name     string `json:"name"`
 		Role     string `json:"role"`
-	} `json:"user"`
+	} `json:"user"` // Nested structure (if exists)
 }
 
 // KongAuth trusts Kong Gateway's JWT validation
@@ -45,6 +47,10 @@ func KongAuth() fiber.Handler {
 		}
 
 		// Fallback to cookie if no Authorization header
+		// Try both cookie names: "token" (from frontend) and "access_token" (legacy)
+		if tokenString == "" {
+			tokenString = c.Cookies("token")
+		}
 		if tokenString == "" {
 			tokenString = c.Cookies("access_token")
 		}
@@ -84,17 +90,23 @@ func KongAuth() fiber.Handler {
 			return response.Unauthorized(c, fmt.Sprintf("Failed to parse JWT claims: %v", err))
 		}
 
-		// Verify token type (should be "access" token)
-		if claims.Type != "access" {
-			return response.Unauthorized(c, "Invalid token type")
-		}
+		// Note: Token type verification removed - auth-service tokens don't have "type" field
+		// Kong has already validated the token, so we trust it
 
 		// Store user info in context for later use
-		c.Locals("user_id", claims.User.ID)
-		c.Locals("username", claims.User.Username)
-		c.Locals("email", claims.User.Email)
-		c.Locals("name", claims.User.Name)
-		c.Locals("role", claims.User.Role)
+		// Support both nested user object and flat claims structure
+		if claims.User.ID != "" {
+			c.Locals("user_id", claims.User.ID)
+			c.Locals("username", claims.User.Username)
+			c.Locals("email", claims.User.Email)
+			c.Locals("name", claims.User.Name)
+			c.Locals("role", claims.User.Role)
+		} else {
+			// Flat structure from auth-service: sub=user_id, role/username at top level
+			c.Locals("user_id", claims.SUB)
+			c.Locals("username", claims.Username)
+			c.Locals("role", claims.Role)
+		}
 
 		return c.Next()
 	}
