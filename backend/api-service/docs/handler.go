@@ -64,14 +64,20 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupSwagger mendaftarkan endpoint untuk API documentation
-// Protected by JWT auth (supports both header and cookie) and requires Developer role
+// Main docs page requires authentication via KongAuth middleware
+// Spec files (openapi.json, openapi.yaml, favicon) are public for Scalar UI to load
 func SetupSwagger(app *fiber.App) {
-	// Docs group with auth middleware (supports cookie-based auth for browser access)
-	docsGroup := app.Group("/docs", middleware.KongAuth(), middleware.RequireDeveloper())
+	// Serve Scalar UI (main docs page) - protected with KongAuth
+	app.Get("/docs", middleware.KongAuth(), func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html")
+		return c.SendString(scalarHTML)
+	})
 
-	// Serve OpenAPI JSON spec
-	docsGroup.Get("/openapi.json", func(c *fiber.Ctx) error {
+	// Serve OpenAPI JSON spec - public (no auth required)
+	// This allows Scalar UI to fetch spec without cookie/auth issues
+	app.Get("/docs/openapi.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
+		c.Set("Cache-Control", "public, max-age=60") // Cache for 1 minute
 
 		if err := loadCompiledSpec(); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -82,21 +88,16 @@ func SetupSwagger(app *fiber.App) {
 		return c.Send(compiledSpecJSON)
 	})
 
-	// Serve OpenAPI YAML spec
-	docsGroup.Get("/openapi.yaml", func(c *fiber.Ctx) error {
+	// Serve OpenAPI YAML spec - public (no auth required)
+	app.Get("/docs/openapi.yaml", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/yaml")
+		c.Set("Cache-Control", "public, max-age=60")
 
 		if err := loadCompiledSpec(); err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to load OpenAPI spec: " + err.Error())
 		}
 
 		return c.Send(compiledSpec)
-	})
-
-	// Serve Scalar UI (main docs page)
-	app.Get("/docs", middleware.KongAuth(), middleware.RequireDeveloper(), func(c *fiber.Ctx) error {
-		c.Set("Content-Type", "text/html")
-		return c.SendString(scalarHTML)
 	})
 
 	// Serve favicon (no auth required for static assets)
@@ -114,7 +115,7 @@ var scalarHTML = `<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>myUnila API Web Service Documentation</title>
-    <link rel="icon" type="image/png" href="/docs/favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
@@ -170,7 +171,7 @@ var scalarHTML = `<!DOCTYPE html>
         <div class="loading-subtext">Loading myUnila API Web Service Documentation...</div>
     </div>
 
-    <script id="api-reference" data-url="/docs/openapi.json"></script>
+    <script id="api-reference" data-url="docs/openapi.json"></script>
     <script>
         var configuration = {
             theme: 'purple',

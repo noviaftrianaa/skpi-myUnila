@@ -1157,6 +1157,106 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
     fi
 fi
 
+###############################################################################
+# 10. Gateway Routes (for consistency with production)
+# Production uses /gateway/{service}/docs via Nginx proxy
+# Local: add same routes for frontend consistency
+#
+# Uses regex routes with request-transformer to properly handle sub-paths
+# This fixes the "Document could not be loaded" issue in Scalar UI
+###############################################################################
+echo -e "${GREEN}[10/10] Setting up Gateway Routes (for frontend consistency)...${NC}"
+
+# Define services with their upstream URLs (without path - we'll use request-transformer)
+declare -A SERVICE_URLS
+SERVICE_URLS["auth-service"]="http://myunila-nginx:80"
+SERVICE_URLS["public-service"]="http://myunila-nginx:81"
+SERVICE_URLS["sister-service"]="http://myunila-sister-service:8083"
+SERVICE_URLS["feeder-service"]="http://myunila-feeder-service:8084"
+SERVICE_URLS["myunila-service"]="http://myunila-service:8086"
+SERVICE_URLS["api-service"]="http://myunila-api-service:8085"
+
+for SERVICE in "${!SERVICE_URLS[@]}"; do
+    UPSTREAM_URL="${SERVICE_URLS[$SERVICE]}"
+    echo -e "${YELLOW}  → Creating gateway routes for $SERVICE-docs...${NC}"
+
+    # Create a dedicated service for gateway docs (without path prefix)
+    GATEWAY_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"name\": \"gateway-${SERVICE}-docs\",
+        \"url\": \"$UPSTREAM_URL\"
+      }")
+
+    GATEWAY_DOCS_SERVICE_ID=$(parse_json_id "$GATEWAY_DOCS_SERVICE")
+
+    if [ -z "$GATEWAY_DOCS_SERVICE_ID" ]; then
+        echo -e "${YELLOW}    ! Service may already exist, continuing...${NC}"
+        continue
+    fi
+
+    # Create regex route that captures the docs path
+    # /gateway/{service}/docs* -> /docs*
+    GATEWAY_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/gateway-${SERVICE}-docs/routes" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"name\": \"gateway-${SERVICE}-docs-route\",
+        \"paths\": [\"~/gateway/${SERVICE}(?P<path>/docs.*)\"],
+        \"methods\": [\"GET\", \"OPTIONS\"],
+        \"strip_path\": false,
+        \"preserve_host\": false,
+        \"protocols\": [\"http\", \"https\"],
+        \"regex_priority\": 900
+      }")
+
+    GATEWAY_ROUTE_ID=$(parse_json_id "$GATEWAY_ROUTE")
+
+    if [ -n "$GATEWAY_ROUTE_ID" ]; then
+        # Add request-transformer to rewrite URI using captured path
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$GATEWAY_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "request-transformer",
+            "config": {
+              "replace": {
+                "uri": "$(uri_captures.path)"
+              }
+            }
+          }' > /dev/null
+
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$GATEWAY_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type", "Cookie"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin with cookie support (protected endpoint)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$GATEWAY_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}    ✓ Gateway route created with JWT protection${NC}"
+    fi
+done
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
@@ -1172,6 +1272,15 @@ echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
+echo ""
+
+echo -e "${YELLOW}API Documentation Routes (JWT + Cookie Auth):${NC}"
+echo "  http://localhost:9800/gateway/auth-service/docs"
+echo "  http://localhost:9800/gateway/public-service/docs"
+echo "  http://localhost:9800/gateway/sister-service/docs"
+echo "  http://localhost:9800/gateway/feeder-service/docs"
+echo "  http://localhost:9800/gateway/myunila-service/docs"
+echo "  http://localhost:9800/gateway/api-service/docs"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"

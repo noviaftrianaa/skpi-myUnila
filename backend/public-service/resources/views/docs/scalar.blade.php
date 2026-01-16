@@ -60,7 +60,7 @@
         <div class="loading-subtext">Loading Public Service API Documentation...</div>
     </div>
 
-    <script id="api-reference" data-url="/docs/openapi.json"></script>
+    <script id="api-reference" data-url="docs/openapi.json"></script>
     <script>
         var configuration = {
             theme: 'purple',
