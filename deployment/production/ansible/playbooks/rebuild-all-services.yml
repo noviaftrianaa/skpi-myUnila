@@ -194,6 +194,30 @@
       become_user: "{{ ansible_user }}"
       ignore_errors: yes
 
+    - name: Generate API documentation for Public Service
+      shell: |
+        docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+      register: public_docs
+
+    - name: Generate API documentation for Auth Service
+      shell: |
+        docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+      register: auth_docs
+
+    - name: Display API docs generation status
+      debug:
+        msg: |
+          Public Service docs: {{ 'Generated' if public_docs.rc == 0 else 'Failed or skipped' }}
+          Auth Service docs: {{ 'Generated' if auth_docs.rc == 0 else 'Failed or skipped' }}
+
     - name: Start queue worker for Auth Service (background sync jobs)
       shell: |
         docker exec -d myunila-auth-service sh -c "nohup php artisan queue:work redis --tries=3 --timeout=1800 --memory=256 > /var/www/storage/logs/queue-worker.log 2>&1 &"
