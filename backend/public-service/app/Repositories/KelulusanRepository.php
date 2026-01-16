@@ -28,8 +28,7 @@ class KelulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE pd.soft_delete = 0
+                            WHERE pd.soft_delete = 0
                 AND reg.id_jns_keluar = '1' -- Lulus
                 AND reg.tgl_masuk_sp IS NOT NULL
                 AND reg.tgl_keluar IS NOT NULL
@@ -111,8 +110,7 @@ class KelulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE pd.soft_delete = 0
+                            WHERE pd.soft_delete = 0
                 AND reg.id_jns_keluar = '1'
                 AND reg.tgl_masuk_sp IS NOT NULL
                 AND reg.tgl_keluar IS NOT NULL
@@ -183,8 +181,7 @@ class KelulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE pd.soft_delete = 0
+                            WHERE pd.soft_delete = 0
                 AND reg.id_jns_keluar = '1'
                 AND reg.tgl_masuk_sp IS NOT NULL
                 AND reg.tgl_keluar IS NOT NULL
@@ -258,8 +255,7 @@ class KelulusanRepository
                 INNER JOIN ref.jenjang_pendidikan AS jenjang
                     ON jenjang.id_jenj_didik = sms.id_jenj_didik
                     AND jenjang.expired_date IS NULL
-                    AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-                WHERE pd.soft_delete = 0
+                                    WHERE pd.soft_delete = 0
                     AND reg.id_jns_keluar = '1'
                     AND reg.tgl_masuk_sp IS NOT NULL
                     AND reg.tgl_keluar IS NOT NULL
@@ -344,8 +340,7 @@ class KelulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            -- Join to fakultas (sms lagi menggunakan id_fak_unila)
+                            -- Join to fakultas (sms lagi menggunakan id_fak_unila)
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms.id_fak_unila
                 AND fak.soft_delete = 0

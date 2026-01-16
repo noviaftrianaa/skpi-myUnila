@@ -9,6 +9,9 @@ class PublikasiSebaranService
 {
     protected $repository;
 
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
+
     public function __construct(PublikasiSebaranRepository $repository)
     {
         $this->repository = $repository;
@@ -28,7 +31,7 @@ class PublikasiSebaranService
         $endYear = $endYear ?? $currentYear;
 
         $cacheKey = "publikasi_sebaran_fakultas_{$startYear}_{$endYear}";
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($startYear, $endYear) {
             $data = $this->repository->getSebaranPublikasiByFakultas($startYear, $endYear);
@@ -64,7 +67,7 @@ class PublikasiSebaranService
         $endYear = $endYear ?? $currentYear;
 
         $cacheKey = "publikasi_sebaran_prodi_{$idFakultas}_{$startYear}_{$endYear}";
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas, $startYear, $endYear) {
             $data = $this->repository->getSebaranPublikasiByProdiInFakultas($idFakultas, $startYear, $endYear);

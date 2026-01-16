@@ -9,6 +9,9 @@ class MahasiswaStatisticsService
 {
     protected $repository;
 
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
+
     public function __construct(MahasiswaStatisticsRepository $repository)
     {
         $this->repository = $repository;
@@ -22,7 +25,7 @@ class MahasiswaStatisticsService
     public function getMahasiswaAktifTrend(): array
     {
         $cacheKey = 'mahasiswa_aktif_trend';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getMahasiswaAktifTrend();
@@ -42,7 +45,7 @@ class MahasiswaStatisticsService
     public function getSebaranByJenjang(): array
     {
         $cacheKey = 'mahasiswa_sebaran_jenjang';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByJenjang();
@@ -71,7 +74,7 @@ class MahasiswaStatisticsService
     public function getSebaranByStatus(): array
     {
         $cacheKey = 'mahasiswa_sebaran_status';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByStatus();
@@ -100,7 +103,7 @@ class MahasiswaStatisticsService
     public function getSebaranByJenisKelamin(): array
     {
         $cacheKey = 'mahasiswa_sebaran_jenis_kelamin';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByJenisKelamin();
@@ -129,7 +132,7 @@ class MahasiswaStatisticsService
     public function getSebaranByJalurDaftar(): array
     {
         $cacheKey = 'mahasiswa_sebaran_jalur_daftar';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByJalurDaftar();
@@ -158,7 +161,7 @@ class MahasiswaStatisticsService
     public function getSebaranByJenisPendaftaran(): array
     {
         $cacheKey = 'mahasiswa_sebaran_jenis_pendaftaran';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByJenisPendaftaran();
@@ -187,7 +190,7 @@ class MahasiswaStatisticsService
     public function getSebaranByPembiayaan(): array
     {
         $cacheKey = 'mahasiswa_sebaran_pembiayaan';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranByPembiayaan();
@@ -216,7 +219,7 @@ class MahasiswaStatisticsService
     public function getSebaranMahasiswaAsing(): array
     {
         $cacheKey = 'mahasiswa_sebaran_asing';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranMahasiswaAsing();
@@ -241,7 +244,7 @@ class MahasiswaStatisticsService
     public function getAllStatistics(): array
     {
         $cacheKey = 'mahasiswa_all_statistics';
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             return [

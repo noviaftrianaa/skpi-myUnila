@@ -15,6 +15,8 @@ class PublikasiRepository
     public function getPublikasiByJenis(): array
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $currentYear = (int) date('Y');
+        $startYear = $currentYear - 4; // 5 tahun terakhir (termasuk tahun ini)
 
         $sql = "
             SELECT
@@ -41,20 +43,19 @@ class PublikasiRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            -- Join ke jenjang_pendidikan untuk filter hanya D% dan S%
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             -- Left join ke jenis publikasi
             LEFT JOIN ref.jenis_publikasi AS jp
                 ON jp.id_jns_pub = p.id_jns_pub
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
+                AND p.tgl_terbit IS NOT NULL
+                AND YEAR(p.tgl_terbit) >= ?
+                AND YEAR(p.tgl_terbit) <= ?
             GROUP BY jp.nm_jns_pub
             ORDER BY jumlah DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $startYear, $currentYear]);
 
         return array_map(function($item) {
             return [
@@ -72,6 +73,8 @@ class PublikasiRepository
     public function getTotalPublikasi(): int
     {
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
+        $currentYear = (int) date('Y');
+        $startYear = $currentYear - 4; // 5 tahun terakhir (termasuk tahun ini)
 
         $sql = "
             SELECT COUNT(DISTINCT p.id_publikasi) AS total
@@ -92,14 +95,14 @@ class PublikasiRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
+                AND p.tgl_terbit IS NOT NULL
+                AND YEAR(p.tgl_terbit) >= ?
+                AND YEAR(p.tgl_terbit) <= ?
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp, $startYear, $currentYear]);
 
         return (int) ($result[0]->total ?? 0);
     }
@@ -134,13 +137,10 @@ class PublikasiRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-                AND (didik.nm_jenj_didik LIKE 'D%' OR didik.nm_jenj_didik LIKE 'S%')
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
                 AND p.tgl_terbit IS NOT NULL
-                AND YEAR(p.tgl_terbit) >= YEAR(GETDATE()) - 5
+                AND YEAR(p.tgl_terbit) >= YEAR(GETDATE()) - 4
                 AND YEAR(p.tgl_terbit) <= YEAR(GETDATE())
             GROUP BY YEAR(p.tgl_terbit)
             ORDER BY tahun DESC
@@ -206,7 +206,7 @@ class PublikasiRepository
     public function getPublikasiByPeran(?int $startYear = null, ?int $endYear = null): array
     {
         $currentYear = (int) date('Y');
-        $startYear = $startYear ?? ($currentYear - 5);
+        $startYear = $startYear ?? ($currentYear - 4); // 5 tahun terakhir
         $endYear = $endYear ?? $currentYear;
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
 
@@ -245,11 +245,9 @@ class PublikasiRepository
                 ON sms.id_sms = ptk.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS jp
-                ON jp.id_jenj_didik = sms.id_jenj_didik
             WHERE p.soft_delete = 0
                 AND sdm.id_jns_sdm = '12' -- Dosen only
-                AND (jp.nm_jenj_didik LIKE 'D%' OR jp.nm_jenj_didik LIKE 'S%')
+                AND p.id_jns_pub != 9999
                 AND p.tgl_terbit IS NOT NULL
                 AND YEAR(p.tgl_terbit) >= ?
                 AND YEAR(p.tgl_terbit) <= ?
@@ -278,7 +276,7 @@ class PublikasiRepository
     public function getPublikasiByFakultas(?int $startYear = null, ?int $endYear = null): array
     {
         $currentYear = (int) date('Y');
-        $startYear = $startYear ?? ($currentYear - 5);
+        $startYear = $startYear ?? ($currentYear - 4); // 5 tahun terakhir
         $endYear = $endYear ?? $currentYear;
         $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
 
@@ -314,14 +312,12 @@ class PublikasiRepository
                 ON sms_prodi.id_sms = ptk.id_sms
                 AND sms_prodi.soft_delete = 0
                 AND sms_prodi.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS jp
-                ON jp.id_jenj_didik = sms_prodi.id_jenj_didik
-                AND (jp.nm_jenj_didik LIKE 'D%' OR jp.nm_jenj_didik LIKE 'S%')
             -- Join to fakultas (sms lagi menggunakan id_fak_unila)
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms_prodi.id_fak_unila
                 AND fak.soft_delete = 0
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
                 AND p.tgl_terbit IS NOT NULL
                 AND YEAR(p.tgl_terbit) >= ?
                 AND YEAR(p.tgl_terbit) <= ?
