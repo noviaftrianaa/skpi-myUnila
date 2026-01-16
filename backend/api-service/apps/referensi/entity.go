@@ -152,7 +152,7 @@ type BidangUsaha struct {
 type FungsiLab struct {
 	IDFungsiLab int        `db:"id_fungsi_lab" json:"id_fungsi_lab"`
 	NmFungsiLab string     `db:"nm_fungsi_lab" json:"nm_fungsi_lab"`
-	CreateDate  time.Time  `db:"creat1e_date" json:"-"`
+	CreateDate  time.Time  `db:"create_date" json:"-"`
 	LastUpdate  time.Time  `db:"last_update" json:"-"`
 	ExpiredDate *time.Time `db:"expired_date" json:"-"`
 }
@@ -215,13 +215,13 @@ type TahunAjaranParams struct {
 // BentukPendidikanParams untuk parameter khusus bentuk pendidikan
 type BentukPendidikanParams struct {
 	PaginationParams
-	JenjangPaud   *int    `query:"jenjang_paud"`   // Filter by jenjang paud
-	JenjangTk     *int    `query:"jenjang_tk"`     // Filter by jenjang tk
-	JenjangSd     *int    `query:"jenjang_sd"`     // Filter by jenjang sd
-	JenjangSmp    *int    `query:"jenjang_smp"`    // Filter by jenjang smp
-	JenjangSma    *int    `query:"jenjang_sma"`    // Filter by jenjang sma
-	JenjangTinggi *int    `query:"jenjang_tinggi"` // Filter by jenjang tinggi
-	DirBina       *string `query:"dir_bina"`       // Filter by dir_bina
+	JenjangPaud   *int `query:"jenjang_paud"`   // Filter by jenjang paud
+	JenjangTk     *int `query:"jenjang_tk"`     // Filter by jenjang tk
+	JenjangSd     *int `query:"jenjang_sd"`     // Filter by jenjang sd
+	JenjangSmp    *int `query:"jenjang_smp"`    // Filter by jenjang smp
+	JenjangSma    *int `query:"jenjang_sma"`    // Filter by jenjang sma
+	JenjangTinggi *int `query:"jenjang_tinggi"` // Filter by jenjang tinggi
+	Aktif         *int `query:"aktif"`          // Filter by aktif
 }
 
 // BidangStudiParams untuk parameter khusus bidang studi
