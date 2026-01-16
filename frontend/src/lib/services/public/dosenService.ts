@@ -285,6 +285,18 @@ interface ApiResponse<T> {
   data: T;
 }
 
+// All Infografis Data (unified endpoint response)
+export interface AllInfografisData {
+  heatmapPendidikanJabfung: HeatmapPendidikanJabfung;
+  heatmapUsiaPendidikan: HeatmapUsiaPendidikan;
+  heatmapUsiaJabfung: HeatmapUsiaJabfung;
+  heatmapIkatanStatus: HeatmapIkatanStatus;
+  sertifikasiJabfung: SertifikasiJabfungData;
+  genderUsia: GenderUsiaData;
+  trenSertifikasi: TrenSertifikasiData;
+  trenJabfung: TrenJabfungData;
+}
+
 export const dosenService = {
   async getStatistics(): Promise<DosenStatistics> {
     const response = await axios.get<ApiResponse<DosenStatistics>>(`${API_URL}/dosen/statistics`);
@@ -310,7 +322,17 @@ export const dosenService = {
   },
 
   /**
+   * Get all infografis data in a single request (RECOMMENDED - faster)
+   * Use this instead of calling individual endpoints for better performance
+   */
+  async getAllInfografis(): Promise<AllInfografisData> {
+    const response = await axios.get<ApiResponse<AllInfografisData>>(`${API_URL}/dosen-infografis/all`);
+    return response.data.data;
+  },
+
+  /**
    * Get heatmap data: Jenjang Pendidikan vs Jabatan Fungsional
+   * @deprecated Use getAllInfografis() for better performance
    */
   async getHeatmapPendidikanJabfung(): Promise<HeatmapPendidikanJabfung> {
     const response = await axios.get<ApiResponse<HeatmapPendidikanJabfung>>(`${API_URL}/dosen-infografis/heatmap/pendidikan-jabfung`);

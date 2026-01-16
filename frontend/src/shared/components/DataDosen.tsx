@@ -39,13 +39,15 @@ export default function DataDosen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await dosenService.getStatistics();
-        setStatistics(data);
+        // Fetch statistics and sebaran fakultas in parallel
+        const [statisticsData, sebaranResponse] = await Promise.all([
+          dosenService.getStatistics(),
+          fetch(`${API_URL}/dosen-sebaran/fakultas`)
+        ]);
 
-        // Fetch sebaran fakultas data
-        const sebaranResponse = await fetch(`${API_URL}/dosen-sebaran/fakultas`);
+        setStatistics(statisticsData);
+
         const sebaranJson = await sebaranResponse.json();
-
         if (sebaranJson.success) {
           const fakData = sebaranJson.data.data.map((item: any) => ({
             nama: item.nama_fakultas,
@@ -58,37 +60,18 @@ export default function DataDosen() {
           setFakultasSebaranData(fakData);
         }
 
-        // Fetch heatmap data
-        const heatmapResult = await dosenService.getHeatmapPendidikanJabfung();
-        setHeatmapData(heatmapResult);
+        // Use unified endpoint for all infografis data (1 request instead of 8)
+        const allInfografis = await dosenService.getAllInfografis();
 
-        // Fetch heatmap usia vs pendidikan
-        const heatmapUsiaResult = await dosenService.getHeatmapUsiaPendidikan();
-        setHeatmapUsiaData(heatmapUsiaResult);
-
-        // Fetch heatmap usia vs jabfung
-        const heatmapUsiaJabfungResult = await dosenService.getHeatmapUsiaJabfung();
-        setHeatmapUsiaJabfungData(heatmapUsiaJabfungResult);
-
-        // Fetch heatmap ikatan kerja vs status pegawai
-        const heatmapIkatanStatusResult = await dosenService.getHeatmapIkatanStatus();
-        setHeatmapIkatanStatusData(heatmapIkatanStatusResult);
-
-        // Fetch sertifikasi per jabfung (Chart 5)
-        const sertifikasiResult = await dosenService.getSertifikasiJabfung();
-        setSertifikasiJabfungData(sertifikasiResult);
-
-        // Fetch gender & usia (Chart 6)
-        const genderUsiaResult = await dosenService.getGenderUsia();
-        setGenderUsiaData(genderUsiaResult);
-
-        // Fetch tren sertifikasi (Chart 7)
-        const trenSertifikasiResult = await dosenService.getTrenSertifikasi();
-        setTrenSertifikasiData(trenSertifikasiResult);
-
-        // Fetch tren jabfung (Chart 8)
-        const trenJabfungResult = await dosenService.getTrenJabfung();
-        setTrenJabfungData(trenJabfungResult);
+        // Set all infografis data from single response
+        setHeatmapData(allInfografis.heatmapPendidikanJabfung);
+        setHeatmapUsiaData(allInfografis.heatmapUsiaPendidikan);
+        setHeatmapUsiaJabfungData(allInfografis.heatmapUsiaJabfung);
+        setHeatmapIkatanStatusData(allInfografis.heatmapIkatanStatus);
+        setSertifikasiJabfungData(allInfografis.sertifikasiJabfung);
+        setGenderUsiaData(allInfografis.genderUsia);
+        setTrenSertifikasiData(allInfografis.trenSertifikasi);
+        setTrenJabfungData(allInfografis.trenJabfung);
       } catch (error) {
         console.error("Error fetching dosen statistics:", error);
       } finally {
