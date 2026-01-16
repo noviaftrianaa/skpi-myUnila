@@ -11,9 +11,53 @@ class DosenInfografisController extends Controller
 {
     protected $repository;
 
+    /**
+     * Cache TTL: 24 hours (86400 seconds)
+     * Data dosen jarang berubah, cukup di-cache sehari
+     */
+    protected const CACHE_TTL = 86400;
+
     public function __construct(DosenInfografisRepository $repository)
     {
         $this->repository = $repository;
+    }
+
+    /**
+     * Get all infografis data in a single request (optimized)
+     * This reduces multiple API calls to just one
+     *
+     * @return JsonResponse
+     */
+    public function getAllInfografis(): JsonResponse
+    {
+        try {
+            $cacheKey = 'dosen_infografis_all_data';
+
+            $data = Cache::remember($cacheKey, self::CACHE_TTL, function () {
+                return [
+                    'heatmapPendidikanJabfung' => $this->getHeatmapPendidikanJabfungData(),
+                    'heatmapUsiaPendidikan' => $this->getHeatmapUsiaPendidikanData(),
+                    'heatmapUsiaJabfung' => $this->getHeatmapUsiaJabfungData(),
+                    'heatmapIkatanStatus' => $this->getHeatmapIkatanStatusData(),
+                    'sertifikasiJabfung' => $this->getSertifikasiPerJabfungData(),
+                    'genderUsia' => $this->getGenderUsiaData(),
+                    'trenSertifikasi' => $this->getTrenSertifikasiData(),
+                    'trenJabfung' => $this->getTrenJabfungData(),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data infografis dosen berhasil diambil',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data infografis',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -25,7 +69,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_heatmap_pendidikan_jabfung';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getHeatmapPendidikanJabfung();
@@ -84,7 +128,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_heatmap_usia_pendidikan';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getHeatmapUsiaPendidikan();
@@ -143,7 +187,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_heatmap_usia_jabfung';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getHeatmapUsiaJabfung();
@@ -202,7 +246,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_heatmap_ikatan_status';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getHeatmapIkatanStatus();
@@ -261,7 +305,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_sertifikasi_jabfung';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getSertifikasiPerJabfung();
@@ -313,7 +357,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_gender_usia';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getGenderUsia();
@@ -368,7 +412,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_tren_sertifikasi';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getTrenSertifikasi();
@@ -405,7 +449,7 @@ class DosenInfografisController extends Controller
     {
         try {
             $cacheKey = 'dosen_infografis_tren_jabfung';
-            $cacheTtl = 1800; // 30 minutes
+            $cacheTtl = self::CACHE_TTL;
 
             $data = Cache::remember($cacheKey, $cacheTtl, function () {
                 $rawData = $this->repository->getTrenJabfung();
@@ -444,5 +488,207 @@ class DosenInfografisController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    // ============================================
+    // Private Helper Methods for Unified Endpoint
+    // ============================================
+
+    private function getHeatmapPendidikanJabfungData(): array
+    {
+        $rawData = $this->repository->getHeatmapPendidikanJabfung();
+        $jenjangList = ['S1/Sarjana', 'S2/Magister', 'S3/Doktor', 'Lainnya'];
+        $jabatanList = ['Asisten Ahli', 'Lektor', 'Lektor Kepala', 'Profesor', 'Belum Ada Jabatan'];
+
+        $matrix = [];
+        $maxValue = 0;
+
+        foreach ($rawData as $item) {
+            $jenjangIndex = array_search($item['jenjang'], $jenjangList);
+            $jabatanIndex = array_search($item['jabatan'], $jabatanList);
+
+            if ($jenjangIndex !== false && $jabatanIndex !== false) {
+                $matrix[] = [$jabatanIndex, $jenjangIndex, $item['jumlah']];
+                $maxValue = max($maxValue, $item['jumlah']);
+            }
+        }
+
+        return [
+            'xAxis' => $jabatanList,
+            'yAxis' => $jenjangList,
+            'data' => $matrix,
+            'maxValue' => $maxValue,
+            'rawData' => $rawData,
+        ];
+    }
+
+    private function getHeatmapUsiaPendidikanData(): array
+    {
+        $rawData = $this->repository->getHeatmapUsiaPendidikan();
+        $usiaList = ['< 30', '30-39', '40-49', '50-59', '60+'];
+        $jenjangList = ['S1/Sarjana', 'S2/Magister', 'S3/Doktor', 'Lainnya'];
+
+        $matrix = [];
+        $maxValue = 0;
+
+        foreach ($rawData as $item) {
+            $usiaIndex = array_search($item['usia'], $usiaList);
+            $jenjangIndex = array_search($item['jenjang'], $jenjangList);
+
+            if ($usiaIndex !== false && $jenjangIndex !== false) {
+                $matrix[] = [$jenjangIndex, $usiaIndex, $item['jumlah']];
+                $maxValue = max($maxValue, $item['jumlah']);
+            }
+        }
+
+        return [
+            'xAxis' => $jenjangList,
+            'yAxis' => $usiaList,
+            'data' => $matrix,
+            'maxValue' => $maxValue,
+            'rawData' => $rawData,
+        ];
+    }
+
+    private function getHeatmapUsiaJabfungData(): array
+    {
+        $rawData = $this->repository->getHeatmapUsiaJabfung();
+        $usiaList = ['< 30', '30-39', '40-49', '50-59', '60+'];
+        $jabatanList = ['Asisten Ahli', 'Lektor', 'Lektor Kepala', 'Profesor', 'Belum Ada Jabatan'];
+
+        $matrix = [];
+        $maxValue = 0;
+
+        foreach ($rawData as $item) {
+            $usiaIndex = array_search($item['usia'], $usiaList);
+            $jabatanIndex = array_search($item['jabatan'], $jabatanList);
+
+            if ($usiaIndex !== false && $jabatanIndex !== false) {
+                $matrix[] = [$jabatanIndex, $usiaIndex, $item['jumlah']];
+                $maxValue = max($maxValue, $item['jumlah']);
+            }
+        }
+
+        return [
+            'xAxis' => $jabatanList,
+            'yAxis' => $usiaList,
+            'data' => $matrix,
+            'maxValue' => $maxValue,
+            'rawData' => $rawData,
+        ];
+    }
+
+    private function getHeatmapIkatanStatusData(): array
+    {
+        $rawData = $this->repository->getHeatmapIkatanStatus();
+        $ikatanList = ['Dosen Tetap', 'Dosen Tidak Tetap', 'Lainnya'];
+        $statusList = ['PNS', 'Non-PNS'];
+
+        $matrix = [];
+        $maxValue = 0;
+
+        foreach ($rawData as $item) {
+            $ikatanIndex = array_search($item['ikatan'], $ikatanList);
+            $statusIndex = array_search($item['status'], $statusList);
+
+            if ($ikatanIndex !== false && $statusIndex !== false) {
+                $matrix[] = [$statusIndex, $ikatanIndex, $item['jumlah']];
+                $maxValue = max($maxValue, $item['jumlah']);
+            }
+        }
+
+        return [
+            'xAxis' => $statusList,
+            'yAxis' => $ikatanList,
+            'data' => $matrix,
+            'maxValue' => $maxValue,
+            'rawData' => $rawData,
+        ];
+    }
+
+    private function getSertifikasiPerJabfungData(): array
+    {
+        $rawData = $this->repository->getSertifikasiPerJabfung();
+        $jabatanOrder = ['Profesor', 'Lektor Kepala', 'Lektor', 'Asisten Ahli', 'Belum Ada Jabatan'];
+
+        usort($rawData, function ($a, $b) use ($jabatanOrder) {
+            $indexA = array_search($a['jabatan'], $jabatanOrder);
+            $indexB = array_search($b['jabatan'], $jabatanOrder);
+            if ($indexA === false) $indexA = count($jabatanOrder);
+            if ($indexB === false) $indexB = count($jabatanOrder);
+            return $indexA - $indexB;
+        });
+
+        $totalSudah = array_sum(array_column($rawData, 'sudah'));
+        $totalBelum = array_sum(array_column($rawData, 'belum'));
+
+        return [
+            'data' => $rawData,
+            'totalSudah' => $totalSudah,
+            'totalBelum' => $totalBelum,
+            'total' => $totalSudah + $totalBelum,
+        ];
+    }
+
+    private function getGenderUsiaData(): array
+    {
+        $rawData = $this->repository->getGenderUsia();
+        $usiaOrder = ['< 30', '30-39', '40-49', '50-59', '60+'];
+
+        $sortedData = [];
+        foreach ($usiaOrder as $usia) {
+            foreach ($rawData as $item) {
+                if ($item['usia'] === $usia) {
+                    $sortedData[] = $item;
+                    break;
+                }
+            }
+        }
+
+        $totalLaki = array_sum(array_column($sortedData, 'laki_laki'));
+        $totalPerempuan = array_sum(array_column($sortedData, 'perempuan'));
+
+        return [
+            'data' => $sortedData,
+            'usiaGroups' => $usiaOrder,
+            'totalLakiLaki' => $totalLaki,
+            'totalPerempuan' => $totalPerempuan,
+            'total' => $totalLaki + $totalPerempuan,
+        ];
+    }
+
+    private function getTrenSertifikasiData(): array
+    {
+        $rawData = $this->repository->getTrenSertifikasi();
+        $total = array_sum(array_column($rawData, 'jumlah'));
+
+        return [
+            'data' => $rawData,
+            'total' => $total,
+        ];
+    }
+
+    private function getTrenJabfungData(): array
+    {
+        $rawData = $this->repository->getTrenJabfung();
+        $totals = [
+            'asisten_ahli' => 0,
+            'lektor' => 0,
+            'lektor_kepala' => 0,
+            'profesor' => 0,
+        ];
+
+        foreach ($rawData as $item) {
+            $totals['asisten_ahli'] += $item['asisten_ahli'] ?? 0;
+            $totals['lektor'] += $item['lektor'] ?? 0;
+            $totals['lektor_kepala'] += $item['lektor_kepala'] ?? 0;
+            $totals['profesor'] += $item['profesor'] ?? 0;
+        }
+
+        return [
+            'data' => $rawData,
+            'totals' => $totals,
+            'grandTotal' => array_sum($totals),
+        ];
     }
 }

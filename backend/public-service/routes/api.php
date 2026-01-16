@@ -141,6 +141,10 @@ Route::prefix('v1')->group(function () {
 
     // Dosen Infografis (Charts for Data Visualization)
     Route::prefix('dosen-infografis')->group(function () {
+        // Unified endpoint - fetch all data in single request (recommended for performance)
+        Route::get('/all', [DosenInfografisController::class, 'getAllInfografis']);
+
+        // Individual endpoints (legacy, use /all for better performance)
         Route::get('/heatmap/pendidikan-jabfung', [DosenInfografisController::class, 'getHeatmapPendidikanJabfung']);
         Route::get('/heatmap/usia-pendidikan', [DosenInfografisController::class, 'getHeatmapUsiaPendidikan']);
         Route::get('/heatmap/usia-jabfung', [DosenInfografisController::class, 'getHeatmapUsiaJabfung']);
