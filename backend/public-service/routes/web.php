@@ -16,12 +16,12 @@ Route::withoutMiddleware([
     \Illuminate\View\Middleware\ShareErrorsFromSession::class,
     \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
 ])->group(function () {
-    // Protected docs routes (Kong JWT from header or cookie + Developer role)
+    // Protected docs page (Kong JWT from header or cookie + Developer role)
     Route::middleware(['kong.auth', 'require.developer'])->group(function () {
         Route::get('/docs', [DocsController::class, 'index']);
-        Route::get('/docs/openapi.json', [DocsController::class, 'openApiJson']);
     });
 
-    // Static assets (no auth required)
+    // Public spec files (no auth required - allows Scalar UI to load spec)
+    Route::get('/docs/openapi.json', [DocsController::class, 'openApiJson']);
     Route::get('/docs/favicon.png', [DocsController::class, 'favicon']);
 });
