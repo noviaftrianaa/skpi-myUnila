@@ -2,15 +2,14 @@ openapi: 3.1.0
 info:
   title: Sister Service API
   description: |
-    API untuk sinkronisasi data dari Sister Kemdikbud ke MyUnila/OneData PDDIKTI.
+    API untuk mengakses data dari Sister Kemdikbud yang tersinkronisasi ke MyUnila/OneData PDDIKTI.
 
     ## Fitur Utama
-    - Sinkronisasi data dosen dari Sister Kemdikbud
-    - Sinkronisasi data penugasan, penelitian, dan publikasi
-    - Sinkronisasi riwayat pendidikan dan pekerjaan dosen
-    - Sinkronisasi sertifikasi dan bidang ilmu
+    - Data dosen dari Sister Kemdikbud
+    - Data penugasan, penelitian, dan publikasi
+    - Riwayat pendidikan dan pekerjaan dosen
+    - Sertifikasi dan bidang ilmu
     - Data referensi lengkap dari Sister
-    - Manajemen scheduler untuk sinkronisasi otomatis
 
     ## Authentication
     Sebagian besar endpoint memerlukan JWT Bearer token yang divalidasi melalui Kong Gateway.
@@ -35,7 +34,7 @@ tags:
   - name: Health
     description: Health check endpoint
   - name: Dosen
-    description: Sinkronisasi data dosen dari Sister Kemdikbud
+    description: Data dosen dari Sister Kemdikbud
   - name: Penugasan
     description: Data penugasan dosen
   - name: Penelitian
@@ -58,12 +57,6 @@ tags:
     description: Bidang ilmu dosen
   - name: Referensi
     description: Data referensi master dari Sister
-  - name: Scheduler
-    description: Manajemen jadwal sinkronisasi otomatis
-  - name: Sync Logs
-    description: Log sinkronisasi
-  - name: Monitoring
-    description: Monitoring proses sinkronisasi real-time
 
 paths:
   /health:
@@ -74,8 +67,6 @@ paths:
     $ref: './paths/dosen.yaml#/list'
   /api/v1/dosen/stats:
     $ref: './paths/dosen.yaml#/stats'
-  /api/v1/dosen/sync:
-    $ref: './paths/dosen.yaml#/sync'
   /api/v1/dosen/{id_sdm}:
     $ref: './paths/dosen.yaml#/detail'
 
@@ -84,46 +75,22 @@ paths:
     $ref: './paths/penugasan.yaml#/list'
   /api/v1/penugasan/stats:
     $ref: './paths/penugasan.yaml#/stats'
-  /api/v1/penugasan/sync:
-    $ref: './paths/penugasan.yaml#/sync'
 
   # Penelitian
   /api/v1/penelitian:
     $ref: './paths/penelitian.yaml#/list'
-  /api/v1/penelitian/sync:
-    $ref: './paths/penelitian.yaml#/sync'
 
   # Publikasi
   /api/v1/publikasi:
     $ref: './paths/publikasi.yaml#/list'
-  /api/v1/publikasi/sync:
-    $ref: './paths/publikasi.yaml#/sync'
 
   # Pendidikan
   /api/v1/pendidikan:
     $ref: './paths/pendidikan.yaml#/list'
-  /api/v1/pendidikan/sync:
-    $ref: './paths/pendidikan.yaml#/sync'
 
   # Referensi
   /api/v1/referensi/metadata:
     $ref: './paths/referensi.yaml#/metadata'
-  /api/v1/referensi/batch-sync:
-    $ref: './paths/referensi.yaml#/batch-sync'
-
-  # Scheduler
-  /api/v1/schedules:
-    $ref: './paths/scheduler.yaml#/list'
-  /api/v1/schedules/{id}:
-    $ref: './paths/scheduler.yaml#/detail'
-
-  # Sync Logs
-  /api/v1/sync-logs:
-    $ref: './paths/sync-logs.yaml#/list'
-
-  # Monitoring
-  /api/v1/monitoring/active:
-    $ref: './paths/monitoring.yaml#/active'
 
 components:
   securitySchemes:

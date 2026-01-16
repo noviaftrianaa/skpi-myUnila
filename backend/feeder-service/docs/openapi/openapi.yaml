@@ -2,15 +2,13 @@ openapi: 3.1.0
 info:
   title: Feeder Service API
   description: |
-    API untuk sinkronisasi data dari Neo Feeder PDDIKTI ke MyUnila/OneData PDDIKTI.
+    API untuk mengakses data dari Neo Feeder PDDIKTI yang tersinkronisasi ke MyUnila/OneData PDDIKTI.
 
     ## Fitur Utama
-    - Sinkronisasi data mahasiswa dari Feeder PDDIKTI
-    - Sinkronisasi kelas kuliah dan nilai perkuliahan
-    - Sinkronisasi kurikulum dan matakuliah
-    - Sinkronisasi aktivitas mahasiswa dan prestasi
-    - Manajemen scheduler untuk sinkronisasi otomatis
-    - Monitoring real-time proses sinkronisasi
+    - Data mahasiswa dari Feeder PDDIKTI
+    - Data kelas kuliah dan nilai perkuliahan
+    - Data kurikulum dan matakuliah
+    - Data aktivitas mahasiswa dan prestasi
 
     ## Authentication
     Sebagian besar endpoint memerlukan JWT Bearer token yang divalidasi melalui Kong Gateway.
@@ -35,35 +33,27 @@ tags:
   - name: Health
     description: Health check endpoint
   - name: Mahasiswa
-    description: Sinkronisasi data mahasiswa dari Feeder PDDIKTI
+    description: Data mahasiswa dari Feeder PDDIKTI
   - name: Kelas Kuliah
-    description: Sinkronisasi data kelas kuliah
+    description: Data kelas kuliah
   - name: Nilai Perkuliahan
-    description: Sinkronisasi nilai perkuliahan mahasiswa
+    description: Nilai perkuliahan mahasiswa
   - name: Kurikulum
-    description: Sinkronisasi kurikulum dan matakuliah
+    description: Data kurikulum dan matakuliah
   - name: Aktivitas Mahasiswa
-    description: Sinkronisasi aktivitas mahasiswa (KKN, PKL, dll)
+    description: Data aktivitas mahasiswa (KKN, PKL, dll)
   - name: Prestasi
-    description: Sinkronisasi data prestasi mahasiswa
+    description: Data prestasi mahasiswa
   - name: Transkrip Nilai
-    description: Sinkronisasi transkrip nilai
+    description: Data transkrip nilai
   - name: Nilai Konversi
-    description: Sinkronisasi nilai konversi/transfer
+    description: Data nilai konversi/transfer
   - name: Rencana Evaluasi
-    description: Sinkronisasi rencana evaluasi matakuliah
+    description: Rencana evaluasi matakuliah
   - name: Referensi
     description: Data referensi dari Feeder PDDIKTI
   - name: Dashboard
     description: Statistik dashboard
-  - name: Scheduler
-    description: Manajemen jadwal sinkronisasi otomatis
-  - name: Sync Logs
-    description: Log sinkronisasi
-  - name: Monitoring
-    description: Monitoring proses sinkronisasi real-time
-  - name: API Config
-    description: Konfigurasi API Feeder
 
 paths:
   /health:
@@ -74,8 +64,6 @@ paths:
     $ref: './paths/mahasiswa.yaml#/list'
   /api/v1/mahasiswa/stats:
     $ref: './paths/mahasiswa.yaml#/stats'
-  /api/v1/mahasiswa/sync:
-    $ref: './paths/mahasiswa.yaml#/sync'
   /api/v1/mahasiswa/helper/angkatan:
     $ref: './paths/mahasiswa.yaml#/helper-angkatan'
   /api/v1/mahasiswa/helper/prodi:
@@ -88,8 +76,6 @@ paths:
     $ref: './paths/kelas-kuliah.yaml#/list'
   /api/v1/kelas-kuliah/stats:
     $ref: './paths/kelas-kuliah.yaml#/stats'
-  /api/v1/kelas-kuliah/sync:
-    $ref: './paths/kelas-kuliah.yaml#/sync'
   /api/v1/kelas-kuliah/{id_kls}:
     $ref: './paths/kelas-kuliah.yaml#/detail'
 
@@ -98,50 +84,28 @@ paths:
     $ref: './paths/nilai-perkuliahan.yaml#/list'
   /api/v1/nilai-perkuliahan/stats:
     $ref: './paths/nilai-perkuliahan.yaml#/stats'
-  /api/v1/nilai-perkuliahan/sync:
-    $ref: './paths/nilai-perkuliahan.yaml#/sync'
 
   # Kurikulum
   /api/v1/kurikulum:
     $ref: './paths/kurikulum.yaml#/list'
   /api/v1/kurikulum/stats:
     $ref: './paths/kurikulum.yaml#/stats'
-  /api/v1/kurikulum/sync:
-    $ref: './paths/kurikulum.yaml#/sync'
 
   # Aktivitas Mahasiswa
   /api/v1/aktivitas-mahasiswa:
     $ref: './paths/aktivitas-mahasiswa.yaml#/list'
   /api/v1/aktivitas-mahasiswa/stats:
     $ref: './paths/aktivitas-mahasiswa.yaml#/stats'
-  /api/v1/aktivitas-mahasiswa/sync:
-    $ref: './paths/aktivitas-mahasiswa.yaml#/sync'
 
   # Prestasi
   /api/v1/prestasi:
     $ref: './paths/prestasi.yaml#/list'
   /api/v1/prestasi/stats:
     $ref: './paths/prestasi.yaml#/stats'
-  /api/v1/prestasi/sync:
-    $ref: './paths/prestasi.yaml#/sync'
 
   # Dashboard
   /api/v1/dashboard/stats:
     $ref: './paths/dashboard.yaml#/stats'
-
-  # Scheduler
-  /api/v1/schedules:
-    $ref: './paths/scheduler.yaml#/list'
-  /api/v1/schedules/{id}:
-    $ref: './paths/scheduler.yaml#/detail'
-
-  # Sync Logs
-  /api/v1/sync-logs:
-    $ref: './paths/sync-logs.yaml#/list'
-
-  # Monitoring
-  /api/v1/monitoring/active:
-    $ref: './paths/monitoring.yaml#/active'
 
 components:
   securitySchemes:
