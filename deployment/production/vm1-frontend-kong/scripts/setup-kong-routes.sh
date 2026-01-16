@@ -944,12 +944,13 @@ else
 fi
 
 ###############################################################################
-# 9. API Documentation Routes (Protected with JWT - Developer Role Only)
+# 9. API Documentation Routes (Protected with JWT via header AND cookie)
 ###############################################################################
 echo -e "${GREEN}[9/9] Setting up API Documentation Routes (Protected)...${NC}"
 
-# Create a dedicated service for each docs endpoint that routes through Kong with JWT
-# Note: Docs routes use cookie-based JWT auth for browser access
+# Note: JWT plugin configured to read token from BOTH header AND cookie
+# This allows browser access after login (token stored in cookie)
+# Cookie name: token (set by auth-service on login)
 
 # Auth Service Docs
 echo -e "${YELLOW}  → Creating auth-service-docs route...${NC}"
@@ -991,7 +992,7 @@ if [ -n "$AUTH_DOCS_SERVICE_ID" ]; then
             }
           }' > /dev/null
 
-        # Add JWT plugin
+        # Add JWT plugin (reads from header AND cookie)
         curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_DOCS_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
@@ -1002,10 +1003,11 @@ if [ -n "$AUTH_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ auth-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ auth-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1058,10 +1060,11 @@ if [ -n "$PUBLIC_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ public-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ public-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1114,10 +1117,11 @@ if [ -n "$SISTER_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ sister-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ sister-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1170,10 +1174,11 @@ if [ -n "$FEEDER_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ feeder-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ feeder-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1226,10 +1231,11 @@ if [ -n "$MYUNILA_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ myunila-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ myunila-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1282,10 +1288,11 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ api-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ api-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
@@ -1338,10 +1345,11 @@ if [ -n "$DASHBOARD_DOCS_SERVICE_ID" ]; then
               "secret_is_base64": false,
               "anonymous": null,
               "run_on_preflight": false,
-              "header_names": ["authorization"]
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ dashboard-service-docs route created with JWT${NC}"
+        echo -e "${GREEN}  ✓ dashboard-service-docs route created with JWT (header + cookie)${NC}"
     fi
 fi
 
