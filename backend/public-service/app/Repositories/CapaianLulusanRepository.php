@@ -40,8 +40,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE hts.soft_delete = 0
+                            WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.tgl_keluar IS NOT NULL
                 AND YEAR(reg.tgl_keluar) >= ?
@@ -94,8 +93,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE hts.soft_delete = 0
+                            WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.tgl_keluar IS NOT NULL
                 AND YEAR(reg.tgl_keluar) >= ?
@@ -149,8 +147,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE hts.soft_delete = 0
+                            WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.tgl_keluar IS NOT NULL
                 AND YEAR(reg.tgl_keluar) >= ?
@@ -198,8 +195,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE hts.soft_delete = 0
+                            WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.tgl_keluar IS NOT NULL
                 AND YEAR(reg.tgl_keluar) >= ?
@@ -261,8 +257,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            WHERE hts.soft_delete = 0
+                            WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.tgl_keluar IS NOT NULL
                 AND YEAR(reg.tgl_keluar) >= ?
@@ -330,8 +325,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            LEFT JOIN ref.wilayah AS wil
+                            LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = hts.id_wil
                 AND wil.id_level_wil = 1
                 AND wil.id_negara = 'ID'
@@ -387,8 +381,7 @@ class CapaianLulusanRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-                AND (jenjang.nm_jenj_didik LIKE 'D%' OR jenjang.nm_jenj_didik LIKE 'S%')
-            LEFT JOIN ref.wilayah AS wil
+                            LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = hts.id_wil
             LEFT JOIN ref.negara AS negara
                 ON negara.id_negara = wil.id_negara

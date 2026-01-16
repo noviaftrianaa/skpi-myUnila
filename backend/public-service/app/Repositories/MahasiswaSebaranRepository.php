@@ -238,11 +238,10 @@ class MahasiswaSebaranRepository
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            -- Join ke jenjang pendidikan untuk filter hanya D% dan S%
-            INNER JOIN ref.jenjang_pendidikan AS jenj
+            -- Join ke jenjang pendidikan
+            LEFT JOIN ref.jenjang_pendidikan AS jenj
                 ON jenj.id_jenj_didik = sms.id_jenj_didik
                 AND jenj.expired_date IS NULL
-                AND (jenj.nm_jenj_didik LIKE 'D%' OR jenj.nm_jenj_didik LIKE 'S%')
             -- Filter by fakultas
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs = 'A'  -- Status aktif di semester berjalan

@@ -540,7 +540,6 @@ class ProgramStudiRepository
             SELECT id_jenj_didik, nm_jenj_didik
             FROM ref.jenjang_pendidikan
             WHERE expired_date IS NULL
-                AND (nm_jenj_didik LIKE 'D%' OR nm_jenj_didik LIKE 'S%')
             ORDER BY id_jenj_didik
         ";
 

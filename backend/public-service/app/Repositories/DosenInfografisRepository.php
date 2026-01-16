@@ -527,7 +527,7 @@ class DosenInfografisRepository
 
         $sql = "
             SELECT
-                sert.thn_sertifikasi AS tahun,
+                sert.thn_sert AS tahun,
                 COUNT(DISTINCT sdm.id_sdm) AS jumlah
             FROM pdrd.sdm AS sdm
             INNER JOIN pdrd.reg_ptk AS ptk
@@ -549,12 +549,12 @@ class DosenInfografisRepository
             INNER JOIN pdrd.rwy_sertifikasi AS sert
                 ON sert.id_sdm = sdm.id_sdm
                 AND sert.soft_delete = 0
-                AND sert.thn_sertifikasi IS NOT NULL
-                AND sert.thn_sertifikasi BETWEEN ? AND ?
+                AND sert.thn_sert IS NOT NULL
+                AND sert.thn_sert BETWEEN ? AND ?
             WHERE sdm.soft_delete = 0
                 AND sdm.id_jns_sdm = '12'
-            GROUP BY sert.thn_sertifikasi
-            ORDER BY sert.thn_sertifikasi
+            GROUP BY sert.thn_sert
+            ORDER BY sert.thn_sert
         ";
 
         $result = DB::connection('sqlsrv')->select($sql, [

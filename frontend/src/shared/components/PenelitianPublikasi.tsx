@@ -1391,7 +1391,7 @@ export default function PenelitianPublikasi() {
                 <div className="h-0.5 sm:h-1 w-16 sm:w-20 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full"></div>
               </div>
               <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-3">
-                Produktivitas publikasi ilmiah dosen Universitas Lampung
+                Produktivitas publikasi ilmiah dosen Universitas Lampung (5 tahun terakhir)
               </p>
             </motion.div>
 
@@ -1403,7 +1403,7 @@ export default function PenelitianPublikasi() {
               >
                 <div className="text-xl sm:text-2xl md:text-3xl mb-1 sm:mb-2 md:mb-3">📄</div>
                 <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-1">{publikasiData?.total.toLocaleString() || 0}</div>
-                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Publikasi</div>
+                <div className="text-[10px] sm:text-xs md:text-sm font-semibold opacity-90">Total Publikasi (5 Tahun)</div>
               </motion.div>
 
               {publikasiData?.by_year && publikasiData.by_year.length > 0 && (
