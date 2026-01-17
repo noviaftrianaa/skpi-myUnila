@@ -75,10 +75,12 @@ RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
     && mkdir -p /var/www/storage/logs \
     && mkdir -p /var/www/bootstrap/cache
 
-# Set permissions
+# Set permissions (775 to allow group write for log files)
 RUN chown -R www-data:www-data /var/www \
-    && chmod -R 755 /var/www/storage \
-    && chmod -R 755 /var/www/bootstrap/cache
+    && chmod -R 775 /var/www/storage \
+    && chmod -R 775 /var/www/bootstrap/cache \
+    && touch /var/www/storage/logs/laravel.log \
+    && chown www-data:www-data /var/www/storage/logs/laravel.log
 
 # PHP configuration - Optimized for 8 CPU / 16GB RAM
 RUN { \
