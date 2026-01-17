@@ -134,7 +134,7 @@ func main() {
 	log.Println("✅ Auth module initialized")
 
 	// Initialize Referensi module (protected - dengan JWT auth middleware)
-	referensi.RegisterRoutes(apiV1, db)
+	referensi.RegisterRoutes(apiV1, db, redis.Client)
 	log.Println("✅ Referensi module initialized")
 
 	// Initialize Diklat module (protected - dengan JWT auth middleware)
