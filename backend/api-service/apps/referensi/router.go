@@ -15,6 +15,7 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rConn *redis.Client) {
 
 	// Group referensi dengan JWT auth middleware
 	ref := router.Group("/referensi", middleware.JWTAuth())
+	ref.Use(middleware.RateLimiterMiddleware(rConn, middleware.DefaultRateLimiterConfig()))
 
 	// Endpoints
 	ref.Get("/semester", handler.GetSemesters)
