@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -47,13 +46,7 @@ func RateLimiterMiddleware(redisClient *redis.Client, config *RateLimiterConfig)
 			return response.Unauthorized(c, "Token tidak valid")
 		}
 
-		userID, err := strconv.Atoi(user.ID)
-		if err != nil {
-			log.Printf("Invalid user ID in token: %v", err)
-			return response.InternalError(c, "Internal Server Error")
-		}
-
-		key := UserRateLimiterKey(userID)
+		key := UserRateLimiterKey(user.ID)
 		now := time.Now().Unix()
 		result, err := redisClient.EvalSha(ctx, scriptSHA, []string{key},
 			config.Capacity,
@@ -77,6 +70,6 @@ func RateLimiterMiddleware(redisClient *redis.Client, config *RateLimiterConfig)
 }
 
 // Build cache key for user rate limiting
-func UserRateLimiterKey(userID int) string {
+func UserRateLimiterKey(userID string) string {
 	return fmt.Sprintf("rate_limiter:user:%d", userID)
 }
