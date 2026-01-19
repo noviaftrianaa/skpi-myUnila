@@ -78,8 +78,8 @@ type BasisEvaluasi struct {
 
 // Wilayah adalah entity dari tabel ref.bentuk_kegiatan_kerjasama
 type BentukKegiatanKerjasama struct {
-	IDBntkGiatKerjasama int        `db:"id_bentuk_kegiatan_kerjasama" json:"id_bentuk_kegiatan_kerjasama"`
-	NmBntkGiatKerjasama string     `db:"nm_bentuk_kegiatan_kerjasama" json:"nm_bentuk_kegiatan_kerjasama"`
+	IDBntkGiatKerjasama int        `db:"id_bntk_giat_kerjasama" json:"id_bntk_giat_kerjasama"`
+	NmBntkGiatKerjasama string     `db:"nm_bntk_giat_kerjasama" json:"nm_bntk_giat_kerjasama"`
 	Ket                 *string    `db:"ket" json:"ket"`
 	CreateDate          time.Time  `db:"create_date" json:"-"`
 	LastUpdate          time.Time  `db:"last_update" json:"-"`
@@ -124,7 +124,7 @@ type BidangPekerjaan struct {
 // Wilayah adalah entity dari tabel ref.bidang_studi
 type BidangStudi struct {
 	IDBidStudi         int        `db:"id_bid_studi" json:"id_bid_studi"`
-	IDIndukBidangStudi int        `db:"id_induk_bidang_studi" json:"id_induk_bidang_studi"`
+	IDIndukBidangStudi *int       `db:"id_induk_bidang_studi" json:"id_induk_bidang_studi"`
 	KodeBidStudi       string     `db:"kode_bid_studi" json:"kode_bid_studi"`
 	NmBidStudi         string     `db:"nm_bid_studi" json:"nm_bid_studi"`
 	AKel               int        `db:"a_kel" json:"a_kel"`
@@ -141,7 +141,7 @@ type BidangStudi struct {
 
 // Wilayah adalah entity dari tabel ref.bidang_usaha
 type BidangUsaha struct {
-	IDBu        int        `db:"id_bu" json:"id_bu"`
+	IDBu        string     `db:"id_bu" json:"id_bu"`
 	NmBu        string     `db:"nm_bu" json:"nm_bu"`
 	CreateDate  time.Time  `db:"create_date" json:"-"`
 	LastUpdate  time.Time  `db:"last_update" json:"-"`
@@ -150,7 +150,7 @@ type BidangUsaha struct {
 
 // Wilayah adalah entity dari tabel ref.fungsi_lab
 type FungsiLab struct {
-	IDFungsiLab int        `db:"id_fungsi_lab" json:"id_fungsi_lab"`
+	IDFungsiLab string     `db:"id_fungsi_lab" json:"id_fungsi_lab"`
 	NmFungsiLab string     `db:"nm_fungsi_lab" json:"nm_fungsi_lab"`
 	CreateDate  time.Time  `db:"create_date" json:"-"`
 	LastUpdate  time.Time  `db:"last_update" json:"-"`
@@ -170,7 +170,7 @@ type GelarAkademik struct {
 
 // Wilayah adalah entity dari tabel ref.ikatan_kerja_sdm
 type IkatanKerjaSdm struct {
-	IDIkatanKerja  int        `db:"id_ikatan_kerja" json:"id_ikatan_kerja"`
+	IDIkatanKerja  string     `db:"id_ikatan_kerja" json:"id_ikatan_kerja"`
 	NmIkatanKerja  string     `db:"nm_ikatan_kerja" json:"nm_ikatan_kerja"`
 	KetIkatanKerja string     `db:"ket_ikatan_kerja" json:"ket_ikatan_kerja"`
 	CreateDate     time.Time  `db:"create_date" json:"-"`

@@ -510,7 +510,7 @@ func (r *repository) GetBentukKegiatanKerjasama(ctx context.Context, params Pagi
 	argIndex := 1
 
 	if params.Search != "" {
-		conditions = append(conditions, fmt.Sprintf("nm_bentuk_kegiatan_kerjasama LIKE @p%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("nm_bntk_giat_kerjasama LIKE @p%d", argIndex))
 		args = append(args, "%"+params.Search+"%")
 		argIndex++
 	}
@@ -526,13 +526,13 @@ func (r *repository) GetBentukKegiatanKerjasama(ctx context.Context, params Pagi
 	}
 
 	// Get data
-	sortBy := "id_bentuk_kegiatan_kerjasama"
+	sortBy := "id_bntk_giat_kerjasama"
 	if params.SortBy != "" {
 		sortBy = params.SortBy
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id_bentuk_kegiatan_kerjasama, nm_bentuk_kegiatan_kerjasama, ket, create_date, last_update, expired_date
+		SELECT id_bntk_giat_kerjasama, nm_bntk_giat_kerjasama, ket, create_date, last_update, expired_date
 		FROM ref.bentuk_kegiatan_kerjasama
 		WHERE %s
 		ORDER BY %s %s
@@ -698,7 +698,7 @@ func (r *repository) GetBidangKerjasama(ctx context.Context, params PaginationPa
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id_bid_kerjasama, nm_bid_kerjasama, ket, create_date, last_update, expired_date
+		SELECT id_bid_kerjasama, nm_bid_kerjasama, create_date, last_update, expired_date
 		FROM ref.bidang_kerjasama
 		WHERE %s
 		ORDER BY %s %s
@@ -869,7 +869,7 @@ func (r *repository) GetBidangStudi(ctx context.Context, params BidangStudiParam
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id_bid_studi, id_bentuk_bidang_studi, kode_bid_studi, nm_bid_studi, a_kel, a_jenj_paud, a_jenj_tk, a_jenj_sd, a_jenj_smp, a_jenj_sma, a_jenj_tinggi, create_date, last_update, expired_date
+		SELECT id_bid_studi, id_induk_bidang_studi, kode_bid_studi, nm_bid_studi, a_kel, a_jenj_paud, a_jenj_tk, a_jenj_sd, a_jenj_smp, a_jenj_sma, a_jenj_tinggi, create_date, last_update, expired_date
 		FROM ref.bidang_studi
 		WHERE %s
 		ORDER BY %s %s
