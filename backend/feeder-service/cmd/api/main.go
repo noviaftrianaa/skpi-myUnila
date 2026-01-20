@@ -5,6 +5,7 @@ import (
 
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/apiconfig"
+	"github.com/myunila/feeder-service/apps/bimbing_mhs"
 	"github.com/myunila/feeder-service/apps/dashboard"
 	"github.com/myunila/feeder-service/apps/kelas_kuliah"
 	"github.com/myunila/feeder-service/apps/logger"
@@ -187,6 +188,10 @@ func main() {
 	prestasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Prestasi module initialized")
 
+	// Initialize Bimbing Mhs module (Dosen Pembimbing - pass logger service for sync logging)
+	bimbing_mhs.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Bimbing Mhs (Dosen Pembimbing) module initialized")
+
 	// Initialize Referensi module (master data from Feeder API)
 	referensi.Init(apiV1, db, feederAPI, loggerService)
 	log.Println("✅ Referensi module initialized")
@@ -239,6 +244,7 @@ func main() {
 				"nilai_konversi":      "/api/v1/nilai-konversi",
 				"transkrip_nilai":     "/api/v1/transkrip-nilai",
 				"prestasi":            "/api/v1/prestasi",
+				"bimbing_mhs":         "/api/v1/bimbing-mhs",
 				"referensi":           "/api/v1/referensi",
 				"dashboard":           "/api/v1/dashboard/stats",
 				"schedules":           "/api/v1/schedules",
