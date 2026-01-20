@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Select, SelectItem, Button } from "@heroui/react";
+import { Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, Spinner, Tooltip } from "@heroui/react";
 import { feederClient } from "@/lib/api/feederClient";
+import { FiUsers, FiUser, FiHash, FiAward, FiMapPin, FiCalendar, FiFileText } from "react-icons/fi";
 
 interface AktivitasListItem {
   id_akt_mhs: string;
@@ -20,6 +21,34 @@ interface AktivitasListItem {
   id_prodi: string;
   nama_prodi: string | null;
   nama_jenjang: string | null;
+}
+
+interface AnggotaItem {
+  id_ang_akt_mhs: string;
+  id_akt_mhs: string;
+  id_reg_pd: string | null;
+  nm_pd: string | null;
+  nipd: string | null;
+  jns_peran_mhs: number | null;
+  nama_peran_mhs: string;
+}
+
+interface AktivitasDetail {
+  id_akt_mhs: string;
+  judul_akt_mhs: string | null;
+  nama_jenis_aktivitas: string | null;
+  id_semester: string | null;
+  nama_semester: string | null;
+  lokasi_kegiatan: string | null;
+  sk_tugas: string | null;
+  tgl_sk_tugas: string | null;
+  ket_akt: string | null;
+  a_komunal: number | null;
+  id_prodi: string | null;
+  nama_prodi: string | null;
+  nama_jenjang: string | null;
+  jumlah_anggota: number;
+  anggota: AnggotaItem[];
 }
 
 interface ProdiOption {
@@ -56,6 +85,11 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
   const [filterJenisAktivitas, setFilterJenisAktivitas] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Modal state for anggota detail
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedAktivitas, setSelectedAktivitas] = useState<AktivitasDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Options for filters
   const [semesterOptions, setSemesterOptions] = useState<SemesterOption[]>([]);
@@ -169,6 +203,22 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterProdi, filterSemester, filterJenisAktivitas]);
 
+  // Fetch aktivitas detail with anggota
+  const fetchAktivitasDetail = async (idAktMhs: string) => {
+    setLoadingDetail(true);
+    try {
+      const response = await feederClient.get(`/aktivitas-mahasiswa/detail/${idAktMhs}`);
+      if (response.data.success) {
+        setSelectedAktivitas(response.data.data);
+        setIsDetailModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching aktivitas detail:', error);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Belum sync";
     try {
@@ -183,6 +233,18 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
     }
   };
 
+  // Get color for peran chip
+  const getPeranColor = (peran: string): "warning" | "primary" | "default" => {
+    switch (peran) {
+      case "Ketua":
+        return "warning";
+      case "Anggota":
+        return "primary";
+      default:
+        return "default";
+    }
+  };
+
   const columns: Column<AktivitasListItem>[] = [
     {
       key: "judul_akt_mhs",
@@ -194,8 +256,9 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
             {item.judul_akt_mhs}
           </div>
           {item.lokasi_kegiatan && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              📍 {item.lokasi_kegiatan}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+              <FiMapPin className="w-3 h-3" />
+              {item.lokasi_kegiatan}
             </div>
           )}
         </div>
@@ -247,17 +310,22 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
       key: "jumlah_anggota",
       label: "ANGGOTA",
       sortable: false,
-      width: "100px",
+      width: "120px",
       render: (item) => (
         <div className="flex items-center justify-center">
-          <Chip
-            size="sm"
-            variant="flat"
-            color={item.jumlah_anggota > 0 ? "success" : "default"}
-            className="font-semibold"
-          >
-            {item.jumlah_anggota} orang
-          </Chip>
+          <Tooltip content="Lihat daftar anggota" placement="top">
+            <Button
+              size="sm"
+              variant="flat"
+              color={item.jumlah_anggota > 0 ? "success" : "default"}
+              className="font-semibold min-w-[80px]"
+              startContent={<FiUsers className="w-3.5 h-3.5" />}
+              onPress={() => fetchAktivitasDetail(item.id_akt_mhs)}
+              isLoading={loadingDetail}
+            >
+              {item.jumlah_anggota}
+            </Button>
+          </Tooltip>
         </div>
       ),
     },
@@ -436,6 +504,164 @@ export default function FeederAktivitasMahasiswaTable({ onFilterChange }: Feeder
           }
         />
       </motion.div>
+
+      {/* Modal for Anggota Detail */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedAktivitas(null);
+        }}
+        size="3xl"
+        scrollBehavior="inside"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+          header: "bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700",
+          body: "bg-white dark:bg-gray-800 py-6",
+          footer: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          {loadingDetail ? (
+            <ModalBody>
+              <div className="flex items-center justify-center py-12">
+                <Spinner size="lg" />
+              </div>
+            </ModalBody>
+          ) : selectedAktivitas ? (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <FiUsers className="w-5 h-5 text-blue-600" />
+                  <span>Detail Aktivitas & Anggota</span>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                {/* Aktivitas Info */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-3">
+                    {selectedAktivitas.judul_akt_mhs || "Tanpa Judul"}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <FiAward className="w-4 h-4 text-blue-500" />
+                      <span>{selectedAktivitas.nama_jenis_aktivitas || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <FiCalendar className="w-4 h-4 text-green-500" />
+                      <span>{selectedAktivitas.nama_semester || selectedAktivitas.id_semester || "-"}</span>
+                    </div>
+                    {selectedAktivitas.lokasi_kegiatan && (
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <FiMapPin className="w-4 h-4 text-red-500" />
+                        <span>{selectedAktivitas.lokasi_kegiatan}</span>
+                      </div>
+                    )}
+                    {selectedAktivitas.sk_tugas && (
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 col-span-2">
+                        <FiFileText className="w-4 h-4 text-purple-500" />
+                        <span>SK: {selectedAktivitas.sk_tugas}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedAktivitas.nama_prodi && (
+                    <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Program Studi: </span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {selectedAktivitas.nama_jenjang} - {selectedAktivitas.nama_prodi}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Anggota List */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                      <FiUsers className="w-4 h-4" />
+                      Daftar Anggota ({selectedAktivitas.jumlah_anggota} orang)
+                    </h4>
+                    <div className="flex gap-2">
+                      <Chip size="sm" color="warning" variant="flat">Ketua</Chip>
+                      <Chip size="sm" color="primary" variant="flat">Anggota</Chip>
+                      <Chip size="sm" color="default" variant="flat">Personal</Chip>
+                    </div>
+                  </div>
+
+                  {selectedAktivitas.anggota && selectedAktivitas.anggota.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-gray-800">
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-12">No</th>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <FiUser className="w-4 h-4" />
+                                Nama Mahasiswa
+                              </div>
+                            </th>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <FiHash className="w-4 h-4" />
+                                NIM
+                              </div>
+                            </th>
+                            <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">
+                              <div className="flex items-center justify-center gap-2">
+                                <FiAward className="w-4 h-4" />
+                                Peran
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {selectedAktivitas.anggota.map((anggota, index) => (
+                            <tr
+                              key={anggota.id_ang_akt_mhs}
+                              className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                            >
+                              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                                {index + 1}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  {anggota.nm_pd || "-"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="text-gray-600 dark:text-gray-400 font-mono">
+                                  {anggota.nipd || "-"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <Chip
+                                  size="sm"
+                                  color={getPeranColor(anggota.nama_peran_mhs)}
+                                  variant="flat"
+                                  className="font-medium"
+                                >
+                                  {anggota.nama_peran_mhs}
+                                </Chip>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <FiUsers className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>Belum ada data anggota</p>
+                    </div>
+                  )}
+                </div>
+              </ModalBody>
+            </>
+          ) : null}
+        </ModalContent>
+      </Modal>
     </motion.div>
   );
 }
