@@ -215,3 +215,52 @@ type SyncLogListResult struct {
 	Limit      int                           `json:"limit"`
 	TotalPages int                           `json:"total_pages"`
 }
+
+// --- Anggota List DTO ---
+
+// AnggotaListItem - Anggota with readable jenis peran label for list view
+type AnggotaListItem struct {
+	IDAngAktMhs  string  `db:"id_ang_akt_mhs" json:"id_ang_akt_mhs"`
+	IDAktMhs     string  `db:"id_akt_mhs" json:"id_akt_mhs"`
+	IDRegPd      *string `db:"id_reg_pd" json:"id_reg_pd"`
+	NmPd         *string `db:"nm_pd" json:"nm_pd"`
+	NIPD         *string `db:"nipd" json:"nipd"`
+	JnsPeranMhs  *int    `db:"jns_peran_mhs" json:"jns_peran_mhs"`
+	NamaPeranMhs string  `json:"nama_peran_mhs"` // Calculated: 1=Ketua, 2=Anggota, 3=Personal
+}
+
+// GetNamaPeranMhs returns the readable name for jenis peran mahasiswa
+func GetNamaPeranMhs(jnsPeran *int) string {
+	if jnsPeran == nil {
+		return "Personal"
+	}
+	switch *jnsPeran {
+	case 1:
+		return "Ketua"
+	case 2:
+		return "Anggota"
+	case 3:
+		return "Personal"
+	default:
+		return "Personal"
+	}
+}
+
+// AktivitasDetailResponse - Response for aktivitas detail with anggota list
+type AktivitasDetailResponse struct {
+	IDAktMhs           string             `json:"id_akt_mhs"`
+	JudulAktMhs        *string            `json:"judul_akt_mhs"`
+	NamaJenisAktivitas *string            `json:"nama_jenis_aktivitas"`
+	IDSemester         *string            `json:"id_semester"`
+	NamaSemester       *string            `json:"nama_semester"`
+	LokasiKegiatan     *string            `json:"lokasi_kegiatan"`
+	SKTugas            *string            `json:"sk_tugas"`
+	TglSKTugas         *string            `json:"tgl_sk_tugas"`
+	KetAkt             *string            `json:"ket_akt"`
+	AKomunal           *int               `json:"a_komunal"`
+	IDProdi            *string            `json:"id_prodi"`
+	NamaProdi          *string            `json:"nama_prodi"`
+	NamaJenjang        *string            `json:"nama_jenjang"`
+	JumlahAnggota      int                `json:"jumlah_anggota"`
+	Anggota            []*AnggotaListItem `json:"anggota"`
+}

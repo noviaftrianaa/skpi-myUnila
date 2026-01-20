@@ -18,7 +18,7 @@ type Service interface {
 	// List operations
 	GetAktivitasList(ctx context.Context, page, limit int, search string, idSemester []string, idProdi *string, idJenisAktivitas *int, sortBy, sortOrder string) (*AktivitasListResult, error)
 	GetAktivitasByID(ctx context.Context, idAktMhs string) (*AktMhs, error)
-	GetAktivitasDetail(ctx context.Context, idAktMhs string) (map[string]interface{}, error)
+	GetAktivitasDetail(ctx context.Context, idAktMhs string) (*AktivitasDetailResponse, error)
 
 	// Utility operations
 	GetProdiList(ctx context.Context) ([]map[string]interface{}, error)
@@ -104,26 +104,8 @@ func (s *service) GetAktivitasByID(ctx context.Context, idAktMhs string) (*AktMh
 }
 
 // GetAktivitasDetail retrieves complete aktivitas detail with anggota list
-func (s *service) GetAktivitasDetail(ctx context.Context, idAktMhs string) (map[string]interface{}, error) {
-	// Get aktivitas data
-	aktivitas, err := s.repo.GetAktivitasByID(ctx, idAktMhs)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get anggota list
-	anggotaList, err := s.repo.GetAnggotaByAktivitas(ctx, idAktMhs)
-	if err != nil {
-		return nil, err
-	}
-
-	// Combine into single response
-	detail := map[string]interface{}{
-		"aktivitas": aktivitas,
-		"anggota":   anggotaList,
-	}
-
-	return detail, nil
+func (s *service) GetAktivitasDetail(ctx context.Context, idAktMhs string) (*AktivitasDetailResponse, error) {
+	return s.repo.GetAktivitasDetailByID(ctx, idAktMhs)
 }
 
 // GetProdiList retrieves list of prodi
