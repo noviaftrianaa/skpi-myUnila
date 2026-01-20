@@ -9,7 +9,8 @@ import {
   Chip,
   Spinner,
 } from "@heroui/react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import {
   FiArrowLeft,
@@ -78,6 +79,20 @@ const getKongBaseUrl = () => {
   return "https://my.unila.ac.id";
 };
 
+// Get Kong Admin API URL
+const getKongAdminUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "my.unila.ac.id") {
+      // Production: Kong Admin via internal IP (only accessible from allowed networks)
+      return "http://192.168.120.41:9801";
+    } else if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:9801";
+    }
+  }
+  return "http://localhost:9801";
+};
+
 // Mapping service to documentation URL (via Kong gateway)
 // Access is controlled via JWT at Kong level + role check at portal level
 const getServiceDocsUrl = (serviceName: string): string => {
@@ -114,20 +129,22 @@ const isMainService = (serviceName: string): boolean => {
 };
 
 export default function KongAdminPage() {
-  // Use role-based auth check - Developer role required
-  // This page doesn't have a backend service, so we use useRequireAuth instead of useRequireAppAccess
-  const { isLoading: authLoading, isAuthenticated, user } = useRequireAuth({
-    requireRole: "Developer",
-  });
+  // Use auth and user context for role-based access control
+  // Developer role is from manakses system (activeContext.nm_peran), not from auth user.role
+  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
+  const { activeContext, isLoadingContext } = useUserContext();
   const router = useRouter();
 
-  // Derive access state from auth
-  const hasAccess = isAuthenticated && user?.role === "Developer";
+  // Check if user has Developer role from manakses context
+  // Developer can be the nm_peran from activeContext
+  const hasAccess = isAuthenticated && activeContext?.nm_peran === "Developer";
   const accessMessage = !isAuthenticated
     ? "Silakan login terlebih dahulu"
-    : !hasAccess
-      ? "Halaman ini hanya dapat diakses oleh Developer"
-      : "";
+    : !activeContext
+      ? "Silakan pilih peran terlebih dahulu"
+      : !hasAccess
+        ? `Halaman ini hanya dapat diakses oleh Developer. Peran Anda saat ini: ${activeContext.nm_peran}`
+        : "";
 
   const [services, setServices] = useState<KongService[]>([]);
   const [routes, setRoutes] = useState<KongRoute[]>([]);
@@ -142,20 +159,22 @@ export default function KongAdminPage() {
     setError(null);
 
     try {
+      const kongAdminUrl = getKongAdminUrl();
+
       // Fetch Services
-      const servicesRes = await fetch("http://localhost:9801/services");
+      const servicesRes = await fetch(`${kongAdminUrl}/services`);
       if (!servicesRes.ok) throw new Error("Failed to fetch services");
       const servicesData = await servicesRes.json();
       setServices(servicesData.data || []);
 
       // Fetch Routes
-      const routesRes = await fetch("http://localhost:9801/routes");
+      const routesRes = await fetch(`${kongAdminUrl}/routes`);
       if (!routesRes.ok) throw new Error("Failed to fetch routes");
       const routesData = await routesRes.json();
       setRoutes(routesData.data || []);
 
       // Fetch Kong Info
-      const infoRes = await fetch("http://localhost:9801/");
+      const infoRes = await fetch(`${kongAdminUrl}/`);
       if (!infoRes.ok) throw new Error("Failed to fetch Kong info");
       const infoData = await infoRes.json();
       setKongInfo(infoData);
@@ -180,7 +199,7 @@ export default function KongAdminPage() {
   };
 
   // Loading state
-  if (authLoading || (hasAccess && isLoading)) {
+  if (authLoading || isLoadingContext || (hasAccess && isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 flex items-center justify-center">
         <div className="text-center">
