@@ -3,7 +3,6 @@ package common
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -38,26 +37,12 @@ func NewRepository(DB *sqlx.DB) Repository {
 // ============================================================================
 
 func (r *repository) GetSemesters(ctx context.Context, params types.SemesterParams) ([]Semester, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
-	p := 1
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("id_thn_ajaran", params.TahunAjaran)
+	cb.AppendInt("a_periode_aktif", params.PeriodeAktif)
+	cb.Like("nm_smt", params.Search)
 
-	if params.TahunAjaran != nil {
-		conds = append(conds, fmt.Sprintf("id_thn_ajaran = @p%d", p))
-		args = append(args, *params.TahunAjaran)
-		p++
-	}
-
-	if params.PeriodeAktif != nil {
-		conds = append(conds, fmt.Sprintf("a_periode_aktif = @p%d", p))
-		args = append(args, *params.PeriodeAktif)
-		p++
-	}
-
-	if params.Search != "" {
-		conds = append(conds, fmt.Sprintf("nm_smt LIKE @p%d", p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -95,20 +80,11 @@ func (r *repository) GetSemesters(ctx context.Context, params types.SemesterPara
 // ============================================================================
 
 func (r *repository) GetTahunAjarans(ctx context.Context, params types.TahunAjaranParams) ([]TahunAjaran, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
-	p := 1
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("a_periode_aktif", params.PeriodeAktif)
+	cb.Like("nm_thn_ajaran", params.Search)
 
-	if params.PeriodeAktif != nil {
-		conds = append(conds, fmt.Sprintf("a_periode_aktif = @p%d", p))
-		args = append(args, *params.PeriodeAktif)
-		p++
-	}
-
-	if params.Search != "" {
-		conds = append(conds, fmt.Sprintf("nm_thn_ajaran LIKE @p%d", p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -144,13 +120,11 @@ func (r *repository) GetTahunAjarans(ctx context.Context, params types.TahunAjar
 // ============================================================================
 
 func (r *repository) GetAgamas(ctx context.Context, params types.PaginationParams) ([]Agama, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_agama", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_agama LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -182,32 +156,14 @@ func (r *repository) GetAgamas(ctx context.Context, params types.PaginationParam
 // ============================================================================
 
 func (r *repository) GetWilayahs(ctx context.Context, params types.WilayahParams) ([]Wilayah, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
-	p := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.AppendString("id_negara", params.IDNegara)
+	cb.AppendInt("id_level_wil", params.Level)
+	cb.AppendString("id_induk_wilayah", params.IDIndukWilayah)
+	cb.Like("nm_wil", params.Search)
 
-	if params.IDNegara != nil {
-		conds = append(conds, fmt.Sprintf("id_negara = @p%d", p))
-		args = append(args, *params.IDNegara)
-		p++
-	}
-
-	if params.Level != nil {
-		conds = append(conds, fmt.Sprintf("id_level_wil = @p%d", p))
-		args = append(args, *params.Level)
-		p++
-	}
-
-	if params.IDIndukWilayah != nil {
-		conds = append(conds, fmt.Sprintf("id_induk_wilayah = @p%d", p))
-		args = append(args, *params.IDIndukWilayah)
-		p++
-	}
-
-	if params.Search != "" {
-		conds = append(conds, fmt.Sprintf("nm_wil LIKE @p%d", p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -247,13 +203,11 @@ func (r *repository) GetWilayahs(ctx context.Context, params types.WilayahParams
 // ============================================================================
 
 func (r *repository) GetAktifitasKerjasama(ctx context.Context, params types.PaginationParams) ([]AktifitasKerjasama, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_akt_kerjasama", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_akt_kerjasama LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -286,13 +240,11 @@ func (r *repository) GetAktifitasKerjasama(ctx context.Context, params types.Pag
 // ============================================================================
 
 func (r *repository) GetBasisEvaluasi(ctx context.Context, params types.PaginationParams) ([]BasisEvaluasi, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_basis_evaluasi", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_basis_evaluasi LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -324,13 +276,11 @@ func (r *repository) GetBasisEvaluasi(ctx context.Context, params types.Paginati
 // ============================================================================
 
 func (r *repository) GetFungsiLab(ctx context.Context, params types.PaginationParams) ([]FungsiLab, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_fungsi_lab", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_fungsi_lab LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -362,20 +312,12 @@ func (r *repository) GetFungsiLab(ctx context.Context, params types.PaginationPa
 // ============================================================================
 
 func (r *repository) GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
-	p := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("posisi_gelar", params.PosisiGelar)
+	cb.Like("nm_gelar_akad", params.Search)
 
-	if params.PosisiGelar != nil {
-		conds = append(conds, fmt.Sprintf("posisi_gelar = @p%d", p))
-		args = append(args, *params.PosisiGelar)
-		p++
-	}
-
-	if params.Search != "" {
-		conds = append(conds, fmt.Sprintf("(nm_gelar_akad LIKE @p%d OR singkat_gelar LIKE @p%d)", p, p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -410,13 +352,11 @@ func (r *repository) GetGelarAkademik(ctx context.Context, params types.GelarAka
 // ============================================================================
 
 func (r *repository) GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error) {
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_ikatan_kerja", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_ikatan_kerja LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,

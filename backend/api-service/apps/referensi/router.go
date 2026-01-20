@@ -6,6 +6,8 @@ import (
 	"github.com/myunila/api-service/apps/referensi/bentuk"
 	"github.com/myunila/api-service/apps/referensi/bidang"
 	"github.com/myunila/api-service/apps/referensi/common"
+	"github.com/myunila/api-service/apps/referensi/jab"
+	"github.com/myunila/api-service/apps/referensi/jenis"
 	"github.com/myunila/api-service/internal/middleware"
 	"github.com/redis/go-redis/v9"
 )
@@ -20,6 +22,8 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rConn *redis.Client) {
 	bentuk.RegisterRoutes(ref, db, rConn)
 	bidang.RegisterRoutes(ref, db, rConn)
 	common.RegisterRoutes(ref, db, rConn)
+	jab.RegisterRoutes(ref, db, rConn)
+	jenis.RegisterRoutes(ref, db, rConn)
 
 	// Endpoints (old - will be removed after full migration)
 	// ref.Get("/semester", handler.GetSemesters)

@@ -3,7 +3,6 @@ package bentuk
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -37,16 +36,11 @@ func NewRepository(DB *sqlx.DB) Repository {
 func (r *repository) GetBentukKegiatanKerjasama(ctx context.Context, params types.PaginationParams) ([]BentukKegiatanKerjasama, int64, error) {
 	params.NormalizePagination()
 
-	// Build conditions
-	conditions := []string{}
-	args := []interface{}{}
-	argIndex := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_bntk_giat_kerjasama", params.Search)
 
-	if params.Search != "" {
-		conditions = append(conditions, fmt.Sprintf("nm_bntk_giat_kerjasama LIKE @p%d", argIndex))
-		args = append(args, "%"+params.Search+"%")
-		argIndex++
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -57,7 +51,7 @@ func (r *repository) GetBentukKegiatanKerjasama(ctx context.Context, params type
 			DefaultSort: "id_bntk_giat_kerjasama",
 		},
 		params,
-		conditions,
+		conds,
 		args,
 		func(rows *sql.Rows) (BentukKegiatanKerjasama, error) {
 			var a BentukKegiatanKerjasama
@@ -81,63 +75,30 @@ func (r *repository) GetBentukKegiatanKerjasama(ctx context.Context, params type
 func (r *repository) GetBentukPendidikan(ctx context.Context, params types.BentukPendidikanParams) ([]BentukPendidikan, int64, error) {
 	params.NormalizePagination()
 
-	// Build conditions
-	conditions := []string{}
-	args := []interface{}{}
-	p := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("a_jenj_paud", params.JenjangPaud)
+	cb.AppendInt("a_jenj_tk", params.JenjangTk)
+	cb.AppendInt("a_jenj_sd", params.JenjangSd)
+	cb.AppendInt("a_jenj_smp", params.JenjangSmp)
+	cb.AppendInt("a_jenj_sma", params.JenjangSma)
+	cb.AppendInt("a_jenj_tinggi", params.JenjangTinggi)
+	cb.AppendInt("a_aktif", params.Aktif)
+	cb.Like("nm_bp", params.Search)
 
-	if params.JenjangPaud != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_paud = @p%d", p))
-		args = append(args, *params.JenjangPaud)
-		p++
-	}
-	if params.JenjangTk != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_tk = @p%d", p))
-		args = append(args, *params.JenjangTk)
-		p++
-	}
-	if params.JenjangSd != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_sd = @p%d", p))
-		args = append(args, *params.JenjangSd)
-		p++
-	}
-	if params.JenjangSmp != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_smp = @p%d", p))
-		args = append(args, *params.JenjangSmp)
-		p++
-	}
-	if params.JenjangSma != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_sma = @p%d", p))
-		args = append(args, *params.JenjangSma)
-		p++
-	}
-	if params.JenjangTinggi != nil {
-		conditions = append(conditions, fmt.Sprintf("a_jenj_tinggi = @p%d", p))
-		args = append(args, *params.JenjangTinggi)
-		p++
-	}
-	if params.Aktif != nil {
-		conditions = append(conditions, fmt.Sprintf("a_aktif = @p%d", p))
-		args = append(args, *params.Aktif)
-		p++
-	}
-
-	if params.Search != "" {
-		conditions = append(conditions, fmt.Sprintf("nm_bp LIKE @p%d", p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
 			Table: "ref.bentuk_pendidikan",
-			Select: `id_bp, nm_bp, a_jenj_paud, a_jenj_tk, a_jenj_sd, a_jenj_smp, a_jenj_sma, 
-				a_jenj_tinggi, dir_bina, a_aktif, create_date, last_update, expired_date`,
+			Select: `id_bp, nm_bp, a_jenj_paud, a_jenj_tk, a_jenj_sd, 
+				a_jenj_smp, a_jenj_sma, a_jenj_tinggi, dir_bina, a_aktif, create_date, last_update, expired_date`,
 			DefaultSort: "id_bp",
 		},
 		params.PaginationParams,
-		conditions,
+		conds,
 		args,
 		func(rows *sql.Rows) (BentukPendidikan, error) {
 			var a BentukPendidikan
