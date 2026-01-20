@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AkreditasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 
@@ -24,4 +25,9 @@ Route::prefix('v1')->group(function () {
     // Route::middleware(['jwt.auth'])->group(function () {
     //     // Add your protected routes here
     // });
+
+    Route::prefix('akreditasi')->group(function () {
+        Route::get('/fakultas', [AkreditasiController::class, 'getFakultas']);
+        Route::get('/cobak', [AkreditasiController::class, 'getFakultas']);
+    });
 });
