@@ -22,6 +22,7 @@ type Service interface {
 	GetFungsiLab(ctx context.Context, params types.PaginationParams) ([]FungsiLab, int64, error)
 	GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error)
 	GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error)
+	GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error)
 }
 
 type service struct {
@@ -301,6 +302,37 @@ func (s *service) GetIkatanKerjaSdm(ctx context.Context, params types.Pagination
 	}
 
 	data, total, err := s.repo.GetIkatanKerjaSdm(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// GetIkatanKerjaSdm mengambil daftar ikatan kerja SDM dengan pagination
+func (s *service) GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error) {
+	cacheKeyData := fmt.Sprintf("jalur_daftar:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jalur_daftar:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []JalurDaftar
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for jalur daftar data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetJalurDaftar(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

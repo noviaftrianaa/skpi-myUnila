@@ -101,3 +101,11 @@ type IkatanKerjaSdm struct {
 	LastUpdate     time.Time  `db:"last_update" json:"-"`
 	ExpiredDate    *time.Time `db:"expired_date" json:"-"`
 }
+
+type JalurDaftar struct {
+	IDJalurDaftar int        `db:"id_jalur_daftar" json:"id_jalur_daftar"`
+	NmJalurDaftar string     `db:"nm_jalur_daftar" json:"nm_jalur_daftar"`
+	CreateDate    time.Time  `db:"create_date" json:"-"`
+	LastUpdate    time.Time  `db:"last_update" json:"-"`
+	ExpiredDate   *time.Time `db:"expired_date" json:"-"`
+}

@@ -20,6 +20,7 @@ type Repository interface {
 	GetFungsiLab(ctx context.Context, params types.PaginationParams) ([]FungsiLab, int64, error)
 	GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error)
 	GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error)
+	GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error)
 }
 
 type repository struct {
@@ -376,6 +377,37 @@ func (r *repository) GetIkatanKerjaSdm(ctx context.Context, params types.Paginat
 				&i.IDIkatanKerja,
 				&i.NmIkatanKerja,
 				&i.KetIkatanKerja,
+				&i.CreateDate,
+				&i.LastUpdate,
+				&i.ExpiredDate,
+			)
+			return i, err
+		},
+	)
+}
+func (r *repository) GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error) {
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jalur_daftar", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jalur_daftar",
+			Select:      `id_jalur_daftar, nm_jalur_daftar, create_date, last_update, expired_date`,
+			DefaultSort: "id_jalur_daftar",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JalurDaftar, error) {
+			var i JalurDaftar
+			err := rows.Scan(
+				&i.IDJalurDaftar,
+				&i.NmJalurDaftar,
 				&i.CreateDate,
 				&i.LastUpdate,
 				&i.ExpiredDate,
