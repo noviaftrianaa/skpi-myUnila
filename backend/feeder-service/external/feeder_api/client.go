@@ -1213,3 +1213,128 @@ func (c *FeederClient) GetListPrestasiMahasiswa(filter string, limit, offset int
 
 	return json.Marshal(result.Data)
 }
+
+// GetDosenPembimbing calls GetDosenPembimbing endpoint with filter and pagination
+// Returns: id_kategori_kegiatan, id_bimbing_mahasiswa, id_aktivitas, id_registrasi_mahasiswa,
+//
+//	nama_mahasiswa, nim, id_dosen, nidn, nuptk, nama_dosen, pembimbing_ke, jenis_aktivitas
+func (c *FeederClient) GetDosenPembimbing(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetDosenPembimbing",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetMahasiswaBimbinganDosen calls GetMahasiswaBimbinganDosen endpoint with filter and pagination
+// Returns similar data to GetDosenPembimbing but may have different structure
+func (c *FeederClient) GetMahasiswaBimbinganDosen(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetMahasiswaBimbinganDosen",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
+
+// GetListBimbingMahasiswa calls GetListBimbingMahasiswa endpoint with filter and pagination
+// Returns bimbingan mahasiswa data
+func (c *FeederClient) GetListBimbingMahasiswa(filter string, limit, offset int) ([]byte, error) {
+	// Only get token if not already exists
+	if c.Token == "" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+	}
+
+	req := FeederRequest{
+		Act:    "GetListBimbingMahasiswa",
+		Token:  c.Token,
+		Filter: filter,
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	var result FeederResponse
+	if err := c.doRequest(req, &result); err != nil {
+		return nil, err
+	}
+
+	// Check if token expired, retry with new token
+	if result.ErrorCode == 100 || result.ErrorDesc == "Token tidak valid" {
+		if err := c.GetToken(); err != nil {
+			return nil, err
+		}
+		req.Token = c.Token
+		if err := c.doRequest(req, &result); err != nil {
+			return nil, err
+		}
+	}
+
+	if result.ErrorCode != 0 {
+		return nil, fmt.Errorf("feeder API error: %s (code: %d)", result.ErrorDesc, result.ErrorCode)
+	}
+
+	return json.Marshal(result.Data)
+}
