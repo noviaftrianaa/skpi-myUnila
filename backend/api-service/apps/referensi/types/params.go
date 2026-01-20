@@ -65,6 +65,67 @@ type GelarAkademikParams struct {
 	PosisiGelar *int `query:"posisi_gelar"` // Filter by posisi_gelar
 }
 
+type JabTgsParams struct {
+	PaginationParams
+	IDKelProf        *int `query:"id_kel_prof"`
+	JabatanUtamaSek  *int `query:"jabatan_utama_sek"`
+	JabatanUtamaPt   *int `query:"jabatan_utama_pt"`
+	JabatanUtamaLpnk *int `query:"jabatan_utama_lpnk"`
+	JabatanUtamaLpk  *int `query:"jabatan_utama_lpk"`
+}
+
+type JabFungParams struct {
+	PaginationParams
+	IDKelProf   *int `query:"id_kel_prof"`
+	AngkaKredit *int `query:"angka_kredit"`
+}
+
+type JenisAktMhsParams struct {
+	PaginationParams
+	KegiatanKampusMerdeka *int `query:"kegiatan_kampus_merdeka"`
+}
+
+type JenisBeasiswaParams struct {
+	PaginationParams
+	IDSumberDana *int `query:"id_sumber_dana"`
+	UPd          *int `query:"u_pd"`
+	UPtk         *int `query:"u_ptk"`
+	UNonCa       *int `query:"u_non_ca"`
+	KatBeasiswa  *int `query:"kat_beasiswa"`
+}
+
+type JenisDiklatParams struct {
+	PaginationParams
+	UGuru     *int `query:"u_guru"`
+	UDosen    *int `query:"u_dosen"`
+	UTendik   *int `query:"u_tendik"`
+	AValidasi *int `query:"a_validasi"`
+}
+
+type JenisKeluarParams struct {
+	PaginationParams
+	APd       *int `query:"a_pd"`
+	APtk      *int `query:"a_ptk"`
+	ASdmIptek *int `query:"a_sdm_iptek"`
+}
+
+type JenisKeuanganParams struct {
+	PaginationParams
+	Pengeluaran *int `query:"pengeluaran"`
+	Pemasukan   *int `query:"pemasukan"`
+}
+
+type JenisLembagaParams struct {
+	PaginationParams
+	Sp                  *int `query:"sp"`
+	LembAkred           *int `query:"lemb_akred"`
+	PengelolaPendidikan *int `query:"pengelola_pendidikan"`
+	Sms                 *int `query:"sms"`
+	TmptPengawas        *int `query:"tmpt_pengawas"`
+	LembIptek           *int `query:"lemb_iptek"`
+	Smi                 *int `query:"smi"`
+}
+
 // ============================================================================
 // Default Values
 // ============================================================================

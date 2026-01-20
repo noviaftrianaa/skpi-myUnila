@@ -3,7 +3,6 @@ package bidang
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -35,16 +34,11 @@ func NewRepository(DB *sqlx.DB) Repository {
 func (r *repository) GetBidangKerjasama(ctx context.Context, params types.PaginationParams) ([]BidangKerjasama, int64, error) {
 	params.NormalizePagination()
 
-	// Build WHERE clause
-	conditions := []string{"expired_date IS NULL"}
-	args := []interface{}{}
-	argIndex := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_bid_kerjasama", params.Search)
 
-	if params.Search != "" {
-		conditions = append(conditions, fmt.Sprintf("nm_bid_kerjasama LIKE @p%d", argIndex))
-		args = append(args, "%"+params.Search+"%")
-		argIndex++
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -55,7 +49,7 @@ func (r *repository) GetBidangKerjasama(ctx context.Context, params types.Pagina
 			DefaultSort: "id_bid_kerjasama",
 		},
 		params,
-		conditions,
+		conds,
 		args,
 		func(rows *sql.Rows) (BidangKerjasama, error) {
 			var a BidangKerjasama
@@ -80,13 +74,11 @@ func (r *repository) GetBidangPekerjaan(
 	params types.PaginationParams,
 ) ([]BidangPekerjaan, int64, error) {
 
-	conds := []string{}
-	args := []interface{}{}
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_bid_kerja", params.Search)
 
-	if params.Search != "" {
-		conds = append(conds, "nm_bid_kerja LIKE @p1")
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -122,55 +114,19 @@ func (r *repository) GetBidangStudi(
 	params types.BidangStudiParams,
 ) ([]BidangStudi, int64, error) {
 
-	conds := []string{}
-	args := []interface{}{}
-	p := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("id_induk_bidang_studi", params.IDIndukBidangStudi)
+	cb.AppendInt("a_kel", params.Kelompok)
+	cb.AppendInt("a_jenj_paud", params.JenjangPaud)
+	cb.AppendInt("a_jenj_tk", params.JenjangTk)
+	cb.AppendInt("a_jenj_sd", params.JenjangSd)
+	cb.AppendInt("a_jenj_smp", params.JenjangSmp)
+	cb.AppendInt("a_jenj_sma", params.JenjangSma)
+	cb.AppendInt("a_jenj_tinggi", params.JenjangTinggi)
+	cb.Like("nm_bid_studi", params.Search)
 
-	if params.IDIndukBidangStudi != nil {
-		conds = append(conds, fmt.Sprintf("id_induk_bidang_studi = @p%d", p))
-		args = append(args, *params.IDIndukBidangStudi)
-		p++
-	}
-	if params.Kelompok != nil {
-		conds = append(conds, fmt.Sprintf("a_kel = @p%d", p))
-		args = append(args, *params.Kelompok)
-		p++
-	}
-	if params.JenjangPaud != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_paud = @p%d", p))
-		args = append(args, *params.JenjangPaud)
-		p++
-	}
-	if params.JenjangTk != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_tk = @p%d", p))
-		args = append(args, *params.JenjangTk)
-		p++
-	}
-	if params.JenjangSd != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_sd = @p%d", p))
-		args = append(args, *params.JenjangSd)
-		p++
-	}
-	if params.JenjangSmp != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_smp = @p%d", p))
-		args = append(args, *params.JenjangSmp)
-		p++
-	}
-	if params.JenjangSma != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_sma = @p%d", p))
-		args = append(args, *params.JenjangSma)
-		p++
-	}
-	if params.JenjangTinggi != nil {
-		conds = append(conds, fmt.Sprintf("a_jenj_tinggi = @p%d", p))
-		args = append(args, *params.JenjangTinggi)
-		p++
-	}
-
-	if params.Search != "" {
-		conds = append(conds, fmt.Sprintf("nm_bid_studi LIKE @p%d", p))
-		args = append(args, "%"+params.Search+"%")
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -216,16 +172,11 @@ func (r *repository) GetBidangStudi(
 func (r *repository) GetBidangUsaha(ctx context.Context, params types.PaginationParams) ([]BidangUsaha, int64, error) {
 	params.NormalizePagination()
 
-	// Build WHERE clause
-	conditions := []string{"expired_date IS NULL"}
-	args := []interface{}{}
-	argIndex := 1
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_bu", params.Search)
 
-	if params.Search != "" {
-		conditions = append(conditions, fmt.Sprintf("nm_bu LIKE @p%d", argIndex))
-		args = append(args, "%"+params.Search+"%")
-		argIndex++
-	}
+	conds, args := cb.Build()
 
 	return helper.QueryPaged(
 		ctx,
@@ -236,7 +187,7 @@ func (r *repository) GetBidangUsaha(ctx context.Context, params types.Pagination
 			DefaultSort: "id_bu",
 		},
 		params,
-		conditions,
+		conds,
 		args,
 		func(rows *sql.Rows) (BidangUsaha, error) {
 			var a BidangUsaha
