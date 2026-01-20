@@ -169,3 +169,20 @@ func (h *Handler) GetIkatanKerjaSdm(c *fiber.Ctx) error {
 	params.NormalizePagination()
 	return response.SuccessWithMeta(c, "Berhasil mengambil data ikatan kerja SDM", data, params.Page, params.Limit, total)
 }
+
+// GetJalurDaftar returns list of jalur daftar with pagination
+func (h *Handler) GetJalurDaftar(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJalurDaftar(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jalur daftar: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jalur daftar")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jalur daftar", data, params.Page, params.Limit, total)
+}

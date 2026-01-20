@@ -23,4 +23,5 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	router.Get("/fungsi-lab", handler.GetFungsiLab)
 	router.Get("/gelar-akademik", handler.GetGelarAkademik)
 	router.Get("/ikatan-kerja-sdm", handler.GetIkatanKerjaSdm)
+	router.Get("/jalur-daftar", handler.GetJalurDaftar)
 }
