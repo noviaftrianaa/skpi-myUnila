@@ -31,3 +31,7 @@ deployment/local/.env
 *.tmp
 *.log
 .DS_Store
+
+# Sensitive documentation (contains API credentials)
+docs/SIMPEDAM_POSTMAN_TEST.md
+docs/KEUANGAN_SERVICE_BLUEPRINT.md
