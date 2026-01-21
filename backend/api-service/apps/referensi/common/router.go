@@ -15,13 +15,13 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 
 	// Register routes
 	router.Get("/semester", handler.GetSemesters)
-	router.Get("/tahun-ajaran", handler.GetTahunAjarans)
+	router.Get("/tahun_ajaran", handler.GetTahunAjarans)
 	router.Get("/agama", handler.GetAgamas)
 	router.Get("/wilayah", handler.GetWilayahs)
-	router.Get("/aktifitas-kerjasama", handler.GetAktifitasKerjasama)
-	router.Get("/basis-evaluasi", handler.GetBasisEvaluasi)
-	router.Get("/fungsi-lab", handler.GetFungsiLab)
-	router.Get("/gelar-akademik", handler.GetGelarAkademik)
-	router.Get("/ikatan-kerja-sdm", handler.GetIkatanKerjaSdm)
-	router.Get("/jalur-daftar", handler.GetJalurDaftar)
+	router.Get("/aktifitas_kerjasama", handler.GetAktifitasKerjasama)
+	router.Get("/basis_evaluasi", handler.GetBasisEvaluasi)
+	router.Get("/fungsi_lab", handler.GetFungsiLab)
+	router.Get("/gelar_akademik", handler.GetGelarAkademik)
+	router.Get("/ikatan_kerja_sdm", handler.GetIkatanKerjaSdm)
+	router.Get("/jalur_daftar", handler.GetJalurDaftar)
 }

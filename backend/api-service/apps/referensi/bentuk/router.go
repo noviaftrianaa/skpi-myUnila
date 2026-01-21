@@ -13,8 +13,6 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	svc := NewService(repo, redis)
 	handler := NewHandler(svc)
 
-	// Register routes
-	bentuk := router.Group("/bentuk")
-	bentuk.Get("/kegiatan-kerjasama", handler.GetBentukKegiatanKerjasama)
-	bentuk.Get("/pendidikan", handler.GetBentukPendidikan)
+	router.Get("/bentuk_kegiatan_kerjasama", handler.GetBentukKegiatanKerjasama)
+	router.Get("/bentuk_pendidikan", handler.GetBentukPendidikan)
 }

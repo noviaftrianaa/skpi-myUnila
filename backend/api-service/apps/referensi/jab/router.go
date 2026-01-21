@@ -14,6 +14,6 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	handler := NewHandler(svc)
 
 	// Register routes
-	router.Get("/jab-tgs", handler.GetJabTgs)
-	router.Get("/jab-fung", handler.GetJabFung)
+	router.Get("/jab_tgs", handler.GetJabTgs)
+	router.Get("/jabfung", handler.GetJabFung)
 }

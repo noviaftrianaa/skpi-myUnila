@@ -40,7 +40,7 @@ func (s *service) GetBentukKegiatanKerjasama(ctx context.Context, params types.P
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bentuk kegiatan kerjasama data and total")
 				return data, total, nil
 			}
 		}
@@ -81,7 +81,7 @@ func (s *service) GetBentukPendidikan(ctx context.Context, params types.BentukPe
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bentuk pendidikan data and total")
 				return data, total, nil
 			}
 		}
