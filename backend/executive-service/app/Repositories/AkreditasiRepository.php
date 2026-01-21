@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class AkreditasiRepository
 {
-    public function getFakultas()
+    public function getDataAkreditasiFakultas()
     {
         $sql = "
                 SELECT
@@ -71,5 +71,41 @@ class AkreditasiRepository
         });
 
         return $data_akreditasi;
+    }
+
+    public function getDataAkreditasiProdi($idProdi)
+    {
+        $sql = "
+        SELECT DISTINCT
+            psms.id_sms AS id,
+            psms.id_fak_unila AS id_fak,
+            psms.id_jur_unila AS id_jur,
+            psms.nm_lemb AS nama_prodi,
+            didik.nm_jenj_didik AS jenjang_didik,
+            akred_prodi.sk_akreditasi_prodi,
+            akred_prodi.tanggal_sk_akreditasi_prodi,
+            akred_prodi.tst_sk_akreditasi_prodi,
+            nilai.nm_akred as nilai_akreditasi,
+            lembaga_akred.nm_lemb AS lembaga_akreditasi
+
+            FROM
+                pdrd.sms AS psms
+            JOIN pdrd.sms AS fak ON psms.id_fak_unila = fak.id_sms
+            JOIN ref.jenjang_pendidikan AS didik ON didik.id_jenj_didik = psms.id_jenj_didik
+            AND didik.expired_date
+            IS NULL LEFT JOIN pdrd.akreditasi_prodi AS akred_prodi ON psms.id_sms = akred_prodi.id_sms
+            AND akred_prodi.soft_delete = 0
+            JOIN ref.nilai_akred AS nilai ON akred_prodi.id_akred = nilai.id_akred
+            JOIN ref.lembaga_akred as lembaga_akred ON akred_prodi.id_lemb_akred = lembaga_akred.id_lemb_akred
+
+            WHERE
+            psms.id_jns_sms = '3'
+            AND psms.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
+            AND psms.soft_delete = 0
+            AND psms.id_fak_unila = ?
+            AND psms.stat_prodi = 'A'
+        ";
+
+        return collect(DB::select($sql, [$idProdi]));
     }
 }

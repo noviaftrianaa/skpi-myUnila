@@ -47,7 +47,7 @@ check_network() {
 start_service() {
     print_info "Starting Executive Service..."
     check_network
-    docker-compose up -d --build
+    docker-compose --env-file .env up -d --build
     print_success "Executive Service started!"
     print_info "Container name: myunila-executive-service"
     print_info "View logs: $0 logs"

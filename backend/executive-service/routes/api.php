@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
     // });
 
     Route::prefix('akreditasi')->group(function () {
-        Route::get('/fakultas', [AkreditasiController::class, 'getFakultas']);
-        Route::get('/cobak', [AkreditasiController::class, 'getFakultas']);
+        Route::get('/fakultas', [AkreditasiController::class, 'getDataAkreditasiFakultas']);
+        Route::get('/fakultas/{idProdi}', [AkreditasiController::class, 'getDataAkreditasiProdi']);
     });
 });

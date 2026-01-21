@@ -33,8 +33,10 @@ RUN apk add --no-cache \
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Install Microsoft SQL Server ODBC Driver 18 for Alpine
-RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
-    && curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
+# Install ca-certificates first for SSL verification
+RUN apk add --no-cache ca-certificates \
+    && curl -k -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
+    && curl -k -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
     && apk add --allow-untrusted msodbcsql18_18.3.2.1-1_amd64.apk \
     && apk add --allow-untrusted mssql-tools18_18.3.1.1-1_amd64.apk \
     && rm -f *.apk

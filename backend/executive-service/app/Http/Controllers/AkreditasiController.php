@@ -14,13 +14,35 @@ class AkreditasiController extends Controller
         $this->akreditasiService = $akreditasi;
     }
 
-    public function getFakultas()
+    public function getDataAkreditasiFakultas()
     {
-        $data = $this->akreditasiService->getFakultas();
-        $data = [
-            'status' => "success",
-            "data" => $data
-        ];
-        return response()->json($data);
+        try {
+            $data = $this->akreditasiService->getDataAkreditasiFakultas();
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getDataAkreditasiProdi($idProdi)
+    {
+        try {
+            $data = $this->akreditasiService->getDataAkreditasiProdi($idProdi);
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

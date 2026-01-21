@@ -23,15 +23,25 @@ export interface Fakultas {
   total_prodi: string;
   jenjang_list: JenjangList;
   prodi_aktif: number;
-  jumlah_prodi_reakreditasi: number;
+  prodi_akan_kadaluarsa: number;
+}
+
+export interface AkreditasiHistory {
+  sk_akreditasi: string;
+  tanggal_sk: string;
+  tanggal_kadaluarsa: string;
+  nilai_akreditasi: string;
+  lembaga_akreditasi: string;
 }
 
 export interface Prodi {
   id: string;
+  id_fakultas: string;
+  id_jurusan: string;
   nama_prodi: string;
   jenjang: string;
   akreditasi_terakhir: string;
-  tahun_akreditasi: number;
+  tahun_akreditasi: number | null;
   status_akreditasi:
     | "Unggul"
     | "Baik Sekali"
@@ -40,8 +50,10 @@ export interface Prodi {
     | "B"
     | "C"
     | "Proses";
-  tanggal_kadaluarsa: string;
+  tanggal_kadaluarsa: string | null;
+  lembaga_akreditasi: string | null;
   is_reakreditasi: boolean;
+  history_akreditasi: AkreditasiHistory[];
 }
 
 export interface AkreditasiSummary {
@@ -93,6 +105,17 @@ class ExecutiveAkreditasiService {
       `/akreditasi/fakultas/${id}`,
     );
     return response.data.data;
+  }
+
+  /**
+   * Get prodi list by fakultas ID
+   * @param fakultasId - Fakultas ID
+   */
+  async getProdiByFakultasId(fakultasId: string): Promise<Prodi[]> {
+    const response = await executiveClient.get<{ data: Prodi[] }>(
+      `/akreditasi/fakultas/${fakultasId}`,
+    );
+    return response.data.data || [];
   }
 
   /**

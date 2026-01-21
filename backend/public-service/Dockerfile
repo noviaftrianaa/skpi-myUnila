@@ -30,8 +30,9 @@ RUN apk add --no-cache \
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Install Microsoft SQL Server ODBC Driver 18 for Alpine
-RUN curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
-    && curl -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
+RUN apk add --no-cache ca-certificates \
+    && curl -k -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/msodbcsql18_18.3.2.1-1_amd64.apk \
+    && curl -k -O https://download.microsoft.com/download/3/5/5/355d7943-a338-41a7-858d-53b259ea33f5/mssql-tools18_18.3.1.1-1_amd64.apk \
     && apk add --allow-untrusted msodbcsql18_18.3.2.1-1_amd64.apk \
     && apk add --allow-untrusted mssql-tools18_18.3.1.1-1_amd64.apk \
     && rm -f *.apk
@@ -97,7 +98,7 @@ RUN { \
     echo 'opcache.validate_timestamps = 0'; \
     echo 'realpath_cache_size = 8192K'; \
     echo 'realpath_cache_ttl = 7200'; \
-} > /usr/local/etc/php/conf.d/custom.ini
+    } > /usr/local/etc/php/conf.d/custom.ini
 
 # PHP-FPM configuration - Optimized for 8 CPU / 16GB RAM
 # With 16GB RAM and assuming ~80MB per PHP process, we can handle ~150 processes

@@ -6,9 +6,10 @@
 
 export { executiveAkreditasiService } from './akreditasiService';
 export type {
-  JenjangProdi,
+  JenjangList,
   Fakultas,
   Prodi,
+  AkreditasiHistory,
   AkreditasiSummary,
   GetFakultasParams,
   GetProdiParams,
