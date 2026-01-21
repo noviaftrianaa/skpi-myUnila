@@ -113,3 +113,32 @@ type JalurDaftar struct {
 	LastUpdate    types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate   *time.Time          `db:"expired_date" json:"-"`
 }
+
+// belum implemnted
+
+type JenjangPendidikan struct {
+	IDJenjDidik int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
+	NmJenjDidik string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
+	UJenjLemb   int                 `db:"u_jenj_lemb" json:"u_jenj_lemb"`
+	UJenjOrg    int                 `db:"u_jenj_org" json:"u_jenj_org"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Jurusan struct {
+	IDJur           string              `db:"id_jur" json:"id_jur"`
+	NmJur           string              `db:"nm_jur" json:"nm_jur"`
+	NmIntlJur       *string             `db:"nm_intl_jur" json:"nm_intl_jur,omitempty"`
+	KodeNomenklatur string              `db:"kode_nomenklatur" json:"kode_nomenklatur"`
+	USma            int                 `db:"u_sma" json:"u_sma"`
+	USmk            int                 `db:"u_smk" json:"u_smk"`
+	UPt             int                 `db:"u_pt" json:"u_pt"`
+	USlb            int                 `db:"u_slb" json:"u_slb"`
+	IdIndukJurusan  string              `db:"id_induk_jurusan" json:"id_induk_jurusan"`
+	IDJenjDidik     int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
+	IDKelBidang     string              `db:"id_kel_bidang" json:"id_kel_bidang"`
+	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
+}
