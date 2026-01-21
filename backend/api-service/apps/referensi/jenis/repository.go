@@ -53,7 +53,7 @@ func (r *repository) GetJenisAktMhs(ctx context.Context, params types.JenisAktMh
 		r.db,
 		helper.BaseQueryConfig{
 			Table:       "ref.jenis_akt_mhs",
-			Select:      "id_jns_akt_mhs, nm_jns_akt_mhs, ket_jns_mhs, a_kegiatan_kampus_merdeka, create_date, last_update, expired_date",
+			Select:      "id_jns_akt_mhs, nm_jns_akt_mhs, ket_jns_akt_mhs, a_kegiatan_kampus_merdeka, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_akt_mhs",
 		},
 		params.PaginationParams,
@@ -64,7 +64,7 @@ func (r *repository) GetJenisAktMhs(ctx context.Context, params types.JenisAktMh
 			err := rows.Scan(
 				&j.IDJnsAktMhs,
 				&j.NmJnsAktMhs,
-				&j.KetJnsMhs,
+				&j.KetJnsAktMhs,
 				&j.AKegiatanKampusMerdeka,
 				&j.CreateDate,
 				&j.LastUpdate,

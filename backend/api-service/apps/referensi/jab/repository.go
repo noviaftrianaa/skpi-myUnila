@@ -85,7 +85,7 @@ func (r *repository) GetJabFung(ctx context.Context, params types.JabFungParams)
 	cb := helper.NewCondBuilder()
 	cb.AppendInt("id_kel_prof", params.IDKelProf)
 	cb.AppendInt("angka_kredit", params.AngkaKredit)
-	cb.Like("nm_jab_fung", params.Search)
+	cb.Like("nm_jabfung", params.Search)
 
 	conds, args := cb.Build()
 
@@ -93,9 +93,9 @@ func (r *repository) GetJabFung(ctx context.Context, params types.JabFungParams)
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jab_fung",
-			Select:      "id_jab_fung, id_kel_prof, nm_jab_fung, angka_kredit, create_date, last_update, expired_date",
-			DefaultSort: "id_jab_fung",
+			Table:       "ref.jabfung",
+			Select:      "id_jabfung, id_kel_prof, nm_jabfung, angka_kredit, create_date, last_update, expired_date",
+			DefaultSort: "id_jabfung",
 		},
 		params.PaginationParams,
 		conds,
@@ -103,9 +103,9 @@ func (r *repository) GetJabFung(ctx context.Context, params types.JabFungParams)
 		func(rows *sql.Rows) (JabFung, error) {
 			var a JabFung
 			err := rows.Scan(
-				&a.IDJabFung,
+				&a.IDJabfung,
 				&a.IDKelProf,
-				&a.NmJabFung,
+				&a.NmJabfung,
 				&a.AngkaKredit,
 				&a.CreateDate,
 				&a.LastUpdate,

@@ -14,9 +14,9 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	handler := NewHandler(svc)
 
 	// Register routes
-	bidang := router.Group("/bidang")
-	bidang.Get("/kerjasama", handler.GetBidangKerjasama)
-	bidang.Get("/pekerjaan", handler.GetBidangPekerjaan)
-	bidang.Get("/studi", handler.GetBidangStudi)
-	bidang.Get("/usaha", handler.GetBidangUsaha)
+	bidang := router.Group("")
+	bidang.Get("/bidang_kerjasama", handler.GetBidangKerjasama)
+	bidang.Get("/bidang_pekerjaan", handler.GetBidangPekerjaan)
+	bidang.Get("/bidang_studi", handler.GetBidangStudi)
+	bidang.Get("/bidang_usaha", handler.GetBidangUsaha)
 }

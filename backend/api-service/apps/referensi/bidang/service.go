@@ -42,7 +42,7 @@ func (s *service) GetBidangKerjasama(ctx context.Context, params types.Paginatio
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bidang kerjasama data and total")
 				return data, total, nil
 			}
 		}
@@ -82,7 +82,7 @@ func (s *service) GetBidangPekerjaan(ctx context.Context, params types.Paginatio
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bidang pekerjaan data and total")
 				return data, total, nil
 			}
 		}
@@ -123,7 +123,7 @@ func (s *service) GetBidangStudi(ctx context.Context, params types.BidangStudiPa
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bidang studi data and total")
 				return data, total, nil
 			}
 		}
@@ -163,7 +163,7 @@ func (s *service) GetBidangUsaha(ctx context.Context, params types.PaginationPar
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &bidangUsaha); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache HIT: %s (total: %d)", cacheKeyData, total)
+				log.Printf("Cache hit for bidang usaha data and total")
 				return bidangUsaha, total, nil
 			}
 		}
