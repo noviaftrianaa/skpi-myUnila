@@ -749,10 +749,89 @@ fi
 echo ""
 
 ###############################################################################
-# 6. JWT Consumer & Credentials Setup
+# 6. Keuangan Service (SIMPEDAM)
+###############################################################################
+echo -e "${GREEN}[6/9] Setting up Keuangan Service...${NC}"
+
+# Create Keuangan Service
+# Note: Upstream is at VM3 (e.g., 192.168.120.43:8088)
+# Keuangan service is a Go app for SIMPEDAM integration
+KEUANGAN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"keuangan-service\",
+    \"url\": \"${KEUANGAN_SERVICE_URL:-http://192.168.120.43:8088}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 5
+  }")
+
+KEUANGAN_SERVICE_ID=$(parse_json_id "$KEUANGAN_SERVICE")
+
+if [ -z "$KEUANGAN_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Keuangan service${NC}"
+else
+    echo -e "${GREEN}  ✓ Keuangan service created: $KEUANGAN_SERVICE_ID${NC}"
+
+    # Route: Protected /api/v1/* endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    KEUANGAN_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-api-v1-route",
+        "paths": ["/keuangan-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    KEUANGAN_API_ROUTE_ID=$(parse_json_id "$KEUANGAN_API_ROUTE")
+
+    if [ -n "$KEUANGAN_API_ROUTE_ID" ]; then
+        # Add CORS plugin with extended headers for sync operations
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 7. JWT Consumer & Credentials Setup
 ###############################################################################
 echo ""
-echo -e "${GREEN}[6/6] Setting up JWT Consumer & Credentials...${NC}"
+echo -e "${GREEN}[7/9] Setting up JWT Consumer & Credentials...${NC}"
 
 # Create consumer for auth service
 echo -e "${YELLOW}  → Creating consumer 'auth-service'...${NC}"
@@ -1296,6 +1375,63 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
     fi
 fi
 
+# Keuangan Service Docs
+echo -e "${YELLOW}  → Creating keuangan-service-docs route...${NC}"
+KEUANGAN_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"keuangan-service-docs\",
+    \"url\": \"${KEUANGAN_SERVICE_URL:-http://192.168.120.43:8088}/docs\"
+  }")
+
+KEUANGAN_DOCS_SERVICE_ID=$(parse_json_id "$KEUANGAN_DOCS_SERVICE")
+
+if [ -n "$KEUANGAN_DOCS_SERVICE_ID" ]; then
+    KEUANGAN_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-service-docs-route",
+        "paths": ["/gateway/keuangan-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    KEUANGAN_DOCS_ROUTE_ID=$(parse_json_id "$KEUANGAN_DOCS_ROUTE")
+
+    if [ -n "$KEUANGAN_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ keuangan-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
 # Dashboard Service Docs
 echo -e "${YELLOW}  → Creating dashboard-service-docs route...${NC}"
 DASHBOARD_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
@@ -1367,6 +1503,7 @@ echo "  Sister (public photo): /sister-service/public/* → backend/public/*"
 echo "  Feeder (JWT required): /feeder-service/* → backend/*"
 echo "  MyUnila (JWT req):     /myunila-service/* → backend/*"
 echo "  MyUnila (public):      /myunila-service/public/* → backend/*"
+echo "  Keuangan (JWT req):    /keuangan-service/* → backend/*"
 echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
 echo "  API/OneData (JWT req): /api-service/* → backend/*"
 echo ""
@@ -1376,6 +1513,7 @@ echo "  Public Docs:    /gateway/public-service/docs/*"
 echo "  Sister Docs:    /gateway/sister-service/docs/*"
 echo "  Feeder Docs:    /gateway/feeder-service/docs/*"
 echo "  MyUnila Docs:   /gateway/myunila-service/docs/*"
+echo "  Keuangan Docs:  /gateway/keuangan-service/docs/*"
 echo "  API Docs:       /gateway/api-service/docs/*"
 echo "  Dashboard Docs: /gateway/dashboard-service/docs/*"
 echo ""

@@ -620,7 +620,84 @@ fi
 echo ""
 
 ###############################################################################
-# 6. JWT Consumer & Credentials Setup
+# 6. Keuangan Service (SIMPEDAM)
+###############################################################################
+echo -e "${GREEN}[6/9] Setting up Keuangan Service...${NC}"
+
+# Create Keuangan Service
+KEUANGAN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "keuangan-service",
+    "url": "http://myunila-keuangan-service:8088",
+    "connect_timeout": 300000,
+    "write_timeout": 300000,
+    "read_timeout": 300000,
+    "retries": 5
+  }')
+
+KEUANGAN_SERVICE_ID=$(parse_json_id "$KEUANGAN_SERVICE")
+
+if [ -z "$KEUANGAN_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Keuangan service${NC}"
+else
+    echo -e "${GREEN}  ✓ Keuangan service created: $KEUANGAN_SERVICE_ID${NC}"
+
+    # Route: Protected /api/v1/* endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    KEUANGAN_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-api-v1-route",
+        "paths": ["/keuangan-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    KEUANGAN_API_ROUTE_ID=$(parse_json_id "$KEUANGAN_API_ROUTE")
+
+    if [ -n "$KEUANGAN_API_ROUTE_ID" ]; then
+        # Add CORS plugin with extended headers for sync operations
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 7. JWT Consumer & Credentials Setup
 ###############################################################################
 echo ""
 echo -e "${GREEN}[6/6] Setting up JWT Consumer & Credentials...${NC}"
@@ -1157,6 +1234,62 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
     fi
 fi
 
+# Keuangan Service Docs
+echo -e "${YELLOW}  → Creating keuangan-service-docs route...${NC}"
+KEUANGAN_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "keuangan-service-docs",
+    "url": "http://myunila-keuangan-service:8088/docs"
+  }')
+
+KEUANGAN_DOCS_SERVICE_ID=$(parse_json_id "$KEUANGAN_DOCS_SERVICE")
+
+if [ -n "$KEUANGAN_DOCS_SERVICE_ID" ]; then
+    KEUANGAN_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-service-docs-route",
+        "paths": ["/keuangan-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    KEUANGAN_DOCS_ROUTE_ID=$(parse_json_id "$KEUANGAN_DOCS_ROUTE")
+
+    if [ -n "$KEUANGAN_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ keuangan-service-docs route created with JWT${NC}"
+    fi
+fi
+
 ###############################################################################
 # 10. Gateway Routes (for consistency with production)
 # Production uses /gateway/{service}/docs via Nginx proxy
@@ -1175,6 +1308,7 @@ SERVICE_URLS["sister-service"]="http://myunila-sister-service:8083"
 SERVICE_URLS["feeder-service"]="http://myunila-feeder-service:8084"
 SERVICE_URLS["myunila-service"]="http://myunila-service:8086"
 SERVICE_URLS["api-service"]="http://myunila-api-service:8085"
+SERVICE_URLS["keuangan-service"]="http://myunila-keuangan-service:8088"
 
 for SERVICE in "${!SERVICE_URLS[@]}"; do
     UPSTREAM_URL="${SERVICE_URLS[$SERVICE]}"
@@ -1270,6 +1404,7 @@ echo "  Sister (protected):    http://localhost:9800/sister-service/api/v1"
 echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v1/dosen/photo/:id"
 echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
+echo "  Keuangan (protected):  http://localhost:9800/keuangan-service/api/v1"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""
@@ -1280,6 +1415,7 @@ echo "  http://localhost:9800/gateway/public-service/docs"
 echo "  http://localhost:9800/gateway/sister-service/docs"
 echo "  http://localhost:9800/gateway/feeder-service/docs"
 echo "  http://localhost:9800/gateway/myunila-service/docs"
+echo "  http://localhost:9800/gateway/keuangan-service/docs"
 echo "  http://localhost:9800/gateway/api-service/docs"
 echo ""
 

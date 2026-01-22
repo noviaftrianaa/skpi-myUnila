@@ -74,6 +74,9 @@ case "$SERVICE" in
     feeder)
         restart_service "feeder"
         ;;
+    keuangan)
+        restart_service "keuangan"
+        ;;
     myunila)
         restart_service "myunila"
         ;;
@@ -108,7 +111,9 @@ case "$SERVICE" in
         restart_service "auth"
         restart_service "sister"
         restart_service "feeder"
+        restart_service "keuangan"
         restart_service "myunila"
+        restart_service "api"
 
         echo -e "${GREEN}Restarting Nginx...${NC}"
         docker compose restart nginx
@@ -125,9 +130,12 @@ case "$SERVICE" in
         echo "  bash restart-services.sh              # Restart all"
         echo "  bash restart-services.sh dashboard    # Restart dashboard only"
         echo "  bash restart-services.sh auth         # Restart auth only"
+        echo "  bash restart-services.sh public       # Restart public only"
         echo "  bash restart-services.sh sister       # Restart sister only"
         echo "  bash restart-services.sh feeder       # Restart feeder only"
+        echo "  bash restart-services.sh keuangan     # Restart keuangan only"
         echo "  bash restart-services.sh myunila      # Restart myunila only"
+        echo "  bash restart-services.sh api          # Restart api only"
         echo "  bash restart-services.sh redis        # Restart redis only"
         echo "  bash restart-services.sh meilisearch  # Restart meilisearch only"
         echo "  bash restart-services.sh nginx        # Restart nginx only"

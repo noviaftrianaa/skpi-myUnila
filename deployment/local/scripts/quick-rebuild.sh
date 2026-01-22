@@ -159,6 +159,9 @@ case "$SERVICE" in
     feeder)
         rebuild_service "feeder"
         ;;
+    keuangan)
+        rebuild_service "keuangan"
+        ;;
     myunila)
         rebuild_service "myunila"
         ;;
@@ -182,6 +185,7 @@ case "$SERVICE" in
         rebuild_service "auth"
         rebuild_service "sister"
         rebuild_service "feeder"
+        rebuild_service "keuangan"
         rebuild_service "myunila"
         rebuild_service "api"
         rebuild_service "dashboard"
@@ -215,6 +219,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh auth         # Rebuild auth only"
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
+        echo "  bash quick-rebuild.sh keuangan     # Rebuild keuangan only"
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
         echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
@@ -253,6 +258,9 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "sister" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "feeder" ]; then
     echo "  Feeder:    curl http://localhost:8084/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "keuangan" ]; then
+    echo "  Keuangan:  curl http://localhost:8088/health"
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "myunila" ]; then
     echo "  MyUnila:   curl http://localhost:8086/health"
