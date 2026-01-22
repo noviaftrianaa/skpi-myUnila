@@ -27,6 +27,21 @@ type Service interface {
 	GetJenisKeuangan(ctx context.Context, params types.JenisKeuanganParams) ([]JenisKeuangan, int64, error)
 	GetJenisLembaga(ctx context.Context, params types.JenisLembagaParams) ([]JenisLembaga, int64, error)
 	GetJenisMediaPub(ctx context.Context, params types.PaginationParams) ([]JenisMediaPub, int64, error)
+	GetJenisMk(ctx context.Context, params types.PaginationParams) ([]JenisMk, int64, error)
+	GetJenisPendaftaran(ctx context.Context, params types.JenisPendaftaranParams) ([]JenisPendaftaran, int64, error)
+	GetJenisPenelitian(ctx context.Context, params types.PaginationParams) ([]JenisPenelitian, int64, error)
+	GetJenisPenghargaan(ctx context.Context, params types.JenisPenghargaanParams) ([]JenisPenghargaan, int64, error)
+	GetJenisPrasarana(ctx context.Context, params types.PaginationParams) ([]JenisPrasarana, int64, error)
+	GetJenisPrestasi(ctx context.Context, params types.PaginationParams) ([]JenisPrestasi, int64, error)
+	GetJenisPublikasi(ctx context.Context, params types.PaginationParams) ([]JenisPublikasi, int64, error)
+	GetJenisSarana(ctx context.Context, params types.JenisSaranaParams) ([]JenisSarana, int64, error)
+	GetJenisSdm(ctx context.Context, params types.JenisSdmParams) ([]JenisSdm, int64, error)
+	GetJenisSert(ctx context.Context, params types.JenisSertParams) ([]JenisSert, int64, error)
+	GetJenisSms(ctx context.Context, params types.PaginationParams) ([]JenisSms, int64, error)
+	GetJenisSubst(ctx context.Context, params types.PaginationParams) ([]JenisSubst, int64, error)
+	GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error)
+	GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error)
+	GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error)
 }
 
 type service struct {
@@ -598,6 +613,612 @@ func (s *service) GetJenisMediaPub(ctx context.Context, params types.PaginationP
 	if bytes, err := json.Marshal(total); err == nil {
 		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
 			log.Printf("Failed to cache jenis media pub total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisMk mengambil daftar jenis mata kuliah dengan pagination
+func (s *service) GetJenisMk(ctx context.Context, params types.PaginationParams) ([]JenisMk, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_mk:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_mk:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisMk
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis mk data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisMk(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis mk data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis mk total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPendaftaran mengambil daftar jenis pendaftaran dengan pagination dan filter
+func (s *service) GetJenisPendaftaran(ctx context.Context, params types.JenisPendaftaranParams) ([]JenisPendaftaran, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_pendaftaran:data:page:%d:limit:%d:daftar_sekolah:%v:daftar_rombel:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.DaftarSekolah, params.DaftarRombel, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_pendaftaran:total:daftar_sekolah:%v:daftar_rombel:%v:search:%s",
+		params.DaftarSekolah, params.DaftarRombel, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPendaftaran
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis pendaftaran data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPendaftaran(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis pendaftaran data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis pendaftaran total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPenelitian mengambil daftar jenis penelitian dengan pagination
+func (s *service) GetJenisPenelitian(ctx context.Context, params types.PaginationParams) ([]JenisPenelitian, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_penelitian:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_penelitian:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPenelitian
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis penelitian data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPenelitian(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis penelitian data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis penelitian total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPenghargaan mengambil daftar jenis penghargaan dengan pagination dan filter
+func (s *service) GetJenisPenghargaan(ctx context.Context, params types.JenisPenghargaanParams) ([]JenisPenghargaan, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_penghargaan:data:page:%d:limit:%d:lembaga:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Lembaga, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_penghargaan:total:lembaga:%v:search:%s",
+		params.Lembaga, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPenghargaan
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis penghargaan data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPenghargaan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis penghargaan data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis penghargaan total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPrasarana mengambil daftar jenis prasarana dengan pagination
+func (s *service) GetJenisPrasarana(ctx context.Context, params types.PaginationParams) ([]JenisPrasarana, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_prasarana:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_prasarana:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPrasarana
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis prasarana data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPrasarana(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis prasarana data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis prasarana total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPrestasi mengambil daftar jenis prestasi dengan pagination
+func (s *service) GetJenisPrestasi(ctx context.Context, params types.PaginationParams) ([]JenisPrestasi, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_prestasi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_prestasi:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPrestasi
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis prestasi data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPrestasi(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis prestasi data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis prestasi total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisPublikasi mengambil daftar jenis publikasi dengan pagination
+func (s *service) GetJenisPublikasi(ctx context.Context, params types.PaginationParams) ([]JenisPublikasi, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_publikasi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_publikasi:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisPublikasi
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis publikasi data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisPublikasi(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis publikasi data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis publikasi total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisSarana mengambil daftar jenis sarana dengan pagination dan filter
+func (s *service) GetJenisSarana(ctx context.Context, params types.JenisSaranaParams) ([]JenisSarana, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_sarana:data:page:%d:limit:%d:penempatan:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Penempatan, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_sarana:total:penempatan:%v:search:%s",
+		params.Penempatan, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisSarana
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis sarana data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisSarana(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sarana data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sarana total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisSdm mengambil daftar jenis SDM dengan pagination dan filter
+func (s *service) GetJenisSdm(ctx context.Context, params types.JenisSdmParams) ([]JenisSdm, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_sdm:data:page:%d:limit:%d:guru_kelas:%v:guru_mapel:%v:guru_bk:%v:guru_inklusi:%v:pengawas_sp:%v:pengawas_plb:%v:pengawas_mapel:%v:pengawas_bid:%v:tas:%v:formal:%v:dosen:%v:peneliti:%v:perekayasa:%v:pranata:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.GuruKelas, params.GuruMapel, params.GuruBk, params.GuruInklusi, params.PengawasSp, params.PengawasPlb, params.PengawasMapel, params.PengawasBid, params.Tas, params.Formal, params.Dosen, params.Peneliti, params.Perekayasa, params.PranataLevel, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_sdm:total:guru_kelas:%v:guru_mapel:%v:guru_bk:%v:guru_inklusi:%v:pengawas_sp:%v:pengawas_plb:%v:pengawas_mapel:%v:pengawas_bid:%v:tas:%v:formal:%v:dosen:%v:peneliti:%v:perekayasa:%v:pranata:%v:search:%s",
+		params.GuruKelas, params.GuruMapel, params.GuruBk, params.GuruInklusi, params.PengawasSp, params.PengawasPlb, params.PengawasMapel, params.PengawasBid, params.Tas, params.Formal, params.Dosen, params.Peneliti, params.Perekayasa, params.PranataLevel, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisSdm
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis sdm data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisSdm(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sdm data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sdm total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisSert mengambil daftar jenis sertifikasi dengan pagination dan filter
+func (s *service) GetJenisSert(ctx context.Context, params types.JenisSertParams) ([]JenisSert, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_sert:data:page:%d:limit:%d:prof_guru:%v:kepsek:%v:laboran:%v:prof_dosen:%v:lembaga:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.ProfGuru, params.Kepsek, params.Laboran, params.ProfDosen, params.Lembaga, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_sert:total:prof_guru:%v:kepsek:%v:laboran:%v:prof_dosen:%v:lembaga:%v:search:%s",
+		params.ProfGuru, params.Kepsek, params.Laboran, params.ProfDosen, params.Lembaga, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisSert
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis sert data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisSert(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sert data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sert total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisSms mengambil daftar jenis SMS dengan pagination
+func (s *service) GetJenisSms(ctx context.Context, params types.PaginationParams) ([]JenisSms, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_sms:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_sms:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisSms
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis sms data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisSms(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sms data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis sms total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisSubst mengambil daftar jenis substansi dengan pagination
+func (s *service) GetJenisSubst(ctx context.Context, params types.PaginationParams) ([]JenisSubst, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_subst:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_subst:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisSubst
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis subst data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisSubst(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis subst data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis subst total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisTes mengambil daftar jenis tes dengan pagination dan filter
+func (s *service) GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_tes:data:page:%d:limit:%d:nilai_maks:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.NilaiMaks, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_tes:total:nilai_maks:%v:search:%s",
+		params.NilaiMaks, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisTes
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis tes data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisTes(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tes data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tes total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisTinggal mengambil daftar jenis tinggal dengan pagination
+func (s *service) GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_tinggal:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_tinggal:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisTinggal
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis tinggal data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisTinggal(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tinggal data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tinggal total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisTunjangan mengambil daftar jenis tunjangan dengan pagination
+func (s *service) GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_tunjangan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenis_tunjangan:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisTunjangan
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis tunjangan data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisTunjangan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tunjangan data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis tunjangan total: %v", err)
 		}
 	}
 

@@ -23,6 +23,8 @@ type Service interface {
 	GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error)
 	GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error)
 	GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error)
+	GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error)
+	GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error)
 }
 
 type service struct {
@@ -333,6 +335,69 @@ func (s *service) GetJalurDaftar(ctx context.Context, params types.PaginationPar
 	}
 
 	data, total, err := s.repo.GetJalurDaftar(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// GetJenjangPendidikan mengambil daftar jenjang pendidikan dengan pagination
+func (s *service) GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenjang_pendidikan:data:page:%d:limit:%d:u_jenj_lemb:%v:u_jenj_org:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.UJenjLemb, params.UJenjOrg, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jenjang_pendidikan:total:u_jenj_lemb:%v:u_jenj_org:%v:search:%s", params.UJenjLemb, params.UJenjOrg, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []JenjangPendidikan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for jenjang pendidikan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetJenjangPendidikan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// GetJurusan mengambil daftar jurusan dengan pagination
+func (s *service) GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error) {
+	cacheKeyData := fmt.Sprintf("jurusan:data:page:%d:limit:%d:id_jenj_didik:%v:id_kel_bidang:%v:kode_nomenklatur:%v:u_sma:%v:u_smk:%v:u_pt:%v:u_slb:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.IDJenjDidik, params.IDKelBidang, params.KodeNomenklatur, params.USma, params.USmk, params.UPt, params.USlb, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("jurusan:total:id_jenj_didik:%v:id_kel_bidang:%v:kode_nomenklatur:%v:u_sma:%v:u_smk:%v:u_pt:%v:u_slb:%v:search:%s",
+		params.IDJenjDidik, params.IDKelBidang, params.KodeNomenklatur, params.USma, params.USmk, params.UPt, params.USlb, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Jurusan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for jurusan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetJurusan(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

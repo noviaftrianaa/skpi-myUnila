@@ -186,3 +186,37 @@ func (h *Handler) GetJalurDaftar(c *fiber.Ctx) error {
 	params.NormalizePagination()
 	return response.SuccessWithMeta(c, "Berhasil mengambil data jalur daftar", data, params.Page, params.Limit, total)
 }
+
+// GetJenjangPendidikan returns list of jenjang pendidikan with pagination
+func (h *Handler) GetJenjangPendidikan(c *fiber.Ctx) error {
+	var params types.JenjangPendidikanParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenjangPendidikan(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenjang pendidikan: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenjang pendidikan")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenjang pendidikan", data, params.Page, params.Limit, total)
+}
+
+// GetJurusan returns list of jurusan with pagination
+func (h *Handler) GetJurusan(c *fiber.Ctx) error {
+	var params types.JurusanParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJurusan(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jurusan: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jurusan")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jurusan", data, params.Page, params.Limit, total)
+}

@@ -3,6 +3,8 @@ package jenis
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -25,6 +27,21 @@ type Repository interface {
 	GetJenisKeuangan(ctx context.Context, params types.JenisKeuanganParams) ([]JenisKeuangan, int64, error)
 	GetJenisLembaga(ctx context.Context, params types.JenisLembagaParams) ([]JenisLembaga, int64, error)
 	GetJenisMediaPub(ctx context.Context, params types.PaginationParams) ([]JenisMediaPub, int64, error)
+	GetJenisMk(ctx context.Context, params types.PaginationParams) ([]JenisMk, int64, error)
+	GetJenisPendaftaran(ctx context.Context, params types.JenisPendaftaranParams) ([]JenisPendaftaran, int64, error)
+	GetJenisPenelitian(ctx context.Context, params types.PaginationParams) ([]JenisPenelitian, int64, error)
+	GetJenisPenghargaan(ctx context.Context, params types.JenisPenghargaanParams) ([]JenisPenghargaan, int64, error)
+	GetJenisPrasarana(ctx context.Context, params types.PaginationParams) ([]JenisPrasarana, int64, error)
+	GetJenisPrestasi(ctx context.Context, params types.PaginationParams) ([]JenisPrestasi, int64, error)
+	GetJenisPublikasi(ctx context.Context, params types.PaginationParams) ([]JenisPublikasi, int64, error)
+	GetJenisSarana(ctx context.Context, params types.JenisSaranaParams) ([]JenisSarana, int64, error)
+	GetJenisSdm(ctx context.Context, params types.JenisSdmParams) ([]JenisSdm, int64, error)
+	GetJenisSert(ctx context.Context, params types.JenisSertParams) ([]JenisSert, int64, error)
+	GetJenisSms(ctx context.Context, params types.PaginationParams) ([]JenisSms, int64, error)
+	GetJenisSubst(ctx context.Context, params types.PaginationParams) ([]JenisSubst, int64, error)
+	GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error)
+	GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error)
+	GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error)
 }
 
 type repository struct {
@@ -565,6 +582,613 @@ func (r *repository) GetJenisMediaPub(ctx context.Context, params types.Paginati
 			err := rows.Scan(
 				&j.IDJnsMedia,
 				&j.NmJnsMedia,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Mk
+// ============================================================================
+
+func (r *repository) GetJenisMk(ctx context.Context, params types.PaginationParams) ([]JenisMk, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_mk", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_mk",
+			Select:      "id_jns_mk, nm_jns_mk, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_mk",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisMk, error) {
+			var j JenisMk
+			err := rows.Scan(
+				&j.IDJnsMk,
+				&j.NmJnsMk,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Pendaftaran
+// ============================================================================
+
+func (r *repository) GetJenisPendaftaran(ctx context.Context, params types.JenisPendaftaranParams) ([]JenisPendaftaran, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("u_daftar_sekolah", params.DaftarSekolah)
+	cb.AppendInt("u_daftar_rombel", params.DaftarRombel)
+	cb.Like("nm_jns_mk", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_pendaftaran",
+			Select:      "id_jns_daftar, nm_jns_daftar, u_daftar_sekolah, u_daftar_rombel, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_daftar",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPendaftaran, error) {
+			var j JenisPendaftaran
+			err := rows.Scan(
+				&j.IDJnsDaftar,
+				&j.NmJnsDaftar,
+				&j.UDaftarSekolah,
+				&j.UDaftarRombel,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Penelitian
+// ============================================================================
+
+func (r *repository) GetJenisPenelitian(ctx context.Context, params types.PaginationParams) ([]JenisPenelitian, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_lit", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_penelitian",
+			Select:      "id_jns_lit, nm_jns_lit, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_lit",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPenelitian, error) {
+			var j JenisPenelitian
+			err := rows.Scan(
+				&j.IDJnsLit,
+				&j.NmJnsLit,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Penghargaan
+// ============================================================================
+
+func (r *repository) GetJenisPenghargaan(ctx context.Context, params types.JenisPenghargaanParams) ([]JenisPenghargaan, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.AppendInt("u_lembaga", params.Lembaga)
+	cb.Like("nm_jns_lit", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_penghargaan",
+			Select:      "id_jns_penghargaan, nm_jns_penghargaan, u_sdm, u_lembaga, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_penghargaan",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPenghargaan, error) {
+			var j JenisPenghargaan
+			err := rows.Scan(
+				&j.IDJnsPenghargaan,
+				&j.NmJnsPenghargaan,
+				&j.USdm,
+				&j.ULembaga,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Prasarana
+// ============================================================================
+
+func (r *repository) GetJenisPrasarana(ctx context.Context, params types.PaginationParams) ([]JenisPrasarana, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.Like("nm_jns_prasarana", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_prasarana",
+			Select:      "id_jns_prasarana, nm_jns_prasarana, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_prasarana",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPrasarana, error) {
+			var j JenisPrasarana
+			err := rows.Scan(
+				&j.IDJnsPrasarana,
+				&j.NmJnsPrasarana,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Prestasi
+// ============================================================================
+
+func (r *repository) GetJenisPrestasi(ctx context.Context, params types.PaginationParams) ([]JenisPrestasi, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.Like("nm_jenis_prestasi", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_prestasi",
+			Select:      "id_jenis_prestasi, nm_jenis_prestasi, create_date, last_update, expired_date",
+			DefaultSort: "id_jenis_prestasi",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPrestasi, error) {
+			var j JenisPrestasi
+			err := rows.Scan(
+				&j.IDJenisPrestasi,
+				&j.NmJenisPrestasi,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Publikasi
+// ============================================================================
+
+func (r *repository) GetJenisPublikasi(ctx context.Context, params types.PaginationParams) ([]JenisPublikasi, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.Like("nm_jns_pub", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_publikasi",
+			Select:      "id_jns_pub, nm_jns_pub, a_pub_prestasi,create_date, last_update, expired_date",
+			DefaultSort: "id_jenis_prestasi",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisPublikasi, error) {
+			var j JenisPublikasi
+			err := rows.Scan(
+				&j.IDJnsPub,
+				&j.NmJnsPub,
+				&j.APubPrestasi,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Sarana
+// ============================================================================
+
+func (r *repository) GetJenisSarana(ctx context.Context, params types.JenisSaranaParams) ([]JenisSarana, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.AppendInt("a_penempatan", params.Penempatan)
+	cb.Like("nm_jns_sarana", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_sarana",
+			Select:      "id_jns_sarana, nm_jns_sarana, kel, a_penempatan, ket, create_date, last_update, expired_date",
+			DefaultSort: "id_jenis_sarana",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisSarana, error) {
+			var j JenisSarana
+			err := rows.Scan(
+				&j.IDJnsSarana,
+				&j.NmJnsSarana,
+				&j.Kel,
+				&j.APenempatan,
+				&j.Ket,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Sdm
+// ============================================================================
+
+func (r *repository) GetJenisSdm(ctx context.Context, params types.JenisSdmParams) ([]JenisSdm, int64, error) {
+	cb := helper.NewCondBuilder()
+
+	cb.AppendInt("a_guru_kelas", params.GuruKelas)
+	cb.AppendInt("a_guru_mapel", params.GuruMapel)
+	cb.AppendInt("a_guru_bk", params.GuruBk)
+	cb.AppendInt("a_guru_inklusi", params.GuruInklusi)
+	cb.AppendInt("a_pengawas_sp", params.GuruInklusi)
+	cb.AppendInt("a_pengawas_plb", params.GuruInklusi)
+	cb.AppendInt("a_pengawas_mapel", params.GuruInklusi)
+	cb.AppendInt("a_pengawas_bid", params.GuruInklusi)
+	cb.AppendInt("tas", params.GuruInklusi)
+	cb.AppendInt("formal", params.GuruInklusi)
+	cb.AppendInt("dosen", params.GuruInklusi)
+	cb.AppendInt("peneliti", params.GuruInklusi)
+	cb.AppendInt("perekayasa", params.GuruInklusi)
+	cb.AppendInt("perekayasa", params.GuruInklusi)
+
+	cb.Like("nm_jns_sdm", params.Search)
+
+	conds, args := cb.Build()
+
+	if len(params.PranataLevel) > 0 {
+		var conditions []string
+		for _, lvl := range params.PranataLevel {
+			if lvl < 1 || lvl > 9 {
+				continue
+			}
+			conditions = append(conditions, fmt.Sprintf("a_pranata_%d = 1", lvl))
+		}
+
+		if len(conditions) > 0 {
+			conds = append(conds, " AND ("+strings.Join(conditions, " OR ")+")")
+		}
+	}
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenis_sdm",
+			Select:      "id_jns_sdm, nm_jns_sdm, a_guru_kelas, a_guru_mapel, a_guru_bk, a_guru_inklusi, a_pengawas_sp, a_pengawas_plb, a_pengawas_mapel, a_pengawas_bid, a_tas, a_formal, a_dosen, a_peneliti, a_perekayasa, a_pranata_1, a_pranata_2, a_pranata_3, a_pranata_4, a_pranata_5, a_pranata_6, a_pranata_7, a_pranata_8, a_pranata_9, create_date, last_update, expired_date",
+			DefaultSort: "id_jenis_sdm",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisSdm, error) {
+			var j JenisSdm
+			err := rows.Scan(
+				&j.IDJnsSdm,
+				&j.NmJnsSdm,
+				&j.AGuruKelas,
+				&j.AGuruMapel,
+				&j.AGuruBk,
+				&j.AGuruInklusi,
+				&j.APengawasSp,
+				&j.APengawasPlb,
+				&j.APengawasMapel,
+				&j.APengawasBid,
+				&j.ATas,
+				&j.AFormal,
+				&j.ADosen,
+				&j.APeneliti,
+				&j.APerekayasa,
+				&j.APranata1,
+				&j.APranata2,
+				&j.APranata3,
+				&j.APranata4,
+				&j.APranata5,
+				&j.APranata6,
+				&j.APranata7,
+				&j.APranata8,
+				&j.APranata9,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Sertifikasi
+// ============================================================================
+
+func (r *repository) GetJenisSert(ctx context.Context, params types.JenisSertParams) ([]JenisSert, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("u_prof_guru", params.ProfGuru)
+	cb.AppendInt("u_kepsek", params.Kepsek)
+	cb.AppendInt("u_laboran", params.Laboran)
+	cb.AppendInt("u_prof_dosen", params.ProfDosen)
+	cb.AppendInt("u_lembaga", params.Lembaga)
+	cb.Like("nm_jns_sert", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_sert",
+			Select:      "id_jns_sert, nm_jns_sert, u_prof_guru, u_kepsek, u_laboran, u_prof_dosen, u_lembaga, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_sert",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisSert, error) {
+			var j JenisSert
+			err := rows.Scan(
+				&j.IDJnsSert,
+				&j.NmJnsSert,
+				&j.UProfGuru,
+				&j.UKepsek,
+				&j.ULaboran,
+				&j.UProfDosen,
+				&j.ULembaga,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis SMS
+// ============================================================================
+
+func (r *repository) GetJenisSms(ctx context.Context, params types.PaginationParams) ([]JenisSms, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_sms", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_sms",
+			Select:      "id_jns_sms, nm_jns_sms, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_sms",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisSms, error) {
+			var j JenisSms
+			err := rows.Scan(
+				&j.IDJnsSms,
+				&j.NmJnsSms,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Substansi
+// ============================================================================
+
+func (r *repository) GetJenisSubst(ctx context.Context, params types.PaginationParams) ([]JenisSubst, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_subst", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_subst",
+			Select:      "id_jns_subst, nm_jns_subst, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_subst",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisSubst, error) {
+			var j JenisSubst
+			err := rows.Scan(
+				&j.IDJnsSubst,
+				&j.NmJnsSubst,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Tes
+// ============================================================================
+
+func (r *repository) GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("nilai_maks", params.NilaiMaks)
+	cb.Like("nm_jns_tes", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_tes",
+			Select:      "id_jns_tes, nm_jns_tes, ket, nilai_maks, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_tes",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisTes, error) {
+			var j JenisTes
+			err := rows.Scan(
+				&j.IDJnsTes,
+				&j.NmJnsTes,
+				&j.Ket,
+				&j.NilaiMaks,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Tinggal
+// ============================================================================
+
+func (r *repository) GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_tinggal", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_tinggal",
+			Select:      "id_jns_tinggal, nm_jns_tinggal, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_tinggal",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisTinggal, error) {
+			var j JenisTinggal
+			err := rows.Scan(
+				&j.IDJnsTinggal,
+				&j.NmJnsTinggal,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenis Tunjangan
+// ============================================================================
+
+func (r *repository) GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_jns_tunj", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jns_tunj",
+			Select:      "id_jns_tunj, nm_jns_tunj, create_date, last_update, expired_date",
+			DefaultSort: "id_jns_tunj",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenisTunjangan, error) {
+			var j JenisTunjangan
+			err := rows.Scan(
+				&j.IDJnsTunj,
+				&j.NmJnsTunj,
 				&j.CreateDate,
 				&j.LastUpdate,
 				&j.ExpiredDate,

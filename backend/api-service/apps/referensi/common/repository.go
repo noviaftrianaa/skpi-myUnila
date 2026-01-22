@@ -21,6 +21,8 @@ type Repository interface {
 	GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error)
 	GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error)
 	GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error)
+	GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error)
+	GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error)
 }
 
 type repository struct {
@@ -413,6 +415,96 @@ func (r *repository) GetJalurDaftar(ctx context.Context, params types.Pagination
 				&i.ExpiredDate,
 			)
 			return i, err
+		},
+	)
+}
+
+// ============================================================================
+// Jenjang Pendidikan
+// ============================================================================
+
+func (r *repository) GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("u_jenj_lemb", params.UJenjLemb)
+	cb.AppendInt("u_jenj_org", params.UJenjOrg)
+	cb.Like("nm_jenj_didik", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jenjang_pendidikan",
+			Select:      `id_jenj_didik, nm_jenj_didik, u_jenj_lemb, u_jenj_org, create_date, last_update, expired_date`,
+			DefaultSort: "id_jenj_didik",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (JenjangPendidikan, error) {
+			var j JenjangPendidikan
+			err := rows.Scan(
+				&j.IDJenjDidik,
+				&j.NmJenjDidik,
+				&j.UJenjLemb,
+				&j.UJenjOrg,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
+		},
+	)
+}
+
+// ============================================================================
+// Jurusan
+// ============================================================================
+
+func (r *repository) GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("id_jenj_didik", params.IDJenjDidik)
+	cb.AppendString("id_kel_bidang", params.IDKelBidang)
+	cb.AppendString("kode_nomenklatur", params.KodeNomenklatur)
+	cb.AppendInt("u_sma", params.USma)
+	cb.AppendInt("u_smk", params.USmk)
+	cb.AppendInt("u_pt", params.UPt)
+	cb.AppendInt("u_slb", params.USlb)
+	cb.Like("nm_jur", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.jurusan",
+			Select:      `id_jur, nm_jur, nm_intl_jur, kode_nomenklatur, u_sma, u_smk, u_pt, u_slb, id_induk_jurusan, id_jenj_didik, id_kel_bidang, create_date, last_update, expired_date`,
+			DefaultSort: "id_jur",
+		},
+		params.PaginationParams,
+		conds,
+		args,
+		func(rows *sql.Rows) (Jurusan, error) {
+			var j Jurusan
+			err := rows.Scan(
+				&j.IDJur,
+				&j.NmJur,
+				&j.NmIntlJur,
+				&j.KodeNomenklatur,
+				&j.USma,
+				&j.USmk,
+				&j.UPt,
+				&j.USlb,
+				&j.IdIndukJurusan,
+				&j.IDJenjDidik,
+				&j.IDKelBidang,
+				&j.CreateDate,
+				&j.LastUpdate,
+				&j.ExpiredDate,
+			)
+			return j, err
 		},
 	)
 }
