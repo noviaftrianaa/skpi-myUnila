@@ -1,19 +1,20 @@
 #!/bin/bash
 
 ###############################################################################
-# Quick Dev Rebuild - Laravel Services (WITH Docker Cache)
+# Quick Dev Rebuild - WITH Docker Cache (FASTER!)
 # For quick code changes without rebuilding dependencies
 #
 # This is FASTER than quick-rebuild.sh because it uses Docker cache
 # Only use this for CODE changes, NOT for:
 #   - .env changes
-#   - composer.json changes
+#   - package.json / composer.json changes
 #   - Dockerfile changes
 #
 # Usage:
 #   bash quick-dev-rebuild.sh              # Rebuild all Laravel services
 #   bash quick-dev-rebuild.sh public       # Rebuild only public
 #   bash quick-dev-rebuild.sh auth         # Rebuild only auth
+#   bash quick-dev-rebuild.sh frontend     # Rebuild frontend (with cache)
 ###############################################################################
 
 # Colors
@@ -40,7 +41,7 @@ SERVICE="${1:-all}"
 echo ""
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  Quick Dev Rebuild (WITH Cache)${NC}"
-echo -e "${BLUE}  For Laravel Services Only${NC}"
+echo -e "${BLUE}  FASTER - Uses Docker Cache${NC}"
 echo -e "${BLUE}=========================================${NC}"
 echo ""
 echo -e "${YELLOW}Note: This uses Docker cache for faster builds${NC}"
@@ -92,6 +93,26 @@ rebuild_laravel_service() {
     echo ""
 }
 
+# Function to rebuild frontend (with cache) - MUCH FASTER!
+rebuild_frontend_cached() {
+    echo -e "${GREEN}Rebuilding Frontend (with cache - FAST!)...${NC}"
+
+    # Stop the frontend service
+    echo "  → Stopping frontend..."
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml stop frontend 2>/dev/null || true
+
+    # Rebuild WITH cache - uses cached node_modules and .next build
+    echo "  → Rebuilding image (with cache)..."
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml build frontend
+
+    # Start the service
+    echo "  → Starting frontend..."
+    docker compose --env-file .env -f services/4-frontend/docker-compose.yml up -d frontend
+
+    echo -e "${GREEN}✓ Frontend rebuilt (with cache)${NC}"
+    echo ""
+}
+
 # Rebuild based on argument
 case "$SERVICE" in
     public)
@@ -106,6 +127,9 @@ case "$SERVICE" in
         echo -e "${YELLOW}Restarting nginx to reconnect to auth-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
         ;;
+    frontend)
+        rebuild_frontend_cached
+        ;;
     all)
         echo "Rebuilding all Laravel services (with cache)..."
         echo ""
@@ -119,10 +143,11 @@ case "$SERVICE" in
     *)
         echo -e "${RED}Error: Invalid service name${NC}"
         echo ""
-        echo "This script only supports Laravel services:"
+        echo "Supported services:"
         echo "  bash quick-dev-rebuild.sh              # Rebuild all Laravel services"
         echo "  bash quick-dev-rebuild.sh public       # Rebuild public only"
         echo "  bash quick-dev-rebuild.sh auth         # Rebuild auth only"
+        echo "  bash quick-dev-rebuild.sh frontend     # Rebuild frontend (FAST!)"
         echo ""
         echo "For Go services (sister, feeder, myunila), use quick-rebuild.sh"
         echo ""
@@ -144,6 +169,9 @@ echo -e "${GREEN}✓ Quick dev rebuild complete!${NC}"
 echo ""
 
 echo -e "${YELLOW}Test Endpoints:${NC}"
+if [ "$SERVICE" == "frontend" ]; then
+    echo "  Frontend:  http://localhost:3001"
+fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "public" ]; then
     echo "  Public:    curl http://localhost:8082/api/health"
 fi

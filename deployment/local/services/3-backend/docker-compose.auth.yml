@@ -56,6 +56,7 @@ services:
       - ../../../../backend/auth-service/app:/var/www/app:ro
       - ../../../../backend/auth-service/routes:/var/www/routes:ro
       - ../../../../backend/auth-service/config:/var/www/config:ro
+      - ../../../../backend/auth-service/database/seeders:/var/www/database/seeders:ro
     networks:
       - myunila-network
     depends_on:
