@@ -24,7 +24,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "pegawai" | "radius" | "unit_organisasi";
+  syncType: "pegawai" | "radius" | "unit_organisasi" | "daftar_ukt" | "spp_mhs";
   endpointKey?: string;
   endpointName?: string;
   schedule?: ScheduledSync; // For edit mode
@@ -58,6 +58,8 @@ export default function ScheduleModal({
       pegawai: "Pegawai SIKEP",
       radius: "Radius SSO",
       unit_organisasi: "Unit Organisasi",
+      daftar_ukt: "Daftar UKT",
+      spp_mhs: "SPP Mahasiswa",
     };
     return labels[type] || type;
   };

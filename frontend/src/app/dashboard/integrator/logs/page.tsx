@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
 import MyUnilaSyncLogsTable from "@/shared/components/myunila-integrator/MyUnilaSyncLogsTable";
 import { myunilaSyncLogsService } from "@/lib/services/myunila/management/syncLogsService";
 import { Card, CardBody, Spinner } from "@heroui/react";
@@ -46,10 +48,11 @@ export default function SyncLogsPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={myunilaIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6" />}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -147,6 +150,6 @@ export default function SyncLogsPage() {
         {/* Data Table */}
         <MyUnilaSyncLogsTable />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
