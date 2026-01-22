@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
 import { myunilaMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/myunila/management/monitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
@@ -109,10 +111,11 @@ export default function MonitoringPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={myunilaIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<FiActivity className="w-6 h-6" />}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -316,6 +319,6 @@ export default function MonitoringPage() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

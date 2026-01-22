@@ -14,6 +14,7 @@ import {
   FiBookOpen,
   FiCalendar,
   FiKey,
+  FiDollarSign,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -126,6 +127,28 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
       {
         title: "SSO Radius",
         href: "/dashboard/integrator/manakses/sso-radius",
+        roles: defaultRoles,
+      },
+    ],
+  },
+  {
+    title: "Keuangan (SIMPEDAM)",
+    icon: <FiDollarSign className="w-5 h-5" />,
+    roles: defaultRoles,
+    children: [
+      {
+        title: "Daftar UKT",
+        href: "/dashboard/integrator/keuangan/daftar-ukt",
+        roles: defaultRoles,
+      },
+      {
+        title: "SPP Mahasiswa",
+        href: "/dashboard/integrator/keuangan/spp-mhs",
+        roles: defaultRoles,
+      },
+      {
+        title: "Mapping Prodi",
+        href: "/dashboard/integrator/keuangan/mapping-prodi",
         roles: defaultRoles,
       },
     ],

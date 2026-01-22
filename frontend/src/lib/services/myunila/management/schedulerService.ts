@@ -10,7 +10,7 @@ export interface ScheduledSync {
   id: number;
   name: string;
   description: string;
-  sync_type: 'pegawai' | 'radius' | 'unit_organisasi';
+  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs';
   endpoint_key?: string | null;
   cron_expression: string;
   schedule_time?: string | null;
@@ -32,7 +32,7 @@ export interface ScheduledSyncListResponse {
 export interface CreateScheduleRequest {
   name: string;
   description: string;
-  sync_type: 'pegawai' | 'radius' | 'unit_organisasi';
+  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs';
   endpoint_key?: string;
   schedule_date: string; // YYYY-MM-DD
   schedule_time: string; // HH:mm
@@ -181,6 +181,8 @@ export const schedulerHelpers = {
       pegawai: 'Pegawai SIKEP',
       radius: 'Radius SSO',
       unit_organisasi: 'Unit Organisasi',
+      daftar_ukt: 'Daftar UKT',
+      spp_mhs: 'SPP Mahasiswa',
     };
     return labels[syncType] || syncType;
   },
@@ -193,6 +195,8 @@ export const schedulerHelpers = {
       pegawai: 'primary',
       radius: 'secondary',
       unit_organisasi: 'success',
+      daftar_ukt: 'warning',
+      spp_mhs: 'danger',
     };
     return colors[syncType] || 'default';
   },

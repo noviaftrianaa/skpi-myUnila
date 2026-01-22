@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import {
@@ -289,10 +291,11 @@ export default function APIConfigurationPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={myunilaIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
       pageTitle="API Configuration"
     >
       <Toaster position="top-right" />
@@ -306,7 +309,7 @@ export default function APIConfigurationPage() {
               API Configuration Management
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Kelola konfigurasi API untuk sistem internal UNILA (SIKEP, Siakadu, Sirandu, ManAkses)
+              Kelola konfigurasi API untuk sistem internal UNILA (SIKEP, Siakadu, Sirandu, ManAkses, SIMPEDAM)
             </p>
           </div>
           <Button
@@ -401,7 +404,7 @@ export default function APIConfigurationPage() {
                         API Code <span className="text-red-500">*</span>
                       </label>
                       <Input
-                        placeholder="SIKEP, SIAKADU, SIRANDU, MANAKSES"
+                        placeholder="SIKEP, SIAKADU, SIRANDU, MANAKSES, SIMPEDAM"
                         value={formData.api_code}
                         onValueChange={(value) =>
                           setFormData({ ...formData, api_code: value })
@@ -595,6 +598,6 @@ export default function APIConfigurationPage() {
           </ModalContent>
         </Modal>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

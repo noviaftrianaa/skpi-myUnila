@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
 import {
   Card,
   CardBody,
@@ -245,10 +247,11 @@ export default function SikepReferensiPage() {
   const syncedCount = metadata.filter((item) => item.total_records > 0).length;
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={myunilaIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
       pageTitle="Referensi SIKEP"
     >
       <div className="space-y-6">
@@ -895,6 +898,6 @@ export default function SikepReferensiPage() {
           )}
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
