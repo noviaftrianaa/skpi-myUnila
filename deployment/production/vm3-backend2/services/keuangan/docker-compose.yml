@@ -1,0 +1,65 @@
+services:
+  keuangan-service:
+    build:
+      context: ../../../../../backend/keuangan-service
+      dockerfile: Dockerfile
+    image: myunila/keuangan-service:production
+    container_name: myunila-keuangan-service
+    ports:
+      - "8088:8088"
+    environment:
+      # App Configuration
+      APP_NAME: ${KEUANGAN_APP_NAME:-Keuangan Service}
+      APP_PORT: ${KEUANGAN_APP_PORT:-:8088}
+      APP_ENV: ${KEUANGAN_APP_ENV:-production}
+
+      # Database Configuration (SQL Server - MyUnila DB)
+      DB_DRIVER: ${KEUANGAN_DB_DRIVER:-sqlserver}
+      DB_HOST: ${KEUANGAN_DB_HOST:-${SISTER_DB_HOST}}
+      DB_PORT: ${KEUANGAN_DB_PORT:-${SISTER_DB_PORT:-1433}}
+      DB_USERNAME: ${KEUANGAN_DB_USERNAME:-${SISTER_DB_USERNAME}}
+      DB_PASSWORD: ${KEUANGAN_DB_PASSWORD:-${SISTER_DB_PASSWORD}}
+      DB_DATABASE: ${KEUANGAN_DB_DATABASE:-${SISTER_DB_DATABASE}}
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+
+      # SIMPEDAM API Configuration (loaded from database api_configs table)
+      # Credentials are stored encrypted in database, not in env
+
+      # Encryption Key (for API credentials in database)
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=keuangan,vm=vm3"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
