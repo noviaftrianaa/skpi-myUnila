@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  keuangan-service:
+    build:
+      context: ../../../../backend/keuangan-service
+      dockerfile: Dockerfile
+    image: myunila/keuangan-service:latest
+    container_name: myunila-keuangan-service
+    ports:
+      - "8088:8088"
+    environment:
+      # App Configuration
+      APP_NAME: ${KEUANGAN_APP_NAME:-Keuangan Service}
+      APP_PORT: ${KEUANGAN_APP_PORT:-:8088}
+      APP_ENV: ${KEUANGAN_APP_ENV:-local}
+
+      # Database Configuration
+      DB_DRIVER: ${KEUANGAN_DB_DRIVER:-sqlserver}
+      DB_HOST: ${DB_MSSQL_HOST}
+      DB_PORT: ${DB_MSSQL_PORT}
+      DB_USERNAME: ${DB_MSSQL_USERNAME}
+      DB_PASSWORD: ${DB_MSSQL_PASSWORD}
+      DB_DATABASE: ${KEUANGAN_DB_DATABASE:-pdut}
+      DB_MAX_OPEN_CONNS: ${KEUANGAN_DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${KEUANGAN_DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME: ${KEUANGAN_DB_CONN_MAX_LIFETIME:-5m}
+
+      # SIMPEDAM API Configuration
+      SIMPEDAM_ENDPOINT: ${SIMPEDAM_ENDPOINT:-https://simpedam.unila.ac.id/ws/live2unila.php}
+      SIMPEDAM_USER: ${SIMPEDAM_USER}
+      SIMPEDAM_PASSWORD: ${SIMPEDAM_PASSWORD}
+      SIMPEDAM_API_CODE: ${SIMPEDAM_API_CODE:-SIMPEDAM}
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=keuangan"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
