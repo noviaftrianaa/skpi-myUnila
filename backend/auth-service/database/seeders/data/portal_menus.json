@@ -192,22 +192,33 @@
           ]
         },
         {
+          "nm_menu": "Keuangan (SIMPEDAM)",
+          "nm_file": "#keuangan",
+          "icon": "heroicons:banknotes",
+          "urutan": 6,
+          "children": [
+            {"nm_menu": "Daftar UKT", "nm_file": "/dashboard/integrator/keuangan/daftar-ukt", "urutan": 1},
+            {"nm_menu": "SPP Mahasiswa", "nm_file": "/dashboard/integrator/keuangan/spp-mhs", "urutan": 2},
+            {"nm_menu": "Mapping Prodi", "nm_file": "/dashboard/integrator/keuangan/mapping-prodi", "urutan": 3}
+          ]
+        },
+        {
           "nm_menu": "Monitoring",
           "nm_file": "/dashboard/integrator/monitoring",
           "icon": "heroicons:presentation-chart-line",
-          "urutan": 6
+          "urutan": 7
         },
         {
           "nm_menu": "Sync Logs",
           "nm_file": "/dashboard/integrator/logs",
           "icon": "heroicons:document-text",
-          "urutan": 7
+          "urutan": 8
         },
         {
           "nm_menu": "API Configuration",
           "nm_file": "/dashboard/integrator/settings",
           "icon": "heroicons:cog-6-tooth",
-          "urutan": 8
+          "urutan": 9
         }
       ]
     },
