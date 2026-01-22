@@ -254,3 +254,258 @@ func (h *Handler) JenisMediaPub(c *fiber.Ctx) error {
 	params.NormalizePagination()
 	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis media publikasi", data, params.Page, params.Limit, total)
 }
+
+// JenisMk returns list of jenis mata kuliah with pagination
+func (h *Handler) JenisMk(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisMk(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis mata kuliah: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis mata kuliah")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis mata kuliah", data, params.Page, params.Limit, total)
+}
+
+// JenisPendaftaran returns list of jenis pendaftaran with pagination
+func (h *Handler) JenisPendaftaran(c *fiber.Ctx) error {
+	var params types.JenisPendaftaranParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPendaftaran(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis pendaftaran: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis pendaftaran")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis pendaftaran", data, params.Page, params.Limit, total)
+}
+
+// JenisPenelitian returns list of jenis penelitian with pagination
+func (h *Handler) JenisPenelitian(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPenelitian(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis penelitian: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis penelitian")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis penelitian", data, params.Page, params.Limit, total)
+}
+
+// JenisPenghargaan returns list of jenis penghargaan with pagination
+func (h *Handler) JenisPenghargaan(c *fiber.Ctx) error {
+	var params types.JenisPenghargaanParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPenghargaan(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis penghargaan: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis penghargaan")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis penghargaan", data, params.Page, params.Limit, total)
+}
+
+// JenisPrasarana returns list of jenis prasarana with pagination
+func (h *Handler) JenisPrasarana(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPrasarana(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis prasarana: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis prasarana")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis prasarana", data, params.Page, params.Limit, total)
+}
+
+// JenisPrestasi returns list of jenis prestasi with pagination
+func (h *Handler) JenisPrestasi(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPrestasi(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis prestasi: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis prestasi")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis prestasi", data, params.Page, params.Limit, total)
+}
+
+// JenisPublikasi returns list of jenis publikasi with pagination
+func (h *Handler) JenisPublikasi(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisPublikasi(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis publikasi: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis publikasi")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis publikasi", data, params.Page, params.Limit, total)
+}
+
+// JenisSarana returns list of jenis sarana with pagination
+func (h *Handler) JenisSarana(c *fiber.Ctx) error {
+	var params types.JenisSaranaParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisSarana(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis sarana: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis sarana")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis sarana", data, params.Page, params.Limit, total)
+}
+
+// JenisSdm returns list of jenis SDM with pagination
+func (h *Handler) JenisSdm(c *fiber.Ctx) error {
+	var params types.JenisSdmParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisSdm(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis SDM: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis SDM")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis SDM", data, params.Page, params.Limit, total)
+}
+
+// JenisSert returns list of jenis sertifikasi with pagination
+func (h *Handler) JenisSert(c *fiber.Ctx) error {
+	var params types.JenisSertParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisSert(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis sertifikasi: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis sertifikasi")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis sertifikasi", data, params.Page, params.Limit, total)
+}
+
+// JenisSms returns list of jenis SMS with pagination
+func (h *Handler) JenisSms(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisSms(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis SMS: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis SMS")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis SMS", data, params.Page, params.Limit, total)
+}
+
+// JenisSubst returns list of jenis substansi with pagination
+func (h *Handler) JenisSubst(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisSubst(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis substansi: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis substansi")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis substansi", data, params.Page, params.Limit, total)
+}
+
+// JenisTes returns list of jenis tes with pagination
+func (h *Handler) JenisTes(c *fiber.Ctx) error {
+	var params types.JenisTesParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisTes(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis tes: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis tes")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis tes", data, params.Page, params.Limit, total)
+}
+
+// JenisTinggal returns list of jenis tinggal with pagination
+func (h *Handler) JenisTinggal(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisTinggal(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis tinggal: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis tinggal")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis tinggal", data, params.Page, params.Limit, total)
+}
+
+// JenisTunjangan returns list of jenis tunjangan with pagination
+func (h *Handler) JenisTunjangan(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisTunjangan(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis tunjangan: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis tunjangan")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis tunjangan", data, params.Page, params.Limit, total)
+}

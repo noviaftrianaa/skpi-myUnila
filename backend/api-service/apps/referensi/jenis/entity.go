@@ -170,7 +170,7 @@ type JenisPenelitian struct {
 }
 
 type JenisPenghargaan struct {
-	IdJnsPenghargaan int                 `db:"id_jns_penghargaan" json:"id_jns_penghargaan"`
+	IDJnsPenghargaan int                 `db:"id_jns_penghargaan" json:"id_jns_penghargaan"`
 	NmJnsPenghargaan string              `db:"nm_jns_penghargaan" json:"nm_jns_penghargaan"`
 	USdm             int                 `db:"u_sdm" json:"u_sdm"`
 	ULembaga         int                 `db:"u_lembaga" json:"u_lembaga"`
@@ -196,7 +196,7 @@ type JenisPrestasi struct {
 }
 
 type JenisPublikasi struct {
-	IDJndPub     int                 `db:"id_jnd_pub" json:"id_jnd_pub"`
+	IDJnsPub     int                 `db:"id_jns_pub" json:"id_jns_pub"`
 	NmJnsPub     string              `db:"nm_jns_pub" json:"nm_jns_pub"`
 	APubPrestasi int                 `db:"a_pub_prestasi" json:"a_pub_prestasi"`
 	CreateDate   types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
@@ -216,7 +216,7 @@ type JenisSarana struct {
 }
 
 type JenisSdm struct {
-	IdJnsSdm       int                 `db:"id_jns_sdm" json:"id_jns_sdm"`
+	IDJnsSdm       int                 `db:"id_jns_sdm" json:"id_jns_sdm"`
 	NmJnsSdm       string              `db:"nm_jns_sdm" json:"nm_jns_sdm"`
 	AGuruKelas     int                 `db:"a_guru_kelas" json:"a_guru_kelas"`
 	AGuruMapel     int                 `db:"a_guru_mapel" json:"a_guru_mapel"`

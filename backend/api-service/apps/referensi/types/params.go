@@ -126,6 +126,96 @@ type JenisLembagaParams struct {
 	Smi                 *int `query:"smi"`
 }
 
+type JenisPendaftaranParams struct {
+	PaginationParams
+	DaftarSekolah *int `query:"daftar_sekolah"`
+	DaftarRombel  *int `query:"daftar_rombel"`
+}
+
+type JenisPenghargaanParams struct {
+	PaginationParams
+	Lembaga *int `query:"lembaga"`
+}
+
+type JenisSaranaParams struct {
+	PaginationParams
+	Penempatan *int `query:"penempatan"`
+}
+
+type JenisSdmParams struct {
+	PaginationParams
+	GuruKelas     *int  `query:"guru_kelas"`
+	GuruMapel     *int  `query:"guru_mapel"`
+	GuruBk        *int  `query:"guru_bk"`
+	GuruInklusi   *int  `query:"guru_inklusi"`
+	PengawasSp    *int  `query:"pengawas_sp"`
+	PengawasPlb   *int  `query:"pengawas_plb"`
+	PengawasMapel *int  `query:"pengawas_mapel"`
+	PengawasBid   *int  `query:"pengawas_bid"`
+	Tas           *int  `query:"tas"`
+	Formal        *int  `query:"formal"`
+	Dosen         *int  `query:"dosen"`
+	Peneliti      *int  `query:"peneliti"`
+	Perekayasa    *int  `query:"perekayasa"`
+	PranataLevel  []int `query:"pranata_level"`
+}
+
+type JenisSertParams struct {
+	PaginationParams
+	ProfGuru  *int `query:"prof_guru"`
+	Kepsek    *int `query:"kepsek"`
+	Laboran   *int `query:"laboran"`
+	ProfDosen *int `query:"prof_dosen"`
+	Lembaga   *int `query:"lembaga"`
+}
+
+type JenisTesParams struct {
+	PaginationParams
+	NilaiMaks *int `query:"nilai_maks"`
+}
+
+type KategoriKegiatanParams struct {
+	PaginationParams
+	IDIndukKatGiat *int    `query:"id_induk_kat_giat"`
+	IDJenisSdm     *int    `query:"id_jenis_sdm"`
+	KodeKatPak     *string `query:"kode_kat_pak"`
+	KodeKatBkd     *string `query:"kode_kat_bkd"`
+	TeksJudul      *string `query:"teks_judul"`
+	TeksSk         *string `query:"teks_sk"`
+	TeksTanggalSk  *string `query:"teks_tanggal_sk"`
+	TeksLokasi     *string `query:"teks_lokasi"`
+	LevelKat       *int    `query:"level_kat"`
+	Judul          *int    `query:"judul"`
+	Bkd            *int    `query:"bkd"`
+	Pak            *int    `query:"pak"`
+}
+
+type KategoriTabelParams struct {
+	PaginationParams
+	IDKatGiat   *int    `query:"id_kat_giat"`
+	NmSchema    *string `query:"nm_schema"`
+	KonfigKolom *string `query:"konfig_kolom"`
+}
+
+// JenjangPendidikanParams untuk parameter khusus jenjang pendidikan
+type JenjangPendidikanParams struct {
+	PaginationParams
+	UJenjLemb *int `query:"u_jenj_lemb"` // Flag untuk lembaga
+	UJenjOrg  *int `query:"u_jenj_org"`  // Flag untuk organisasi
+}
+
+// JurusanParams untuk parameter khusus jurusan
+type JurusanParams struct {
+	PaginationParams
+	IDJenjDidik     *int    `query:"id_jenj_didik"`    // Filter by jenjang pendidikan
+	IDKelBidang     *string `query:"id_kel_bidang"`    // Filter by kelompok bidang
+	KodeNomenklatur *string `query:"kode_nomenklatur"` // Filter by kode nomenklatur
+	USma            *int    `query:"u_sma"`            // Flag untuk SMA
+	USmk            *int    `query:"u_smk"`            // Flag untuk SMK
+	UPt             *int    `query:"u_pt"`             // Flag untuk PT
+	USlb            *int    `query:"u_slb"`            // Flag untuk SLB
+}
+
 // ============================================================================
 // Default Values
 // ============================================================================
