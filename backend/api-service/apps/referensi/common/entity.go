@@ -115,8 +115,6 @@ type JalurDaftar struct {
 	ExpiredDate   *time.Time          `db:"expired_date" json:"-"`
 }
 
-// belum implemnted
-
 type JenjangPendidikan struct {
 	IDJenjDidik int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
 	NmJenjDidik string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
@@ -142,4 +140,158 @@ type Jurusan struct {
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
+}
+
+// belum implemented
+
+type Kbli struct {
+	IDKbli      int                 `db:"id_kbli" json:"id_kbli"`
+	IDIndukKbli int                 `db:"id_induk_kbli" json:"id_induk_kbli"`
+	Kategori    string              `db:"kategori" json:"kategori"`
+	Kode        string              `db:"kode" json:"kode"`
+	Judul       string              `db:"judul" json:"judul"`
+	LvKbli      int                 `db:"lv_kbli" json:"lv_kbli"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type KeahlianLab struct {
+	IDKeahlianLab string              `db:"id_keahlian_lab" json:"id_keahlian_lab"`
+	NmKeahlianLab string              `db:"nm_keahlian_lab" json:"nm_keahlian_lab"`
+	CreateDate    types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate    types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate   *time.Time          `db:"expired_date" json:"-"`
+}
+
+type KebutuhanKhusus struct {
+	IDKk        int                 `db:"id_kk" json:"id_kk"`
+	NmKk        string              `db:"nm_kk" json:"nm_kk"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type KriteriaMitra struct {
+	IDKriteriaMitra int                 `db:"id_kriteria_mitra" json:"id_kriteria_mitra"`
+	NmKriteriaMitra string              `db:"nm_kriteria_mitra" json:"nm_kriteria_mitra"`
+	Ket             string              `db:"ket" json:"ket"`
+	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
+}
+
+type LevelWilayah struct {
+	IDLevelWil     int                 `db:"id_level_wil" json:"id_level_wil"`
+	NmLevelWilayah string              `db:"nm_level_wilayah" json:"nm_level_wilayah"`
+	CreateDate     types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate     types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate    *time.Time          `db:"expired_date" json:"-"`
+}
+
+type MediaPublikasi struct {
+	IDMediaPub     string              `db:"id_media_pub" json:"id_media_pub"`
+	IDJnsMedia     int                 `db:"id_jns_media" json:"id_jns_media"`
+	IDKelBidang    string              `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDSp           string              `db:"id_sp" json:"id_sp"`
+	IDNegara       string              `db:"id_negara" json:"id_negara"`
+	NmMediaPub     string              `db:"nm_media_pub" json:"nm_media_pub"`
+	BentukMediaPub string              `db:"bentuk_media_pub" json:"bentuk_media_pub"`
+	GradeSinta     string              `db:"grade_sinta" json:"grade_sinta"`
+	JnsPenerbit    string              `db:"jns_penerbit" json:"jns_penerbit"`
+	CreateDate     types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate     types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate    *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Negara struct {
+	IDNegara    string              `db:"id_negara" json:"id_negara"`
+	NmNegara    string              `db:"nm_negara" json:"nm_negara"`
+	ALn         int                 `db:"a_ln" json:"a_ln"`
+	Benua       int                 `db:"benua" json:"benua"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type NilaiAkred struct {
+	IDAkred     int                 `db:"id_akred" json:"id_akred"`
+	NmAkred     string              `db:"nm_akred" json:"nm_akred"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type PangkatGolongan struct {
+	IDPangkatGol int                 `db:"id_pangkat_gol" json:"id_pangkat_gol"`
+	KodeGol      string              `db:"kode_gol" json:"kode_gol"`
+	NmPangkat    string              `db:"nm_pangkat" json:"nm_pangkat"`
+	CreateDate   types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate   types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate  *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Pembiayaan struct {
+	IDPembiayaan int                 `db:"id_pembiayaan" json:"id_pembiayaan"`
+	NmPembiayaan string              `db:"nm_pembiayaan" json:"nm_pembiayaan"`
+	CreateDate   types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate   types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate  *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Penghasilan struct {
+	IDPenghasilan int                 `db:"id_penghasilan" json:"id_penghasilan"`
+	NmPenghasilan string              `db:"nm_penghasilan" json:"nm_penghasilan"`
+	CreateDate    types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate    types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate   *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Satuan struct {
+	KdSatuan    string              `db:"kd_satuan" json:"kd_satuan"`
+	NmSatuan    string              `db:"nm_satuan" json:"nm_satuan"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type TahunAnggaran struct {
+	IDTahunAnggaran int                 `db:"id_tahun_anggaran" json:"id_tahun_anggaran"`
+	NmTahunAnggaran string              `db:"nm_tahun_anggaran" json:"nm_tahun_anggaran"`
+	APeriodeAktif   int                 `db:"a_periode_aktif" json:"a_periode_aktif"`
+	TglMulai        *time.Time          `db:"tgl_mulai" json:"tgl_mulai"`
+	TglSelesai      *time.Time          `db:"tgl_selesai" json:"tgl_selesai"`
+	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
+}
+
+type Tse struct {
+	IDTse       int                 `db:"id_tse" json:"id_tse"`
+	KodeTse     string              `db:"kode_tse" json:"kode_tse"`
+	NmTse       string              `db:"nm_tse" json:"nm_tse"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type SkimKegiatan struct {
+	IDSkim               string              `db:"id_skim" json:"id_skim"`
+	IDJenjDidik          int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
+	NmSkim               string              `db:"nm_skim" json:"nm_skim"`
+	NmSingkatSkim        string              `db:"nm_singkat_skim" json:"nm_singkat_skim"`
+	KdSkim               string              `db:"kd_skim" json:"kd_skim"`
+	TstSkim              *time.Time          `db:"tst_skim" json:"tst_skim"`
+	JmlMinPersonil       int                 `db:"jml_min_personil" json:"jml_min_personil"`
+	JmlMaksPersonil      int                 `db:"jml_maks_personil" json:"jml_maks_personil"`
+	JmlMaksKeikutsertaan int                 `db:"jml_maks_keikutsertaan" json:"jml_maks_keikutsertaan"`
+	JmlMaksSbgKetua      int                 `db:"jml_maks_sbg_ketua" json:"jml_maks_sbg_ketua"`
+	DanaMinThnBerjalan   float64             `db:"dana_min_thn_berjalan" json:"dana_min_thn_berjalan"`
+	DanaMaksThnBerjalan  float64             `db:"dana_maks_thn_berjalan" json:"dana_maks_thn_berjalan"`
+	KetSkim              string              `db:"ket_skim" json:"ket_skim"`
+	DeviasiNilai         float64             `db:"deviasi_nilai" json:"deviasi_nilai"`
+	PassingGrade         float64             `db:"passing_grade" json:"passing_grade"`
+	CreateDate           types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate           types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate          *time.Time          `db:"expired_date" json:"-"`
 }
