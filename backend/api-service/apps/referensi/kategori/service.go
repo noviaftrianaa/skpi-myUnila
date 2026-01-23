@@ -13,7 +13,7 @@ import (
 )
 
 type Service interface {
-	GetKategoriCapaianIuran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianIuran, int64, error)
+	GetKategoriCapaianLuaran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianLuaran, int64, error)
 	GetKategoriKegiatan(ctx context.Context, params types.KategoriKegiatanParams) ([]KategoriKegiatan, int64, error)
 	GetKategoriTabel(ctx context.Context, params types.KategoriTabelParams) ([]KategoriTabel, int64, error)
 }
@@ -27,8 +27,8 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 	return &service{repo: repo, rConn: rConn}
 }
 
-// GetKategoriCapaianIuran mengambil daftar kategori capaian iuran dengan pagination
-func (s *service) GetKategoriCapaianIuran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianIuran, int64, error) {
+// GetKategoriCapaianLuaran mengambil daftar kategori capaian luaran dengan pagination
+func (s *service) GetKategoriCapaianLuaran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianLuaran, int64, error) {
 	cacheKeyData := fmt.Sprintf("kategori_capaian_iuran:data:page:%d:limit:%d:search:%s:sort:%s:%s",
 		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
 	cacheKeyTotal := fmt.Sprintf("kategori_capaian_iuran:total:search:%s", params.Search)
@@ -37,7 +37,7 @@ func (s *service) GetKategoriCapaianIuran(ctx context.Context, params types.Pagi
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
 	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
-		var data []KategoriCapaianIuran
+		var data []KategoriCapaianLuaran
 		var total int64
 		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
 			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
@@ -47,7 +47,7 @@ func (s *service) GetKategoriCapaianIuran(ctx context.Context, params types.Pagi
 		}
 	}
 
-	data, total, err := s.repo.GetKategoriCapaianIuran(ctx, params)
+	data, total, err := s.repo.GetKategoriCapaianLuaran(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

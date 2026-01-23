@@ -828,7 +828,7 @@ func (r *repository) GetJenisPublikasi(ctx context.Context, params types.Paginat
 		helper.BaseQueryConfig{
 			Table:       "ref.jenis_publikasi",
 			Select:      "id_jns_pub, nm_jns_pub, a_pub_prestasi,create_date, last_update, expired_date",
-			DefaultSort: "id_jenis_prestasi",
+			DefaultSort: "id_jns_pub",
 		},
 		params,
 		conds,
@@ -866,7 +866,7 @@ func (r *repository) GetJenisSarana(ctx context.Context, params types.JenisSaran
 		helper.BaseQueryConfig{
 			Table:       "ref.jenis_sarana",
 			Select:      "id_jns_sarana, nm_jns_sarana, kel, a_penempatan, ket, create_date, last_update, expired_date",
-			DefaultSort: "id_jenis_sarana",
+			DefaultSort: "id_jns_sarana",
 		},
 		params.PaginationParams,
 		conds,
@@ -899,16 +899,15 @@ func (r *repository) GetJenisSdm(ctx context.Context, params types.JenisSdmParam
 	cb.AppendInt("a_guru_mapel", params.GuruMapel)
 	cb.AppendInt("a_guru_bk", params.GuruBk)
 	cb.AppendInt("a_guru_inklusi", params.GuruInklusi)
-	cb.AppendInt("a_pengawas_sp", params.GuruInklusi)
-	cb.AppendInt("a_pengawas_plb", params.GuruInklusi)
-	cb.AppendInt("a_pengawas_mapel", params.GuruInklusi)
-	cb.AppendInt("a_pengawas_bid", params.GuruInklusi)
-	cb.AppendInt("tas", params.GuruInklusi)
-	cb.AppendInt("formal", params.GuruInklusi)
-	cb.AppendInt("dosen", params.GuruInklusi)
-	cb.AppendInt("peneliti", params.GuruInklusi)
-	cb.AppendInt("perekayasa", params.GuruInklusi)
-	cb.AppendInt("perekayasa", params.GuruInklusi)
+	cb.AppendInt("a_pengawas_sp", params.PengawasSp)
+	cb.AppendInt("a_pengawas_plb", params.PengawasPlb)
+	cb.AppendInt("a_pengawas_mapel", params.PengawasMapel)
+	cb.AppendInt("a_pengawas_bid", params.PengawasBid)
+	cb.AppendInt("a_tas", params.Tas)
+	cb.AppendInt("a_formal", params.Formal)
+	cb.AppendInt("a_dosen", params.Dosen)
+	cb.AppendInt("a_peneliti", params.Peneliti)
+	cb.AppendInt("a_perekayasa", params.Perekayasa)
 
 	cb.Like("nm_jns_sdm", params.Search)
 
@@ -924,7 +923,7 @@ func (r *repository) GetJenisSdm(ctx context.Context, params types.JenisSdmParam
 		}
 
 		if len(conditions) > 0 {
-			conds = append(conds, " AND ("+strings.Join(conditions, " OR ")+")")
+			conds = append(conds, "("+strings.Join(conditions, " OR ")+")")
 		}
 	}
 
@@ -934,7 +933,7 @@ func (r *repository) GetJenisSdm(ctx context.Context, params types.JenisSdmParam
 		helper.BaseQueryConfig{
 			Table:       "ref.jenis_sdm",
 			Select:      "id_jns_sdm, nm_jns_sdm, a_guru_kelas, a_guru_mapel, a_guru_bk, a_guru_inklusi, a_pengawas_sp, a_pengawas_plb, a_pengawas_mapel, a_pengawas_bid, a_tas, a_formal, a_dosen, a_peneliti, a_perekayasa, a_pranata_1, a_pranata_2, a_pranata_3, a_pranata_4, a_pranata_5, a_pranata_6, a_pranata_7, a_pranata_8, a_pranata_9, create_date, last_update, expired_date",
-			DefaultSort: "id_jenis_sdm",
+			DefaultSort: "id_jns_sdm",
 		},
 		params.PaginationParams,
 		conds,
@@ -994,7 +993,7 @@ func (r *repository) GetJenisSert(ctx context.Context, params types.JenisSertPar
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_sert",
+			Table:       "ref.jenis_sert",
 			Select:      "id_jns_sert, nm_jns_sert, u_prof_guru, u_kepsek, u_laboran, u_prof_dosen, u_lembaga, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_sert",
 		},
@@ -1034,7 +1033,7 @@ func (r *repository) GetJenisSms(ctx context.Context, params types.PaginationPar
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_sms",
+			Table:       "ref.jenis_sms",
 			Select:      "id_jns_sms, nm_jns_sms, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_sms",
 		},
@@ -1069,7 +1068,7 @@ func (r *repository) GetJenisSubst(ctx context.Context, params types.PaginationP
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_subst",
+			Table:       "ref.jenis_subst",
 			Select:      "id_jns_subst, nm_jns_subst, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_subst",
 		},
@@ -1105,7 +1104,7 @@ func (r *repository) GetJenisTes(ctx context.Context, params types.JenisTesParam
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_tes",
+			Table:       "ref.jenis_tes",
 			Select:      "id_jns_tes, nm_jns_tes, ket, nilai_maks, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_tes",
 		},
@@ -1142,7 +1141,7 @@ func (r *repository) GetJenisTinggal(ctx context.Context, params types.Paginatio
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_tinggal",
+			Table:       "ref.jenis_tinggal",
 			Select:      "id_jns_tinggal, nm_jns_tinggal, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_tinggal",
 		},
@@ -1177,7 +1176,7 @@ func (r *repository) GetJenisTunjangan(ctx context.Context, params types.Paginat
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.jns_tunj",
+			Table:       "ref.jenis_tunjangan",
 			Select:      "id_jns_tunj, nm_jns_tunj, create_date, last_update, expired_date",
 			DefaultSort: "id_jns_tunj",
 		},

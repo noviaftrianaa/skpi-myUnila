@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -71,6 +72,25 @@ func (u UUID) String() string {
 	return string(u)
 }
 
+// MarshalJSON implements json.Marshaler - return UUID in uppercase
+func (u UUID) MarshalJSON() ([]byte, error) {
+	if u == "" {
+		return []byte(`""`), nil
+	}
+	// Convert to uppercase for JSON output
+	return json.Marshal(strings.ToUpper(string(u)))
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (u *UUID) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	*u = UUID(s)
+	return nil
+}
+
 // ============================================================================
 // Nullable UUID Type
 // ============================================================================
@@ -99,12 +119,13 @@ func (nu NullUUID) Value() (driver.Value, error) {
 	return nu.UUID.Value()
 }
 
-// MarshalJSON implements json.Marshaler - return clean JSON
+// MarshalJSON implements json.Marshaler - return clean JSON in uppercase
 func (nu NullUUID) MarshalJSON() ([]byte, error) {
 	if !nu.Valid {
 		return []byte("null"), nil
 	}
-	return json.Marshal(nu.UUID.String())
+	// Convert to uppercase for JSON output
+	return json.Marshal(strings.ToUpper(nu.UUID.String()))
 }
 
 // UnmarshalJSON implements json.Unmarshaler - accept both UUID string and null

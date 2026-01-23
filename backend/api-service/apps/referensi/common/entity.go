@@ -3,6 +3,7 @@ package common
 import (
 	"time"
 
+	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/internal/types"
 )
 
@@ -130,14 +131,14 @@ type Jurusan struct {
 	IDJur           string              `db:"id_jur" json:"id_jur"`
 	NmJur           string              `db:"nm_jur" json:"nm_jur"`
 	NmIntlJur       *string             `db:"nm_intl_jur" json:"nm_intl_jur,omitempty"`
-	KodeNomenklatur string              `db:"kode_nomenklatur" json:"kode_nomenklatur"`
+	KodeNomenklatur *string             `db:"kode_nomenklatur" json:"kode_nomenklatur"`
 	USma            int                 `db:"u_sma" json:"u_sma"`
 	USmk            int                 `db:"u_smk" json:"u_smk"`
 	UPt             int                 `db:"u_pt" json:"u_pt"`
 	USlb            int                 `db:"u_slb" json:"u_slb"`
-	IdIndukJurusan  string              `db:"id_induk_jurusan" json:"id_induk_jurusan"`
+	IdIndukJurusan  *string             `db:"id_induk_jurusan" json:"id_induk_jurusan"`
 	IDJenjDidik     int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
-	IDKelBidang     string              `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDKelBidang     diklat.UUID         `db:"id_kel_bidang" json:"id_kel_bidang"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
