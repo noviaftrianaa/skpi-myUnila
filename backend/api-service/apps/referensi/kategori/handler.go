@@ -17,17 +17,17 @@ func NewHandler(svc Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// KategoriCapaianIuran returns list of kategori capaian iuran with pagination
-func (h *Handler) KategoriCapaianIuran(c *fiber.Ctx) error {
+// KategoriCapaianLuaran returns list of kategori capaian iuran with pagination
+func (h *Handler) KategoriCapaianLuaran(c *fiber.Ctx) error {
 	var params types.PaginationParams
 	if err := c.QueryParser(&params); err != nil {
 		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
 	}
 
-	data, total, err := h.svc.GetKategoriCapaianIuran(c.Context(), params)
+	data, total, err := h.svc.GetKategoriCapaianLuaran(c.Context(), params)
 	if err != nil {
-		log.Printf("Error getting kategori capaian iuran: %v", err)
-		return response.InternalError(c, "Gagal mengambil data kategori capaian iuran")
+		log.Printf("Error getting kategori capaian luaran: %v", err)
+		return response.InternalError(c, "Gagal mengambil data kategori capaian luaran")
 	}
 
 	params.NormalizePagination()

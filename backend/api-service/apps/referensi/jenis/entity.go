@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/myunila/api-service/internal/types"
+	"github.com/shopspring/decimal"
 )
 
 type JenisAktMhs struct {
@@ -198,7 +199,7 @@ type JenisPrestasi struct {
 type JenisPublikasi struct {
 	IDJnsPub     int                 `db:"id_jns_pub" json:"id_jns_pub"`
 	NmJnsPub     string              `db:"nm_jns_pub" json:"nm_jns_pub"`
-	APubPrestasi int                 `db:"a_pub_prestasi" json:"a_pub_prestasi"`
+	APubPrestasi *int                `db:"a_pub_prestasi" json:"a_pub_prestasi"`
 	CreateDate   types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate   types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate  *time.Time          `db:"expired_date" json:"-"`
@@ -267,7 +268,7 @@ type JenisSms struct {
 }
 
 type JenisSubst struct {
-	IDJnsSubst  int                 `db:"id_jns_subst" json:"id_jns_subst"`
+	IDJnsSubst  string              `db:"id_jns_subst" json:"id_jns_subst"`
 	NmJnsSubst  string              `db:"nm_jns_subst" json:"nm_jns_subst"`
 	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
@@ -277,8 +278,8 @@ type JenisSubst struct {
 type JenisTes struct {
 	IDJnsTes    int                 `db:"id_jns_tes" json:"id_jns_tes"`
 	NmJnsTes    string              `db:"nm_jns_tes" json:"nm_jns_tes"`
-	Ket         string              `db:"ket" json:"ket"`
-	NilaiMaks   int                 `db:"nilai_maks" json:"nilai_maks"`
+	Ket         *string             `db:"ket" json:"ket"`
+	NilaiMaks   decimal.Decimal     `db:"nilai_maks" json:"nilai_maks"`
 	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate *time.Time          `db:"expired_date" json:"-"`

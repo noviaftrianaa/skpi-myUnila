@@ -11,7 +11,7 @@ import (
 
 // Repository adalah interface untuk akses data kategori
 type Repository interface {
-	GetKategoriCapaianIuran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianIuran, int64, error)
+	GetKategoriCapaianLuaran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianLuaran, int64, error)
 	GetKategoriKegiatan(ctx context.Context, params types.KategoriKegiatanParams) ([]KategoriKegiatan, int64, error)
 	GetKategoriTabel(ctx context.Context, params types.KategoriTabelParams) ([]KategoriTabel, int64, error)
 }
@@ -30,7 +30,7 @@ func NewRepository(DB *sqlx.DB) Repository {
 // Kategori Capaian Iuran
 // ============================================================================
 
-func (r *repository) GetKategoriCapaianIuran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianIuran, int64, error) {
+func (r *repository) GetKategoriCapaianLuaran(ctx context.Context, params types.PaginationParams) ([]KategoriCapaianLuaran, int64, error) {
 	cb := helper.NewCondBuilder()
 	cb.Like("nm_kat_capaian", params.Search)
 
@@ -40,15 +40,15 @@ func (r *repository) GetKategoriCapaianIuran(ctx context.Context, params types.P
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.kat_capaian_iuran",
+			Table:       "ref.kategori_capaian_luaran",
 			Select:      "id_kat_capaian, nm_kat_capaian, create_date, last_update, expired_date",
 			DefaultSort: "id_kat_capaian",
 		},
 		params,
 		conds,
 		args,
-		func(rows *sql.Rows) (KategoriCapaianIuran, error) {
-			var k KategoriCapaianIuran
+		func(rows *sql.Rows) (KategoriCapaianLuaran, error) {
+			var k KategoriCapaianLuaran
 			err := rows.Scan(
 				&k.IDKatCapaian,
 				&k.NmKatCapaian,
@@ -67,7 +67,7 @@ func (r *repository) GetKategoriCapaianIuran(ctx context.Context, params types.P
 
 func (r *repository) GetKategoriKegiatan(ctx context.Context, params types.KategoriKegiatanParams) ([]KategoriKegiatan, int64, error) {
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_induk_kat_giat", params.IDIndukKatGiat)
+	cb.AppendInt("id_induk_katgiat", params.IDIndukKatGiat)
 	cb.AppendInt("id_jns_sdm", params.IDJenisSdm)
 	cb.AppendString("kode_kat_pak", params.KodeKatPak)
 	cb.AppendString("kode_kat_bkd", params.KodeKatBkd)
@@ -87,9 +87,9 @@ func (r *repository) GetKategoriKegiatan(ctx context.Context, params types.Kateg
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.kat_kegiatan",
-			Select:      "id_kat_giat, id_induk_kat_giat, id_jns_sdm, kode_kat_pak, kode_kat_bkd, nm_kat, kat_unsur, teks_judul, teks_sk, teks_tgl_sk, teks_lokasi, level_kat, sks_bkd, ak, ak_maks, satuan_nilai, ket, a_aktif, a_anak_bimb, a_judul, a_sk, a_peer_review, acuan_waktu, u_bkd, u_pak, create_date, last_update, expired_date",
-			DefaultSort: "id_kat_giat",
+			Table:       "ref.kategori_kegiatan",
+			Select:      "id_katgiat, id_induk_katgiat, id_jns_sdm, kode_kat_pak, kode_kat_bkd, nm_kat, kat_unsur, teks_judul, teks_sk, teks_tgl_sk, teks_lokasi, level_kat, sks_bkd, ak, ak_maks, satuan_nilai, ket, a_aktif, a_anak_bimb, a_judul, a_sk, a_peer_review, acuan_waktu, u_bkd, u_pak, create_date, last_update, expired_date",
+			DefaultSort: "id_katgiat",
 		},
 		params.PaginationParams,
 		conds,
@@ -137,7 +137,7 @@ func (r *repository) GetKategoriKegiatan(ctx context.Context, params types.Kateg
 
 func (r *repository) GetKategoriTabel(ctx context.Context, params types.KategoriTabelParams) ([]KategoriTabel, int64, error) {
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_kat_giat", params.IDKatGiat)
+	cb.AppendInt("id_katgiat", params.IDKatGiat)
 	cb.AppendString("nm_schema", params.NmSchema)
 	cb.AppendString("konfig_kolom", params.KonfigKolom)
 	cb.Like("nm_tbl", params.Search)
@@ -148,8 +148,8 @@ func (r *repository) GetKategoriTabel(ctx context.Context, params types.Kategori
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "ref.kat_tabel",
-			Select:      "id_kat_tabel, id_kat_giat, nm_schema, nm_tbl, konfig_kolom, ket, create_date, last_update, expired_date",
+			Table:       "ref.kategori_tabel",
+			Select:      "id_kat_tabel, id_katgiat, nm_schema, nm_tbl, konfig_kolom, ket, create_date, last_update, expired_date",
 			DefaultSort: "id_kat_tabel",
 		},
 		params.PaginationParams,
