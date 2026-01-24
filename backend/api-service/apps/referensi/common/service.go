@@ -25,6 +25,22 @@ type Service interface {
 	GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error)
 	GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error)
 	GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error)
+	// New entities
+	GetKbli(ctx context.Context, params types.KbliParams) ([]Kbli, int64, error)
+	GetKeahlianLab(ctx context.Context, params types.PaginationParams) ([]KeahlianLab, int64, error)
+	GetKebutuhanKhusus(ctx context.Context, params types.PaginationParams) ([]KebutuhanKhusus, int64, error)
+	GetKriteriaMitra(ctx context.Context, params types.PaginationParams) ([]KriteriaMitra, int64, error)
+	GetLevelWilayah(ctx context.Context, params types.PaginationParams) ([]LevelWilayah, int64, error)
+	GetMediaPublikasi(ctx context.Context, params types.MediaPublikasiParams) ([]MediaPublikasi, int64, error)
+	GetNegara(ctx context.Context, params types.NegaraParams) ([]Negara, int64, error)
+	GetNilaiAkred(ctx context.Context, params types.PaginationParams) ([]NilaiAkred, int64, error)
+	GetPangkatGolongan(ctx context.Context, params types.PangkatGolonganParams) ([]PangkatGolongan, int64, error)
+	GetPembiayaan(ctx context.Context, params types.PaginationParams) ([]Pembiayaan, int64, error)
+	GetPenghasilan(ctx context.Context, params types.PaginationParams) ([]Penghasilan, int64, error)
+	GetSatuan(ctx context.Context, params types.PaginationParams) ([]Satuan, int64, error)
+	GetTahunAnggaran(ctx context.Context, params types.TahunAnggaranParams) ([]TahunAnggaran, int64, error)
+	GetTse(ctx context.Context, params types.TseParams) ([]Tse, int64, error)
+	GetSkimKegiatan(ctx context.Context, params types.SkimKegiatanParams) ([]SkimKegiatan, int64, error)
 }
 
 type service struct {
@@ -398,6 +414,518 @@ func (s *service) GetJurusan(ctx context.Context, params types.JurusanParams) ([
 	}
 
 	data, total, err := s.repo.GetJurusan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Kbli
+// ============================================================================
+
+func (s *service) GetKbli(ctx context.Context, params types.KbliParams) ([]Kbli, int64, error) {
+	cacheKeyData := fmt.Sprintf("kbli:data:page:%d:limit:%d:id_induk:%v:kategori:%v:kode:%v:lv:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.IDIndukKbli, params.Kategori, params.Kode, params.LvKbli, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("kbli:total:id_induk:%v:kategori:%v:kode:%v:lv:%v:search:%s",
+		params.IDIndukKbli, params.Kategori, params.Kode, params.LvKbli, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Kbli
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for kbli data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetKbli(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// KeahlianLab
+// ============================================================================
+
+func (s *service) GetKeahlianLab(ctx context.Context, params types.PaginationParams) ([]KeahlianLab, int64, error) {
+	cacheKeyData := fmt.Sprintf("keahlian_lab:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("keahlian_lab:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []KeahlianLab
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for keahlian lab data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetKeahlianLab(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// KebutuhanKhusus
+// ============================================================================
+
+func (s *service) GetKebutuhanKhusus(ctx context.Context, params types.PaginationParams) ([]KebutuhanKhusus, int64, error) {
+	cacheKeyData := fmt.Sprintf("kebutuhan_khusus:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("kebutuhan_khusus:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []KebutuhanKhusus
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for kebutuhan khusus data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetKebutuhanKhusus(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// KriteriaMitra
+// ============================================================================
+
+func (s *service) GetKriteriaMitra(ctx context.Context, params types.PaginationParams) ([]KriteriaMitra, int64, error) {
+	cacheKeyData := fmt.Sprintf("kriteria_mitra:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("kriteria_mitra:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []KriteriaMitra
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for kriteria mitra data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetKriteriaMitra(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// LevelWilayah
+// ============================================================================
+
+func (s *service) GetLevelWilayah(ctx context.Context, params types.PaginationParams) ([]LevelWilayah, int64, error) {
+	cacheKeyData := fmt.Sprintf("level_wilayah:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("level_wilayah:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []LevelWilayah
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for level wilayah data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetLevelWilayah(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// MediaPublikasi
+// ============================================================================
+
+func (s *service) GetMediaPublikasi(ctx context.Context, params types.MediaPublikasiParams) ([]MediaPublikasi, int64, error) {
+	cacheKeyData := fmt.Sprintf("media_publikasi:data:page:%d:limit:%d:id_jns_media:%v:id_kel_bidang:%v:id_sp:%v:id_negara:%v:bentuk:%v:grade:%v:jns_penerbit:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.IDJnsMedia, params.IDKelBidang, params.IDSp, params.IDNegara, params.BentukMediaPub, params.GradeSinta, params.JnsPenerbit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("media_publikasi:total:id_jns_media:%v:id_kel_bidang:%v:id_sp:%v:id_negara:%v:bentuk:%v:grade:%v:jns_penerbit:%v:search:%s",
+		params.IDJnsMedia, params.IDKelBidang, params.IDSp, params.IDNegara, params.BentukMediaPub, params.GradeSinta, params.JnsPenerbit, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []MediaPublikasi
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for media publikasi data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetMediaPublikasi(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Negara
+// ============================================================================
+
+func (s *service) GetNegara(ctx context.Context, params types.NegaraParams) ([]Negara, int64, error) {
+	cacheKeyData := fmt.Sprintf("negara:data:page:%d:limit:%d:a_ln:%v:benua:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.ALn, params.Benua, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("negara:total:a_ln:%v:benua:%v:search:%s", params.ALn, params.Benua, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Negara
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for negara data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetNegara(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// NilaiAkred
+// ============================================================================
+
+func (s *service) GetNilaiAkred(ctx context.Context, params types.PaginationParams) ([]NilaiAkred, int64, error) {
+	cacheKeyData := fmt.Sprintf("nilai_akred:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("nilai_akred:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []NilaiAkred
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for nilai akred data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetNilaiAkred(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// PangkatGolongan
+// ============================================================================
+
+func (s *service) GetPangkatGolongan(ctx context.Context, params types.PangkatGolonganParams) ([]PangkatGolongan, int64, error) {
+	cacheKeyData := fmt.Sprintf("pangkat_golongan:data:page:%d:limit:%d:kode_gol:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.KodeGol, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("pangkat_golongan:total:kode_gol:%v:search:%s", params.KodeGol, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []PangkatGolongan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for pangkat golongan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetPangkatGolongan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Pembiayaan
+// ============================================================================
+
+func (s *service) GetPembiayaan(ctx context.Context, params types.PaginationParams) ([]Pembiayaan, int64, error) {
+	cacheKeyData := fmt.Sprintf("pembiayaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("pembiayaan:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Pembiayaan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for pembiayaan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetPembiayaan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Penghasilan
+// ============================================================================
+
+func (s *service) GetPenghasilan(ctx context.Context, params types.PaginationParams) ([]Penghasilan, int64, error) {
+	cacheKeyData := fmt.Sprintf("penghasilan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("penghasilan:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Penghasilan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for penghasilan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetPenghasilan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Satuan
+// ============================================================================
+
+func (s *service) GetSatuan(ctx context.Context, params types.PaginationParams) ([]Satuan, int64, error) {
+	cacheKeyData := fmt.Sprintf("satuan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("satuan:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Satuan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for satuan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetSatuan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// TahunAnggaran
+// ============================================================================
+
+func (s *service) GetTahunAnggaran(ctx context.Context, params types.TahunAnggaranParams) ([]TahunAnggaran, int64, error) {
+	cacheKeyData := fmt.Sprintf("tahun_anggaran:data:page:%d:limit:%d:a_periode_aktif:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.APeriodeAktif, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("tahun_anggaran:total:a_periode_aktif:%v:search:%s", params.APeriodeAktif, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []TahunAnggaran
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for tahun anggaran data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetTahunAnggaran(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Tse
+// ============================================================================
+
+func (s *service) GetTse(ctx context.Context, params types.TseParams) ([]Tse, int64, error) {
+	cacheKeyData := fmt.Sprintf("tse:data:page:%d:limit:%d:kode_tse:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.KodeTse, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("tse:total:kode_tse:%v:search:%s", params.KodeTse, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Tse
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for tse data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetTse(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// SkimKegiatan
+// ============================================================================
+
+func (s *service) GetSkimKegiatan(ctx context.Context, params types.SkimKegiatanParams) ([]SkimKegiatan, int64, error) {
+	cacheKeyData := fmt.Sprintf("skim_kegiatan:data:page:%d:limit:%d:id_jenj_didik:%v:kd_skim:%v:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.IDJenjDidik, params.KdSkim, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("skim_kegiatan:total:id_jenj_didik:%v:kd_skim:%v:search:%s", params.IDJenjDidik, params.KdSkim, params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []SkimKegiatan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for skim kegiatan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetSkimKegiatan(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -9,6 +9,12 @@ import (
 	"github.com/myunila/api-service/apps/referensi/jab"
 	"github.com/myunila/api-service/apps/referensi/jenis"
 	"github.com/myunila/api-service/apps/referensi/kategori"
+	"github.com/myunila/api-service/apps/referensi/kelompok"
+	"github.com/myunila/api-service/apps/referensi/lembaga"
+	"github.com/myunila/api-service/apps/referensi/peta"
+	"github.com/myunila/api-service/apps/referensi/status"
+	"github.com/myunila/api-service/apps/referensi/sumber"
+	"github.com/myunila/api-service/apps/referensi/tingkat"
 	"github.com/myunila/api-service/internal/middleware"
 	"github.com/redis/go-redis/v9"
 )
@@ -26,4 +32,10 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rConn *redis.Client) {
 	jab.RegisterRoutes(ref, db, rConn)
 	jenis.RegisterRoutes(ref, db, rConn)
 	kategori.RegisterRoutes(ref, db, rConn)
+	kelompok.RegisterRoutes(ref, db, rConn)
+	lembaga.RegisterRoutes(ref, db, rConn)
+	peta.RegisterRoutes(ref, db, rConn)
+	status.RegisterRoutes(ref, db, rConn)
+	sumber.RegisterRoutes(ref, db, rConn)
+	tingkat.RegisterRoutes(ref, db, rConn)
 }

@@ -216,6 +216,99 @@ type JurusanParams struct {
 	USlb            *int    `query:"u_slb"`            // Flag untuk SLB
 }
 
+type KbliParams struct {
+	PaginationParams
+	IDIndukKbli *int    `query:"id_induk_kbli"`
+	Kategori    *string `query:"kategori"`
+	Kode        *string `query:"kode"`
+	LvKbli      *int    `query:"lv_kbli"`
+}
+
+type MediaPublikasiParams struct {
+	PaginationParams
+	IDJnsMedia     *int    `query:"id_jns_media"`
+	IDKelBidang    *string `query:"id_kel_bidang"`
+	IDSp           *string `query:"id_sp"`
+	IDNegara       *string `query:"id_negara"`
+	BentukMediaPub *string `query:"bentuk_media_pub"`
+	GradeSinta     *string `query:"grade_sinta"`
+	JnsPenerbit    *string `query:"jns_penerbit"`
+}
+
+type NegaraParams struct {
+	PaginationParams
+	ALn   *int `query:"a_ln"`
+	Benua *int `query:"benua"`
+}
+
+type PangkatGolonganParams struct {
+	PaginationParams
+	KodeGol *string `query:"kode_gol"`
+}
+
+type TahunAnggaranParams struct {
+	PaginationParams
+	APeriodeAktif *int `query:"a_periode_aktif"`
+}
+
+type TseParams struct {
+	PaginationParams
+	KodeTse *string `query:"kode_tse"`
+}
+
+type SkimKegiatanParams struct {
+	PaginationParams
+	IDJenjDidik          *int     `query:"id_jenj_didik"`
+	KdSkim               *string  `query:"kd_skim"`
+	JmlMinPersonil       *int     `query:"jml_min_personil"`
+	JmlMaksPersonil      *int     `query:"jml_maks_personil"`
+	JmlMaksKeikutsertaan *int     `query:"jml_maks_keikutsertaan"`
+	JmlMaksSbgKetua      *int     `query:"jml_maks_sbg_ketua"`
+	DanaMinThnBerjalan   *float64 `query:"dana_min_thn_berjalan"`
+	DanaMaksThnBerjalan  *float64 `query:"dana_maks_thn_berjalan"`
+	DeviasiNilai         *float64 `query:"deviasi_nilai"`
+	PassingGrade         *float64 `query:"passing_grade"`
+}
+
+type KelompokBidangParams struct {
+	PaginationParams
+	KodeKelBidang *string `query:"kode_kel_bidang"`
+	NmKelBidang   *string `query:"nm_kel_bidang"`
+	IDIndukBidang *string `query:"id_induk_bidang"`
+	USma          *int    `query:"u_sma"`
+	USmk          *int    `query:"u_smk"`
+	UPt           *int    `query:"u_pt"`
+	UIptek        *int    `query:"u_iptek"`
+	UKepakaran    *int    `query:"u_kepakaran"`
+	ALeafNode     *int    `query:"a_leaf_node"`
+}
+
+type LembagaAkredParams struct {
+	PaginationParams
+	KodePos     *string  `query:"kode_pos"`
+	KdKl        *string  `query:"kd_kl"`
+	KdSatker    *string  `query:"kd_satker"`
+	TargetAkred *string  `query:"target_akred"`
+	Lintang     *float64 `query:"lintang"`
+	Bujur       *float64 `query:"bujur"`
+	Email       string   `query:"email"`
+}
+
+type PetaKatgiatJnsdokParams struct {
+	PaginationParams
+	IDJnsDok int `db:"id_jns_dok" json:"id_jns_dok"`
+	AWajib   int `db:"a_wajib" json:"a_wajib"`
+	NoUrut   int `db:"no_urut" json:"no_urut"`
+}
+
+type SumberDanaParams struct {
+	PaginationParams
+	UBlockgrant *int `query:"u_blockgrant"`
+	UBeasiswa   *int `query:"u_beasiswa"`
+	ULit        *int `query:"u_lit"`
+	UUnitUsaha  *int `query:"u_unit_usaha"`
+}
+
 // ============================================================================
 // Default Values
 // ============================================================================
