@@ -32,6 +32,15 @@ func (b *CondBuilder) AppendString(column string, value *string) {
 	b.p++
 }
 
+func (b *CondBuilder) AppendFloat(column string, value *float64) {
+	if value == nil {
+		return
+	}
+	b.conds = append(b.conds, fmt.Sprintf("%s = @p%d", column, b.p))
+	b.args = append(b.args, *value)
+	b.p++
+}
+
 func (b *CondBuilder) Like(column string, value string) {
 	if value == "" {
 		return

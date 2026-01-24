@@ -1,4 +1,4 @@
-package kelompok
+package lembaga
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -11,8 +11,7 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	svc := NewService(repo, redis)
 	handler := NewHandler(svc)
 
-	router.Get("/kelompok_bidang", handler.GetKelompokBidang)
-	router.Get("/kelompok_mk", handler.GetKelompokMk)
-	router.Get("/kelompok_profesi", handler.GetKelompokProfesi)
-	router.Get("/kelompok_usaha", handler.GetKelompokUsaha)
+	router.Get("/lembaga_akred", handler.GetLembagaAkred)
+	router.Get("/lembaga_pengangkat", handler.GetLembagaPengangkat)
+	router.Get("/lembaga_sertifikasi", handler.GetLembagaSertifikasi)
 }
