@@ -34,7 +34,7 @@ type StatusKerjasama struct {
 type StatusMahasiswa struct {
 	IDStatMhs   string              `db:"id_stat_mhs" json:"id_stat_mhs"`
 	NmStatMhs   string              `db:"nm_stat_mhs" json:"nm_stat_mhs"`
-	KetStatMhs  string              `db:"ket_stat_mhs" json:"ket_stat_mhs"`
+	KetStatMhs  *string             `db:"ket_stat_mhs" json:"ket_stat_mhs"`
 	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
