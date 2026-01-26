@@ -35,7 +35,7 @@ func (r *repository) GetPetaKatgiatJabfung(ctx context.Context, params types.Pag
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "sister.ref_peta_katgiat_jabfung",
+			Table:       "ref.peta_katgiat_jabfung",
 			Select:      `id_katgiat, id_jabfung, create_date, last_update, expired_date`,
 			DefaultSort: "id_katgiat, id_jabfung",
 		},
@@ -77,7 +77,7 @@ func (r *repository) GetPetaKatgiatJnsdok(ctx context.Context, params types.Peta
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "sister.ref_peta_katgiat_jnsdok",
+			Table:       "ref.peta_katgiat_jnsdok",
 			Select:      `id_katgiat, id_jns_dok, a_wajib, no_urut, create_date, last_update, expired_date`,
 			DefaultSort: "id_katgiat, id_jns_dok",
 		},
@@ -112,7 +112,7 @@ func (r *repository) GetPetaKatgiatJnspub(ctx context.Context, params types.Pagi
 		ctx,
 		r.db,
 		helper.BaseQueryConfig{
-			Table:       "sister.ref_peta_katgiat_jnspub",
+			Table:       "ref.peta_katgiat_jnspub",
 			Select:      `id_katgiat, id_jns_pub, create_date, last_update, expired_date`,
 			DefaultSort: "id_katgiat, id_jns_pub",
 		},

@@ -3,7 +3,7 @@ package common
 import (
 	"time"
 
-	"github.com/myunila/api-service/apps/diklat"
+	parse "github.com/myunila/api-service/apps/referensi/types"
 	"github.com/myunila/api-service/internal/types"
 )
 
@@ -136,7 +136,7 @@ type Jurusan struct {
 	USlb            int                 `db:"u_slb" json:"u_slb"`
 	IdIndukJurusan  *string             `db:"id_induk_jurusan" json:"id_induk_jurusan"`
 	IDJenjDidik     int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
-	IDKelBidang     diklat.UUID         `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDKelBidang     parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
@@ -188,10 +188,10 @@ type LevelWilayah struct {
 }
 
 type MediaPublikasi struct {
-	IDMediaPub     diklat.UUID         `db:"id_media_pub" json:"id_media_pub"`
+	IDMediaPub     parse.UUID          `db:"id_media_pub" json:"id_media_pub"`
 	IDJnsMedia     int                 `db:"id_jns_media" json:"id_jns_media"`
-	IDKelBidang    diklat.UUID         `db:"id_kel_bidang" json:"id_kel_bidang"`
-	IDSp           diklat.NullUUID     `db:"id_sp" json:"id_sp"`
+	IDKelBidang    parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDSp           parse.NullUUID      `db:"id_sp" json:"id_sp"`
 	IDNegara       string              `db:"id_negara" json:"id_negara"`
 	NmMediaPub     string              `db:"nm_media_pub" json:"nm_media_pub"`
 	BentukMediaPub *string             `db:"bentuk_media_pub" json:"bentuk_media_pub"`
@@ -274,7 +274,7 @@ type Tse struct {
 }
 
 type SkimKegiatan struct {
-	IDSkim               diklat.UUID         `db:"id_skim" json:"id_skim"`
+	IDSkim               parse.UUID          `db:"id_skim" json:"id_skim"`
 	IDJenjDidik          *int                `db:"id_jenj_didik" json:"id_jenj_didik"`
 	NmSkim               string              `db:"nm_skim" json:"nm_skim"`
 	NmSingkatSkim        *string             `db:"nm_singkat_skim" json:"nm_singkat_skim"`
