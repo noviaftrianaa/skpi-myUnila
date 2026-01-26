@@ -33,6 +33,7 @@ type Repository interface {
 	GetNegara(ctx context.Context, params types.NegaraParams) ([]Negara, int64, error)
 	GetNilaiAkred(ctx context.Context, params types.PaginationParams) ([]NilaiAkred, int64, error)
 	GetPangkatGolongan(ctx context.Context, params types.PangkatGolonganParams) ([]PangkatGolongan, int64, error)
+	GetPekerjaan(ctx context.Context, params types.PaginationParams) ([]Pekerjaan, int64, error)
 	GetPembiayaan(ctx context.Context, params types.PaginationParams) ([]Pembiayaan, int64, error)
 	GetPenghasilan(ctx context.Context, params types.PaginationParams) ([]Penghasilan, int64, error)
 	GetSatuan(ctx context.Context, params types.PaginationParams) ([]Satuan, int64, error)
@@ -895,6 +896,41 @@ func (r *repository) GetPembiayaan(ctx context.Context, params types.PaginationP
 			err := rows.Scan(
 				&p.IDPembiayaan,
 				&p.NmPembiayaan,
+				&p.CreateDate,
+				&p.LastUpdate,
+				&p.ExpiredDate,
+			)
+			return p, err
+		},
+	)
+}
+
+// ============================================================================
+// Pekerjaan
+// ============================================================================
+
+func (r *repository) GetPekerjaan(ctx context.Context, params types.PaginationParams) ([]Pekerjaan, int64, error) {
+	cb := helper.NewCondBuilder()
+	cb.Like("nm_pekerjaan", params.Search)
+
+	conds, args := cb.Build()
+
+	return helper.QueryPaged(
+		ctx,
+		r.db,
+		helper.BaseQueryConfig{
+			Table:       "ref.pekerjaan",
+			Select:      `id_pekerjaan, nm_pekerjaan, create_date, last_update, expired_date`,
+			DefaultSort: "id_pekerjaan",
+		},
+		params,
+		conds,
+		args,
+		func(rows *sql.Rows) (Pekerjaan, error) {
+			var p Pekerjaan
+			err := rows.Scan(
+				&p.IDPekerjaan,
+				&p.NmPekerjaan,
 				&p.CreateDate,
 				&p.LastUpdate,
 				&p.ExpiredDate,

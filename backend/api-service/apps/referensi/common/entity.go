@@ -293,3 +293,11 @@ type SkimKegiatan struct {
 	LastUpdate           types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate          *time.Time          `db:"expired_date" json:"-"`
 }
+
+type Pekerjaan struct {
+	IDPekerjaan int                 `db:"id_pekerjaan" json:"id_pekerjaan"`
+	NmPekerjaan string              `db:"nm_pekerjaan" json:"nm_pekerjaan"`
+	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
+	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
