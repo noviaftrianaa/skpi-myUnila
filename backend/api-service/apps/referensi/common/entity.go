@@ -142,11 +142,9 @@ type Jurusan struct {
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
 }
 
-// belum implemented
-
 type Kbli struct {
 	IDKbli      int                 `db:"id_kbli" json:"id_kbli"`
-	IDIndukKbli int                 `db:"id_induk_kbli" json:"id_induk_kbli"`
+	IDIndukKbli *int                `db:"id_induk_kbli" json:"id_induk_kbli"`
 	Kategori    string              `db:"kategori" json:"kategori"`
 	Kode        string              `db:"kode" json:"kode"`
 	Judul       string              `db:"judul" json:"judul"`
@@ -175,7 +173,7 @@ type KebutuhanKhusus struct {
 type KriteriaMitra struct {
 	IDKriteriaMitra int                 `db:"id_kriteria_mitra" json:"id_kriteria_mitra"`
 	NmKriteriaMitra string              `db:"nm_kriteria_mitra" json:"nm_kriteria_mitra"`
-	Ket             string              `db:"ket" json:"ket"`
+	Ket             *string             `db:"ket" json:"ket"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
@@ -190,15 +188,15 @@ type LevelWilayah struct {
 }
 
 type MediaPublikasi struct {
-	IDMediaPub     string              `db:"id_media_pub" json:"id_media_pub"`
+	IDMediaPub     diklat.UUID         `db:"id_media_pub" json:"id_media_pub"`
 	IDJnsMedia     int                 `db:"id_jns_media" json:"id_jns_media"`
-	IDKelBidang    string              `db:"id_kel_bidang" json:"id_kel_bidang"`
-	IDSp           string              `db:"id_sp" json:"id_sp"`
+	IDKelBidang    diklat.UUID         `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDSp           diklat.NullUUID     `db:"id_sp" json:"id_sp"`
 	IDNegara       string              `db:"id_negara" json:"id_negara"`
 	NmMediaPub     string              `db:"nm_media_pub" json:"nm_media_pub"`
-	BentukMediaPub string              `db:"bentuk_media_pub" json:"bentuk_media_pub"`
-	GradeSinta     string              `db:"grade_sinta" json:"grade_sinta"`
-	JnsPenerbit    string              `db:"jns_penerbit" json:"jns_penerbit"`
+	BentukMediaPub *string             `db:"bentuk_media_pub" json:"bentuk_media_pub"`
+	GradeSinta     *string             `db:"grade_sinta" json:"grade_sinta"`
+	JnsPenerbit    *string             `db:"jns_penerbit" json:"jns_penerbit"`
 	CreateDate     types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate     types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate    *time.Time          `db:"expired_date" json:"-"`
@@ -259,8 +257,8 @@ type TahunAnggaran struct {
 	IDTahunAnggaran int                 `db:"id_tahun_anggaran" json:"id_tahun_anggaran"`
 	NmTahunAnggaran string              `db:"nm_tahun_anggaran" json:"nm_tahun_anggaran"`
 	APeriodeAktif   int                 `db:"a_periode_aktif" json:"a_periode_aktif"`
-	TglMulai        *time.Time          `db:"tgl_mulai" json:"tgl_mulai"`
-	TglSelesai      *time.Time          `db:"tgl_selesai" json:"tgl_selesai"`
+	TglMulai        time.Time           `db:"tgl_mulai" json:"tgl_mulai"`
+	TglSelesai      time.Time           `db:"tgl_selesai" json:"tgl_selesai"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
@@ -276,19 +274,19 @@ type Tse struct {
 }
 
 type SkimKegiatan struct {
-	IDSkim               string              `db:"id_skim" json:"id_skim"`
-	IDJenjDidik          int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
+	IDSkim               diklat.UUID         `db:"id_skim" json:"id_skim"`
+	IDJenjDidik          *int                `db:"id_jenj_didik" json:"id_jenj_didik"`
 	NmSkim               string              `db:"nm_skim" json:"nm_skim"`
-	NmSingkatSkim        string              `db:"nm_singkat_skim" json:"nm_singkat_skim"`
-	KdSkim               string              `db:"kd_skim" json:"kd_skim"`
+	NmSingkatSkim        *string             `db:"nm_singkat_skim" json:"nm_singkat_skim"`
+	KdSkim               *string             `db:"kd_skim" json:"kd_skim"`
 	TstSkim              *time.Time          `db:"tst_skim" json:"tst_skim"`
 	JmlMinPersonil       int                 `db:"jml_min_personil" json:"jml_min_personil"`
 	JmlMaksPersonil      int                 `db:"jml_maks_personil" json:"jml_maks_personil"`
-	JmlMaksKeikutsertaan int                 `db:"jml_maks_keikutsertaan" json:"jml_maks_keikutsertaan"`
-	JmlMaksSbgKetua      int                 `db:"jml_maks_sbg_ketua" json:"jml_maks_sbg_ketua"`
-	DanaMinThnBerjalan   float64             `db:"dana_min_thn_berjalan" json:"dana_min_thn_berjalan"`
+	JmlMaksKeikutsertaan *int                `db:"jml_maks_keikutsertaan" json:"jml_maks_keikutsertaan"`
+	JmlMaksSbgKetua      *int                `db:"jml_maks_sbg_ketua" json:"jml_maks_sbg_ketua"`
+	DanaMinThnBerjalan   *float64            `db:"dana_min_thn_berjalan" json:"dana_min_thn_berjalan"`
 	DanaMaksThnBerjalan  float64             `db:"dana_maks_thn_berjalan" json:"dana_maks_thn_berjalan"`
-	KetSkim              string              `db:"ket_skim" json:"ket_skim"`
+	KetSkim              *string             `db:"ket_skim" json:"ket_skim"`
 	DeviasiNilai         float64             `db:"deviasi_nilai" json:"deviasi_nilai"`
 	PassingGrade         float64             `db:"passing_grade" json:"passing_grade"`
 	CreateDate           types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
