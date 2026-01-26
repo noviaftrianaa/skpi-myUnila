@@ -1,0 +1,726 @@
+{
+  "timestamp": "2026-01-26T11:16:14+07:00",
+  "base_url": "http://localhost:8085/v1/referensi",
+  "tests": [
+    {
+      "endpoint": "/semester",
+      "name": "Semester",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tahun_ajaran",
+      "name": "Tahun Ajaran",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/agama",
+      "name": "Agama",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/wilayah",
+      "name": "Wilayah",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/aktifitas_kerjasama",
+      "name": "Aktifitas Kerjasama",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/basis_evaluasi",
+      "name": "Basis Evaluasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/fungsi_lab",
+      "name": "Fungsi Lab",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/gelar_akademik",
+      "name": "Gelar Akademik",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/ikatan_kerja_sdm",
+      "name": "Ikatan Kerja SDM",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jalur_masuk",
+      "name": "Jalur Masuk",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenjang_pendidikan",
+      "name": "Jenjang Pendidikan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_evaluasi",
+      "name": "Jenis Evaluasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_keluar",
+      "name": "Jenis Keluar",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_prasarana",
+      "name": "Jenis Prasarana",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_substansi",
+      "name": "Jenis Substansi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_tinggal",
+      "name": "Jenis Tinggal",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jurusan",
+      "name": "Jurusan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kbli",
+      "name": "KBLI",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/keahlian_lab",
+      "name": "Keahlian Lab",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kebutuhan_khusus",
+      "name": "Kebutuhan Khusus",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kriteria_mitra",
+      "name": "Kriteria Mitra",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/level_wilayah",
+      "name": "Level Wilayah",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/media_publikasi",
+      "name": "Media Publikasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/negara",
+      "name": "Negara",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/nilai_akred",
+      "name": "Nilai Akreditasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/pangkat_golongan",
+      "name": "Pangkat Golongan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/pembiayaan",
+      "name": "Pembiayaan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/penghasilan",
+      "name": "Penghasilan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/satuan",
+      "name": "Satuan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tahun_anggaran",
+      "name": "Tahun Anggaran",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tse",
+      "name": "TSE",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/skim_kegiatan",
+      "name": "Skim Kegiatan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_akt_mhs",
+      "name": "Jenis Aktivitas Mahasiswa",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_beasiswa",
+      "name": "Jenis Beasiswa",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_diklat",
+      "name": "Jenis Diklat",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_keuangan",
+      "name": "Jenis Keuangan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_lembaga",
+      "name": "Jenis Lembaga",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_pendaftaran",
+      "name": "Jenis Pendaftaran",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_penghargaan",
+      "name": "Jenis Penghargaan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_prestasi",
+      "name": "Jenis Prestasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_sarana",
+      "name": "Jenis Sarana",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_sdm",
+      "name": "Jenis SDM",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_sert",
+      "name": "Jenis Sertifikat",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_sms",
+      "name": "Jenis SMS",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/jenis_tes",
+      "name": "Jenis Tes",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kategori_kegiatan",
+      "name": "Kategori Kegiatan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kategori_koleksi",
+      "name": "Kategori Koleksi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kategori_tabel",
+      "name": "Kategori Tabel",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kelompok_bidang",
+      "name": "Kelompok Bidang",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kelompok_mk",
+      "name": "Kelompok Mata Kuliah",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kelompok_profesi",
+      "name": "Kelompok Profesi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/kelompok_usaha",
+      "name": "Kelompok Usaha",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/lembaga_akred",
+      "name": "Lembaga Akreditasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/lembaga_pengangkat",
+      "name": "Lembaga Pengangkat",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/lembaga_sertifikasi",
+      "name": "Lembaga Sertifikasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/peta_katgiat_jabfung",
+      "name": "Peta Kategori Kegiatan Jabatan Fungsional",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/peta_katgiat_jnsdok",
+      "name": "Peta Kategori Kegiatan Jenis Dokumen",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/peta_katgiat_jnspub",
+      "name": "Peta Kategori Kegiatan Jenis Publikasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_kepegawaian",
+      "name": "Status Kepegawaian",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_kepemilikan",
+      "name": "Status Kepemilikan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_kerjasama",
+      "name": "Status Kerjasama",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_mahasiswa",
+      "name": "Status Mahasiswa",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_milik_sarpras",
+      "name": "Status Milik Sarana Prasarana",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_anak",
+      "name": "Status Anak",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/status_keaktifan_pegawai",
+      "name": "Status Keaktifan Pegawai",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/sumber_air",
+      "name": "Sumber Air",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/sumber_dana",
+      "name": "Sumber Dana",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/sumber_gaji",
+      "name": "Sumber Gaji",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/sumber_listrik",
+      "name": "Sumber Listrik",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tingkat_kerjasama",
+      "name": "Tingkat Kerjasama",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tingkat_penghargaan",
+      "name": "Tingkat Penghargaan",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    },
+    {
+      "endpoint": "/tingkat_prestasi",
+      "name": "Tingkat Prestasi",
+      "status": "fail",
+      "http_code": 401,
+      "is_valid_json": true,
+      "total_records": 0,
+      "page": 0,
+      "data_count": 0
+    }
+  ]
+}

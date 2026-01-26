@@ -44,17 +44,47 @@ func Close() error {
 
 // Set menyimpan key-value dengan TTL
 func Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	log.Printf("Setting key in Redis: %s", key)
 	return Client.Set(ctx, key, value, ttl).Err()
 }
 
 // Get mengambil value dari key
 func Get(ctx context.Context, key string) (string, error) {
+	log.Printf("Getting key from Redis: %s", key)
 	return Client.Get(ctx, key).Result()
 }
 
 // Del menghapus key
 func Del(ctx context.Context, keys ...string) error {
+	log.Printf("Deleting keys from Redis: %s", keys)
 	return Client.Del(ctx, keys...).Err()
+}
+
+// Del menghapus key dengan pola tertentu
+func DelByPattern(ctx context.Context, key string) error {
+	var cursor uint64
+	var keys []string
+	for {
+		var err error
+		var scanKeys []string
+
+		scanKeys, cursor, err = Client.Scan(ctx, cursor, key, 100).Result()
+		if err != nil {
+			return err
+		}
+		keys = append(keys, scanKeys...)
+		if cursor == 0 {
+			break
+		}
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	log.Printf("Deleting pattern keys from Redis: %s", key)
+	if err := Client.Del(ctx, keys...).Err(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Exists mengecek apakah key ada
