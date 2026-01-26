@@ -25,7 +25,7 @@ type RateLimiterConfig struct {
 // 10 requests per second with burst capacity of 20
 func DefaultRateLimiterConfig() *RateLimiterConfig {
 	return &RateLimiterConfig{
-		Capacity:   1000, // Can burst up to 20 requests
+		Capacity:   20,   // Can burst up to 20 requests
 		RefillRate: 10.0, // Refills 10 tokens per second
 	}
 }
