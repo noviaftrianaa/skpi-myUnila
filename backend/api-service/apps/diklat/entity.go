@@ -48,10 +48,21 @@ func (u *UUID) Scan(value interface{}) error {
 			*u = UUID(parsed.String())
 			return nil
 		}
-		// Jika sudah dalam format string
-		*u = UUID(string(v))
+		// Jika byte array tapi bukan 16 bytes, coba parse sebagai string UUID
+		strUUID := string(v)
+		// Validasi format UUID
+		if _, err := uuid.Parse(strUUID); err != nil {
+			return fmt.Errorf("invalid UUID format from bytes: %s, error: %w", strUUID, err)
+		}
+		*u = UUID(strUUID)
 		return nil
 	case string:
+		// Validasi format UUID string
+		if v != "" {
+			if _, err := uuid.Parse(v); err != nil {
+				return fmt.Errorf("invalid UUID format from string: %s, error: %w", v, err)
+			}
+		}
 		*u = UUID(v)
 		return nil
 	default:
