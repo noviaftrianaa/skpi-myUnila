@@ -11,6 +11,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/api-service/apps/auth"
+	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
 	"github.com/myunila/api-service/external/database"
@@ -133,8 +134,12 @@ func main() {
 	log.Println("✅ Auth module initialized")
 
 	// Initialize Referensi module (protected - dengan JWT auth middleware)
-	referensi.RegisterRoutes(apiV1, db)
+	referensi.RegisterRoutes(apiV1, db, redis.Client)
 	log.Println("✅ Referensi module initialized")
+
+	// Initialize Diklat module (protected - dengan JWT auth middleware)
+	diklat.RegisterRoutes(apiV1, db, redis.Client)
+	log.Println("✅ Diklat module initialized")
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
