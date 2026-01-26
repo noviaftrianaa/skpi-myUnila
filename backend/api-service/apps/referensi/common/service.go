@@ -35,6 +35,7 @@ type Service interface {
 	GetNegara(ctx context.Context, params types.NegaraParams) ([]Negara, int64, error)
 	GetNilaiAkred(ctx context.Context, params types.PaginationParams) ([]NilaiAkred, int64, error)
 	GetPangkatGolongan(ctx context.Context, params types.PangkatGolonganParams) ([]PangkatGolongan, int64, error)
+	GetPekerjaan(ctx context.Context, params types.PaginationParams) ([]Pekerjaan, int64, error)
 	GetPembiayaan(ctx context.Context, params types.PaginationParams) ([]Pembiayaan, int64, error)
 	GetPenghasilan(ctx context.Context, params types.PaginationParams) ([]Penghasilan, int64, error)
 	GetSatuan(ctx context.Context, params types.PaginationParams) ([]Satuan, int64, error)
@@ -756,6 +757,40 @@ func (s *service) GetPembiayaan(ctx context.Context, params types.PaginationPara
 	}
 
 	data, total, err := s.repo.GetPembiayaan(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// ============================================================================
+// Pekerjaan
+// ============================================================================
+
+func (s *service) GetPekerjaan(ctx context.Context, params types.PaginationParams) ([]Pekerjaan, int64, error) {
+	cacheKeyData := fmt.Sprintf("pekerjaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("pekerjaan:total:search:%s", params.Search)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []Pekerjaan
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for pekerjaan data and total")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetPekerjaan(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

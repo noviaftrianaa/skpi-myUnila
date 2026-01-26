@@ -422,6 +422,26 @@ func (h *Handler) GetPembiayaan(c *fiber.Ctx) error {
 }
 
 // ============================================================================
+// Pekerjaan
+// ============================================================================
+
+func (h *Handler) GetPekerjaan(c *fiber.Ctx) error {
+	var params types.PaginationParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetPekerjaan(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting pekerjaan: %v", err)
+		return response.InternalError(c, "Gagal mengambil data pekerjaan")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data pekerjaan", data, params.Page, params.Limit, total)
+}
+
+// ============================================================================
 // Penghasilan
 // ============================================================================
 
