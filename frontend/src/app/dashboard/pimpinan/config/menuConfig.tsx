@@ -36,12 +36,12 @@ export const pimpinanMenuConfig: MenuItem[] = [
     roles: ["pimpinan", "rektor", "warek", "dekan", "wadek"],
   },
   // // Statistik & Analitik
-  // {
-  //   title: "Statistik Unila",
-  //   icon: <FiTrendingUp className="w-5 h-5" />,
-  //   href: "/dashboard/pimpinan/statistik-unila",
-  //   roles: ["pimpinan", "rektor", "warek", "dekan", "wadek", "ketua_lembaga"],
-  // },
+  {
+    title: "Rasio Unila",
+    icon: <FiTrendingUp className="w-5 h-5" />,
+    href: "/dashboard/pimpinan/rasio",
+    roles: ["pimpinan", "rektor", "warek", "dekan", "wadek", "ketua_lembaga"],
+  },
   // {
   //   title: "Peringkat Universitas",
   //   icon: <FiAward className="w-5 h-5" />,

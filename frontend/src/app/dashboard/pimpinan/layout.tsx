@@ -11,7 +11,7 @@ import { pimpinanMenuConfig } from "./config/menuConfig";
 // App key for Manajemen Akses myUnila
 const APP_KEY = "dashboard-pimpinan";
 
-export default function ManajemenAksesLayout({
+export default function PimpinanLayout({
   children,
 }: {
   children: React.ReactNode;
