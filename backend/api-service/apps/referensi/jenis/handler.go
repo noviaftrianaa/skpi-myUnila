@@ -509,3 +509,20 @@ func (h *Handler) JenisTunjangan(c *fiber.Ctx) error {
 	params.NormalizePagination()
 	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis tunjangan", data, params.Page, params.Limit, total)
 }
+
+// JenisUnit returns list of jenis unit with pagination
+func (h *Handler) JenisUnit(c *fiber.Ctx) error {
+	var params types.JenisUnitParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	data, total, err := h.svc.GetJenisUnit(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting jenis unit: %v", err)
+		return response.InternalError(c, "Gagal mengambil data jenis unit")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data jenis unit", data, params.Page, params.Limit, total)
+}

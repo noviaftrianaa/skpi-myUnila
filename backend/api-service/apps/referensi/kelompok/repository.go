@@ -32,7 +32,7 @@ func (r *repository) GetKelompokBidang(ctx context.Context, params types.Kelompo
 	cb := helper.NewCondBuilder()
 	cb.AppendString("kode_kel_bidang", params.KodeKelBidang)
 	cb.AppendString("nm_kel_bidang", params.NmKelBidang)
-	cb.AppendString("id_induk_bidang", params.IDIndukBidang)
+	cb.AppendUUID("id_induk_bidang", params.IDIndukBidang)
 	cb.AppendInt("u_sma", params.USma)
 	cb.AppendInt("u_smk", params.USmk)
 	cb.AppendInt("u_pt", params.UPt)

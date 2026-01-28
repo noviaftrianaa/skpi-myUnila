@@ -42,6 +42,7 @@ type Service interface {
 	GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error)
 	GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error)
 	GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error)
+	GetJenisUnit(ctx context.Context, params types.JenisUnitParams) ([]JenisUnit, int64, error)
 }
 
 type service struct {
@@ -1219,6 +1220,55 @@ func (s *service) GetJenisTunjangan(ctx context.Context, params types.Pagination
 	if bytes, err := json.Marshal(total); err == nil {
 		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
 			log.Printf("Failed to cache jenis tunjangan total: %v", err)
+		}
+	}
+
+	return data, total, nil
+}
+
+// GetJenisUnit mengambil daftar jenis unit dengan pagination
+func (s *service) GetJenisUnit(ctx context.Context, params types.JenisUnitParams) ([]JenisUnit, int64, error) {
+	cacheKeyData := fmt.Sprintf("jenis_unit:data:page:%d:limit:%d:search:%s:sort:%s:%s:id_fak_unila:%v:id_lemb_non_sp:%v:id_jur_unila:%v:id_jur:%v:id_jenj_didik:%v:id_sp:%v:id_blob:%v:id_wil:%v:id_induk_sms:%v:id_creator:%v:id_updater:%v:id_jns_sms:%v:id_fungsi_lab:%v:id_kel_usaha:%v",
+		params.Page, params.Limit, params.Search, params.SortBy, params.Order,
+		params.IDFakUnila, params.IDLembNonSP, params.IDJurUnila, params.IDJur,
+		params.IDJenjDidik, params.IDSp, params.IDBlob, params.IDWil,
+		params.IDIndukSms, params.IDCreator, params.IDUpdater, params.IDJnsSms,
+		params.IDFungsiLab, params.IDKelUsaha)
+	cacheKeyTotal := fmt.Sprintf("jenis_unit:total:search:%s:id_fak_unila:%v:id_lemb_non_sp:%v:id_jur_unila:%v:id_jur:%v:id_jenj_didik:%v:id_sp:%v:id_blob:%v:id_wil:%v:id_induk_sms:%v:id_creator:%v:id_updater:%v:id_jns_sms:%v:id_fungsi_lab:%v:id_kel_usaha:%v",
+		params.Search,
+		params.IDFakUnila, params.IDLembNonSP, params.IDJurUnila, params.IDJur,
+		params.IDJenjDidik, params.IDSp, params.IDBlob, params.IDWil,
+		params.IDIndukSms, params.IDCreator, params.IDUpdater, params.IDJnsSms,
+		params.IDFungsiLab, params.IDKelUsaha)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+		var data []JenisUnit
+		var total int64
+		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
+			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
+				log.Printf("Cache hit for jenis unit data and total")
+				return data, total, nil
+			}
+		}
+	}
+
+	data, total, err := s.repo.GetJenisUnit(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if bytes, err := json.Marshal(data); err == nil {
+		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis unit data: %v", err)
+		}
+	}
+
+	if bytes, err := json.Marshal(total); err == nil {
+		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
+			log.Printf("Failed to cache jenis unit total: %v", err)
 		}
 	}
 

@@ -309,6 +309,24 @@ type SumberDanaParams struct {
 	UUnitUsaha  *int `query:"u_unit_usaha"`
 }
 
+type JenisUnitParams struct {
+	PaginationParams
+	IDFakUnila  *string `query:"id_fak_unila" json:"id_fak_unila"`
+	IDLembNonSP *string `query:"id_lemb_non_sp" json:"id_lemb_non_sp"`
+	IDJurUnila  *string `query:"id_jur_unila" json:"id_jur_unila"`
+	IDJur       *string `query:"id_jur" json:"id_jur"`
+	IDJenjDidik *string `query:"id_jenj_didik" json:"id_jenj_didik"`
+	IDSp        *string `query:"id_sp" json:"id_sp"`
+	IDBlob      *string `query:"id_blob" json:"id_blob"`
+	IDWil       *string `query:"id_wil" json:"id_wil"`
+	IDIndukSms  *string `query:"id_induk_sms" json:"id_induk_sms"`
+	IDCreator   *string `query:"id_creator" json:"id_creator"`
+	IDUpdater   *string `query:"id_updater" json:"id_updater"`
+	IDJnsSms    *int    `query:"id_jns_sms" json:"id_jns_sms"`
+	IDFungsiLab *string `query:"id_fungsi_lab" json:"id_fungsi_lab"`
+	IDKelUsaha  *string `query:"id_kel_usaha" json:"id_kel_usaha"`
+}
+
 // ============================================================================
 // Default Values
 // ============================================================================

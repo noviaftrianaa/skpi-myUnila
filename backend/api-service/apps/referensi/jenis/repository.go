@@ -42,6 +42,7 @@ type Repository interface {
 	GetJenisTes(ctx context.Context, params types.JenisTesParams) ([]JenisTes, int64, error)
 	GetJenisTinggal(ctx context.Context, params types.PaginationParams) ([]JenisTinggal, int64, error)
 	GetJenisTunjangan(ctx context.Context, params types.PaginationParams) ([]JenisTunjangan, int64, error)
+	GetJenisUnit(ctx context.Context, params types.JenisUnitParams) ([]JenisUnit, int64, error)
 }
 
 type repository struct {
@@ -1195,4 +1196,173 @@ func (r *repository) GetJenisTunjangan(ctx context.Context, params types.Paginat
 			return j, err
 		},
 	)
+}
+
+// ============================================================================
+// Jenis Unit
+// ============================================================================
+
+func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitParams) ([]JenisUnit, int64, error) {
+	// Normalize pagination params
+	params.NormalizePagination()
+
+	// Build conditions using CondBuilder
+	cb := helper.NewCondBuilder()
+	cb.AppendUUID("id_fak_unila", params.IDFakUnila)
+	cb.AppendUUID("id_lemb_non_sp", params.IDLembNonSP)
+	cb.AppendUUID("id_jur_unila", params.IDJurUnila)
+	cb.AppendUUID("id_jur", params.IDJur)
+	cb.AppendUUID("id_jenj_didik", params.IDJenjDidik)
+	cb.AppendUUID("id_sp", params.IDSp)
+	cb.AppendUUID("id_blob", params.IDBlob)
+	cb.AppendUUID("id_wil", params.IDWil)
+	cb.AppendUUID("id_induk_sms", params.IDIndukSms)
+	cb.AppendUUID("id_creator", params.IDCreator)
+	cb.AppendUUID("id_updater", params.IDUpdater)
+	cb.AppendInt("id_jns_sms", params.IDJnsSms)
+	cb.AppendString("id_fungsi_lab", params.IDFungsiLab)
+	cb.AppendString("id_kel_usaha", params.IDKelUsaha)
+
+	conds, args := cb.Build()
+
+	// Tambahkan filter soft_delete = 0 (tidak dihapus)
+	conds = append(conds, "soft_delete = 0")
+
+	// Build WHERE clause
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// COUNT query
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sms WHERE %s", whereClause)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// Determine sort column
+	sortBy := "create_date"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// Main SELECT query with pagination
+	query := fmt.Sprintf(`
+		SELECT 
+			id_sms, id_fak_unila, id_lemb_non_sp, id_jur_unila, id_jur, id_jenj_didik, 
+			kd_kl, kd_satker, smt_mulai, a_selenggara_subst, stat_prodi_unila, tgl_tutup, 
+			kode_snpmb, kode_prodi, nm_prodi_english, kpst_pd, sks_lulus, gelar_lulusan, 
+			stat_prodi, polesei_nilai, a_kependidikan, jln, rt, rw, nm_dsn, ds_kel, kode_pos, 
+			lintang, bujur, no_tel, no_fax, email, website, singkatan, tgl_berdiri, 
+			sk_selenggara, tgl_sk_selenggara, tmt_sk_selenggara, tst_sk_selenggara, 
+			sistem_ajar, a_pjj, a_psdku, luas_lab, kapasitas_prak_satu_shift, jml_mhs_pengguna, 
+			jml_jam_penggunaan, jml_prodi_pengguna, jml_modul_prak_sendiri, jml_modul_prak_lain, 
+			fungsi_selain_prak, penggunaan_lab, a_pkl, id_sp, id_jns_sms, id_fungsi_lab, 
+			id_kel_usaha, id_blob, id_wil, id_induk_sms, create_date, id_creator, last_update, 
+			id_updater, soft_delete, last_sync
+		FROM pdrd.sms
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	// Add pagination args
+	args = append(args, params.Offset(), params.Limit)
+
+	// Execute query
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	// Scan results
+	var result []JenisUnit
+	for rows.Next() {
+		var j JenisUnit
+		err := rows.Scan(
+			&j.IDSms,
+			&j.IDFakUnila,
+			&j.IDLembNonSP,
+			&j.IDJurUnila,
+			&j.IDJur,
+			&j.IDJenjDidik,
+			&j.KdKl,
+			&j.KdSatker,
+			&j.SmtMulai,
+			&j.ASelenggaraSubst,
+			&j.StatProdiUnila,
+			&j.TglTutup,
+			&j.KodeSnpmb,
+			&j.KodeProdi,
+			&j.NmProdiEnglish,
+			&j.KpstPd,
+			&j.SKsLulus,
+			&j.GelarLulusan,
+			&j.StatProdi,
+			&j.PoleseiNilai,
+			&j.AKependidikan,
+			&j.Jln,
+			&j.Rt,
+			&j.Rw,
+			&j.NmDsn,
+			&j.DsKel,
+			&j.KodePos,
+			&j.Lintang,
+			&j.Bujur,
+			&j.NoTel,
+			&j.NoFax,
+			&j.Email,
+			&j.Website,
+			&j.Singkatan,
+			&j.TglBerdiri,
+			&j.SkSelenggara,
+			&j.TglSkSelenggara,
+			&j.TmtSkSelenggara,
+			&j.TstSkSelenggara,
+			&j.SistemAjar,
+			&j.APjj,
+			&j.APsdku,
+			&j.LuasLab,
+			&j.KapasitasPrakSatuShift,
+			&j.JmlMhsPengguna,
+			&j.JmlJamPengguna,
+			&j.JmlProdiPengguna,
+			&j.JmlModulPrakSendiri,
+			&j.JmlModulPrakLain,
+			&j.FungsiSelainPrak,
+			&j.PenggunaanLab,
+			&j.APkl,
+			&j.IDSp,
+			&j.IDJnsSms,
+			&j.IDFungsiLab,
+			&j.IDKelUsaha,
+			&j.IDBlob,
+			&j.IDWil,
+			&j.IDIndukSms,
+			&j.CreateDate,
+			&j.IDCreator,
+			&j.LastUpdate,
+			&j.IDUpdater,
+			&j.SoftDelete,
+			&j.LastSync,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+		result = append(result, j)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }

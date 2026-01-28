@@ -3,6 +3,7 @@ package jenis
 import (
 	"time"
 
+	parse "github.com/myunila/api-service/apps/referensi/types"
 	"github.com/myunila/api-service/internal/types"
 	"github.com/shopspring/decimal"
 )
@@ -299,4 +300,72 @@ type JenisTunjangan struct {
 	CreateDate  types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate  types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate *time.Time          `db:"expired_date" json:"-"`
+}
+
+type JenisUnit struct {
+	IDSms                  parse.UUID           `db:"id_sms" json:"id_sms"`
+	IDFakUnila             parse.NullUUID       `db:"id_fak_unila" json:"id_fak_unila"`
+	IDLembNonSP            *string              `db:"id_lemb_non_sp" json:"id_lemb_non_sp"`
+	IDJurUnila             parse.NullUUID       `db:"id_jur_unila" json:"id_jur_unila"`
+	IDJur                  *string              `db:"id_jur" json:"id_jur"`
+	IDJenjDidik            string               `db:"id_jenj_didik" json:"id_jenj_didik"`
+	KdKl                   *string              `db:"kd_kl" json:"kd_kl"`
+	KdSatker               *string              `db:"kd_satker" json:"kd_satker"`
+	SmtMulai               *string              `db:"smt_mulai" json:"smt_mulai"`
+	ASelenggaraSubst       int                  `db:"a_selenggara_subst" json:"a_selenggara_subst"`
+	StatProdiUnila         *string              `db:"stat_prodi_unila" json:"stat_prodi_unila"`
+	TglTutup               *time.Time           `db:"tgl_tutup" json:"tgl_tutup"`
+	KodeSnpmb              *string              `db:"kode_snpmb" json:"kode_snpmb"`
+	KodeProdi              *string              `db:"kode_prodi" json:"kode_prodi"`
+	NmProdiEnglish         *string              `db:"nm_prodi_english" json:"nm_prodi_english"`
+	KpstPd                 *int                 `db:"kpst_pd" json:"kpst_pd"`
+	SKsLulus               *int                 `db:"sks_lulus" json:"sks_lulus"`
+	GelarLulusan           *string              `db:"gelar_lulusan" json:"gelar_lulusan"`
+	StatProdi              *string              `db:"stat_prodi" json:"stat_prodi"`
+	PoleseiNilai           *string              `db:"polesei_nilai" json:"polesei_nilai"`
+	AKependidikan          *string              `db:"a_kependidikan" json:"a_kependidikan"`
+	Jln                    *string              `db:"jln" json:"jln"`
+	Rt                     *int                 `db:"rt" json:"rt"`
+	Rw                     *int                 `db:"rw" json:"rw"`
+	NmDsn                  *string              `db:"nm_dsn" json:"nm_dsn"`
+	DsKel                  *string              `db:"ds_kel" json:"ds_kel"`
+	KodePos                *string              `db:"kode_pos" json:"kode_pos"`
+	Lintang                *decimal.Decimal     `db:"lintang" json:"lintang"`
+	Bujur                  *decimal.Decimal     `db:"bujur" json:"bujur"`
+	NoTel                  *string              `db:"no_tel" json:"no_tel"`
+	NoFax                  *string              `db:"no_fax" json:"no_fax"`
+	Email                  *string              `db:"email" json:"email"`
+	Website                *string              `db:"website" json:"website"`
+	Singkatan              *string              `db:"singkatan" json:"singkatan"`
+	TglBerdiri             *types.SQLServerTime `db:"tgl_berdiri" json:"tgl_berdiri"`
+	SkSelenggara           *string              `db:"sk_selenggara" json:"sk_selenggara"`
+	TglSkSelenggara        *types.SQLServerTime `db:"tgl_sk_selenggara" json:"tgl_sk_selenggara"`
+	TmtSkSelenggara        *types.SQLServerTime `db:"tmt_sk_selenggara" json:"tmt_sk_selenggara"`
+	TstSkSelenggara        *types.SQLServerTime `db:"tst_sk_selenggara" json:"tst_sk_selenggara"`
+	SistemAjar             *int                 `db:"sistem_ajar" json:"sistem_ajar"`
+	APjj                   *int                 `db:"a_pjj" json:"a_pjj"`
+	APsdku                 *int                 `db:"a_psdku" json:"a_psdku"`
+	LuasLab                *decimal.Decimal     `db:"luas_lab" json:"luas_lab"`
+	KapasitasPrakSatuShift *int                 `db:"kapasitas_prak_satu_shift" json:"kapasitas_prak_satu_shift"`
+	JmlMhsPengguna         *int                 `db:"jml_mhs_pengguna" json:"jml_mhs_pengguna"`
+	JmlJamPengguna         *int                 `db:"jml_jam_pengguna" json:"jml_jam_pengguna"`
+	JmlProdiPengguna       *int                 `db:"jml_prodi_pengguna" json:"jml_prodi_pengguna"`
+	JmlModulPrakSendiri    *int                 `db:"jml_modul_prak_sendiri" json:"jml_modul_prak_sendiri"`
+	JmlModulPrakLain       *int                 `db:"jml_modul_prak_lain" json:"jml_modul_prak_lain"`
+	FungsiSelainPrak       *string              `db:"fungsi_selain_prak" json:"fungsi_selain_prak"`
+	PenggunaanLab          *string              `db:"penggunaan_lab" json:"penggunaan_lab"`
+	APkl                   *int                 `db:"a_pkl" json:"a_pkl"`
+	IDSp                   parse.UUID           `db:"id_sp" json:"id_sp"`
+	IDJnsSms               int                  `db:"id_jns_sms" json:"id_jns_sms"`
+	IDFungsiLab            string               `db:"id_fungsi_lab" json:"id_fungsi_lab"`
+	IDKelUsaha             string               `db:"id_kel_usaha" json:"id_kel_usaha"`
+	IDBlob                 *string              `db:"id_blob" json:"id_blob"`
+	IDWil                  string               `db:"id_wil" json:"id_wil"`
+	IDIndukSms             parse.NullUUID       `db:"id_induk_sms" json:"id_induk_sms"`
+	CreateDate             types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
+	IDCreator              parse.UUID           `db:"id_creator" json:"id_creator"`
+	LastUpdate             types.SQLServerTime  `db:"last_update" json:"terakhir_diubah"`
+	IDUpdater              *parse.NullUUID      `db:"id_updater" json:"id_updater"`
+	SoftDelete             int                  `db:"soft_delete" json:"soft_delete"`
+	LastSync               types.SQLServerTime  `db:"last_sync" json:"last_sync"`
 }
