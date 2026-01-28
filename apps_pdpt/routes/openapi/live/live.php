@@ -72,6 +72,31 @@ Route::group([
                 Route::post('tambah', 'DiklatController@tambah');
                 Route::put('ubah', 'DiklatController@ubahDiklat');
                 Route::delete('hapus', 'DiklatController@destroy');
+                Route::get('detail', 'DiklatController@getDetail');
+            });
+
+            Route::prefix('rwy_pekerjaan')->group(function () {
+                Route::get('', 'RwyPekerjaanController@getData');
+            });
+
+            Route::prefix('rwy_sertifikasi')->group(function () {
+                Route::get('', 'RwySertifikasiController@getData');
+            });
+
+            Route::prefix('bimbing_mahasiswa')->group(function () {
+                Route::get('', 'BimbinganMahasiswaController@getData');
+            });
+
+            Route::prefix('uji_mahasiswa')->group(function () {
+                Route::get('', 'UjiMahasiswaController@getData');
+            });
+
+            Route::prefix('pembinaan')->group(function () {
+                Route::get('', 'PembinaanController@getData');
+            });
+
+            Route::prefix('tugas_tambahan')->group(function () {
+                Route::get('', 'TugasTambahanController@getData');
             });
 
             Route::prefix('penelitian')->group(function () {
@@ -146,6 +171,7 @@ Route::group([
                 Route::post('dosen_ajar/tambah', 'AktAjarDosenController@store');
                 Route::put('dosen_ajar/ubah', 'AktAjarDosenController@update');
                 Route::delete('dosen_ajar/hapus', 'AktAjarDosenController@destroy');
+                Route::get('list_kelas_ajar', 'AktAjarDosenController@getListKelas');
 
                 Route::get('list_jadwal', 'JadwalKelasController@index');
                 Route::post('jadwal/tambah', 'JadwalKelasController@store');
