@@ -482,7 +482,7 @@ func (r *repository) GetJenjangPendidikan(ctx context.Context, params types.Jenj
 func (r *repository) GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error) {
 	cb := helper.NewCondBuilder()
 	cb.AppendInt("id_jenj_didik", params.IDJenjDidik)
-	cb.AppendString("id_kel_bidang", params.IDKelBidang)
+	cb.AppendUUID("id_kel_bidang", params.IDKelBidang)
 	cb.AppendString("kode_nomenklatur", params.KodeNomenklatur)
 	cb.AppendInt("u_sma", params.USma)
 	cb.AppendInt("u_smk", params.USmk)
@@ -717,8 +717,8 @@ func (r *repository) GetLevelWilayah(ctx context.Context, params types.Paginatio
 func (r *repository) GetMediaPublikasi(ctx context.Context, params types.MediaPublikasiParams) ([]MediaPublikasi, int64, error) {
 	cb := helper.NewCondBuilder()
 	cb.AppendInt("id_jns_media", params.IDJnsMedia)
-	cb.AppendString("id_kel_bidang", params.IDKelBidang)
-	cb.AppendString("id_sp", params.IDSp)
+	cb.AppendUUID("id_kel_bidang", params.IDKelBidang)
+	cb.AppendUUID("id_sp", params.IDSp)
 	cb.AppendString("id_negara", params.IDNegara)
 	cb.AppendString("bentuk_media_pub", params.BentukMediaPub)
 	cb.AppendString("grade_sinta", params.GradeSinta)

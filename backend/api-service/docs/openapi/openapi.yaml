@@ -41,6 +41,48 @@ paths:
   /v1/referensi/wilayah:
     $ref: './paths/referensi.yaml#/wilayah'
 
+  # Bentuk endpoints
+  /v1/referensi/bentuk_kegiatan_kerjasama:
+    $ref: './paths/referensi.yaml#/bentuk-kegiatan-kerjasama'
+  /v1/referensi/bentuk_pendidikan:
+    $ref: './paths/referensi.yaml#/bentuk-pendidikan'
+
+  # Bidang endpoints
+  /v1/referensi/bidang_kerjasama:
+    $ref: './paths/referensi.yaml#/bidang-kerjasama'
+  /v1/referensi/bidang_pekerjaan:
+    $ref: './paths/referensi.yaml#/bidang-pekerjaan'
+  /v1/referensi/bidang_studi:
+    $ref: './paths/referensi.yaml#/bidang-studi'
+  /v1/referensi/bidang_usaha:
+    $ref: './paths/referensi.yaml#/bidang-usaha'
+
+  # Tingkat endpoints
+  /v1/referensi/tingkat_kerjasama:
+    $ref: './paths/referensi.yaml#/tingkat-kerjasama'
+  /v1/referensi/tingkat_penghargaan:
+    $ref: './paths/referensi.yaml#/tingkat-penghargaan'
+  /v1/referensi/tingkat_prestasi:
+    $ref: './paths/referensi.yaml#/tingkat-prestasi'
+
+  # Sumber endpoints
+  /v1/referensi/sumber_air:
+    $ref: './paths/referensi.yaml#/sumber-air'
+  /v1/referensi/sumber_dana:
+    $ref: './paths/referensi.yaml#/sumber-dana'
+  /v1/referensi/sumber_gaji:
+    $ref: './paths/referensi.yaml#/sumber-gaji'
+  /v1/referensi/sumber_listrik:
+    $ref: './paths/referensi.yaml#/sumber-listrik'
+
+  # Peta endpoints
+  /v1/referensi/peta_katgiat_jabfung:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jabfung'
+  /v1/referensi/peta_katgiat_jnsdok:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jnsdok'
+  /v1/referensi/peta_katgiat_jnspub:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jnspub'
+
   # System endpoints
   /health:
     $ref: './paths/system.yaml#/health'

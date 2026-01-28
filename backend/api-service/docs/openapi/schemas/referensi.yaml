@@ -81,3 +81,372 @@ Wilayah:
       type: integer
       example: 1
       description: "1=Provinsi, 2=Kab/Kota, 3=Kecamatan, 4=Kelurahan"
+
+# =============================================================================
+# BENTUK SCHEMAS
+# =============================================================================
+
+BentukKegiatanKerjasama:
+  type: object
+  properties:
+    id_bntk_giat_kerjasama:
+      type: integer
+      example: 1
+    nm_bntk_giat_kerjasama:
+      type: string
+      example: "Pengabdian Masyarakat"
+    ket:
+      type: string
+      nullable: true
+      example: "Keterangan kegiatan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BentukPendidikan:
+  type: object
+  properties:
+    id_bp:
+      type: integer
+      example: 1
+    nm_bp:
+      type: string
+      example: "Pendidikan Formal"
+    a_jenj_paud:
+      type: integer
+      example: 0
+      description: "Flag jenjang PAUD (0/1)"
+    a_jenj_tk:
+      type: integer
+      example: 0
+      description: "Flag jenjang TK (0/1)"
+    a_jenj_sd:
+      type: integer
+      example: 0
+      description: "Flag jenjang SD (0/1)"
+    a_jenj_smp:
+      type: integer
+      example: 0
+      description: "Flag jenjang SMP (0/1)"
+    a_jenj_sma:
+      type: integer
+      example: 0
+      description: "Flag jenjang SMA (0/1)"
+    a_jenj_tinggi:
+      type: integer
+      example: 1
+      description: "Flag jenjang Tinggi (0/1)"
+    dir_bina:
+      type: string
+      example: "Dikti"
+    a_aktif:
+      type: integer
+      example: 1
+      description: "Status aktif (0/1)"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# BIDANG SCHEMAS
+# =============================================================================
+
+BidangKerjasama:
+  type: object
+  properties:
+    id_bid_kerjasama:
+      type: integer
+      example: 1
+    nm_bid_kerjasama:
+      type: string
+      example: "Penelitian"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangPekerjaan:
+  type: object
+  properties:
+    id_bid_kerja:
+      type: integer
+      example: 1
+    nm_bid_kerja:
+      type: string
+      example: "Pendidikan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangStudi:
+  type: object
+  properties:
+    id_bid_studi:
+      type: integer
+      example: 1
+    id_induk_bidang_studi:
+      type: integer
+      nullable: true
+      example: null
+    kode_bid_studi:
+      type: string
+      example: "01"
+    nm_bid_studi:
+      type: string
+      example: "Teknik Informatika"
+    a_kel:
+      type: integer
+      example: 0
+    a_jenj_paud:
+      type: integer
+      example: 0
+    a_jenj_tk:
+      type: integer
+      example: 0
+    a_jenj_sd:
+      type: integer
+      example: 0
+    a_jenj_smp:
+      type: integer
+      example: 0
+    a_jenj_sma:
+      type: integer
+      example: 0
+    a_jenj_tinggi:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangUsaha:
+  type: object
+  properties:
+    id_bu:
+      type: string
+      example: "01"
+    nm_bu:
+      type: string
+      example: "Jasa Pendidikan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# TINGKAT SCHEMAS
+# =============================================================================
+
+TingkatKerjasama:
+  type: object
+  properties:
+    id_tingkat_kerjasama:
+      type: integer
+      example: 1
+    nm_tingkat_kerjasama:
+      type: string
+      example: "Internasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+TingkatPenghargaan:
+  type: object
+  properties:
+    id_tkt_penghargaan:
+      type: integer
+      example: 1
+    nm_tkt_penghargaan:
+      type: string
+      example: "Nasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+TingkatPrestasi:
+  type: object
+  properties:
+    id_tkt_prestasi:
+      type: integer
+      example: 1
+    nm_tkt_prestasi:
+      type: string
+      example: "Internasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# SUMBER SCHEMAS
+# =============================================================================
+
+SumberAir:
+  type: object
+  properties:
+    id_sumber_air:
+      type: integer
+      example: 1
+    nm_sumber_air:
+      type: string
+      example: "PDAM"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberDana:
+  type: object
+  properties:
+    id_sumber_dana:
+      type: integer
+      example: 1
+    nm_sumber_dana:
+      type: string
+      example: "APBN"
+    u_blockgrant:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk blockgrant (0/1)"
+    u_beasiswa:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk beasiswa (0/1)"
+    u_lit:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk penelitian (0/1)"
+    u_unit_usaha:
+      type: integer
+      example: 0
+      description: "Flag penggunaan untuk unit usaha (0/1)"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberGaji:
+  type: object
+  properties:
+    id_sumber_gaji:
+      type: integer
+      example: 1
+    nm_sumber_gaji:
+      type: string
+      example: "APBN"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberListrik:
+  type: object
+  properties:
+    id_sumber_listrik:
+      type: integer
+      example: 1
+    nm_sumber_listrik:
+      type: string
+      example: "PLN"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# PETA SCHEMAS
+# =============================================================================
+
+PetaKatgiatJabfung:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jabfung:
+      type: integer
+      example: 1
+      description: "ID jabatan fungsional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+PetaKatgiatJnsdok:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jns_dok:
+      type: integer
+      example: 1
+      description: "ID jenis dokumen"
+    a_wajib:
+      type: integer
+      example: 1
+      description: "Flag dokumen wajib (0/1)"
+    no_urut:
+      type: integer
+      example: 1
+      description: "Nomor urut dokumen"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+PetaKatgiatJnspub:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jns_pub:
+      type: integer
+      example: 1
+      description: "ID jenis publikasi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
