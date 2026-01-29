@@ -1,6 +1,8 @@
 package main
 
 import (
+	// "database/sql"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,11 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
-	"github.com/myunila/api-service/external/database"
+	// "github.com/myunila/api-service/external/database"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
 )
@@ -39,6 +42,8 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
 
+var endpointPrefix string
+
 func main() {
 	// Load configuration
 	if err := config.LoadConfig(); err != nil {
@@ -49,21 +54,28 @@ func main() {
 	log.Printf("📝 App Name: %s", config.Cfg.App.Name)
 	log.Printf("🌍 Environment: %s", config.Cfg.App.Env)
 
-	// Connect to database
-	db, err := database.ConnectSQLServer(database.DatabaseConfig{
-		Driver:          config.Cfg.Database.Driver,
-		Host:            config.Cfg.Database.Host,
-		Port:            config.Cfg.Database.Port,
-		User:            config.Cfg.Database.User,
-		Password:        config.Cfg.Database.Password,
-		Name:            config.Cfg.Database.Name,
-		MaxOpenConns:    config.Cfg.Database.MaxOpenConns,
-		MaxIdleConns:    config.Cfg.Database.MaxIdleConns,
-		ConnMaxLifetime: config.Cfg.Database.ConnMaxLifetime,
-	})
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+	if config.Cfg.App.Env == "production" {
+		endpointPrefix = "live"
+	} else {
+		endpointPrefix = "dev"
 	}
+
+	// Connect to database
+	// db, err := database.ConnectSQLServer(database.DatabaseConfig{
+	// 	Driver:          config.Cfg.Database.Driver,
+	// 	Host:            config.Cfg.Database.Host,
+	// 	Port:            config.Cfg.Database.Port,
+	// 	User:            config.Cfg.Database.User,
+	// 	Password:        config.Cfg.Database.Password,
+	// 	Name:            config.Cfg.Database.Name,
+	// 	MaxOpenConns:    config.Cfg.Database.MaxOpenConns,
+	// 	MaxIdleConns:    config.Cfg.Database.MaxIdleConns,
+	// 	ConnMaxLifetime: config.Cfg.Database.ConnMaxLifetime,
+	// })
+	// if err != nil {
+	// 	log.Fatal("Failed to connect to database:", err)
+	// }
+	db := new(sqlx.DB)
 	defer db.Close()
 	log.Println("✅ Database connected successfully")
 
@@ -127,7 +139,7 @@ func main() {
 
 	// API routes - menggunakan /v1 tanpa /api prefix
 	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
-	apiV1 := app.Group("/v1")
+	apiV1 := app.Group(fmt.Sprintf("/%s/v1", endpointPrefix))
 
 	// Initialize Auth module (public - tanpa auth)
 	auth.Init(apiV1, db)
