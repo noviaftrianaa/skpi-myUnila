@@ -4,6 +4,10 @@ info:
   description: |
     Layanan API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
+    **Path Prefix:**
+    - Development: `/dev/v1/...`
+    - Production: `/live/v1/...`
+
     Untuk permintaan penambahan endpoint atau kustomisasi API, silakan hubungi tim pengembang melalui email tertera.
   version: 1.0.0
   contact:
@@ -11,9 +15,9 @@ info:
     email: dev@unila.ac.id
 
 servers:
-  - url: http://localhost:8085
+  - url: http://localhost:8085/dev
     description: Local Development
-  - url: https://my.unila.ac.id/gateway/api-service
+  - url: https://my.unila.ac.id/gateway/api-service/live
     description: Production Server
 
 tags:
