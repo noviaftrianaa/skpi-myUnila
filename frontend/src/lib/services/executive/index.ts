@@ -7,10 +7,24 @@
 export { executiveAkreditasiService } from './akreditasiService';
 export type {
   JenjangList,
-  Fakultas,
-  Prodi,
+  Fakultas as AkreditasiFakultas,
+  Prodi as AkreditasiProdi,
   AkreditasiHistory,
   AkreditasiSummary,
+  GetFakultasParams as GetAkreditasiFakultasParams,
+  GetProdiParams as GetAkreditasiProdiParams,
+} from './akreditasiService';
+
+export { executiveRasioService } from './rasioService';
+export type {
+  TahunAjaran,
+  Fakultas,
+  Prodi,
+  Mahasiswa,
+  Dosen,
+  PaginationResponse,
   GetFakultasParams,
   GetProdiParams,
-} from './akreditasiService';
+  GetDataMahasiswaParams,
+  GetDataDosenParams,
+} from './rasioService';

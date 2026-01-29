@@ -1,42 +1,176 @@
-import { Tabs, Tab, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+"use client";
+
+import { useState } from "react";
+import { Tabs, Tab } from "@heroui/react";
 import { FiUsers, FiUserPlus } from "react-icons/fi";
 import Modal from "../Modal";
-import { dummyFakultas, dummyProdi } from "./dummyData";
-import type { Mahasiswa, Dosen } from "./dummyData";
+import DataTable, { type Column } from "@/shared/components/ui/DataTable";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import {
+  executiveRasioService,
+  type Mahasiswa,
+  type Dosen,
+} from "@/lib/services/executive";
+import Link from "next/link";
 
+// Types compatible with service
 interface RasioDataModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedFakultas: string;
+  selectedFakultasName?: string;
   selectedProdi: string;
-  mahasiswaData: Mahasiswa[];
-  dosenData: Dosen[];
+  selectedProdiName?: string;
+  selectedTahunAjaran: string;
 }
 
 export const RasioDataModal = ({
   isOpen,
   onClose,
   selectedFakultas,
+  selectedFakultasName,
   selectedProdi,
-  mahasiswaData,
-  dosenData,
+  selectedProdiName,
+  selectedTahunAjaran,
 }: RasioDataModalProps) => {
-  // Get title based on selection
-  const getTitle = () => {
-    if (selectedProdi) {
-      const prodi = dummyProdi.find((p) => p.id === selectedProdi);
-      return prodi?.nama_prodi || "Program Studi";
-    }
+  // Mahasiswa pagination state
+  const [mahasiswaPagination, setMahasiswaPagination] = useState({
+    page: 1,
+    perPage: 10,
+    search: "",
+  });
 
-    if (selectedFakultas) {
-      const fakultas = dummyFakultas.find((f) => f.id === selectedFakultas);
-      return fakultas?.nama_fakultas || "Fakultas";
-    }
+  // Dosen pagination state
+  const [dosenPagination, setDosenPagination] = useState({
+    page: 1,
+    perPage: 10,
+    search: "",
+  });
 
+  const [activeTab, setActiveTab] = useState<"mahasiswa" | "dosen">(
+    "mahasiswa",
+  );
+
+  // Fetch mahasiswa data with useQuery
+  const { data: mahasiswaResponse, isLoading: isLoadingMahasiswa } = useQuery({
+    queryKey: [
+      "rasio",
+      "mahasiswa",
+      selectedTahunAjaran,
+      selectedProdi ? undefined : selectedFakultas,
+      selectedProdi,
+      mahasiswaPagination.page,
+      mahasiswaPagination.perPage,
+      mahasiswaPagination.search,
+    ],
+    queryFn: () =>
+      executiveRasioService.getDataMahasiswa({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: selectedProdi ? undefined : selectedFakultas || undefined,
+        prodi_id: selectedProdi || undefined,
+        per_page: mahasiswaPagination.perPage,
+        page: mahasiswaPagination.page,
+        search: mahasiswaPagination.search || undefined,
+      }),
+    enabled: isOpen && activeTab === "mahasiswa",
+    placeholderData: keepPreviousData,
+  });
+
+  // Fetch dosen data with useQuery
+  const { data: dosenResponse, isLoading: isLoadingDosen } = useQuery({
+    queryKey: [
+      "rasio",
+      "dosen",
+      selectedTahunAjaran,
+      selectedProdi ? undefined : selectedFakultas,
+      selectedProdi,
+      dosenPagination.page,
+      dosenPagination.perPage,
+      dosenPagination.search,
+    ],
+    queryFn: () =>
+      executiveRasioService.getDataDosen({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: selectedProdi ? undefined : selectedFakultas || undefined,
+        prodi_id: selectedProdi || undefined,
+        per_page: dosenPagination.perPage,
+        page: dosenPagination.page,
+        search: dosenPagination.search || undefined,
+      }),
+    enabled: isOpen && activeTab === "dosen",
+    placeholderData: keepPreviousData,
+  });
+
+  const mahasiswaData = mahasiswaResponse?.data || [];
+  const mahasiswaTotal = mahasiswaResponse?.pagination?.total || 0;
+
+  const dosenData = dosenResponse?.data || [];
+  const dosenTotal = dosenResponse?.pagination?.total || 0;
+
+  // Define columns for Mahasiswa
+  const mahasiswaColumns: Column<Mahasiswa>[] = [
+    { key: "nim", label: "NIM" },
+    {
+      key: "nama",
+      label: "Nama",
+      render: (item) => (
+        <Link
+          href={`/mahasiswa/${item.encrypted_id || item.id}`}
+          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors text-[10px] sm:text-xs md:text-sm"
+        >
+          {item.nama}
+        </Link>
+      ),
+    },
+    { key: "prodi", label: "Program Studi" },
+    { key: "fakultas", label: "Fakultas" },
+    { key: "angkatan", label: "Angkatan" },
+  ];
+
+  // Define columns for Dosen
+  const dosenColumns: Column<Dosen>[] = [
+    { key: "nidn", label: "NIDN" },
+    {
+      key: "nama",
+      label: "Nama",
+      render: (item) => (
+        <Link
+          href={`/dosen/${item.encrypted_id || item.id}`}
+          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors text-[10px] sm:text-xs md:text-sm"
+        >
+          {item.nama}
+        </Link>
+      ),
+    },
+    { key: "prodi", label: "Program Studi" },
+    { key: "fakultas", label: "Fakultas" },
+    {
+      key: "status",
+      label: "Status",
+      render: (dsn) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            dsn.status === "PNS"
+              ? "bg-green-100 text-green-700"
+              : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          {dsn.status}
+        </span>
+      ),
+    },
+  ];
+
+  // Get subtitle based on selection
+  const getSubtitle = () => {
+    if (selectedProdi && selectedProdiName) {
+      return `Program Studi: ${selectedProdiName}`;
+    }
+    if (selectedFakultas && selectedFakultasName) {
+      return `Fakultas: ${selectedFakultasName}`;
+    }
     return "Semua Fakultas";
   };
-
-  const title = getTitle();
 
   return (
     <Modal
@@ -45,7 +179,7 @@ export const RasioDataModal = ({
       size="full"
       title="Data Detail"
       titleIcon={<FiUsers className="w-5 h-5" />}
-      subtitle={title}
+      subtitle={getSubtitle()}
     >
       <Tabs
         color="primary"
@@ -53,6 +187,8 @@ export const RasioDataModal = ({
         classNames={{
           panel: "pt-6",
         }}
+        selectedKey={activeTab}
+        onSelectionChange={(key) => setActiveTab(key as "mahasiswa" | "dosen")}
       >
         <Tab
           key="mahasiswa"
@@ -61,31 +197,34 @@ export const RasioDataModal = ({
               <FiUsers className="w-4 h-4" />
               <span>Mahasiswa</span>
               <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">
-                {mahasiswaData.length}
+                {mahasiswaTotal}
               </span>
             </div>
           }
         >
-          <Table aria-label="Tabel Mahasiswa">
-            <TableHeader>
-              <TableColumn>NIM</TableColumn>
-              <TableColumn>Nama</TableColumn>
-              <TableColumn>Program Studi</TableColumn>
-              <TableColumn>Fakultas</TableColumn>
-              <TableColumn>Angkatan</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent="Tidak ada data mahasiswa">
-              {mahasiswaData.slice(0, 100).map((mhs) => (
-                <TableRow key={mhs.id}>
-                  <TableCell>{mhs.nim}</TableCell>
-                  <TableCell>{mhs.nama}</TableCell>
-                  <TableCell>{mhs.prodi}</TableCell>
-                  <TableCell>{mhs.fakultas}</TableCell>
-                  <TableCell>{mhs.angkatan}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={mahasiswaData}
+            columns={mahasiswaColumns}
+            searchPlaceholder="Cari mahasiswa..."
+            defaultRowsPerPage={10}
+            emptyMessage="Tidak ada data mahasiswa"
+            serverSide
+            totalRecords={mahasiswaTotal}
+            onPageChange={(page) =>
+              setMahasiswaPagination((prev) => ({ ...prev, page }))
+            }
+            onRowsPerPageChange={(rows) =>
+              setMahasiswaPagination((prev) => ({
+                ...prev,
+                perPage: rows,
+                page: 1,
+              }))
+            }
+            onSearchChange={(search) =>
+              setMahasiswaPagination((prev) => ({ ...prev, search, page: 1 }))
+            }
+            loading={isLoadingMahasiswa}
+          />
         </Tab>
 
         <Tab
@@ -95,41 +234,34 @@ export const RasioDataModal = ({
               <FiUserPlus className="w-4 h-4" />
               <span>Dosen</span>
               <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">
-                {dosenData.length}
+                {dosenTotal}
               </span>
             </div>
           }
         >
-          <Table aria-label="Tabel Dosen">
-            <TableHeader>
-              <TableColumn>NIDN</TableColumn>
-              <TableColumn>Nama</TableColumn>
-              <TableColumn>Program Studi</TableColumn>
-              <TableColumn>Fakultas</TableColumn>
-              <TableColumn>Status</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent="Tidak ada data dosen">
-              {dosenData.slice(0, 100).map((dsn) => (
-                <TableRow key={dsn.id}>
-                  <TableCell>{dsn.nidn}</TableCell>
-                  <TableCell>{dsn.nama}</TableCell>
-                  <TableCell>{dsn.prodi}</TableCell>
-                  <TableCell>{dsn.fakultas}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        dsn.status === "PNS"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {dsn.status}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={dosenData}
+            columns={dosenColumns}
+            searchPlaceholder="Cari dosen..."
+            defaultRowsPerPage={10}
+            emptyMessage="Tidak ada data dosen"
+            serverSide
+            totalRecords={dosenTotal}
+            onPageChange={(page) =>
+              setDosenPagination((prev) => ({ ...prev, page }))
+            }
+            onRowsPerPageChange={(rows) =>
+              setDosenPagination((prev) => ({
+                ...prev,
+                perPage: rows,
+                page: 1,
+              }))
+            }
+            onSearchChange={(search) =>
+              setDosenPagination((prev) => ({ ...prev, search, page: 1 }))
+            }
+            loading={isLoadingDosen}
+          />
         </Tab>
       </Tabs>
     </Modal>

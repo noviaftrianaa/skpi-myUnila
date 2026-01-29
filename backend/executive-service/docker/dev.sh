@@ -3,9 +3,13 @@
 # ============================================================================
 # MyUnila Executive Service - Development Script
 # Script untuk menjalankan executive service dengan hot reload di development
+# Menggunakan docker-compose.dev.yml (port 9000)
 # ============================================================================
 
 set -e
+
+# Docker compose file untuk development
+COMPOSE_FILE="docker-compose.dev.yml"
 
 # Warna untuk output
 RED='\033[0;31m'
@@ -45,39 +49,40 @@ check_network() {
 
 # Function untuk build dan start service
 start_service() {
-    print_info "Starting Executive Service..."
+    print_info "Starting Executive Service (Development)..."
     check_network
-    docker-compose --env-file .env up -d --build
-    print_success "Executive Service started!"
-    print_info "Container name: myunila-executive-service"
+    docker-compose -f "$COMPOSE_FILE" --env-file .env up -d --build
+    print_success "Executive Service (Development) started!"
+    print_info "Container name: myunila-executive-service-dev"
+    print_info "Port: 9000"
     print_info "View logs: $0 logs"
     print_info "Stop service: $0 stop"
 }
 
 # Function untuk stop service
 stop_service() {
-    print_info "Stopping Executive Service..."
-    docker-compose down
-    print_success "Executive Service stopped!"
+    print_info "Stopping Executive Service (Development)..."
+    docker-compose -f "$COMPOSE_FILE" down
+    print_success "Executive Service (Development) stopped!"
 }
 
 # Function untuk restart service
 restart_service() {
-    print_info "Restarting Executive Service..."
-    docker-compose restart
-    print_success "Executive Service restarted!"
+    print_info "Restarting Executive Service (Development)..."
+    docker-compose -f "$COMPOSE_FILE" restart
+    print_success "Executive Service (Development) restarted!"
 }
 
 # Function untuk view logs
 view_logs() {
     print_info "Showing logs (Ctrl+C to exit)..."
-    docker-compose logs -f executive-service
+    docker-compose -f "$COMPOSE_FILE" logs -f executive-service-dev
 }
 
 # Function untuk exec ke container
 exec_container() {
     print_info "Entering container shell..."
-    docker-compose exec executive-service /bin/bash
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev /bin/bash
 }
 
 # Function untuk run artisan command
@@ -89,7 +94,7 @@ artisan() {
         exit 1
     fi
     print_info "Running artisan command: artisan $@"
-    docker-compose exec executive-service php artisan "$@"
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan "$@"
 }
 
 # Function untuk run composer
@@ -101,22 +106,22 @@ composer() {
         exit 1
     fi
     print_info "Running composer command: composer $@"
-    docker-compose exec executive-service composer "$@"
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev composer "$@"
 }
 
 # Function untuk run tests
 run_tests() {
     print_info "Running tests..."
-    docker-compose exec executive-service php artisan test --parallel
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan test --parallel
 }
 
 # Function untuk clear cache
 clear_cache() {
     print_info "Clearing application cache..."
-    docker-compose exec executive-service php artisan cache:clear
-    docker-compose exec executive-service php artisan config:clear
-    docker-compose exec executive-service php artisan route:clear
-    docker-compose exec executive-service php artisan view:clear
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan cache:clear
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan config:clear
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan route:clear
+    docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan view:clear
     print_success "Cache cleared!"
 }
 
@@ -126,7 +131,7 @@ fresh_migration() {
     read -p "Are you sure? (yes/no): " confirm
     if [ "$confirm" = "yes" ]; then
         print_info "Running fresh migration..."
-        docker-compose exec executive-service php artisan migrate:fresh --seed
+        docker-compose -f "$COMPOSE_FILE" exec executive-service-dev php artisan migrate:fresh --seed
         print_success "Migration completed!"
     else
         print_info "Migration cancelled"
@@ -135,21 +140,23 @@ fresh_migration() {
 
 # Function untuk check status
 check_status() {
-    print_info "Checking service status..."
-    docker-compose ps
+    print_info "Checking service status (Development)..."
+    docker-compose -f "$COMPOSE_FILE" ps
 }
 
 # Function untuk rebuild service
 rebuild_service() {
-    print_info "Rebuilding Executive Service..."
-    docker-compose build --no-cache
-    docker-compose up -d
-    print_success "Executive Service rebuilt!"
+    print_info "Rebuilding Executive Service (Development)..."
+    docker-compose -f "$COMPOSE_FILE" build --no-cache
+    docker-compose -f "$COMPOSE_FILE" up -d
+    print_success "Executive Service (Development) rebuilt!"
 }
 
 # Function untuk show help
 show_help() {
     echo "MyUnila Executive Service - Development Script"
+    echo ""
+    echo "Using: docker-compose.dev.yml (Port 9000)"
     echo ""
     echo "Usage: $0 [command]"
     echo ""
@@ -169,7 +176,7 @@ show_help() {
     echo "  help            Show this help message"
     echo ""
     echo "Hot Reload Info:"
-    echo "  Changes to app/, routes/, config/ will be reflected immediately"
+    echo "  Changes to all source files will be reflected immediately"
     echo "  No need to rebuild when modifying source code"
     echo ""
 }

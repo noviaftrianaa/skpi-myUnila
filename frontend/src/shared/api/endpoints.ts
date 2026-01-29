@@ -83,6 +83,16 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: '/user/change-password',
   },
 
+  // Executive Service - Rasio endpoints
+  RASIO: {
+    FAKULTAS: '/rasio/fakultas',
+    FAKULTAS_PRODI: (idProdi: string) => `/rasio/fakultas/${idProdi}`,
+    DATA_MAHASISWA: '/rasio/data/mahasiswa',
+    DATA_DOSEN: '/rasio/data/dosen',
+    MASTER_FAKULTAS: '/rasio/master/fakultas',
+    MASTER_TAHUN_AJARAN: '/rasio/master/tahun-ajaran',
+  },
+
   // Health check
   HEALTH: '/health',
 } as const;

@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Button,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+import { Alert, Select, SelectItem } from "@heroui/react";
 import { FiBarChart2 } from "react-icons/fi";
-import { dummyFakultas, dummyProdi } from "@/shared/components/pimpinan/rasio/dummyData";
+import { useQuery } from "@tanstack/react-query";
+import { executiveRasioService } from "@/lib/services/executive";
 import { RasioStatsCard } from "@/shared/components/pimpinan/rasio/RasioStatsCard";
 import { RasioChart } from "@/shared/components/pimpinan/rasio/RasioChart";
 import { RasioDataModal } from "@/shared/components/pimpinan/rasio/RasioDataModal";
@@ -18,14 +15,57 @@ import { RasioDataModal } from "@/shared/components/pimpinan/rasio/RasioDataModa
 // ========================================
 
 export default function RasioPage() {
+  const [selectedTahunAjaran, setSelectedTahunAjaran] = useState<string>("");
   const [selectedFakultas, setSelectedFakultas] = useState<string>("");
   const [selectedProdi, setSelectedProdi] = useState<string>("");
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
 
+  // Fetch tahun ajaran list
+  const { data: tahunAjaranList = [], isLoading: isLoadingTahunAjaran } =
+    useQuery({
+      queryKey: ["rasio", "tahun-ajaran"],
+      queryFn: () => executiveRasioService.getTahunAjaranList(),
+    });
+
+  // Auto-select tahun ajaran terbaru saat pertama kali load
+  useEffect(() => {
+    if (tahunAjaranList.length > 0 && !selectedTahunAjaran) {
+      setSelectedTahunAjaran(tahunAjaranList[0].id_smt);
+    }
+  }, [tahunAjaranList, selectedTahunAjaran]);
+
+  // Fetch fakultas list
+  const { data: fakultasList = [], isLoading: isLoadingFakultas } = useQuery({
+    queryKey: ["rasio", "fakultas", selectedTahunAjaran],
+    queryFn: () =>
+      executiveRasioService.getFakultas({
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedTahunAjaran,
+  });
+
+  // Fetch prodi list
+  const { data: prodiList = [], isLoading: isLoadingProdi } = useQuery({
+    queryKey: ["rasio", "prodi", selectedFakultas, selectedTahunAjaran],
+    queryFn: () =>
+      executiveRasioService.getProdiByFakultas({
+        idFakultas: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran,
+  });
+
+  // Handle tahun ajaran change
+  const handleTahunAjaranChange = (value: string) => {
+    setSelectedTahunAjaran(value);
+    setSelectedFakultas("");
+    setSelectedProdi("");
+  };
+
   // Handle fakultas change
   const handleFakultasChange = (value: string) => {
     setSelectedFakultas(value);
-    setSelectedProdi(""); // Reset prodi when fakultas changes
+    setSelectedProdi("");
   };
 
   // Handle prodi change
@@ -36,12 +76,13 @@ export default function RasioPage() {
   // Get chart data based on selection
   const getChartData = () => {
     if (selectedProdi) {
-      // Show specific prodi data
-      const prodi = dummyProdi.find((p) => p.id === selectedProdi);
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
       if (prodi) {
         return [
           {
-            name: prodi.nama_prodi,
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
             dosen: prodi.jumlah_dosen,
             mahasiswa: prodi.jumlah_mahasiswa,
             rasio: prodi.rasio,
@@ -51,20 +92,20 @@ export default function RasioPage() {
     }
 
     if (selectedFakultas) {
-      // Show all prodi in selected fakultas
-      return dummyProdi
-        .filter((p) => p.fakultas_id === selectedFakultas)
-        .map((p) => ({
-          name: p.nama_prodi.substring(0, 20) + (p.nama_prodi.length > 20 ? "..." : ""),
-          dosen: p.jumlah_dosen,
-          mahasiswa: p.jumlah_mahasiswa,
-          rasio: p.rasio,
-        }));
+      return prodiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        dosen: p.jumlah_dosen,
+        mahasiswa: p.jumlah_mahasiswa,
+        rasio: p.rasio,
+      }));
     }
 
-    // Show all fakultas
-    return dummyFakultas.map((f) => ({
-      name: f.nama_fakultas.substring(0, 20) + (f.nama_fakultas.length > 20 ? "..." : ""),
+    return fakultasList.map((f) => ({
+      name:
+        f.nama_fakultas.substring(0, 20) +
+        (f.nama_fakultas.length > 20 ? "..." : ""),
       dosen: f.total_dosen,
       mahasiswa: f.total_mahasiswa,
       rasio: f.rasio,
@@ -74,7 +115,7 @@ export default function RasioPage() {
   // Get stats based on selection
   const getStats = () => {
     if (selectedProdi) {
-      const prodi = dummyProdi.find((p) => p.id === selectedProdi);
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
       return {
         totalDosen: prodi?.jumlah_dosen || 0,
         totalMahasiswa: prodi?.jumlah_mahasiswa || 0,
@@ -83,7 +124,7 @@ export default function RasioPage() {
     }
 
     if (selectedFakultas) {
-      const fakultas = dummyFakultas.find((f) => f.id === selectedFakultas);
+      const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
       return {
         totalDosen: fakultas?.total_dosen || 0,
         totalMahasiswa: fakultas?.total_mahasiswa || 0,
@@ -91,49 +132,29 @@ export default function RasioPage() {
       };
     }
 
-    // Show all fakultas stats
     return {
-      totalDosen: dummyFakultas.reduce((sum, f) => sum + f.total_dosen, 0),
-      totalMahasiswa: dummyFakultas.reduce((sum, f) => sum + f.total_mahasiswa, 0),
-      rasio: "1:35",
+      totalDosen: fakultasList.reduce((sum, f) => sum + f.total_dosen, 0),
+      totalMahasiswa: fakultasList.reduce(
+        (sum, f) => sum + f.total_mahasiswa,
+        0,
+      ),
+      rasio: fakultasList.length > 0 ? fakultasList[0].rasio : "0:0",
     };
   };
 
-  // Get filtered data for tables
-  const getFilteredMahasiswaData = () => {
-    if (selectedProdi) {
-      const prodi = dummyProdi.find((p) => p.id === selectedProdi);
-      return prodi?.detail_mahasiswa || [];
-    }
-
-    if (selectedFakultas) {
-      return dummyProdi
-        .filter((p) => p.fakultas_id === selectedFakultas)
-        .flatMap((p) => p.detail_mahasiswa);
-    }
-
-    return dummyProdi.flatMap((p) => p.detail_mahasiswa);
-  };
-
-  const getFilteredDosenData = () => {
-    if (selectedProdi) {
-      const prodi = dummyProdi.find((p) => p.id === selectedProdi);
-      return prodi?.detail_dosen || [];
-    }
-
-    if (selectedFakultas) {
-      return dummyProdi
-        .filter((p) => p.fakultas_id === selectedFakultas)
-        .flatMap((p) => p.detail_dosen);
-    }
-
-    return dummyProdi.flatMap((p) => p.detail_dosen);
+  // Handle modal open
+  const handleLihatData = () => {
+    setIsDataModalOpen(true);
   };
 
   const chartData = getChartData();
   const stats = getStats();
-  const mahasiswaData = getFilteredMahasiswaData();
-  const dosenData = getFilteredDosenData();
+
+  // Get selected names for modal subtitle
+  const selectedFakultasName =
+    fakultasList.find((f) => f.id === selectedFakultas)?.nama_fakultas || "";
+  const selectedProdiName =
+    prodiList.find((p) => p.id === selectedProdi)?.nama_prodi || "";
 
   return (
     <>
@@ -153,58 +174,105 @@ export default function RasioPage() {
               </h1>
             </div>
             <p className="text-gray-600 ml-11">
-              Analisis rasio dosen terhadap mahasiswa per fakultas dan program studi
+              Analisis rasio dosen terhadap mahasiswa per fakultas dan program
+              studi
             </p>
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-6 mb-6 bg-white shadow-sm rounded-xl">
+            <Alert
+              color="warning"
+              className="mb-6 bg-yellow-500 rounded-xl"
+              title="Perhatian"
+            >
+              <p className="text-black">
+                Silahkan pilih tahun ajaran, fakultas, dan prodi di bawah ini!
+              </p>
+            </Alert>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {/* Select Tahun Ajaran */}
+              <Select
+                // label="Tahun Ajaran"
+                placeholder="Pilih tahun ajaran"
+                selectedKeys={selectedTahunAjaran ? [selectedTahunAjaran] : []}
+                onSelectionChange={(keys) => {
+                  const value = Array.from(keys)[0] as string;
+                  handleTahunAjaranChange(value);
+                }}
+                variant="flat"
+                labelPlacement="outside"
+                isLoading={isLoadingTahunAjaran}
+                classNames={{
+                  base: "flex-1 min-w-[180px]",
+                  trigger:
+                    "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                  label: "text-gray-700 font-medium text-sm",
+                  value: "text-slate-700 font-semibold text-sm",
+                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  innerWrapper: "text-slate-700",
+                }}
+              >
+                {tahunAjaranList.map((ta) => (
+                  <SelectItem key={ta.id_smt}>{ta.nm_smt}</SelectItem>
+                ))}
+              </Select>
+
               {/* Select Fakultas */}
               <Select
-                label="Fakultas"
                 placeholder="Pilih fakultas"
                 selectedKeys={selectedFakultas ? [selectedFakultas] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string;
                   handleFakultasChange(value);
                 }}
-                variant="bordered"
+                variant="flat"
+                labelPlacement="outside"
+                isDisabled={!selectedTahunAjaran || isLoadingFakultas}
+                isLoading={isLoadingFakultas}
                 classNames={{
-                  trigger: "h-12",
+                  base: "flex-1 min-w-[180px]",
+                  trigger:
+                    "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                  label: "text-gray-700 font-medium text-sm",
+                  value: "text-slate-700 font-semibold text-sm",
+                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  innerWrapper: "text-slate-700",
                 }}
               >
-                {dummyFakultas.map((fakultas) => (
-                  <SelectItem key={fakultas.id} value={fakultas.id}>
+                {fakultasList.map((fakultas) => (
+                  <SelectItem key={fakultas.id}>
                     {fakultas.nama_fakultas}
                   </SelectItem>
                 ))}
               </Select>
 
               {/* Select Prodi */}
-              {selectedFakultas && (
-                <Select
-                  label="Program Studi"
-                  placeholder="Pilih program studi"
-                  selectedKeys={selectedProdi ? [selectedProdi] : []}
-                  onSelectionChange={(keys) => {
-                    const value = Array.from(keys)[0] as string;
-                    handleProdiChange(value);
-                  }}
-                  variant="bordered"
-                  classNames={{
-                    trigger: "h-12",
-                  }}
-                >
-                  {dummyProdi
-                    .filter((p) => p.fakultas_id === selectedFakultas)
-                    .map((prodi) => (
-                      <SelectItem key={prodi.id} value={prodi.id}>
-                        {prodi.nama_prodi}
-                      </SelectItem>
-                    ))}
-                </Select>
-              )}
+              <Select
+                placeholder="Pilih Prodi"
+                selectedKeys={selectedProdi ? [selectedProdi] : []}
+                onSelectionChange={(keys) => {
+                  const value = Array.from(keys)[0] as string;
+                  handleProdiChange(value);
+                }}
+                variant="flat"
+                labelPlacement="outside"
+                isDisabled={!selectedFakultas || isLoadingProdi}
+                isLoading={isLoadingProdi}
+                classNames={{
+                  base: "flex-1 min-w-[180px]",
+                  trigger:
+                    "h-12 bg-white shadow-sm hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                  label: "text-gray-700 font-medium text-sm",
+                  selectorIcon: "text-gray-500",
+                  value: "text-gray-900 text-sm font-medium",
+                  popoverContent: "bg-white rounded-lg shadow-xl",
+                }}
+              >
+                {prodiList.map((prodi) => (
+                  <SelectItem key={prodi.id}>{prodi.nama_prodi}</SelectItem>
+                ))}
+              </Select>
             </div>
           </div>
 
@@ -231,10 +299,7 @@ export default function RasioPage() {
           </div>
 
           {/* Chart Card */}
-          <RasioChart
-            data={chartData}
-            onLihatData={() => setIsDataModalOpen(true)}
-          />
+          <RasioChart data={chartData} onLihatData={handleLihatData} />
         </motion.div>
       </div>
 
@@ -242,10 +307,11 @@ export default function RasioPage() {
       <RasioDataModal
         isOpen={isDataModalOpen}
         onClose={() => setIsDataModalOpen(false)}
+        selectedTahunAjaran={selectedTahunAjaran}
         selectedFakultas={selectedFakultas}
+        selectedFakultasName={selectedFakultasName}
         selectedProdi={selectedProdi}
-        mahasiswaData={mahasiswaData}
-        dosenData={dosenData}
+        selectedProdiName={selectedProdiName}
       />
     </>
   );
