@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -12,12 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
-	// "github.com/myunila/api-service/external/database"
+	"github.com/myunila/api-service/external/database"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
 )
@@ -61,21 +59,20 @@ func main() {
 	}
 
 	// Connect to database
-	// db, err := database.ConnectSQLServer(database.DatabaseConfig{
-	// 	Driver:          config.Cfg.Database.Driver,
-	// 	Host:            config.Cfg.Database.Host,
-	// 	Port:            config.Cfg.Database.Port,
-	// 	User:            config.Cfg.Database.User,
-	// 	Password:        config.Cfg.Database.Password,
-	// 	Name:            config.Cfg.Database.Name,
-	// 	MaxOpenConns:    config.Cfg.Database.MaxOpenConns,
-	// 	MaxIdleConns:    config.Cfg.Database.MaxIdleConns,
-	// 	ConnMaxLifetime: config.Cfg.Database.ConnMaxLifetime,
-	// })
-	// if err != nil {
-	// 	log.Fatal("Failed to connect to database:", err)
-	// }
-	db := new(sqlx.DB)
+	db, err := database.ConnectSQLServer(database.DatabaseConfig{
+		Driver:          config.Cfg.Database.Driver,
+		Host:            config.Cfg.Database.Host,
+		Port:            config.Cfg.Database.Port,
+		User:            config.Cfg.Database.User,
+		Password:        config.Cfg.Database.Password,
+		Name:            config.Cfg.Database.Name,
+		MaxOpenConns:    config.Cfg.Database.MaxOpenConns,
+		MaxIdleConns:    config.Cfg.Database.MaxIdleConns,
+		ConnMaxLifetime: config.Cfg.Database.ConnMaxLifetime,
+	})
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
 	defer db.Close()
 	log.Println("✅ Database connected successfully")
 
