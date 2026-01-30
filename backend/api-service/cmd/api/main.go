@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -43,6 +45,8 @@ import (
 var endpointPrefix string
 
 func main() {
+	startTime := time.Now()
+
 	// Load configuration
 	if err := config.LoadConfig(); err != nil {
 		log.Fatal("Failed to load config:", err)
@@ -89,6 +93,9 @@ func main() {
 		AppName:      config.Cfg.App.Name,
 		ServerHeader: "MyUnila API Service",
 		ErrorHandler: customErrorHandler,
+		ReadTimeout:  time.Second * 30,
+		WriteTimeout: time.Second * 30,
+		IdleTimeout:  time.Second * 120,
 	})
 
 	// Middlewares
@@ -111,10 +118,24 @@ func main() {
 
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
+		dbHealth := "up"
+		if err := db.Ping(); err != nil {
+			dbHealth = "down"
+		}
+
+		redisHealth := "up"
+		if err := redis.Client.Ping(context.Background()).Err(); err != nil {
+			redisHealth = "down"
+		}
+
 		return c.JSON(fiber.Map{
 			"status":  "ok",
-			"service": config.Cfg.App.Name,
 			"version": "1.0.0",
+			"uptime":  time.Since(startTime).String(),
+			"dependencies": fiber.Map{
+				"database": dbHealth,
+				"redis":    redisHealth,
+			},
 		})
 	})
 
@@ -157,9 +178,13 @@ func main() {
 	go func() {
 		<-quit
 		log.Println("🛑 Shutting down server...")
-		if err := app.Shutdown(); err != nil {
+		if err := app.ShutdownWithTimeout(30 * time.Second); err != nil {
 			log.Printf("⚠️  Error during shutdown: %v", err)
 		}
+		db.Close()
+		redis.Close()
+		log.Println("✅ Server shut down gracefully")
+		os.Exit(0)
 	}()
 
 	// Start server

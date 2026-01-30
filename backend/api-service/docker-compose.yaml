@@ -11,6 +11,9 @@ services:
     restart: always
     networks:
       - app-network
+    mem_limit: 512m
+    cpus: 1.0
+    
 
   redis:
     image: "redis:alpine"
@@ -22,6 +25,8 @@ services:
       - app-network
     volumes:
       - redis-data:/data
+    mem_limit: 256m
+    cpus: 0.5
 
 networks:
   app-network:
