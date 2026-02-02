@@ -9,6 +9,8 @@ services:
     container_name: myunila-keuangan-service
     ports:
       - "8088:8088"
+    env_file:
+      - ../../.env
     environment:
       # App Configuration
       APP_NAME: ${KEUANGAN_APP_NAME:-Keuangan Service}
@@ -18,7 +20,7 @@ services:
       # Database Configuration
       DB_DRIVER: ${KEUANGAN_DB_DRIVER:-sqlserver}
       DB_HOST: ${DB_MSSQL_HOST}
-      DB_PORT: ${DB_MSSQL_PORT}
+      DB_PORT: ${DB_MSSQL_PORT:-1433}
       DB_USERNAME: ${DB_MSSQL_USERNAME}
       DB_PASSWORD: ${DB_MSSQL_PASSWORD}
       DB_DATABASE: ${KEUANGAN_DB_DATABASE:-pdut}
@@ -32,8 +34,13 @@ services:
       SIMPEDAM_PASSWORD: ${SIMPEDAM_PASSWORD}
       SIMPEDAM_API_CODE: ${SIMPEDAM_API_CODE:-SIMPEDAM}
 
+      # Encryption Key (must match myunila-service for decrypting DB credentials)
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY:-12345678901234567890123456789012}
+
       # Timezone
       TZ: ${TZ:-Asia/Jakarta}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - myunila-network
     restart: unless-stopped
