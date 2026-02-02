@@ -71,6 +71,8 @@ func (s *service) SyncSppMhs(ctx context.Context, filter *SyncFilter, syncedBy s
 	apiFilter := ""
 	if filter.NPM != nil && *filter.NPM != "" {
 		apiFilter = fmt.Sprintf("npm=%s", *filter.NPM)
+	} else if filter.Tahun != nil && *filter.Tahun > 0 {
+		apiFilter = fmt.Sprintf("tahun_masuk=%d", *filter.Tahun)
 	}
 
 	// Fetch data from SIMPEDAM with pagination
@@ -217,6 +219,17 @@ func (s *service) SyncSppMhs(ctx context.Context, filter *SyncFilter, syncedBy s
 	monitorSvc.CompleteSync(syncID, msg)
 
 	log.Printf("✅ [Sync SppMhs] Completed in %v", duration)
+
+	// Auto-update id_sms in daftar_ukt based on synced data
+	// This updates daftar_ukt records that don't have id_sms yet
+	// by matching prodi names from reg_pd via the synced spp_mhs data
+	log.Printf("🔄 [Sync SppMhs] Auto-updating id_sms in daftar_ukt...")
+	updatedCount, err := s.repo.AutoUpdateDaftarUktIdSms(ctx)
+	if err != nil {
+		log.Printf("⚠️  [Sync SppMhs] Failed to auto-update daftar_ukt id_sms: %v", err)
+	} else if updatedCount > 0 {
+		log.Printf("✅ [Sync SppMhs] Auto-updated %d daftar_ukt records with id_sms", updatedCount)
+	}
 
 	return result, nil
 }

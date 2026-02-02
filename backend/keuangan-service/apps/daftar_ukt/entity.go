@@ -69,7 +69,7 @@ type ProdiMapping struct {
 	KodeStrata       int        `json:"kode_strata" db:"kode_strata"`
 	IDSMS            uuid.UUID  `json:"id_sms" db:"id_sms"`
 	NamaProdiMyunila *string    `json:"nama_prodi_myunila,omitempty" db:"nama_prodi_myunila"`
-	IsActive         int        `json:"is_active" db:"is_active"`
+	IsActive         bool       `json:"is_active" db:"is_active"`
 }
 
 // DaftarUktStats represents statistics for DaftarUKT
@@ -91,4 +91,26 @@ type FakultasOption struct {
 type ProdiOption struct {
 	IDProdiSimpedam string `json:"id_prodi_simpedam" db:"id_prodi_simpedam"`
 	NamaProdi       string `json:"nama_prodi" db:"nama_prodi"`
+	KodeStrata      int    `json:"kode_strata" db:"kode_strata"`
+	NamaJenjang     string `json:"nama_jenjang" db:"nama_jenjang"`
+}
+
+// RegPdInfo represents student registration info from pdrd.reg_pd
+type RegPdInfo struct {
+	IDRegPd uuid.UUID  `json:"id_reg_pd" db:"id_reg_pd"`
+	NIPD    string     `json:"nipd" db:"nipd"`
+	IDSMS   *uuid.UUID `json:"id_sms" db:"id_sms"`
+}
+
+// KelasUKT represents UKT class master (K1-K8) - matches existing keuangan.kelas_ukt table
+type KelasUKT struct {
+	IDKelasUKT  uuid.UUID  `json:"id_kelas_ukt" db:"id_kelas_ukt"`
+	NmKelasUKT  string     `json:"nm_kelas_ukt" db:"nm_kelas_ukt"`
+	NominalUKT  float64    `json:"nominal_ukt" db:"nominal_ukt"`
+	CreateDate  time.Time  `json:"create_date" db:"create_date"`
+	IDCreator   uuid.UUID  `json:"id_creator" db:"id_creator"`
+	LastUpdate  time.Time  `json:"last_update" db:"last_update"`
+	IDUpdater   *uuid.UUID `json:"id_updater,omitempty" db:"id_updater"`
+	SoftDelete  int        `json:"soft_delete" db:"soft_delete"`
+	LastSync    time.Time  `json:"last_sync" db:"last_sync"`
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/myunila/keuangan-service/apps/api_config"
 	"github.com/myunila/keuangan-service/apps/daftar_ukt"
@@ -57,7 +58,7 @@ func main() {
 	defer db.Close()
 
 	// Initialize encryption service for API credentials
-	encryptor, err := crypto.NewEncryptionService("")
+	encryptor, err := crypto.NewEncryptionService(os.Getenv("API_CONFIG_ENCRYPTION_KEY"))
 	if err != nil {
 		log.Fatal("Failed to initialize encryption service:", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"log"
@@ -14,10 +13,9 @@ import (
 
 	"github.com/myunila/keuangan-service/apps/api_config"
 	"github.com/myunila/keuangan-service/internal/config"
-	"golang.org/x/net/html/charset"
 )
 
-// Client represents SIMPEDAM SOAP API client
+// Client represents SIMPEDAM REST API client
 type Client struct {
 	endpoint   string
 	username   string
@@ -35,7 +33,7 @@ const (
 	HTTPTimeout = 300 * time.Second
 )
 
-// NewClient creates a new SIMPEDAM SOAP client
+// NewClient creates a new SIMPEDAM REST API client
 func NewClient() (*Client, error) {
 	cfg := config.Cfg.SimpedamAPI
 
@@ -44,18 +42,28 @@ func NewClient() (*Client, error) {
 	username := cfg.Username
 	password := cfg.Password
 
-	// Try to get credentials from database first
-	credentials, err := api_config.GetAPICredentials("SIMPEDAM")
-	if err == nil && credentials != nil {
-		log.Println("🔐 [SIMPEDAM] Using credentials from database")
-		if user, ok := credentials["username"].(string); ok && user != "" {
-			username = user
+	// Try to get config from database first (endpoint + credentials)
+	apiConfig, err := api_config.GetAPIConfigByCode("SIMPEDAM")
+	if err == nil && apiConfig != nil {
+		log.Println("🔐 [SIMPEDAM] Using configuration from database")
+		// Use endpoint from database (already includes full path)
+		if apiConfig.BaseURL != "" {
+			endpoint = apiConfig.BaseURL
+			log.Printf("📍 [SIMPEDAM] Endpoint from database: %s", endpoint)
 		}
-		if pass, ok := credentials["password"].(string); ok && pass != "" {
-			password = pass
+
+		// Get credentials from database
+		credentials, credErr := api_config.GetAPICredentials("SIMPEDAM")
+		if credErr == nil && credentials != nil {
+			if user, ok := credentials["username"].(string); ok && user != "" {
+				username = user
+			}
+			if pass, ok := credentials["password"].(string); ok && pass != "" {
+				password = pass
+			}
 		}
 	} else {
-		log.Printf("🔑 [SIMPEDAM] Using credentials from environment (.env): %v", err)
+		log.Printf("🔑 [SIMPEDAM] Using configuration from environment (.env): %v", err)
 	}
 
 	if endpoint == "" {
@@ -81,7 +89,7 @@ func NewClient() (*Client, error) {
 		},
 	}
 
-	log.Printf("🌐 [SIMPEDAM] Client initialized - Endpoint: %s, Username: %s", endpoint, username)
+	log.Printf("🌐 [SIMPEDAM] REST API Client initialized - Endpoint: %s, Username: %s", endpoint, username)
 	return client, nil
 }
 
@@ -117,40 +125,43 @@ func (c *Client) refreshToken() (string, error) {
 
 	log.Println("🔑 [SIMPEDAM] Refreshing token...")
 
-	soapEnvelope := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="urn:live2unila">
-    <soap:Body>
-        <tns:GetToken>
-            <user xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</user>
-            <password xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</password>
-        </tns:GetToken>
-    </soap:Body>
-</soap:Envelope>`, c.username, c.password)
+	// Build JSON request for GetToken
+	reqBody := BaseRequest{
+		Service:  "GetToken",
+		Username: c.username,
+		Password: c.password,
+	}
 
-	respBody, err := c.doSoapRequest("GetToken", soapEnvelope)
+	respBody, err := c.doJSONRequest(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to get token: %w", err)
 	}
 
-	// Parse XML response with charset support
-	var envelope SoapEnvelope
-	if err := unmarshalXML(respBody, &envelope); err != nil {
+	log.Printf("📄 [SIMPEDAM] GetToken raw response: %.500s", string(respBody))
+
+	// Parse JSON response
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		log.Printf("❌ [SIMPEDAM] Failed to parse GetToken response: %v", err)
 		return "", fmt.Errorf("failed to parse token response: %w", err)
 	}
 
-	if envelope.Body.Fault != nil {
-		return "", fmt.Errorf("SOAP fault: %s", envelope.Body.Fault.FaultString)
+	// Check error code
+	if response.ErrorCode != "0" {
+		return "", fmt.Errorf("GetToken API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
-	if envelope.Body.GetTokenResponse == nil {
-		return "", fmt.Errorf("no token in response")
+	// Parse token data
+	var tokenData TokenData
+	if err := json.Unmarshal(response.Data, &tokenData); err != nil {
+		log.Printf("❌ [SIMPEDAM] Failed to parse token data: %v", err)
+		return "", fmt.Errorf("failed to parse token data: %w", err)
 	}
 
-	c.token = envelope.Body.GetTokenResponse.Return
+	c.token = tokenData.Token
 	c.tokenTime = time.Now()
 
-	log.Println("✅ [SIMPEDAM] Token refreshed successfully")
+	log.Printf("✅ [SIMPEDAM] Token refreshed successfully - length: %d, value: %.10s...", len(c.token), c.token)
 	return c.token, nil
 }
 
@@ -162,15 +173,20 @@ func (c *Client) ForceRefreshToken() (string, error) {
 	return c.refreshToken()
 }
 
-// doSoapRequest performs a SOAP request
-func (c *Client) doSoapRequest(action string, envelope string) ([]byte, error) {
-	req, err := http.NewRequest("POST", c.endpoint, bytes.NewBufferString(envelope))
+// doJSONRequest performs a JSON REST API request
+func (c *Client) doJSONRequest(reqBody interface{}) ([]byte, error) {
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", c.endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
-	req.Header.Set("SOAPAction", fmt.Sprintf("urn:live2unila#%s", action))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -197,21 +213,26 @@ func (c *Client) GetDaftarUKT(filter string, order string, limit, offset int) ([
 		return nil, err
 	}
 
-	soapEnvelope := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="urn:live2unila">
-    <soap:Body>
-        <tns:DaftarUKT>
-            <token xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</token>
-            <filter xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</filter>
-            <order xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</order>
-            <limit xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</limit>
-            <offset xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</offset>
-        </tns:DaftarUKT>
-    </soap:Body>
-</soap:Envelope>`, token, filter, order, limit, offset)
+	log.Printf("🔑 [SIMPEDAM] Token obtained - length: %d, first 10 chars: %.10s", len(token), token)
 
-	respBody, err := c.doSoapRequest("DaftarUKT", soapEnvelope)
+	// Default order if not specified
+	if order == "" {
+		order = "kode_fak ASC, nama_program_studi ASC"
+	}
+
+	// Build JSON request
+	reqBody := BaseRequest{
+		Service: "DaftarUKT",
+		Token:   token,
+		Filter:  filter,
+		Order:   order,
+		Limit:   fmt.Sprintf("%d", limit),
+		Offset:  fmt.Sprintf("%d", offset),
+	}
+
+	log.Printf("📤 [SIMPEDAM] Requesting DaftarUKT - filter: %s, limit: %d, offset: %d", filter, limit, offset)
+
+	respBody, err := c.doJSONRequest(reqBody)
 	if err != nil {
 		// Check if token expired
 		if c.isTokenError(err) {
@@ -224,35 +245,32 @@ func (c *Client) GetDaftarUKT(filter string, order string, limit, offset int) ([
 		return nil, err
 	}
 
-	// Parse XML response with charset support
-	var envelope SoapEnvelope
-	if err := unmarshalXML(respBody, &envelope); err != nil {
+	// Parse JSON response
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse DaftarUKT response: %w", err)
 	}
 
-	if envelope.Body.Fault != nil {
-		return nil, fmt.Errorf("SOAP fault: %s", envelope.Body.Fault.FaultString)
+	// Check error code
+	if response.ErrorCode != "0" && response.ErrorCode != "" {
+		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
+		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
-	if envelope.Body.DaftarUKTResponse == nil {
-		log.Printf("⚠️  [SIMPEDAM] DaftarUKT response is nil, raw response: %.500s", string(respBody))
-		return nil, fmt.Errorf("no data in response")
-	}
-
-	// Handle empty return
-	returnData := envelope.Body.DaftarUKTResponse.Return
-	log.Printf("📦 [SIMPEDAM] DaftarUKT return data length: %d chars", len(returnData))
-	if returnData == "" || returnData == "null" || returnData == "[]" {
-		log.Printf("📭 [SIMPEDAM] DaftarUKT returned empty data")
-		return []DaftarUKTItem{}, nil
-	}
-
-	// The return field contains JSON array
+	// Parse items from data
 	var items []DaftarUKTItem
-	if err := json.Unmarshal([]byte(returnData), &items); err != nil {
-		log.Printf("❌ [SIMPEDAM] Failed to parse JSON: %s (data: %.100s...)", err.Error(), returnData)
-		return nil, fmt.Errorf("failed to parse JSON data: %w", err)
+	if err := json.Unmarshal(response.Data, &items); err != nil {
+		// Try single item case
+		var singleItem DaftarUKTItem
+		if err2 := json.Unmarshal(response.Data, &singleItem); err2 == nil {
+			items = []DaftarUKTItem{singleItem}
+		} else {
+			log.Printf("📭 [SIMPEDAM] DaftarUKT returned empty or invalid data: %s", string(response.Data))
+			return []DaftarUKTItem{}, nil
+		}
 	}
+
+	log.Printf("📦 [SIMPEDAM] DaftarUKT returned %d items", len(items))
 
 	return items, nil
 }
@@ -264,21 +282,19 @@ func (c *Client) GetMasterBiayaMahasiswa(filter string, order string, limit, off
 		return nil, err
 	}
 
-	soapEnvelope := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="urn:live2unila">
-    <soap:Body>
-        <tns:MasterBiayaMahasiswa>
-            <token xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</token>
-            <filter xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</filter>
-            <order xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</order>
-            <limit xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</limit>
-            <offset xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</offset>
-        </tns:MasterBiayaMahasiswa>
-    </soap:Body>
-</soap:Envelope>`, token, filter, order, limit, offset)
+	// Build JSON request
+	reqBody := BaseRequest{
+		Service: "MasterBiayaMahasiswa",
+		Token:   token,
+		Filter:  filter,
+		Order:   order,
+		Limit:   fmt.Sprintf("%d", limit),
+		Offset:  fmt.Sprintf("%d", offset),
+	}
 
-	respBody, err := c.doSoapRequest("MasterBiayaMahasiswa", soapEnvelope)
+	log.Printf("📤 [SIMPEDAM] Requesting MasterBiayaMahasiswa - filter: %s, limit: %d, offset: %d", filter, limit, offset)
+
+	respBody, err := c.doJSONRequest(reqBody)
 	if err != nil {
 		// Check if token expired
 		if c.isTokenError(err) {
@@ -291,33 +307,26 @@ func (c *Client) GetMasterBiayaMahasiswa(filter string, order string, limit, off
 		return nil, err
 	}
 
-	// Parse XML response with charset support
-	var envelope SoapEnvelope
-	if err := unmarshalXML(respBody, &envelope); err != nil {
+	// Parse JSON response
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse MasterBiayaMahasiswa response: %w", err)
 	}
 
-	if envelope.Body.Fault != nil {
-		return nil, fmt.Errorf("SOAP fault: %s", envelope.Body.Fault.FaultString)
+	// Check error code
+	if response.ErrorCode != "0" && response.ErrorCode != "" {
+		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
+		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
-	if envelope.Body.MasterBiayaMahasiswaResponse == nil {
-		return nil, fmt.Errorf("no data in response")
-	}
-
-	// Handle empty return
-	returnData := envelope.Body.MasterBiayaMahasiswaResponse.Return
-	if returnData == "" || returnData == "null" || returnData == "[]" {
-		log.Printf("📭 [SIMPEDAM] MasterBiayaMahasiswa returned empty data")
+	// Parse items from data
+	var items []MasterBiayaMahasiswaItem
+	if err := json.Unmarshal(response.Data, &items); err != nil {
+		log.Printf("📭 [SIMPEDAM] MasterBiayaMahasiswa returned empty or invalid data: %s", string(response.Data))
 		return []MasterBiayaMahasiswaItem{}, nil
 	}
 
-	// The return field contains JSON array
-	var items []MasterBiayaMahasiswaItem
-	if err := json.Unmarshal([]byte(returnData), &items); err != nil {
-		log.Printf("❌ [SIMPEDAM] Failed to parse JSON: %s (data: %.100s...)", err.Error(), returnData)
-		return nil, fmt.Errorf("failed to parse JSON data: %w", err)
-	}
+	log.Printf("📦 [SIMPEDAM] MasterBiayaMahasiswa returned %d items", len(items))
 
 	return items, nil
 }
@@ -329,21 +338,19 @@ func (c *Client) GetKelasUKT(filter string, order string, limit, offset int) ([]
 		return nil, err
 	}
 
-	soapEnvelope := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="urn:live2unila">
-    <soap:Body>
-        <tns:KelasUKT>
-            <token xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</token>
-            <filter xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</filter>
-            <order xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%s</order>
-            <limit xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</limit>
-            <offset xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">%d</offset>
-        </tns:KelasUKT>
-    </soap:Body>
-</soap:Envelope>`, token, filter, order, limit, offset)
+	// Build JSON request
+	reqBody := BaseRequest{
+		Service: "KelasUKT",
+		Token:   token,
+		Filter:  filter,
+		Order:   order,
+		Limit:   fmt.Sprintf("%d", limit),
+		Offset:  fmt.Sprintf("%d", offset),
+	}
 
-	respBody, err := c.doSoapRequest("KelasUKT", soapEnvelope)
+	log.Printf("📤 [SIMPEDAM] Requesting KelasUKT - filter: %s, limit: %d, offset: %d", filter, limit, offset)
+
+	respBody, err := c.doJSONRequest(reqBody)
 	if err != nil {
 		// Check if token expired
 		if c.isTokenError(err) {
@@ -356,33 +363,82 @@ func (c *Client) GetKelasUKT(filter string, order string, limit, offset int) ([]
 		return nil, err
 	}
 
-	// Parse XML response with charset support
-	var envelope SoapEnvelope
-	if err := unmarshalXML(respBody, &envelope); err != nil {
+	// Parse JSON response
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse KelasUKT response: %w", err)
 	}
 
-	if envelope.Body.Fault != nil {
-		return nil, fmt.Errorf("SOAP fault: %s", envelope.Body.Fault.FaultString)
+	// Check error code
+	if response.ErrorCode != "0" && response.ErrorCode != "" {
+		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
+		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
-	if envelope.Body.KelasUKTResponse == nil {
-		return nil, fmt.Errorf("no data in response")
-	}
-
-	// Handle empty return
-	returnData := envelope.Body.KelasUKTResponse.Return
-	if returnData == "" || returnData == "null" || returnData == "[]" {
-		log.Printf("📭 [SIMPEDAM] KelasUKT returned empty data")
+	// Parse items from data
+	var items []KelasUKTItem
+	if err := json.Unmarshal(response.Data, &items); err != nil {
+		log.Printf("📭 [SIMPEDAM] KelasUKT returned empty or invalid data: %s", string(response.Data))
 		return []KelasUKTItem{}, nil
 	}
 
-	// The return field contains JSON array
-	var items []KelasUKTItem
-	if err := json.Unmarshal([]byte(returnData), &items); err != nil {
-		log.Printf("❌ [SIMPEDAM] Failed to parse JSON: %s (data: %.100s...)", err.Error(), returnData)
-		return nil, fmt.Errorf("failed to parse JSON data: %w", err)
+	log.Printf("📦 [SIMPEDAM] KelasUKT returned %d items", len(items))
+
+	return items, nil
+}
+
+// GetListTagihan fetches tagihan (bills) list from SIMPEDAM
+func (c *Client) GetListTagihan(filter string, order string, limit, offset int) ([]ListTagihanItem, error) {
+	token, err := c.ensureToken()
+	if err != nil {
+		return nil, err
 	}
+
+	// Build JSON request
+	reqBody := BaseRequest{
+		Service: "GetListTagihan",
+		Token:   token,
+		Filter:  filter,
+		Order:   order,
+		Limit:   fmt.Sprintf("%d", limit),
+		Offset:  fmt.Sprintf("%d", offset),
+	}
+
+	log.Printf("📤 [SIMPEDAM] Requesting GetListTagihan - filter: %s, limit: %d, offset: %d", filter, limit, offset)
+
+	respBody, err := c.doJSONRequest(reqBody)
+	if err != nil {
+		// Check if token expired
+		if c.isTokenError(err) {
+			log.Println("⚠️  [SIMPEDAM] Token expired, refreshing...")
+			if _, err := c.ForceRefreshToken(); err != nil {
+				return nil, fmt.Errorf("failed to refresh token: %w", err)
+			}
+			return c.GetListTagihan(filter, order, limit, offset)
+		}
+		return nil, err
+	}
+
+	// Parse JSON response
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return nil, fmt.Errorf("failed to parse GetListTagihan response: %w", err)
+	}
+
+	// Check error code
+	if response.ErrorCode != "0" && response.ErrorCode != "" {
+		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
+		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
+	}
+
+	// Parse items from data
+	var items []ListTagihanItem
+	if err := json.Unmarshal(response.Data, &items); err != nil {
+		log.Printf("📭 [SIMPEDAM] GetListTagihan returned empty or invalid data: %s", string(response.Data))
+		return []ListTagihanItem{}, nil
+	}
+
+	log.Printf("📦 [SIMPEDAM] GetListTagihan returned %d items", len(items))
 
 	return items, nil
 }
@@ -397,11 +453,4 @@ func (c *Client) isTokenError(err error) bool {
 		bytes.Contains([]byte(errStr), []byte("Token")) ||
 		bytes.Contains([]byte(errStr), []byte("expired")) ||
 		bytes.Contains([]byte(errStr), []byte("invalid"))
-}
-
-// unmarshalXML parses XML with charset support (handles ISO-8859-1, etc.)
-func unmarshalXML(data []byte, v interface{}) error {
-	decoder := xml.NewDecoder(bytes.NewReader(data))
-	decoder.CharsetReader = charset.NewReaderLabel
-	return decoder.Decode(v)
 }

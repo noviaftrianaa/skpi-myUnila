@@ -22,13 +22,9 @@ const (
 	BATCH_SIZE = 100
 )
 
-// SyncDaftarUKT syncs DaftarUKT data from SIMPEDAM
+// SyncDaftarUKT syncs DaftarUKT data from SIMPEDAM (creates new syncID)
 func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error) {
-	startTime := timeutil.NowWIB()
-
-	log.Printf("🔄 [Sync DaftarUKT] Starting sync for tahun %d", filter.Tahun)
-
-	// Initialize monitoring
+	// Initialize monitoring with new syncID
 	monitorSvc := monitoring.GetInstance()
 	syncID := monitorSvc.StartSync(
 		"Sync Daftar UKT",
@@ -37,6 +33,18 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 		syncedBy,
 		0, // Will update later
 	)
+
+	return s.SyncDaftarUKTWithID(ctx, syncID, filter, syncedBy)
+}
+
+// SyncDaftarUKTWithID syncs DaftarUKT data from SIMPEDAM with existing syncID
+func (s *service) SyncDaftarUKTWithID(ctx context.Context, syncID string, filter *SyncFilter, syncedBy string) (*SyncResult, error) {
+	startTime := timeutil.NowWIB()
+
+	log.Printf("🔄 [Sync DaftarUKT] Starting sync for tahun %d (syncID: %s)", filter.Tahun, syncID)
+
+	// Get monitoring service
+	monitorSvc := monitoring.GetInstance()
 
 	// Check if SIMPEDAM API client is available
 	if s.simpedamAPI == nil {
@@ -111,18 +119,18 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 	monitorSvc.UpdateTotalRecords(syncID, totalRecords)
 	log.Printf("📊 [Sync DaftarUKT] Total records to sync: %d", totalRecords)
 
-	// Transform and upsert data
+	// Transform data first
 	var dataList []*DaftarUKT
 	mapped := 0
 	unmapped := 0
 	systemUUID, _ := uuid.Parse(SYSTEM_UUID)
 	now := timeutil.NowWIB()
 
-	for i, item := range allItems {
-		// Parse ID
-		idDaftarUKT, err := uuid.Parse(item.IDDaftarUKT)
+	for _, item := range allItems {
+		// Parse ID - use id_ukt from SIMPEDAM REST API
+		idDaftarUKT, err := uuid.Parse(item.IDUkt)
 		if err != nil {
-			log.Printf("⚠️  Invalid UUID: %s", item.IDDaftarUKT)
+			log.Printf("⚠️  Invalid UUID: %s", item.IDUkt)
 			continue
 		}
 
@@ -154,9 +162,9 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 		d := &DaftarUKT{
 			IDDaftarUKT:     idDaftarUKT,
 			IDProdiSimpedam: idProdi,
-			NamaProdi:       item.NamaProdi,
+			NamaProdi:       item.NamaProgramStudi,
 			Tahun:           int(item.Tahun),
-			KodeFakultas:    item.KodeFakultas,
+			KodeFakultas:    item.KodeFak,
 			NamaFakultas:    item.NamaFakultas,
 			KodeKelas:       item.KodeKelas,
 			NamaKelas:       item.NamaKelas,
@@ -172,20 +180,45 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 		}
 
 		dataList = append(dataList, d)
-
-		// Update progress every 50 records
-		if (i+1)%50 == 0 || i == totalRecords-1 {
-			msg := fmt.Sprintf("Memproses %d dari %d record", i+1, totalRecords)
-			monitorSvc.UpdateProgress(syncID, i+1, msg)
-		}
 	}
 
-	// Bulk upsert
-	inserted, updated, err := s.repo.BulkUpsertDaftarUKT(ctx, dataList)
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to upsert data: %v", err)
-		monitorSvc.FailSync(syncID, errMsg)
-		return nil, fmt.Errorf(errMsg)
+	log.Printf("💾 [Sync DaftarUKT] Starting database insert...")
+
+	// Process in batches with progress updates
+	batchSize := 50
+	totalBatches := (len(dataList) + batchSize - 1) / batchSize
+	totalInserted := 0
+	totalUpdated := 0
+
+	for i := 0; i < len(dataList); i += batchSize {
+		end := i + batchSize
+		if end > len(dataList) {
+			end = len(dataList)
+		}
+
+		batch := dataList[i:end]
+		batchNum := i/batchSize + 1
+
+		// Insert batch
+		inserted, updated, err := s.repo.BulkUpsertDaftarUKT(ctx, batch)
+		if err != nil {
+			errMsg := fmt.Sprintf("Failed to upsert batch %d: %v", batchNum, err)
+			monitorSvc.FailSync(syncID, errMsg)
+			return nil, fmt.Errorf(errMsg)
+		}
+
+		totalInserted += inserted
+		totalUpdated += updated
+
+		// Calculate progress
+		progress := (end * 100) / totalRecords
+		msg := fmt.Sprintf("Menyimpan data %d/%d (%d%%) - Batch %d/%d", end, totalRecords, progress, batchNum, totalBatches)
+
+		// Update monitoring
+		monitorSvc.UpdateProgress(syncID, end, msg)
+
+		log.Printf("💾 [Sync DaftarUKT] Batch %d/%d: Inserted: %d, Updated: %d (Total: %d/%d)",
+			batchNum, totalBatches, inserted, updated, end, totalRecords)
 	}
 
 	duration := time.Since(startTime)
@@ -193,9 +226,9 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 
 	result := &SyncResult{
 		TotalProcessed: totalRecords,
-		TotalInserted:  inserted,
-		TotalUpdated:   updated,
-		TotalFailed:    totalRecords - (inserted + updated),
+		TotalInserted:  totalInserted,
+		TotalUpdated:   totalUpdated,
+		TotalFailed:    totalRecords - (totalInserted + totalUpdated),
 		TotalMapped:    mapped,
 		TotalUnmapped:  unmapped,
 		Duration:       duration.String(),
@@ -215,8 +248,8 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 		Status:        status,
 		APICode:       "SIMPEDAM",
 		TotalRecords:  totalRecords,
-		InsertedCount: inserted,
-		UpdatedCount:  updated,
+		InsertedCount: totalInserted,
+		UpdatedCount:  totalUpdated,
 		FailedCount:   result.TotalFailed,
 		DurationMs:    &durationMs,
 		SyncedBy:      syncedBy,
@@ -227,7 +260,7 @@ func (s *service) SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedB
 
 	// Complete monitoring
 	msg := fmt.Sprintf("Selesai! Total: %d, Inserted: %d, Updated: %d, Mapped: %d, Unmapped: %d",
-		totalRecords, inserted, updated, mapped, unmapped)
+		totalRecords, totalInserted, totalUpdated, mapped, unmapped)
 	monitorSvc.CompleteSync(syncID, msg)
 
 	log.Printf("✅ [Sync DaftarUKT] Completed in %v", duration)

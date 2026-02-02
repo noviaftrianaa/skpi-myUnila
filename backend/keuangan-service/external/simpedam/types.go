@@ -61,40 +61,64 @@ func (ff *FlexibleFloat) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// TokenResponse represents GetToken response
-type TokenResponse struct {
+// ========================================
+// JSON Request/Response Structures
+// ========================================
+
+// BaseRequest represents common request structure for SIMPEDAM REST API
+type BaseRequest struct {
+	Service  string `json:"service"`
+	Token    string `json:"token,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	Filter   string `json:"filter,omitempty"`
+	Order    string `json:"order,omitempty"`
+	Limit    string `json:"limit,omitempty"`
+	Offset   string `json:"offset,omitempty"`
+}
+
+// BaseResponse represents common response structure from SIMPEDAM REST API
+type BaseResponse struct {
+	ErrorCode string          `json:"error_code"`
+	ErrorDesc string          `json:"error_desc"`
+	Data      json.RawMessage `json:"data"`
+}
+
+// TokenData represents token data in GetToken response
+type TokenData struct {
 	Token string `json:"token"`
 }
 
 // DaftarUKTItem represents a single UKT class from DaftarUKT response
+// Field names match SIMPEDAM's REST API schema
 type DaftarUKTItem struct {
-	IDDaftarUKT   string        `json:"id_daftar_ukt"`
-	Tahun         FlexibleInt   `json:"tahun"`
-	IDProdi       string        `json:"id_prodi"`
-	NamaProdi     string        `json:"nama_prodi"`
-	KodeFakultas  string        `json:"kode_fakultas"`
-	NamaFakultas  string        `json:"nama_fakultas"`
-	KodeKelas     string        `json:"kode_kelas"`
-	NamaKelas     string        `json:"nama_kelas"`
-	Nominal       FlexibleFloat `json:"nominal"`
-	KodeDikti     *string       `json:"kode_dikti"`
-	KodeStrata    FlexibleInt   `json:"kode_strata"`
+	IDUkt            string        `json:"id_ukt"`
+	Tahun            FlexibleInt   `json:"tahun"`
+	IDProdi          string        `json:"id_prodi"`
+	NamaProgramStudi string        `json:"nama_program_studi"`
+	KodeFak          string        `json:"kode_fak"`
+	NamaFakultas     string        `json:"nama_fakultas"`
+	KodeKelas        string        `json:"kode_kelas"`
+	NamaKelas        string        `json:"nama_kelas"`
+	Nominal          FlexibleFloat `json:"nominal"`
+	KodeDikti        *string       `json:"kode_dikti"`
+	KodeStrata       FlexibleInt   `json:"kode_strata"`
 }
 
 // MasterBiayaMahasiswaItem represents student payment data
 type MasterBiayaMahasiswaItem struct {
-	NPM            string        `json:"npm"`
-	NamaMahasiswa  string        `json:"nama_mahasiswa"`
-	IDProdi        string        `json:"id_prodi"`
-	NamaProdi      string        `json:"nama_prodi"`
-	KodeFakultas   string        `json:"kode_fakultas"`
-	NamaFakultas   string        `json:"nama_fakultas"`
-	KodeStrata     FlexibleInt   `json:"kode_strata"`
-	KodeKelas      string        `json:"kode_kelas"`
-	NamaKelas      string        `json:"nama_kelas"`
-	NominalUKT     FlexibleFloat `json:"nominal_ukt"`
-	TahunMasuk     FlexibleInt   `json:"tahun_masuk"`
-	RiwayatBayar   []RiwayatBayarItem `json:"riwayat_bayar"`
+	NPM           string             `json:"npm"`
+	NamaMahasiswa string             `json:"nama_mahasiswa"`
+	IDProdi       string             `json:"id_prodi"`
+	NamaProdi     string             `json:"nama_prodi"`
+	KodeFakultas  string             `json:"kode_fakultas"`
+	NamaFakultas  string             `json:"nama_fakultas"`
+	KodeStrata    FlexibleInt        `json:"kode_strata"`
+	KodeKelas     string             `json:"kode_kelas"`
+	NamaKelas     string             `json:"nama_kelas"`
+	NominalUKT    FlexibleFloat      `json:"nominal_ukt"`
+	TahunMasuk    FlexibleInt        `json:"tahun_masuk"`
+	RiwayatBayar  []RiwayatBayarItem `json:"riwayat_bayar"`
 }
 
 // RiwayatBayarItem represents a single payment history
@@ -120,49 +144,21 @@ type KelasUKTItem struct {
 	Tahun      FlexibleInt   `json:"tahun"`
 }
 
-// SoapEnvelope represents SOAP envelope structure
-type SoapEnvelope struct {
-	Body SoapBody `xml:"Body"`
-}
-
-// SoapBody represents SOAP body
-type SoapBody struct {
-	GetTokenResponse           *GetTokenResponse           `xml:"GetTokenResponse,omitempty"`
-	DaftarUKTResponse          *DaftarUKTResponse          `xml:"DaftarUKTResponse,omitempty"`
-	MasterBiayaMahasiswaResponse *MasterBiayaMahasiswaResponse `xml:"MasterBiayaMahasiswaResponse,omitempty"`
-	KelasUKTResponse           *KelasUKTResponse           `xml:"KelasUKTResponse,omitempty"`
-	Fault                      *SoapFault                  `xml:"Fault,omitempty"`
-}
-
-// GetTokenResponse represents GetToken SOAP response
-type GetTokenResponse struct {
-	Return string `xml:"return"`
-}
-
-// DaftarUKTResponse represents DaftarUKT SOAP response
-type DaftarUKTResponse struct {
-	Return string `xml:"return"`
-}
-
-// MasterBiayaMahasiswaResponse represents MasterBiayaMahasiswa SOAP response
-type MasterBiayaMahasiswaResponse struct {
-	Return string `xml:"return"`
-}
-
-// KelasUKTResponse represents KelasUKT SOAP response
-type KelasUKTResponse struct {
-	Return string `xml:"return"`
-}
-
-// SoapFault represents SOAP fault
-type SoapFault struct {
-	FaultCode   string `xml:"faultcode"`
-	FaultString string `xml:"faultstring"`
-}
-
-// APIResponse represents general API response from SIMPEDAM
-type APIResponse struct {
-	ErrorCode int         `json:"error_code"`
-	ErrorDesc string      `json:"error_desc"`
-	Data      interface{} `json:"data"`
+// ListTagihanItem represents a single tagihan (bill) from GetListTagihan response
+type ListTagihanItem struct {
+	IDTagihan       string        `json:"id_tagihan"`
+	NomorPeserta    string        `json:"nomor_peserta"`
+	NPM             string        `json:"npm"`
+	NamaMahasiswa   string        `json:"nama_mahasiswa"`
+	TahunAkd        string        `json:"tahun_akd"`
+	GanjilGenap     string        `json:"ganjil_genap"`
+	JenisTagihan    string        `json:"jenis_tagihan"`
+	NamaTagihan     string        `json:"nama_tagihan"`
+	NominalTagihan  FlexibleFloat `json:"nominal_tagihan"`
+	NominalBayar    FlexibleFloat `json:"nominal_bayar"`
+	SisaTagihan     FlexibleFloat `json:"sisa_tagihan"`
+	StatusBayar     string        `json:"status_bayar"`
+	TglJatuhTempo   string        `json:"tgl_jatuh_tempo"`
+	TglBayar        *string       `json:"tgl_bayar"`
+	Keterangan      string        `json:"keterangan"`
 }

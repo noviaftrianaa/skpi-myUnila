@@ -19,17 +19,24 @@ func (ctrl *Controller) GetSppMhsList(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 20)
 
-	var npm *string
-	if n := c.Query("npm"); n != "" {
-		npm = &n
-	}
-
 	var idSmt *string
 	if s := c.Query("id_smt"); s != "" {
 		idSmt = &s
 	}
 
-	result, err := ctrl.service.GetSppMhsList(ctx, page, limit, npm, idSmt)
+	// Semester type filter: "ganjil" (ends with 1) or "genap" (ends with 2)
+	var semesterType *string
+	if st := c.Query("semester_type"); st != "" {
+		semesterType = &st
+	}
+
+	// Filter by daftar_ukt (id_prodi_simpedam:kode_strata:tahun)
+	var idDaftarUkt *string
+	if d := c.Query("id_daftar_ukt"); d != "" {
+		idDaftarUkt = &d
+	}
+
+	result, err := ctrl.service.GetSppMhsList(ctx, page, limit, idSmt, semesterType, idDaftarUkt)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,

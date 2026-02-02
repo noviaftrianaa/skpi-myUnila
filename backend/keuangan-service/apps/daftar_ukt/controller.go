@@ -17,10 +17,12 @@ func (ctrl *Controller) GetDaftarUKTList(c *fiber.Ctx) error {
 	ctx := c.Context()
 
 	tahun := c.QueryInt("tahun", 0)
+	idProdiSimpedam := c.Query("id_prodi_simpedam", "")
+	kodeStrata := c.QueryInt("kode_strata", 0)
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 20)
 
-	result, err := ctrl.service.GetDaftarUKTList(ctx, tahun, page, limit)
+	result, err := ctrl.service.GetDaftarUKTList(ctx, tahun, idProdiSimpedam, kodeStrata, page, limit)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -57,10 +59,8 @@ func (ctrl *Controller) GetDaftarUKTByID(c *fiber.Ctx) error {
 	})
 }
 
-// SyncDaftarUKT triggers sync from SIMPEDAM
+// SyncDaftarUKT triggers sync from SIMPEDAM (async - returns immediately)
 func (ctrl *Controller) SyncDaftarUKT(c *fiber.Ctx) error {
-	ctx := c.Context()
-
 	var filter SyncFilter
 	if err := c.BodyParser(&filter); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -82,7 +82,8 @@ func (ctrl *Controller) SyncDaftarUKT(c *fiber.Ctx) error {
 		syncedBy = c.Get("X-User-ID", "system")
 	}
 
-	result, err := ctrl.service.SyncDaftarUKT(ctx, &filter, syncedBy)
+	// Start async sync and get sync_id immediately
+	syncID, err := ctrl.service.StartAsyncSync(c.Context(), &filter, syncedBy)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -92,8 +93,11 @@ func (ctrl *Controller) SyncDaftarUKT(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"message": "Sync completed",
-		"data":    result,
+		"message": "Sync started in background",
+		"data": fiber.Map{
+			"sync_id": syncID,
+			"status":  "processing",
+		},
 	})
 }
 
