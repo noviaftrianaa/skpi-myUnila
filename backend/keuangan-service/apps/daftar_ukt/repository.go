@@ -9,7 +9,7 @@ import (
 )
 
 type Repository interface {
-	GetDaftarUKTList(ctx context.Context, tahun int, page, limit int) (*DaftarUKTListResult, error)
+	GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error)
 	GetDaftarUKTByID(ctx context.Context, id uuid.UUID) (*DaftarUKT, error)
 	UpsertDaftarUKT(ctx context.Context, data *DaftarUKT) error
 	BulkUpsertDaftarUKT(ctx context.Context, dataList []*DaftarUKT) (int, int, error)
@@ -18,6 +18,16 @@ type Repository interface {
 	GetStats(ctx context.Context) (*DaftarUktStats, error)
 	GetFakultasList(ctx context.Context) ([]FakultasOption, error)
 	GetProdiList(ctx context.Context) ([]ProdiOption, error)
+
+	// Auto-mapping from NPM (via reg_pd)
+	GetRegPdByNIPD(ctx context.Context, nipd string) (*RegPdInfo, error)
+	UpdateDaftarUKTMapping(ctx context.Context, idProdiSimpedam uuid.UUID, kodeStrata int, idSMS uuid.UUID) error
+	BuildProdiMappingFromNPM(ctx context.Context) (int, error)
+
+	// Kelas UKT
+	UpsertKelasUKT(ctx context.Context, data *KelasUKT) error
+	GetKelasUKTByID(ctx context.Context, id uuid.UUID) (*KelasUKT, error)
+	GetAllKelasUKT(ctx context.Context) ([]KelasUKT, error)
 }
 
 type repository struct {
@@ -28,20 +38,34 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, page, limit int) (*DaftarUKTListResult, error) {
+func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error) {
 	offset := (page - 1) * limit
 
-	// Count query
-	var total int
+	// Count query with filters
 	countQuery := `SELECT COUNT(*) FROM keuangan.daftar_ukt WHERE soft_delete = 0`
-	args := []interface{}{}
+	countArgs := []interface{}{}
+	countArgIdx := 1
 
 	if tahun > 0 {
-		countQuery += ` AND tahun = @p1`
-		args = append(args, tahun)
+		countQuery += fmt.Sprintf(` AND tahun = @p%d`, countArgIdx)
+		countArgs = append(countArgs, tahun)
+		countArgIdx++
 	}
 
-	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+	if idProdiSimpedam != "" {
+		countQuery += fmt.Sprintf(` AND CAST(id_prodi_simpedam AS NVARCHAR(36)) = @p%d`, countArgIdx)
+		countArgs = append(countArgs, idProdiSimpedam)
+		countArgIdx++
+	}
+
+	if kodeStrata > 0 {
+		countQuery += fmt.Sprintf(` AND kode_strata = @p%d`, countArgIdx)
+		countArgs = append(countArgs, kodeStrata)
+		countArgIdx++
+	}
+
+	var total int
+	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
 		return nil, fmt.Errorf("failed to count daftar_ukt: %w", err)
 	}
 
@@ -62,6 +86,18 @@ func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, page, limi
 	if tahun > 0 {
 		dataQuery += fmt.Sprintf(` AND d.tahun = @p%d`, argIdx)
 		dataArgs = append(dataArgs, tahun)
+		argIdx++
+	}
+
+	if idProdiSimpedam != "" {
+		dataQuery += fmt.Sprintf(` AND CAST(d.id_prodi_simpedam AS NVARCHAR(36)) = @p%d`, argIdx)
+		dataArgs = append(dataArgs, idProdiSimpedam)
+		argIdx++
+	}
+
+	if kodeStrata > 0 {
+		dataQuery += fmt.Sprintf(` AND d.kode_strata = @p%d`, argIdx)
+		dataArgs = append(dataArgs, kodeStrata)
 		argIdx++
 	}
 
@@ -203,19 +239,21 @@ func (r *repository) BulkUpsertDaftarUKT(ctx context.Context, dataList []*Daftar
 func (r *repository) GetProdiMapping(ctx context.Context, idProdiSimpedam uuid.UUID, kodeStrata int) (*ProdiMapping, error) {
 	query := `
 		SELECT id_mapping, id_prodi_simpedam, nama_prodi_simpedam, kode_strata,
-			   id_sms, nama_prodi_myunila, is_active
+			   id_sms, nama_prodi_myunila, CAST(is_active AS INT) as is_active
 		FROM keuangan.mapping_prodi_simpedam
 		WHERE id_prodi_simpedam = @p1 AND kode_strata = @p2 AND is_active = 1 AND soft_delete = 0
 	`
 
 	var m ProdiMapping
+	var isActiveInt int
 	err := r.db.QueryRowContext(ctx, query, idProdiSimpedam, kodeStrata).Scan(
 		&m.IDMapping, &m.IDProdiSimpedam, &m.NamaProdiSimpedam, &m.KodeStrata,
-		&m.IDSMS, &m.NamaProdiMyunila, &m.IsActive,
+		&m.IDSMS, &m.NamaProdiMyunila, &isActiveInt,
 	)
 	if err != nil {
 		return nil, err // Could be sql.ErrNoRows
 	}
+	m.IsActive = isActiveInt == 1
 
 	return &m, nil
 }
@@ -223,7 +261,7 @@ func (r *repository) GetProdiMapping(ctx context.Context, idProdiSimpedam uuid.U
 func (r *repository) GetAllProdiMappings(ctx context.Context) ([]ProdiMapping, error) {
 	query := `
 		SELECT id_mapping, id_prodi_simpedam, nama_prodi_simpedam, kode_strata,
-			   id_sms, nama_prodi_myunila, is_active
+			   id_sms, nama_prodi_myunila, CAST(is_active AS INT) as is_active
 		FROM keuangan.mapping_prodi_simpedam
 		WHERE is_active = 1 AND soft_delete = 0
 	`
@@ -237,13 +275,15 @@ func (r *repository) GetAllProdiMappings(ctx context.Context) ([]ProdiMapping, e
 	var mappings []ProdiMapping
 	for rows.Next() {
 		var m ProdiMapping
+		var isActiveInt int
 		err := rows.Scan(
 			&m.IDMapping, &m.IDProdiSimpedam, &m.NamaProdiSimpedam, &m.KodeStrata,
-			&m.IDSMS, &m.NamaProdiMyunila, &m.IsActive,
+			&m.IDSMS, &m.NamaProdiMyunila, &isActiveInt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan prodi mapping: %w", err)
 		}
+		m.IsActive = isActiveInt == 1
 		mappings = append(mappings, m)
 	}
 
@@ -303,10 +343,19 @@ func (r *repository) GetFakultasList(ctx context.Context) ([]FakultasOption, err
 
 func (r *repository) GetProdiList(ctx context.Context) ([]ProdiOption, error) {
 	query := `
-		SELECT DISTINCT CAST(id_prodi_simpedam AS NVARCHAR(36)) as id_prodi_simpedam, nama_prodi
-		FROM keuangan.daftar_ukt
-		WHERE soft_delete = 0
-		ORDER BY nama_prodi
+		SELECT DISTINCT
+			CAST(d.id_prodi_simpedam AS NVARCHAR(36)) as id_prodi_simpedam,
+			d.nama_prodi,
+			d.kode_strata,
+			CASE d.kode_strata
+				WHEN 3 THEN 'D3'
+				WHEN 4 THEN 'S1 Reguler'
+				WHEN 7 THEN 'S1 Non-Reg'
+				ELSE 'Lainnya'
+			END as nama_jenjang
+		FROM keuangan.daftar_ukt d
+		WHERE d.soft_delete = 0
+		ORDER BY d.nama_prodi, d.kode_strata
 	`
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -318,11 +367,223 @@ func (r *repository) GetProdiList(ctx context.Context) ([]ProdiOption, error) {
 	var prodi []ProdiOption
 	for rows.Next() {
 		var p ProdiOption
-		if err := rows.Scan(&p.IDProdiSimpedam, &p.NamaProdi); err != nil {
+		if err := rows.Scan(&p.IDProdiSimpedam, &p.NamaProdi, &p.KodeStrata, &p.NamaJenjang); err != nil {
 			return nil, fmt.Errorf("failed to scan prodi: %w", err)
 		}
 		prodi = append(prodi, p)
 	}
 
 	return prodi, nil
+}
+
+// ========================================
+// Auto-mapping from NPM (via reg_pd)
+// ========================================
+
+func (r *repository) GetRegPdByNIPD(ctx context.Context, nipd string) (*RegPdInfo, error) {
+	query := `
+		SELECT id_reg_pd, nipd, id_sms
+		FROM pdrd.reg_pd
+		WHERE nipd = @p1
+	`
+
+	var info RegPdInfo
+	err := r.db.QueryRowContext(ctx, query, nipd).Scan(&info.IDRegPd, &info.NIPD, &info.IDSMS)
+	if err != nil {
+		return nil, err
+	}
+
+	return &info, nil
+}
+
+func (r *repository) UpdateDaftarUKTMapping(ctx context.Context, idProdiSimpedam uuid.UUID, kodeStrata int, idSMS uuid.UUID) error {
+	// Map kode_strata to id_jenj_didik
+	var idJenjDidik int
+	switch kodeStrata {
+	case 3:
+		idJenjDidik = 22 // D3
+	case 4, 7:
+		idJenjDidik = 30 // S1
+	default:
+		idJenjDidik = 30
+	}
+
+	query := `
+		UPDATE keuangan.daftar_ukt
+		SET id_sms = @p1, id_jenj_didik = @p2, last_update = GETDATE()
+		WHERE id_prodi_simpedam = @p3 AND kode_strata = @p4 AND soft_delete = 0
+	`
+
+	_, err := r.db.ExecContext(ctx, query, idSMS, idJenjDidik, idProdiSimpedam, kodeStrata)
+	if err != nil {
+		return fmt.Errorf("failed to update daftar_ukt mapping: %w", err)
+	}
+
+	return nil
+}
+
+// BuildProdiMappingFromNPM builds prodi mapping by matching prodi names from daftar_ukt
+// with sms table (via spp_mhs/reg_pd). Returns number of mappings updated.
+func (r *repository) BuildProdiMappingFromNPM(ctx context.Context) (int, error) {
+	// This query finds unmapped prodi in daftar_ukt and tries to match via:
+	// 1. spp_mhs -> reg_pd -> sms to get prodi names from MyUnila
+	// 2. Match daftar_ukt.nama_prodi with sms.nm_lemb using fuzzy matching
+	query := `
+		WITH sms_from_spp AS (
+			-- Get unique id_sms from students who have SPP records
+			SELECT DISTINCT
+				rp.id_sms,
+				sms.nm_lemb,
+				sms.id_jenj_didik
+			FROM keuangan.spp_mhs s
+			INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
+			INNER JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
+			WHERE s.soft_delete = 0
+			  AND rp.id_sms IS NOT NULL
+		),
+		prodi_match AS (
+			-- Match unmapped daftar_ukt with sms based on prodi name similarity
+			SELECT DISTINCT
+				d.id_prodi_simpedam,
+				d.kode_strata,
+				d.nama_prodi,
+				sf.id_sms,
+				sf.nm_lemb,
+				sf.id_jenj_didik,
+				-- Calculate match score: higher is better
+				CASE
+					-- Exact match (case insensitive)
+					WHEN UPPER(d.nama_prodi) = UPPER(sf.nm_lemb) THEN 100
+					-- daftar_ukt name contains sms name
+					WHEN UPPER(d.nama_prodi) LIKE '%' + UPPER(sf.nm_lemb) + '%' THEN 90
+					-- sms name contains daftar_ukt name
+					WHEN UPPER(sf.nm_lemb) LIKE '%' + UPPER(d.nama_prodi) + '%' THEN 90
+					-- First 15 chars match
+					WHEN UPPER(LEFT(d.nama_prodi, 15)) = UPPER(LEFT(sf.nm_lemb, 15)) THEN 80
+					-- Partial match on first 10 chars
+					WHEN UPPER(LEFT(d.nama_prodi, 10)) = UPPER(LEFT(sf.nm_lemb, 10)) THEN 70
+					ELSE 0
+				END as match_score
+			FROM keuangan.daftar_ukt d
+			CROSS JOIN sms_from_spp sf
+			WHERE d.id_sms IS NULL
+			  AND d.soft_delete = 0
+		),
+		best_match AS (
+			-- Get best match for each prodi
+			SELECT
+				id_prodi_simpedam,
+				kode_strata,
+				id_sms,
+				id_jenj_didik,
+				ROW_NUMBER() OVER (PARTITION BY id_prodi_simpedam, kode_strata ORDER BY match_score DESC) as rn
+			FROM prodi_match
+			WHERE match_score >= 70  -- Only use matches with score >= 70
+		)
+		UPDATE d
+		SET d.id_sms = bm.id_sms,
+			d.id_jenj_didik = CASE
+				WHEN d.kode_strata = 3 THEN 22  -- D3
+				WHEN d.kode_strata IN (4, 7) THEN 30  -- S1
+				ELSE bm.id_jenj_didik
+			END,
+			d.last_update = GETDATE()
+		FROM keuangan.daftar_ukt d
+		INNER JOIN best_match bm ON bm.id_prodi_simpedam = d.id_prodi_simpedam
+			AND bm.kode_strata = d.kode_strata
+			AND bm.rn = 1
+		WHERE d.id_sms IS NULL AND d.soft_delete = 0
+	`
+
+	result, err := r.db.ExecContext(ctx, query)
+	if err != nil {
+		return 0, fmt.Errorf("failed to build prodi mapping from NPM: %w", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), nil
+}
+
+// ========================================
+// Kelas UKT
+// ========================================
+
+func (r *repository) UpsertKelasUKT(ctx context.Context, data *KelasUKT) error {
+	query := `
+		MERGE INTO keuangan.kelas_ukt AS target
+		USING (SELECT @p1 AS id_kelas_ukt) AS source
+		ON target.id_kelas_ukt = source.id_kelas_ukt
+		WHEN MATCHED THEN
+			UPDATE SET
+				nm_kelas_ukt = @p2,
+				nominal_ukt = @p3,
+				last_update = @p4,
+				id_updater = @p5,
+				last_sync = @p6
+		WHEN NOT MATCHED THEN
+			INSERT (id_kelas_ukt, nm_kelas_ukt, nominal_ukt,
+					create_date, id_creator, last_update, soft_delete, last_sync)
+			VALUES (@p1, @p2, @p3, @p4, @p5, @p4, 0, @p6);
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		data.IDKelasUKT, data.NmKelasUKT, data.NominalUKT,
+		data.LastUpdate, data.IDCreator, data.LastSync,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upsert kelas_ukt: %w", err)
+	}
+
+	return nil
+}
+
+func (r *repository) GetKelasUKTByID(ctx context.Context, id uuid.UUID) (*KelasUKT, error) {
+	query := `
+		SELECT id_kelas_ukt, nm_kelas_ukt, nominal_ukt,
+			   create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+		FROM keuangan.kelas_ukt
+		WHERE id_kelas_ukt = @p1 AND soft_delete = 0
+	`
+
+	var k KelasUKT
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&k.IDKelasUKT, &k.NmKelasUKT, &k.NominalUKT,
+		&k.CreateDate, &k.IDCreator, &k.LastUpdate, &k.IDUpdater, &k.SoftDelete, &k.LastSync,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &k, nil
+}
+
+func (r *repository) GetAllKelasUKT(ctx context.Context) ([]KelasUKT, error) {
+	query := `
+		SELECT id_kelas_ukt, nm_kelas_ukt, nominal_ukt,
+			   create_date, id_creator, last_update, id_updater, soft_delete, last_sync
+		FROM keuangan.kelas_ukt
+		WHERE soft_delete = 0
+		ORDER BY nm_kelas_ukt
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kelas_ukt list: %w", err)
+	}
+	defer rows.Close()
+
+	var kelasList []KelasUKT
+	for rows.Next() {
+		var k KelasUKT
+		err := rows.Scan(
+			&k.IDKelasUKT, &k.NmKelasUKT, &k.NominalUKT,
+			&k.CreateDate, &k.IDCreator, &k.LastUpdate, &k.IDUpdater, &k.SoftDelete, &k.LastSync,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan kelas_ukt: %w", err)
+		}
+		kelasList = append(kelasList, k)
+	}
+
+	return kelasList, nil
 }

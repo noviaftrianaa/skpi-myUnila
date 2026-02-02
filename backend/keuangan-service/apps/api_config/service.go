@@ -10,6 +10,7 @@ import (
 )
 
 type Service interface {
+	GetByAPICode(apiCode string) (*APIConfig, error)
 	GetCredentials(apiCode string) (map[string]interface{}, error)
 }
 
@@ -23,6 +24,10 @@ func NewService(repo Repository, encryptor *crypto.EncryptionService) Service {
 		repo:      repo,
 		encryptor: encryptor,
 	}
+}
+
+func (s *service) GetByAPICode(apiCode string) (*APIConfig, error) {
+	return s.repo.GetByAPICode(apiCode)
 }
 
 func (s *service) GetCredentials(apiCode string) (map[string]interface{}, error) {
@@ -82,6 +87,14 @@ func SetService(s Service) {
 // GetService returns the global api_config service instance
 func GetService() Service {
 	return globalService
+}
+
+// GetAPIConfigByCode is a helper function for external packages
+func GetAPIConfigByCode(apiCode string) (*APIConfig, error) {
+	if globalService == nil {
+		return nil, fmt.Errorf("api_config service not initialized")
+	}
+	return globalService.GetByAPICode(apiCode)
 }
 
 // GetAPICredentials is a helper function for external packages

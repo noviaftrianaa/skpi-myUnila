@@ -9,7 +9,7 @@ import (
 )
 
 type Repository interface {
-	GetSppMhsList(ctx context.Context, page, limit int, npm *string, idSmt *string) (*SppMhsListResult, error)
+	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error)
 	GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDetail, error)
 	GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDetail, error)
 	GetStats(ctx context.Context) (*SppMhsStats, error)
@@ -17,6 +17,7 @@ type Repository interface {
 	BulkUpsertSppMhs(ctx context.Context, dataList []*SppMhs) (int, int, error)
 	GetRegPdByNPM(ctx context.Context, npm string) (*RegPdMapping, error)
 	GetAllRegPdMappings(ctx context.Context) (map[string]*RegPdMapping, error)
+	AutoUpdateDaftarUktIdSms(ctx context.Context) (int, error)
 }
 
 type repository struct {
@@ -27,7 +28,7 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, npm *string, idSmt *string) (*SppMhsListResult, error) {
+func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error) {
 	offset := (page - 1) * limit
 
 	// Build WHERE conditions
@@ -35,16 +36,25 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, npm *st
 	args := []interface{}{}
 	argIdx := 1
 
-	if npm != nil && *npm != "" {
-		whereClause += fmt.Sprintf(" AND rp.nipd LIKE @p%d", argIdx)
-		args = append(args, "%"+*npm+"%")
-		argIdx++
-	}
+	// Filter by specific semester id
 	if idSmt != nil && *idSmt != "" {
 		whereClause += fmt.Sprintf(" AND s.id_smt = @p%d", argIdx)
 		args = append(args, *idSmt)
 		argIdx++
 	}
+
+	// Filter by semester type (ganjil/genap)
+	if semesterType != nil && *semesterType != "" {
+		if *semesterType == "ganjil" {
+			whereClause += " AND RIGHT(s.id_smt, 1) = '1'"
+		} else if *semesterType == "genap" {
+			whereClause += " AND RIGHT(s.id_smt, 1) = '2'"
+		}
+	}
+
+	// Filter by daftar_ukt - disabled until schema is updated
+	// TODO: Enable after running ALTER script to add id_daftar_ukt column
+	_ = idDaftarUkt // Placeholder - filter disabled
 
 	// Count query
 	countQuery := fmt.Sprintf(`
@@ -337,4 +347,86 @@ func (r *repository) GetAllRegPdMappings(ctx context.Context) (map[string]*RegPd
 	}
 
 	return mappings, nil
+}
+
+// AutoUpdateDaftarUktIdSms updates daftar_ukt.id_sms based on prodi name matching
+// from spp_mhs -> reg_pd -> sms. Returns number of records updated.
+func (r *repository) AutoUpdateDaftarUktIdSms(ctx context.Context) (int, error) {
+	// This query finds unmapped prodi in daftar_ukt and tries to match via:
+	// 1. spp_mhs -> reg_pd -> sms to get prodi names from MyUnila
+	// 2. Match daftar_ukt.nama_prodi with sms.nm_lemb using fuzzy matching
+	query := `
+		WITH sms_from_spp AS (
+			-- Get unique id_sms from students who have SPP records
+			SELECT DISTINCT
+				rp.id_sms,
+				sms.nm_lemb,
+				sms.id_jenj_didik
+			FROM keuangan.spp_mhs s
+			INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
+			INNER JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
+			WHERE s.soft_delete = 0
+			  AND rp.id_sms IS NOT NULL
+		),
+		prodi_match AS (
+			-- Match unmapped daftar_ukt with sms based on prodi name similarity
+			SELECT DISTINCT
+				d.id_prodi_simpedam,
+				d.kode_strata,
+				d.nama_prodi,
+				sf.id_sms,
+				sf.nm_lemb,
+				sf.id_jenj_didik,
+				-- Calculate match score: higher is better
+				CASE
+					-- Exact match (case insensitive)
+					WHEN UPPER(d.nama_prodi) = UPPER(sf.nm_lemb) THEN 100
+					-- daftar_ukt name contains sms name
+					WHEN UPPER(d.nama_prodi) LIKE '%' + UPPER(sf.nm_lemb) + '%' THEN 90
+					-- sms name contains daftar_ukt name
+					WHEN UPPER(sf.nm_lemb) LIKE '%' + UPPER(d.nama_prodi) + '%' THEN 90
+					-- First 15 chars match
+					WHEN UPPER(LEFT(d.nama_prodi, 15)) = UPPER(LEFT(sf.nm_lemb, 15)) THEN 80
+					-- Partial match on first 10 chars
+					WHEN UPPER(LEFT(d.nama_prodi, 10)) = UPPER(LEFT(sf.nm_lemb, 10)) THEN 70
+					ELSE 0
+				END as match_score
+			FROM keuangan.daftar_ukt d
+			CROSS JOIN sms_from_spp sf
+			WHERE d.id_sms IS NULL
+			  AND d.soft_delete = 0
+		),
+		best_match AS (
+			-- Get best match for each prodi
+			SELECT
+				id_prodi_simpedam,
+				kode_strata,
+				id_sms,
+				id_jenj_didik,
+				ROW_NUMBER() OVER (PARTITION BY id_prodi_simpedam, kode_strata ORDER BY match_score DESC) as rn
+			FROM prodi_match
+			WHERE match_score >= 70  -- Only use matches with score >= 70
+		)
+		UPDATE d
+		SET d.id_sms = bm.id_sms,
+			d.id_jenj_didik = CASE
+				WHEN d.kode_strata = 3 THEN 22  -- D3
+				WHEN d.kode_strata IN (4, 7) THEN 30  -- S1
+				ELSE bm.id_jenj_didik
+			END,
+			d.last_update = GETDATE()
+		FROM keuangan.daftar_ukt d
+		INNER JOIN best_match bm ON bm.id_prodi_simpedam = d.id_prodi_simpedam
+			AND bm.kode_strata = d.kode_strata
+			AND bm.rn = 1
+		WHERE d.id_sms IS NULL AND d.soft_delete = 0
+	`
+
+	result, err := r.db.ExecContext(ctx, query)
+	if err != nil {
+		return 0, fmt.Errorf("failed to auto-update daftar_ukt id_sms: %w", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), nil
 }

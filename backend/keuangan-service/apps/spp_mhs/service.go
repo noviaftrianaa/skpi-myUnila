@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	GetSppMhsList(ctx context.Context, page, limit int, npm *string, idSmt *string) (*SppMhsListResult, error)
+	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error)
 	GetSppMhsByID(ctx context.Context, id string) (*SppMhsDetail, error)
 	GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDetail, error)
 	GetMahasiswaPaymentSummary(ctx context.Context, npm string) (*MahasiswaPaymentSummary, error)
@@ -31,7 +31,7 @@ func NewService(repo Repository, simpedamAPI *simpedam.Client, loggerSvc logger.
 	}
 }
 
-func (s *service) GetSppMhsList(ctx context.Context, page, limit int, npm *string, idSmt *string) (*SppMhsListResult, error) {
+func (s *service) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -42,7 +42,7 @@ func (s *service) GetSppMhsList(ctx context.Context, page, limit int, npm *strin
 		limit = 100
 	}
 
-	return s.repo.GetSppMhsList(ctx, page, limit, npm, idSmt)
+	return s.repo.GetSppMhsList(ctx, page, limit, idSmt, semesterType, idDaftarUkt)
 }
 
 func (s *service) GetSppMhsByID(ctx context.Context, id string) (*SppMhsDetail, error) {
