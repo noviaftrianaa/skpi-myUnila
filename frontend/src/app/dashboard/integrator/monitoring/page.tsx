@@ -5,7 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 
 const APP_KEY = "myunila-integrator";
-import { myunilaMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/myunila/management/monitoringService";
+import { aggregateMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/monitoring/aggregateMonitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
   FiActivity,
@@ -32,7 +32,7 @@ export default function MonitoringPage() {
 
   const fetchMonitoringData = useCallback(async () => {
     try {
-      const data = await myunilaMonitoringService.getActiveSyncs();
+      const data = await aggregateMonitoringService.getActiveSyncs();
       setActiveSyncs(data.active_syncs || []);
       setStats(data.stats);
       setLastUpdate(new Date(data.updated_at));
@@ -85,6 +85,36 @@ export default function MonitoringPage() {
         return <FiXCircle className="w-4 h-4" />;
       default:
         return <FiActivity className="w-4 h-4" />;
+    }
+  };
+
+  const getServiceColor = (service: string) => {
+    switch (service) {
+      case "myunila":
+        return "primary";
+      case "keuangan":
+        return "success";
+      case "feeder":
+        return "warning";
+      case "sister":
+        return "secondary";
+      default:
+        return "default";
+    }
+  };
+
+  const getServiceLabel = (service: string) => {
+    switch (service) {
+      case "myunila":
+        return "MyUnila";
+      case "keuangan":
+        return "Keuangan";
+      case "feeder":
+        return "Feeder";
+      case "sister":
+        return "Sister";
+      default:
+        return service;
     }
   };
 
@@ -249,6 +279,16 @@ export default function MonitoringPage() {
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                               {sync.endpoint_name}
                             </h3>
+                            {sync.service && (
+                              <Chip
+                                size="sm"
+                                color={getServiceColor(sync.service)}
+                                variant="dot"
+                                className="capitalize"
+                              >
+                                {getServiceLabel(sync.service)}
+                              </Chip>
+                            )}
                             <Chip
                               size="sm"
                               color={getStatusColor(sync.status)}

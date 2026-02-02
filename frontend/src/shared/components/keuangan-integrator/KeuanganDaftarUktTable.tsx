@@ -27,6 +27,8 @@ interface DaftarUktItem {
 interface ProdiOption {
   id_prodi_simpedam: string;
   nama_prodi: string;
+  kode_strata: number;
+  nama_jenjang: string;
 }
 
 export default function KeuanganDaftarUktTable() {
@@ -37,7 +39,7 @@ export default function KeuanganDaftarUktTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterTahun, setFilterTahun] = useState<string>("");
-  const [filterProdi, setFilterProdi] = useState<string>("");
+  const [filterProdi, setFilterProdi] = useState<string>(""); // Format: "id_prodi_simpedam:kode_strata"
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -100,7 +102,14 @@ export default function KeuanganDaftarUktTable() {
         }
 
         if (filterProdi) {
-          params.append("id_prodi_simpedam", filterProdi);
+          // Parse filterProdi format: "id_prodi_simpedam:kode_strata"
+          const [idProdi, kodeStrata] = filterProdi.split(":");
+          if (idProdi) {
+            params.append("id_prodi_simpedam", idProdi);
+          }
+          if (kodeStrata) {
+            params.append("kode_strata", kodeStrata);
+          }
         }
 
         if (sortBy) {
@@ -111,8 +120,8 @@ export default function KeuanganDaftarUktTable() {
         const response = await keuanganClient.get(`/daftar-ukt?${params.toString()}`);
 
         if (response.data.success) {
-          setData(response.data.data.data || []);
-          setTotalRecords(response.data.data.total || 0);
+          setData(response.data.data || []);
+          setTotalRecords(response.data.total || 0);
         }
       } catch (error) {
         console.error('Error loading daftar ukt:', error);
@@ -309,10 +318,10 @@ export default function KeuanganDaftarUktTable() {
           filterSlot={
             <div className="flex flex-wrap gap-2 w-full">
               {/* Filter Tahun */}
-              <div className="flex-1 min-w-[120px] max-w-[150px]">
+              <div className="flex-shrink-0 w-[100px]">
                 <Select
                   aria-label="Filter Tahun"
-                  placeholder="Semua Tahun"
+                  placeholder="Tahun"
                   selectedKeys={filterTahun ? [filterTahun] : []}
                   onSelectionChange={(keys) => {
                     const selected = Array.from(keys)[0] as string;
@@ -322,9 +331,9 @@ export default function KeuanganDaftarUktTable() {
                   classNames={{
                     base: "w-full",
                     trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
-                    value: "text-xs font-medium text-gray-700 dark:text-gray-300",
+                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
                     innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200",
+                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[120px]",
                     listbox: "!bg-white dark:!bg-gray-800",
                     selectorIcon: "right-2",
                   }}
@@ -353,19 +362,39 @@ export default function KeuanganDaftarUktTable() {
                   classNames={{
                     base: "w-full",
                     trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
-                    value: "text-xs font-medium text-gray-700 dark:text-gray-300",
+                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
                     innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[300px]",
+                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[400px]",
                     listbox: "!bg-white dark:!bg-gray-800",
                     selectorIcon: "right-2",
                   }}
                   size="sm"
                   variant="bordered"
+                  renderValue={(items) => {
+                    if (!items || items.length === 0) return <span className="text-[10px]">Semua Prodi</span>;
+                    const item = items[0];
+                    // Parse key to find the prodi
+                    const [idProdi, kodeStrata] = String(item.key).split(":");
+                    const prodi = prodiOptions.find(p => p.id_prodi_simpedam === idProdi && p.kode_strata === parseInt(kodeStrata));
+                    if (!prodi) return <span className="text-[10px]">Semua Prodi</span>;
+                    return (
+                      <div className="flex items-center gap-1 overflow-hidden">
+                        <span className="font-semibold text-emerald-600 text-[10px] flex-shrink-0">{prodi.nama_jenjang}</span>
+                        <span className="text-gray-400 text-[10px]">-</span>
+                        <span className="truncate text-[10px]">{prodi.nama_prodi}</span>
+                      </div>
+                    );
+                  }}
                 >
                   {prodiOptions.map((prodi) => (
-                    <SelectItem key={prodi.id_prodi_simpedam} textValue={prodi.nama_prodi}>
+                    <SelectItem
+                      key={`${prodi.id_prodi_simpedam}:${prodi.kode_strata}`}
+                      textValue={`${prodi.nama_jenjang} - ${prodi.nama_prodi}`}
+                    >
                       <div className="flex items-center gap-2 py-1">
-                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate">{prodi.nama_prodi}</span>
+                        <span className="font-semibold text-emerald-600 text-xs flex-shrink-0 min-w-[50px]">{prodi.nama_jenjang}</span>
+                        <span className="text-gray-400">-</span>
+                        <span className="text-xs text-gray-700 dark:text-gray-300">{prodi.nama_prodi}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -373,7 +402,7 @@ export default function KeuanganDaftarUktTable() {
               </div>
 
               {/* Reset filter button */}
-              <div className="flex items-center">
+              <div className="flex items-center flex-shrink-0">
                 <Button
                   size="sm"
                   variant="flat"
@@ -383,10 +412,10 @@ export default function KeuanganDaftarUktTable() {
                     setFilterProdi("");
                     setCurrentPage(1);
                   }}
-                  className="h-10 px-3 text-xs whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
+                  className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
                   isDisabled={!filterTahun && !filterProdi}
                 >
-                  Reset
+                  Reset Filter
                 </Button>
               </div>
             </div>
