@@ -146,11 +146,6 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/integrator/keuangan/spp-mhs",
         roles: defaultRoles,
       },
-      {
-        title: "Mapping Prodi",
-        href: "/dashboard/integrator/keuangan/mapping-prodi",
-        roles: defaultRoles,
-      },
     ],
   },
   {
