@@ -192,7 +192,7 @@ services:
       - DB_HOST=192.168.123.119
       - DB_PORT=1433
       - DB_USERNAME=mizarzulmi
-      - DB_PASSWORD=Makinjaya!2myunila
+      - DB_PASSWORD=
       - DB_DATABASE=pdut
       - DB_MAX_OPEN_CONNS=25
       - DB_MAX_IDLE_CONNS=5

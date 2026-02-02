@@ -198,8 +198,7 @@
           "urutan": 6,
           "children": [
             {"nm_menu": "Daftar UKT", "nm_file": "/dashboard/integrator/keuangan/daftar-ukt", "urutan": 1},
-            {"nm_menu": "SPP Mahasiswa", "nm_file": "/dashboard/integrator/keuangan/spp-mhs", "urutan": 2},
-            {"nm_menu": "Mapping Prodi", "nm_file": "/dashboard/integrator/keuangan/mapping-prodi", "urutan": 3}
+            {"nm_menu": "SPP Mahasiswa", "nm_file": "/dashboard/integrator/keuangan/spp-mhs", "urutan": 2}
           ]
         },
         {
