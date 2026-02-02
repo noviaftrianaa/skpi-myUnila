@@ -72,6 +72,7 @@ Route::group([
                 Route::post('tambah', 'DiklatController@tambah');
                 Route::put('ubah', 'DiklatController@ubahDiklat');
                 Route::delete('hapus', 'DiklatController@destroy');
+                Route::get('detail', 'DiklatController@getDetail');
             });
 
             Route::prefix('penelitian')->group(function () {

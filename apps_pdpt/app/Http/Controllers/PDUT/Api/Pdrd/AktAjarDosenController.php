@@ -4,6 +4,7 @@ namespace App\Http\Controllers\PDUT\Api\Pdrd;
 
 use App\Http\Controllers\Controller;
 use App\Models\PDUT\Pdrd\AktAjarDosen;
+use App\Models\PDUT\Pdrd\RegPtk;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Log;
@@ -23,6 +24,7 @@ class AktAjarDosenController extends Controller
 {
     protected $request;
     protected $aktAjarDosen;
+    protected $regPtk;
     protected $wrapResponse;
 
     public function __construct()
@@ -31,6 +33,7 @@ class AktAjarDosenController extends Controller
 
         $this->wrapResponse = new WrapResponse;
         $this->aktAjarDosen = new AktAjarDosen();
+        $this->regPtk = new RegPtk();
     }
 
     public function index()
@@ -289,6 +292,74 @@ class AktAjarDosenController extends Controller
             DB::rollBack();
             Log::error($e->getMessage() . ' on line ' . $e->getLine());
             return WrapResponse(['data' => null], 'gagal menghapus ajar dosen', FALSE);
+        }
+    }
+
+    public function getListKelas()
+    {
+        InputValidator([
+            'id_sdm' => 'required|uuid',
+        ]);
+
+        $id_sdm = $this->request->input('id_sdm');
+
+        try {
+            $ptk = $this->regPtk->where('soft_delete', 0)
+                ->where('id_sdm', $id_sdm)
+                ->orderBy('tmt_srt_tgs', 'DESC')
+                ->get();
+
+            if (!$ptk) {
+                return WrapResponse(['data' => NULL], 'tidak ditemukan data PTK berdasarkan SDM', FALSE);
+            }
+
+            $data = [];
+            foreach ($ptk as $p) {
+                $q = "
+                    SELECT
+                        mk.id_mk,
+                        mk.nm_mk,
+                        kelas.sks_mk,
+                        kelas.id_smt,
+                        kelas.nm_kls
+                    FROM
+                        pdrd.akt_ajar_dosen AS ajar_dosen WITH(NOLOCK)
+                        JOIN pdrd.kelas_kuliah AS kelas WITH(NOLOCK) ON kelas.id_kls = ajar_dosen.id_kls
+                        AND kelas.soft_delete = 0
+                        JOIN pdrd.matkul AS mk WITH(NOLOCK) ON mk.id_mk = kelas.id_mk
+                        AND mk.soft_delete = 0
+                    WHERE
+                        ajar_dosen.soft_delete = 0
+                        AND ajar_dosen.id_reg_ptk = ?
+                    ORDER BY
+                        kelas.id_smt DESC,
+                        mk.nm_mk ASC
+                ";
+                $query = DB::select($q, [$p->id_reg_ptk]);
+
+                if(empty($query)) {
+                    continue;
+                }
+
+                foreach($query AS $value) {
+                    $temp = [];
+                    $temp['id'] = $value->id_mk;
+                    $temp['nama_mata_kuliah'] = $value->nm_mk;
+                    $temp['sks_mata_kuliah'] = $value->sks_mk;
+                    $temp['semester'] = $value->id_smt;
+                    $temp['nama_kelas'] = $value->nm_kls;
+                    $data = array_merge($data, [$temp]);
+                }
+            }
+
+            if (empty($data)) {
+                return WrapResponse(['data' => NULL], 'tidak ditemukan data ajar dosen berdasarkan PTK', FALSE);
+            }
+
+            return WrapResponse(compact('data'), 'sukses');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
+            return WrapResponse([], "detail data ajar dosen tidak ditemukan atau data ajar dosen tidak terdaftar", FALSE);
         }
     }
 }

@@ -353,4 +353,53 @@ class DiklatController extends Controller
             return WrapResponse(['data' => null], 'gagal menghapus data diklat', FALSE);
         }
     }
+
+    public function getDetail()
+    {
+        InputValidator([
+            'id_sdm' => 'required|uuid',
+        ]);
+
+        $id_sdm = $this->request->input('id_sdm');
+
+        try {
+            $q = "
+                SELECT
+                    diklat.id_diklat,
+                    jd.nm_jns_diklat,
+                    diklat.nm_diklat,
+                    diklat.penyelenggara,
+                    diklat.thn
+                FROM pdrd.diklat AS diklat WITH(NOLOCK)
+                JOIN ref.jenis_diklat AS jd WITH(NOLOCK) ON jd.id_jns_diklat = diklat.id_jns_diklat
+                LEFT JOIN ref.kategori_kegiatan AS katgiat WITH(NOLOCK) ON katgiat.id_katgiat = diklat.id_katgiat
+                WHERE
+                    diklat.soft_delete = 0
+                    AND diklat.id_sdm = ?
+                ORDER BY
+                    diklat.thn DESC
+            ";
+
+            $query = DB::select($q, [$id_sdm]);
+            if (empty($query)) {
+                return WrapResponse(['data' => NULL], 'tidak ditemukan data diklat berdasarkan SDM', FALSE);
+            }
+
+            $data = [];
+            foreach ($query as $value) {
+                $data[] = [
+                    'id' => $value->id_diklat,
+                    'jenis_diklat' => $value->nm_jns_diklat,
+                    'nama_diklat' => $value->nm_diklat,
+                    'nama_penyelenggara' => $value->penyelenggara,
+                    'tahun' => $value->thn
+                ];
+            }
+
+            return WrapResponse(compact('data'), 'sukses');
+        } catch (Exception $e) {
+            Log::error(__FUNCTION__ . ' - ' . $e->getMessage());
+            return WrapResponse([], "detail data diklat tidak ditemukan atau data diklat tidak terdaftar", FALSE);
+        }
+    }
 }

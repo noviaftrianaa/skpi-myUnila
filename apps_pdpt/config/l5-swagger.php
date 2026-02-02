@@ -1,8 +1,40 @@
 <?php
 
 return [
-    'legacy' => true,
+    'default' => 'live',
     'documentations' => [
+        'default' => [
+            'api' => [
+                'title' => 'One Data Web Service API',
+            ],
+            'routes' => [
+                'api' => 'api/documentation',
+                'docs' => 'docs',
+                'oauth2_callback' => 'api/oauth2-callback',
+                'middleware' => [
+                    'api' => [],
+                    'asset' => [],
+                    'docs' => [],
+                    'oauth2_callback' => [],
+                ],
+            ],
+            'paths' => [
+                'docs' => storage_path('api-docs'),
+                'views' => base_path('resources/views/vendor/l5-swagger'),
+                'base' => env('L5_SWAGGER_BASE_PATH', null),
+                'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'docs_json' => 'api-docs.json',
+                'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
+                'annotations' => [
+                    base_path('app/Http/Controllers'),
+                    base_path('app/Anotations')
+                ],
+            ],
+            'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
+            'validator_url' => null,
+            'persist_authorization' => true,
+        ],
         'sandbox' => [
             'api' => [
                 'title' => 'One Data Web Service Sandbox 0.1',
@@ -70,7 +102,7 @@ return [
             'validator_url' => null,
             'persist_authorization' => true,
             'constants' => [
-                'L5_SWAGGER_CONST_HOST_LIVE' => env('L5_SWAGGER_CONST_HOST_LIVE', 'http://myunila.unila.ac.id'),
+                'L5_SWAGGER_CONST_HOST_LIVE' => env('L5_SWAGGER_CONST_HOST_LIVE', 'http://127.0.0.1:8000'),
             ]
         ],
     ]
