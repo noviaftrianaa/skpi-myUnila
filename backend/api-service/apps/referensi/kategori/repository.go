@@ -3,6 +3,8 @@ package kategori
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -66,69 +68,91 @@ func (r *repository) GetKategoriCapaianLuaran(ctx context.Context, params types.
 // ============================================================================
 
 func (r *repository) GetKategoriKegiatan(ctx context.Context, params types.KategoriKegiatanParams) ([]KategoriKegiatan, int64, error) {
+
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_induk_katgiat", params.IDIndukKatGiat)
-	cb.AppendInt("id_jns_sdm", params.IDJenisSdm)
-	cb.AppendString("kode_kat_pak", params.KodeKatPak)
-	cb.AppendString("kode_kat_bkd", params.KodeKatBkd)
-	cb.AppendString("teks_judul", params.TeksJudul)
-	cb.AppendString("teks_sk", params.TeksSk)
-	cb.AppendString("teks_tgl_sk", params.TeksTanggalSk)
-	cb.AppendString("teks_lokasi", params.TeksLokasi)
-	cb.AppendInt("level_kat", params.LevelKat)
-	cb.AppendInt("a_judul", params.Judul)
-	cb.AppendInt("u_bkd", params.Bkd)
-	cb.AppendInt("u_pak", params.Pak)
-	cb.Like("nm_kat", params.Search)
+	cb.AppendInt("kk.id_induk_katgiat", params.IDIndukKatGiat)
+	cb.AppendInt("kk.id_jns_sdm", params.IDJenisSdm)
+	cb.AppendString("kk.kode_kat_pak", params.KodeKatPak)
+	cb.AppendString("kk.kode_kat_bkd", params.KodeKatBkd)
+	cb.AppendString("kk.teks_judul", params.TeksJudul)
+	cb.AppendString("kk.teks_sk", params.TeksSk)
+	cb.AppendString("kk.teks_tgl_sk", params.TeksTanggalSk)
+	cb.AppendString("kk.teks_lokasi", params.TeksLokasi)
+	cb.AppendInt("kk.level_kat", params.LevelKat)
+	cb.AppendInt("kk.a_judul", params.Judul)
+	cb.AppendInt("kk.u_bkd", params.Bkd)
+	cb.AppendInt("kk.u_pak", params.Pak)
+	cb.Like("kk.nm_kat", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "kk.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.kategori_kegiatan",
-			Select:      "id_katgiat, id_induk_katgiat, id_jns_sdm, kode_kat_pak, kode_kat_bkd, nm_kat, kat_unsur, teks_judul, teks_sk, teks_tgl_sk, teks_lokasi, level_kat, sks_bkd, ak, ak_maks, satuan_nilai, ket, a_aktif, a_anak_bimb, a_judul, a_sk, a_peer_review, acuan_waktu, u_bkd, u_pak, create_date, last_update, expired_date",
-			DefaultSort: "id_katgiat",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (KategoriKegiatan, error) {
-			var k KategoriKegiatan
-			err := rows.Scan(
-				&k.IDKatGiat,
-				&k.IDIndukKatGiat,
-				&k.IDJnsSdm,
-				&k.KodeKatPak,
-				&k.KodeKatBkd,
-				&k.NmKat,
-				&k.KatUnsur,
-				&k.TeksJudul,
-				&k.TeksSk,
-				&k.TeksTglSk,
-				&k.TeksLokasi,
-				&k.LevelKat,
-				&k.SksBkd,
-				&k.Ak,
-				&k.AkMaks,
-				&k.SatuanNilai,
-				&k.Ket,
-				&k.AAktif,
-				&k.AAnakBimb,
-				&k.AJudul,
-				&k.ASk,
-				&k.APeerReview,
-				&k.AcuanWaktu,
-				&k.UBkd,
-				&k.UPak,
-				&k.CreateDate,
-				&k.LastUpdate,
-				&k.ExpiredDate,
-			)
-			return k, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.kategori_kegiatan kk
+		LEFT JOIN ref.jenis_sdm js ON js.id_jns_sdm = kk.id_jns_sdm
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "kk.id_katgiat"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			kk.id_katgiat, kk.id_induk_katgiat, kk.id_jns_sdm, kk.kode_kat_pak, kk.kode_kat_bkd, kk.nm_kat, kk.kat_unsur, kk.teks_judul, kk.teks_sk, kk.teks_tgl_sk, kk.teks_lokasi, kk.level_kat, kk.sks_bkd, kk.ak, kk.ak_maks, kk.satuan_nilai, kk.ket, kk.a_aktif, kk.a_anak_bimb, kk.a_judul, kk.a_sk, kk.a_peer_review, kk.acuan_waktu, kk.u_bkd, kk.u_pak, kk.create_date, kk.last_update, kk.expired_date, js.nm_jns_sdm
+		FROM ref.kategori_kegiatan kk
+		LEFT JOIN ref.jenis_sdm js ON js.id_jns_sdm = kk.id_jns_sdm
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []KategoriKegiatan
+	for rows.Next() {
+		var s KategoriKegiatan
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
