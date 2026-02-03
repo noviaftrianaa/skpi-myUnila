@@ -11,6 +11,7 @@ import (
 type Semester struct {
 	IDSmt         string              `db:"id_smt" json:"id_smt"`
 	IDThnAjaran   int                 `db:"id_thn_ajaran" json:"id_thn_ajaran"`
+	NmThnAjaran   string              `db:"nm_thn_ajaran" json:"nm_thn_ajaran"`
 	NmSmt         string              `db:"nm_smt" json:"nm_smt"`
 	Smt           int                 `db:"smt" json:"smt"`
 	APeriodeAktif *int                `db:"a_periode_aktif" json:"a_periode_aktif"`
@@ -46,6 +47,7 @@ type Agama struct {
 type Wilayah struct {
 	IDWil          string              `db:"id_wil" json:"id_wil"`
 	IDNegara       string              `db:"id_negara" json:"id_negara"`
+	NmNegara       string              `db:"nm_negara" json:"nm_negara"`
 	NmWil          string              `db:"nm_wil" json:"nm_wil"`
 	AsalWil        *string             `db:"asal_wil" json:"asal_wil,omitempty"`
 	KodeBps        *string             `db:"kode_bps" json:"kode_bps,omitempty"`
@@ -136,7 +138,9 @@ type Jurusan struct {
 	USlb            int                 `db:"u_slb" json:"u_slb"`
 	IdIndukJurusan  *string             `db:"id_induk_jurusan" json:"id_induk_jurusan"`
 	IDJenjDidik     int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
+	NMJenjDidik     string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
 	IDKelBidang     parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	NmKelBidang     string              `db:"nm_kel_bidang" json:"nm_kel_bidang"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate     *time.Time          `db:"expired_date" json:"-"`
@@ -190,9 +194,13 @@ type LevelWilayah struct {
 type MediaPublikasi struct {
 	IDMediaPub     parse.UUID          `db:"id_media_pub" json:"id_media_pub"`
 	IDJnsMedia     int                 `db:"id_jns_media" json:"id_jns_media"`
+	NmJnsMedia     string              `db:"nm_jns_media" json:"nm_jns_media"`
 	IDKelBidang    parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	NmKelBidang    string              `db:"nm_kel_bidang" json:"nm_kel_bidang"`
 	IDSp           parse.NullUUID      `db:"id_sp" json:"id_sp"`
+	NmLemb         *string             `db:"nm_lemb" json:"nm_lemb"`
 	IDNegara       string              `db:"id_negara" json:"id_negara"`
+	NmNegara       string              `db:"nm_negara" json:"nm_negara"`
 	NmMediaPub     string              `db:"nm_media_pub" json:"nm_media_pub"`
 	BentukMediaPub *string             `db:"bentuk_media_pub" json:"bentuk_media_pub"`
 	GradeSinta     *string             `db:"grade_sinta" json:"grade_sinta"`
@@ -276,6 +284,7 @@ type Tse struct {
 type SkimKegiatan struct {
 	IDSkim               parse.UUID          `db:"id_skim" json:"id_skim"`
 	IDJenjDidik          *int                `db:"id_jenj_didik" json:"id_jenj_didik"`
+	NmJenjDidik          *string             `db:"nm_jenj_didik" json:"nm_jenj_didik"`
 	NmSkim               string              `db:"nm_skim" json:"nm_skim"`
 	NmSingkatSkim        *string             `db:"nm_singkat_skim" json:"nm_singkat_skim"`
 	KdSkim               *string             `db:"kd_skim" json:"kd_skim"`

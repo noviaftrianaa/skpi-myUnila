@@ -8,6 +8,7 @@ import (
 type JabTgs struct {
 	IDJabTgs      int                  `db:"id_jab_tgs" json:"id_jab_tgs"`
 	IDKelProf     int                  `db:"id_kel_prof" json:"id_kel_prof"`
+	NmKelProf     string               `db:"nm_kel_prof" json:"nm_kel_prof"`
 	NmJabTgs      string               `db:"nm_jab_tgs" json:"nm_jab_tgs"`
 	AJabUtamaSek  int                  `db:"a_jab_utama_sek" json:"a_jab_utama_sek"`
 	AJabUtamaPt   int                  `db:"a_jab_utama_pt" json:"a_jab_utama_pt"`
@@ -22,6 +23,7 @@ type JabTgs struct {
 type JabFung struct {
 	IDJabfung   int                  `db:"id_jabfung" json:"id_jabfung"`
 	IDKelProf   int                  `db:"id_kel_prof" json:"id_kel_prof"`
+	NmKelProf   string               `db:"nm_kel_prof" json:"nm_kel_prof"`
 	NmJabfung   string               `db:"nm_jabfung" json:"nm_jabfung"`
 	AngkaKredit *decimal.Decimal     `db:"angka_kredit" json:"angka_kredit"`
 	CreateDate  types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`

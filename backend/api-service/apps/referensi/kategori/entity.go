@@ -20,6 +20,7 @@ type KategoriKegiatan struct {
 	IDKatGiat      int                 `db:"id_kat_giat" json:"id_kat_giat"`
 	IDIndukKatGiat *int                `db:"id_induk_kat_giat" json:"id_induk_kat_giat,omitempty"`
 	IDJnsSdm       int                 `db:"id_jns_sdm" json:"id_jns_sdm"`
+	NmJnsSdm       string              `db:"nm_jns_sdm" json:"nm_jns_sdm"`
 	KodeKatPak     *string             `db:"kode_kat_pak" json:"kode_kat_pak"`
 	KodeKatBkd     *string             `db:"kode_kat_bkd" json:"kode_kat_bkd"`
 	NmKat          string              `db:"nm_kat" json:"nm_kat"`
