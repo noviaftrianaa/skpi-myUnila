@@ -29,6 +29,7 @@ type JenisBahanAjar struct {
 type JenisBeasiswa struct {
 	IDJnsBeasiswa int                 `db:"id_jns_beasiswa" json:"id_jns_beasiswa"`
 	IDSumberDana  int                 `db:"id_sumber_dana" json:"id_sumber_dana"`
+	NmSumberDana  string              `db:"nm_sumber_dana" json:"nm_sumber_dana"`
 	NmJnsBeasiswa string              `db:"nm_jns_beasiswa" json:"nm_jns_beasiswa"`
 	UPd           int                 `db:"u_pd" json:"u_pd"`
 	UPtk          int                 `db:"u_ptk" json:"u_ptk"`
@@ -308,7 +309,10 @@ type JenisUnit struct {
 	IDLembNonSP            *string              `db:"id_lemb_non_sp" json:"id_lemb_non_sp"`
 	IDJurUnila             parse.NullUUID       `db:"id_jur_unila" json:"id_jur_unila"`
 	IDJur                  *string              `db:"id_jur" json:"id_jur"`
+	NmJur                  *string              `db:"nm_jur" json:"nm_jur"`
 	IDJenjDidik            string               `db:"id_jenj_didik" json:"id_jenj_didik"`
+	NmJenjDidik            *string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
+	NmLemb                 string               `db:"nm_lemb" json:"nm_lemb"`
 	KdKl                   *string              `db:"kd_kl" json:"kd_kl"`
 	KdSatker               *string              `db:"kd_satker" json:"kd_satker"`
 	SmtMulai               *string              `db:"smt_mulai" json:"smt_mulai"`
@@ -357,15 +361,19 @@ type JenisUnit struct {
 	APkl                   *int                 `db:"a_pkl" json:"a_pkl"`
 	IDSp                   parse.UUID           `db:"id_sp" json:"id_sp"`
 	IDJnsSms               int                  `db:"id_jns_sms" json:"id_jns_sms"`
+	NmJnsSms               string               `db:"nm_jns_sms" json:"nm_jns_sms"`
 	IDFungsiLab            string               `db:"id_fungsi_lab" json:"id_fungsi_lab"`
+	NmFungsiLab            string               `db:"nm_fungsi_lab" json:"nm_fungsi_lab"`
 	IDKelUsaha             string               `db:"id_kel_usaha" json:"id_kel_usaha"`
+	NmKelUsaha             string               `db:"nm_kel_usaha" json:"nm_kel_usaha"`
 	IDBlob                 *string              `db:"id_blob" json:"id_blob"`
 	IDWil                  string               `db:"id_wil" json:"id_wil"`
+	NmWil                  string               `db:"nm_wil" json:"nm_wil"`
 	IDIndukSms             parse.NullUUID       `db:"id_induk_sms" json:"id_induk_sms"`
 	CreateDate             types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
-	IDCreator              parse.UUID           `db:"id_creator" json:"id_creator"`
-	LastUpdate             types.SQLServerTime  `db:"last_update" json:"terakhir_diubah"`
-	IDUpdater              *parse.NullUUID      `db:"id_updater" json:"id_updater"`
-	SoftDelete             int                  `db:"soft_delete" json:"soft_delete"`
+	IDCreator              parse.UUID           `db:"id_creator" json:"-"`
+	LastUpdate             types.SQLServerTime  `db:"last_update" json:"-"`
+	IDUpdater              *parse.NullUUID      `db:"id_updater" json:"-"`
+	SoftDelete             int                  `db:"soft_delete" json:"-"`
 	LastSync               types.SQLServerTime  `db:"last_sync" json:"last_sync"`
 }

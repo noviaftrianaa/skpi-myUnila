@@ -3,6 +3,8 @@ package common
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -55,44 +57,87 @@ func NewRepository(DB *sqlx.DB) Repository {
 // ============================================================================
 // Semester
 // ============================================================================
+func (r *repository) GetSemesters(
+	ctx context.Context,
+	params types.SemesterParams,
+) ([]Semester, int64, error) {
 
-func (r *repository) GetSemesters(ctx context.Context, params types.SemesterParams) ([]Semester, int64, error) {
+	params.NormalizePagination()
+
+	// ===== Build conditions =====
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_thn_ajaran", params.TahunAjaran)
-	cb.AppendInt("a_periode_aktif", params.PeriodeAktif)
-	cb.Like("nm_smt", params.Search)
+	cb.AppendInt("s.id_thn_ajaran", params.TahunAjaran)
+	cb.AppendInt("s.a_periode_aktif", params.PeriodeAktif)
+	cb.Like("s.nm_smt", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "s.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table: "ref.semester",
-			Select: `id_smt, id_thn_ajaran, nm_smt, smt, a_periode_aktif,
-				tgl_mulai, tgl_selesai, create_date, last_update, expired_date`,
-			DefaultSort: "id_smt",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (Semester, error) {
-			var s Semester
-			err := rows.Scan(
-				&s.IDSmt,
-				&s.IDThnAjaran,
-				&s.NmSmt,
-				&s.Smt,
-				&s.APeriodeAktif,
-				&s.TglMulai,
-				&s.TglSelesai,
-				&s.CreateDate,
-				&s.LastUpdate,
-				&s.ExpiredDate,
-			)
-			return s, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.semester s
+		LEFT JOIN ref.tahun_ajaran t ON t.id_thn_ajaran = s.id_thn_ajaran
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "s.id_smt"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			s.id_smt, s.id_thn_ajaran, s.nm_smt, s.smt, s.a_periode_aktif, s.tgl_mulai, s.tgl_selesai, s.create_date, s.last_update, s.expired_date,
+			t.nm_thn_ajaran
+		FROM ref.semester s
+		LEFT JOIN ref.tahun_ajaran t ON t.id_thn_ajaran = s.id_thn_ajaran
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []Semester
+	for rows.Next() {
+		var s Semester
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -176,46 +221,80 @@ func (r *repository) GetAgamas(ctx context.Context, params types.PaginationParam
 // ============================================================================
 
 func (r *repository) GetWilayahs(ctx context.Context, params types.WilayahParams) ([]Wilayah, int64, error) {
+
+	params.NormalizePagination()
+
 	// Build conditions using CondBuilder
 	cb := helper.NewCondBuilder()
-	cb.AppendString("id_negara", params.IDNegara)
-	cb.AppendInt("id_level_wil", params.Level)
-	cb.AppendString("id_induk_wilayah", params.IDIndukWilayah)
-	cb.Like("nm_wil", params.Search)
+	cb.AppendString("w.id_negara", params.IDNegara)
+	cb.AppendInt("w.id_level_wil", params.Level)
+	cb.AppendString("w.id_induk_wilayah", params.IDIndukWilayah)
+	cb.Like("w.nm_wil", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "w.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table: "ref.wilayah",
-			Select: `id_wil, id_negara, nm_wil, asal_wil, kode_bps, kode_dagri, 
-				kode_keu, id_induk_wilayah, id_level_wil, create_date, last_update, expired_date`,
-			DefaultSort: "id_wil",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (Wilayah, error) {
-			var w Wilayah
-			err := rows.Scan(
-				&w.IDWil,
-				&w.IDNegara,
-				&w.NmWil,
-				&w.AsalWil,
-				&w.KodeBps,
-				&w.KodeDagri,
-				&w.KodeKeu,
-				&w.IDIndukWilayah,
-				&w.IDLevelWil,
-				&w.CreateDate,
-				&w.LastUpdate,
-				&w.ExpiredDate,
-			)
-			return w, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	countQuery := fmt.Sprintf(
+		`SELECT COUNT(*) FROM ref.wilayah w LEFT JOIN ref.negara n ON n.id_negara = w.id_negara WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "w.id_wil"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			w.id_wil, n.id_negara, w.nm_wil, w.asal_wil, w.kode_bps, w.kode_dagri,
+			w.kode_keu, w.id_induk_wilayah, w.id_level_wil, w.create_date, w.last_update, w.expired_date, n.nm_negara
+		FROM ref.wilayah w
+		LEFT JOIN ref.negara n ON n.id_negara = w.id_negara
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []Wilayah
+	for rows.Next() {
+		var w Wilayah
+		if err := rows.StructScan(&w); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, w)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -480,50 +559,87 @@ func (r *repository) GetJenjangPendidikan(ctx context.Context, params types.Jenj
 // ============================================================================
 
 func (r *repository) GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error) {
+
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_jenj_didik", params.IDJenjDidik)
-	cb.AppendUUID("id_kel_bidang", params.IDKelBidang)
-	cb.AppendString("kode_nomenklatur", params.KodeNomenklatur)
-	cb.AppendInt("u_sma", params.USma)
-	cb.AppendInt("u_smk", params.USmk)
-	cb.AppendInt("u_pt", params.UPt)
-	cb.AppendInt("u_slb", params.USlb)
-	cb.Like("nm_jur", params.Search)
+	cb.AppendInt("j.id_jenj_didik", params.IDJenjDidik)
+	cb.AppendUUID("j.id_kel_bidang", params.IDKelBidang)
+	cb.AppendString("j.kode_nomenklatur", params.KodeNomenklatur)
+	cb.AppendInt("j.u_sma", params.USma)
+	cb.AppendInt("j.u_smk", params.USmk)
+	cb.AppendInt("j.u_pt", params.UPt)
+	cb.AppendInt("j.u_slb", params.USlb)
+	cb.Like("j.nm_jur", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "j.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.jurusan",
-			Select:      `id_jur, nm_jur, nm_intl_jur, kode_nomenklatur, u_sma, u_smk, u_pt, u_slb, id_induk_jurusan, id_jenj_didik, id_kel_bidang, create_date, last_update, expired_date`,
-			DefaultSort: "id_jur",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (Jurusan, error) {
-			var j Jurusan
-			err := rows.Scan(
-				&j.IDJur,
-				&j.NmJur,
-				&j.NmIntlJur,
-				&j.KodeNomenklatur,
-				&j.USma,
-				&j.USmk,
-				&j.UPt,
-				&j.USlb,
-				&j.IdIndukJurusan,
-				&j.IDJenjDidik,
-				&j.IDKelBidang,
-				&j.CreateDate,
-				&j.LastUpdate,
-				&j.ExpiredDate,
-			)
-			return j, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+
+	}
+
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.jurusan j
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = j.id_jenj_didik LEFT JOIN ref.kelompok_bidang kb ON kb.id_kel_bidang = j.id_kel_bidang
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "j.id_jur"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			j.id_jur, j.nm_jur, j.nm_intl_jur, j.kode_nomenklatur, j.u_sma, j.u_smk, j.u_pt, j.u_slb, j.id_induk_jurusan, j.id_jenj_didik, j.id_kel_bidang, j.create_date, j.last_update, j.expired_date, jp.nm_jenj_didik, kb.nm_kel_bidang
+		FROM ref.jurusan j
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = j.id_jenj_didik
+		LEFT JOIN ref.kelompok_bidang kb ON kb.id_kel_bidang = j.id_kel_bidang
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []Jurusan
+	for rows.Next() {
+		var s Jurusan
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -715,48 +831,86 @@ func (r *repository) GetLevelWilayah(ctx context.Context, params types.Paginatio
 // ============================================================================
 
 func (r *repository) GetMediaPublikasi(ctx context.Context, params types.MediaPublikasiParams) ([]MediaPublikasi, int64, error) {
+
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_jns_media", params.IDJnsMedia)
-	cb.AppendUUID("id_kel_bidang", params.IDKelBidang)
-	cb.AppendUUID("id_sp", params.IDSp)
-	cb.AppendString("id_negara", params.IDNegara)
-	cb.AppendString("bentuk_media_pub", params.BentukMediaPub)
-	cb.AppendString("grade_sinta", params.GradeSinta)
-	cb.AppendString("jns_penerbit", params.JnsPenerbit)
-	cb.Like("nm_media_pub", params.Search)
+	cb.AppendInt("mp.id_jns_media", params.IDJnsMedia)
+	cb.AppendUUID("mp.id_kel_bidang", params.IDKelBidang)
+	cb.AppendUUID("mp.id_sp", params.IDSp)
+	cb.AppendString("mp.id_negara", params.IDNegara)
+	cb.AppendString("mp.bentuk_media_pub", params.BentukMediaPub)
+	cb.AppendString("mp.grade_sinta", params.GradeSinta)
+	cb.AppendString("mp.jns_penerbit", params.JnsPenerbit)
+	cb.Like("mp.nm_media_pub", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "mp.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.media_publikasi",
-			Select:      `id_media_pub, id_jns_media, id_kel_bidang, id_sp, id_negara, nm_media_pub, bentuk_media_pub, grade_sinta, jns_penerbit, create_date, last_update, expired_date`,
-			DefaultSort: "id_media_pub",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (MediaPublikasi, error) {
-			var m MediaPublikasi
-			err := rows.Scan(
-				&m.IDMediaPub,
-				&m.IDJnsMedia,
-				&m.IDKelBidang,
-				&m.IDSp,
-				&m.IDNegara,
-				&m.NmMediaPub,
-				&m.BentukMediaPub,
-				&m.GradeSinta,
-				&m.JnsPenerbit,
-				&m.CreateDate,
-				&m.LastUpdate,
-				&m.ExpiredDate,
-			)
-			return m, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.media_publikasi mp
+		LEFT JOIN ref.jenis_media_pub jm ON mp.id_jns_media = jm.id_jns_media LEFT JOIN ref.kelompok_bidang kb ON mp.id_kel_bidang = kb.id_kel_bidang LEFT JOIN pdrd.satuan_pendidikan sp ON mp.id_sp = sp.id_sp LEFT JOIN ref.negara n ON mp.id_negara = n.id_negara
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "mp.id_media_pub"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			mp.id_media_pub, mp.id_jns_media, mp.id_kel_bidang, mp.id_sp, mp.id_negara, mp.nm_media_pub, mp.bentuk_media_pub, mp.grade_sinta, mp.jns_penerbit, mp.create_date, mp.last_update, mp.expired_date, jm.nm_jns_media, kb.nm_kel_bidang, sp.nm_lemb, n.nm_negara
+		FROM ref.media_publikasi mp
+		LEFT JOIN ref.jenis_media_pub jm ON mp.id_jns_media = jm.id_jns_media LEFT JOIN ref.kelompok_bidang kb ON mp.id_kel_bidang = kb.id_kel_bidang LEFT JOIN pdrd.satuan_pendidikan sp ON mp.id_sp = sp.id_sp LEFT JOIN ref.negara n ON mp.id_negara = n.id_negara
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []MediaPublikasi
+	for rows.Next() {
+		var m MediaPublikasi
+		if err := rows.StructScan(&m); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, m)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -1091,55 +1245,123 @@ func (r *repository) GetTse(ctx context.Context, params types.TseParams) ([]Tse,
 // ============================================================================
 
 func (r *repository) GetSkimKegiatan(ctx context.Context, params types.SkimKegiatanParams) ([]SkimKegiatan, int64, error) {
+
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_jenj_didik", params.IDJenjDidik)
-	cb.AppendString("kd_skim", params.KdSkim)
-	cb.AppendInt("jml_min_personil", params.JmlMinPersonil)
-	cb.AppendInt("jml_maks_personil", params.JmlMaksPersonil)
-	cb.AppendInt("jml_maks_keikutsertaan", params.JmlMaksKeikutsertaan)
-	cb.AppendInt("jml_maks_sbg_ketua", params.JmlMaksSbgKetua)
-	cb.AppendFloat("dana_min_thn_berjalan", params.DanaMinThnBerjalan)
-	cb.AppendFloat("dana_maks_thn_berjalan", params.DanaMaksThnBerjalan)
-	cb.AppendFloat("deviasi_nilai", params.DeviasiNilai)
-	cb.AppendFloat("passing_grade", params.PassingGrade)
-	cb.Like("nm_skim", params.Search)
+	cb.AppendInt("sk.id_jenj_didik", params.IDJenjDidik)
+	cb.AppendString("sk.kd_skim", params.KdSkim)
+	cb.AppendInt("sk.jml_min_personil", params.JmlMinPersonil)
+	cb.AppendInt("sk.jml_maks_personil", params.JmlMaksPersonil)
+	cb.AppendInt("sk.jml_maks_keikutsertaan", params.JmlMaksKeikutsertaan)
+	cb.AppendInt("sk.jml_maks_sbg_ketua", params.JmlMaksSbgKetua)
+	cb.AppendFloat("sk.dana_min_thn_berjalan", params.DanaMinThnBerjalan)
+	cb.AppendFloat("sk.dana_maks_thn_berjalan", params.DanaMaksThnBerjalan)
+	cb.AppendFloat("sk.deviasi_nilai", params.DeviasiNilai)
+	cb.AppendFloat("sk.passing_grade", params.PassingGrade)
+	cb.Like("sk.nm_skim", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "sk.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.skim_kegiatan",
-			Select:      `id_skim, id_jenj_didik, nm_skim, nm_singkat_skim, kd_skim, tst_skim, jml_min_personil, jml_maks_personil, jml_maks_keikutsertaan, jml_maks_sbg_ketua, dana_min_thn_berjalan, dana_maks_thn_berjalan, ket_skim, deviasi_nilai, passing_grade, create_date, last_update, expired_date`,
-			DefaultSort: "id_skim",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (SkimKegiatan, error) {
-			var s SkimKegiatan
-			err := rows.Scan(
-				&s.IDSkim,
-				&s.IDJenjDidik,
-				&s.NmSkim,
-				&s.NmSingkatSkim,
-				&s.KdSkim,
-				&s.TstSkim,
-				&s.JmlMinPersonil,
-				&s.JmlMaksPersonil,
-				&s.JmlMaksKeikutsertaan,
-				&s.JmlMaksSbgKetua,
-				&s.DanaMinThnBerjalan,
-				&s.DanaMaksThnBerjalan,
-				&s.KetSkim,
-				&s.DeviasiNilai,
-				&s.PassingGrade,
-				&s.CreateDate,
-				&s.LastUpdate,
-				&s.ExpiredDate,
-			)
-			return s, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.skim_kegiatan sk
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sk.id_jenj_didik
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "sk.id_skim"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			sk.id_skim, sk.id_jenj_didik, sk.nm_skim, sk.nm_singkat_skim, sk.kd_skim, sk.tst_skim, sk.jml_min_personil, sk.jml_maks_personil, sk.jml_maks_keikutsertaan, sk.jml_maks_sbg_ketua, sk.dana_min_thn_berjalan, sk.dana_maks_thn_berjalan, sk.ket_skim, sk.deviasi_nilai, sk.passing_grade, sk.create_date, sk.last_update, sk.expired_date, jp.nm_jenj_didik
+		FROM ref.skim_kegiatan sk
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sk.id_jenj_didik
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []SkimKegiatan
+	for rows.Next() {
+		var s SkimKegiatan
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
+
+	// return helper.QueryPaged(
+	// 	ctx,
+	// 	r.db,
+	// 	helper.BaseQueryConfig{
+	// 		Table:       "ref.skim_kegiatan",
+	// 		Select:      `id_skim, id_jenj_didik, nm_skim, nm_singkat_skim, kd_skim, tst_skim, jml_min_personil, jml_maks_personil, jml_maks_keikutsertaan, jml_maks_sbg_ketua, dana_min_thn_berjalan, dana_maks_thn_berjalan, ket_skim, deviasi_nilai, passing_grade, create_date, last_update, expired_date`,
+	// 		DefaultSort: "id_skim",
+	// 	},
+	// 	params.PaginationParams,
+	// 	conds,
+	// 	args,
+	// 	func(rows *sql.Rows) (SkimKegiatan, error) {
+	// 		var s SkimKegiatan
+	// 		err := rows.Scan(
+	// 			&s.IDSkim,
+	// 			&s.IDJenjDidik,
+	// 			&s.NmSkim,
+	// 			&s.NmSingkatSkim,
+	// 			&s.KdSkim,
+	// 			&s.TstSkim,
+	// 			&s.JmlMinPersonil,
+	// 			&s.JmlMaksPersonil,
+	// 			&s.JmlMaksKeikutsertaan,
+	// 			&s.JmlMaksSbgKetua,
+	// 			&s.DanaMinThnBerjalan,
+	// 			&s.DanaMaksThnBerjalan,
+	// 			&s.KetSkim,
+	// 			&s.DeviasiNilai,
+	// 			&s.PassingGrade,
+	// 			&s.CreateDate,
+	// 			&s.LastUpdate,
+	// 			&s.ExpiredDate,
+	// 		)
+	// 		return s, err
+	// 	},
+	// )
 }
