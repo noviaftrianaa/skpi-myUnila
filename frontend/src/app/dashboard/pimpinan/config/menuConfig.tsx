@@ -42,6 +42,12 @@ export const pimpinanMenuConfig: MenuItem[] = [
     href: "/dashboard/pimpinan/rasio",
     roles: ["pimpinan", "rektor", "warek", "dekan", "wadek", "ketua_lembaga"],
   },
+  {
+    title: "Data Dosen",
+    icon: <FiUsers className="w-5 h-5" />,
+    href: "/dashboard/pimpinan/dosen",
+    roles: ["pimpinan", "rektor", "warek", "dekan", "wadek", "ketua_lembaga"],
+  },
   // {
   //   title: "Peringkat Universitas",
   //   icon: <FiAward className="w-5 h-5" />,

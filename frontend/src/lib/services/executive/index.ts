@@ -28,3 +28,14 @@ export type {
   GetDataMahasiswaParams,
   GetDataDosenParams,
 } from './rasioService';
+
+export { executiveJabfungService } from './jabfungService';
+export type {
+  JabfungFakultas,
+  JabfungProdi,
+  Dosen as JabfungDosen,
+  GetJabfungFakultasParams,
+  GetJabfungProdiParams,
+  GetDataDosenParams as GetJabfungDataDosenParams,
+  GetProdiParams as GetJabfungProdiListParams,
+} from './jabfungService';

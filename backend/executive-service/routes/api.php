@@ -4,6 +4,7 @@ use App\Http\Controllers\AkreditasiController;
 use App\Http\Controllers\RasioController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\JabFungController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,5 +44,21 @@ Route::prefix('v1')->group(function () {
         // Detail data with pagination
         Route::get('/data/mahasiswa', [RasioController::class, 'getDataMahasiswa']);
         Route::get('/data/dosen', [RasioController::class, 'getDataDosen']);
+    });
+
+    Route::prefix('dosen')->group(function () {
+        Route::prefix('jabfung')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [JabFungController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [JabFungController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [JabFungController::class, 'getProdiList']);
+
+            // Jabfung data routes
+            Route::get('/fakultas', [JabFungController::class, 'getJabfungFakultas']);
+            Route::get('/fakultas/{idFakultas}', [JabFungController::class, 'getJabfungProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [JabFungController::class, 'getDataDosen']);
+        });
     });
 });

@@ -1,0 +1,197 @@
+"use client";
+
+import { useState } from "react";
+import { FiUsers } from "react-icons/fi";
+import Modal from "../Modal";
+import DataTable, { type Column } from "@/shared/components/ui/DataTable";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { executiveJabfungService, type Dosen } from "@/lib/services/executive/jabfungService";
+import Link from "next/link";
+
+// Types
+interface DosenDataModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedTipeData: string;
+  selectedTahunAjaran: string;
+  selectedTahunAjaranName?: string;
+  selectedFakultas: string;
+  selectedFakultasName?: string;
+  selectedProdi: string;
+  selectedProdiName?: string;
+}
+
+// Tipe data display names
+const TipeDataNames: Record<string, string> = {
+  jabfung: "Jabatan Fungsional",
+  pang_gol: "Pangkat Golongan",
+  jenjang_pendidikan: "Jenjang Pendidikan",
+  status_pegawai: "Status Kepegawaian",
+};
+
+export const DosenDataModal = ({
+  isOpen,
+  onClose,
+  selectedTipeData,
+  selectedTahunAjaran,
+  selectedTahunAjaranName,
+  selectedFakultas,
+  selectedFakultasName,
+  selectedProdi,
+  selectedProdiName,
+}: DosenDataModalProps) => {
+  // Dosen pagination state
+  const [dosenPagination, setDosenPagination] = useState({
+    page: 1,
+    perPage: 10,
+    search: "",
+  });
+
+  // Fetch dosen data with useQuery
+  const { data: dosenResponse, isLoading: isLoadingDosen } = useQuery({
+    queryKey: [
+      "dosen",
+      "jabfung",
+      selectedTahunAjaran,
+      selectedProdi ? undefined : selectedFakultas,
+      selectedProdi,
+      dosenPagination.page,
+      dosenPagination.perPage,
+      dosenPagination.search,
+    ],
+    queryFn: () =>
+      executiveJabfungService.getDataDosen({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: selectedProdi ? undefined : selectedFakultas || undefined,
+        prodi_id: selectedProdi || undefined,
+        per_page: dosenPagination.perPage,
+        page: dosenPagination.page,
+        search: dosenPagination.search || undefined,
+      }),
+    enabled: isOpen,
+    placeholderData: keepPreviousData,
+  });
+
+  const dosenData = dosenResponse?.data || [];
+  const dosenTotal = dosenResponse?.pagination?.total || 0;
+
+  // Define columns for Dosen (dynamic based on tipe data)
+  const getDosenColumns = (): Column<Dosen>[] => {
+    const baseColumns: Column<Dosen>[] = [
+      { key: "nidn", label: "NIDN" },
+      {
+        key: "nama",
+        label: "Nama",
+        render: (item) => (
+          <Link
+            href={`/dosen/${item.encrypted_id || item.id}`}
+            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors text-[10px] sm:text-xs md:text-sm"
+          >
+            {item.nama}
+          </Link>
+        ),
+      },
+      { key: "prodi", label: "Program Studi" },
+      { key: "fakultas", label: "Fakultas" },
+    ];
+
+    // Add dynamic column based on tipe data
+    if (selectedTipeData === "jabfung") {
+      baseColumns.push({
+        key: "jabfung",
+        label: "Jabfung",
+        render: (item) => (
+          <span
+            className={`px-2 py-1 rounded-full text-xs ${
+              item.jabfung === "Profesor"
+                ? "bg-red-100 text-red-700"
+                : item.jabfung === "Lektor Kepala"
+                ? "bg-amber-100 text-amber-700"
+                : item.jabfung === "Lektor"
+                ? "bg-green-100 text-green-700"
+                : item.jabfung === "Asisten Ahli"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {item.jabfung}
+          </span>
+        ),
+      });
+    }
+
+    baseColumns.push({
+      key: "status",
+      label: "Status",
+      render: (dsn) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            dsn.status === "PNS"
+              ? "bg-green-100 text-green-700"
+              : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          {dsn.status}
+        </span>
+      ),
+    });
+
+    return baseColumns;
+  };
+
+  // Get subtitle based on selection
+  const getSubtitle = () => {
+    const parts: string[] = [];
+
+    if (selectedTahunAjaranName) {
+      parts.push(`Tahun Ajaran: ${selectedTahunAjaranName}`);
+    }
+
+    if (selectedProdi && selectedProdiName) {
+      parts.push(`Program Studi: ${selectedProdiName}`);
+    } else if (selectedFakultas && selectedFakultasName) {
+      parts.push(`Fakultas: ${selectedFakultasName}`);
+    }
+
+    if (parts.length === 0) {
+      return "Semua Fakultas";
+    }
+
+    return parts.join(" | ");
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="full"
+      title="Data Dosen"
+      titleIcon={<FiUsers className="w-5 h-5" />}
+      subtitle={getSubtitle()}
+    >
+      <DataTable
+        data={dosenData}
+        columns={getDosenColumns()}
+        searchPlaceholder="Cari dosen..."
+        defaultRowsPerPage={10}
+        emptyMessage="Tidak ada data dosen"
+        serverSide
+        totalRecords={dosenTotal}
+        onPageChange={(page) =>
+          setDosenPagination((prev) => ({ ...prev, page }))
+        }
+        onRowsPerPageChange={(rows) =>
+          setDosenPagination((prev) => ({
+            ...prev,
+            perPage: rows,
+            page: 1,
+          }))
+        }
+        onSearchChange={(search) =>
+          setDosenPagination((prev) => ({ ...prev, search, page: 1 }))
+        }
+        loading={isLoadingDosen}
+      />
+    </Modal>
+  );
+};
