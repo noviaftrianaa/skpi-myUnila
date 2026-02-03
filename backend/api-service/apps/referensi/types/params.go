@@ -296,9 +296,9 @@ type LembagaAkredParams struct {
 
 type PetaKatgiatJnsdokParams struct {
 	PaginationParams
-	IDJnsDok int `db:"id_jns_dok" json:"id_jns_dok"`
-	AWajib   int `db:"a_wajib" json:"a_wajib"`
-	NoUrut   int `db:"no_urut" json:"no_urut"`
+	IDJnsDok *int `db:"id_jns_dok" json:"id_jns_dok"`
+	AWajib   *int `db:"a_wajib" json:"a_wajib"`
+	NoUrut   *int `db:"no_urut" json:"no_urut"`
 }
 
 type SumberDanaParams struct {
