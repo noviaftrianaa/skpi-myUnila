@@ -76,18 +76,27 @@ export const DosenChart = <T extends Record<string, any>>({
     switch (chartType) {
       case "bar":
         return (
-          <BarChart data={data}>
+          <BarChart data={data} barCategoryGap="20%" barGap={4}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
+            <XAxis
+              dataKey={xAxisKey}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={120}
+              tick={{ fontSize: 12 }}
+            />
             <YAxis />
             <Tooltip />
-            <Legend />
+            <Legend verticalAlign="top" />
             {keys.map((item) => (
               <Bar
                 key={item.key}
                 dataKey={item.key}
                 fill={item.color || "#3b82f6"}
                 name={item.name}
+                className=" mt-60"
+                barSize={18}
               />
             ))}
           </BarChart>
@@ -97,10 +106,17 @@ export const DosenChart = <T extends Record<string, any>>({
         return (
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
+            <XAxis
+              dataKey={xAxisKey}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={150}
+              tick={{ fontSize: 12 }}
+            />
             <YAxis />
             <Tooltip />
-            <Legend />
+            <Legend verticalAlign="top" />
             {keys.map((item) => (
               <Bar
                 key={item.key}
@@ -127,7 +143,10 @@ export const DosenChart = <T extends Record<string, any>>({
               outerRadius={120}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
               ))}
             </Pie>
             <Tooltip />
@@ -139,7 +158,14 @@ export const DosenChart = <T extends Record<string, any>>({
         return (
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
+            <XAxis
+              dataKey={xAxisKey}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tick={{ fontSize: 12 }}
+            />
             <YAxis />
             <Tooltip />
             <Legend />
@@ -162,24 +188,24 @@ export const DosenChart = <T extends Record<string, any>>({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="p-6 bg-white shadow-sm rounded-xl">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
         </div>
         <Button
           color="primary"
           variant="solid"
           onPress={onLihatData}
           isDisabled={disabled}
-          className="bg-myunila text-white"
+          className="text-white bg-myunila"
         >
           Lihat Data
         </Button>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={500}>
         {renderChart()}
       </ResponsiveContainer>
     </div>

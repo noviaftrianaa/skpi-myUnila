@@ -5,7 +5,8 @@ import { FiUsers } from "react-icons/fi";
 import Modal from "../Modal";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { executiveJabfungService, type Dosen } from "@/lib/services/executive/jabfungService";
+import { executiveJabfungService, type Dosen as JabfungDosen } from "@/lib/services/executive/jabfungService";
+import { executiveJenjangPendidikanService, type Dosen as JenjangDosen } from "@/lib/services/executive/jenjangPendidikanService";
 import Link from "next/link";
 
 // Types
@@ -51,7 +52,7 @@ export const DosenDataModal = ({
   const { data: dosenResponse, isLoading: isLoadingDosen } = useQuery({
     queryKey: [
       "dosen",
-      "jabfung",
+      selectedTipeData,
       selectedTahunAjaran,
       selectedProdi ? undefined : selectedFakultas,
       selectedProdi,
@@ -59,15 +60,21 @@ export const DosenDataModal = ({
       dosenPagination.perPage,
       dosenPagination.search,
     ],
-    queryFn: () =>
-      executiveJabfungService.getDataDosen({
+    queryFn: () => {
+      const params = {
         tahun_ajaran: selectedTahunAjaran,
         fakultas_id: selectedProdi ? undefined : selectedFakultas || undefined,
         prodi_id: selectedProdi || undefined,
         per_page: dosenPagination.perPage,
         page: dosenPagination.page,
         search: dosenPagination.search || undefined,
-      }),
+      };
+
+      if (selectedTipeData === "jenjang_pendidikan") {
+        return executiveJenjangPendidikanService.getDataDosen(params);
+      }
+      return executiveJabfungService.getDataDosen(params);
+    },
     enabled: isOpen,
     placeholderData: keepPreviousData,
   });
@@ -76,7 +83,7 @@ export const DosenDataModal = ({
   const dosenTotal = dosenResponse?.pagination?.total || 0;
 
   // Define columns for Dosen (dynamic based on tipe data)
-  const getDosenColumns = (): Column<Dosen>[] => {
+  const getDosenColumns = (): Column<JabfungDosen | JenjangDosen>[] => {
     const baseColumns: Column<Dosen>[] = [
       { key: "nidn", label: "NIDN" },
       {
@@ -103,20 +110,51 @@ export const DosenDataModal = ({
         render: (item) => (
           <span
             className={`px-2 py-1 rounded-full text-xs ${
-              item.jabfung === "Profesor"
+              (item as JabfungDosen).jabfung === "Profesor"
                 ? "bg-red-100 text-red-700"
-                : item.jabfung === "Lektor Kepala"
+                : (item as JabfungDosen).jabfung === "Lektor Kepala"
                 ? "bg-amber-100 text-amber-700"
-                : item.jabfung === "Lektor"
+                : (item as JabfungDosen).jabfung === "Lektor"
                 ? "bg-green-100 text-green-700"
-                : item.jabfung === "Asisten Ahli"
+                : (item as JabfungDosen).jabfung === "Asisten Ahli"
                 ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
-            {item.jabfung}
+            {(item as JabfungDosen).jabfung}
           </span>
         ),
+      });
+    }
+
+    if (selectedTipeData === "jenjang_pendidikan") {
+      baseColumns.push({
+        key: "jenjang_didik",
+        label: "Jenjang",
+        render: (item) => {
+          const jenjang = (item as JenjangDosen).jenjang_didik;
+          const colorClass: Record<string, string> = {
+            D3: "bg-cyan-100 text-cyan-700",
+            D4: "bg-blue-100 text-blue-700",
+            S1: "bg-green-100 text-green-700",
+            S2: "bg-purple-100 text-purple-700",
+            "S2 Terapan": "bg-indigo-100 text-indigo-700",
+            S3: "bg-red-100 text-red-700",
+            "S3 Terapan": "bg-rose-100 text-rose-700",
+            Profesi: "bg-teal-100 text-teal-700",
+            Sp1: "bg-amber-100 text-amber-700",
+            Sp2: "bg-pink-100 text-pink-700",
+          };
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${
+                colorClass[jenjang] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {jenjang}
+            </span>
+          );
+        },
       });
     }
 

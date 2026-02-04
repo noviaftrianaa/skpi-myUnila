@@ -5,6 +5,7 @@ use App\Http\Controllers\RasioController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\JabFungController;
+use App\Http\Controllers\JenjangPendidikanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,20 @@ Route::prefix('v1')->group(function () {
 
             // Detail data with pagination
             Route::get('/data', [JabFungController::class, 'getDataDosen']);
+        });
+
+        Route::prefix('jenjang-pendidikan')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [JenjangPendidikanController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [JenjangPendidikanController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [JenjangPendidikanController::class, 'getProdiList']);
+
+            // Jenjang pendidikan data routes
+            Route::get('/fakultas', [JenjangPendidikanController::class, 'getJenjangFakultas']);
+            Route::get('/fakultas/{idFakultas}', [JenjangPendidikanController::class, 'getJenjangProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [JenjangPendidikanController::class, 'getDataDosen']);
         });
     });
 });

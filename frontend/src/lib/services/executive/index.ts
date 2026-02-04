@@ -39,3 +39,14 @@ export type {
   GetDataDosenParams as GetJabfungDataDosenParams,
   GetProdiParams as GetJabfungProdiListParams,
 } from './jabfungService';
+
+export { executiveJenjangPendidikanService } from './jenjangPendidikanService';
+export type {
+  JenjangFakultas,
+  JenjangProdi,
+  Dosen as JenjangDosen,
+  GetJenjangFakultasParams,
+  GetJenjangProdiParams,
+  GetDataDosenParams as GetJenjangDataDosenParams,
+  GetProdiParams as GetJenjangProdiListParams,
+} from './jenjangPendidikanService';

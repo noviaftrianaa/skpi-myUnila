@@ -4,54 +4,59 @@ namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
 
-class JabFungRepository
+class JenjangPendidikanRepository
 {
     /**
-     * Get jabfung data with drilldown support
+     * Get jenjang pendidikan data with drilldown support
      *
      * Supports three levels:
-     * 1. University level (no filters) - jabfung breakdown per fakultas
-     * 2. Fakultas level (idFakultas) - jabfung breakdown per prodi
-     * 3. Prodi level (idProdi) - jabfung breakdown for single prodi
+     * 1. University level (no filters) - jenjang breakdown per fakultas
+     * 2. Fakultas level (idFakultas) - jenjang breakdown per prodi
+     * 3. Prodi level (idProdi) - jenjang breakdown for single prodi
      *
      * @param int|null $idThnAjaran Tahun ajaran (required)
      * @param string|null $idFakultas ID fakultas (optional)
      * @param string|null $idProdi ID prodi (optional)
      * @return \Illuminate\Support\Collection
      */
-    public function getJabfungByLevel($idThnAjaran, $idFakultas = null, $idProdi = null)
+    public function getJenjangByLevel($idThnAjaran, $idFakultas = null, $idProdi = null)
     {
-        // Prodi Level - Single prodi jabfung breakdown
+        // Prodi Level - Single prodi jenjang breakdown
         if ($idProdi) {
-            return $this->getJabfungProdiLevel($idThnAjaran, $idProdi);
+            return $this->getJenjangProdiLevel($idThnAjaran, $idProdi);
         }
 
-        // Fakultas Level - Per prodi jabfung breakdown in a fakultas
+        // Fakultas Level - Per prodi jenjang breakdown in a fakultas
         if ($idFakultas) {
-            return $this->getJabfungFakultasLevel($idThnAjaran, $idFakultas);
+            return $this->getJenjangFakultasLevel($idThnAjaran, $idFakultas);
         }
 
-        // University Level - Per fakultas jabfung breakdown
-        return $this->getJabfungUniversityLevel($idThnAjaran);
+        // University Level - Per fakultas jenjang breakdown
+        return $this->getJenjangUniversityLevel($idThnAjaran);
     }
 
     /**
-     * Get jabfung data at university level (per fakultas)
+     * Get jenjang pendidikan data at university level (per fakultas)
      *
      * @param int $idThnAjaran
      * @return \Illuminate\Support\Collection
      */
-    private function getJabfungUniversityLevel($idThnAjaran)
+    private function getJenjangUniversityLevel($idThnAjaran)
     {
         $sql = "
             SELECT
                 fakultas.id_sms AS id,
                 fakultas.nm_lemb AS nama_fakultas,
-                SUM(CASE WHEN tjabfung.id_jabfung IS NULL THEN 1 ELSE 0 END) AS belum_jabfung,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (40, 41) THEN 1 ELSE 0 END) AS asisten_ahli,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (43, 44) THEN 1 ELSE 0 END) AS lektor,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (46, 47, 48) THEN 1 ELSE 0 END) AS lektor_kepala,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (50, 51) THEN 1 ELSE 0 END) AS profesor,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 22 THEN 1 ELSE 0 END) AS d3,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 23 THEN 1 ELSE 0 END) AS d4,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 30 THEN 1 ELSE 0 END) AS s1,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 35 THEN 1 ELSE 0 END) AS s2,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 36 THEN 1 ELSE 0 END) AS s2_terapan,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 40 THEN 1 ELSE 0 END) AS s3,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 31 THEN 1 ELSE 0 END) AS profesi,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 32 THEN 1 ELSE 0 END) AS sp1,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 37 THEN 1 ELSE 0 END) AS sp2,
+                SUM(CASE WHEN tjenj.id_jenj_didik IS NULL THEN 1 ELSE 0 END) AS belum_jenjang,
                 COUNT(*) AS total
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
@@ -78,19 +83,14 @@ class JabFungRepository
                 AND fakultas.soft_delete = 0
             LEFT JOIN (
                 SELECT
-                    MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
-                    id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung
-                    ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE rwy_fungsional.tmt_sk_jabfung >= '1970-01-01'
-                    AND rwy_fungsional.tmt_sk_jabfung <= GETDATE()
-                    AND jabfung.expired_date IS NULL
-                    AND jabfung.id_kel_prof = '2'
-                    AND rwy_fungsional.soft_delete = 0
+                    id_sdm,
+                    MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal
+                WHERE soft_delete = 0
+                    AND id_jenj_didik != 99
                 GROUP BY id_sdm
-            ) AS tjabfung
-                ON tjabfung.id_sdm = tsdm.id_sdm
+            ) AS tjenj
+                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -102,13 +102,13 @@ class JabFungRepository
     }
 
     /**
-     * Get jabfung data at fakultas level (per prodi)
+     * Get jenjang pendidikan data at fakultas level (per prodi)
      *
      * @param int $idThnAjaran
      * @param string $idFakultas
      * @return \Illuminate\Support\Collection
      */
-    private function getJabfungFakultasLevel($idThnAjaran, $idFakultas)
+    private function getJenjangFakultasLevel($idThnAjaran, $idFakultas)
     {
         $sql = "
             SELECT
@@ -116,11 +116,16 @@ class JabFungRepository
                 tsms.nm_lemb AS nama_prodi,
                 fakultas.id_sms AS fakultas_id,
                 fakultas.nm_lemb AS nama_fakultas,
-                SUM(CASE WHEN tjabfung.id_jabfung IS NULL THEN 1 ELSE 0 END) AS belum_jabfung,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (40, 41) THEN 1 ELSE 0 END) AS asisten_ahli,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (43, 44) THEN 1 ELSE 0 END) AS lektor,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (46, 47, 48) THEN 1 ELSE 0 END) AS lektor_kepala,
-                SUM(CASE WHEN tjabfung.id_jabfung IN (50, 51) THEN 1 ELSE 0 END) AS profesor,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 22 THEN 1 ELSE 0 END) AS d3,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 23 THEN 1 ELSE 0 END) AS d4,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 30 THEN 1 ELSE 0 END) AS s1,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 35 THEN 1 ELSE 0 END) AS s2,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 36 THEN 1 ELSE 0 END) AS s2_terapan,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 40 THEN 1 ELSE 0 END) AS s3,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 31 THEN 1 ELSE 0 END) AS profesi,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 32 THEN 1 ELSE 0 END) AS sp1,
+                SUM(CASE WHEN tjenj.id_jenj_didik = 37 THEN 1 ELSE 0 END) AS sp2,
+                SUM(CASE WHEN tjenj.id_jenj_didik IS NULL THEN 1 ELSE 0 END) AS belum_jenjang,
                 COUNT(*) AS total
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
@@ -148,19 +153,14 @@ class JabFungRepository
                 AND fakultas.soft_delete = 0
             LEFT JOIN (
                 SELECT
-                    MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
-                    id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung
-                    ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE rwy_fungsional.tmt_sk_jabfung >= '1970-01-01'
-                    AND rwy_fungsional.tmt_sk_jabfung <= GETDATE()
-                    AND jabfung.expired_date IS NULL
-                    AND jabfung.id_kel_prof = '2'
-                    AND rwy_fungsional.soft_delete = 0
+                    id_sdm,
+                    MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal
+                WHERE soft_delete = 0
+                    AND id_jenj_didik != 99
                 GROUP BY id_sdm
-            ) AS tjabfung
-                ON tjabfung.id_sdm = tsdm.id_sdm
+            ) AS tjenj
+                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -172,28 +172,34 @@ class JabFungRepository
     }
 
     /**
-     * Get jabfung data at prodi level
+     * Get jenjang pendidikan data at prodi level
      *
      * @param int $idThnAjaran
      * @param string $idProdi
      * @return \Illuminate\Support\Collection
      */
-    private function getJabfungProdiLevel($idThnAjaran, $idProdi)
+    private function getJenjangProdiLevel($idThnAjaran, $idProdi)
     {
         $sql = "
             SELECT
                 COUNT(*) as total,
                 CASE
-                    WHEN tjabfung.id_jabfung IS NULL THEN 999
-                    ELSE tjabfung.id_jabfung
-                END AS id_jabfung,
+                    WHEN tjenj.id_jenj_didik IS NULL THEN 999
+                    ELSE tjenj.id_jenj_didik
+                END AS id_jenj_didik,
                 CASE
-                    WHEN tjabfung.id_jabfung IN (40, 41) THEN 'Asisten Ahli'
-                    WHEN tjabfung.id_jabfung IN (43, 44) THEN 'Lektor'
-                    WHEN tjabfung.id_jabfung IN (46, 47, 48) THEN 'Lektor Kepala'
-                    WHEN tjabfung.id_jabfung IN (50, 51) THEN 'Profesor'
-                    ELSE 'Belum Jabfung'
-                END AS jabfung,
+                    WHEN tjenj.id_jenj_didik = 22 THEN 'D3'
+                    WHEN tjenj.id_jenj_didik = 23 THEN 'D4'
+                    WHEN tjenj.id_jenj_didik = 30 THEN 'S1'
+                    WHEN tjenj.id_jenj_didik = 35 THEN 'S2'
+                    WHEN tjenj.id_jenj_didik = 36 THEN 'S2 Terapan'
+                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3'
+                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3 Terapan'
+                    WHEN tjenj.id_jenj_didik = 31 THEN 'Profesi'
+                    WHEN tjenj.id_jenj_didik = 32 THEN 'Sp1'
+                    WHEN tjenj.id_jenj_didik = 37 THEN 'Sp2'
+                    ELSE 'Belum Jenjang'
+                END AS jenjang_didik,
                 tsms.id_sms AS id_prodi,
                 tsms.nm_lemb AS nama_prodi,
                 fakultas.id_sms AS id_fakultas,
@@ -225,36 +231,31 @@ class JabFungRepository
                 AND fakultas.soft_delete = 0
             LEFT JOIN (
                 SELECT
-                    MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
-                    id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung
-                    ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE rwy_fungsional.tmt_sk_jabfung >= '1970-01-01'
-                    AND rwy_fungsional.tmt_sk_jabfung <= GETDATE()
-                    AND jabfung.expired_date IS NULL
-                    AND jabfung.id_kel_prof = '2'
-                    AND rwy_fungsional.soft_delete = 0
+                    id_sdm,
+                    MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal
+                WHERE soft_delete = 0
+                    AND id_jenj_didik != 99
                 GROUP BY id_sdm
-            ) AS tjabfung
-                ON tjabfung.id_sdm = tsdm.id_sdm
+            ) AS tjenj
+                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
-            GROUP BY tjabfung.id_jabfung,
+            GROUP BY tjenj.id_jenj_didik,
                 tsms.id_sms,
                 tsms.nm_lemb,
                 fakultas.id_sms,
                 fakultas.nm_lemb,
                 tkeaktifan.id_thn_ajaran
-            ORDER BY id_jabfung ASC
+            ORDER BY id_jenj_didik ASC
         ";
 
         return collect(DB::select($sql, [$idThnAjaran, $idProdi]));
     }
 
     /**
-     * Get dosen data with pagination
+     * Get dosen data with pagination (with jenjang column)
      *
      * @param int|null $idThnAjaran
      * @param string|null $idFakultas
@@ -329,21 +330,6 @@ class JabFungRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
-            LEFT JOIN (
-                SELECT
-                    MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
-                    id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung
-                    ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE rwy_fungsional.tmt_sk_jabfung >= '1970-01-01'
-                    AND rwy_fungsional.tmt_sk_jabfung <= GETDATE()
-                    AND jabfung.expired_date IS NULL
-                    AND jabfung.id_kel_prof = '2'
-                    AND rwy_fungsional.soft_delete = 0
-                GROUP BY id_sdm
-            ) AS tjabfung
-                ON tjabfung.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -379,14 +365,20 @@ class JabFungRepository
                 tsdm.nm_sdm AS nama,
                 tsms.id_sms AS id_prodi,
                 fakultas.nm_lemb AS nama_fakultas,
-                CONCAT(tsms.nm_lemb, ' (', jenj.nm_jenj_didik, ') ') AS nama_prodi,
+                CONCAT(tsms.nm_lemb, ' (', jenj_prodi.nm_jenj_didik, ') ') AS nama_prodi,
                 CASE
-                    WHEN tjabfung.id_jabfung IN (40, 41) THEN 'Asisten Ahli'
-                    WHEN tjabfung.id_jabfung IN (43, 44) THEN 'Lektor'
-                    WHEN tjabfung.id_jabfung IN (46, 47, 48) THEN 'Lektor Kepala'
-                    WHEN tjabfung.id_jabfung IN (50, 51) THEN 'Profesor'
-                    ELSE 'Belum Jabfung'
-                END AS jabfung,
+                    WHEN tjenj.id_jenj_didik = 22 THEN 'D3'
+                    WHEN tjenj.id_jenj_didik = 23 THEN 'D4'
+                    WHEN tjenj.id_jenj_didik = 30 THEN 'S1'
+                    WHEN tjenj.id_jenj_didik = 35 THEN 'S2'
+                    WHEN tjenj.id_jenj_didik = 36 THEN 'S2 Terapan'
+                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3'
+                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3 Terapan'
+                    WHEN tjenj.id_jenj_didik = 31 THEN 'Profesi'
+                    WHEN tjenj.id_jenj_didik = 32 THEN 'Sp1'
+                    WHEN tjenj.id_jenj_didik = 37 THEN 'Sp2'
+                    ELSE 'Belum Jenjang'
+                END AS jenjang_didik,
                 stat_peg.nm_stat_pegawai AS status
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
@@ -408,7 +400,7 @@ class JabFungRepository
                 ON tsms.id_sms = treg.id_sms
                 AND tsms.soft_delete = 0
                 AND tsms.id_jns_sms = 3
-            JOIN ref.jenjang_pendidikan jenj ON jenj.id_jenj_didik = tsms.id_jenj_didik
+            JOIN ref.jenjang_pendidikan jenj_prodi ON jenj_prodi.id_jenj_didik = tsms.id_jenj_didik
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
@@ -416,19 +408,14 @@ class JabFungRepository
                 ON stat_peg.id_stat_pegawai = treg.id_stat_pegawai
             LEFT JOIN (
                 SELECT
-                    MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
-                    id_sdm
-                FROM pdrd.rwy_fungsional
-                LEFT JOIN ref.jabfung
-                    ON jabfung.id_jabfung = rwy_fungsional.id_jabfung
-                WHERE rwy_fungsional.tmt_sk_jabfung >= '1970-01-01'
-                    AND rwy_fungsional.tmt_sk_jabfung <= GETDATE()
-                    AND jabfung.expired_date IS NULL
-                    AND jabfung.id_kel_prof = '2'
-                    AND rwy_fungsional.soft_delete = 0
+                    id_sdm,
+                    MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal
+                WHERE soft_delete = 0
+                    AND id_jenj_didik != 99
                 GROUP BY id_sdm
-            ) AS tjabfung
-                ON tjabfung.id_sdm = tsdm.id_sdm
+            ) AS tjenj
+                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
