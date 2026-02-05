@@ -7,6 +7,7 @@ import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { executiveJabfungService, type Dosen as JabfungDosen } from "@/lib/services/executive/jabfungService";
 import { executiveJenjangPendidikanService, type Dosen as JenjangDosen } from "@/lib/services/executive/jenjangPendidikanService";
+import { executivePangkatGolonganService, type Dosen as PangGolDosen } from "@/lib/services/executive/pangkatGolonganService";
 import Link from "next/link";
 
 // Types
@@ -73,6 +74,9 @@ export const DosenDataModal = ({
       if (selectedTipeData === "jenjang_pendidikan") {
         return executiveJenjangPendidikanService.getDataDosen(params);
       }
+      if (selectedTipeData === "pang_gol") {
+        return executivePangkatGolonganService.getDataDosen(params);
+      }
       return executiveJabfungService.getDataDosen(params);
     },
     enabled: isOpen,
@@ -83,7 +87,7 @@ export const DosenDataModal = ({
   const dosenTotal = dosenResponse?.pagination?.total || 0;
 
   // Define columns for Dosen (dynamic based on tipe data)
-  const getDosenColumns = (): Column<JabfungDosen | JenjangDosen>[] => {
+  const getDosenColumns = (): Column<JabfungDosen | JenjangDosen | PangGolDosen>[] => {
     const baseColumns: Column<Dosen>[] = [
       { key: "nidn", label: "NIDN" },
       {
@@ -155,6 +159,18 @@ export const DosenDataModal = ({
             </span>
           );
         },
+      });
+    }
+
+    if (selectedTipeData === "pang_gol") {
+      baseColumns.push({
+        key: "pangkat_golongan",
+        label: "Pangkat Golongan",
+        render: (item) => (
+          <span className="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700">
+            {(item as PangGolDosen).pangkat_golongan}
+          </span>
+        ),
       });
     }
 

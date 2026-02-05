@@ -3,13 +3,13 @@
 // ========================================
 
 export { DosenChart } from "./DosenChart";
-export type { ChartType, DosenChartProps } from "./DosenChart";
+export type { ChartType } from "./DosenChart";
 
 export { DosenDataModal } from "./DosenDataModal";
 
 export { DosenStatsCard } from "./DosenStatsCard";
 
-export { JabfungStatsCards, JenjangStatsCards } from "./DosenStatsCards";
+export { JabfungStatsCards, JenjangStatsCards, PangGolStatsCards } from "./DosenStatsCards";
 
 // ========================================
 // Hooks
@@ -27,6 +27,7 @@ export type {
   TipeDataOption,
   JabfungStats,
   JenjangStats,
+  PangGolStats,
   DosenStats,
   DosenStatsColor,
 } from "./types";
@@ -35,7 +36,7 @@ export type {
 // Constants
 // ========================================
 
-export { TipeDataOptions, TipeDataNames } from "./constants";
+export { TipeDataOptions, TipeDataNames, JenjangDataKeys, PangGolDataKeys } from "./constants";
 
 // ========================================
 // Utils

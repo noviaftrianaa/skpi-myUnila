@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { executiveJabfungService } from "@/lib/services/executive/jabfungService";
 import { executiveJenjangPendidikanService } from "@/lib/services/executive/jenjangPendidikanService";
+import { executivePangkatGolonganService } from "@/lib/services/executive/pangkatGolonganService";
 
 // ========================================
 // Types
@@ -18,7 +19,7 @@ export interface UseDosenDataParams {
 
 /**
  * Custom hook for fetching dosen data
- * Handles all the data fetching for jabfung and jenjang pendidikan
+ * Handles all the data fetching for jabfung, jenjang pendidikan, and pangkat golongan
  */
 export const useDosenData = ({
   selectedTipeData,
@@ -113,6 +114,38 @@ export const useDosenData = ({
       selectedTipeData === "jenjang_pendidikan",
   });
 
+  // Fetch pangkat golongan fakultas data
+  const {
+    data: panggolFakultasList = [],
+  } = useQuery({
+    queryKey: ["dosen", "panggol", "fakultas", selectedTahunAjaran],
+    queryFn: () =>
+      executivePangkatGolonganService.getPangkatGolonganFakultas({
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "pang_gol",
+  });
+
+  // Fetch pangkat golongan prodi data
+  const { data: panggolProdiList = [] } = useQuery({
+    queryKey: [
+      "dosen",
+      "panggol",
+      "prodi",
+      selectedFakultas,
+      selectedTahunAjaran,
+    ],
+    queryFn: () =>
+      executivePangkatGolonganService.getPangkatGolonganProdi({
+        idFakultas: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled:
+      !!selectedFakultas &&
+      !!selectedTahunAjaran &&
+      selectedTipeData === "pang_gol",
+  });
+
   return {
     // Master data
     tahunAjaranList,
@@ -129,5 +162,9 @@ export const useDosenData = ({
     // Jenjang data
     jenjangFakultasList,
     jenjangProdiList,
+
+    // Pangkat golongan data
+    panggolFakultasList,
+    panggolProdiList,
   };
 };

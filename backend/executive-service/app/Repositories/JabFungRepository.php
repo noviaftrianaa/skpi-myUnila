@@ -113,7 +113,7 @@ class JabFungRepository
         $sql = "
             SELECT
                 tsms.id_sms AS id,
-                tsms.nm_lemb AS nama_prodi,
+                CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') ' ) AS nama_prodi,
                 fakultas.id_sms AS fakultas_id,
                 fakultas.nm_lemb AS nama_fakultas,
                 SUM(CASE WHEN tjabfung.id_jabfung IS NULL THEN 1 ELSE 0 END) AS belum_jabfung,
@@ -146,6 +146,7 @@ class JabFungRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
+            JOIN ref.jenjang_pendidikan jenj_prodi ON jenj_prodi.id_jenj_didik = tsms.id_jenj_didik
             LEFT JOIN (
                 SELECT
                     MAX(rwy_fungsional.id_jabfung) AS id_jabfung,
@@ -164,8 +165,8 @@ class JabFungRepository
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
-            GROUP BY tsms.id_sms, tsms.nm_lemb, fakultas.id_sms, fakultas.nm_lemb
-            ORDER BY tsms.nm_lemb ASC
+            GROUP BY tsms.id_sms, CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') '), fakultas.id_sms, fakultas.nm_lemb
+            ORDER BY CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') ') ASC
         ";
 
         return collect(DB::select($sql, [$idThnAjaran, $idFakultas]));

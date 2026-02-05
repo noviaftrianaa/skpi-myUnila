@@ -13,6 +13,10 @@ interface JenjangStatsCardsProps {
   stats: DosenStats;
 }
 
+interface PangGolStatsCardsProps {
+  stats: DosenStats;
+}
+
 // ========================================
 // Components
 // ========================================
@@ -103,6 +107,56 @@ export const JenjangStatsCards = ({ stats }: JenjangStatsCardsProps) => {
         value={jenjangStats.belumJenjang || 0}
         color="orange"
       />
+    </div>
+  );
+};
+
+/**
+ * Pangkat Golongan Stats Cards Component
+ * Displays stats cards for pangkat golongan data
+ */
+export const PangGolStatsCards = ({ stats }: PangGolStatsCardsProps) => {
+  const panggolStats = stats as {
+    juruMuda: number;
+    juruMudaTk1: number;
+    juru: number;
+    juruTk1: number;
+    pengaturMuda: number;
+    pengaturMudaTk1: number;
+    pengatur: number;
+    pengaturTk1: number;
+    penataMuda: number;
+    penataMudaTk1: number;
+    penata: number;
+    penataTk1: number;
+    pembina: number;
+    pembinaTk1: number;
+    pembinaUtamaMuda: number;
+    pembinaUtamaMadya: number;
+    pembinaUtama: number;
+    belumPangkatGol: number;
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-5 lg:grid-cols-9">
+      <DosenStatsCard title="Juru Muda" value={panggolStats.juruMuda || 0} color="cyan" />
+      <DosenStatsCard title="Juru Muda Tk. I" value={panggolStats.juruMudaTk1 || 0} color="blue" />
+      <DosenStatsCard title="Juru" value={panggolStats.juru || 0} color="indigo" />
+      <DosenStatsCard title="Juru Tk. I" value={panggolStats.juruTk1 || 0} color="violet" />
+      <DosenStatsCard title="Pengatur Muda" value={panggolStats.pengaturMuda || 0} color="purple" />
+      <DosenStatsCard title="Pengatur Muda Tk. I" value={panggolStats.pengaturMudaTk1 || 0} color="fuchsia" />
+      <DosenStatsCard title="Pengatur" value={panggolStats.pengatur || 0} color="pink" />
+      <DosenStatsCard title="Pengatur Tk. I" value={panggolStats.pengaturTk1 || 0} color="rose" />
+      <DosenStatsCard title="Penata Muda" value={panggolStats.penataMuda || 0} color="green" />
+      <DosenStatsCard title="Penata Muda Tk. I" value={panggolStats.penataMudaTk1 || 0} color="emerald" />
+      <DosenStatsCard title="Penata" value={panggolStats.penata || 0} color="teal" />
+      <DosenStatsCard title="Penata Tk. I" value={panggolStats.penataTk1 || 0} color="orange" />
+      <DosenStatsCard title="Pembina" value={panggolStats.pembina || 0} color="amber" />
+      <DosenStatsCard title="Pembina Tk. I" value={panggolStats.pembinaTk1 || 0} color="yellow" />
+      <DosenStatsCard title="Pembina Utama Muda" value={panggolStats.pembinaUtamaMuda || 0} color="red" />
+      <DosenStatsCard title="Pembina Utama Madya" value={panggolStats.pembinaUtamaMadya || 0} color="destructive" />
+      <DosenStatsCard title="Pembina Utama" value={panggolStats.pembinaUtama || 0} color="slate" />
+      <DosenStatsCard title="Belum Pangkat" value={panggolStats.belumPangkatGol || 0} color="gray" />
     </div>
   );
 };

@@ -111,7 +111,7 @@ export const DosenChart = <T extends Record<string, any>>({
               interval={0}
               angle={-45}
               textAnchor="end"
-              height={150}
+              height={200}
               tick={{ fontSize: 12 }}
             />
             <YAxis />

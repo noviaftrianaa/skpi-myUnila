@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\JabFungController;
 use App\Http\Controllers\JenjangPendidikanController;
+use App\Http\Controllers\PangGolController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +75,20 @@ Route::prefix('v1')->group(function () {
 
             // Detail data with pagination
             Route::get('/data', [JenjangPendidikanController::class, 'getDataDosen']);
+        });
+
+        Route::prefix('pangkat-golongan')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [PangGolController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [PangGolController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [PangGolController::class, 'getProdiList']);
+
+            // Pangkat golongan data routes
+            Route::get('/fakultas', [PangGolController::class, 'getPangkatGolonganFakultas']);
+            Route::get('/fakultas/{idFakultas}', [PangGolController::class, 'getPangkatGolonganProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [PangGolController::class, 'getDataDosen']);
         });
     });
 });

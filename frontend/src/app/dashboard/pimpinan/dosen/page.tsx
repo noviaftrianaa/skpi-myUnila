@@ -9,7 +9,10 @@ import {
   DosenDataModal,
   JabfungStatsCards,
   JenjangStatsCards,
+  PangGolStatsCards,
   TipeDataOptions,
+  JenjangDataKeys,
+  PangGolDataKeys,
   useDosenData,
   getChartData,
   getStats,
@@ -42,6 +45,8 @@ export default function DosenPage() {
     jabfungProdiList,
     jenjangFakultasList,
     jenjangProdiList,
+    panggolFakultasList,
+    panggolProdiList,
   } = useDosenData({
     selectedTipeData,
     selectedTahunAjaran,
@@ -78,6 +83,8 @@ export default function DosenPage() {
     jabfungFakultasList,
     jenjangProdiList,
     jenjangFakultasList,
+    panggolProdiList,
+    panggolFakultasList,
   );
 
   const stats = getStats(
@@ -88,6 +95,8 @@ export default function DosenPage() {
     jabfungFakultasList,
     jenjangProdiList,
     jenjangFakultasList,
+    panggolProdiList,
+    panggolFakultasList,
   ) as DosenStats;
 
   const currentTipeOption = getCurrentTipeDataOption(
@@ -280,6 +289,11 @@ export default function DosenPage() {
             <JenjangStatsCards stats={stats} />
           )}
 
+          {/* Stats Cards - pangkat golongan */}
+          {selectedTipeData === "pang_gol" && selectedTahunAjaran && (
+            <PangGolStatsCards stats={stats} />
+          )}
+
           {/* Chart Card */}
           <DosenChart
             data={chartData}
@@ -295,6 +309,13 @@ export default function DosenPage() {
             subtitle={getChartSubtitle(selectedTahunAjaran, tahunAjaranList)}
             onLihatData={handleLihatData}
             xAxisKey="name"
+            dataKeys={
+              selectedTipeData === "jenjang_pendidikan"
+                ? JenjangDataKeys
+                : selectedTipeData === "pang_gol"
+                ? PangGolDataKeys
+                : undefined
+            }
             disabled={isChartDisabled}
           />
         </motion.div>
@@ -302,7 +323,8 @@ export default function DosenPage() {
 
       {/* Data Modal */}
       {(selectedTipeData === "jabfung" ||
-        selectedTipeData === "jenjang_pendidikan") && (
+        selectedTipeData === "jenjang_pendidikan" ||
+        selectedTipeData === "pang_gol") && (
         <DosenDataModal
           isOpen={isDataModalOpen}
           onClose={() => setIsDataModalOpen(false)}

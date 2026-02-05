@@ -38,8 +38,30 @@ export interface JenjangStats {
   belumJenjang: number;
 }
 
+// Stats types for pangkat golongan
+export interface PangGolStats {
+  juruMuda: number;
+  juruMudaTk1: number;
+  juru: number;
+  juruTk1: number;
+  pengaturMuda: number;
+  pengaturMudaTk1: number;
+  pengatur: number;
+  pengaturTk1: number;
+  penataMuda: number;
+  penataMudaTk1: number;
+  penata: number;
+  penataTk1: number;
+  pembina: number;
+  pembinaTk1: number;
+  pembinaUtamaMuda: number;
+  pembinaUtamaMadya: number;
+  pembinaUtama: number;
+  belumPangkatGol: number;
+}
+
 // Combined stats type
-export type DosenStats = JabfungStats | JenjangStats;
+export type DosenStats = JabfungStats | JenjangStats | PangGolStats;
 
 export type DosenStatsColor =
   | "blue"

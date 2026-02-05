@@ -1,6 +1,7 @@
 import type { TipeDataOption, DosenStats } from "./types";
 import type { JabfungFakultas, JabfungProdi } from "@/lib/services/executive/jabfungService";
 import type { JenjangFakultas, JenjangProdi } from "@/lib/services/executive/jenjangPendidikanService";
+import type { PangkatGolonganFakultas, PangkatGolonganProdi } from "@/lib/services/executive/pangkatGolonganService";
 
 // ========================================
 // Chart Data Types
@@ -15,6 +16,40 @@ export type ChartDataItem =
       lektor: number;
       lektor_kepala: number;
       profesor: number;
+    }
+  | {
+      name: string;
+      d3: number;
+      d4: number;
+      s1: number;
+      s2: number;
+      s2_terapan: number;
+      s3: number;
+      profesi: number;
+      sp1: number;
+      sp2: number;
+      belum_jenjang: number;
+    }
+  | {
+      name: string;
+      juru_muda: number;
+      juru_muda_tk_1: number;
+      juru: number;
+      juru_tk_1: number;
+      pengatur_muda: number;
+      pengatur_muda_tk_1: number;
+      pengatur: number;
+      pengatur_tk_1: number;
+      penata_muda: number;
+      penata_muda_tk_1: number;
+      penata: number;
+      penata_tk_1: number;
+      pembina: number;
+      pembina_tk_1: number;
+      pembina_utama_muda: number;
+      pembina_utama_madya: number;
+      pembina_utama: number;
+      belum_pangkat_gol: number;
     };
 
 // ========================================
@@ -32,6 +67,8 @@ export const getChartData = (
   jabfungFakultasList: JabfungFakultas[],
   jenjangProdiList: JenjangProdi[],
   jenjangFakultasList: JenjangFakultas[],
+  panggolProdiList?: PangkatGolonganProdi[],
+  panggolFakultasList?: PangkatGolonganFakultas[],
 ): ChartDataItem[] => {
   if (selectedTipeData === "jabfung") {
     // For jabfung data
@@ -79,106 +116,149 @@ export const getChartData = (
   }
 
   if (selectedTipeData === "jenjang_pendidikan") {
-    // For jenjang pendidikan data - aggregate for pie chart
+    // For jenjang pendidikan data - return bar/line chart format
     if (selectedProdi) {
       const prodi = jenjangProdiList.find((p) => p.id === selectedProdi);
       if (prodi) {
         return [
-          { name: "D3", total: prodi.d3 },
-          { name: "D4", total: prodi.d4 },
-          { name: "S1", total: prodi.s1 },
-          { name: "S2", total: prodi.s2 },
-          { name: "S2 Terapan", total: prodi.s2_terapan },
-          { name: "S3", total: prodi.s3 },
-          { name: "Profesi", total: prodi.profesi },
-          { name: "Sp1", total: prodi.sp1 },
-          { name: "Sp2", total: prodi.sp2 },
-          { name: "Belum Jenjang", total: prodi.belum_jenjang },
-        ].filter((item) => item.total > 0);
+          {
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
+            d3: prodi.d3,
+            d4: prodi.d4,
+            s1: prodi.s1,
+            s2: prodi.s2,
+            s2_terapan: prodi.s2_terapan,
+            s3: prodi.s3,
+            profesi: prodi.profesi,
+            sp1: prodi.sp1,
+            sp2: prodi.sp2,
+            belum_jenjang: prodi.belum_jenjang,
+          },
+        ];
       }
     }
 
     if (selectedFakultas) {
-      const aggregated = jenjangProdiList.reduce(
-        (sum, p) => ({
-          d3: sum.d3 + p.d3,
-          d4: sum.d4 + p.d4,
-          s1: sum.s1 + p.s1,
-          s2: sum.s2 + p.s2,
-          s2_terapan: sum.s2_terapan + p.s2_terapan,
-          s3: sum.s3 + p.s3,
-          profesi: sum.profesi + p.profesi,
-          sp1: sum.sp1 + p.sp1,
-          sp2: sum.sp2 + p.sp2,
-          belum_jenjang: sum.belum_jenjang + p.belum_jenjang,
-        }),
-        {
-          d3: 0,
-          d4: 0,
-          s1: 0,
-          s2: 0,
-          s2_terapan: 0,
-          s3: 0,
-          profesi: 0,
-          sp1: 0,
-          sp2: 0,
-          belum_jenjang: 0,
-        }
-      );
-
-      return [
-        { name: "D3", total: aggregated.d3 },
-        { name: "D4", total: aggregated.d4 },
-        { name: "S1", total: aggregated.s1 },
-        { name: "S2", total: aggregated.s2 },
-        { name: "S2 Terapan", total: aggregated.s2_terapan },
-        { name: "S3", total: aggregated.s3 },
-        { name: "Profesi", total: aggregated.profesi },
-        { name: "Sp1", total: aggregated.sp1 },
-        { name: "Sp2", total: aggregated.sp2 },
-        { name: "Belum Jenjang", total: aggregated.belum_jenjang },
-      ].filter((item) => item.total > 0);
+      return jenjangProdiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        d3: p.d3,
+        d4: p.d4,
+        s1: p.s1,
+        s2: p.s2,
+        s2_terapan: p.s2_terapan,
+        s3: p.s3,
+        profesi: p.profesi,
+        sp1: p.sp1,
+        sp2: p.sp2,
+        belum_jenjang: p.belum_jenjang,
+      }));
     }
 
-    const aggregated = jenjangFakultasList.reduce(
-      (sum, f) => ({
-        d3: sum.d3 + f.d3,
-        d4: sum.d4 + f.d4,
-        s1: sum.s1 + f.s1,
-        s2: sum.s2 + f.s2,
-        s2_terapan: sum.s2_terapan + f.s2_terapan,
-        s3: sum.s3 + f.s3,
-        profesi: sum.profesi + f.profesi,
-        sp1: sum.sp1 + f.sp1,
-        sp2: sum.sp2 + f.sp2,
-        belum_jenjang: sum.belum_jenjang + f.belum_jenjang,
-      }),
-      {
-        d3: 0,
-        d4: 0,
-        s1: 0,
-        s2: 0,
-        s2_terapan: 0,
-        s3: 0,
-        profesi: 0,
-        sp1: 0,
-        sp2: 0,
-        belum_jenjang: 0,
-      }
-    );
+    return jenjangFakultasList.map((f) => ({
+      name:
+        f.nama_fakultas.substring(0, 20) +
+        (f.nama_fakultas.length > 20 ? "..." : ""),
+      d3: f.d3,
+      d4: f.d4,
+      s1: f.s1,
+      s2: f.s2,
+      s2_terapan: f.s2_terapan,
+      s3: f.s3,
+      profesi: f.profesi,
+      sp1: f.sp1,
+      sp2: f.sp2,
+      belum_jenjang: f.belum_jenjang,
+    }));
+  }
 
-    return [
-      { name: "D3", total: aggregated.d3 },
-      { name: "D4", total: aggregated.d4 },
-      { name: "S1", total: aggregated.s1 },
-      { name: "S2", total: aggregated.s2 },
-      { name: "S2 Terapan", total: aggregated.s2_terapan },
-      { name: "S3", total: aggregated.s3 },
-      { name: "Profesi", total: aggregated.profesi },
-      { name: "Sp1", total: aggregated.sp1 },
-      { name: "Sp2", total: aggregated.sp2 },
-      { name: "Belum Jenjang", total: aggregated.belum_jenjang },
-    ].filter((item) => item.total > 0);
+  if (selectedTipeData === "pang_gol") {
+    // For pangkat golongan data - return bar/line chart format
+    if (selectedProdi && panggolProdiList) {
+      const prodi = panggolProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        return [
+          {
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
+            juru_muda: prodi.juru_muda,
+            juru_muda_tk_1: prodi.juru_muda_tk_1,
+            juru: prodi.juru,
+            juru_tk_1: prodi.juru_tk_1,
+            pengatur_muda: prodi.pengatur_muda,
+            pengatur_muda_tk_1: prodi.pengatur_muda_tk_1,
+            pengatur: prodi.pengatur,
+            pengatur_tk_1: prodi.pengatur_tk_1,
+            penata_muda: prodi.penata_muda,
+            penata_muda_tk_1: prodi.penata_muda_tk_1,
+            penata: prodi.penata,
+            penata_tk_1: prodi.penata_tk_1,
+            pembina: prodi.pembina,
+            pembina_tk_1: prodi.pembina_tk_1,
+            pembina_utama_muda: prodi.pembina_utama_muda,
+            pembina_utama_madya: prodi.pembina_utama_madya,
+            pembina_utama: prodi.pembina_utama,
+            belum_pangkat_gol: prodi.belum_pangkat_gol,
+          },
+        ];
+      }
+    }
+
+    if (selectedFakultas && panggolProdiList) {
+      return panggolProdiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        juru_muda: p.juru_muda,
+        juru_muda_tk_1: p.juru_muda_tk_1,
+        juru: p.juru,
+        juru_tk_1: p.juru_tk_1,
+        pengatur_muda: p.pengatur_muda,
+        pengatur_muda_tk_1: p.pengatur_muda_tk_1,
+        pengatur: p.pengatur,
+        pengatur_tk_1: p.pengatur_tk_1,
+        penata_muda: p.penata_muda,
+        penata_muda_tk_1: p.penata_muda_tk_1,
+        penata: p.penata,
+        penata_tk_1: p.penata_tk_1,
+        pembina: p.pembina,
+        pembina_tk_1: p.pembina_tk_1,
+        pembina_utama_muda: p.pembina_utama_muda,
+        pembina_utama_madya: p.pembina_utama_madya,
+        pembina_utama: p.pembina_utama,
+        belum_pangkat_gol: p.belum_pangkat_gol,
+      }));
+    }
+
+    if (panggolFakultasList) {
+      return panggolFakultasList.map((f) => ({
+        name:
+          f.nama_fakultas.substring(0, 20) +
+          (f.nama_fakultas.length > 20 ? "..." : ""),
+        juru_muda: f.juru_muda,
+        juru_muda_tk_1: f.juru_muda_tk_1,
+        juru: f.juru,
+        juru_tk_1: f.juru_tk_1,
+        pengatur_muda: f.pengatur_muda,
+        pengatur_muda_tk_1: f.pengatur_muda_tk_1,
+        pengatur: f.pengatur,
+        pengatur_tk_1: f.pengatur_tk_1,
+        penata_muda: f.penata_muda,
+        penata_muda_tk_1: f.penata_muda_tk_1,
+        penata: f.penata,
+        penata_tk_1: f.penata_tk_1,
+        pembina: f.pembina,
+        pembina_tk_1: f.pembina_tk_1,
+        pembina_utama_muda: f.pembina_utama_muda,
+        pembina_utama_madya: f.pembina_utama_madya,
+        pembina_utama: f.pembina_utama,
+        belum_pangkat_gol: f.belum_pangkat_gol,
+      }));
+    }
   }
 
   return [];
@@ -195,6 +275,8 @@ export const getStats = (
   jabfungFakultasList: JabfungFakultas[],
   jenjangProdiList: JenjangProdi[],
   jenjangFakultasList: JenjangFakultas[],
+  panggolProdiList?: PangkatGolonganProdi[],
+  panggolFakultasList?: PangkatGolonganFakultas[],
 ): DosenStats => {
   if (selectedTipeData === "jabfung") {
     if (selectedProdi) {
@@ -317,6 +399,122 @@ export const getStats = (
         belumJenjang: 0,
       },
     );
+  }
+
+  if (selectedTipeData === "pang_gol") {
+    if (selectedProdi && panggolProdiList) {
+      const prodi = panggolProdiList?.find((p) => p.id === selectedProdi);
+      return {
+        juruMuda: prodi?.juru_muda || 0,
+        juruMudaTk1: prodi?.juru_muda_tk_1 || 0,
+        juru: prodi?.juru || 0,
+        juruTk1: prodi?.juru_tk_1 || 0,
+        pengaturMuda: prodi?.pengatur_muda || 0,
+        pengaturMudaTk1: prodi?.pengatur_muda_tk_1 || 0,
+        pengatur: prodi?.pengatur || 0,
+        pengaturTk1: prodi?.pengatur_tk_1 || 0,
+        penataMuda: prodi?.penata_muda || 0,
+        penataMudaTk1: prodi?.penata_muda_tk_1 || 0,
+        penata: prodi?.penata || 0,
+        penataTk1: prodi?.penata_tk_1 || 0,
+        pembina: prodi?.pembina || 0,
+        pembinaTk1: prodi?.pembina_tk_1 || 0,
+        pembinaUtamaMuda: prodi?.pembina_utama_muda || 0,
+        pembinaUtamaMadya: prodi?.pembina_utama_madya || 0,
+        pembinaUtama: prodi?.pembina_utama || 0,
+        belumPangkatGol: prodi?.belum_pangkat_gol || 0,
+      };
+    }
+
+    if (selectedFakultas && panggolProdiList) {
+      return (panggolProdiList || []).reduce(
+        (sum, p) => ({
+          juruMuda: sum.juruMuda + p.juru_muda,
+          juruMudaTk1: sum.juruMudaTk1 + p.juru_muda_tk_1,
+          juru: sum.juru + p.juru,
+          juruTk1: sum.juruTk1 + p.juru_tk_1,
+          pengaturMuda: sum.pengaturMuda + p.pengatur_muda,
+          pengaturMudaTk1: sum.pengaturMudaTk1 + p.pengatur_muda_tk_1,
+          pengatur: sum.pengatur + p.pengatur,
+          pengaturTk1: sum.pengaturTk1 + p.pengatur_tk_1,
+          penataMuda: sum.penataMuda + p.penata_muda,
+          penataMudaTk1: sum.penataMudaTk1 + p.penata_muda_tk_1,
+          penata: sum.penata + p.penata,
+          penataTk1: sum.penataTk1 + p.penata_tk_1,
+          pembina: sum.pembina + p.pembina,
+          pembinaTk1: sum.pembinaTk1 + p.pembina_tk_1,
+          pembinaUtamaMuda: sum.pembinaUtamaMuda + p.pembina_utama_muda,
+          pembinaUtamaMadya: sum.pembinaUtamaMadya + p.pembina_utama_madya,
+          pembinaUtama: sum.pembinaUtama + p.pembina_utama,
+          belumPangkatGol: sum.belumPangkatGol + p.belum_pangkat_gol,
+        }),
+        {
+          juruMuda: 0,
+          juruMudaTk1: 0,
+          juru: 0,
+          juruTk1: 0,
+          pengaturMuda: 0,
+          pengaturMudaTk1: 0,
+          pengatur: 0,
+          pengaturTk1: 0,
+          penataMuda: 0,
+          penataMudaTk1: 0,
+          penata: 0,
+          penataTk1: 0,
+          pembina: 0,
+          pembinaTk1: 0,
+          pembinaUtamaMuda: 0,
+          pembinaUtamaMadya: 0,
+          pembinaUtama: 0,
+          belumPangkatGol: 0,
+        },
+      );
+    }
+
+    if (panggolFakultasList) {
+      return panggolFakultasList.reduce(
+        (sum, f) => ({
+          juruMuda: sum.juruMuda + f.juru_muda,
+          juruMudaTk1: sum.juruMudaTk1 + f.juru_muda_tk_1,
+          juru: sum.juru + f.juru,
+          juruTk1: sum.juruTk1 + f.juru_tk_1,
+          pengaturMuda: sum.pengaturMuda + f.pengatur_muda,
+          pengaturMudaTk1: sum.pengaturMudaTk1 + f.pengatur_muda_tk_1,
+          pengatur: sum.pengatur + f.pengatur,
+          pengaturTk1: sum.pengaturTk1 + f.pengatur_tk_1,
+          penataMuda: sum.penataMuda + f.penata_muda,
+          penataMudaTk1: sum.penataMudaTk1 + f.penata_muda_tk_1,
+          penata: sum.penata + f.penata,
+          penataTk1: sum.penataTk1 + f.penata_tk_1,
+          pembina: sum.pembina + f.pembina,
+          pembinaTk1: sum.pembinaTk1 + f.pembina_tk_1,
+          pembinaUtamaMuda: sum.pembinaUtamaMuda + f.pembina_utama_muda,
+          pembinaUtamaMadya: sum.pembinaUtamaMadya + f.pembina_utama_madya,
+          pembinaUtama: sum.pembinaUtama + f.pembina_utama,
+          belumPangkatGol: sum.belumPangkatGol + f.belum_pangkat_gol,
+        }),
+        {
+          juruMuda: 0,
+          juruMudaTk1: 0,
+          juru: 0,
+          juruTk1: 0,
+          pengaturMuda: 0,
+          pengaturMudaTk1: 0,
+          pengatur: 0,
+          pengaturTk1: 0,
+          penataMuda: 0,
+          penataMudaTk1: 0,
+          penata: 0,
+          penataTk1: 0,
+          pembina: 0,
+          pembinaTk1: 0,
+          pembinaUtamaMuda: 0,
+          pembinaUtamaMadya: 0,
+          pembinaUtama: 0,
+          belumPangkatGol: 0,
+        },
+      );
+    }
   }
 
   // Default stats for jabfung
