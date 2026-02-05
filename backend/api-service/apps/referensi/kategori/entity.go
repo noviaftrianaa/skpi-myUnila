@@ -17,8 +17,8 @@ type KategoriCapaianLuaran struct {
 }
 
 type KategoriKegiatan struct {
-	IDKatGiat      int                 `db:"id_kat_giat" json:"id_kat_giat"`
-	IDIndukKatGiat *int                `db:"id_induk_kat_giat" json:"id_induk_kat_giat,omitempty"`
+	IDKatGiat      int                 `db:"id_katgiat" json:"id_katgiat"`
+	IDIndukKatGiat *int                `db:"id_induk_katgiat" json:"id_induk_katgiat,omitempty"`
 	IDJnsSdm       int                 `db:"id_jns_sdm" json:"id_jns_sdm"`
 	NmJnsSdm       string              `db:"nm_jns_sdm" json:"nm_jns_sdm"`
 	KodeKatPak     *string             `db:"kode_kat_pak" json:"kode_kat_pak"`
@@ -50,7 +50,8 @@ type KategoriKegiatan struct {
 
 type KategoriTabel struct {
 	IDKatTabel  string              `db:"id_kat_tabel" json:"id_kat_tabel"`
-	IDKatGiat   int                 `db:"id_kat_giat" json:"id_kat_giat"`
+	IDKatGiat   int                 `db:"id_katgiat" json:"id_katgiat"`
+	NmKat       string              `db:"nm_kat" json:"nm_kat"`
 	NmSchema    string              `db:"nm_schema" json:"nm_schema"`
 	NmTbl       string              `db:"nm_tbl" json:"nm_tbl"`
 	KonfigKolom string              `db:"konfig_kolom" json:"konfig_kolom"`

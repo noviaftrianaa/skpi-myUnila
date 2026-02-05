@@ -110,9 +110,9 @@ func (s *service) GetKategoriKegiatan(ctx context.Context, params types.Kategori
 
 // GetKategoriTabel mengambil daftar kategori tabel dengan pagination dan filter
 func (s *service) GetKategoriTabel(ctx context.Context, params types.KategoriTabelParams) ([]KategoriTabel, int64, error) {
-	cacheKeyData := fmt.Sprintf("kategori_tabel:data:page:%d:limit:%d:kat_giat:%v:schema:%v:konfig:%v:search:%s:sort:%s:%s",
+	cacheKeyData := fmt.Sprintf("kategori_tabel:data:page:%d:limit:%d:katgiat:%v:schema:%v:konfig:%v:search:%s:sort:%s:%s",
 		params.Page, params.Limit, params.IDKatGiat, params.NmSchema, params.KonfigKolom, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kategori_tabel:total:kat_giat:%v:schema:%v:konfig:%v:search:%s",
+	cacheKeyTotal := fmt.Sprintf("kategori_tabel:total:katgiat:%v:schema:%v:konfig:%v:search:%s",
 		params.IDKatGiat, params.NmSchema, params.KonfigKolom, params.Search)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)

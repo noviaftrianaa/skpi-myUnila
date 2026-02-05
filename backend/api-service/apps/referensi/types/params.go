@@ -176,7 +176,7 @@ type JenisTesParams struct {
 
 type KategoriKegiatanParams struct {
 	PaginationParams
-	IDIndukKatGiat *int    `query:"id_induk_kat_giat"`
+	IDIndukKatGiat *int    `query:"id_induk_katgiat"`
 	IDJenisSdm     *int    `query:"id_jenis_sdm"`
 	KodeKatPak     *string `query:"kode_kat_pak"`
 	KodeKatBkd     *string `query:"kode_kat_bkd"`
@@ -192,7 +192,7 @@ type KategoriKegiatanParams struct {
 
 type KategoriTabelParams struct {
 	PaginationParams
-	IDKatGiat   *int    `query:"id_kat_giat"`
+	IDKatGiat   *int    `query:"id_katgiat"`
 	NmSchema    *string `query:"nm_schema"`
 	KonfigKolom *string `query:"konfig_kolom"`
 }

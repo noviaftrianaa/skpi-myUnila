@@ -160,39 +160,80 @@ func (r *repository) GetKategoriKegiatan(ctx context.Context, params types.Kateg
 // ============================================================================
 
 func (r *repository) GetKategoriTabel(ctx context.Context, params types.KategoriTabelParams) ([]KategoriTabel, int64, error) {
+
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_katgiat", params.IDKatGiat)
-	cb.AppendString("nm_schema", params.NmSchema)
-	cb.AppendString("konfig_kolom", params.KonfigKolom)
-	cb.Like("nm_tbl", params.Search)
+	cb.AppendInt("kt.id_katgiat", params.IDKatGiat)
+	cb.AppendString("kt.nm_schema", params.NmSchema)
+	cb.AppendString("kt.konfig_kolom", params.KonfigKolom)
+	cb.Like("kt.nm_tbl", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "kt.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.kategori_tabel",
-			Select:      "id_kat_tabel, id_katgiat, nm_schema, nm_tbl, konfig_kolom, ket, create_date, last_update, expired_date",
-			DefaultSort: "id_kat_tabel",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (KategoriTabel, error) {
-			var k KategoriTabel
-			err := rows.Scan(
-				&k.IDKatTabel,
-				&k.IDKatGiat,
-				&k.NmSchema,
-				&k.NmTbl,
-				&k.KonfigKolom,
-				&k.Ket,
-				&k.CreateDate,
-				&k.LastUpdate,
-				&k.ExpiredDate,
-			)
-			return k, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.kategori_tabel kt
+		LEFT JOIN ref.kategori_kegiatan kk ON kt.id_katgiat = kk.id_katgiat
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "kt.id_kat_tabel"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			kt.id_kat_tabel, kt.id_katgiat, kt.nm_schema, kt.nm_tbl, kt.konfig_kolom, kt.ket, kt.create_date, kt.last_update, kt.expired_date, kk.nm_kat
+		FROM ref.kategori_tabel kt
+		LEFT JOIN ref.kategori_kegiatan kk ON kt.id_katgiat = kk.id_katgiat
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []KategoriTabel
+	for rows.Next() {
+		var s KategoriTabel
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
