@@ -1249,20 +1249,18 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 
 	// Build conditions using CondBuilder
 	cb := helper.NewCondBuilder()
-	cb.AppendUUID("sms.id_fak_unila", params.IDFakUnila)
-	cb.AppendUUID("sms.id_lemb_non_sp", params.IDLembNonSP)
-	cb.AppendUUID("sms.id_jur_unila", params.IDJurUnila)
-	cb.AppendUUID("sms.id_jur", params.IDJur)
-	cb.AppendUUID("sms.id_jenj_didik", params.IDJenjDidik)
-	cb.AppendUUID("sms.id_sp", params.IDSp)
-	cb.AppendUUID("sms.id_blob", params.IDBlob)
-	cb.AppendUUID("sms.id_wil", params.IDWil)
-	cb.AppendUUID("sms.id_induk_sms", params.IDIndukSms)
-	cb.AppendUUID("sms.id_creator", params.IDCreator)
-	cb.AppendUUID("sms.id_updater", params.IDUpdater)
-	cb.AppendInt("sms.id_jns_sms", params.IDJnsSms)
-	cb.AppendString("sms.id_fungsi_lab", params.IDFungsiLab)
-	cb.AppendString("sms.id_kel_usaha", params.IDKelUsaha)
+	cb.AppendUUID("sm.id_fak_unila", params.IDFakUnila)
+	cb.AppendUUID("sm.id_lemb_non_sp", params.IDLembNonSP)
+	cb.AppendUUID("sm.id_jur_unila", params.IDJurUnila)
+	cb.AppendUUID("sm.id_jur", params.IDJur)
+	cb.AppendUUID("sm.id_jenj_didik", params.IDJenjDidik)
+	cb.AppendUUID("sm.id_sp", params.IDSp)
+	cb.AppendUUID("sm.id_blob", params.IDBlob)
+	cb.AppendUUID("sm.id_wil", params.IDWil)
+	cb.AppendUUID("sm.id_induk_sm", params.IDIndukSms)
+	cb.AppendInt("sm.id_jns_sms", params.IDJnsSms)
+	cb.AppendString("sm.id_fungsi_lab", params.IDFungsiLab)
+	cb.AppendString("sm.id_kel_usaha", params.IDKelUsaha)
 
 	conds, args := cb.Build()
 
@@ -1276,7 +1274,7 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	}
 
 	// COUNT query
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jurusan = sm.id_jurusan LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenjang_pendidikan = sm.id_jenjang_pendidikan LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kelompok_usaha = sm.id_kelompok_usaha LEFT JOIN ref.wilayah w ON w.id_wilayah = sm.id_wilayah WHERE %s", whereClause)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jur = sm.id_jur LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sm.id_jenj_didik LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kel_usaha = sm.id_kel_usaha LEFT JOIN ref.wilayah w ON w.id_wil = sm.id_wil WHERE %s", whereClause)
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
@@ -1299,11 +1297,10 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 			sm.lintang, sm.bujur, sm.no_tel, sm.no_fax, sm.email, sm.website, sm.singkatan, sm.tgl_berdiri, 
 			sm.sk_selenggara, sm.tgl_sk_selenggara, sm.tmt_sk_selenggara, sm.tst_sk_selenggara, 
 			sm.sistem_ajar, sm.a_pjj, sm.a_psdku, sm.luas_lab, sm.kapasitas_prak_satu_shift, sm.jml_mhs_pengguna, 
-			sm.jml_jam_penggunaan, sm.jml_prodi_pengguna, sm.jml_modul_prak_sendiri, sm.jml_modul_prak_lain, 
+			sm.jml_jam_pengguna, sm.jml_prodi_pengguna, sm.jml_modul_prak_sendiri, sm.jml_modul_prak_lain, 
 			sm.fungsi_selain_prak, sm.penggunaan_lab, sm.a_pkl, sm.id_sp, sm.id_jns_sms, sm.id_fungsi_lab, 
-			sm.id_kel_usaha, sm.id_blob, sm.id_wil, sm.id_induk_sms, sm.create_date, sm.id_creator, sm.last_update, 
-			sm.id_updater, sm.soft_delete, sm.last_sync, j.nm_jur, jp.nm_jenj_didik, js.nm_jns_sms, fl.nm_fungsi_lab, ku.nm_kel_usaha, w.nm_wilayah
-		FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jurusan = sm.id_jurusan LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenjang_pendidikan = sm.id_jenjang_pendidikan LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kelompok_usaha = sm.id_kelompok_usaha LEFT JOIN ref.wilayah w ON w.id_wilayah = sm.id_wilayah 
+			sm.id_kel_usaha, sm.id_blob, sm.id_wil, sm.id_induk_sms, sm.create_date, sm.id_creator, sm.last_update, sm.id_updater, sm.soft_delete, sm.last_sync, j.nm_jur, jp.nm_jenj_didik, js.nm_jns_sms, fl.nm_fungsi_lab, ku.nm_kel_usaha, w.nm_wil
+		FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jur = sm.id_jur LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sm.id_jenj_didik LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kel_usaha = sm.id_kel_usaha LEFT JOIN ref.wilayah w ON w.id_wil = sm.id_wil 
 		WHERE %s
 		ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,

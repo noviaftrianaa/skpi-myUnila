@@ -72,7 +72,7 @@ func (r *repository) GetPetaKatgiatJnsdok(ctx context.Context, params types.Peta
 	cb.AppendInt("pkj.no_urut", params.NoUrut)
 
 	conds, args := cb.Build()
-	conds = append(conds, "s.expired_date IS NULL")
+	conds = append(conds, "pkj.expired_date IS NULL")
 
 	whereClause := "1=1"
 	if len(conds) > 0 {
@@ -94,7 +94,7 @@ func (r *repository) GetPetaKatgiatJnsdok(ctx context.Context, params types.Peta
 	}
 
 	// ===== Sorting =====
-	sortBy := "s.id_smt"
+	sortBy := "pkj.id_jns_dok"
 	if params.SortBy != "" {
 		sortBy = params.SortBy
 	}
@@ -172,7 +172,7 @@ func (r *repository) GetPetaKatgiatJnspub(ctx context.Context, params types.Pagi
 	}
 
 	// ===== Sorting =====
-	sortBy := "s.id_smt"
+	sortBy := "pk.id_jns_pub"
 	if params.SortBy != "" {
 		sortBy = params.SortBy
 	}
