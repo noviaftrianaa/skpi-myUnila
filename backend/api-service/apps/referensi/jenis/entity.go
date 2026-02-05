@@ -311,7 +311,7 @@ type JenisUnit struct {
 	IDJur                  *string              `db:"id_jur" json:"id_jur"`
 	NmJur                  *string              `db:"nm_jur" json:"nm_jur"`
 	IDJenjDidik            string               `db:"id_jenj_didik" json:"id_jenj_didik"`
-	NmJenjDidik            *string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
+	NmJenjDidik            string               `db:"nm_jenj_didik" json:"nm_jenj_didik"`
 	NmLemb                 string               `db:"nm_lemb" json:"nm_lemb"`
 	KdKl                   *string              `db:"kd_kl" json:"kd_kl"`
 	KdSatker               *string              `db:"kd_satker" json:"kd_satker"`
@@ -353,6 +353,7 @@ type JenisUnit struct {
 	KapasitasPrakSatuShift *int                 `db:"kapasitas_prak_satu_shift" json:"kapasitas_prak_satu_shift"`
 	JmlMhsPengguna         *int                 `db:"jml_mhs_pengguna" json:"jml_mhs_pengguna"`
 	JmlJamPengguna         *int                 `db:"jml_jam_pengguna" json:"jml_jam_pengguna"`
+	JmlJamPenggunaan       *int                 `db:"jml_jam_penggunaan" json:"jml_jam_penggunaan"`
 	JmlProdiPengguna       *int                 `db:"jml_prodi_pengguna" json:"jml_prodi_pengguna"`
 	JmlModulPrakSendiri    *int                 `db:"jml_modul_prak_sendiri" json:"jml_modul_prak_sendiri"`
 	JmlModulPrakLain       *int                 `db:"jml_modul_prak_lain" json:"jml_modul_prak_lain"`

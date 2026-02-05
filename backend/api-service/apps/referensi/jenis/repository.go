@@ -1262,6 +1262,8 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	cb.AppendString("sm.id_fungsi_lab", params.IDFungsiLab)
 	cb.AppendString("sm.id_kel_usaha", params.IDKelUsaha)
 
+	cb.Like("sm.nm_lemb", params.Search)
+
 	conds, args := cb.Build()
 
 	// Tambahkan filter soft_delete = 0 (tidak dihapus)
@@ -1290,16 +1292,17 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	// Main SELECT query with pagination
 	query := fmt.Sprintf(`
 		SELECT 
-			sm.id_sms, sm.id_fak_unila, sm.id_lemb_non_sp, sm.id_jur_unila, sm.id_jur, sm.id_jenj_didik, sm.nm_lemb, 
+			sm.id_sms, sm.id_fak_unila, sm.id_lemb_non_sp, sm.id_jur_unila, sm.id_jur, sm.id_jenj_didik, sm.nm_lemb,
 			sm.kd_kl, sm.kd_satker, sm.smt_mulai, sm.a_selenggara_subst, sm.stat_prodi_unila, sm.tgl_tutup, 
 			sm.kode_snpmb, sm.kode_prodi, sm.nm_prodi_english, sm.kpst_pd, sm.sks_lulus, sm.gelar_lulusan, 
 			sm.stat_prodi, sm.polesei_nilai, sm.a_kependidikan, sm.jln, sm.rt, sm.rw, sm.nm_dsn, sm.ds_kel, sm.kode_pos, 
 			sm.lintang, sm.bujur, sm.no_tel, sm.no_fax, sm.email, sm.website, sm.singkatan, sm.tgl_berdiri, 
 			sm.sk_selenggara, sm.tgl_sk_selenggara, sm.tmt_sk_selenggara, sm.tst_sk_selenggara, 
 			sm.sistem_ajar, sm.a_pjj, sm.a_psdku, sm.luas_lab, sm.kapasitas_prak_satu_shift, sm.jml_mhs_pengguna, 
-			sm.jml_jam_pengguna, sm.jml_prodi_pengguna, sm.jml_modul_prak_sendiri, sm.jml_modul_prak_lain, 
+			sm.jml_jam_penggunaan, sm.jml_prodi_pengguna, sm.jml_modul_prak_sendiri, sm.jml_modul_prak_lain, 
 			sm.fungsi_selain_prak, sm.penggunaan_lab, sm.a_pkl, sm.id_sp, sm.id_jns_sms, sm.id_fungsi_lab, 
-			sm.id_kel_usaha, sm.id_blob, sm.id_wil, sm.id_induk_sms, sm.create_date, sm.id_creator, sm.last_update, sm.id_updater, sm.soft_delete, sm.last_sync, j.nm_jur, jp.nm_jenj_didik, js.nm_jns_sms, fl.nm_fungsi_lab, ku.nm_kel_usaha, w.nm_wil
+			sm.id_kel_usaha, sm.id_blob, sm.id_wil, sm.id_induk_sms, sm.create_date, sm.id_creator, sm.last_update, 
+			sm.id_updater, sm.soft_delete, sm.last_sync, j.nm_jur, jp.nm_jenj_didik, js.nm_jns_sms, fl.nm_fungsi_lab, ku.nm_kel_usaha, w.nm_wil
 		FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jur = sm.id_jur LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sm.id_jenj_didik LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kel_usaha = sm.id_kel_usaha LEFT JOIN ref.wilayah w ON w.id_wil = sm.id_wil 
 		WHERE %s
 		ORDER BY %s %s
