@@ -28,11 +28,8 @@ services:
       DB_MAX_IDLE_CONNS: ${KEUANGAN_DB_MAX_IDLE_CONNS:-5}
       DB_CONN_MAX_LIFETIME: ${KEUANGAN_DB_CONN_MAX_LIFETIME:-5m}
 
-      # SIMPEDAM API Configuration
-      SIMPEDAM_ENDPOINT: ${SIMPEDAM_ENDPOINT:-https://simpedam.unila.ac.id/ws/live2unila.php}
-      SIMPEDAM_USER: ${SIMPEDAM_USER}
-      SIMPEDAM_PASSWORD: ${SIMPEDAM_PASSWORD}
-      SIMPEDAM_API_CODE: ${SIMPEDAM_API_CODE:-SIMPEDAM}
+      # SIMPEDAM API Configuration - all values come from env_file directly
+      # SIMPEDAM_ENDPOINT, SIMPEDAM_USER, SIMPEDAM_PASSWORD, SIMPEDAM_API_CODE
 
       # Encryption Key (must match myunila-service for decrypting DB credentials)
       API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY:-12345678901234567890123456789012}

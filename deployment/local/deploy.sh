@@ -80,9 +80,19 @@ show_menu() {
     echo -e "  ${GREEN}34)${NC} Create New Service (Laravel atau Go)"
     echo -e "  ${RED}35)${NC} Cleanup Docker Resources (hapus images tidak terpakai)"
     echo ""
+    echo -e "  ${CYAN}--- Frontend Development ---${NC}"
+    echo -e "  ${GREEN}36)${NC} Frontend Hot Reload (Dev Mode - Port 3000)"
+    echo ""
+    echo -e "  ${CYAN}--- Dev Mode (Hot Reload) ---${NC}"
+    echo -e "  ${MAGENTA}37)${NC} Dev Mode - ALL (Docker infra + Go air + Frontend npm dev)"
+    echo -e "  ${MAGENTA}38)${NC} Go Hot Reload - Keuangan Only"
+    echo -e "  ${MAGENTA}39)${NC} Go Hot Reload - ALL Go Services"
+    echo -e "  ${MAGENTA}40)${NC} Go Hot Reload - Pilih Service"
+    echo -e "  ${MAGENTA}41)${NC} Dev Mode - Backend Only (no frontend)"
+    echo ""
     echo -e "  ${RED}0)${NC}  Exit"
     echo ""
-    echo -n "Pilihan [0-35]: "
+    echo -n "Pilihan [0-41]: "
 }
 
 # Function to show container status
@@ -434,6 +444,91 @@ while true; do
             echo -e "${BLUE}Docker disk usage:${NC}"
             docker system df
             echo ""
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === Frontend Development ===
+        36)
+            echo ""
+            echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
+            echo -e "${CYAN}║     ${GREEN}Frontend Hot Reload Mode (Next.js Dev Server)${CYAN}     ║${NC}"
+            echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
+            echo ""
+            echo -e "${YELLOW}Starting Next.js development server with hot reload...${NC}"
+            echo -e "${BLUE}URL: http://localhost:3000${NC}"
+            echo -e "${YELLOW}Press Ctrl+C to stop the server.${NC}"
+            echo ""
+
+            # Detect if running in Git Bash on Windows
+            if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+                FRONTEND_DIR="/c/laragon/www/my-unila/frontend"
+            else
+                FRONTEND_DIR="$(cd "$(dirname "$0")/../.." && pwd)/frontend"
+            fi
+
+            # Kill any existing process on port 3000
+            EXISTING_PID=$(netstat -ano 2>/dev/null | grep ":3000" | grep LISTEN | head -1 | awk '{print $NF}')
+            if [ -n "$EXISTING_PID" ] && [ "$EXISTING_PID" != "0" ]; then
+                echo -e "${YELLOW}Killing existing process on port 3000 (PID: $EXISTING_PID)...${NC}"
+                taskkill //PID "$EXISTING_PID" //F 2>/dev/null
+                sleep 1
+            fi
+
+            # Cleanup on exit: kill node process on port 3000
+            cleanup_frontend() {
+                echo ""
+                echo -e "${YELLOW}Stopping frontend server...${NC}"
+                FRONTEND_PID=$(netstat -ano 2>/dev/null | grep ":3000" | grep LISTEN | head -1 | awk '{print $NF}')
+                if [ -n "$FRONTEND_PID" ] && [ "$FRONTEND_PID" != "0" ]; then
+                    taskkill //PID "$FRONTEND_PID" //F 2>/dev/null
+                fi
+                echo -e "${GREEN}Frontend server stopped.${NC}"
+            }
+            trap cleanup_frontend EXIT INT TERM
+
+            cd "$FRONTEND_DIR" && npm run dev -- -p 3000
+            cleanup_frontend
+            trap - EXIT INT TERM
+            echo ""
+            echo -e "${GREEN}Hot Reload server stopped.${NC}"
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === Dev Mode (Hot Reload) ===
+        37)
+            bash "$SCRIPT_DIR/dev-mode.sh"
+            read -p "Press Enter to continue..."
+            ;;
+        38)
+            bash "$SCRIPT_DIR/go-hot-reload.sh" keuangan
+            read -p "Press Enter to continue..."
+            ;;
+        39)
+            bash "$SCRIPT_DIR/go-hot-reload.sh" all
+            read -p "Press Enter to continue..."
+            ;;
+        40)
+            echo ""
+            echo -e "${YELLOW}Pilih Go service:${NC}"
+            echo "  1) Keuangan (port 8088)"
+            echo "  2) Sister (port 8083)"
+            echo "  3) Feeder (port 8084)"
+            echo "  4) API (port 8085)"
+            echo "  5) MyUnila (port 8086)"
+            echo ""
+            read -p "Pilihan [1-5]: " go_choice
+            case $go_choice in
+                1) bash "$SCRIPT_DIR/go-hot-reload.sh" keuangan ;;
+                2) bash "$SCRIPT_DIR/go-hot-reload.sh" sister ;;
+                3) bash "$SCRIPT_DIR/go-hot-reload.sh" feeder ;;
+                4) bash "$SCRIPT_DIR/go-hot-reload.sh" api ;;
+                5) bash "$SCRIPT_DIR/go-hot-reload.sh" myunila ;;
+                *) echo -e "${RED}Pilihan tidak valid${NC}" ;;
+            esac
+            read -p "Press Enter to continue..."
+            ;;
+        41)
+            bash "$SCRIPT_DIR/dev-mode.sh" --no-frontend
             read -p "Press Enter to continue..."
             ;;
 
