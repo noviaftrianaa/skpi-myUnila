@@ -533,8 +533,10 @@ func (s *service) fetchRiwayatPendidikan(idRegPd string) (map[string]interface{}
 }
 
 // Helper: fetchDataLengkapMahasiswa fetches detailed mahasiswa data by id_mahasiswa
+// IMPORTANT: Must filter by both id_mahasiswa AND id_prodi to avoid cross-registration mismatch
+// when a student has multiple registrations (e.g., S1 + S2 in different prodi)
 func (s *service) fetchDataLengkapMahasiswa(idProdi, idPD string) (*FeederMahasiswaData, error) {
-	filter := fmt.Sprintf("id_mahasiswa='%s'", idPD)
+	filter := fmt.Sprintf("id_mahasiswa='%s' and id_prodi='%s'", idPD, idProdi)
 	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, filter, 1, 0)
 	if err != nil {
 		return nil, err
