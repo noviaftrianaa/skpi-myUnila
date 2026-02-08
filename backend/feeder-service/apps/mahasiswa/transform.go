@@ -18,6 +18,8 @@ func flexibleIntToInt(fi *FlexibleInt) *int {
 }
 
 // TransformFeederToEntities transforms Feeder API responses to database entities
+// Uses regData.IDRegistrasiMahasiswa as the authoritative id_reg_pd source
+// to prevent cross-registration mismatch for multi-registration students
 func TransformFeederToEntities(
 	feederMhs *FeederMahasiswaData,
 	feederReg *FeederRiwayatPendidikan,
@@ -35,7 +37,8 @@ func TransformFeederToEntities(
 	regPd := transformRegPd(feederMhs, feederReg, feederLulusDO, idSP, systemUUID, now)
 
 	// Transform KuliahMhs (multiple records)
-	kuliahMhsList := transformKuliahMhs(feederKuliah, feederMhs.IDRegistrasiMahasiswa, systemUUID, now)
+	// Use regData.IDRegistrasiMahasiswa (authoritative) instead of mhsData.IDRegistrasiMahasiswa
+	kuliahMhsList := transformKuliahMhs(feederKuliah, feederReg.IDRegistrasiMahasiswa, systemUUID, now)
 
 	return pesertaDidik, regPd, kuliahMhsList, nil
 }
@@ -164,7 +167,10 @@ func transformRegPd(
 	now time.Time,
 ) *RegPd {
 	reg := &RegPd{
-		IDRegPd:         mhsData.IDRegistrasiMahasiswa,
+		// Use regData.IDRegistrasiMahasiswa (from RiwayatPendidikan filtered by specific id_reg_pd)
+		// NOT mhsData.IDRegistrasiMahasiswa (from DataLengkap which may return wrong registration
+		// for students with multiple registrations across different prodi)
+		IDRegPd:         regData.IDRegistrasiMahasiswa,
 		IDSP:            idSP,
 		IDSMS:           mhsData.IDProdi,
 		IDPD:            mhsData.IDMahasiswa,
