@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-	GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error)
+	GetDaftarUKTList(ctx context.Context, tahun int, idSms string, search string, page, limit int, sortBy string, sortOrder string) (*DaftarUKTListResult, error)
 	GetDaftarUKTByID(ctx context.Context, id string) (*DaftarUKT, error)
 	SyncDaftarUKT(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 	SyncDaftarUKTWithID(ctx context.Context, syncID string, filter *SyncFilter, syncedBy string) (*SyncResult, error)
@@ -37,7 +37,7 @@ func NewService(repo Repository, simpedamAPI *simpedam.Client, loggerSvc logger.
 	}
 }
 
-func (s *service) GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error) {
+func (s *service) GetDaftarUKTList(ctx context.Context, tahun int, idSms string, search string, page, limit int, sortBy string, sortOrder string) (*DaftarUKTListResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -48,7 +48,7 @@ func (s *service) GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimped
 		limit = 100
 	}
 
-	return s.repo.GetDaftarUKTList(ctx, tahun, idProdiSimpedam, kodeStrata, page, limit)
+	return s.repo.GetDaftarUKTList(ctx, tahun, idSms, search, page, limit, sortBy, sortOrder)
 }
 
 func (s *service) GetDaftarUKTByID(ctx context.Context, id string) (*DaftarUKT, error) {

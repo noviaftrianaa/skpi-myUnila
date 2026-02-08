@@ -9,7 +9,7 @@ import (
 )
 
 type Repository interface {
-	GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error)
+	GetDaftarUKTList(ctx context.Context, tahun int, idSms string, search string, page, limit int, sortBy string, sortOrder string) (*DaftarUKTListResult, error)
 	GetDaftarUKTByID(ctx context.Context, id uuid.UUID) (*DaftarUKT, error)
 	UpsertDaftarUKT(ctx context.Context, data *DaftarUKT) error
 	BulkUpsertDaftarUKT(ctx context.Context, dataList []*DaftarUKT) (int, int, error)
@@ -38,74 +38,87 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, idProdiSimpedam string, kodeStrata int, page, limit int) (*DaftarUKTListResult, error) {
+func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, idSms string, search string, page, limit int, sortBy string, sortOrder string) (*DaftarUKTListResult, error) {
 	offset := (page - 1) * limit
 
-	// Count query with filters
-	countQuery := `SELECT COUNT(*) FROM keuangan.daftar_ukt WHERE soft_delete = 0`
-	countArgs := []interface{}{}
-	countArgIdx := 1
+	// INNER JOIN to only show records with id_sms mapped (from pdrd.sms)
+	joins := `
+		INNER JOIN pdrd.sms sms ON d.id_sms = sms.id_sms
+		INNER JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
+		LEFT JOIN pdrd.sms fak ON sms.id_fak_unila = fak.id_sms AND fak.soft_delete = 0
+	`
+
+	// Build WHERE conditions
+	whereClause := `WHERE d.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
 
 	if tahun > 0 {
-		countQuery += fmt.Sprintf(` AND tahun = @p%d`, countArgIdx)
-		countArgs = append(countArgs, tahun)
-		countArgIdx++
+		whereClause += fmt.Sprintf(` AND d.tahun = @p%d`, argIdx)
+		args = append(args, tahun)
+		argIdx++
 	}
 
-	if idProdiSimpedam != "" {
-		countQuery += fmt.Sprintf(` AND CAST(id_prodi_simpedam AS NVARCHAR(36)) = @p%d`, countArgIdx)
-		countArgs = append(countArgs, idProdiSimpedam)
-		countArgIdx++
+	if idSms != "" {
+		whereClause += fmt.Sprintf(` AND CAST(d.id_sms AS NVARCHAR(36)) = @p%d`, argIdx)
+		args = append(args, idSms)
+		argIdx++
 	}
 
-	if kodeStrata > 0 {
-		countQuery += fmt.Sprintf(` AND kode_strata = @p%d`, countArgIdx)
-		countArgs = append(countArgs, kodeStrata)
-		countArgIdx++
+	if search != "" {
+		whereClause += fmt.Sprintf(` AND (sms.nm_lemb LIKE '%%' + @p%d + '%%' OR fak.nm_lemb LIKE '%%' + @p%d + '%%')`, argIdx, argIdx)
+		args = append(args, search)
+		argIdx++
 	}
+
+	// Count query
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM keuangan.daftar_ukt d %s %s`, joins, whereClause)
 
 	var total int
-	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
 		return nil, fmt.Errorf("failed to count daftar_ukt: %w", err)
 	}
 
+	// Determine ORDER BY
+	orderClause := "ORDER BY ISNULL(fak.nm_lemb, ''), sms.nm_lemb, d.nama_kelas"
+	if sortBy != "" {
+		allowedSorts := map[string]string{
+			"nama_prodi":    "sms.nm_lemb",
+			"tahun":         "d.tahun",
+			"nama_kelas":    "d.nama_kelas",
+			"nominal":       "d.nominal",
+			"last_sync":     "d.last_sync",
+			"nama_fakultas": "ISNULL(fak.nm_lemb, '')",
+		}
+		if col, ok := allowedSorts[sortBy]; ok {
+			dir := "ASC"
+			if sortOrder == "desc" {
+				dir = "DESC"
+			}
+			orderClause = fmt.Sprintf("ORDER BY %s %s", col, dir)
+		}
+	}
+
 	// Data query
-	dataQuery := `
+	dataQuery := fmt.Sprintf(`
 		SELECT d.id_daftar_ukt, d.id_prodi_simpedam, d.nama_prodi, d.tahun,
 			   d.kode_fakultas, d.nama_fakultas, d.kode_kelas, d.nama_kelas,
 			   d.nominal, d.kode_strata, d.id_sms, d.id_jenj_didik,
 			   d.create_date, d.id_creator, d.last_update, d.id_updater,
-			   d.soft_delete, d.last_sync
+			   d.soft_delete, d.last_sync,
+			   sms.nm_lemb as nama_prodi_sms,
+			   didik.nm_jenj_didik as nama_jenjang,
+			   ISNULL(fak.nm_lemb, '') as nama_fakultas_sms
 		FROM keuangan.daftar_ukt d
-		WHERE d.soft_delete = 0
-	`
+		%s
+		%s
+		%s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
+	`, joins, whereClause, orderClause, argIdx, argIdx+1)
 
-	dataArgs := []interface{}{}
-	argIdx := 1
+	args = append(args, offset, limit)
 
-	if tahun > 0 {
-		dataQuery += fmt.Sprintf(` AND d.tahun = @p%d`, argIdx)
-		dataArgs = append(dataArgs, tahun)
-		argIdx++
-	}
-
-	if idProdiSimpedam != "" {
-		dataQuery += fmt.Sprintf(` AND CAST(d.id_prodi_simpedam AS NVARCHAR(36)) = @p%d`, argIdx)
-		dataArgs = append(dataArgs, idProdiSimpedam)
-		argIdx++
-	}
-
-	if kodeStrata > 0 {
-		dataQuery += fmt.Sprintf(` AND d.kode_strata = @p%d`, argIdx)
-		dataArgs = append(dataArgs, kodeStrata)
-		argIdx++
-	}
-
-	dataQuery += fmt.Sprintf(` ORDER BY d.nama_fakultas, d.nama_prodi, d.nama_kelas
-		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, argIdx, argIdx+1)
-	dataArgs = append(dataArgs, offset, limit)
-
-	rows, err := r.db.QueryContext(ctx, dataQuery, dataArgs...)
+	rows, err := r.db.QueryContext(ctx, dataQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get daftar_ukt list: %w", err)
 	}
@@ -120,6 +133,7 @@ func (r *repository) GetDaftarUKTList(ctx context.Context, tahun int, idProdiSim
 			&d.Nominal, &d.KodeStrata, &d.IDSMS, &d.IDJenjDidik,
 			&d.CreateDate, &d.IDCreator, &d.LastUpdate, &d.IDUpdater,
 			&d.SoftDelete, &d.LastSync,
+			&d.NamaProdiSMS, &d.NamaJenjang, &d.NamaFakultasSMS,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan daftar_ukt: %w", err)
@@ -293,8 +307,8 @@ func (r *repository) GetAllProdiMappings(ctx context.Context) ([]ProdiMapping, e
 func (r *repository) GetStats(ctx context.Context) (*DaftarUktStats, error) {
 	query := `
 		SELECT
-			COALESCE(COUNT(*), 0) as total_daftar_ukt,
-			COALESCE(COUNT(DISTINCT id_prodi_simpedam), 0) as total_prodi,
+			COALESCE(SUM(CASE WHEN id_sms IS NOT NULL THEN 1 ELSE 0 END), 0) as total_daftar_ukt,
+			COALESCE(COUNT(DISTINCT CASE WHEN id_sms IS NOT NULL THEN id_prodi_simpedam END), 0) as total_prodi,
 			COALESCE(SUM(CASE WHEN id_sms IS NOT NULL THEN 1 ELSE 0 END), 0) as total_mapped,
 			COALESCE(SUM(CASE WHEN id_sms IS NULL THEN 1 ELSE 0 END), 0) as total_unmapped,
 			MAX(last_sync) as last_sync
@@ -344,18 +358,17 @@ func (r *repository) GetFakultasList(ctx context.Context) ([]FakultasOption, err
 func (r *repository) GetProdiList(ctx context.Context) ([]ProdiOption, error) {
 	query := `
 		SELECT DISTINCT
-			CAST(d.id_prodi_simpedam AS NVARCHAR(36)) as id_prodi_simpedam,
-			d.nama_prodi,
-			d.kode_strata,
-			CASE d.kode_strata
-				WHEN 3 THEN 'D3'
-				WHEN 4 THEN 'S1 Reguler'
-				WHEN 7 THEN 'S1 Non-Reg'
-				ELSE 'Lainnya'
-			END as nama_jenjang
-		FROM keuangan.daftar_ukt d
-		WHERE d.soft_delete = 0
-		ORDER BY d.nama_prodi, d.kode_strata
+			CAST(sms.id_sms AS NVARCHAR(36)) as id_sms,
+			sms.nm_lemb as nama_prodi,
+			ISNULL(didik.nm_jenj_didik, '') as nama_jenjang
+		FROM pdrd.sms sms
+		INNER JOIN ref.jenjang_pendidikan didik ON didik.id_jenj_didik = sms.id_jenj_didik
+		WHERE sms.soft_delete = 0
+		  AND sms.stat_prodi = 'A'
+		  AND sms.id_jns_sms = '3'
+		  AND sms.id_fak_unila IS NOT NULL
+		  AND sms.id_sms IN (SELECT DISTINCT id_sms FROM keuangan.daftar_ukt WHERE soft_delete = 0 AND id_sms IS NOT NULL)
+		ORDER BY sms.nm_lemb
 	`
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -367,7 +380,7 @@ func (r *repository) GetProdiList(ctx context.Context) ([]ProdiOption, error) {
 	var prodi []ProdiOption
 	for rows.Next() {
 		var p ProdiOption
-		if err := rows.Scan(&p.IDProdiSimpedam, &p.NamaProdi, &p.KodeStrata, &p.NamaJenjang); err != nil {
+		if err := rows.Scan(&p.IDSMS, &p.NamaProdi, &p.NamaJenjang); err != nil {
 			return nil, fmt.Errorf("failed to scan prodi: %w", err)
 		}
 		prodi = append(prodi, p)
