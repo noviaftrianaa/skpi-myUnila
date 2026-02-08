@@ -24,19 +24,7 @@ func (ctrl *Controller) GetSppMhsList(c *fiber.Ctx) error {
 		idSmt = &s
 	}
 
-	// Semester type filter: "ganjil" (ends with 1) or "genap" (ends with 2)
-	var semesterType *string
-	if st := c.Query("semester_type"); st != "" {
-		semesterType = &st
-	}
-
-	// Filter by daftar_ukt (id_prodi_simpedam:kode_strata:tahun)
-	var idDaftarUkt *string
-	if d := c.Query("id_daftar_ukt"); d != "" {
-		idDaftarUkt = &d
-	}
-
-	result, err := ctrl.service.GetSppMhsList(ctx, page, limit, idSmt, semesterType, idDaftarUkt)
+	result, err := ctrl.service.GetSppMhsList(ctx, page, limit, idSmt)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -151,17 +139,52 @@ func (ctrl *Controller) GetStats(c *fiber.Ctx) error {
 	})
 }
 
+// GetAvailableSemesters returns list of semesters that have SPP data
+func (ctrl *Controller) GetAvailableSemesters(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	semesters, err := ctrl.service.GetAvailableSemesters(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    semesters,
+	})
+}
+
+// GetAllSemesters returns all semesters from ref.semester for sync dropdown
+func (ctrl *Controller) GetAllSemesters(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	semesters, err := ctrl.service.GetAllSemestersFromRef(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    semesters,
+	})
+}
+
 // SyncSppMhs triggers sync from SIMPEDAM
 func (ctrl *Controller) SyncSppMhs(c *fiber.Ctx) error {
 	ctx := c.Context()
 
 	var filter SyncFilter
 	if err := c.BodyParser(&filter); err != nil {
-		// Allow empty body for sync all
 		filter = SyncFilter{}
 	}
 
-	// Get synced_by from header or default
+	// Get synced_by from body or header
 	syncedBy := c.Get("X-User-ID", "system")
 
 	result, err := ctrl.service.SyncSppMhs(ctx, &filter, syncedBy)

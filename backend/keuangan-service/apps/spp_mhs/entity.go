@@ -86,10 +86,11 @@ type RegPdMapping struct {
 
 // SyncFilter represents filter options for sync
 type SyncFilter struct {
-	NPM       *string `json:"npm,omitempty"`
-	Tahun     *int    `json:"tahun,omitempty"`
-	IDProdi   *string `json:"id_prodi,omitempty"`
-	ForceSync bool    `json:"force_sync"`
+	IDSmt       *string `json:"id_smt,omitempty"`       // e.g. "20252" (preferred input)
+	NPM         *string `json:"npm,omitempty"`
+	TahunAkd    *string `json:"tahun_akd,omitempty"`    // e.g. "2025/2026" (computed from id_smt)
+	GanjilGenap *string `json:"ganjil_genap,omitempty"` // "1" = ganjil, "2" = genap (computed from id_smt)
+	ForceSync   bool    `json:"force_sync"`
 }
 
 // SyncResult represents sync operation result
@@ -102,6 +103,7 @@ type SyncResult struct {
 	TotalUnmapped  int    `json:"total_unmapped"`
 	Duration       string `json:"duration"`
 	SyncedBy       string `json:"synced_by"`
+	APIMethod      string `json:"api_method"`
 }
 
 // SppMhsStats represents statistics for SPP Mahasiswa
@@ -110,4 +112,10 @@ type SppMhsStats struct {
 	TotalMahasiswa int     `json:"total_mahasiswa"`
 	TotalBayar     float64 `json:"total_bayar"`
 	LastSync       *string `json:"last_sync,omitempty"`
+}
+
+// SemesterOption represents semester dropdown option
+type SemesterOption struct {
+	IDSmt  string `json:"id_smt" db:"id_smt"`
+	NmSmt  string `json:"nm_smt" db:"nm_smt"`
 }

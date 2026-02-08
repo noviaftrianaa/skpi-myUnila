@@ -17,6 +17,8 @@ func Init(router fiber.Router, db *sqlx.DB, simpedamAPI *simpedam.Client, logger
 	sppMhs := router.Group("/spp-mhs")
 	sppMhs.Get("/", ctrl.GetSppMhsList)
 	sppMhs.Get("/stats", ctrl.GetStats)
+	sppMhs.Get("/semesters", ctrl.GetAvailableSemesters)
+	sppMhs.Get("/semesters/all", ctrl.GetAllSemesters)
 	sppMhs.Get("/mahasiswa/:npm", ctrl.GetSppMhsByNPM)
 	sppMhs.Get("/mahasiswa/:npm/summary", ctrl.GetMahasiswaPaymentSummary)
 	sppMhs.Get("/:id", ctrl.GetSppMhsByID)
