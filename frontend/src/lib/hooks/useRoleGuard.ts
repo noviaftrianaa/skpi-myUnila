@@ -18,7 +18,7 @@ export function useRoleGuard(allowedRoles: UserRole[]) {
 
     if (!user) {
       // User not authenticated, redirect to login
-      router.push("/auth/login");
+      router.push("/login");
       return;
     }
 
