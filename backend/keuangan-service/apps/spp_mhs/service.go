@@ -9,11 +9,13 @@ import (
 )
 
 type Service interface {
-	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error)
+	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string) (*SppMhsListResult, error)
 	GetSppMhsByID(ctx context.Context, id string) (*SppMhsDetail, error)
 	GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDetail, error)
 	GetMahasiswaPaymentSummary(ctx context.Context, npm string) (*MahasiswaPaymentSummary, error)
 	GetStats(ctx context.Context) (*SppMhsStats, error)
+	GetAvailableSemesters(ctx context.Context) ([]SemesterOption, error)
+	GetAllSemestersFromRef(ctx context.Context) ([]SemesterOption, error)
 	SyncSppMhs(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 }
 
@@ -31,7 +33,7 @@ func NewService(repo Repository, simpedamAPI *simpedam.Client, loggerSvc logger.
 	}
 }
 
-func (s *service) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error) {
+func (s *service) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string) (*SppMhsListResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -42,7 +44,7 @@ func (s *service) GetSppMhsList(ctx context.Context, page, limit int, idSmt *str
 		limit = 100
 	}
 
-	return s.repo.GetSppMhsList(ctx, page, limit, idSmt, semesterType, idDaftarUkt)
+	return s.repo.GetSppMhsList(ctx, page, limit, idSmt)
 }
 
 func (s *service) GetSppMhsByID(ctx context.Context, id string) (*SppMhsDetail, error) {
@@ -102,4 +104,12 @@ func (s *service) GetMahasiswaPaymentSummary(ctx context.Context, npm string) (*
 
 func (s *service) GetStats(ctx context.Context) (*SppMhsStats, error) {
 	return s.repo.GetStats(ctx)
+}
+
+func (s *service) GetAvailableSemesters(ctx context.Context) ([]SemesterOption, error) {
+	return s.repo.GetAvailableSemesters(ctx)
+}
+
+func (s *service) GetAllSemestersFromRef(ctx context.Context) ([]SemesterOption, error) {
+	return s.repo.GetAllSemestersFromRef(ctx)
 }

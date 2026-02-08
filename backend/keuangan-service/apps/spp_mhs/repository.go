@@ -3,20 +3,26 @@ package spp_mhs
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type Repository interface {
-	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error)
+	GetSppMhsList(ctx context.Context, page, limit int, idSmt *string) (*SppMhsListResult, error)
 	GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDetail, error)
 	GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDetail, error)
 	GetStats(ctx context.Context) (*SppMhsStats, error)
+	GetAvailableSemesters(ctx context.Context) ([]SemesterOption, error)
+	GetAllSemestersFromRef(ctx context.Context) ([]SemesterOption, error)
 	UpsertSppMhs(ctx context.Context, data *SppMhs) error
 	BulkUpsertSppMhs(ctx context.Context, dataList []*SppMhs) (int, int, error)
 	GetRegPdByNPM(ctx context.Context, npm string) (*RegPdMapping, error)
 	GetAllRegPdMappings(ctx context.Context) (map[string]*RegPdMapping, error)
+	GetActiveRegPdMappings(ctx context.Context, targetSmt string) (map[string]*RegPdMapping, error)
+	GetSyncedNpmsBySemester(ctx context.Context, idSmt string) (map[string]bool, error)
 	AutoUpdateDaftarUktIdSms(ctx context.Context) (int, error)
 }
 
@@ -28,7 +34,7 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string, semesterType *string, idDaftarUkt *string) (*SppMhsListResult, error) {
+func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *string) (*SppMhsListResult, error) {
 	offset := (page - 1) * limit
 
 	// Build WHERE conditions
@@ -42,19 +48,6 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 		args = append(args, *idSmt)
 		argIdx++
 	}
-
-	// Filter by semester type (ganjil/genap)
-	if semesterType != nil && *semesterType != "" {
-		if *semesterType == "ganjil" {
-			whereClause += " AND RIGHT(s.id_smt, 1) = '1'"
-		} else if *semesterType == "genap" {
-			whereClause += " AND RIGHT(s.id_smt, 1) = '2'"
-		}
-	}
-
-	// Filter by daftar_ukt - disabled until schema is updated
-	// TODO: Enable after running ALTER script to add id_daftar_ukt column
-	_ = idDaftarUkt // Placeholder - filter disabled
 
 	// Count query
 	countQuery := fmt.Sprintf(`
@@ -78,13 +71,14 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
 		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
 		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
+		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		%s
 		ORDER BY s.tgl_bayar DESC
@@ -140,13 +134,14 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
 		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
 		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
+		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		WHERE s.id_spp_mhs = @p1 AND s.soft_delete = 0
 	`
@@ -177,13 +172,14 @@ func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
 		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
 		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
+		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		WHERE rp.nipd = @p1 AND s.soft_delete = 0
 		ORDER BY s.id_smt DESC
@@ -241,6 +237,117 @@ func (r *repository) GetStats(ctx context.Context) (*SppMhsStats, error) {
 	return &stats, nil
 }
 
+func (r *repository) GetAvailableSemesters(ctx context.Context) ([]SemesterOption, error) {
+	// Get distinct semesters that have SPP data, joined with ref.semester for nm_smt
+	query := `
+		SELECT DISTINCT s.id_smt, ISNULL(sem.nm_smt, s.id_smt) as nm_smt
+		FROM keuangan.spp_mhs s
+		LEFT JOIN ref.semester sem ON s.id_smt = sem.id_smt
+		WHERE s.soft_delete = 0
+		ORDER BY s.id_smt DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get available semesters: %w", err)
+	}
+	defer rows.Close()
+
+	var semesters []SemesterOption
+	for rows.Next() {
+		var s SemesterOption
+		if err := rows.Scan(&s.IDSmt, &s.NmSmt); err != nil {
+			return nil, fmt.Errorf("failed to scan semester: %w", err)
+		}
+		semesters = append(semesters, s)
+	}
+
+	return semesters, nil
+}
+
+func (r *repository) GetAllSemestersFromRef(ctx context.Context) ([]SemesterOption, error) {
+	// Show: active semester +1, and 10 years back only
+	query := `
+		WITH active_smt AS (
+			SELECT TOP 1 id_smt,
+				LEFT(id_smt, 4) as smt_year,
+				RIGHT(id_smt, 1) as smt_sem
+			FROM ref.semester
+			WHERE a_periode_aktif = 1
+			AND LEN(id_smt) = 5
+		),
+		bounds AS (
+			SELECT
+				CASE
+					WHEN a.smt_sem = '2' THEN CAST(CAST(a.smt_year AS INT) + 1 AS VARCHAR) + '1'
+					ELSE a.smt_year + '2'
+				END as max_id_smt,
+				CAST(CAST(a.smt_year AS INT) - 10 AS VARCHAR) as min_year
+			FROM active_smt a
+		)
+		SELECT s.id_smt, s.nm_smt
+		FROM ref.semester s
+		CROSS JOIN bounds b
+		WHERE LEN(s.id_smt) = 5
+		  AND RIGHT(s.id_smt, 1) IN ('1', '2')
+		  AND s.id_smt <= b.max_id_smt
+		  AND LEFT(s.id_smt, 4) >= b.min_year
+		ORDER BY s.id_smt DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		// Fallback: if a_periode_aktif field doesn't exist, use simple year-based filter
+		log.Printf("⚠️ Active semester query failed, using fallback: %v", err)
+		return r.getSemestersFallback(ctx)
+	}
+	defer rows.Close()
+
+	var semesters []SemesterOption
+	for rows.Next() {
+		var s SemesterOption
+		if err := rows.Scan(&s.IDSmt, &s.NmSmt); err != nil {
+			return nil, fmt.Errorf("failed to scan semester: %w", err)
+		}
+		semesters = append(semesters, s)
+	}
+
+	if len(semesters) == 0 {
+		return r.getSemestersFallback(ctx)
+	}
+
+	return semesters, nil
+}
+
+func (r *repository) getSemestersFallback(ctx context.Context) ([]SemesterOption, error) {
+	query := `
+		SELECT id_smt, nm_smt
+		FROM ref.semester
+		WHERE LEN(id_smt) = 5
+		  AND RIGHT(id_smt, 1) IN ('1', '2')
+		  AND CAST(LEFT(id_smt, 4) AS INT) >= YEAR(GETDATE()) - 10
+		  AND CAST(LEFT(id_smt, 4) AS INT) <= YEAR(GETDATE()) + 1
+		ORDER BY id_smt DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get semesters fallback: %w", err)
+	}
+	defer rows.Close()
+
+	var semesters []SemesterOption
+	for rows.Next() {
+		var s SemesterOption
+		if err := rows.Scan(&s.IDSmt, &s.NmSmt); err != nil {
+			return nil, fmt.Errorf("failed to scan semester: %w", err)
+		}
+		semesters = append(semesters, s)
+	}
+
+	return semesters, nil
+}
+
 func (r *repository) UpsertSppMhs(ctx context.Context, data *SppMhs) error {
 	query := `
 		MERGE INTO keuangan.spp_mhs AS target
@@ -285,25 +392,99 @@ func (r *repository) UpsertSppMhs(ctx context.Context, data *SppMhs) error {
 func (r *repository) BulkUpsertSppMhs(ctx context.Context, dataList []*SppMhs) (int, int, error) {
 	inserted := 0
 	updated := 0
+	errCount := 0
+	batchSize := 100
+	totalBatches := (len(dataList) + batchSize - 1) / batchSize
 
-	for _, data := range dataList {
-		var exists int
-		checkQuery := `SELECT COUNT(*) FROM keuangan.spp_mhs WHERE id_spp_mhs = @p1`
-		if err := r.db.QueryRowContext(ctx, checkQuery, data.IDSppMhs).Scan(&exists); err != nil {
-			return inserted, updated, fmt.Errorf("failed to check existing: %w", err)
+	mergeQuery := `
+		MERGE INTO keuangan.spp_mhs AS target
+		USING (SELECT @p1 AS id_spp_mhs) AS source
+		ON target.id_spp_mhs = source.id_spp_mhs
+		WHEN MATCHED THEN
+			UPDATE SET
+				id_kelas_ukt = @p2,
+				id_smt = @p3,
+				id_reg_pd = @p4,
+				tgl_bayar = @p5,
+				nominal = @p6,
+				kode_pembayaran = @p7,
+				nomor_pin = @p8,
+				kode_akses = @p9,
+				bill_ref = @p10,
+				flag_by = @p11,
+				ket = @p12,
+				last_update = @p13,
+				id_updater = @p14,
+				last_sync = @p15
+		WHEN NOT MATCHED THEN
+			INSERT (id_spp_mhs, id_kelas_ukt, id_smt, id_reg_pd, tgl_bayar,
+					nominal, kode_pembayaran, nomor_pin, kode_akses, bill_ref,
+					flag_by, ket, create_date, id_creator, last_update, soft_delete, last_sync)
+			VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10,
+					@p11, @p12, @p13, @p14, @p13, 0, @p15);
+	`
+
+	for i := 0; i < len(dataList); i += batchSize {
+		end := i + batchSize
+		if end > len(dataList) {
+			end = len(dataList)
+		}
+		batch := dataList[i:end]
+		batchNum := (i / batchSize) + 1
+
+		tx, err := r.db.BeginTx(ctx, nil)
+		if err != nil {
+			return inserted, updated, fmt.Errorf("failed to begin transaction batch %d: %w", batchNum, err)
 		}
 
-		if err := r.UpsertSppMhs(ctx, data); err != nil {
-			return inserted, updated, err
+		batchInserted := 0
+		batchUpdated := 0
+
+		for _, data := range batch {
+			// Check exists for counting insert vs update
+			var exists int
+			if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM keuangan.spp_mhs WHERE id_spp_mhs = @p1`, data.IDSppMhs).Scan(&exists); err != nil {
+				errCount++
+				if errCount <= 5 {
+					log.Printf("⚠️  [BulkUpsert] Exists check error: %v", err)
+				}
+				continue
+			}
+
+			_, err := tx.ExecContext(ctx, mergeQuery,
+				data.IDSppMhs, data.IDKelasUKT, data.IDSmt, data.IDRegPd, data.TglBayar,
+				data.Nominal, data.KodePembayaran, data.NomorPin, data.KodeAkses, data.BillRef,
+				data.FlagBy, data.Ket, data.LastUpdate, data.IDCreator, data.LastSync,
+			)
+			if err != nil {
+				errCount++
+				if errCount <= 5 {
+					log.Printf("⚠️  [BulkUpsert] Upsert error (id_spp_mhs=%s): %v", data.IDSppMhs, err)
+				}
+				continue
+			}
+
+			if exists > 0 {
+				batchUpdated++
+			} else {
+				batchInserted++
+			}
 		}
 
-		if exists > 0 {
-			updated++
-		} else {
-			inserted++
+		if err := tx.Commit(); err != nil {
+			tx.Rollback()
+			return inserted, updated, fmt.Errorf("failed to commit batch %d: %w", batchNum, err)
 		}
+
+		inserted += batchInserted
+		updated += batchUpdated
+
+		log.Printf("💾 [BulkUpsert] Batch %d/%d committed (+%d inserted, +%d updated, total: %d/%d)",
+			batchNum, totalBatches, batchInserted, batchUpdated, inserted+updated, len(dataList))
 	}
 
+	log.Printf("💾 [BulkUpsert] Done: inserted=%d, updated=%d, errors=%d (total=%d)",
+		inserted, updated, errCount, len(dataList))
 	return inserted, updated, nil
 }
 
@@ -347,6 +528,78 @@ func (r *repository) GetAllRegPdMappings(ctx context.Context) (map[string]*RegPd
 	}
 
 	return mappings, nil
+}
+
+// GetActiveRegPdMappings returns npm->id_reg_pd mappings filtered to recent students only
+// Uses mulai_smt (id_semester_masuk) on pdrd.reg_pd, LEFT 4 digits = tahun masuk, 10 years back
+func (r *repository) GetActiveRegPdMappings(ctx context.Context, targetSmt string) (map[string]*RegPdMapping, error) {
+	targetYear, err := strconv.Atoi(targetSmt[:4])
+	if err != nil {
+		log.Printf("⚠️ Cannot parse target semester year, falling back to all mappings")
+		return r.GetAllRegPdMappings(ctx)
+	}
+	minYear := targetYear - 10
+
+	query := `
+		SELECT rp.nipd, rp.id_reg_pd, rp.id_pd
+		FROM pdrd.reg_pd rp
+		WHERE rp.nipd IS NOT NULL AND rp.nipd != ''
+		  AND rp.id_semester_masuk IS NOT NULL
+		  AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) >= @p1
+		  AND rp.id_jns_keluar IS NULL
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, minYear)
+	if err != nil {
+		// Fallback: field might not exist
+		log.Printf("⚠️ Active reg_pd query failed, falling back to all: %v", err)
+		return r.GetAllRegPdMappings(ctx)
+	}
+	defer rows.Close()
+
+	mappings := make(map[string]*RegPdMapping)
+	for rows.Next() {
+		var m RegPdMapping
+		err := rows.Scan(&m.NPM, &m.IDRegPd, &m.IDPD)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan reg_pd mapping: %w", err)
+		}
+		mappings[m.NPM] = &m
+	}
+
+	if len(mappings) == 0 {
+		log.Printf("⚠️ No active reg_pd found with year filter, falling back to all")
+		return r.GetAllRegPdMappings(ctx)
+	}
+
+	return mappings, nil
+}
+
+// GetSyncedNpmsBySemester returns NPMs that already have spp_mhs data for a given semester
+func (r *repository) GetSyncedNpmsBySemester(ctx context.Context, idSmt string) (map[string]bool, error) {
+	query := `
+		SELECT DISTINCT rp.nipd
+		FROM keuangan.spp_mhs s
+		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
+		WHERE s.id_smt = @p1 AND s.soft_delete = 0
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, idSmt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get synced npms: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[string]bool)
+	for rows.Next() {
+		var npm string
+		if err := rows.Scan(&npm); err != nil {
+			return nil, fmt.Errorf("failed to scan npm: %w", err)
+		}
+		result[npm] = true
+	}
+
+	return result, nil
 }
 
 // AutoUpdateDaftarUktIdSms updates daftar_ukt.id_sms based on prodi name matching
