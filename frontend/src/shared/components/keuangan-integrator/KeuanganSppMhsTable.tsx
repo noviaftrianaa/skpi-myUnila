@@ -19,22 +19,24 @@ interface SppMhsItem {
   last_sync: string;
 }
 
-// Semester type options
-const semesterTypeOptions = [
-  { key: "", label: "Semua Semester" },
-  { key: "ganjil", label: "Ganjil (1)" },
-  { key: "genap", label: "Genap (2)" },
-];
+interface SemesterOption {
+  id_smt: string;
+  nm_smt: string;
+}
 
-export default function KeuanganSppMhsTable() {
+interface KeuanganSppMhsTableProps {
+  onSemesterChange?: (idSmt: string) => void;
+}
+
+export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhsTableProps) {
   const [data, setData] = useState<SppMhsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
-  const [filterSemesterType, setFilterSemesterType] = useState<string>(""); // ganjil/genap
-  const [filterIdSmt, setFilterIdSmt] = useState<string>(""); // specific id_smt like "20241"
+  const [filterIdSmt, setFilterIdSmt] = useState<string>(""); // semester filter
+  const [semesters, setSemesters] = useState<SemesterOption[]>([]); // available semesters
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -55,6 +57,21 @@ export default function KeuanganSppMhsTable() {
     setCurrentPage(1);
   };
 
+  // Load available semesters on mount
+  useEffect(() => {
+    const loadSemesters = async () => {
+      try {
+        const response = await keuanganClient.get('/spp-mhs/semesters/all');
+        if (response.data.success) {
+          setSemesters(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading semesters:', error);
+      }
+    };
+    loadSemesters();
+  }, []);
+
   // Load data when filters change
   useEffect(() => {
     const loadData = async () => {
@@ -70,12 +87,7 @@ export default function KeuanganSppMhsTable() {
           params.append("search", searchQuery);
         }
 
-        // Semester type filter (ganjil/genap)
-        if (filterSemesterType) {
-          params.append("semester_type", filterSemesterType);
-        }
-
-        // Specific semester id filter (e.g., "20241")
+        // Semester filter
         if (filterIdSmt) {
           params.append("id_smt", filterIdSmt);
         }
@@ -105,7 +117,7 @@ export default function KeuanganSppMhsTable() {
     };
 
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterSemesterType, filterIdSmt, sortBy, sortOrder]);
+  }, [currentPage, rowsPerPage, searchQuery, filterIdSmt, sortBy, sortOrder]);
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
@@ -258,55 +270,36 @@ export default function KeuanganSppMhsTable() {
           defaultRowsPerPage={10}
           filterSlot={
             <div className="flex flex-wrap gap-2 w-full">
-              {/* Filter Semester Type (Ganjil/Genap) */}
-              <div className="flex-shrink-0 w-[130px]">
+              {/* Filter Semester */}
+              <div className="flex-shrink-0 w-[200px]">
                 <Select
-                  aria-label="Filter Tipe Semester"
-                  placeholder="Tipe Semester"
-                  selectedKeys={filterSemesterType ? [filterSemesterType] : []}
+                  aria-label="Filter Semester"
+                  placeholder="Pilih Semester"
+                  selectedKeys={filterIdSmt ? [filterIdSmt] : []}
                   onSelectionChange={(keys) => {
                     const selected = Array.from(keys)[0] as string;
-                    setFilterSemesterType(selected || "");
+                    setFilterIdSmt(selected || "");
                     setCurrentPage(1);
+                    onSemesterChange?.(selected || "");
                   }}
                   classNames={{
                     base: "w-full",
                     trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-amber-400 focus:border-amber-500 transition-colors shadow-sm",
                     value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
                     innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[150px]",
+                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[200px]",
                     listbox: "!bg-white dark:!bg-gray-800",
                     selectorIcon: "right-2",
                   }}
                   size="sm"
                   variant="bordered"
                 >
-                  {semesterTypeOptions.filter(opt => opt.key !== "").map((opt) => (
-                    <SelectItem key={opt.key}>
-                      {opt.label}
+                  {semesters.map((sem) => (
+                    <SelectItem key={sem.id_smt}>
+                      {sem.nm_smt || sem.id_smt}
                     </SelectItem>
                   ))}
                 </Select>
-              </div>
-
-              {/* Filter Specific Semester ID */}
-              <div className="flex-shrink-0 w-[120px]">
-                <Input
-                  aria-label="Filter ID Semester"
-                  placeholder="ID Smt (20241)"
-                  value={filterIdSmt}
-                  onValueChange={(value) => {
-                    setFilterIdSmt(value);
-                    setCurrentPage(1);
-                  }}
-                  classNames={{
-                    base: "w-full",
-                    inputWrapper: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-amber-400 focus:border-amber-500 transition-colors shadow-sm",
-                    input: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
-                  }}
-                  size="sm"
-                  variant="bordered"
-                />
               </div>
 
               {/* Reset filter button */}
@@ -316,12 +309,12 @@ export default function KeuanganSppMhsTable() {
                   variant="flat"
                   color="default"
                   onPress={() => {
-                    setFilterSemesterType("");
                     setFilterIdSmt("");
                     setCurrentPage(1);
+                    onSemesterChange?.("");
                   }}
                   className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
-                  isDisabled={!filterSemesterType && !filterIdSmt}
+                  isDisabled={!filterIdSmt}
                 >
                   Reset Filter
                 </Button>

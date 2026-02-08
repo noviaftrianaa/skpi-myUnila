@@ -19,7 +19,6 @@ import {
   ModalFooter,
   Progress,
   Switch,
-  Input,
 } from "@heroui/react";
 import {
   FiRefreshCw,
@@ -34,6 +33,7 @@ import { MdSync, MdSchool } from "react-icons/md";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { keuanganClient } from "@/lib/api/keuanganClient";
 import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 import KeuanganSppMhsTable from "@/shared/components/keuangan-integrator/KeuanganSppMhsTable";
 
 interface SppMhsStats {
@@ -59,9 +59,9 @@ export default function SppMhsManagementPage() {
     totalRecords: number;
     message: string;
   } | null>(null);
-  const [filterNpm, setFilterNpm] = useState<string>("");
   const [forceSync, setForceSync] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedSemester, setSelectedSemester] = useState<string>("");
 
   // Fetch stats on mount
   useEffect(() => {
@@ -94,6 +94,15 @@ export default function SppMhsManagementPage() {
   };
 
   const handleSyncClick = () => {
+    if (!selectedSemester) {
+      Swal.fire({
+        icon: "warning",
+        title: "Semester Belum Dipilih",
+        text: "Pilih semester terlebih dahulu pada filter tabel sebelum melakukan sinkronisasi.",
+        confirmButtonColor: "#f59e0b",
+      });
+      return;
+    }
     setShowSyncModal(true);
   };
 
@@ -118,17 +127,14 @@ export default function SppMhsManagementPage() {
 
       // Build request body for sync API
       const requestBody: {
+        id_smt: string;
         force_sync: boolean;
         synced_by: string;
-        npm?: string;
       } = {
+        id_smt: selectedSemester,
         force_sync: forceSync,
         synced_by: user?.name || "system",
       };
-
-      if (filterNpm) {
-        requestBody.npm = filterNpm;
-      }
 
       // Call sync API with JSON body
       const response = await keuanganClient.post(`/spp-mhs/sync`, requestBody);
@@ -332,7 +338,7 @@ export default function SppMhsManagementPage() {
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
-            <KeuanganSppMhsTable key={refreshKey} />
+            <KeuanganSppMhsTable key={refreshKey} onSemesterChange={setSelectedSemester} />
           </CardBody>
         </Card>
       </div>
@@ -368,38 +374,24 @@ export default function SppMhsManagementPage() {
               </ModalHeader>
               <ModalBody className="py-6">
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  {/* Sync Info */}
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-start gap-3">
-                      <FiAlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div className="w-full">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">
+                          Semester: {selectedSemester}
+                        </p>
                         <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                          Proses ini akan mengambil data pembayaran SPP terbaru dari SIMPEDAM dan menyimpannya ke database.
+                          Data pembayaran SPP akan diambil dari SIMPEDAM untuk semester ini.
                         </p>
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
                           <li>Data yang sudah ada akan diperbarui</li>
                           <li>Data baru akan ditambahkan</li>
-                          <li>Mapping mahasiswa akan diterapkan otomatis</li>
+                          <li>Mapping mahasiswa diterapkan otomatis</li>
                         </ul>
                       </div>
                     </div>
-                  </div>
-
-                  {/* NPM Filter (Optional) */}
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-3">
-                      Filter NPM (Opsional)
-                    </h4>
-                    <Input
-                      placeholder="Masukkan NPM untuk sync spesifik"
-                      value={filterNpm}
-                      onValueChange={setFilterNpm}
-                      classNames={{
-                        inputWrapper: "bg-white dark:bg-gray-800",
-                      }}
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      Kosongkan untuk sync semua mahasiswa
-                    </p>
                   </div>
 
                   {/* Force Sync Option */}
@@ -422,14 +414,6 @@ export default function SppMhsManagementPage() {
                         }}
                       />
                     </div>
-                    {forceSync && (
-                      <div className="mt-2 p-2 rounded bg-yellow-100 dark:bg-yellow-900/30">
-                        <p className="text-xs text-yellow-800 dark:text-yellow-200 flex items-center gap-1">
-                          <FiAlertCircle className="flex-shrink-0" />
-                          <span>Mode paksa sync aktif - akan memperbarui semua data</span>
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </div>
               </ModalBody>

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Select, SelectItem, Button } from "@heroui/react";
+import { Select, SelectItem, Button } from "@heroui/react";
 import { keuanganClient } from "@/lib/api/keuanganClient";
 
 interface DaftarUktItem {
@@ -18,16 +18,15 @@ interface DaftarUktItem {
   kode_strata: number;
   id_sms: string | null;
   id_jenj_didik: number | null;
-  nama_prodi_myunila?: string | null;
-  nama_jenjang?: string | null;
-  is_mapped?: number;
+  nama_prodi_sms: string;
+  nama_jenjang: string;
+  nama_fakultas_sms: string;
   last_sync: string;
 }
 
 interface ProdiOption {
-  id_prodi_simpedam: string;
+  id_sms: string;
   nama_prodi: string;
-  kode_strata: number;
   nama_jenjang: string;
 }
 
@@ -39,7 +38,7 @@ export default function KeuanganDaftarUktTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterTahun, setFilterTahun] = useState<string>("");
-  const [filterProdi, setFilterProdi] = useState<string>(""); // Format: "id_prodi_simpedam:kode_strata"
+  const [filterProdi, setFilterProdi] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -102,14 +101,7 @@ export default function KeuanganDaftarUktTable() {
         }
 
         if (filterProdi) {
-          // Parse filterProdi format: "id_prodi_simpedam:kode_strata"
-          const [idProdi, kodeStrata] = filterProdi.split(":");
-          if (idProdi) {
-            params.append("id_prodi_simpedam", idProdi);
-          }
-          if (kodeStrata) {
-            params.append("kode_strata", kodeStrata);
-          }
+          params.append("id_sms", filterProdi);
         }
 
         if (sortBy) {
@@ -157,33 +149,20 @@ export default function KeuanganDaftarUktTable() {
     }).format(amount);
   };
 
-  const getStrataLabel = (kode: number) => {
-    switch (kode) {
-      case 3:
-        return "D3";
-      case 4:
-        return "S1 Reg";
-      case 7:
-        return "S1 Non-Reg";
-      default:
-        return `Kode ${kode}`;
-    }
-  };
-
-  const getStrataColor = (kode: number): "primary" | "success" | "warning" | "default" => {
-    switch (kode) {
-      case 3:
-        return "warning";
-      case 4:
-        return "success";
-      case 7:
-        return "primary";
-      default:
-        return "default";
-    }
-  };
-
   const columns: Column<DaftarUktItem>[] = [
+    {
+      key: "nama_fakultas",
+      label: "FAKULTAS",
+      sortable: true,
+      width: "180px",
+      render: (item) => (
+        <div className="max-w-[180px]">
+          <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+            {item.nama_fakultas_sms}
+          </div>
+        </div>
+      ),
+    },
     {
       key: "nama_prodi",
       label: "PROGRAM STUDI",
@@ -191,10 +170,7 @@ export default function KeuanganDaftarUktTable() {
       render: (item) => (
         <div className="max-w-md">
           <div className="font-medium text-gray-900 dark:text-white line-clamp-1">
-            {item.nama_prodi}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {item.nama_fakultas}
+            {item.nama_jenjang ? `${item.nama_jenjang} - ` : ""}{item.nama_prodi_sms}
           </div>
         </div>
       ),
@@ -209,24 +185,6 @@ export default function KeuanganDaftarUktTable() {
           <span className="font-semibold text-gray-900 dark:text-white">
             {item.tahun}
           </span>
-        </div>
-      ),
-    },
-    {
-      key: "kode_strata",
-      label: "JENJANG",
-      sortable: true,
-      width: "110px",
-      render: (item) => (
-        <div className="flex items-center justify-center">
-          <Chip
-            size="sm"
-            variant="flat"
-            color={getStrataColor(item.kode_strata)}
-            className="font-semibold"
-          >
-            {getStrataLabel(item.kode_strata)}
-          </Chip>
         </div>
       ),
     },
@@ -260,29 +218,6 @@ export default function KeuanganDaftarUktTable() {
       ),
     },
     {
-      key: "is_mapped",
-      label: "MAPPING",
-      sortable: false,
-      width: "120px",
-      render: (item) => (
-        <div className="flex flex-col gap-1">
-          <Chip
-            size="sm"
-            variant="flat"
-            color={item.id_sms ? "success" : "warning"}
-            className="text-xs"
-          >
-            {item.id_sms ? "Mapped" : "Unmapped"}
-          </Chip>
-          {item.nama_prodi_myunila && (
-            <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[100px]" title={item.nama_prodi_myunila}>
-              {item.nama_prodi_myunila}
-            </span>
-          )}
-        </div>
-      ),
-    },
-    {
       key: "last_sync",
       label: "LAST SYNC",
       sortable: true,
@@ -294,6 +229,8 @@ export default function KeuanganDaftarUktTable() {
       ),
     },
   ];
+
+  const hasActiveFilter = filterTahun || filterProdi;
 
   return (
     <motion.div
@@ -313,111 +250,108 @@ export default function KeuanganDaftarUktTable() {
           onRowsPerPageChange={setRowsPerPage}
           onSearchChange={setSearchQuery}
           onSortChange={handleSortChange}
-          searchPlaceholder="Cari nama prodi..."
+          searchPlaceholder="Cari nama prodi/fakultas..."
           defaultRowsPerPage={10}
           filterSlot={
-            <div className="flex flex-wrap gap-2 w-full">
+            <div className="flex items-center gap-2">
               {/* Filter Tahun */}
-              <div className="flex-shrink-0 w-[100px]">
-                <Select
-                  aria-label="Filter Tahun"
-                  placeholder="Tahun"
-                  selectedKeys={filterTahun ? [filterTahun] : []}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-                    setFilterTahun(selected || "");
-                    setCurrentPage(1);
-                  }}
-                  classNames={{
-                    base: "w-full",
-                    trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
-                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
-                    innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[120px]",
-                    listbox: "!bg-white dark:!bg-gray-800",
-                    selectorIcon: "right-2",
-                  }}
-                  size="sm"
-                  variant="bordered"
-                >
-                  {tahunOptions.map((tahun) => (
-                    <SelectItem key={tahun.toString()}>
-                      {tahun.toString()}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
+              <Select
+                aria-label="Filter Tahun"
+                placeholder="Tahun"
+                selectedKeys={filterTahun ? [filterTahun] : []}
+                onSelectionChange={(keys) => {
+                  const selected = Array.from(keys)[0] as string;
+                  setFilterTahun(selected || "");
+                  setCurrentPage(1);
+                }}
+                classNames={{
+                  base: "w-[90px] flex-shrink-0",
+                  trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
+                  value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
+                  innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[120px]",
+                  listbox: "!bg-white dark:!bg-gray-800",
+                  selectorIcon: "right-2",
+                }}
+                size="sm"
+                variant="bordered"
+              >
+                {tahunOptions.map((tahun) => (
+                  <SelectItem key={tahun.toString()}>
+                    {tahun.toString()}
+                  </SelectItem>
+                ))}
+              </Select>
 
               {/* Filter Prodi */}
-              <div className="flex-1 min-w-[200px]">
-                <Select
-                  aria-label="Filter Prodi"
-                  placeholder="Semua Prodi"
-                  selectedKeys={filterProdi ? [filterProdi] : []}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-                    setFilterProdi(selected || "");
-                    setCurrentPage(1);
-                  }}
-                  classNames={{
-                    base: "w-full",
-                    trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
-                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
-                    innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[400px]",
-                    listbox: "!bg-white dark:!bg-gray-800",
-                    selectorIcon: "right-2",
-                  }}
-                  size="sm"
-                  variant="bordered"
-                  renderValue={(items) => {
-                    if (!items || items.length === 0) return <span className="text-[10px]">Semua Prodi</span>;
-                    const item = items[0];
-                    // Parse key to find the prodi
-                    const [idProdi, kodeStrata] = String(item.key).split(":");
-                    const prodi = prodiOptions.find(p => p.id_prodi_simpedam === idProdi && p.kode_strata === parseInt(kodeStrata));
-                    if (!prodi) return <span className="text-[10px]">Semua Prodi</span>;
-                    return (
-                      <div className="flex items-center gap-1 overflow-hidden">
-                        <span className="font-semibold text-emerald-600 text-[10px] flex-shrink-0">{prodi.nama_jenjang}</span>
-                        <span className="text-gray-400 text-[10px]">-</span>
-                        <span className="truncate text-[10px]">{prodi.nama_prodi}</span>
-                      </div>
-                    );
-                  }}
-                >
-                  {prodiOptions.map((prodi) => (
-                    <SelectItem
-                      key={`${prodi.id_prodi_simpedam}:${prodi.kode_strata}`}
-                      textValue={`${prodi.nama_jenjang} - ${prodi.nama_prodi}`}
-                    >
-                      <div className="flex items-center gap-2 py-1">
-                        <span className="font-semibold text-emerald-600 text-xs flex-shrink-0 min-w-[50px]">{prodi.nama_jenjang}</span>
-                        <span className="text-gray-400">-</span>
-                        <span className="text-xs text-gray-700 dark:text-gray-300">{prodi.nama_prodi}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
+              <Select
+                aria-label="Filter Prodi"
+                placeholder="Semua Prodi"
+                selectedKeys={filterProdi ? [filterProdi] : []}
+                onSelectionChange={(keys) => {
+                  const selected = Array.from(keys)[0] as string;
+                  setFilterProdi(selected || "");
+                  setCurrentPage(1);
+                }}
+                classNames={{
+                  base: "flex-1 min-w-0",
+                  trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors shadow-sm",
+                  value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
+                  innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[400px]",
+                  listbox: "!bg-white dark:!bg-gray-800",
+                  selectorIcon: "right-2",
+                }}
+                size="sm"
+                variant="bordered"
+                renderValue={(items) => {
+                  if (!items || items.length === 0) return <span className="text-[10px]">Semua Prodi</span>;
+                  const item = items[0];
+                  const prodi = prodiOptions.find(p => p.id_sms === String(item.key));
+                  if (!prodi) return <span className="text-[10px]">Semua Prodi</span>;
+                  return (
+                    <div className="flex items-center gap-1 overflow-hidden">
+                      <span className="font-semibold text-emerald-600 text-[10px] flex-shrink-0">{prodi.nama_jenjang}</span>
+                      <span className="text-gray-400 text-[10px]">-</span>
+                      <span className="truncate text-[10px]">{prodi.nama_prodi}</span>
+                    </div>
+                  );
+                }}
+              >
+                {prodiOptions.map((prodi) => (
+                  <SelectItem
+                    key={prodi.id_sms}
+                    textValue={`${prodi.nama_jenjang} - ${prodi.nama_prodi}`}
+                  >
+                    <div className="flex items-center gap-2 py-1">
+                      <span className="font-semibold text-emerald-600 text-xs flex-shrink-0 min-w-[50px]">{prodi.nama_jenjang}</span>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-xs text-gray-700 dark:text-gray-300">{prodi.nama_prodi}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </Select>
 
-              {/* Reset filter button */}
-              <div className="flex items-center flex-shrink-0">
+              {/* Reset filter button - only show when filter active */}
+              {hasActiveFilter && (
                 <Button
                   size="sm"
                   variant="flat"
                   color="default"
+                  isIconOnly
                   onPress={() => {
                     setFilterTahun("");
                     setFilterProdi("");
                     setCurrentPage(1);
                   }}
-                  className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
-                  isDisabled={!filterTahun && !filterProdi}
+                  className="h-10 w-10 flex-shrink-0 bg-white hover:bg-gray-100 border border-gray-200"
+                  title="Reset Filter"
                 >
-                  Reset Filter
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </Button>
-              </div>
+              )}
             </div>
           }
         />
