@@ -529,6 +529,15 @@ func (s *service) fetchRiwayatPendidikan(idRegPd string) (map[string]interface{}
 		return nil, fmt.Errorf("no riwayat pendidikan found")
 	}
 
+	// Find the matching record by id_registrasi_mahasiswa
+	// Neo Feeder API may return ALL registrations for the student, not just the filtered one
+	for _, reg := range regList {
+		if regID, ok := reg["id_registrasi_mahasiswa"].(string); ok && regID == idRegPd {
+			return reg, nil
+		}
+	}
+
+	// Fallback to first record if exact match not found (single-record response)
 	return regList[0], nil
 }
 
@@ -570,6 +579,15 @@ func (s *service) fetchRiwayatPendidikanDetail(idRegPd string) (*FeederRiwayatPe
 		return nil, fmt.Errorf("no registration found")
 	}
 
+	// Find the matching record by IDRegistrasiMahasiswa
+	// Neo Feeder API may return ALL registrations for the student, not just the filtered one
+	for _, reg := range regList {
+		if reg.IDRegistrasiMahasiswa == idRegPd {
+			return reg, nil
+		}
+	}
+
+	// Fallback to first record if exact match not found
 	return regList[0], nil
 }
 
