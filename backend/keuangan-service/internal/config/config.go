@@ -61,11 +61,11 @@ func LoadConfig() error {
 		},
 		Database: DatabaseConfig{
 			Driver:                 getEnv("DB_DRIVER", "sqlserver"),
-			Host:                   getEnv("DB_HOST", "localhost"),
-			Port:                   getEnv("DB_PORT", "1433"),
-			Database:               getEnv("DB_DATABASE", "pdut"),
-			Username:               getEnv("DB_USERNAME", "sa"),
-			Password:               getEnv("DB_PASSWORD", ""),
+			Host:                   getEnvWithFallback("DB_HOST", "DB_MSSQL_HOST", "localhost"),
+			Port:                   getEnvWithFallback("DB_PORT", "DB_MSSQL_PORT", "1433"),
+			Database:               getEnvWithFallback("DB_DATABASE", "DB_MSSQL_DATABASE", "pdut"),
+			Username:               getEnvWithFallback("DB_USERNAME", "DB_MSSQL_USERNAME", "sa"),
+			Password:               getEnvWithFallback("DB_PASSWORD", "DB_MSSQL_PASSWORD", ""),
 			TrustServerCertificate: getEnv("DB_TRUST_SERVER_CERTIFICATE", "true") == "true",
 			MaxOpenConns:           maxOpenConns,
 			MaxIdleConns:           maxIdleConns,
@@ -88,4 +88,15 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+// getEnvWithFallback tries primary key first, then fallback key, then default value
+func getEnvWithFallback(primaryKey, fallbackKey, defaultValue string) string {
+	if value := os.Getenv(primaryKey); value != "" {
+		return value
+	}
+	if value := os.Getenv(fallbackKey); value != "" {
+		return value
+	}
+	return defaultValue
 }
