@@ -106,31 +106,35 @@ type DaftarUKTItem struct {
 }
 
 // MasterBiayaMahasiswaItem represents student payment data
+// Field names match actual SIMPEDAM REST API response
 type MasterBiayaMahasiswaItem struct {
 	NPM           string             `json:"npm"`
-	NamaMahasiswa string             `json:"nama_mahasiswa"`
+	NamaMahasiswa string             `json:"nama"`                    // API returns "nama"
 	IDProdi       string             `json:"id_prodi"`
-	NamaProdi     string             `json:"nama_prodi"`
-	KodeFakultas  string             `json:"kode_fakultas"`
-	NamaFakultas  string             `json:"nama_fakultas"`
+	NamaProdi     string             `json:"fk_nama_program_studi"`   // API returns "fk_nama_program_studi"
+	KodeFakultas  string             `json:"fk_kode_fak"`             // API returns "fk_kode_fak"
+	NamaFakultas  string             `json:"fk_nama_fakultas"`        // API returns "fk_nama_fakultas"
 	KodeStrata    FlexibleInt        `json:"kode_strata"`
-	KodeKelas     string             `json:"kode_kelas"`
-	NamaKelas     string             `json:"nama_kelas"`
-	NominalUKT    FlexibleFloat      `json:"nominal_ukt"`
+	KodeKelas     string             `json:"fk_kode_kelas_ukt"`       // API returns "fk_kode_kelas_ukt"
+	NamaKelas     string             `json:"fk_kelas_ukt"`            // API returns "fk_kelas_ukt"
+	NominalUKT    FlexibleFloat      `json:"fk_nominal_biaya"`        // API returns "fk_nominal_biaya"
 	TahunMasuk    FlexibleInt        `json:"tahun_masuk"`
-	RiwayatBayar  []RiwayatBayarItem `json:"riwayat_bayar"`
+	RiwayatBayar  []RiwayatBayarItem `json:"riwayat"`                 // API returns "riwayat" NOT "riwayat_bayar"
 }
 
 // RiwayatBayarItem represents a single payment history
+// Field names match actual SIMPEDAM REST API response
 type RiwayatBayarItem struct {
-	IDSemester       string        `json:"id_semester"`
-	NamaSemester     string        `json:"nama_semester"`
+	TahunAkd         string        `json:"tahun_akd"`               // e.g. "2015/2016"
+	GanjilGenap      string        `json:"ganjil_genap"`            // "1" or "2"
+	IDSemester       string        `json:"id_semester"`             // e.g. "15" (semester ke-15)
+	NamaSemester     string        `json:"fk_nama_semester"`        // API returns "fk_nama_semester"
 	TotalTagihan     FlexibleFloat `json:"total_tagihan"`
-	NominalUKT       FlexibleFloat `json:"nominal_ukt"`
+	NominalUKT       FlexibleFloat `json:"nominal_ukt_spp"`         // API returns "nominal_ukt_spp"
 	JumlahSPI        FlexibleFloat `json:"jumlah_spi"`
 	JumlahDenda      FlexibleFloat `json:"jumlah_denda"`
-	FlagBayar        FlexibleInt   `json:"flag_bayar"`
-	KeteranganBayar  string        `json:"keterangan_bayar"`
+	FlagBayar        FlexibleInt   `json:"flag_bayar"`              // 0=belum, 1=sudah
+	KeteranganBayar  string        `json:"fk_flag_bayar"`           // API returns "fk_flag_bayar" ("Sudah Bayar")
 	FlagKeringanan   FlexibleInt   `json:"flag_keringanan"`
 	JumlahKeringanan FlexibleFloat `json:"jumlah_keringanan"`
 }
@@ -145,6 +149,7 @@ type KelasUKTItem struct {
 }
 
 // ListTagihanItem represents a single tagihan (bill) from GetListTagihan response
+// Field names match actual SIMPEDAM REST API response
 type ListTagihanItem struct {
 	IDTagihan       string        `json:"id_tagihan"`
 	NomorPeserta    string        `json:"nomor_peserta"`
@@ -161,4 +166,8 @@ type ListTagihanItem struct {
 	TglJatuhTempo   string        `json:"tgl_jatuh_tempo"`
 	TglBayar        *string       `json:"tgl_bayar"`
 	Keterangan      string        `json:"keterangan"`
+	// Additional fields from actual API response
+	TotalTagihan    FlexibleFloat `json:"total_tagihan"`
+	NominalUKT      FlexibleFloat `json:"nominal_ukt_spp"`
+	BillReference   string        `json:"bill_reference"`
 }
