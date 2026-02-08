@@ -23,6 +23,11 @@ type DaftarUKT struct {
 	IDSMS           *uuid.UUID `json:"id_sms,omitempty" db:"id_sms"`
 	IDJenjDidik     *int       `json:"id_jenj_didik,omitempty" db:"id_jenj_didik"`
 
+	// Derived fields from pdrd.sms JOINs (not stored, computed in query)
+	NamaProdiSMS    string     `json:"nama_prodi_sms,omitempty" db:"nama_prodi_sms"`
+	NamaJenjang     string     `json:"nama_jenjang,omitempty" db:"nama_jenjang"`
+	NamaFakultasSMS string     `json:"nama_fakultas_sms,omitempty" db:"nama_fakultas_sms"`
+
 	// Audit fields
 	CreateDate      time.Time  `json:"create_date" db:"create_date"`
 	IDCreator       uuid.UUID  `json:"id_creator" db:"id_creator"`
@@ -87,12 +92,11 @@ type FakultasOption struct {
 	NamaFakultas string `json:"nama_fakultas" db:"nama_fakultas"`
 }
 
-// ProdiOption represents prodi option for dropdown
+// ProdiOption represents prodi option for dropdown (from pdrd.sms)
 type ProdiOption struct {
-	IDProdiSimpedam string `json:"id_prodi_simpedam" db:"id_prodi_simpedam"`
-	NamaProdi       string `json:"nama_prodi" db:"nama_prodi"`
-	KodeStrata      int    `json:"kode_strata" db:"kode_strata"`
-	NamaJenjang     string `json:"nama_jenjang" db:"nama_jenjang"`
+	IDSMS       string `json:"id_sms" db:"id_sms"`
+	NamaProdi   string `json:"nama_prodi" db:"nama_prodi"`
+	NamaJenjang string `json:"nama_jenjang" db:"nama_jenjang"`
 }
 
 // RegPdInfo represents student registration info from pdrd.reg_pd

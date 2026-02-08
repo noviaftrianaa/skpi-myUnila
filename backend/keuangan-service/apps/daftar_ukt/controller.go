@@ -17,12 +17,14 @@ func (ctrl *Controller) GetDaftarUKTList(c *fiber.Ctx) error {
 	ctx := c.Context()
 
 	tahun := c.QueryInt("tahun", 0)
-	idProdiSimpedam := c.Query("id_prodi_simpedam", "")
-	kodeStrata := c.QueryInt("kode_strata", 0)
+	idSms := c.Query("id_sms", "")
+	search := c.Query("search", "")
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 20)
+	sortBy := c.Query("sort_by", "")
+	sortOrder := c.Query("sort_order", "asc")
 
-	result, err := ctrl.service.GetDaftarUKTList(ctx, tahun, idProdiSimpedam, kodeStrata, page, limit)
+	result, err := ctrl.service.GetDaftarUKTList(ctx, tahun, idSms, search, page, limit, sortBy, sortOrder)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
