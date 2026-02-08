@@ -113,6 +113,26 @@ func (c *Client) ensureToken() (string, error) {
 	return c.refreshToken()
 }
 
+// checkTokenValid calls CekExpired to verify token is still valid on SIMPEDAM side
+func (c *Client) checkTokenValid(token string) bool {
+	reqBody := BaseRequest{
+		Service: "CekExpired",
+		Token:   token,
+	}
+
+	respBody, err := c.doJSONRequest(reqBody)
+	if err != nil {
+		return false
+	}
+
+	var response BaseResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return false
+	}
+
+	return response.ErrorCode == "0"
+}
+
 // refreshToken gets a new token from SIMPEDAM
 func (c *Client) refreshToken() (string, error) {
 	c.mu.Lock()
@@ -165,12 +185,76 @@ func (c *Client) refreshToken() (string, error) {
 	return c.token, nil
 }
 
-// ForceRefreshToken forces a token refresh
+// ForceRefreshToken forces a token refresh (for external/non-concurrent use)
 func (c *Client) ForceRefreshToken() (string, error) {
 	c.mu.Lock()
 	c.token = ""
 	c.mu.Unlock()
 	return c.refreshToken()
+}
+
+// invalidateToken marks a specific token as invalid so the next ensureToken call triggers a refresh.
+// Only clears the cached token if it still matches failedToken (avoids stampede when multiple
+// goroutines detect error_code 90 simultaneously — only the first one triggers a refresh).
+func (c *Client) invalidateToken(failedToken string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.token == failedToken {
+		log.Printf("🔄 [SIMPEDAM] Invalidating expired token %.10s...", failedToken)
+		c.token = ""
+		c.tokenTime = time.Time{}
+	}
+	// If token != failedToken, another goroutine already refreshed — do nothing
+}
+
+// callWithTokenRetry executes an API call, retrying once if error_code 90 (token expired/invalid).
+// Uses invalidateToken to avoid token stampede in concurrent scenarios.
+func (c *Client) callWithTokenRetry(service, filter, order string, limit, offset int) (*BaseResponse, error) {
+	for attempt := 0; attempt < 2; attempt++ {
+		token, err := c.ensureToken()
+		if err != nil {
+			return nil, err
+		}
+
+		reqBody := BaseRequest{
+			Service: service,
+			Token:   token,
+			Filter:  filter,
+			Order:   order,
+			Limit:   fmt.Sprintf("%d", limit),
+			Offset:  fmt.Sprintf("%d", offset),
+		}
+
+		respBody, err := c.doJSONRequest(reqBody)
+		if err != nil {
+			if attempt == 0 && c.isTokenError(err) {
+				log.Printf("⚠️  [SIMPEDAM] HTTP token error on %s, invalidating and retrying...", service)
+				c.invalidateToken(token)
+				continue
+			}
+			return nil, err
+		}
+
+		var response BaseResponse
+		if err := json.Unmarshal(respBody, &response); err != nil {
+			return nil, fmt.Errorf("failed to parse %s response: %w", service, err)
+		}
+
+		// Check for token expiry in response body (error_code 90)
+		if response.ErrorCode == "90" && attempt == 0 {
+			log.Printf("⚠️  [SIMPEDAM] Token expired (error_code 90) on %s, invalidating and retrying...", service)
+			c.invalidateToken(token)
+			continue
+		}
+
+		if response.ErrorCode != "0" && response.ErrorCode != "" {
+			log.Printf("❌ [SIMPEDAM] %s API Error - Code: %s, Desc: %s", service, response.ErrorCode, response.ErrorDesc)
+			return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
+		}
+
+		return &response, nil
+	}
+	return nil, fmt.Errorf("SIMPEDAM %s failed after token retry", service)
 }
 
 // doJSONRequest performs a JSON REST API request
@@ -208,53 +292,15 @@ func (c *Client) doJSONRequest(reqBody interface{}) ([]byte, error) {
 
 // GetDaftarUKT fetches UKT class list from SIMPEDAM
 func (c *Client) GetDaftarUKT(filter string, order string, limit, offset int) ([]DaftarUKTItem, error) {
-	token, err := c.ensureToken()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("🔑 [SIMPEDAM] Token obtained - length: %d, first 10 chars: %.10s", len(token), token)
-
-	// Default order if not specified
 	if order == "" {
 		order = "kode_fak ASC, nama_program_studi ASC"
 	}
 
-	// Build JSON request
-	reqBody := BaseRequest{
-		Service: "DaftarUKT",
-		Token:   token,
-		Filter:  filter,
-		Order:   order,
-		Limit:   fmt.Sprintf("%d", limit),
-		Offset:  fmt.Sprintf("%d", offset),
-	}
-
 	log.Printf("📤 [SIMPEDAM] Requesting DaftarUKT - filter: %s, limit: %d, offset: %d", filter, limit, offset)
 
-	respBody, err := c.doJSONRequest(reqBody)
+	response, err := c.callWithTokenRetry("DaftarUKT", filter, order, limit, offset)
 	if err != nil {
-		// Check if token expired
-		if c.isTokenError(err) {
-			log.Println("⚠️  [SIMPEDAM] Token expired, refreshing...")
-			if _, err := c.ForceRefreshToken(); err != nil {
-				return nil, fmt.Errorf("failed to refresh token: %w", err)
-			}
-			return c.GetDaftarUKT(filter, order, limit, offset)
-		}
 		return nil, err
-	}
-
-	// Parse JSON response
-	var response BaseResponse
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse DaftarUKT response: %w", err)
-	}
-
-	// Check error code
-	if response.ErrorCode != "0" && response.ErrorCode != "" {
-		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
-		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
 	// Parse items from data
@@ -271,52 +317,16 @@ func (c *Client) GetDaftarUKT(filter string, order string, limit, offset int) ([
 	}
 
 	log.Printf("📦 [SIMPEDAM] DaftarUKT returned %d items", len(items))
-
 	return items, nil
 }
 
 // GetMasterBiayaMahasiswa fetches student payment data from SIMPEDAM
 func (c *Client) GetMasterBiayaMahasiswa(filter string, order string, limit, offset int) ([]MasterBiayaMahasiswaItem, error) {
-	token, err := c.ensureToken()
-	if err != nil {
-		return nil, err
-	}
-
-	// Build JSON request
-	reqBody := BaseRequest{
-		Service: "MasterBiayaMahasiswa",
-		Token:   token,
-		Filter:  filter,
-		Order:   order,
-		Limit:   fmt.Sprintf("%d", limit),
-		Offset:  fmt.Sprintf("%d", offset),
-	}
-
 	log.Printf("📤 [SIMPEDAM] Requesting MasterBiayaMahasiswa - filter: %s, limit: %d, offset: %d", filter, limit, offset)
 
-	respBody, err := c.doJSONRequest(reqBody)
+	response, err := c.callWithTokenRetry("MasterBiayaMahasiswa", filter, order, limit, offset)
 	if err != nil {
-		// Check if token expired
-		if c.isTokenError(err) {
-			log.Println("⚠️  [SIMPEDAM] Token expired, refreshing...")
-			if _, err := c.ForceRefreshToken(); err != nil {
-				return nil, fmt.Errorf("failed to refresh token: %w", err)
-			}
-			return c.GetMasterBiayaMahasiswa(filter, order, limit, offset)
-		}
 		return nil, err
-	}
-
-	// Parse JSON response
-	var response BaseResponse
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse MasterBiayaMahasiswa response: %w", err)
-	}
-
-	// Check error code
-	if response.ErrorCode != "0" && response.ErrorCode != "" {
-		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
-		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
 	// Parse items from data
@@ -327,52 +337,16 @@ func (c *Client) GetMasterBiayaMahasiswa(filter string, order string, limit, off
 	}
 
 	log.Printf("📦 [SIMPEDAM] MasterBiayaMahasiswa returned %d items", len(items))
-
 	return items, nil
 }
 
 // GetKelasUKT fetches UKT class master from SIMPEDAM
 func (c *Client) GetKelasUKT(filter string, order string, limit, offset int) ([]KelasUKTItem, error) {
-	token, err := c.ensureToken()
-	if err != nil {
-		return nil, err
-	}
-
-	// Build JSON request
-	reqBody := BaseRequest{
-		Service: "KelasUKT",
-		Token:   token,
-		Filter:  filter,
-		Order:   order,
-		Limit:   fmt.Sprintf("%d", limit),
-		Offset:  fmt.Sprintf("%d", offset),
-	}
-
 	log.Printf("📤 [SIMPEDAM] Requesting KelasUKT - filter: %s, limit: %d, offset: %d", filter, limit, offset)
 
-	respBody, err := c.doJSONRequest(reqBody)
+	response, err := c.callWithTokenRetry("KelasUKT", filter, order, limit, offset)
 	if err != nil {
-		// Check if token expired
-		if c.isTokenError(err) {
-			log.Println("⚠️  [SIMPEDAM] Token expired, refreshing...")
-			if _, err := c.ForceRefreshToken(); err != nil {
-				return nil, fmt.Errorf("failed to refresh token: %w", err)
-			}
-			return c.GetKelasUKT(filter, order, limit, offset)
-		}
 		return nil, err
-	}
-
-	// Parse JSON response
-	var response BaseResponse
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse KelasUKT response: %w", err)
-	}
-
-	// Check error code
-	if response.ErrorCode != "0" && response.ErrorCode != "" {
-		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
-		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
 	// Parse items from data
@@ -383,52 +357,16 @@ func (c *Client) GetKelasUKT(filter string, order string, limit, offset int) ([]
 	}
 
 	log.Printf("📦 [SIMPEDAM] KelasUKT returned %d items", len(items))
-
 	return items, nil
 }
 
 // GetListTagihan fetches tagihan (bills) list from SIMPEDAM
 func (c *Client) GetListTagihan(filter string, order string, limit, offset int) ([]ListTagihanItem, error) {
-	token, err := c.ensureToken()
-	if err != nil {
-		return nil, err
-	}
-
-	// Build JSON request
-	reqBody := BaseRequest{
-		Service: "GetListTagihan",
-		Token:   token,
-		Filter:  filter,
-		Order:   order,
-		Limit:   fmt.Sprintf("%d", limit),
-		Offset:  fmt.Sprintf("%d", offset),
-	}
-
 	log.Printf("📤 [SIMPEDAM] Requesting GetListTagihan - filter: %s, limit: %d, offset: %d", filter, limit, offset)
 
-	respBody, err := c.doJSONRequest(reqBody)
+	response, err := c.callWithTokenRetry("GetListTagihan", filter, order, limit, offset)
 	if err != nil {
-		// Check if token expired
-		if c.isTokenError(err) {
-			log.Println("⚠️  [SIMPEDAM] Token expired, refreshing...")
-			if _, err := c.ForceRefreshToken(); err != nil {
-				return nil, fmt.Errorf("failed to refresh token: %w", err)
-			}
-			return c.GetListTagihan(filter, order, limit, offset)
-		}
 		return nil, err
-	}
-
-	// Parse JSON response
-	var response BaseResponse
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse GetListTagihan response: %w", err)
-	}
-
-	// Check error code
-	if response.ErrorCode != "0" && response.ErrorCode != "" {
-		log.Printf("❌ [SIMPEDAM] API Error - Code: %s, Desc: %s", response.ErrorCode, response.ErrorDesc)
-		return nil, fmt.Errorf("SIMPEDAM API error: error_code=%s, error_desc=%s", response.ErrorCode, response.ErrorDesc)
 	}
 
 	// Parse items from data
@@ -439,7 +377,6 @@ func (c *Client) GetListTagihan(filter string, order string, limit, offset int) 
 	}
 
 	log.Printf("📦 [SIMPEDAM] GetListTagihan returned %d items", len(items))
-
 	return items, nil
 }
 
