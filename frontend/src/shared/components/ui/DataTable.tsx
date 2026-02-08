@@ -170,14 +170,14 @@ export default function DataTable<T extends Record<string, any>>({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-2.5 md:gap-3 items-center">
           {/* Filter (jika ada) - Kiri */}
           {filterSlot && (
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4">
               {filterSlot}
             </div>
           )}
 
           {/* Search - Tengah (flexible) */}
           {searchable && (
-            <div className={filterSlot ? "lg:col-span-6" : "lg:col-span-9"}>
+            <div className={filterSlot ? "lg:col-span-5" : "lg:col-span-9"}>
               <Input
                 isClearable
                 classNames={{
