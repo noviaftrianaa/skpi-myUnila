@@ -7,9 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Portal Menu Seeder (JSON-based)
+ * Portal Menu Seeder (JSON-based) — Menu Only
  *
- * Seeds menu and menu_role tables for all portal apps from JSON configuration.
+ * Seeds menu table for all portal apps from JSON configuration.
+ * Role assignments (RBAC) are handled separately by PortalRbacSeeder.
  *
  * Configuration file: database/seeders/data/portal_menus.json
  *
@@ -20,12 +21,6 @@ use Illuminate\Support\Str;
  */
 class PortalMenuSeeder extends Seeder
 {
-    // Role IDs that can perform CRUD operations (insert, update, delete)
-    private const CRUD_ROLES = [1, 107]; // Administrator, Developer
-
-    // Default updater ID
-    private const UPDATER_ID = '00000000-0000-0000-0000-000000000000';
-
     // JSON config path
     private string $configPath;
 
@@ -57,19 +52,16 @@ class PortalMenuSeeder extends Seeder
         }
 
         $totalMenus = 0;
-        $totalRoles = 0;
 
         foreach ($apps as $appConfig) {
             $result = $this->seedAppMenus($appConfig);
-            $totalMenus += $result['menus'];
-            $totalRoles += $result['roles'];
+            $totalMenus += $result;
         }
 
         $this->command->info('');
         $this->command->info("=== Summary ===");
         $this->command->info("Total Apps: " . count($apps));
         $this->command->info("Total Menus: {$totalMenus}");
-        $this->command->info("Total Role Assignments: {$totalRoles}");
         $this->command->info('');
         $this->command->info('Portal Menu seeding completed!');
     }
@@ -97,17 +89,16 @@ class PortalMenuSeeder extends Seeder
     }
 
     /**
-     * Seed menus for a single app
+     * Seed menus for a single app (menu only, no RBAC)
      */
-    private function seedAppMenus(array $appConfig): array
+    private function seedAppMenus(array $appConfig): int
     {
         $appSlug = $appConfig['app_slug'] ?? null;
-        $roles = $appConfig['roles'] ?? [];
         $menus = $appConfig['menus'] ?? [];
 
         if (!$appSlug) {
             $this->command->warn("  Skipping app with no app_slug");
-            return ['menus' => 0, 'roles' => 0];
+            return 0;
         }
 
         $this->command->info("=== {$appSlug} ===");
@@ -121,107 +112,71 @@ class PortalMenuSeeder extends Seeder
         if (!$app) {
             $this->command->warn("  App '{$appSlug}' not found in database! Skipping...");
             $this->command->line("  (Run PortalAplikasiSeeder first to create the app)");
-            return ['menus' => 0, 'roles' => 0];
+            return 0;
         }
 
         $appId = $app->id_aplikasi;
         $now = now()->format('Y-m-d H:i:s');
         $menuCount = 0;
-        $roleCount = 0;
 
-        // Clean up existing menus for integrator apps and manajemen-akses (to avoid duplicates)
-        $integratorApps = ['feeder-integrator', 'sister-integrator', 'myunila-integrator', 'manajemen-akses'];
-        if (in_array($appSlug, $integratorApps)) {
-            // Get all menu IDs for this app
-            $existingMenuIds = DB::select(
-                "SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?",
+        // Clean up existing menus for all apps in JSON config (to avoid duplicates)
+        $existingMenuIds = DB::select(
+            "SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?",
+            [$appId]
+        );
+
+        if (!empty($existingMenuIds)) {
+            $menuIds = array_map(fn($m) => $m->id_menu, $existingMenuIds);
+
+            // Delete role assignments first (FK constraint)
+            DB::delete(
+                "DELETE FROM man_akses.menu_role WHERE id_menu IN (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?)",
                 [$appId]
             );
 
-            if (!empty($existingMenuIds)) {
-                $menuIds = array_map(fn($m) => $m->id_menu, $existingMenuIds);
+            // Delete all menus
+            DB::delete("DELETE FROM man_akses.menu WHERE id_aplikasi = ?", [$appId]);
 
-                // Delete role assignments first
-                DB::delete(
-                    "DELETE FROM man_akses.menu_role WHERE id_menu IN (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?)",
-                    [$appId]
-                );
-
-                // Delete all menus
-                DB::delete("DELETE FROM man_akses.menu WHERE id_aplikasi = ?", [$appId]);
-
-                $this->command->line("  ~ Cleaned up " . count($menuIds) . " existing menus");
-            }
+            $this->command->line("  ~ Cleaned up " . count($menuIds) . " existing menus");
         }
 
         // Process each menu (level 0)
         foreach ($menus as $menu) {
-            $menuId = $this->createOrUpdateMenu($menu, $appId, null, $now, 0);
+            $menuId = $this->createMenu($menu, $appId, null, $now, 0);
             $menuCount++;
-            $roleCount += $this->assignRolesToMenu($menuId, $roles, $now);
 
             // Process children (level 1)
             if (!empty($menu['children'])) {
                 foreach ($menu['children'] as $child) {
-                    $childId = $this->createOrUpdateMenu($child, $appId, $menuId, $now, 1);
+                    $childId = $this->createMenu($child, $appId, $menuId, $now, 1);
                     $menuCount++;
-                    $roleCount += $this->assignRolesToMenu($childId, $roles, $now);
 
                     // Process grandchildren (level 2) if any
                     if (!empty($child['children'])) {
                         foreach ($child['children'] as $grandchild) {
-                            $grandchildId = $this->createOrUpdateMenu($grandchild, $appId, $childId, $now, 2);
+                            $this->createMenu($grandchild, $appId, $childId, $now, 2);
                             $menuCount++;
-                            $roleCount += $this->assignRolesToMenu($grandchildId, $roles, $now);
                         }
                     }
                 }
             }
         }
 
-        $this->command->info("  Menus: {$menuCount}, Role assignments: {$roleCount}");
+        $this->command->info("  Menus created: {$menuCount}");
 
-        return ['menus' => $menuCount, 'roles' => $roleCount];
+        return $menuCount;
     }
 
     /**
-     * Create or update a menu record
+     * Create a menu record (always INSERT since we clean up first)
      */
-    private function createOrUpdateMenu(array $menu, string $appId, ?string $parentId, string $now, int $level): string
+    private function createMenu(array $menu, string $appId, ?string $parentId, string $now, int $level): string
     {
         $nmFile = $menu['nm_file'] ?? '#';
         $nmMenu = $menu['nm_menu'] ?? 'Untitled';
-        $icon = $menu['icon'] ?? null;  // No default icon - use null for children
+        $icon = $menu['icon'] ?? null;
         $urutan = $menu['urutan'] ?? 99;
 
-        // Check if menu exists
-        $existing = DB::selectOne(
-            "SELECT CONVERT(VARCHAR(36), id_menu) as id_menu FROM man_akses.menu WHERE nm_file = ? AND id_aplikasi = ?",
-            [$nmFile, $appId]
-        );
-
-        if ($existing) {
-            // Update existing menu
-            DB::update(
-                "UPDATE man_akses.menu SET
-                    nm_menu = ?,
-                    icon = ?,
-                    level_menu = ?,
-                    urutan_menu = ?,
-                    id_group_menu = ?,
-                    a_aktif = 1,
-                    a_tampil = 1,
-                    last_update = ?,
-                    last_sync = ?,
-                    expired_date = NULL
-                WHERE id_menu = ?",
-                [$nmMenu, $icon, $level, $urutan, $parentId, $now, $now, $existing->id_menu]
-            );
-            $this->command->line("  ~ Updated: {$nmMenu}");
-            return $existing->id_menu;
-        }
-
-        // Insert new menu
         $menuId = Str::uuid()->toString();
         DB::insert(
             "INSERT INTO man_akses.menu
@@ -232,56 +187,5 @@ class PortalMenuSeeder extends Seeder
         );
         $this->command->line("  + Created: {$nmMenu}");
         return $menuId;
-    }
-
-    /**
-     * Assign roles to a menu
-     */
-    private function assignRolesToMenu(string $menuId, array $roles, string $now): int
-    {
-        $count = 0;
-
-        foreach ($roles as $roleId) {
-            // Check if assignment exists
-            $existing = DB::selectOne(
-                "SELECT 1 FROM man_akses.menu_role WHERE id_menu = ? AND id_peran = ?",
-                [$menuId, $roleId]
-            );
-
-            // Only Administrator and Developer can perform CRUD operations
-            $canCrud = in_array($roleId, self::CRUD_ROLES) ? 1 : 0;
-
-            if ($existing) {
-                // Update existing assignment
-                DB::update(
-                    "UPDATE man_akses.menu_role SET
-                        akses_menu = 'full',
-                        a_boleh_show = 1,
-                        a_boleh_insert = ?,
-                        a_boleh_update = ?,
-                        a_boleh_delete = ?,
-                        a_boleh_sanggah = 0,
-                        approval_menu = 1,
-                        soft_delete = 0,
-                        last_update = ?,
-                        last_sync = ?,
-                        id_updater = ?
-                    WHERE id_menu = ? AND id_peran = ?",
-                    [$canCrud, $canCrud, $canCrud, $now, $now, self::UPDATER_ID, $menuId, $roleId]
-                );
-            } else {
-                // Insert new assignment
-                DB::insert(
-                    "INSERT INTO man_akses.menu_role
-                        (id_peran, id_menu, akses_menu, a_boleh_show, a_boleh_insert, a_boleh_update, a_boleh_delete,
-                         a_boleh_sanggah, approval_menu, tgl_create, last_update, soft_delete, last_sync, id_updater)
-                    VALUES (?, ?, 'full', 1, ?, ?, ?, 0, 1, ?, ?, 0, ?, ?)",
-                    [$roleId, $menuId, $canCrud, $canCrud, $canCrud, $now, $now, $now, self::UPDATER_ID]
-                );
-            }
-            $count++;
-        }
-
-        return $count;
     }
 }
