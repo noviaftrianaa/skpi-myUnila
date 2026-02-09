@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederAktivitasMahasiswaTable from "@/shared/components/feeder-integrator/FeederAktivitasMahasiswaTable";
 import {
   Card,
@@ -32,6 +32,8 @@ import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 interface AktivitasStats {
   total_aktivitas: number;
@@ -237,10 +239,11 @@ export default function AktivitasMahasiswaManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Aktivitas Mahasiswa"
     >
       <div className="space-y-6">
@@ -688,6 +691,6 @@ export default function AktivitasMahasiswaManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

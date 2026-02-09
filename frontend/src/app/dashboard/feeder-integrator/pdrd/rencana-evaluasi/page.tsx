@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederRencanaEvaluasiTable from "@/shared/components/feeder-integrator/FeederRencanaEvaluasiTable";
 import {
   Card,
@@ -29,6 +29,8 @@ import { MdSync, MdSchool } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
+
+const APP_KEY = "feeder-integrator";
 
 interface RencanaEvaluasiStats {
   total_rencana_evaluasi: number;
@@ -166,11 +168,12 @@ export default function RencanaEvaluasiPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Rencana Evaluasi MK"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Rencana Evaluasi"
     >
       <div className="space-y-6">
         {/* Header with Title and Sync Button */}
@@ -505,6 +508,6 @@ export default function RencanaEvaluasiPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederKelasKuliahTable from "@/shared/components/feeder-integrator/FeederKelasKuliahTable";
 import {
   Card,
@@ -32,6 +32,8 @@ import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 interface KelasKuliahStats {
   total_kelas: number;
@@ -210,11 +212,12 @@ export default function KelasKuliahManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Kelas Pengajaran"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Kelas Kuliah"
     >
       <div className="space-y-6">
         {/* Header with Title and Sync Button */}
@@ -651,6 +654,6 @@ export default function KelasKuliahManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

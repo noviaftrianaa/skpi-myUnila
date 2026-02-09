@@ -2,25 +2,25 @@
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody } from "@heroui/react";
-import { FiRefreshCw, FiClock } from "react-icons/fi";
+import { FiDatabase, FiRefreshCw, FiClock } from "react-icons/fi";
 import { MdConstruction } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
+
+const APP_KEY = "feeder-integrator";
 
 export default function KonversiTransferPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   return (
-    <DashboardLayout
-      menuConfig={feederIntegratorMenuConfig}
-      userRole={user?.role || ""}
-      breadcrumbs={[
-        { label: "Feeder Integrator", href: "/dashboard/feeder-integrator" },
-        { label: "Data PDRD", href: "#" },
-        { label: "Konversi/Transfer", href: "/dashboard/feeder-integrator/pdrd/konversi-transfer" },
-      ]}
+    <DashboardLayoutWithDynamicMenu
+      appName="Feeder Integrator"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Konversi Transfer"
     >
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-6">
@@ -77,6 +77,6 @@ export default function KonversiTransferPage() {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

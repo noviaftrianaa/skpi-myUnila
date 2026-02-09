@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -29,6 +29,8 @@ import {
 import { MdSync } from "react-icons/md";
 import { BsCloudUpload, BsCloudDownload } from "react-icons/bs";
 import { feederIntegratorMenuConfig } from "../config/menuConfig";
+
+const APP_KEY = "feeder-integrator";
 
 interface SyncEntity {
   id: string;
@@ -197,11 +199,12 @@ export default function SyncManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSync className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Sync Management"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Sync"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -459,6 +462,6 @@ export default function SyncManagementPage() {
           </Card>
         )}
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

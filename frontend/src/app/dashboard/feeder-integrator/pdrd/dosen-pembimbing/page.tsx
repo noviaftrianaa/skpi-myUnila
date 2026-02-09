@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederBimbingMhsTable from "@/shared/components/feeder-integrator/FeederBimbingMhsTable";
 import {
   Card,
@@ -25,12 +25,15 @@ import {
   FiUsers,
   FiRefreshCw,
   FiBookOpen,
+  FiDatabase,
 } from "react-icons/fi";
 import { MdSync, MdSchool, MdSupervisorAccount } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { bimbingMhsService, BimbingMhsStats } from "@/lib/services/feeder/pdrd/bimbingMhsService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 export default function DosenPembimbingPage() {
   useRequireAuth();
@@ -169,10 +172,11 @@ export default function DosenPembimbingPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Dosen Pembimbing"
     >
       <div className="space-y-6">
@@ -532,6 +536,6 @@ export default function DosenPembimbingPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

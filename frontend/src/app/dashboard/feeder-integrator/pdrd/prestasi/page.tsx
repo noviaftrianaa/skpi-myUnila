@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederPrestasiTable from "@/shared/components/feeder-integrator/FeederPrestasiTable";
 import {
   Card,
@@ -22,6 +22,7 @@ import {
   FiXCircle,
   FiClock,
   FiAlertCircle,
+  FiDatabase,
   FiUsers,
   FiRefreshCw,
   FiAward,
@@ -31,6 +32,8 @@ import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 interface PrestasiStats {
   total_prestasi: number;
@@ -183,11 +186,12 @@ export default function PrestasiManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
-      pageTitle="Prestasi Mahasiswa"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Prestasi"
     >
       <div className="space-y-6">
         {/* Header with Title and Sync Button */}
@@ -547,6 +551,6 @@ export default function PrestasiManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
