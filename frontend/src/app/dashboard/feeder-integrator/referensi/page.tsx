@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { feederIntegratorMenuConfig } from "../config/menuConfig";
 import {
   Card,
@@ -32,6 +32,8 @@ import { FiBookOpen, FiDatabase, FiCheckCircle, FiClock, FiSearch, FiActivity, F
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
 import { referensiService, REFERENSI_ENDPOINTS, type ReferensiStats } from "@/lib/services/feeder/referensi/referensiService";
 import { useAuth } from "@/contexts/AuthContext";
+
+const APP_KEY = "feeder-integrator";
 
 interface ReferensiItemWithStats {
   key: string;
@@ -340,10 +342,11 @@ export default function ReferensiPage() {
   const syncedCount = referensiItems.filter((item) => item.records > 0).length;
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Referensi"
     >
       <div className="space-y-6">
@@ -875,6 +878,6 @@ export default function ReferensiPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import {
@@ -19,7 +19,7 @@ import {
   Input,
   useDisclosure,
 } from "@heroui/react";
-import { FiSettings, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiRefreshCw } from "react-icons/fi";
+import { FiSettings, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiRefreshCw, FiDatabase } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
 import { feederIntegratorMenuConfig } from "../config/menuConfig";
@@ -28,6 +28,8 @@ import {
   type APIConfig,
   type CreateAPIConfigRequest,
 } from "@/lib/services/config/apiConfigService";
+
+const APP_KEY = "feeder-integrator";
 
 export default function APIConfigurationPage() {
   useRequireAuth();
@@ -288,11 +290,12 @@ export default function APIConfigurationPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
-      pageTitle="API Configuration"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Settings"
     >
       <Toaster position="top-right" />
 
@@ -555,6 +558,6 @@ export default function APIConfigurationPage() {
           </ModalContent>
         </Modal>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

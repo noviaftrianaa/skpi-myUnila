@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { feederMonitoringService as monitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/feeder/management/monitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiClock,
+  FiDatabase,
   FiRefreshCw,
   FiZap,
   FiAlertCircle,
@@ -18,6 +19,8 @@ import { toast } from "react-hot-toast";
 import { feederIntegratorMenuConfig } from "../config/menuConfig";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+
+const APP_KEY = "feeder-integrator";
 
 export default function MonitoringPage() {
   useRequireAuth();
@@ -109,10 +112,12 @@ export default function MonitoringPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={feederIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<FiActivity className="w-6 h-6" />}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Monitoring"
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -316,6 +321,6 @@ export default function MonitoringPage() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

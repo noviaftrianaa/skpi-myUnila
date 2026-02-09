@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederTranskripNilaiTable from "@/shared/components/feeder-integrator/FeederTranskripNilaiTable";
 import {
   Card,
@@ -26,12 +26,15 @@ import {
   FiUsers,
   FiRefreshCw,
   FiFileText,
+  FiDatabase,
 } from "react-icons/fi";
 import { MdSync, MdSchool, MdClass } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 interface TranskripNilaiStats {
   total_transkrip: number;
@@ -213,10 +216,11 @@ export default function TranskripNilaiManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Transkrip Nilai"
     >
       <div className="space-y-6">
@@ -650,6 +654,6 @@ export default function TranskripNilaiManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
