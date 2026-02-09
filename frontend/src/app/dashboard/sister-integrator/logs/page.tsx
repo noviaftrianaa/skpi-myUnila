@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { SyncLogsTable } from "@/shared/components/sister-integrator";
 import { syncLogsService } from "@/lib/services/sister/management/syncLogsService";
 import { Card, CardBody, Spinner } from "@heroui/react";
@@ -15,6 +15,8 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { sisterIntegratorMenuConfig } from "../config/menuConfig";
+
+const APP_KEY = "sister-integrator";
 
 export default function SyncLogsPage() {
   useRequireAuth();
@@ -45,10 +47,12 @@ export default function SyncLogsPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={sisterIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
+      fallbackMenus={sisterIntegratorMenuConfig}
       appName="SISTER Integrator"
       appIcon={<FiDatabase className="w-6 h-6" />}
+      appKey={APP_KEY}
+      pageTitle="Sync Logs"
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -146,6 +150,6 @@ export default function SyncLogsPage() {
         {/* Data Table */}
         <SyncLogsTable />
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

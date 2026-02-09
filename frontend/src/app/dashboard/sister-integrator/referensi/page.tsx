@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import {
   Card,
@@ -41,6 +41,8 @@ import {
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function ReferensiDashboardPage() {
   useRequireAuth();
@@ -216,11 +218,12 @@ export default function ReferensiDashboardPage() {
   const syncedCount = metadata.filter((m) => m.total_records > 0).length;
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Referensi Dashboard"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Referensi"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -724,6 +727,6 @@ export default function ReferensiDashboardPage() {
           )}
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

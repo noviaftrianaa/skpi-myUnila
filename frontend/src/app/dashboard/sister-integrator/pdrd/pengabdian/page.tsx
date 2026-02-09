@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -30,6 +30,8 @@ import { sisterPengabdianService, type PengabdianStats } from "@/lib/services/si
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 import SisterPengabdianTable from "@/shared/components/sister-integrator/SisterPengabdianTable";
+
+const APP_KEY = "sister-integrator";
 
 export default function PengabdianManagementPage() {
   useRequireAuth();
@@ -139,25 +141,27 @@ export default function PengabdianManagementPage() {
 
   if (isLoadingStats) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="SISTER Integrator"
         appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-        menuConfig={sisterIntegratorMenuConfig}
-        pageTitle="Pengabdian Masyarakat"
+        fallbackMenus={sisterIntegratorMenuConfig}
+        appKey={APP_KEY}
+        pageTitle="Pengabdian"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Pengabdian Masyarakat"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Pengabdian"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -487,6 +491,6 @@ export default function PengabdianManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

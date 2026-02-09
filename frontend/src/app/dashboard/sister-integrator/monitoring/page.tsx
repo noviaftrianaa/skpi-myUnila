@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { monitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/sister/management/monitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
@@ -18,6 +18,8 @@ import { toast } from "react-hot-toast";
 import { sisterIntegratorMenuConfig } from "../config/menuConfig";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+
+const APP_KEY = "sister-integrator";
 
 export default function MonitoringPage() {
   useRequireAuth();
@@ -109,10 +111,12 @@ export default function MonitoringPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={sisterIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
+      fallbackMenus={sisterIntegratorMenuConfig}
       appName="SISTER Integrator"
       appIcon={<FiActivity className="w-6 h-6" />}
+      appKey={APP_KEY}
+      pageTitle="Monitoring"
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -316,6 +320,6 @@ export default function MonitoringPage() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
