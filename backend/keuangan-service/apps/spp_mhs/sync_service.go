@@ -355,12 +355,22 @@ func (s *service) transformListTagihanItems(
 			flagBy = "LUNAS"
 		}
 
+		nmSmt := item.NamaSemester
+
 		spp := &SppMhs{
 			IDSppMhs:       idSppMhs,
 			IDSmt:          idSmt,
 			IDRegPd:        npmMapping.IDRegPd,
 			TglBayar:       now,
 			Nominal:        float64(item.NominalUKT),
+			NmSmt:          &nmSmt,
+			TotalTagihan:   float64(item.TotalTagihan),
+			JumlahSPI:      float64(item.JumlahSPI),
+			JumlahDenda:    float64(item.JumlahDenda),
+			JumlahLainnya:  float64(item.JumlahLainnya),
+			SisaTagihan:    float64(item.SisaTagihan),
+			ACicil:         int(item.FlagCicil),
+			CicilanKe:      int(item.CicilanKe),
 			KodePembayaran: "SIMPEDAM",
 			FlagBy:         flagBy,
 			CreateDate:     now,
@@ -374,7 +384,7 @@ func (s *service) transformListTagihanItems(
 			spp.BillRef = &item.BillReference
 		}
 
-		ket := fmt.Sprintf("Tagihan: %s, Total: %.0f", item.IDTagihan, float64(item.TotalTagihan))
+		ket := fmt.Sprintf("Tagihan: %s", item.IDTagihan)
 		spp.Ket = &ket
 
 		dataList = append(dataList, spp)
@@ -495,12 +505,18 @@ func (s *service) transformMasterBiayaItems(
 				flagBy = "LUNAS"
 			}
 
+			nmSmt := riwayat.NamaSemester
+
 			spp := &SppMhs{
 				IDSppMhs:       idSppMhs,
 				IDSmt:          riwayatIdSmt,
 				IDRegPd:        npmMapping.IDRegPd,
 				TglBayar:       now,
 				Nominal:        float64(riwayat.NominalUKT),
+				NmSmt:          &nmSmt,
+				TotalTagihan:   float64(riwayat.TotalTagihan),
+				JumlahSPI:      float64(riwayat.JumlahSPI),
+				JumlahDenda:    float64(riwayat.JumlahDenda),
 				KodePembayaran: "SIMPEDAM",
 				FlagBy:         flagBy,
 				CreateDate:     now,
@@ -510,8 +526,7 @@ func (s *service) transformMasterBiayaItems(
 				LastSync:       now,
 			}
 
-			ket := fmt.Sprintf("Total: %.0f, SPI: %.0f, Denda: %.0f",
-				float64(riwayat.TotalTagihan), float64(riwayat.JumlahSPI), float64(riwayat.JumlahDenda))
+			ket := fmt.Sprintf("MBM: %s sem %s", npm, riwayatIdSmt)
 			spp.Ket = &ket
 
 			dataList = append(dataList, spp)

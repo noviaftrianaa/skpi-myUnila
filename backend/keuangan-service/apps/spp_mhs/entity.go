@@ -11,9 +11,22 @@ type SppMhs struct {
 	IDSppMhs       uuid.UUID  `json:"id_spp_mhs" db:"id_spp_mhs"`
 	IDKelasUKT     *uuid.UUID `json:"id_kelas_ukt,omitempty" db:"id_kelas_ukt"`
 	IDSmt          string     `json:"id_smt" db:"id_smt"`
+	IDDaftarUKT    *uuid.UUID `json:"id_daftar_ukt,omitempty" db:"id_daftar_ukt"`
 	IDRegPd        uuid.UUID  `json:"id_reg_pd" db:"id_reg_pd"`
 	TglBayar       time.Time  `json:"tgl_bayar" db:"tgl_bayar"`
 	Nominal        float64    `json:"nominal" db:"nominal"`
+
+	// Tagihan detail (from SIMPEDAM GetListTagihan)
+	NmSmt          *string    `json:"nm_smt,omitempty" db:"nm_smt"`
+	TotalTagihan   float64    `json:"total_tagihan" db:"total_tagihan"`
+	JumlahSPI      float64    `json:"jumlah_spi" db:"jumlah_spi"`
+	JumlahDenda    float64    `json:"jumlah_denda" db:"jumlah_denda"`
+	JumlahLainnya  float64    `json:"jumlah_lainnya" db:"jumlah_lainnya"`
+	SisaTagihan    float64    `json:"sisa_tagihan" db:"sisa_tagihan"`
+	ACicil         int        `json:"a_cicil" db:"a_cicil"`
+	CicilanKe      int        `json:"cicilan_ke" db:"cicilan_ke"`
+
+	// Reference & Status
 	KodePembayaran string     `json:"kode_pembayaran" db:"kode_pembayaran"`
 	NomorPin       *string    `json:"nomor_pin,omitempty" db:"nomor_pin"`
 	KodeAkses      *string    `json:"kode_akses,omitempty" db:"kode_akses"`
