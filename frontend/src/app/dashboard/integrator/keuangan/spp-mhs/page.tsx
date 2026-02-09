@@ -32,8 +32,7 @@ import {
 import { MdSync, MdSchool } from "react-icons/md";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { keuanganClient } from "@/lib/api/keuanganClient";
-import { toast } from "react-hot-toast";
-import Swal from "sweetalert2";
+import toast, { Toaster } from "react-hot-toast";
 import KeuanganSppMhsTable from "@/shared/components/keuangan-integrator/KeuanganSppMhsTable";
 
 interface SppMhsStats {
@@ -95,11 +94,9 @@ export default function SppMhsManagementPage() {
 
   const handleSyncClick = () => {
     if (!selectedSemester) {
-      Swal.fire({
-        icon: "warning",
-        title: "Semester Belum Dipilih",
-        text: "Pilih semester terlebih dahulu pada filter tabel sebelum melakukan sinkronisasi.",
-        confirmButtonColor: "#f59e0b",
+      toast.error("Pilih semester terlebih dahulu pada filter tabel sebelum melakukan sinkronisasi.", {
+        duration: 4000,
+        position: "top-right",
       });
       return;
     }
@@ -214,6 +211,7 @@ export default function SppMhsManagementPage() {
       fallbackMenus={myunilaIntegratorMenuConfig}
       pageTitle="SPP Mahasiswa"
     >
+      <Toaster position="top-right" />
       <div className="space-y-6">
         {/* Header with Title and Sync Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

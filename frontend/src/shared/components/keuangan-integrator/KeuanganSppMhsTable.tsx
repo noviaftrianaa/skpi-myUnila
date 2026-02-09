@@ -13,9 +13,12 @@ interface SppMhsItem {
   nama_prodi: string;
   tgl_bayar: string;
   nominal: number;
+  total_tagihan: number;
+  sisa_tagihan: number;
   kode_pembayaran: string;
   nama_kelas_ukt?: string | null;
   nominal_ukt?: number | null;
+  flag_by: string;
   last_sync: string;
 }
 
@@ -202,7 +205,7 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
     },
     {
       key: "nominal",
-      label: "NOMINAL BAYAR",
+      label: "NOMINAL UKT",
       sortable: true,
       width: "150px",
       render: (item) => (
@@ -214,24 +217,38 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
       ),
     },
     {
-      key: "tgl_bayar",
-      label: "TGL BAYAR",
+      key: "total_tagihan",
+      label: "TOTAL TAGIHAN",
       sortable: true,
-      width: "120px",
+      width: "150px",
       render: (item) => (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          {formatDate(item.tgl_bayar)}
+        <div className="text-right">
+          <div className="font-semibold text-gray-900 dark:text-white">
+            {item.total_tagihan ? formatCurrency(item.total_tagihan) : "-"}
+          </div>
+          {item.sisa_tagihan > 0 && (
+            <div className="text-xs text-red-500 mt-0.5">
+              Sisa: {formatCurrency(item.sisa_tagihan)}
+            </div>
+          )}
         </div>
       ),
     },
     {
-      key: "kode_pembayaran",
-      label: "KODE",
+      key: "flag_by",
+      label: "STATUS",
       sortable: false,
       width: "100px",
       render: (item) => (
-        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-          {item.kode_pembayaran || "-"}
+        <div className="text-center">
+          <Chip
+            size="sm"
+            variant="flat"
+            color={item.flag_by === "LUNAS" ? "success" : "warning"}
+            className="font-semibold"
+          >
+            {item.flag_by || "-"}
+          </Chip>
         </div>
       ),
     },
