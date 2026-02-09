@@ -64,8 +64,11 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 
 	// Data query
 	dataQuery := fmt.Sprintf(`
-		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_reg_pd,
-			   s.tgl_bayar, s.nominal, s.kode_pembayaran, s.nomor_pin,
+		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_daftar_ukt, s.id_reg_pd,
+			   s.tgl_bayar, s.nominal,
+			   s.nm_smt, s.total_tagihan, s.jumlah_spi, s.jumlah_denda,
+			   s.jumlah_lainnya, s.sisa_tagihan, s.a_cicil, s.cicilan_ke,
+			   s.kode_pembayaran, s.nomor_pin,
 			   s.kode_akses, s.bill_ref, s.flag_by, s.ket,
 			   s.create_date, s.id_creator, s.last_update, s.id_updater,
 			   s.soft_delete, s.last_sync,
@@ -97,8 +100,11 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 	for rows.Next() {
 		var d SppMhsDetail
 		err := rows.Scan(
-			&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDRegPd,
-			&d.TglBayar, &d.Nominal, &d.KodePembayaran, &d.NomorPin,
+			&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDDaftarUKT, &d.IDRegPd,
+			&d.TglBayar, &d.Nominal,
+			&d.NmSmt, &d.TotalTagihan, &d.JumlahSPI, &d.JumlahDenda,
+			&d.JumlahLainnya, &d.SisaTagihan, &d.ACicil, &d.CicilanKe,
+			&d.KodePembayaran, &d.NomorPin,
 			&d.KodeAkses, &d.BillRef, &d.FlagBy, &d.Ket,
 			&d.CreateDate, &d.IDCreator, &d.LastUpdate, &d.IDUpdater,
 			&d.SoftDelete, &d.LastSync,
@@ -127,8 +133,11 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 
 func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDetail, error) {
 	query := `
-		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_reg_pd,
-			   s.tgl_bayar, s.nominal, s.kode_pembayaran, s.nomor_pin,
+		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_daftar_ukt, s.id_reg_pd,
+			   s.tgl_bayar, s.nominal,
+			   s.nm_smt, s.total_tagihan, s.jumlah_spi, s.jumlah_denda,
+			   s.jumlah_lainnya, s.sisa_tagihan, s.a_cicil, s.cicilan_ke,
+			   s.kode_pembayaran, s.nomor_pin,
 			   s.kode_akses, s.bill_ref, s.flag_by, s.ket,
 			   s.create_date, s.id_creator, s.last_update, s.id_updater,
 			   s.soft_delete, s.last_sync,
@@ -148,8 +157,11 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 
 	var d SppMhsDetail
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDRegPd,
-		&d.TglBayar, &d.Nominal, &d.KodePembayaran, &d.NomorPin,
+		&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDDaftarUKT, &d.IDRegPd,
+		&d.TglBayar, &d.Nominal,
+		&d.NmSmt, &d.TotalTagihan, &d.JumlahSPI, &d.JumlahDenda,
+		&d.JumlahLainnya, &d.SisaTagihan, &d.ACicil, &d.CicilanKe,
+		&d.KodePembayaran, &d.NomorPin,
 		&d.KodeAkses, &d.BillRef, &d.FlagBy, &d.Ket,
 		&d.CreateDate, &d.IDCreator, &d.LastUpdate, &d.IDUpdater,
 		&d.SoftDelete, &d.LastSync,
@@ -165,8 +177,11 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 
 func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDetail, error) {
 	query := `
-		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_reg_pd,
-			   s.tgl_bayar, s.nominal, s.kode_pembayaran, s.nomor_pin,
+		SELECT s.id_spp_mhs, s.id_kelas_ukt, s.id_smt, s.id_daftar_ukt, s.id_reg_pd,
+			   s.tgl_bayar, s.nominal,
+			   s.nm_smt, s.total_tagihan, s.jumlah_spi, s.jumlah_denda,
+			   s.jumlah_lainnya, s.sisa_tagihan, s.a_cicil, s.cicilan_ke,
+			   s.kode_pembayaran, s.nomor_pin,
 			   s.kode_akses, s.bill_ref, s.flag_by, s.ket,
 			   s.create_date, s.id_creator, s.last_update, s.id_updater,
 			   s.soft_delete, s.last_sync,
@@ -195,8 +210,11 @@ func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDe
 	for rows.Next() {
 		var d SppMhsDetail
 		err := rows.Scan(
-			&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDRegPd,
-			&d.TglBayar, &d.Nominal, &d.KodePembayaran, &d.NomorPin,
+			&d.IDSppMhs, &d.IDKelasUKT, &d.IDSmt, &d.IDDaftarUKT, &d.IDRegPd,
+			&d.TglBayar, &d.Nominal,
+			&d.NmSmt, &d.TotalTagihan, &d.JumlahSPI, &d.JumlahDenda,
+			&d.JumlahLainnya, &d.SisaTagihan, &d.ACicil, &d.CicilanKe,
+			&d.KodePembayaran, &d.NomorPin,
 			&d.KodeAkses, &d.BillRef, &d.FlagBy, &d.Ket,
 			&d.CreateDate, &d.IDCreator, &d.LastUpdate, &d.IDUpdater,
 			&d.SoftDelete, &d.LastSync,
@@ -360,26 +378,41 @@ func (r *repository) UpsertSppMhs(ctx context.Context, data *SppMhs) error {
 				id_reg_pd = @p4,
 				tgl_bayar = @p5,
 				nominal = @p6,
-				kode_pembayaran = @p7,
-				nomor_pin = @p8,
-				kode_akses = @p9,
-				bill_ref = @p10,
-				flag_by = @p11,
-				ket = @p12,
-				last_update = @p13,
-				id_updater = @p14,
-				last_sync = @p15
+				nm_smt = @p7,
+				total_tagihan = @p8,
+				jumlah_spi = @p9,
+				jumlah_denda = @p10,
+				jumlah_lainnya = @p11,
+				sisa_tagihan = @p12,
+				a_cicil = @p13,
+				cicilan_ke = @p14,
+				kode_pembayaran = @p15,
+				nomor_pin = @p16,
+				kode_akses = @p17,
+				bill_ref = @p18,
+				flag_by = @p19,
+				ket = @p20,
+				last_update = @p21,
+				id_updater = @p22,
+				last_sync = @p23
 		WHEN NOT MATCHED THEN
 			INSERT (id_spp_mhs, id_kelas_ukt, id_smt, id_reg_pd, tgl_bayar,
-					nominal, kode_pembayaran, nomor_pin, kode_akses, bill_ref,
+					nominal, nm_smt, total_tagihan, jumlah_spi, jumlah_denda,
+					jumlah_lainnya, sisa_tagihan, a_cicil, cicilan_ke,
+					kode_pembayaran, nomor_pin, kode_akses, bill_ref,
 					flag_by, ket, create_date, id_creator, last_update, soft_delete, last_sync)
-			VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10,
-					@p11, @p12, @p13, @p14, @p13, 0, @p15);
+			VALUES (@p1, @p2, @p3, @p4, @p5,
+					@p6, @p7, @p8, @p9, @p10,
+					@p11, @p12, @p13, @p14,
+					@p15, @p16, @p17, @p18,
+					@p19, @p20, @p21, @p22, @p21, 0, @p23);
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
 		data.IDSppMhs, data.IDKelasUKT, data.IDSmt, data.IDRegPd, data.TglBayar,
-		data.Nominal, data.KodePembayaran, data.NomorPin, data.KodeAkses, data.BillRef,
+		data.Nominal, data.NmSmt, data.TotalTagihan, data.JumlahSPI, data.JumlahDenda,
+		data.JumlahLainnya, data.SisaTagihan, data.ACicil, data.CicilanKe,
+		data.KodePembayaran, data.NomorPin, data.KodeAkses, data.BillRef,
 		data.FlagBy, data.Ket, data.LastUpdate, data.IDCreator, data.LastSync,
 	)
 	if err != nil {
@@ -407,21 +440,34 @@ func (r *repository) BulkUpsertSppMhs(ctx context.Context, dataList []*SppMhs) (
 				id_reg_pd = @p4,
 				tgl_bayar = @p5,
 				nominal = @p6,
-				kode_pembayaran = @p7,
-				nomor_pin = @p8,
-				kode_akses = @p9,
-				bill_ref = @p10,
-				flag_by = @p11,
-				ket = @p12,
-				last_update = @p13,
-				id_updater = @p14,
-				last_sync = @p15
+				nm_smt = @p7,
+				total_tagihan = @p8,
+				jumlah_spi = @p9,
+				jumlah_denda = @p10,
+				jumlah_lainnya = @p11,
+				sisa_tagihan = @p12,
+				a_cicil = @p13,
+				cicilan_ke = @p14,
+				kode_pembayaran = @p15,
+				nomor_pin = @p16,
+				kode_akses = @p17,
+				bill_ref = @p18,
+				flag_by = @p19,
+				ket = @p20,
+				last_update = @p21,
+				id_updater = @p22,
+				last_sync = @p23
 		WHEN NOT MATCHED THEN
 			INSERT (id_spp_mhs, id_kelas_ukt, id_smt, id_reg_pd, tgl_bayar,
-					nominal, kode_pembayaran, nomor_pin, kode_akses, bill_ref,
+					nominal, nm_smt, total_tagihan, jumlah_spi, jumlah_denda,
+					jumlah_lainnya, sisa_tagihan, a_cicil, cicilan_ke,
+					kode_pembayaran, nomor_pin, kode_akses, bill_ref,
 					flag_by, ket, create_date, id_creator, last_update, soft_delete, last_sync)
-			VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10,
-					@p11, @p12, @p13, @p14, @p13, 0, @p15);
+			VALUES (@p1, @p2, @p3, @p4, @p5,
+					@p6, @p7, @p8, @p9, @p10,
+					@p11, @p12, @p13, @p14,
+					@p15, @p16, @p17, @p18,
+					@p19, @p20, @p21, @p22, @p21, 0, @p23);
 	`
 
 	for i := 0; i < len(dataList); i += batchSize {
@@ -453,7 +499,9 @@ func (r *repository) BulkUpsertSppMhs(ctx context.Context, dataList []*SppMhs) (
 
 			_, err := tx.ExecContext(ctx, mergeQuery,
 				data.IDSppMhs, data.IDKelasUKT, data.IDSmt, data.IDRegPd, data.TglBayar,
-				data.Nominal, data.KodePembayaran, data.NomorPin, data.KodeAkses, data.BillRef,
+				data.Nominal, data.NmSmt, data.TotalTagihan, data.JumlahSPI, data.JumlahDenda,
+				data.JumlahLainnya, data.SisaTagihan, data.ACicil, data.CicilanKe,
+				data.KodePembayaran, data.NomorPin, data.KodeAkses, data.BillRef,
 				data.FlagBy, data.Ket, data.LastUpdate, data.IDCreator, data.LastSync,
 			)
 			if err != nil {

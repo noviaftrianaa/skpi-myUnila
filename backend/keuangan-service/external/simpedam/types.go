@@ -157,6 +157,7 @@ type ListTagihanItem struct {
 	NamaMahasiswa   string        `json:"nama_mahasiswa"`
 	TahunAkd        string        `json:"tahun_akd"`
 	GanjilGenap     string        `json:"ganjil_genap"`
+	NamaSemester    string        `json:"fk_nama_semester"`
 	JenisTagihan    string        `json:"jenis_tagihan"`
 	NamaTagihan     string        `json:"nama_tagihan"`
 	NominalTagihan  FlexibleFloat `json:"nominal_tagihan"`
@@ -169,5 +170,10 @@ type ListTagihanItem struct {
 	// Additional fields from actual API response
 	TotalTagihan    FlexibleFloat `json:"total_tagihan"`
 	NominalUKT      FlexibleFloat `json:"nominal_ukt_spp"`
+	JumlahSPI       FlexibleFloat `json:"jumlah_spi"`
+	JumlahDenda     FlexibleFloat `json:"jumlah_denda"`
+	JumlahLainnya   FlexibleFloat `json:"jumlah_lainnya"`
+	FlagCicil       FlexibleInt   `json:"flag_cicil"`
+	CicilanKe       FlexibleInt   `json:"cicilan_ke"`
 	BillReference   string        `json:"bill_reference"`
 }
