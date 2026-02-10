@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { executiveJabfungService } from "@/lib/services/executive/jabfungService";
 import { executiveJenjangPendidikanService } from "@/lib/services/executive/jenjangPendidikanService";
 import { executivePangkatGolonganService } from "@/lib/services/executive/pangkatGolonganService";
+import { executiveIkatanKerjaService } from "@/lib/services/executive/ikatanKerjaService";
 
 // ========================================
 // Types
@@ -146,6 +147,36 @@ export const useDosenData = ({
       selectedTipeData === "pang_gol",
   });
 
+  // Fetch ikatan kerja fakultas data
+  const { data: ikatanKerjaFakultasList = [] } = useQuery({
+    queryKey: ["dosen", "ikatan-kerja", "fakultas", selectedTahunAjaran],
+    queryFn: () =>
+      executiveIkatanKerjaService.getIkatanKerjaFakultas({
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "ikatan_kerja",
+  });
+
+  // Fetch ikatan kerja prodi data
+  const { data: ikatanKerjaProdiList = [] } = useQuery({
+    queryKey: [
+      "dosen",
+      "ikatan-kerja",
+      "prodi",
+      selectedFakultas,
+      selectedTahunAjaran,
+    ],
+    queryFn: () =>
+      executiveIkatanKerjaService.getIkatanKerjaProdi({
+        idFakultas: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled:
+      !!selectedFakultas &&
+      !!selectedTahunAjaran &&
+      selectedTipeData === "ikatan_kerja",
+  });
+
   return {
     // Master data
     tahunAjaranList,
@@ -166,5 +197,9 @@ export const useDosenData = ({
     // Pangkat golongan data
     panggolFakultasList,
     panggolProdiList,
+
+    // Ikatan kerja data
+    ikatanKerjaFakultasList,
+    ikatanKerjaProdiList,
   };
 };

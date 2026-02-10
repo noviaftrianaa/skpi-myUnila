@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\JabFungController;
 use App\Http\Controllers\JenjangPendidikanController;
+use App\Http\Controllers\IkatanKerjaController;
 use App\Http\Controllers\PangGolController;
 
 /*
@@ -89,6 +90,20 @@ Route::prefix('v1')->group(function () {
 
             // Detail data with pagination
             Route::get('/data', [PangGolController::class, 'getDataDosen']);
+        });
+
+        Route::prefix('ikatan-kerja')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [IkatanKerjaController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [IkatanKerjaController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [IkatanKerjaController::class, 'getProdiList']);
+
+            // Ikatan kerja data routes
+            Route::get('/fakultas', [IkatanKerjaController::class, 'getIkatanKerjaFakultas']);
+            Route::get('/fakultas/{idFakultas}', [IkatanKerjaController::class, 'getIkatanKerjaProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [IkatanKerjaController::class, 'getDataDosen']);
         });
     });
 });

@@ -50,3 +50,25 @@ export type {
   GetDataDosenParams as GetJenjangDataDosenParams,
   GetProdiParams as GetJenjangProdiListParams,
 } from './jenjangPendidikanService';
+
+export { executivePangkatGolonganService } from './pangkatGolonganService';
+export type {
+  PangkatGolonganFakultas,
+  PangkatGolonganProdi,
+  Dosen as PangkatGolonganDosen,
+  GetPangkatGolonganFakultasParams,
+  GetPangkatGolonganProdiParams,
+  GetDataDosenParams as GetPangkatGolonganDataDosenParams,
+  GetProdiParams as GetPangkatGolonganProdiListParams,
+} from './pangkatGolonganService';
+
+export { executiveIkatanKerjaService } from './ikatanKerjaService';
+export type {
+  IkatanKerjaFakultas,
+  IkatanKerjaProdi,
+  Dosen as IkatanKerjaDosen,
+  GetIkatanKerjaFakultasParams,
+  GetIkatanKerjaProdiParams,
+  GetDataDosenParams as GetIkatanKerjaDataDosenParams,
+  GetProdiParams as GetIkatanKerjaProdiListParams,
+} from './ikatanKerjaService';

@@ -10,9 +10,11 @@ import {
   JabfungStatsCards,
   JenjangStatsCards,
   PangGolStatsCards,
+  IkatanKerjaStatsCards,
   TipeDataOptions,
   JenjangDataKeys,
   PangGolDataKeys,
+  IkatanKerjaDataKeys,
   useDosenData,
   getChartData,
   getStats,
@@ -47,6 +49,8 @@ export default function DosenPage() {
     jenjangProdiList,
     panggolFakultasList,
     panggolProdiList,
+    ikatanKerjaFakultasList,
+    ikatanKerjaProdiList,
   } = useDosenData({
     selectedTipeData,
     selectedTahunAjaran,
@@ -85,6 +89,8 @@ export default function DosenPage() {
     jenjangFakultasList,
     panggolProdiList,
     panggolFakultasList,
+    ikatanKerjaProdiList,
+    ikatanKerjaFakultasList,
   );
 
   const stats = getStats(
@@ -97,6 +103,8 @@ export default function DosenPage() {
     jenjangFakultasList,
     panggolProdiList,
     panggolFakultasList,
+    ikatanKerjaProdiList,
+    ikatanKerjaFakultasList,
   ) as DosenStats;
 
   const currentTipeOption = getCurrentTipeDataOption(
@@ -151,7 +159,7 @@ export default function DosenPage() {
             </div>
             <p className="text-gray-600 ml-11">
               Analisis data dosen berdasarkan jabatan fungsional, pangkat
-              golongan, jenjang pendidikan, dan status kepegawaian
+              golongan, ikatan kerja, jenjang pendidikan, dan status kepegawaian
             </p>
           </div>
 
@@ -294,6 +302,11 @@ export default function DosenPage() {
             <PangGolStatsCards stats={stats} />
           )}
 
+          {/* Stats Cards - ikatan kerja */}
+          {selectedTipeData === "ikatan_kerja" && selectedTahunAjaran && (
+            <IkatanKerjaStatsCards stats={stats} />
+          )}
+
           {/* Chart Card */}
           <DosenChart
             data={chartData}
@@ -313,8 +326,10 @@ export default function DosenPage() {
               selectedTipeData === "jenjang_pendidikan"
                 ? JenjangDataKeys
                 : selectedTipeData === "pang_gol"
-                ? PangGolDataKeys
-                : undefined
+                  ? PangGolDataKeys
+                  : selectedTipeData === "ikatan_kerja"
+                    ? IkatanKerjaDataKeys
+                    : undefined
             }
             disabled={isChartDisabled}
           />
@@ -324,7 +339,8 @@ export default function DosenPage() {
       {/* Data Modal */}
       {(selectedTipeData === "jabfung" ||
         selectedTipeData === "jenjang_pendidikan" ||
-        selectedTipeData === "pang_gol") && (
+        selectedTipeData === "pang_gol" ||
+        selectedTipeData === "ikatan_kerja") && (
         <DosenDataModal
           isOpen={isDataModalOpen}
           onClose={() => setIsDataModalOpen(false)}

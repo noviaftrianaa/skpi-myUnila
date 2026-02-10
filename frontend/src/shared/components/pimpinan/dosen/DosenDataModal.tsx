@@ -8,6 +8,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { executiveJabfungService, type Dosen as JabfungDosen } from "@/lib/services/executive/jabfungService";
 import { executiveJenjangPendidikanService, type Dosen as JenjangDosen } from "@/lib/services/executive/jenjangPendidikanService";
 import { executivePangkatGolonganService, type Dosen as PangGolDosen } from "@/lib/services/executive/pangkatGolonganService";
+import { executiveIkatanKerjaService, type Dosen as IkatanKerjaDosen } from "@/lib/services/executive/ikatanKerjaService";
 import Link from "next/link";
 
 // Types
@@ -27,9 +28,12 @@ interface DosenDataModalProps {
 const TipeDataNames: Record<string, string> = {
   jabfung: "Jabatan Fungsional",
   pang_gol: "Pangkat Golongan",
+  ikatan_kerja: "Ikatan Kerja",
   jenjang_pendidikan: "Jenjang Pendidikan",
   status_pegawai: "Status Kepegawaian",
 };
+
+type ModalDosen = JabfungDosen | JenjangDosen | PangGolDosen | IkatanKerjaDosen;
 
 export const DosenDataModal = ({
   isOpen,
@@ -77,6 +81,9 @@ export const DosenDataModal = ({
       if (selectedTipeData === "pang_gol") {
         return executivePangkatGolonganService.getDataDosen(params);
       }
+      if (selectedTipeData === "ikatan_kerja") {
+        return executiveIkatanKerjaService.getDataDosen(params);
+      }
       return executiveJabfungService.getDataDosen(params);
     },
     enabled: isOpen,
@@ -87,8 +94,8 @@ export const DosenDataModal = ({
   const dosenTotal = dosenResponse?.pagination?.total || 0;
 
   // Define columns for Dosen (dynamic based on tipe data)
-  const getDosenColumns = (): Column<JabfungDosen | JenjangDosen | PangGolDosen>[] => {
-    const baseColumns: Column<Dosen>[] = [
+  const getDosenColumns = (): Column<ModalDosen>[] => {
+    const baseColumns: Column<ModalDosen>[] = [
       { key: "nidn", label: "NIDN" },
       {
         key: "nama",
@@ -169,6 +176,18 @@ export const DosenDataModal = ({
         render: (item) => (
           <span className="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700">
             {(item as PangGolDosen).pangkat_golongan}
+          </span>
+        ),
+      });
+    }
+
+    if (selectedTipeData === "ikatan_kerja") {
+      baseColumns.push({
+        key: "ikatan_kerja",
+        label: "Ikatan Kerja",
+        render: (item) => (
+          <span className="px-2 py-1 rounded-full text-xs bg-teal-100 text-teal-700">
+            {(item as IkatanKerjaDosen).ikatan_kerja}
           </span>
         ),
       });

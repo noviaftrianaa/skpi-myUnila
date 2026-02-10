@@ -2,6 +2,7 @@ import type { TipeDataOption, DosenStats } from "./types";
 import type { JabfungFakultas, JabfungProdi } from "@/lib/services/executive/jabfungService";
 import type { JenjangFakultas, JenjangProdi } from "@/lib/services/executive/jenjangPendidikanService";
 import type { PangkatGolonganFakultas, PangkatGolonganProdi } from "@/lib/services/executive/pangkatGolonganService";
+import type { IkatanKerjaFakultas, IkatanKerjaProdi } from "@/lib/services/executive/ikatanKerjaService";
 
 // ========================================
 // Chart Data Types
@@ -50,6 +51,22 @@ export type ChartDataItem =
       pembina_utama_madya: number;
       pembina_utama: number;
       belum_pangkat_gol: number;
+    }
+  | {
+      name: string;
+      dosen_tetap: number;
+      dosen_pns_dpk: number;
+      dokter_pendidik_klinis: number;
+      dosen_tetap_bh: number;
+      dosen_tidak_tetap: number;
+      p3k_asn: number;
+      dosen_perjanjian_kerja: number;
+      instruktur: number;
+      tutor: number;
+      jft: number;
+      pengajar_nondosen: number;
+      dosen_tetap_pk_waktu_tertentu: number;
+      belum_ikatan_kerja: number;
     };
 
 // ========================================
@@ -69,6 +86,8 @@ export const getChartData = (
   jenjangFakultasList: JenjangFakultas[],
   panggolProdiList?: PangkatGolonganProdi[],
   panggolFakultasList?: PangkatGolonganFakultas[],
+  ikatanKerjaProdiList?: IkatanKerjaProdi[],
+  ikatanKerjaFakultasList?: IkatanKerjaFakultas[],
 ): ChartDataItem[] => {
   if (selectedTipeData === "jabfung") {
     // For jabfung data
@@ -261,6 +280,76 @@ export const getChartData = (
     }
   }
 
+  if (selectedTipeData === "ikatan_kerja") {
+    if (selectedProdi && ikatanKerjaProdiList) {
+      const prodi = ikatanKerjaProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        return [
+          {
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
+            dosen_tetap: prodi.dosen_tetap,
+            dosen_pns_dpk: prodi.dosen_pns_dpk,
+            dokter_pendidik_klinis: prodi.dokter_pendidik_klinis,
+            dosen_tetap_bh: prodi.dosen_tetap_bh,
+            dosen_tidak_tetap: prodi.dosen_tidak_tetap,
+            p3k_asn: prodi.p3k_asn,
+            dosen_perjanjian_kerja: prodi.dosen_perjanjian_kerja,
+            instruktur: prodi.instruktur,
+            tutor: prodi.tutor,
+            jft: prodi.jft,
+            pengajar_nondosen: prodi.pengajar_nondosen,
+            dosen_tetap_pk_waktu_tertentu: prodi.dosen_tetap_pk_waktu_tertentu,
+            belum_ikatan_kerja: prodi.belum_ikatan_kerja,
+          },
+        ];
+      }
+    }
+
+    if (selectedFakultas && ikatanKerjaProdiList) {
+      return ikatanKerjaProdiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        dosen_tetap: p.dosen_tetap,
+        dosen_pns_dpk: p.dosen_pns_dpk,
+        dokter_pendidik_klinis: p.dokter_pendidik_klinis,
+        dosen_tetap_bh: p.dosen_tetap_bh,
+        dosen_tidak_tetap: p.dosen_tidak_tetap,
+        p3k_asn: p.p3k_asn,
+        dosen_perjanjian_kerja: p.dosen_perjanjian_kerja,
+        instruktur: p.instruktur,
+        tutor: p.tutor,
+        jft: p.jft,
+        pengajar_nondosen: p.pengajar_nondosen,
+        dosen_tetap_pk_waktu_tertentu: p.dosen_tetap_pk_waktu_tertentu,
+        belum_ikatan_kerja: p.belum_ikatan_kerja,
+      }));
+    }
+
+    if (ikatanKerjaFakultasList) {
+      return ikatanKerjaFakultasList.map((f) => ({
+        name:
+          f.nama_fakultas.substring(0, 20) +
+          (f.nama_fakultas.length > 20 ? "..." : ""),
+        dosen_tetap: f.dosen_tetap,
+        dosen_pns_dpk: f.dosen_pns_dpk,
+        dokter_pendidik_klinis: f.dokter_pendidik_klinis,
+        dosen_tetap_bh: f.dosen_tetap_bh,
+        dosen_tidak_tetap: f.dosen_tidak_tetap,
+        p3k_asn: f.p3k_asn,
+        dosen_perjanjian_kerja: f.dosen_perjanjian_kerja,
+        instruktur: f.instruktur,
+        tutor: f.tutor,
+        jft: f.jft,
+        pengajar_nondosen: f.pengajar_nondosen,
+        dosen_tetap_pk_waktu_tertentu: f.dosen_tetap_pk_waktu_tertentu,
+        belum_ikatan_kerja: f.belum_ikatan_kerja,
+      }));
+    }
+  }
+
   return [];
 };
 
@@ -277,6 +366,8 @@ export const getStats = (
   jenjangFakultasList: JenjangFakultas[],
   panggolProdiList?: PangkatGolonganProdi[],
   panggolFakultasList?: PangkatGolonganFakultas[],
+  ikatanKerjaProdiList?: IkatanKerjaProdi[],
+  ikatanKerjaFakultasList?: IkatanKerjaFakultas[],
 ): DosenStats => {
   if (selectedTipeData === "jabfung") {
     if (selectedProdi) {
@@ -512,6 +603,97 @@ export const getStats = (
           pembinaUtamaMadya: 0,
           pembinaUtama: 0,
           belumPangkatGol: 0,
+        },
+      );
+    }
+  }
+
+  if (selectedTipeData === "ikatan_kerja") {
+    if (selectedProdi && ikatanKerjaProdiList) {
+      const prodi = ikatanKerjaProdiList.find((p) => p.id === selectedProdi);
+      return {
+        dosenTetap: prodi?.dosen_tetap || 0,
+        dosenPnsDpk: prodi?.dosen_pns_dpk || 0,
+        dokterPendidikKlinis: prodi?.dokter_pendidik_klinis || 0,
+        dosenTetapBh: prodi?.dosen_tetap_bh || 0,
+        dosenTidakTetap: prodi?.dosen_tidak_tetap || 0,
+        p3kAsn: prodi?.p3k_asn || 0,
+        dosenPerjanjianKerja: prodi?.dosen_perjanjian_kerja || 0,
+        instruktur: prodi?.instruktur || 0,
+        tutor: prodi?.tutor || 0,
+        jft: prodi?.jft || 0,
+        pengajarNondosen: prodi?.pengajar_nondosen || 0,
+        dosenTetapPkWaktuTertentu: prodi?.dosen_tetap_pk_waktu_tertentu || 0,
+        belumIkatanKerja: prodi?.belum_ikatan_kerja || 0,
+      };
+    }
+
+    if (selectedFakultas && ikatanKerjaProdiList) {
+      return ikatanKerjaProdiList.reduce(
+        (sum, p) => ({
+          dosenTetap: sum.dosenTetap + p.dosen_tetap,
+          dosenPnsDpk: sum.dosenPnsDpk + p.dosen_pns_dpk,
+          dokterPendidikKlinis: sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
+          dosenTetapBh: sum.dosenTetapBh + p.dosen_tetap_bh,
+          dosenTidakTetap: sum.dosenTidakTetap + p.dosen_tidak_tetap,
+          p3kAsn: sum.p3kAsn + p.p3k_asn,
+          dosenPerjanjianKerja: sum.dosenPerjanjianKerja + p.dosen_perjanjian_kerja,
+          instruktur: sum.instruktur + p.instruktur,
+          tutor: sum.tutor + p.tutor,
+          jft: sum.jft + p.jft,
+          pengajarNondosen: sum.pengajarNondosen + p.pengajar_nondosen,
+          dosenTetapPkWaktuTertentu: sum.dosenTetapPkWaktuTertentu + p.dosen_tetap_pk_waktu_tertentu,
+          belumIkatanKerja: sum.belumIkatanKerja + p.belum_ikatan_kerja,
+        }),
+        {
+          dosenTetap: 0,
+          dosenPnsDpk: 0,
+          dokterPendidikKlinis: 0,
+          dosenTetapBh: 0,
+          dosenTidakTetap: 0,
+          p3kAsn: 0,
+          dosenPerjanjianKerja: 0,
+          instruktur: 0,
+          tutor: 0,
+          jft: 0,
+          pengajarNondosen: 0,
+          dosenTetapPkWaktuTertentu: 0,
+          belumIkatanKerja: 0,
+        },
+      );
+    }
+
+    if (ikatanKerjaFakultasList) {
+      return ikatanKerjaFakultasList.reduce(
+        (sum, f) => ({
+          dosenTetap: sum.dosenTetap + f.dosen_tetap,
+          dosenPnsDpk: sum.dosenPnsDpk + f.dosen_pns_dpk,
+          dokterPendidikKlinis: sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
+          dosenTetapBh: sum.dosenTetapBh + f.dosen_tetap_bh,
+          dosenTidakTetap: sum.dosenTidakTetap + f.dosen_tidak_tetap,
+          p3kAsn: sum.p3kAsn + f.p3k_asn,
+          dosenPerjanjianKerja: sum.dosenPerjanjianKerja + f.dosen_perjanjian_kerja,
+          instruktur: sum.instruktur + f.instruktur,
+          tutor: sum.tutor + f.tutor,
+          jft: sum.jft + f.jft,
+          pengajarNondosen: sum.pengajarNondosen + f.pengajar_nondosen,
+          dosenTetapPkWaktuTertentu: sum.dosenTetapPkWaktuTertentu + f.dosen_tetap_pk_waktu_tertentu,
+          belumIkatanKerja: sum.belumIkatanKerja + f.belum_ikatan_kerja,
+        }),
+        {
+          dosenTetap: 0,
+          dosenPnsDpk: 0,
+          dokterPendidikKlinis: 0,
+          dosenTetapBh: 0,
+          dosenTidakTetap: 0,
+          p3kAsn: 0,
+          dosenPerjanjianKerja: 0,
+          instruktur: 0,
+          tutor: 0,
+          jft: 0,
+          pengajarNondosen: 0,
+          dosenTetapPkWaktuTertentu: 0,
+          belumIkatanKerja: 0,
         },
       );
     }

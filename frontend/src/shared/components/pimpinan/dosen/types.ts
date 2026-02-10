@@ -5,6 +5,7 @@
 export type TipeData =
   | "jabfung"
   | "pang_gol"
+  | "ikatan_kerja"
   | "jenjang_pendidikan"
   | "status_pegawai";
 
@@ -60,8 +61,29 @@ export interface PangGolStats {
   belumPangkatGol: number;
 }
 
+// Stats types for ikatan kerja
+export interface IkatanKerjaStats {
+  dosenTetap: number;
+  dosenPnsDpk: number;
+  dokterPendidikKlinis: number;
+  dosenTetapBh: number;
+  dosenTidakTetap: number;
+  p3kAsn: number;
+  dosenPerjanjianKerja: number;
+  instruktur: number;
+  tutor: number;
+  jft: number;
+  pengajarNondosen: number;
+  dosenTetapPkWaktuTertentu: number;
+  belumIkatanKerja: number;
+}
+
 // Combined stats type
-export type DosenStats = JabfungStats | JenjangStats | PangGolStats;
+export type DosenStats =
+  | JabfungStats
+  | JenjangStats
+  | PangGolStats
+  | IkatanKerjaStats;
 
 export type DosenStatsColor =
   | "blue"

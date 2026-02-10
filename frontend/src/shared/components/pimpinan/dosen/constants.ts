@@ -18,6 +18,12 @@ export const TipeDataOptions: TipeDataOption[] = [
     chartType: "bar-stacked",
   },
   {
+    key: "ikatan_kerja",
+    label: "Ikatan Kerja",
+    value: "ikatan_kerja",
+    chartType: "bar-stacked",
+  },
+  {
     key: "jenjang_pendidikan",
     label: "Jenjang Pendidikan",
     value: "jenjang_pendidikan",
@@ -35,6 +41,7 @@ export const TipeDataOptions: TipeDataOption[] = [
 export const TipeDataNames: Record<string, string> = {
   jabfung: "Jabatan Fungsional",
   pang_gol: "Pangkat Golongan",
+  ikatan_kerja: "Ikatan Kerja",
   jenjang_pendidikan: "Jenjang Pendidikan",
   status_pegawai: "Status Kepegawaian",
 };
@@ -73,4 +80,21 @@ export const PangGolDataKeys = [
   { key: "pembina_utama_madya", name: "Pembina Utama Madya", color: "#dc2626" },
   { key: "pembina_utama", name: "Pembina Utama", color: "#b91c1c" },
   { key: "belum_pangkat_gol", name: "Belum Pangkat", color: "#cbd5e1" },
+];
+
+// Ikatan kerja data keys for bar/line charts
+export const IkatanKerjaDataKeys = [
+  { key: "dosen_tetap", name: "Dosen Tetap", color: "#3b82f6" },
+  { key: "dosen_pns_dpk", name: "PNS DPK", color: "#6366f1" },
+  { key: "dokter_pendidik_klinis", name: "Dokter Pendidik Klinis", color: "#8b5cf6" },
+  { key: "dosen_tetap_bh", name: "Dosen Tetap BH", color: "#a855f7" },
+  { key: "dosen_tidak_tetap", name: "Dosen Tidak Tetap", color: "#22c55e" },
+  { key: "p3k_asn", name: "P3K ASN", color: "#14b8a6" },
+  { key: "dosen_perjanjian_kerja", name: "Perjanjian Kerja", color: "#06b6d4" },
+  { key: "instruktur", name: "Instruktur", color: "#f59e0b" },
+  { key: "tutor", name: "Tutor", color: "#f97316" },
+  { key: "jft", name: "JFT", color: "#ef4444" },
+  { key: "pengajar_nondosen", name: "Pengajar Nondosen", color: "#dc2626" },
+  { key: "dosen_tetap_pk_waktu_tertentu", name: "Tetap PKWTT", color: "#b91c1c" },
+  { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
 ];

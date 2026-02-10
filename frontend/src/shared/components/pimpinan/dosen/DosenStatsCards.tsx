@@ -17,6 +17,10 @@ interface PangGolStatsCardsProps {
   stats: DosenStats;
 }
 
+interface IkatanKerjaStatsCardsProps {
+  stats: DosenStats;
+}
+
 // ========================================
 // Components
 // ========================================
@@ -157,6 +161,46 @@ export const PangGolStatsCards = ({ stats }: PangGolStatsCardsProps) => {
       <DosenStatsCard title="Pembina Utama Madya" value={panggolStats.pembinaUtamaMadya || 0} color="destructive" />
       <DosenStatsCard title="Pembina Utama" value={panggolStats.pembinaUtama || 0} color="slate" />
       <DosenStatsCard title="Belum Pangkat" value={panggolStats.belumPangkatGol || 0} color="gray" />
+    </div>
+  );
+};
+
+/**
+ * Ikatan Kerja Stats Cards Component
+ * Displays stats cards for ikatan kerja data
+ */
+export const IkatanKerjaStatsCards = ({ stats }: IkatanKerjaStatsCardsProps) => {
+  const ikatanKerjaStats = stats as {
+    dosenTetap: number;
+    dosenPnsDpk: number;
+    dokterPendidikKlinis: number;
+    dosenTetapBh: number;
+    dosenTidakTetap: number;
+    p3kAsn: number;
+    dosenPerjanjianKerja: number;
+    instruktur: number;
+    tutor: number;
+    jft: number;
+    pengajarNondosen: number;
+    dosenTetapPkWaktuTertentu: number;
+    belumIkatanKerja: number;
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-4 lg:grid-cols-7">
+      <DosenStatsCard title="Dosen Tetap" value={ikatanKerjaStats.dosenTetap || 0} color="blue" />
+      <DosenStatsCard title="PNS DPK" value={ikatanKerjaStats.dosenPnsDpk || 0} color="indigo" />
+      <DosenStatsCard title="Dokter Pendidik Klinis" value={ikatanKerjaStats.dokterPendidikKlinis || 0} color="purple" />
+      <DosenStatsCard title="Dosen Tetap BH" value={ikatanKerjaStats.dosenTetapBh || 0} color="teal" />
+      <DosenStatsCard title="Dosen Tidak Tetap" value={ikatanKerjaStats.dosenTidakTetap || 0} color="green" />
+      <DosenStatsCard title="P3K ASN" value={ikatanKerjaStats.p3kAsn || 0} color="cyan" />
+      <DosenStatsCard title="Perjanjian Kerja" value={ikatanKerjaStats.dosenPerjanjianKerja || 0} color="pink" />
+      <DosenStatsCard title="Instruktur" value={ikatanKerjaStats.instruktur || 0} color="amber" />
+      <DosenStatsCard title="Tutor" value={ikatanKerjaStats.tutor || 0} color="orange" />
+      <DosenStatsCard title="JFT" value={ikatanKerjaStats.jft || 0} color="red" />
+      <DosenStatsCard title="Pengajar Nondosen" value={ikatanKerjaStats.pengajarNondosen || 0} color="blue" />
+      <DosenStatsCard title="Tetap PKWTT" value={ikatanKerjaStats.dosenTetapPkWaktuTertentu || 0} color="purple" />
+      <DosenStatsCard title="Belum Ikatan Kerja" value={ikatanKerjaStats.belumIkatanKerja || 0} color="orange" />
     </div>
   );
 };
