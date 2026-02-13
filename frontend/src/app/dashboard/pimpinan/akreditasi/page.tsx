@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
@@ -8,67 +8,67 @@ import {
   FiCheckCircle,
   FiAward,
   FiAlertCircle,
-  FiMinusCircle,
   FiList,
   FiGlobe,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { pimpinanMenuConfig } from "../config/menuConfig";
 import {
   StatCard,
   PieChart,
   BarChart,
-  FilterPanel,
+  DrilldownBarChart,
+  DashboardSkeleton,
+  ErrorAlert,
 } from "../components";
+import DataTable from "@/shared/components/ui/DataTable";
+import type { Column } from "@/shared/components/ui/DataTable";
+import { useDashboardData } from "../hooks";
+import { ENDPOINTS } from "@/shared/api/endpoints";
+import type { AkreditasiData, AkreditasiDetail, AkreditasiIntlDetail } from "../types";
 
 const APP_KEY = "dashboard-pimpinan";
 
-// ============================================
-// DUMMY DATA
-// ============================================
-
-const summaryStats = {
-  totalProdi: { total: 115, trend: 0 },
-  unggul: { total: 45, trend: 12.5 },
-  baikSekali: { total: 38, trend: 5.2 },
-  baik: { total: 25, trend: -4.5 },
-  internasional: { total: 12, trend: 20 },
-};
-
-const distribusiAkreditasi = [
-  { name: "Unggul", value: 45 },
-  { name: "A", value: 20 }, // Legacy
-  { name: "Baik Sekali", value: 38 },
-  { name: "B", value: 15 }, // Legacy
-  { name: "Baik", value: 25 },
-  { name: "C", value: 5 }, // Legacy
+const akredColumns: Column<AkreditasiDetail>[] = [
+  { key: "fak", label: "Fakultas", sortable: true },
+  { key: "prodi", label: "Program Studi", sortable: true },
+  { key: "strata", label: "Jenjang", sortable: true },
+  {
+    key: "rank",
+    label: "Peringkat",
+    sortable: true,
+    render: (item) => (
+      <span
+        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          item.rank === "Unggul" || item.rank === "A"
+            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+            : item.rank === "Baik Sekali" || item.rank === "B"
+              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+        }`}
+      >
+        {item.rank}
+      </span>
+    ),
+  },
+  { key: "int", label: "Internasional", sortable: true },
+  { key: "exp", label: "Masa Berlaku", sortable: true },
 ];
 
-const akreditasiPerFakultas = [
-  { name: "FKIP", value: 15, category: "Unggul" },
-  { name: "FEB", value: 8, category: "Unggul" },
-  { name: "FT", value: 6, category: "Unggul" },
-  { name: "FP", value: 5, category: "Unggul" },
-  { name: "FMIPA", value: 4, category: "Unggul" },
-  { name: "FISIP", value: 3, category: "Unggul" },
-  { name: "FH", value: 2, category: "Unggul" },
-  { name: "FK", value: 2, category: "Unggul" },
-];
-
-const statusKadaluarsa = [
-  { name: "< 1 Tahun", value: 15 },
-  { name: "1-2 Tahun", value: 25 },
-  { name: "2-3 Tahun", value: 35 },
-  { name: "> 3 Tahun", value: 40 },
+const intlDetailColumns: Column<AkreditasiIntlDetail>[] = [
+  { key: "prodi", label: "Program Studi", sortable: true },
+  { key: "fak", label: "Fakultas", sortable: true },
+  { key: "strata", label: "Jenjang", sortable: true },
+  { key: "lembaga", label: "Lembaga", sortable: true },
+  { key: "exp", label: "Masa Berlaku", sortable: true },
 ];
 
 export default function DashboardAkreditasiPage() {
   useRequireAuth();
 
-  const [selectedTahun, setSelectedTahun] = useState("2024");
-
-  const handleReset = () => {
-    setSelectedTahun("2024");
-  };
+  const { data, loading, error, refetch } = useDashboardData<AkreditasiData>(
+    ENDPOINTS.DASHBOARD_PIMPINAN.AKREDITASI
+  );
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -89,204 +89,298 @@ export default function DashboardAkreditasiPage() {
           </p>
         </div>
 
-        {/* Filter */}
-        <FilterPanel
-          tahunAjaran={[{ key: "2024", label: "2024" }]}
-          selectedTahun={selectedTahun}
-          onTahunChange={setSelectedTahun}
-          onReset={handleReset}
-        />
+        {loading && <DashboardSkeleton />}
+        {error && <ErrorAlert message={error} onRetry={refetch} />}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <StatCard
-            title="Total Prodi"
-            value={summaryStats.totalProdi.total}
-            icon={<FiList className="w-6 h-6 text-white" />}
-            color="cyan"
-            trend={undefined}
-          />
-          <StatCard
-            title="Unggul / A"
-            value={summaryStats.unggul.total + 20}
-            icon={<FiAward className="w-6 h-6 text-white" />}
-            color="green"
-            trend={{ value: summaryStats.unggul.trend, label: "YoY" }}
-          />
-          <StatCard
-            title="Baik Sekali / B"
-            value={summaryStats.baikSekali.total + 15}
-            icon={<FiCheckCircle className="w-6 h-6 text-white" />}
-            color="blue"
-            trend={{ value: summaryStats.baikSekali.trend, label: "YoY" }}
-          />
-          <StatCard
-            title="Baik / C"
-            value={summaryStats.baik.total + 5}
-            icon={<FiAlertCircle className="w-6 h-6 text-white" />}
-            color="yellow"
-            trend={{ value: summaryStats.baik.trend, label: "YoY" }}
-          />
-          <StatCard
-            title="Internasional"
-            value={summaryStats.internasional.total}
-            icon={<FiGlobe className="w-6 h-6 text-white" />}
-            color="purple"
-            trend={{ value: summaryStats.internasional.trend, label: "YoY" }}
-          />
-        </div>
-
-        {/* Row 1: Distribusi & Kadaluarsa */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Distribusi Peringkat */}
-          <Card className="bg-white dark:bg-gray-800 shadow-md">
-            <CardHeader>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Distribusi Peringkat Akreditasi
-                </h2>
-                <p className="text-sm text-gray-500">Sebaran peringkat akreditasi prodi</p>
-              </div>
-            </CardHeader>
-            <Divider />
-            <CardBody>
-              <PieChart
-                data={distribusiAkreditasi}
-                donut={true}
-                height={300}
-                colors={["#10b981", "#059669", "#3b82f6", "#2563eb", "#f59e0b", "#d97706"]}
+        {data && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <StatCard
+                title="Total Prodi"
+                value={data.stats.totalProdi.total}
+                icon={<FiList className="w-6 h-6 text-white" />}
+                color="cyan"
+                trend={undefined}
               />
-            </CardBody>
-          </Card>
-
-          {/* Masa Berlaku */}
-          <Card className="bg-white dark:bg-gray-800 shadow-md">
-            <CardHeader>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Sisa Masa Berlaku
-                </h2>
-                <p className="text-sm text-gray-500">Estimasi waktu re-akreditasi</p>
-              </div>
-            </CardHeader>
-            <Divider />
-            <CardBody>
-              <BarChart
-                data={statusKadaluarsa}
-                height={300}
-                horizontal={true}
-                colors={["#ef4444", "#f97316", "#f59e0b", "#10b981"]} // <1 thn red, >3 thn green
+              <StatCard
+                title="Unggul / A"
+                value={data.stats.unggul.total}
+                icon={<FiAward className="w-6 h-6 text-white" />}
+                color="green"
+                trend={undefined}
               />
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Row 2: Per Fakultas */}
-        <Card className="bg-white dark:bg-gray-800 shadow-md">
-          <CardHeader>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Prodi Unggul per Fakultas
-              </h2>
-              <p className="text-sm text-gray-500">Jumlah program studi dengan akreditasi Unggul</p>
+              <StatCard
+                title="Baik Sekali / B"
+                value={data.stats.baikSekali.total}
+                icon={<FiCheckCircle className="w-6 h-6 text-white" />}
+                color="blue"
+                trend={undefined}
+              />
+              <StatCard
+                title="Baik / C"
+                value={data.stats.baik.total}
+                icon={<FiAlertCircle className="w-6 h-6 text-white" />}
+                color="yellow"
+                trend={undefined}
+              />
+              <StatCard
+                title="Internasional"
+                value={data.stats.internasional.total}
+                icon={<FiGlobe className="w-6 h-6 text-white" />}
+                color="purple"
+                trend={undefined}
+              />
             </div>
-          </CardHeader>
-          <Divider />
-          <CardBody>
-            <BarChart
-              data={akreditasiPerFakultas}
-              height={350}
-              colors={["#10b981"]}
-            />
-          </CardBody>
-        </Card>
 
-        {/* Row 3: Akreditasi Internasional */}
-        <Card className="bg-white dark:bg-gray-800 shadow-md">
-          <CardHeader>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Akreditasi Internasional
-              </h2>
-              <p className="text-sm text-gray-500">Program studi dengan sertifikasi internasional (ASIIN, AUN-QA, abet, etc)</p>
-            </div>
-          </CardHeader>
-          <Divider />
-          <CardBody>
-            <BarChart
-              data={[
-                { name: "Teknik Kimia", value: 1, category: "IABEE" },
-                { name: "Teknik Elektro", value: 1, category: "IABEE" },
-                { name: "Kimia", value: 1, category: "RSC" },
-                { name: "Biologi", value: 1, category: "ASIIN" },
-                { name: "Agribisnis", value: 1, category: "AUN-QA" },
-                { name: "Teknologi Hasil Pertanian", value: 1, category: "AUN-QA" },
-              ]}
-              height={400}
-              horizontal={true}
-              colors={["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"]} // Vibrant palette for categories
-              xAxisLabel="Status Terakreditasi"
-            />
-          </CardBody>
-        </Card>
+            {/* Row 1: Distribusi & Kadaluarsa */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Distribusi Peringkat */}
+              <Card className="bg-white dark:bg-gray-800 shadow-md">
+                <CardHeader>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Distribusi Peringkat Akreditasi
+                    </h2>
+                    <p className="text-sm text-gray-500">Sebaran peringkat akreditasi prodi</p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody>
+                  <PieChart
+                    data={data.distribusiAkreditasi}
+                    donut={true}
+                    height={300}
+                    colors={["#10b981", "#059669", "#3b82f6", "#2563eb", "#f59e0b", "#d97706"]}
+                  />
+                </CardBody>
+              </Card>
 
-        {/* Row 4: Detail Data Table */}
-        <Card className="bg-white dark:bg-gray-800 shadow-md">
-          <CardHeader>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Detail Status Akreditasi Program Studi
-              </h2>
-              <p className="text-sm text-gray-500">Daftar lengkap status akreditasi nasional dan internasional</p>
+              {/* Masa Berlaku */}
+              <Card className="bg-white dark:bg-gray-800 shadow-md">
+                <CardHeader>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Sisa Masa Berlaku
+                    </h2>
+                    <p className="text-sm text-gray-500">Estimasi waktu re-akreditasi</p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody>
+                  <BarChart
+                    data={data.statusKadaluarsa}
+                    height={300}
+                    horizontal={true}
+                    colors={["#ef4444", "#f97316", "#f59e0b", "#10b981"]}
+                  />
+                </CardBody>
+              </Card>
             </div>
-          </CardHeader>
-          <Divider />
-          <CardBody>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Program Studi</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fakultas</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Strata</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Peringkat</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Internasional</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Masa Berlaku</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {[
-                    { prodi: "Pendidikan Dokter", fak: "FK", strata: "S1", rank: "Unggul", int: "-", exp: "2028-05-12" },
-                    { prodi: "Akuntansi", fak: "FEB", strata: "S1", rank: "Unggul", int: "AUN-QA", exp: "2027-11-20" },
-                    { prodi: "Hukum", fak: "FH", strata: "S1", rank: "Unggul", int: "-", exp: "2029-01-15" },
-                    { prodi: "Kimia", fak: "FMIPA", strata: "S1", rank: "Unggul", int: "RSC", exp: "2026-08-30" },
-                    { prodi: "Teknik Sipil", fak: "FT", strata: "S1", rank: "Baik Sekali", int: "-", exp: "2025-12-10" },
-                    { prodi: "Agroteknologi", fak: "FP", strata: "S1", rank: "Unggul", int: "-", exp: "2028-03-22" },
-                    { prodi: "Ilmu Komunikasi", fak: "FISIP", strata: "S1", rank: "A", int: "-", exp: "2026-06-18" },
-                    { prodi: "Pendidikan Biologi", fak: "FKIP", strata: "S1", rank: "Unggul", int: "ASIIN", exp: "2027-09-05" },
-                  ].map((row, idx) => (
-                    <tr key={idx}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{row.prodi}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{row.fak}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{row.strata}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${row.rank === 'Unggul' || row.rank === 'A' ? 'bg-green-100 text-green-800' :
-                          row.rank === 'Baik Sekali' || row.rank === 'B' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                          {row.rank}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{row.int}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{row.exp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardBody>
-        </Card>
 
+            {/* Row 2: Sebaran per Fakultas (DrilldownBarChart) - full width */}
+            <Card className="bg-white dark:bg-gray-800 shadow-md">
+              <CardHeader>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Sebaran Akreditasi per Fakultas
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Jumlah program studi terakreditasi per fakultas (klik untuk detail prodi)
+                  </p>
+                </div>
+              </CardHeader>
+              <Divider />
+              <CardBody>
+                <DrilldownBarChart
+                  data={data.sebaranFakultas}
+                  title="Sebaran Akreditasi per Fakultas"
+                  color="#3b82f6"
+                  height={400}
+                />
+              </CardBody>
+            </Card>
+
+            {/* Row 3: Akreditasi per Fakultas Stacked - full width */}
+            <Card className="bg-white dark:bg-gray-800 shadow-md">
+              <CardHeader>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Akreditasi per Fakultas (Stacked)
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Distribusi peringkat akreditasi di setiap fakultas
+                  </p>
+                </div>
+              </CardHeader>
+              <Divider />
+              <CardBody>
+                <BarChart
+                  data={data.akreditasiPerFakultas}
+                  height={400}
+                  stacked={true}
+                  colors={["#10b981", "#059669", "#3b82f6", "#f59e0b", "#ef4444"]}
+                />
+              </CardBody>
+            </Card>
+
+            {/* Row 4: Akreditasi Internasional & Detail */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Internasional Chart */}
+              <Card className="bg-white dark:bg-gray-800 shadow-md">
+                <CardHeader>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Akreditasi Internasional
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Jumlah prodi per lembaga akreditasi internasional
+                    </p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody>
+                  <BarChart
+                    data={data.internasional}
+                    height={350}
+                    horizontal={true}
+                    colors={["#8b5cf6"]}
+                  />
+                </CardBody>
+              </Card>
+
+              {/* Internasional Detail Table */}
+              <Card className="bg-white dark:bg-gray-800 shadow-md">
+                <CardHeader>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Detail Akreditasi Internasional
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Daftar prodi dengan sertifikasi internasional aktif
+                    </p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody className="p-0">
+                  <DataTable
+                    data={data.internasionalDetail}
+                    columns={intlDetailColumns}
+                    searchable
+                    searchKeys={["prodi", "fak", "lembaga"]}
+                    searchPlaceholder="Cari prodi internasional..."
+                    defaultRowsPerPage={5}
+                    noWrapper
+                  />
+                </CardBody>
+              </Card>
+            </div>
+
+            {/* Expiring Warning Card */}
+            {data.expiringProdi.length > 0 && (
+              <Card className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 shadow-md">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
+                      <FiAlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-red-800 dark:text-red-300">
+                        Peringatan: Akreditasi Segera Kadaluarsa
+                      </h2>
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {data.expiringProdi.length} program studi memiliki akreditasi yang akan
+                        berakhir dalam 1 tahun ke depan
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <Divider className="bg-red-200 dark:bg-red-800" />
+                <CardBody>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-red-200 dark:divide-red-800">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wider">
+                            Program Studi
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wider">
+                            Fakultas
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wider">
+                            Jenjang
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wider">
+                            Peringkat
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-red-700 dark:text-red-400 uppercase tracking-wider">
+                            Masa Berlaku
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-red-100 dark:divide-red-900">
+                        {data.expiringProdi.map((row, idx) => (
+                          <tr key={idx} className="hover:bg-red-100/50 dark:hover:bg-red-900/30">
+                            <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">
+                              {row.prodi}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                              {row.fak}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                              {row.strata}
+                            </td>
+                            <td className="px-4 py-2 text-sm">
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  row.rank === "Unggul" || row.rank === "A"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                    : row.rank === "Baik Sekali" || row.rank === "B"
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                }`}
+                              >
+                                {row.rank}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400">
+                              {row.exp}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardBody>
+              </Card>
+            )}
+
+            {/* Detail Table (DataTable) - full width */}
+            <Card className="bg-white dark:bg-gray-800 shadow-md">
+              <CardHeader>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Detail Status Akreditasi Program Studi
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Daftar lengkap status akreditasi nasional dan internasional
+                  </p>
+                </div>
+              </CardHeader>
+              <Divider />
+              <CardBody className="p-0">
+                <DataTable
+                  data={data.detailTable}
+                  columns={akredColumns}
+                  searchable
+                  searchKeys={["prodi", "fak", "rank", "strata"]}
+                  searchPlaceholder="Cari program studi..."
+                  noWrapper
+                />
+              </CardBody>
+            </Card>
+          </>
+        )}
       </div>
     </DashboardLayoutWithDynamicMenu>
   );
