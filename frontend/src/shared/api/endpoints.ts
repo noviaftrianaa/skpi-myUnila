@@ -83,6 +83,28 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: '/user/change-password',
   },
 
+  // Dashboard Pimpinan endpoints
+  DASHBOARD_PIMPINAN: {
+    BERANDA: '/dashboard/beranda',
+    MAHASISWA: '/dashboard/mahasiswa',
+    DOSEN: '/dashboard/dosen',
+    AKREDITASI: '/dashboard/akreditasi',
+    LULUSAN: '/dashboard/lulusan',
+    LITABMAS: '/dashboard/litabmas',
+    PUBLIKASI: '/dashboard/publikasi',
+    PEGAWAI: '/dashboard/pegawai',
+    KEUANGAN: '/dashboard/keuangan',
+    PRESTASI: '/dashboard/prestasi',
+    KERJASAMA: '/dashboard/kerjasama',
+  },
+
+  // Reference data endpoints
+  REFERENCE: {
+    FAKULTAS: '/reference/fakultas',
+    PRODI: '/reference/prodi',
+    SEMESTER: '/reference/semester',
+  },
+
   // Health check
   HEALTH: '/health',
 } as const;
