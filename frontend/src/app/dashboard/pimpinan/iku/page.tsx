@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { FiTarget, FiInfo } from "react-icons/fi";
@@ -11,6 +11,7 @@ import {
   IKUDetailModal,
   IKUDetailData
 } from "../components";
+import { useDashboardReference } from "../hooks";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -207,9 +208,21 @@ const IKU_DATA_SOURCE: IKUDetailData[] = [
 
 export default function DashboardIkuPage() {
   useRequireAuth();
-  const [selectedTahun, setSelectedTahun] = useState("2024");
+  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedIKU, setSelectedIKU] = useState<IKUDetailData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { semester, activeSemesters } = useDashboardReference();
+
+  useEffect(() => {
+    if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
+      setSelectedSemesters(new Set(activeSemesters));
+    }
+  }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleReset = () => {
+    setSelectedSemesters(new Set(activeSemesters));
+  };
 
   const handleDetail = (iku: IKUDetailData) => {
     setSelectedIKU(iku);
@@ -247,13 +260,10 @@ export default function DashboardIkuPage() {
         {/* Global Filter - Not Sticky */}
         <div className="mb-6">
           <FilterPanel
-            tahunAjaran={[
-              { key: "2024", label: "2024" },
-              { key: "2023", label: "2023" },
-            ]}
-            selectedTahun={selectedTahun}
-            onTahunChange={setSelectedTahun}
-            showProdi={false}
+            semester={semester}
+            selectedSemesters={selectedSemesters}
+            onSemesterChange={setSelectedSemesters}
+            onReset={handleReset}
           />
         </div>
 
