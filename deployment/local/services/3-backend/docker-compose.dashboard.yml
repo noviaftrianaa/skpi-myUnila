@@ -50,6 +50,11 @@ services:
     volumes:
       - dashboard_storage:/var/www/storage
       - dashboard_logs:/var/www/storage/logs
+      # Hot reload: mount source code directories (read-only)
+      - ../../../../backend/dashboard-service/app:/var/www/app:ro
+      - ../../../../backend/dashboard-service/routes:/var/www/routes:ro
+      - ../../../../backend/dashboard-service/config:/var/www/config:ro
+      - ../../../../backend/dashboard-service/resources:/var/www/resources:ro
     networks:
       - myunila-network
     depends_on:

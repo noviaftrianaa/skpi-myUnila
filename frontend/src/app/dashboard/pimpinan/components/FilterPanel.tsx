@@ -9,9 +9,9 @@ export interface FilterOption {
 }
 
 export interface FilterPanelProps {
-  tahunAjaran?: FilterOption[];
-  selectedTahun?: string;
-  onTahunChange?: (value: string) => void;
+  semester?: FilterOption[];
+  selectedSemesters?: Set<string>;
+  onSemesterChange?: (value: Set<string>) => void;
   fakultas?: FilterOption[];
   selectedFakultas?: string;
   onFakultasChange?: (value: string) => void;
@@ -19,19 +19,13 @@ export interface FilterPanelProps {
   selectedProdi?: string;
   onProdiChange?: (value: string) => void;
   showProdi?: boolean;
-  semester?: FilterOption[];
-  selectedSemester?: string;
-  onSemesterChange?: (value: string) => void;
   onReset?: () => void;
   onExport?: () => void;
 }
 
 export default function FilterPanel({
-  tahunAjaran = [],
-  selectedTahun,
-  onTahunChange,
   semester = [],
-  selectedSemester,
+  selectedSemesters,
   onSemesterChange,
   fakultas = [],
   selectedFakultas,
@@ -43,7 +37,7 @@ export default function FilterPanel({
   onReset,
   onExport,
 }: FilterPanelProps) {
-  const hasFilter = selectedTahun || selectedSemester || selectedFakultas || selectedProdi;
+  const hasFilter = (selectedSemesters && selectedSemesters.size > 0) || selectedFakultas || selectedProdi;
 
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 backdrop-blur-sm">
@@ -52,56 +46,34 @@ export default function FilterPanel({
         <span className="text-sm font-medium">Filter</span>
       </div>
 
-      {/* Tahun Ajaran */}
-      {tahunAjaran.length > 0 && (
+      {/* Semester (multi-select) */}
+      {semester.length > 0 && (
         <Select
           size="sm"
-          placeholder="Tahun Ajaran"
-          selectedKeys={selectedTahun ? [selectedTahun] : []}
+          selectionMode="multiple"
+          placeholder="Pilih Semester"
+          selectedKeys={selectedSemesters ?? new Set<string>()}
           onSelectionChange={(keys) => {
-            const value = Array.from(keys)[0] as string;
-            onTahunChange?.(value);
+            if (keys === "all") {
+              onSemesterChange?.(new Set(semester.map((s) => s.key)));
+            } else {
+              onSemesterChange?.(keys as Set<string>);
+            }
           }}
-          className="w-40"
+          className="w-64"
           variant="bordered"
           classNames={{
             trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm h-9",
-            value: "text-gray-700 dark:text-gray-200 font-medium",
+            value: "text-gray-700 dark:text-gray-200 font-medium text-xs",
           }}
           popoverProps={{
             classNames: {
               content: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl",
             },
           }}
-        >
-          {tahunAjaran.map((item) => (
-            <SelectItem key={item.key} className="text-gray-700 dark:text-gray-200">
-              {item.label}
-            </SelectItem>
-          ))}
-        </Select>
-      )}
-
-      {/* Semester */}
-      {semester && semester.length > 0 && (
-        <Select
-          size="sm"
-          placeholder="Semester"
-          selectedKeys={selectedSemester ? [selectedSemester] : []}
-          onSelectionChange={(keys) => {
-            const value = Array.from(keys)[0] as string;
-            onSemesterChange?.(value);
-          }}
-          className="w-32"
-          variant="bordered"
-          classNames={{
-            trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm h-9",
-            value: "text-gray-700 dark:text-gray-200 font-medium",
-          }}
-          popoverProps={{
-            classNames: {
-              content: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl",
-            },
+          renderValue={(items) => {
+            if (items.length > 2) return <span>{items.length} semester dipilih</span>;
+            return <span>{items.map((item) => item.textValue).join(", ")}</span>;
           }}
         >
           {semester.map((item) => (
@@ -120,13 +92,13 @@ export default function FilterPanel({
           selectedKeys={selectedFakultas ? [selectedFakultas] : []}
           onSelectionChange={(keys) => {
             const value = Array.from(keys)[0] as string;
-            onFakultasChange?.(value);
+            onFakultasChange?.(value === "__all__" ? "" : value);
           }}
-          className="w-48"
+          className="w-56"
           variant="bordered"
           classNames={{
             trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm h-9",
-            value: "text-gray-700 dark:text-gray-200 font-medium",
+            value: "text-gray-700 dark:text-gray-200 font-medium text-xs",
           }}
           popoverProps={{
             classNames: {
@@ -134,11 +106,16 @@ export default function FilterPanel({
             },
           }}
         >
-          {fakultas.map((item) => (
-            <SelectItem key={item.key} className="text-gray-700 dark:text-gray-200">
-              {item.label}
-            </SelectItem>
-          ))}
+          {[
+            <SelectItem key="__all__" className="text-gray-700 dark:text-gray-200 font-semibold">
+              Universitas (Semua)
+            </SelectItem>,
+            ...fakultas.map((item) => (
+              <SelectItem key={item.key} className="text-gray-700 dark:text-gray-200">
+                {item.label}
+              </SelectItem>
+            )),
+          ]}
         </Select>
       )}
 

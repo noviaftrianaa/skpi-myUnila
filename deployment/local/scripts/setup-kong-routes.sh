@@ -719,15 +719,15 @@ else
     echo -e "${RED}  ✗ Failed to create consumer${NC}"
 fi
 
-# Create JWT credentials
-echo -e "${YELLOW}  → Creating JWT credentials (iss: http://192.168.120.42)...${NC}"
+# Create JWT credentials (uses ISSUER and JWT_SECRET from .env)
+echo -e "${YELLOW}  → Creating JWT credentials (iss: $ISSUER)...${NC}"
 JWT_CRED_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/consumers/auth-service/jwt" \
   -H "Content-Type: application/json" \
-  --data-raw '{
-    "key": "http://192.168.120.42",
-    "algorithm": "HS256",
-    "secret": "!UnilaAuthService2025"
-  }')
+  -d "{
+    \"key\": \"$ISSUER\",
+    \"algorithm\": \"HS256\",
+    \"secret\": \"$JWT_SECRET\"
+  }")
 
 if echo "$JWT_CRED_RESPONSE" | grep -q '"id"'; then
     echo -e "${GREEN}  ✓ JWT credential created${NC}"
@@ -747,7 +747,7 @@ DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "dashboard-service",
-    "url": "http://myunila-dashboard-service:9000",
+    "url": "http://myunila-nginx:82",
     "connect_timeout": 60000,
     "write_timeout": 60000,
     "read_timeout": 60000,
