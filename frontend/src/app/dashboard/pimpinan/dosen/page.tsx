@@ -11,10 +11,14 @@ import {
   JenjangStatsCards,
   PangGolStatsCards,
   IkatanKerjaStatsCards,
+  JenisKelaminStatsCards,
+  StatusKepegawaianStatsCards,
   TipeDataOptions,
   JenjangDataKeys,
   PangGolDataKeys,
   IkatanKerjaDataKeys,
+  JenisKelaminDataKeys,
+  StatusKepegawaianDataKeys,
   useDosenData,
   getChartData,
   getStats,
@@ -51,10 +55,16 @@ export default function DosenPage() {
     panggolProdiList,
     ikatanKerjaFakultasList,
     ikatanKerjaProdiList,
+    jenisKelaminFakultasList,
+    jenisKelaminProdiList,
+    statusKepegawaianFakultasList,
+    statusKepegawaianProdiList,
+    isLoadingChartData,
   } = useDosenData({
     selectedTipeData,
     selectedTahunAjaran,
     selectedFakultas,
+    selectedProdi,
   });
 
   // Handle tipe data change
@@ -91,6 +101,10 @@ export default function DosenPage() {
     panggolFakultasList,
     ikatanKerjaProdiList,
     ikatanKerjaFakultasList,
+    jenisKelaminProdiList,
+    jenisKelaminFakultasList,
+    statusKepegawaianProdiList,
+    statusKepegawaianFakultasList,
   );
 
   const stats = getStats(
@@ -105,6 +119,10 @@ export default function DosenPage() {
     panggolFakultasList,
     ikatanKerjaProdiList,
     ikatanKerjaFakultasList,
+    jenisKelaminProdiList,
+    jenisKelaminFakultasList,
+    statusKepegawaianProdiList,
+    statusKepegawaianFakultasList,
   ) as DosenStats;
 
   const currentTipeOption = getCurrentTipeDataOption(
@@ -143,6 +161,26 @@ export default function DosenPage() {
     setIsDataModalOpen(true);
   };
 
+  const statsCardComponents: Record<string, React.ComponentType<any>> = {
+    jabfung: JabfungStatsCards,
+    jenjang_pendidikan: JenjangStatsCards,
+    pang_gol: PangGolStatsCards,
+    ikatan_kerja: IkatanKerjaStatsCards,
+    jenis_kelamin: JenisKelaminStatsCards,
+    status_pegawai: StatusKepegawaianStatsCards,
+  };
+
+  const dataKeysMap: Record<string, any> = {
+    jenjang_pendidikan: JenjangDataKeys,
+    pang_gol: PangGolDataKeys,
+    ikatan_kerja: IkatanKerjaDataKeys,
+    jenis_kelamin: JenisKelaminDataKeys,
+    status_pegawai: StatusKepegawaianDataKeys,
+  };
+
+  const selectedDataKeys = selectedTipeData
+    ? dataKeysMap[selectedTipeData]
+    : undefined;
   return (
     <>
       <div className="space-y-6">
@@ -191,13 +229,22 @@ export default function DosenPage() {
                   trigger:
                     "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
                   label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  value: "text-slate-700 font-semibold text-sm truncate",
+                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[350px]",
                   innerWrapper: "text-slate-700",
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: "data-[hover=true]:bg-default-100",
+                    title:
+                      "text-sm font-medium text-foreground truncate max-w-full",
+                  },
                 }}
               >
                 {TipeDataOptions.map((opt) => (
-                  <SelectItem key={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} textValue={opt.label}>
+                    {opt.label}
+                  </SelectItem>
                 ))}
               </Select>
 
@@ -218,13 +265,34 @@ export default function DosenPage() {
                   trigger:
                     "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
                   label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  value: "text-slate-700 font-semibold text-sm truncate",
+                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[400px]",
                   innerWrapper: "text-slate-700",
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: "data-[hover=true]:bg-default-100",
+                    title:
+                      "text-sm font-medium text-foreground truncate max-w-full",
+                  },
+                }}
+                renderValue={(items) => {
+                  return items.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-center max-w-full gap-2 truncate"
+                      title={item.textValue}
+                    >
+                      <span className="truncate">{item.textValue}</span>
+                    </div>
+                  ));
                 }}
               >
                 {fakultasList.map((fakultas) => (
-                  <SelectItem key={fakultas.id}>
+                  <SelectItem
+                    key={fakultas.id}
+                    textValue={fakultas.nama_fakultas}
+                  >
                     {fakultas.nama_fakultas}
                   </SelectItem>
                 ))}
@@ -247,13 +315,33 @@ export default function DosenPage() {
                   trigger:
                     "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
                   label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  value: "text-slate-700 font-semibold text-sm truncate",
+                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[500px]",
                   innerWrapper: "text-slate-700",
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: "data-[hover=true]:bg-default-100",
+                    title:
+                      "text-sm font-medium text-foreground truncate max-w-full",
+                  },
+                }}
+                renderValue={(items) => {
+                  return items.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-center max-w-full gap-2 truncate"
+                      title={item.textValue}
+                    >
+                      <span className="truncate">{item.textValue}</span>
+                    </div>
+                  ));
                 }}
               >
                 {prodiList.map((prodi) => (
-                  <SelectItem key={prodi.id}>{prodi.nama_prodi}</SelectItem>
+                  <SelectItem key={prodi.id} textValue={prodi.nama_prodi}>
+                    {prodi.nama_prodi}
+                  </SelectItem>
                 ))}
               </Select>
 
@@ -273,13 +361,23 @@ export default function DosenPage() {
                   trigger:
                     "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
                   label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
+                  value: "text-slate-700 font-semibold text-sm truncate",
+                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[300px]",
                   innerWrapper: "text-slate-700",
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: "data-[hover=true]:bg-default-100",
+                    title:
+                      "text-sm font-medium text-foreground truncate max-w-full",
+                  },
                 }}
               >
                 {tahunAjaranList.map((ta) => (
-                  <SelectItem key={ta.id_thn_ajaran}>
+                  <SelectItem
+                    key={ta.id_thn_ajaran}
+                    textValue={ta.nm_thn_ajaran}
+                  >
                     {ta.nm_thn_ajaran}
                   </SelectItem>
                 ))}
@@ -287,25 +385,19 @@ export default function DosenPage() {
             </div>
           </div>
 
-          {/* Stats Cards - jabfung */}
-          {selectedTipeData === "jabfung" && selectedTahunAjaran && (
-            <JabfungStatsCards stats={stats} />
-          )}
+          {/* Komponen komponen total jumlah sesuai dengan tipe data misalkan : 
 
-          {/* Stats Cards - jenjang pendidikan */}
-          {selectedTipeData === "jenjang_pendidikan" && selectedTahunAjaran && (
-            <JenjangStatsCards stats={stats} />
-          )}
+          - Jabatan Fungsional : Belum Jabfung, Asisten Ahli, Rektor (Jumlah dari total sesuai yang di drilldown)
 
-          {/* Stats Cards - pangkat golongan */}
-          {selectedTipeData === "pang_gol" && selectedTahunAjaran && (
-            <PangGolStatsCards stats={stats} />
-          )}
-
-          {/* Stats Cards - ikatan kerja */}
-          {selectedTipeData === "ikatan_kerja" && selectedTahunAjaran && (
-            <IkatanKerjaStatsCards stats={stats} />
-          )}
+          */}
+          {selectedTahunAjaran &&
+            selectedTipeData &&
+            (() => {
+              const SelectedComponent = statsCardComponents[selectedTipeData];
+              return SelectedComponent ? (
+                <SelectedComponent stats={stats} />
+              ) : null;
+            })()}
 
           {/* Chart Card */}
           <DosenChart
@@ -322,37 +414,26 @@ export default function DosenPage() {
             subtitle={getChartSubtitle(selectedTahunAjaran, tahunAjaranList)}
             onLihatData={handleLihatData}
             xAxisKey="name"
-            dataKeys={
-              selectedTipeData === "jenjang_pendidikan"
-                ? JenjangDataKeys
-                : selectedTipeData === "pang_gol"
-                  ? PangGolDataKeys
-                  : selectedTipeData === "ikatan_kerja"
-                    ? IkatanKerjaDataKeys
-                    : undefined
-            }
+            dataKeys={selectedDataKeys}
             disabled={isChartDisabled}
+            isLoading={isLoadingChartData}
           />
         </motion.div>
       </div>
 
       {/* Data Modal */}
-      {(selectedTipeData === "jabfung" ||
-        selectedTipeData === "jenjang_pendidikan" ||
-        selectedTipeData === "pang_gol" ||
-        selectedTipeData === "ikatan_kerja") && (
-        <DosenDataModal
-          isOpen={isDataModalOpen}
-          onClose={() => setIsDataModalOpen(false)}
-          selectedTipeData={selectedTipeData}
-          selectedTahunAjaran={selectedTahunAjaran}
-          selectedTahunAjaranName={selectedTahunAjaranName}
-          selectedFakultas={selectedFakultas}
-          selectedFakultasName={selectedFakultasName}
-          selectedProdi={selectedProdi}
-          selectedProdiName={selectedProdiName}
-        />
-      )}
+
+      <DosenDataModal
+        isOpen={isDataModalOpen}
+        onClose={() => setIsDataModalOpen(false)}
+        selectedTipeData={selectedTipeData}
+        selectedTahunAjaran={selectedTahunAjaran}
+        selectedTahunAjaranName={selectedTahunAjaranName}
+        selectedFakultas={selectedFakultas}
+        selectedFakultasName={selectedFakultasName}
+        selectedProdi={selectedProdi}
+        selectedProdiName={selectedProdiName}
+      />
     </>
   );
 }

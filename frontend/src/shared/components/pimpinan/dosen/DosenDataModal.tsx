@@ -9,6 +9,8 @@ import { executiveJabfungService, type Dosen as JabfungDosen } from "@/lib/servi
 import { executiveJenjangPendidikanService, type Dosen as JenjangDosen } from "@/lib/services/executive/jenjangPendidikanService";
 import { executivePangkatGolonganService, type Dosen as PangGolDosen } from "@/lib/services/executive/pangkatGolonganService";
 import { executiveIkatanKerjaService, type Dosen as IkatanKerjaDosen } from "@/lib/services/executive/ikatanKerjaService";
+import { executiveJenisKelaminService, type Dosen as JenisKelaminDosen } from "@/lib/services/executive/jenisKelaminService";
+import { executiveStatusKepegawaianService, type Dosen as StatusKepegawaianDosen } from "@/lib/services/executive/statusKepegawaianService";
 import Link from "next/link";
 
 // Types
@@ -30,10 +32,11 @@ const TipeDataNames: Record<string, string> = {
   pang_gol: "Pangkat Golongan",
   ikatan_kerja: "Ikatan Kerja",
   jenjang_pendidikan: "Jenjang Pendidikan",
+  jenis_kelamin: "Jenis Kelamin",
   status_pegawai: "Status Kepegawaian",
 };
 
-type ModalDosen = JabfungDosen | JenjangDosen | PangGolDosen | IkatanKerjaDosen;
+type ModalDosen = JabfungDosen | JenjangDosen | PangGolDosen | IkatanKerjaDosen | JenisKelaminDosen | StatusKepegawaianDosen;
 
 export const DosenDataModal = ({
   isOpen,
@@ -83,6 +86,12 @@ export const DosenDataModal = ({
       }
       if (selectedTipeData === "ikatan_kerja") {
         return executiveIkatanKerjaService.getDataDosen(params);
+      }
+      if (selectedTipeData === "jenis_kelamin") {
+        return executiveJenisKelaminService.getDataDosen(params);
+      }
+      if (selectedTipeData === "status_pegawai") {
+        return executiveStatusKepegawaianService.getDataDosen(params);
       }
       return executiveJabfungService.getDataDosen(params);
     },
@@ -193,21 +202,57 @@ export const DosenDataModal = ({
       });
     }
 
-    baseColumns.push({
-      key: "status",
-      label: "Status",
-      render: (dsn) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            dsn.status === "PNS"
-              ? "bg-green-100 text-green-700"
-              : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          {dsn.status}
-        </span>
-      ),
-    });
+    if (selectedTipeData === "jenis_kelamin") {
+      baseColumns.push({
+        key: "jenis_kelamin",
+        label: "Jenis Kelamin",
+        render: (item) => {
+          const jenisKelamin = (item as JenisKelaminDosen).jenis_kelamin;
+          const colorClass: Record<string, string> = {
+            "Laki-laki": "bg-blue-100 text-blue-700",
+            "Perempuan": "bg-pink-100 text-pink-700",
+            "Belum Diketahui": "bg-gray-100 text-gray-700",
+          };
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${
+                colorClass[jenisKelamin] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {jenisKelamin}
+            </span>
+          );
+        },
+      });
+    }
+
+    if (selectedTipeData === "status_pegawai") {
+      baseColumns.push({
+        key: "status_kepegawaian",
+        label: "Status Kepegawaian",
+        render: (item) => {
+          const statusKepegawaian = (item as StatusKepegawaianDosen).status_kepegawaian;
+          const colorClass: Record<string, string> = {
+            "PNS": "bg-blue-100 text-blue-700",
+            "CPNS": "bg-indigo-100 text-indigo-700",
+            "PPPK": "bg-purple-100 text-purple-700",
+            "Non ASN": "bg-fuchsia-100 text-fuchsia-700",
+            "ASN JF Non Dosen": "bg-green-100 text-green-700",
+            "Dokter Pendidik Klinis": "bg-teal-100 text-teal-700",
+            "Lainnya": "bg-gray-100 text-gray-700",
+          };
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${
+                colorClass[statusKepegawaian] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {statusKepegawaian}
+            </span>
+          );
+        },
+      });
+    }
 
     return baseColumns;
   };

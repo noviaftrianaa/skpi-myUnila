@@ -3,6 +3,8 @@ import type { JabfungFakultas, JabfungProdi } from "@/lib/services/executive/jab
 import type { JenjangFakultas, JenjangProdi } from "@/lib/services/executive/jenjangPendidikanService";
 import type { PangkatGolonganFakultas, PangkatGolonganProdi } from "@/lib/services/executive/pangkatGolonganService";
 import type { IkatanKerjaFakultas, IkatanKerjaProdi } from "@/lib/services/executive/ikatanKerjaService";
+import type { JenisKelaminFakultas, JenisKelaminProdi } from "@/lib/services/executive/jenisKelaminService";
+import type { StatusKepegawaianFakultas, StatusKepegawaianProdi } from "@/lib/services/executive/statusKepegawaianService";
 
 // ========================================
 // Chart Data Types
@@ -67,6 +69,21 @@ export type ChartDataItem =
       pengajar_nondosen: number;
       dosen_tetap_pk_waktu_tertentu: number;
       belum_ikatan_kerja: number;
+    }
+  | {
+      name: string;
+      laki_laki: number;
+      perempuan: number;
+    }
+  | {
+      name: string;
+      pns: number;
+      cpns: number;
+      pppk: number;
+      non_asn: number;
+      asn_jf_non_dosen: number;
+      dokter_pendidik_klinis: number;
+      lainnya: number;
     };
 
 // ========================================
@@ -88,6 +105,10 @@ export const getChartData = (
   panggolFakultasList?: PangkatGolonganFakultas[],
   ikatanKerjaProdiList?: IkatanKerjaProdi[],
   ikatanKerjaFakultasList?: IkatanKerjaFakultas[],
+  jenisKelaminProdiList?: JenisKelaminProdi[],
+  jenisKelaminFakultasList?: JenisKelaminFakultas[],
+  statusKepegawaianProdiList?: StatusKepegawaianProdi[],
+  statusKepegawaianFakultasList?: StatusKepegawaianFakultas[],
 ): ChartDataItem[] => {
   if (selectedTipeData === "jabfung") {
     // For jabfung data
@@ -350,6 +371,95 @@ export const getChartData = (
     }
   }
 
+  if (selectedTipeData === "jenis_kelamin") {
+    if (selectedProdi && jenisKelaminProdiList) {
+      const prodi = jenisKelaminProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        return [
+          {
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
+            laki_laki: prodi.laki_laki,
+            perempuan: prodi.perempuan,
+          },
+        ];
+      }
+    }
+
+    if (selectedFakultas && jenisKelaminProdiList) {
+      return jenisKelaminProdiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        laki_laki: p.laki_laki,
+        perempuan: p.perempuan,
+      }));
+    }
+
+    if (jenisKelaminFakultasList) {
+      return jenisKelaminFakultasList.map((f) => ({
+        name:
+          f.nama_fakultas.substring(0, 20) +
+          (f.nama_fakultas.length > 20 ? "..." : ""),
+        laki_laki: f.laki_laki,
+        perempuan: f.perempuan,
+      }));
+    }
+  }
+
+  if (selectedTipeData === "status_pegawai") {
+    if (selectedProdi && statusKepegawaianProdiList) {
+      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        return [
+          {
+            name:
+              prodi.nama_prodi.substring(0, 20) +
+              (prodi.nama_prodi.length > 20 ? "..." : ""),
+            pns: prodi.pns,
+            cpns: prodi.cpns,
+            pppk: prodi.pppk,
+            non_asn: prodi.non_asn,
+            asn_jf_non_dosen: prodi.asn_jf_non_dosen,
+            dokter_pendidik_klinis: prodi.dokter_pendidik_klinis,
+            lainnya: prodi.lainnya,
+          },
+        ];
+      }
+    }
+
+    if (selectedFakultas && statusKepegawaianProdiList) {
+      return statusKepegawaianProdiList.map((p) => ({
+        name:
+          p.nama_prodi.substring(0, 20) +
+          (p.nama_prodi.length > 20 ? "..." : ""),
+        pns: p.pns,
+        cpns: p.cpns,
+        pppk: p.pppk,
+        non_asn: p.non_asn,
+        asn_jf_non_dosen: p.asn_jf_non_dosen,
+        dokter_pendidik_klinis: p.dokter_pendidik_klinis,
+        lainnya: p.lainnya,
+      }));
+    }
+
+    if (statusKepegawaianFakultasList) {
+      return statusKepegawaianFakultasList.map((f) => ({
+        name:
+          f.nama_fakultas.substring(0, 20) +
+          (f.nama_fakultas.length > 20 ? "..." : ""),
+        pns: f.pns,
+        cpns: f.cpns,
+        pppk: f.pppk,
+        non_asn: f.non_asn,
+        asn_jf_non_dosen: f.asn_jf_non_dosen,
+        dokter_pendidik_klinis: f.dokter_pendidik_klinis,
+        lainnya: f.lainnya,
+      }));
+    }
+  }
+
   return [];
 };
 
@@ -368,6 +478,10 @@ export const getStats = (
   panggolFakultasList?: PangkatGolonganFakultas[],
   ikatanKerjaProdiList?: IkatanKerjaProdi[],
   ikatanKerjaFakultasList?: IkatanKerjaFakultas[],
+  jenisKelaminProdiList?: JenisKelaminProdi[],
+  jenisKelaminFakultasList?: JenisKelaminFakultas[],
+  statusKepegawaianProdiList?: StatusKepegawaianProdi[],
+  statusKepegawaianFakultasList?: StatusKepegawaianFakultas[],
 ): DosenStats => {
   if (selectedTipeData === "jabfung") {
     if (selectedProdi) {
@@ -694,6 +808,103 @@ export const getStats = (
           pengajarNondosen: 0,
           dosenTetapPkWaktuTertentu: 0,
           belumIkatanKerja: 0,
+        },
+      );
+    }
+  }
+
+  if (selectedTipeData === "jenis_kelamin") {
+    if (selectedProdi && jenisKelaminProdiList) {
+      const prodi = jenisKelaminProdiList.find((p) => p.id === selectedProdi);
+      return {
+        lakiLaki: prodi?.laki_laki || 0,
+        perempuan: prodi?.perempuan || 0,
+      };
+    }
+
+    if (selectedFakultas && jenisKelaminProdiList) {
+      return jenisKelaminProdiList.reduce(
+        (sum, p) => ({
+          lakiLaki: sum.lakiLaki + p.laki_laki,
+          perempuan: sum.perempuan + p.perempuan,
+        }),
+        {
+          lakiLaki: 0,
+          perempuan: 0,
+        },
+      );
+    }
+
+    if (jenisKelaminFakultasList) {
+      return jenisKelaminFakultasList.reduce(
+        (sum, f) => ({
+          lakiLaki: sum.lakiLaki + f.laki_laki,
+          perempuan: sum.perempuan + f.perempuan,
+        }),
+        {
+          lakiLaki: 0,
+          perempuan: 0,
+        },
+      );
+    }
+  }
+
+  if (selectedTipeData === "status_pegawai") {
+    if (selectedProdi && statusKepegawaianProdiList) {
+      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      return {
+        pns: prodi?.pns || 0,
+        cpns: prodi?.cpns || 0,
+        pppk: prodi?.pppk || 0,
+        nonAsn: prodi?.non_asn || 0,
+        asnJfNonDosen: prodi?.asn_jf_non_dosen || 0,
+        dokterPendidikKlinis: prodi?.dokter_pendidik_klinis || 0,
+        lainnya: prodi?.lainnya || 0,
+      };
+    }
+
+    if (selectedFakultas && statusKepegawaianProdiList) {
+      return statusKepegawaianProdiList.reduce(
+        (sum, p) => ({
+          pns: sum.pns + p.pns,
+          cpns: sum.cpns + p.cpns,
+          pppk: sum.pppk + p.pppk,
+          nonAsn: sum.nonAsn + p.non_asn,
+          asnJfNonDosen: sum.asnJfNonDosen + p.asn_jf_non_dosen,
+          dokterPendidikKlinis: sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
+          lainnya: sum.lainnya + p.lainnya,
+        }),
+        {
+          pns: 0,
+          cpns: 0,
+          pppk: 0,
+          nonAsn: 0,
+          asnJfNonDosen: 0,
+          dokterPendidikKlinis: 0,
+          lainnya: 0,
+        },
+      );
+    }
+
+    if (statusKepegawaianFakultasList) {
+      return statusKepegawaianFakultasList.reduce(
+        (sum, f) => ({
+          pns: sum.pns + f.pns,
+          cpns: sum.cpns + f.cpns,
+          pppk: sum.pppk + f.pppk,
+          nonAsn: sum.nonAsn + f.non_asn,
+          asnJfNonDosen: sum.asnJfNonDosen + f.asn_jf_non_dosen,
+          dokterPendidikKlinis: sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
+          lainnya: sum.lainnya + f.lainnya,
+        }),
+        {
+          pns: 0,
+          cpns: 0,
+          pppk: 0,
+          nonAsn: 0,
+          asnJfNonDosen: 0,
+          dokterPendidikKlinis: 0,
+          lainnya: 0,
         },
       );
     }

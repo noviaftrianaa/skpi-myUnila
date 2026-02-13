@@ -7,6 +7,7 @@ export type TipeData =
   | "pang_gol"
   | "ikatan_kerja"
   | "jenjang_pendidikan"
+  | "jenis_kelamin"
   | "status_pegawai";
 
 export interface TipeDataOption {
@@ -78,12 +79,31 @@ export interface IkatanKerjaStats {
   belumIkatanKerja: number;
 }
 
+// Stats types for jenis kelamin
+export interface JenisKelaminStats {
+  lakiLaki: number;
+  perempuan: number;
+}
+
+// Stats types for status kepegawaian
+export interface StatusKepegawaianStats {
+  pns: number;
+  cpns: number;
+  pppk: number;
+  nonAsn: number;
+  asnJfNonDosen: number;
+  dokterPendidikKlinis: number;
+  lainnya: number;
+}
+
 // Combined stats type
 export type DosenStats =
   | JabfungStats
   | JenjangStats
   | PangGolStats
-  | IkatanKerjaStats;
+  | IkatanKerjaStats
+  | JenisKelaminStats
+  | StatusKepegawaianStats;
 
 export type DosenStatsColor =
   | "blue"
@@ -95,4 +115,12 @@ export type DosenStatsColor =
   | "indigo"
   | "pink"
   | "orange"
-  | "teal";
+  | "teal"
+  | "violet"
+  | "fuchsia"
+  | "rose"
+  | "emerald"
+  | "yellow"
+  | "destructive"
+  | "slate"
+  | "gray";

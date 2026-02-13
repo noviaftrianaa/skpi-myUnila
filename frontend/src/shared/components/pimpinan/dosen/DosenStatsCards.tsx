@@ -21,6 +21,14 @@ interface IkatanKerjaStatsCardsProps {
   stats: DosenStats;
 }
 
+interface JenisKelaminStatsCardsProps {
+  stats: DosenStats;
+}
+
+interface StatusKepegawaianStatsCardsProps {
+  stats: DosenStats;
+}
+
 // ========================================
 // Components
 // ========================================
@@ -201,6 +209,52 @@ export const IkatanKerjaStatsCards = ({ stats }: IkatanKerjaStatsCardsProps) => 
       <DosenStatsCard title="Pengajar Nondosen" value={ikatanKerjaStats.pengajarNondosen || 0} color="blue" />
       <DosenStatsCard title="Tetap PKWTT" value={ikatanKerjaStats.dosenTetapPkWaktuTertentu || 0} color="purple" />
       <DosenStatsCard title="Belum Ikatan Kerja" value={ikatanKerjaStats.belumIkatanKerja || 0} color="orange" />
+    </div>
+  );
+};
+
+/**
+ * Jenis Kelamin Stats Cards Component
+ * Displays stats cards for jenis kelamin data
+ */
+export const JenisKelaminStatsCards = ({ stats }: JenisKelaminStatsCardsProps) => {
+  const jenisKelaminStats = stats as {
+    lakiLaki: number;
+    perempuan: number;
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-2">
+      <DosenStatsCard title="Laki-laki" value={jenisKelaminStats.lakiLaki || 0} color="blue" />
+      <DosenStatsCard title="Perempuan" value={jenisKelaminStats.perempuan || 0} color="pink" />
+    </div>
+  );
+};
+
+/**
+ * Status Kepegawaian Stats Cards Component
+ * Displays stats cards for status kepegawaian data
+ */
+export const StatusKepegawaianStatsCards = ({ stats }: StatusKepegawaianStatsCardsProps) => {
+  const statusKepegawaianStats = stats as {
+    pns: number;
+    cpns: number;
+    pppk: number;
+    nonAsn: number;
+    asnJfNonDosen: number;
+    dokterPendidikKlinis: number;
+    lainnya: number;
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-4 lg:grid-cols-7">
+      <DosenStatsCard title="PNS" value={statusKepegawaianStats.pns || 0} color="blue" />
+      <DosenStatsCard title="CPNS" value={statusKepegawaianStats.cpns || 0} color="indigo" />
+      <DosenStatsCard title="PPPK" value={statusKepegawaianStats.pppk || 0} color="purple" />
+      <DosenStatsCard title="Non ASN" value={statusKepegawaianStats.nonAsn || 0} color="fuchsia" />
+      <DosenStatsCard title="ASN JF Non Dosen" value={statusKepegawaianStats.asnJfNonDosen || 0} color="green" />
+      <DosenStatsCard title="Dokter Pendidik Klinis" value={statusKepegawaianStats.dokterPendidikKlinis || 0} color="teal" />
+      <DosenStatsCard title="Lainnya" value={statusKepegawaianStats.lainnya || 0} color="gray" />
     </div>
   );
 };

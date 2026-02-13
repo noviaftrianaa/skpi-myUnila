@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import {
   BarChart,
   Bar,
@@ -47,6 +47,8 @@ interface DosenChartProps<T = Record<string, any>> {
   subtitle?: string;
   // Disable the "Lihat Data" button
   disabled?: boolean;
+  // Show loading state
+  isLoading?: boolean;
 }
 
 export const DosenChart = <T extends Record<string, any>>({
@@ -60,6 +62,7 @@ export const DosenChart = <T extends Record<string, any>>({
   xAxisKey = "name",
   subtitle,
   disabled = false,
+  isLoading = false,
 }: DosenChartProps<T>) => {
   // Default jabfung data keys
   const defaultJabfungKeys = [
@@ -188,7 +191,7 @@ export const DosenChart = <T extends Record<string, any>>({
   };
 
   return (
-    <div className="p-6 bg-white shadow-sm rounded-xl">
+    <div className="p-6 bg-white shadow-sm rounded-xl relative">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
@@ -205,9 +208,29 @@ export const DosenChart = <T extends Record<string, any>>({
         </Button>
       </div>
 
-      <ResponsiveContainer width="100%" height={500}>
-        {renderChart()}
-      </ResponsiveContainer>
+      <div className={isLoading ? "blur-sm pointer-events-none transition-all duration-300" : ""}>
+        <ResponsiveContainer width="100%" height={500}>
+          {renderChart()}
+        </ResponsiveContainer>
+      </div>
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/30 backdrop-blur-sm rounded-xl z-10">
+          <Spinner
+            size="lg"
+            color="primary"
+            className="mb-4"
+            classNames={{
+              circle1: "border-b-myunila",
+              circle2: "border-b-myunila",
+            }}
+          />
+          <p className="text-gray-700 font-medium animate-pulse">
+            Memuat data grafik...
+          </p>
+        </div>
+      )}
     </div>
   );
 };

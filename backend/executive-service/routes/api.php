@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\JabFungController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\IkatanKerjaController;
+use App\Http\Controllers\JenisKelaminController;
 use App\Http\Controllers\PangGolController;
+use App\Http\Controllers\StatusKepegawaianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +106,34 @@ Route::prefix('v1')->group(function () {
 
             // Detail data with pagination
             Route::get('/data', [IkatanKerjaController::class, 'getDataDosen']);
+        });
+
+        Route::prefix('jenis-kelamin')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [JenisKelaminController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [JenisKelaminController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [JenisKelaminController::class, 'getProdiList']);
+
+            // Jenis kelamin data routes
+            Route::get('/fakultas', [JenisKelaminController::class, 'getJenisKelaminFakultas']);
+            Route::get('/fakultas/{idFakultas}', [JenisKelaminController::class, 'getJenisKelaminProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [JenisKelaminController::class, 'getDataDosen']);
+        });
+
+        Route::prefix('status-kepegawaian')->group(function () {
+            // Master data routes
+            Route::get('/master/tahun-ajaran', [StatusKepegawaianController::class, 'getTahunAjaranList']);
+            Route::get('/master/fakultas', [StatusKepegawaianController::class, 'getFakultasList']);
+            Route::get('/master/prodi', [StatusKepegawaianController::class, 'getProdiList']);
+
+            // Status kepegawaian data routes
+            Route::get('/fakultas', [StatusKepegawaianController::class, 'getStatusKepegawaianFakultas']);
+            Route::get('/fakultas/{idFakultas}', [StatusKepegawaianController::class, 'getStatusKepegawaianProdi']);
+
+            // Detail data with pagination
+            Route::get('/data', [StatusKepegawaianController::class, 'getDataDosen']);
         });
     });
 });

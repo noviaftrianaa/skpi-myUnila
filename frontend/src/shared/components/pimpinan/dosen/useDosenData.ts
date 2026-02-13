@@ -3,6 +3,8 @@ import { executiveJabfungService } from "@/lib/services/executive/jabfungService
 import { executiveJenjangPendidikanService } from "@/lib/services/executive/jenjangPendidikanService";
 import { executivePangkatGolonganService } from "@/lib/services/executive/pangkatGolonganService";
 import { executiveIkatanKerjaService } from "@/lib/services/executive/ikatanKerjaService";
+import { executiveJenisKelaminService } from "@/lib/services/executive/jenisKelaminService";
+import { executiveStatusKepegawaianService } from "@/lib/services/executive/statusKepegawaianService";
 
 // ========================================
 // Types
@@ -12,6 +14,7 @@ export interface UseDosenDataParams {
   selectedTipeData: string;
   selectedTahunAjaran: string;
   selectedFakultas: string;
+  selectedProdi: string;
 }
 
 // ========================================
@@ -26,6 +29,7 @@ export const useDosenData = ({
   selectedTipeData,
   selectedTahunAjaran,
   selectedFakultas,
+  selectedProdi,
 }: UseDosenDataParams) => {
   // Fetch tahun ajaran list
   const { data: tahunAjaranList = [], isLoading: isLoadingTahunAjaran } =
@@ -64,7 +68,10 @@ export const useDosenData = ({
   });
 
   // Fetch jabfung prodi data
-  const { data: jabfungProdiList = [] } = useQuery({
+  const {
+    data: jabfungProdiList = [],
+    isLoading: isLoadingJabfungProdi,
+  } = useQuery({
     queryKey: [
       "dosen",
       "jabfung",
@@ -86,6 +93,7 @@ export const useDosenData = ({
   // Fetch jenjang pendidikan fakultas data
   const {
     data: jenjangFakultasList = [],
+    isLoading: isLoadingJenjangFakultas,
   } = useQuery({
     queryKey: ["dosen", "jenjang", "fakultas", selectedTahunAjaran],
     queryFn: () =>
@@ -96,7 +104,10 @@ export const useDosenData = ({
   });
 
   // Fetch jenjang pendidikan prodi data
-  const { data: jenjangProdiList = [] } = useQuery({
+  const {
+    data: jenjangProdiList = [],
+    isLoading: isLoadingJenjangProdi,
+  } = useQuery({
     queryKey: [
       "dosen",
       "jenjang",
@@ -118,6 +129,7 @@ export const useDosenData = ({
   // Fetch pangkat golongan fakultas data
   const {
     data: panggolFakultasList = [],
+    isLoading: isLoadingPanggolFakultas,
   } = useQuery({
     queryKey: ["dosen", "panggol", "fakultas", selectedTahunAjaran],
     queryFn: () =>
@@ -128,7 +140,10 @@ export const useDosenData = ({
   });
 
   // Fetch pangkat golongan prodi data
-  const { data: panggolProdiList = [] } = useQuery({
+  const {
+    data: panggolProdiList = [],
+    isLoading: isLoadingPanggolProdi,
+  } = useQuery({
     queryKey: [
       "dosen",
       "panggol",
@@ -148,7 +163,10 @@ export const useDosenData = ({
   });
 
   // Fetch ikatan kerja fakultas data
-  const { data: ikatanKerjaFakultasList = [] } = useQuery({
+  const {
+    data: ikatanKerjaFakultasList = [],
+    isLoading: isLoadingIkatanKerjaFakultas,
+  } = useQuery({
     queryKey: ["dosen", "ikatan-kerja", "fakultas", selectedTahunAjaran],
     queryFn: () =>
       executiveIkatanKerjaService.getIkatanKerjaFakultas({
@@ -158,7 +176,10 @@ export const useDosenData = ({
   });
 
   // Fetch ikatan kerja prodi data
-  const { data: ikatanKerjaProdiList = [] } = useQuery({
+  const {
+    data: ikatanKerjaProdiList = [],
+    isLoading: isLoadingIkatanKerjaProdi,
+  } = useQuery({
     queryKey: [
       "dosen",
       "ikatan-kerja",
@@ -177,6 +198,101 @@ export const useDosenData = ({
       selectedTipeData === "ikatan_kerja",
   });
 
+  // Fetch jenis kelamin fakultas data
+  const {
+    data: jenisKelaminFakultasList = [],
+    isLoading: isLoadingJenisKelaminFakultas,
+  } = useQuery({
+    queryKey: ["dosen", "jenis-kelamin", "fakultas", selectedTahunAjaran],
+    queryFn: () =>
+      executiveJenisKelaminService.getJenisKelaminFakultas({
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "jenis_kelamin",
+  });
+
+  // Fetch jenis kelamin prodi data
+  const {
+    data: jenisKelaminProdiList = [],
+    isLoading: isLoadingJenisKelaminProdi,
+  } = useQuery({
+    queryKey: [
+      "dosen",
+      "jenis-kelamin",
+      "prodi",
+      selectedFakultas,
+      selectedTahunAjaran,
+    ],
+    queryFn: () =>
+      executiveJenisKelaminService.getJenisKelaminProdi({
+        idFakultas: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled:
+      !!selectedFakultas &&
+      !!selectedTahunAjaran &&
+      selectedTipeData === "jenis_kelamin",
+  });
+
+  // Fetch status kepegawaian fakultas data
+  const {
+    data: statusKepegawaianFakultasList = [],
+    isLoading: isLoadingStatusKepegawaianFakultas,
+  } = useQuery({
+    queryKey: ["dosen", "status-kepegawaian", "fakultas", selectedTahunAjaran],
+    queryFn: () =>
+      executiveStatusKepegawaianService.getStatusKepegawaianFakultas({
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "status_pegawai",
+  });
+
+  // Fetch status kepegawaian prodi data
+  const {
+    data: statusKepegawaianProdiList = [],
+    isLoading: isLoadingStatusKepegawaianProdi,
+  } = useQuery({
+    queryKey: [
+      "dosen",
+      "status-kepegawaian",
+      "prodi",
+      selectedFakultas,
+      selectedTahunAjaran,
+    ],
+    queryFn: () =>
+      executiveStatusKepegawaianService.getStatusKepegawaianProdi({
+        idFakultas: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+      }),
+    enabled:
+      !!selectedFakultas &&
+      !!selectedTahunAjaran &&
+      selectedTipeData === "status_pegawai",
+  });
+
+  // Combined loading state for chart data
+  const isLoadingChartData =
+    (selectedTipeData === "jabfung" &&
+      (selectedProdi
+        ? isLoadingJabfungProdi
+        : isLoadingJabfungFakultas)) ||
+    (selectedTipeData === "jenjang_pendidikan" &&
+      (selectedProdi ? isLoadingJenjangProdi : isLoadingJenjangFakultas)) ||
+    (selectedTipeData === "pang_gol" &&
+      (selectedProdi ? isLoadingPanggolProdi : isLoadingPanggolFakultas)) ||
+    (selectedTipeData === "ikatan_kerja" &&
+      (selectedProdi
+        ? isLoadingIkatanKerjaProdi
+        : isLoadingIkatanKerjaFakultas)) ||
+    (selectedTipeData === "jenis_kelamin" &&
+      (selectedProdi
+        ? isLoadingJenisKelaminProdi
+        : isLoadingJenisKelaminFakultas)) ||
+    (selectedTipeData === "status_pegawai" &&
+      (selectedProdi
+        ? isLoadingStatusKepegawaianProdi
+        : isLoadingStatusKepegawaianFakultas));
+
   return {
     // Master data
     tahunAjaranList,
@@ -188,18 +304,41 @@ export const useDosenData = ({
 
     // Jabfung data
     jabfungFakultasList,
+    isLoadingJabfungFakultas,
     jabfungProdiList,
+    isLoadingJabfungProdi,
 
     // Jenjang data
     jenjangFakultasList,
+    isLoadingJenjangFakultas,
     jenjangProdiList,
+    isLoadingJenjangProdi,
 
     // Pangkat golongan data
     panggolFakultasList,
+    isLoadingPanggolFakultas,
     panggolProdiList,
+    isLoadingPanggolProdi,
 
     // Ikatan kerja data
     ikatanKerjaFakultasList,
+    isLoadingIkatanKerjaFakultas,
     ikatanKerjaProdiList,
+    isLoadingIkatanKerjaProdi,
+
+    // Jenis kelamin data
+    jenisKelaminFakultasList,
+    isLoadingJenisKelaminFakultas,
+    jenisKelaminProdiList,
+    isLoadingJenisKelaminProdi,
+
+    // Status kepegawaian data
+    statusKepegawaianFakultasList,
+    isLoadingStatusKepegawaianFakultas,
+    statusKepegawaianProdiList,
+    isLoadingStatusKepegawaianProdi,
+
+    // Combined loading state for charts
+    isLoadingChartData,
   };
 };

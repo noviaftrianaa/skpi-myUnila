@@ -119,13 +119,13 @@ export const getProdiColumns = (
     align: "center",
     render: (item) =>
       item.is_reakreditasi ? (
-        <Chip size="sm" variant="flat" className="text-xs" color="warning">
+        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
           Reakreditasi
-        </Chip>
+        </span>
       ) : (
-        <Chip size="sm" variant="flat" className="text-xs" color="success">
+        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
           Aktif
-        </Chip>
+        </span>
       ),
   },
   {

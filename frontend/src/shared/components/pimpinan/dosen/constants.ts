@@ -30,10 +30,16 @@ export const TipeDataOptions: TipeDataOption[] = [
     chartType: "bar-stacked",
   },
   {
+    key: "jenis_kelamin",
+    label: "Jenis Kelamin",
+    value: "jenis_kelamin",
+    chartType: "bar-stacked",
+  },
+  {
     key: "status_pegawai",
     label: "Status Kepegawaian",
     value: "status_pegawai",
-    chartType: "pie",
+    chartType: "bar-stacked",
   },
 ];
 
@@ -43,6 +49,7 @@ export const TipeDataNames: Record<string, string> = {
   pang_gol: "Pangkat Golongan",
   ikatan_kerja: "Ikatan Kerja",
   jenjang_pendidikan: "Jenjang Pendidikan",
+  jenis_kelamin: "Jenis Kelamin",
   status_pegawai: "Status Kepegawaian",
 };
 
@@ -86,7 +93,11 @@ export const PangGolDataKeys = [
 export const IkatanKerjaDataKeys = [
   { key: "dosen_tetap", name: "Dosen Tetap", color: "#3b82f6" },
   { key: "dosen_pns_dpk", name: "PNS DPK", color: "#6366f1" },
-  { key: "dokter_pendidik_klinis", name: "Dokter Pendidik Klinis", color: "#8b5cf6" },
+  {
+    key: "dokter_pendidik_klinis",
+    name: "Dokter Pendidik Klinis",
+    color: "#8b5cf6",
+  },
   { key: "dosen_tetap_bh", name: "Dosen Tetap BH", color: "#a855f7" },
   { key: "dosen_tidak_tetap", name: "Dosen Tidak Tetap", color: "#22c55e" },
   { key: "p3k_asn", name: "P3K ASN", color: "#14b8a6" },
@@ -95,6 +106,31 @@ export const IkatanKerjaDataKeys = [
   { key: "tutor", name: "Tutor", color: "#f97316" },
   { key: "jft", name: "JFT", color: "#ef4444" },
   { key: "pengajar_nondosen", name: "Pengajar Nondosen", color: "#dc2626" },
-  { key: "dosen_tetap_pk_waktu_tertentu", name: "Tetap PKWTT", color: "#b91c1c" },
+  {
+    key: "dosen_tetap_pk_waktu_tertentu",
+    name: "Tetap PKWTT",
+    color: "#b91c1c",
+  },
   { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
+];
+
+// Jenis kelamin data keys for bar/line charts
+export const JenisKelaminDataKeys = [
+  { key: "laki_laki", name: "Laki-laki", color: "#3b82f6" },
+  { key: "perempuan", name: "Perempuan", color: "#ec4899" },
+];
+
+// Status kepegawaian data keys for bar/line charts
+export const StatusKepegawaianDataKeys = [
+  { key: "pns", name: "PNS", color: "#3b82f6" },
+  { key: "cpns", name: "CPNS", color: "#6366f1" },
+  { key: "pppk", name: "PPPK", color: "#8b5cf6" },
+  { key: "non_asn", name: "Non ASN", color: "#a855f7" },
+  { key: "asn_jf_non_dosen", name: "ASN JF Non Dosen", color: "#22c55e" },
+  {
+    key: "dokter_pendidik_klinis",
+    name: "Dokter Pendidik Klinis",
+    color: "#14b8a6",
+  },
+  { key: "lainnya", name: "Lainnya", color: "#cbd5e1" },
 ];

@@ -67,6 +67,9 @@ class AkreditasiService
             ];
         })->values();
 
-        return $grouped_data;
+        // Sort by reakreditasi status first (reakreditasi items first, then aktif)
+        $sorted_data = $grouped_data->sortByDesc('is_reakreditasi')->values();
+
+        return $sorted_data;
     }
 }

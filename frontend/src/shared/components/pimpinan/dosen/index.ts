@@ -9,7 +9,7 @@ export { DosenDataModal } from "./DosenDataModal";
 
 export { DosenStatsCard } from "./DosenStatsCard";
 
-export { JabfungStatsCards, JenjangStatsCards, PangGolStatsCards, IkatanKerjaStatsCards } from "./DosenStatsCards";
+export { JabfungStatsCards, JenjangStatsCards, PangGolStatsCards, IkatanKerjaStatsCards, JenisKelaminStatsCards, StatusKepegawaianStatsCards } from "./DosenStatsCards";
 
 // ========================================
 // Hooks
@@ -29,6 +29,8 @@ export type {
   JenjangStats,
   PangGolStats,
   IkatanKerjaStats,
+  JenisKelaminStats,
+  StatusKepegawaianStats,
   DosenStats,
   DosenStatsColor,
 } from "./types";
@@ -37,7 +39,7 @@ export type {
 // Constants
 // ========================================
 
-export { TipeDataOptions, TipeDataNames, JenjangDataKeys, PangGolDataKeys, IkatanKerjaDataKeys } from "./constants";
+export { TipeDataOptions, TipeDataNames, JenjangDataKeys, PangGolDataKeys, IkatanKerjaDataKeys, JenisKelaminDataKeys, StatusKepegawaianDataKeys } from "./constants";
 
 // ========================================
 // Utils

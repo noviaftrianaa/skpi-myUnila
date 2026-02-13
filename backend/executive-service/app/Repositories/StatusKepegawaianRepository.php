@@ -4,59 +4,56 @@ namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
 
-class JenjangPendidikanRepository
+class StatusKepegawaianRepository
 {
     /**
-     * Get jenjang pendidikan data with drilldown support
+     * Get status kepegawaian data with drilldown support
      *
      * Supports three levels:
-     * 1. University level (no filters) - jenjang breakdown per fakultas
-     * 2. Fakultas level (idFakultas) - jenjang breakdown per prodi
-     * 3. Prodi level (idProdi) - jenjang breakdown for single prodi
+     * 1. University level (no filters) - status kepegawaian breakdown per fakultas
+     * 2. Fakultas level (idFakultas) - status kepegawaian breakdown per prodi
+     * 3. Prodi level (idProdi) - status kepegawaian breakdown for single prodi
      *
      * @param int|null $idThnAjaran Tahun ajaran (required)
      * @param string|null $idFakultas ID fakultas (optional)
      * @param string|null $idProdi ID prodi (optional)
      * @return \Illuminate\Support\Collection
      */
-    public function getJenjangByLevel($idThnAjaran, $idFakultas = null, $idProdi = null)
+    public function getStatusKepegawaianByLevel($idThnAjaran, $idFakultas = null, $idProdi = null)
     {
-        // Prodi Level - Single prodi jenjang breakdown
+        // Prodi Level - Single prodi status kepegawaian breakdown
         if ($idProdi) {
-            return $this->getJenjangProdiLevel($idThnAjaran, $idProdi);
+            return $this->getStatusKepegawaianProdiLevel($idThnAjaran, $idProdi);
         }
 
-        // Fakultas Level - Per prodi jenjang breakdown in a fakultas
+        // Fakultas Level - Per prodi status kepegawaian breakdown in a fakultas
         if ($idFakultas) {
-            return $this->getJenjangFakultasLevel($idThnAjaran, $idFakultas);
+            return $this->getStatusKepegawaianFakultasLevel($idThnAjaran, $idFakultas);
         }
 
-        // University Level - Per fakultas jenjang breakdown
-        return $this->getJenjangUniversityLevel($idThnAjaran);
+        // University Level - Per fakultas status kepegawaian breakdown
+        return $this->getStatusKepegawaianUniversityLevel($idThnAjaran);
     }
 
     /**
-     * Get jenjang pendidikan data at university level (per fakultas)
+     * Get status kepegawaian data at university level (per fakultas)
      *
      * @param int $idThnAjaran
      * @return \Illuminate\Support\Collection
      */
-    private function getJenjangUniversityLevel($idThnAjaran)
+    private function getStatusKepegawaianUniversityLevel($idThnAjaran)
     {
         $sql = "
             SELECT
                 fakultas.id_sms AS id,
                 fakultas.nm_lemb AS nama_fakultas,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 22 THEN 1 ELSE 0 END) AS d3,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 23 THEN 1 ELSE 0 END) AS d4,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 30 THEN 1 ELSE 0 END) AS s1,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 35 THEN 1 ELSE 0 END) AS s2,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 36 THEN 1 ELSE 0 END) AS s2_terapan,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 40 THEN 1 ELSE 0 END) AS s3,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 31 THEN 1 ELSE 0 END) AS profesi,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 32 THEN 1 ELSE 0 END) AS sp1,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 37 THEN 1 ELSE 0 END) AS sp2,
-                SUM(CASE WHEN tjenj.id_jenj_didik IS NULL THEN 1 ELSE 0 END) AS belum_jenjang,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 1 THEN 1 ELSE 0 END) AS pns,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 13 THEN 1 ELSE 0 END) AS cpns,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 14 THEN 1 ELSE 0 END) AS pppk,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 16 THEN 1 ELSE 0 END) AS non_asn,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 18 THEN 1 ELSE 0 END) AS asn_jf_non_dosen,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 17 THEN 1 ELSE 0 END) AS dokter_pendidik_klinis,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai NOT IN (1, 13, 14, 16, 17, 18) THEN 1 ELSE 0 END) AS lainnya,
                 COUNT(*) AS total
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
@@ -81,16 +78,8 @@ class JenjangPendidikanRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
-            LEFT JOIN (
-                SELECT
-                    id_sdm,
-                    MAX(id_jenj_didik) AS id_jenj_didik
-                FROM pdrd.rwy_pend_formal
-                WHERE soft_delete = 0
-                    AND id_jenj_didik != 99
-                GROUP BY id_sdm
-            ) AS tjenj
-                ON tjenj.id_sdm = tsdm.id_sdm
+            JOIN ref.status_kepegawaian AS tstat_kepeg
+                ON tstat_kepeg.id_stat_pegawai = treg.id_stat_pegawai
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -102,13 +91,13 @@ class JenjangPendidikanRepository
     }
 
     /**
-     * Get jenjang pendidikan data at fakultas level (per prodi)
+     * Get status kepegawaian data at fakultas level (per prodi)
      *
      * @param int $idThnAjaran
      * @param string $idFakultas
      * @return \Illuminate\Support\Collection
      */
-    private function getJenjangFakultasLevel($idThnAjaran, $idFakultas)
+    private function getStatusKepegawaianFakultasLevel($idThnAjaran, $idFakultas)
     {
         $sql = "
             SELECT
@@ -116,16 +105,13 @@ class JenjangPendidikanRepository
                 CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') ' ) AS nama_prodi,
                 fakultas.id_sms AS fakultas_id,
                 fakultas.nm_lemb AS nama_fakultas,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 22 THEN 1 ELSE 0 END) AS d3,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 23 THEN 1 ELSE 0 END) AS d4,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 30 THEN 1 ELSE 0 END) AS s1,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 35 THEN 1 ELSE 0 END) AS s2,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 36 THEN 1 ELSE 0 END) AS s2_terapan,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 40 THEN 1 ELSE 0 END) AS s3,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 31 THEN 1 ELSE 0 END) AS profesi,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 32 THEN 1 ELSE 0 END) AS sp1,
-                SUM(CASE WHEN tjenj.id_jenj_didik = 37 THEN 1 ELSE 0 END) AS sp2,
-                SUM(CASE WHEN tjenj.id_jenj_didik IS NULL THEN 1 ELSE 0 END) AS belum_jenjang,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 1 THEN 1 ELSE 0 END) AS pns,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 13 THEN 1 ELSE 0 END) AS cpns,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 14 THEN 1 ELSE 0 END) AS pppk,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 16 THEN 1 ELSE 0 END) AS non_asn,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 18 THEN 1 ELSE 0 END) AS asn_jf_non_dosen,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai = 17 THEN 1 ELSE 0 END) AS dokter_pendidik_klinis,
+                SUM(CASE WHEN tstat_kepeg.id_stat_pegawai NOT IN (1, 13, 14, 16, 17, 18) THEN 1 ELSE 0 END) AS lainnya,
                 COUNT(*) AS total
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
@@ -152,16 +138,8 @@ class JenjangPendidikanRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
-            LEFT JOIN (
-                SELECT
-                    id_sdm,
-                    MAX(id_jenj_didik) AS id_jenj_didik
-                FROM pdrd.rwy_pend_formal
-                WHERE soft_delete = 0
-                    AND id_jenj_didik != 99
-                GROUP BY id_sdm
-            ) AS tjenj
-                ON tjenj.id_sdm = tsdm.id_sdm
+            JOIN ref.status_kepegawaian AS tstat_kepeg
+                ON tstat_kepeg.id_stat_pegawai = treg.id_stat_pegawai
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -173,36 +151,21 @@ class JenjangPendidikanRepository
     }
 
     /**
-     * Get jenjang pendidikan data at prodi level
+     * Get status kepegawaian data at prodi level
      *
      * @param int $idThnAjaran
      * @param string $idProdi
      * @return \Illuminate\Support\Collection
      */
-    private function getJenjangProdiLevel($idThnAjaran, $idProdi)
+    private function getStatusKepegawaianProdiLevel($idThnAjaran, $idProdi)
     {
         $sql = "
             SELECT
                 COUNT(*) as total,
-                CASE
-                    WHEN tjenj.id_jenj_didik IS NULL THEN 999
-                    ELSE tjenj.id_jenj_didik
-                END AS id_jenj_didik,
-                CASE
-                    WHEN tjenj.id_jenj_didik = 22 THEN 'D3'
-                    WHEN tjenj.id_jenj_didik = 23 THEN 'D4'
-                    WHEN tjenj.id_jenj_didik = 30 THEN 'S1'
-                    WHEN tjenj.id_jenj_didik = 35 THEN 'S2'
-                    WHEN tjenj.id_jenj_didik = 36 THEN 'S2 Terapan'
-                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3'
-                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3 Terapan'
-                    WHEN tjenj.id_jenj_didik = 31 THEN 'Profesi'
-                    WHEN tjenj.id_jenj_didik = 32 THEN 'Sp1'
-                    WHEN tjenj.id_jenj_didik = 37 THEN 'Sp2'
-                    ELSE 'Belum Jenjang'
-                END AS jenjang_didik,
+                tstat_kepeg.id_stat_pegawai AS id_status_kepegawaian,
+                tstat_kepeg.nm_stat_pegawai AS status_kepegawaian,
                 tsms.id_sms AS id_prodi,
-                CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') ' ) AS nama_prodi,
+                tsms.nm_lemb AS nama_prodi,
                 fakultas.id_sms AS id_fakultas,
                 fakultas.nm_lemb AS nama_fakultas,
                 tkeaktifan.id_thn_ajaran as tahun
@@ -227,37 +190,29 @@ class JenjangPendidikanRepository
                 AND tsms.soft_delete = 0
                 AND tsms.id_jns_sms = 3
                 AND tsms.id_sms = CAST(? AS uniqueidentifier)
-            JOIN ref.jenjang_pendidikan jenj_prodi ON jenj_prodi.id_jenj_didik = tsms.id_jenj_didik
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
-            LEFT JOIN (
-                SELECT
-                    id_sdm,
-                    MAX(id_jenj_didik) AS id_jenj_didik
-                FROM pdrd.rwy_pend_formal
-                WHERE soft_delete = 0
-                    AND id_jenj_didik != 99
-                GROUP BY id_sdm
-            ) AS tjenj
-                ON tjenj.id_sdm = tsdm.id_sdm
+            JOIN ref.status_kepegawaian AS tstat_kepeg
+                ON tstat_kepeg.id_stat_pegawai = treg.id_stat_pegawai
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
-            GROUP BY tjenj.id_jenj_didik,
+            GROUP BY tstat_kepeg.id_stat_pegawai,
+                tstat_kepeg.nm_stat_pegawai,
                 tsms.id_sms,
-                CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') '),
+                tsms.nm_lemb,
                 fakultas.id_sms,
                 fakultas.nm_lemb,
                 tkeaktifan.id_thn_ajaran
-            ORDER BY id_jenj_didik ASC
+            ORDER BY tstat_kepeg.nm_stat_pegawai ASC
         ";
 
         return collect(DB::select($sql, [$idThnAjaran, $idProdi]));
     }
 
     /**
-     * Get dosen data with pagination (with jenjang column)
+     * Get dosen data with pagination (with status kepegawaian column)
      *
      * @param int|null $idThnAjaran
      * @param string|null $idFakultas
@@ -367,21 +322,13 @@ class JenjangPendidikanRepository
                 tsdm.nm_sdm AS nama,
                 tsms.id_sms AS id_prodi,
                 fakultas.nm_lemb AS nama_fakultas,
-                CONCAT(tsms.nm_lemb, ' (', jenj_prodi.nm_jenj_didik, ') ') AS nama_prodi,
+                CONCAT(tsms.nm_lemb, ' (', jenj.nm_jenj_didik, ') ') AS nama_prodi,
                 CASE
-                    WHEN tjenj.id_jenj_didik = 22 THEN 'D3'
-                    WHEN tjenj.id_jenj_didik = 23 THEN 'D4'
-                    WHEN tjenj.id_jenj_didik = 30 THEN 'S1'
-                    WHEN tjenj.id_jenj_didik = 35 THEN 'S2'
-                    WHEN tjenj.id_jenj_didik = 36 THEN 'S2 Terapan'
-                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3'
-                    WHEN tjenj.id_jenj_didik = 40 THEN 'S3 Terapan'
-                    WHEN tjenj.id_jenj_didik = 31 THEN 'Profesi'
-                    WHEN tjenj.id_jenj_didik = 32 THEN 'Sp1'
-                    WHEN tjenj.id_jenj_didik = 37 THEN 'Sp2'
-                    ELSE 'Belum Jenjang'
-                END AS jenjang_didik,
-                stat_peg.nm_stat_pegawai AS status
+                    WHEN tsdm.jk = 'L' THEN 'Laki-laki'
+                    WHEN tsdm.jk = 'P' THEN 'Perempuan'
+                    ELSE 'Belum Diketahui'
+                END AS jenis_kelamin,
+                stat_peg.nm_stat_pegawai AS status_kepegawaian
             FROM pdrd.sdm tsdm
             JOIN pdrd.reg_ptk treg
                 ON treg.id_sdm = tsdm.id_sdm
@@ -402,22 +349,12 @@ class JenjangPendidikanRepository
                 ON tsms.id_sms = treg.id_sms
                 AND tsms.soft_delete = 0
                 AND tsms.id_jns_sms = 3
-            JOIN ref.jenjang_pendidikan jenj_prodi ON jenj_prodi.id_jenj_didik = tsms.id_jenj_didik
+            JOIN ref.jenjang_pendidikan jenj ON jenj.id_jenj_didik = tsms.id_jenj_didik
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
             LEFT JOIN ref.status_kepegawaian stat_peg
                 ON stat_peg.id_stat_pegawai = treg.id_stat_pegawai
-            LEFT JOIN (
-                SELECT
-                    id_sdm,
-                    MAX(id_jenj_didik) AS id_jenj_didik
-                FROM pdrd.rwy_pend_formal
-                WHERE soft_delete = 0
-                    AND id_jenj_didik != 99
-                GROUP BY id_sdm
-            ) AS tjenj
-                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
