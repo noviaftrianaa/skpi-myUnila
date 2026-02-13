@@ -25,12 +25,8 @@ NC='\033[0m'
 # Ensure GOPATH/bin is in PATH (for air)
 export PATH="$PATH:$(go env GOPATH 2>/dev/null)/bin:$HOME/go/bin"
 
-# Detect OS and set paths
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    PROJECT_ROOT="/c/laragon/www/my-unila"
-else
-    PROJECT_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-fi
+# Auto-detect paths (works on any machine/OS)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 BACKEND_DIR="$PROJECT_ROOT/backend"
 ENV_FILE="$PROJECT_ROOT/deployment/local/.env"

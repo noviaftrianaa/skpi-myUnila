@@ -19,14 +19,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    # Windows paths (Git Bash format)
-    REPO_DIR="/c/laragon/www/my-unila"
-else
-    # Unix paths
-    REPO_DIR=$(cd "$(dirname "$0")/../../.." && pwd)
-fi
+# Auto-detect paths (works on any machine/OS)
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 DEPLOYMENT_DIR="$REPO_DIR/deployment/local"
 

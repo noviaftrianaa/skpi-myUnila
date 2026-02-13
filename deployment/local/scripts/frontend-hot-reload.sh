@@ -32,12 +32,8 @@ echo -e "${GREEN}URL: http://localhost:${PORT}${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop the server.${NC}"
 echo ""
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    FRONTEND_DIR="/c/laragon/www/my-unila/frontend"
-else
-    FRONTEND_DIR="$(cd "$(dirname "$0")/../../.." && pwd)/frontend"
-fi
+# Auto-detect paths (works on any machine/OS)
+FRONTEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/frontend"
 
 # Kill any existing process on the port
 EXISTING_PID=$(netstat -ano 2>/dev/null | grep ":${PORT}" | grep LISTEN | head -1 | awk '{print $NF}')
