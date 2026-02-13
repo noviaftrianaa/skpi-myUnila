@@ -13,12 +13,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    SCRIPT_DIR="/c/laragon/www/my-unila/deployment/local/scripts"
-else
-    SCRIPT_DIR="$(cd "$(dirname "$0")/scripts" && pwd)"
-fi
+# Auto-detect script directory (works on any machine/OS)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/scripts" && pwd)"
 
 # Function to show menu
 show_menu() {
@@ -459,12 +455,8 @@ while true; do
             echo -e "${YELLOW}Press Ctrl+C to stop the server.${NC}"
             echo ""
 
-            # Detect if running in Git Bash on Windows
-            if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-                FRONTEND_DIR="/c/laragon/www/my-unila/frontend"
-            else
-                FRONTEND_DIR="$(cd "$(dirname "$0")/../.." && pwd)/frontend"
-            fi
+            # Auto-detect frontend directory
+            FRONTEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/frontend"
 
             # Kill any existing process on port 3000
             EXISTING_PID=$(netstat -ano 2>/dev/null | grep ":3000" | grep LISTEN | head -1 | awk '{print $NF}')

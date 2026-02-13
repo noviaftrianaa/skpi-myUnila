@@ -19,13 +19,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    BACKEND_DIR="/c/laragon/www/my-unila/backend"
-else
-    REPO_DIR=$(cd "$(dirname "$0")/../../.." && pwd)
-    BACKEND_DIR="$REPO_DIR/backend"
-fi
+# Auto-detect paths (works on any machine/OS)
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+BACKEND_DIR="$REPO_DIR/backend"
 
 SERVICE="${1:-all}"
 

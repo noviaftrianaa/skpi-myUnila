@@ -19,12 +19,8 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
-# Detect OS and set paths
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    PROJECT_ROOT="/c/laragon/www/my-unila"
-else
-    PROJECT_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-fi
+# Auto-detect paths (works on any machine/OS)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 DEPLOY_DIR="$PROJECT_ROOT/deployment/local"
 SERVICES_DIR="$DEPLOY_DIR/services"

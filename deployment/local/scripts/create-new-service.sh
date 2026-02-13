@@ -14,12 +14,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    BACKEND_DIR="/c/laragon/www/my-unila/backend"
-else
-    BACKEND_DIR="$(cd "$(dirname "$0")/../../../backend" && pwd)"
-fi
+# Auto-detect paths (works on any machine/OS)
+BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../backend" && pwd)"
 
 # Function to show header
 show_header() {
