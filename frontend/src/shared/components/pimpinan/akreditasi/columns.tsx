@@ -1,8 +1,8 @@
 import { Button, Chip } from "@heroui/react";
-import { FiCheckCircle, FiClock } from "react-icons/fi";
+import { FiCheckCircle, FiClock, FiXCircle } from "react-icons/fi";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
-import { type Fakultas, type Prodi } from "@/lib/services/executive";
 import { JenjangListDisplay } from "./JenjangListDisplay";
+import { Fakultas, Prodi } from "@/lib/services/executive/akreditasiService";
 
 export const getFakultasColumns = (
   handleFakultasClick: (fakultas: Fakultas) => void,
@@ -118,12 +118,19 @@ export const getProdiColumns = (
     label: "Status",
     align: "center",
     render: (item) =>
-      item.is_reakreditasi ? (
-        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
+      item.is_kadaluarsa ? (
+        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">
+          <FiXCircle className="w-3 h-3" />
+          Kadaluarsa
+        </span>
+      ) : item.is_reakreditasi ? (
+        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
+          <FiClock className="w-3 h-3" />
           Reakreditasi
         </span>
       ) : (
-        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+          <FiCheckCircle className="w-3 h-3" />
           Aktif
         </span>
       ),

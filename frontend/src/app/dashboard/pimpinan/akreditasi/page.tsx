@@ -13,11 +13,7 @@ import {
 } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import { useQuery } from "@tanstack/react-query";
-import {
-  executiveAkreditasiService,
-  type Fakultas,
-  type Prodi,
-} from "@/lib/services/executive";
+import { executiveAkreditasiService } from "@/lib/services/executive";
 import { formatDate } from "@/shared/components/pimpinan/akreditasi/utils";
 import { StatsCard } from "@/shared/components/pimpinan/akreditasi/StatsCard";
 import {
@@ -25,6 +21,7 @@ import {
   getProdiColumns,
 } from "@/shared/components/pimpinan/akreditasi/columns";
 import { HistoryModal } from "@/shared/components/pimpinan/akreditasi/HistoryModal";
+import { Fakultas, Prodi } from "@/lib/services/executive/akreditasiService";
 
 // ========================================
 // Main Page Component
@@ -198,6 +195,7 @@ export default function AkreditasiPage() {
           {/* Tables */}
           {!selectedFakultas ? (
             <DataTable
+              key="fakultas-table"
               data={fakultasData}
               columns={fakultasColumns}
               searchable={true}
@@ -217,6 +215,7 @@ export default function AkreditasiPage() {
             </div>
           ) : (
             <DataTable
+              key={`prodi-table-${selectedFakultas?.id}`}
               data={prodiData}
               columns={prodiColumns}
               searchable={true}

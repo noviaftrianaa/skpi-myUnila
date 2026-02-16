@@ -203,6 +203,7 @@ export const RasioDataModal = ({
           }
         >
           <DataTable
+            key={`rasio-mahasiswa-table-${selectedTahunAjaran}-${selectedFakultas}-${selectedProdi}`}
             data={mahasiswaData}
             columns={mahasiswaColumns}
             searchPlaceholder="Cari mahasiswa..."
@@ -240,6 +241,7 @@ export const RasioDataModal = ({
           }
         >
           <DataTable
+            key={`rasio-dosen-table-${selectedTahunAjaran}-${selectedFakultas}-${selectedProdi}`}
             data={dosenData}
             columns={dosenColumns}
             searchPlaceholder="Cari dosen..."

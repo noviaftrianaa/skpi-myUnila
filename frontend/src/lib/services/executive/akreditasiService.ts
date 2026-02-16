@@ -53,6 +53,7 @@ export interface Prodi {
   tanggal_kadaluarsa: string | null;
   lembaga_akreditasi: string | null;
   is_reakreditasi: boolean;
+  is_kadaluarsa: boolean;
   history_akreditasi: AkreditasiHistory[];
 }
 

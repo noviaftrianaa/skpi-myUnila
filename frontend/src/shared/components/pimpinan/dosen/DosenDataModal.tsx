@@ -288,6 +288,7 @@ export const DosenDataModal = ({
       subtitle={getSubtitle()}
     >
       <DataTable
+        key={`dosen-table-${selectedTipeData}-${selectedTahunAjaran}-${selectedFakultas}-${selectedProdi}`}
         data={dosenData}
         columns={getDosenColumns()}
         searchPlaceholder="Cari dosen..."

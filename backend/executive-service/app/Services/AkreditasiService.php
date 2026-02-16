@@ -44,11 +44,17 @@ class AkreditasiService
 
             // Check if will expire within 1 year
             $is_reakreditasi = false;
+            $is_kadaluarsa = false;
             if ($latest && $latest['tanggal_kadaluarsa']) {
                 $expiry_date = \Carbon\Carbon::parse($latest['tanggal_kadaluarsa']);
                 $now = \Carbon\Carbon::now();
                 $one_year_from_now = \Carbon\Carbon::now()->addYear();
-                $is_reakreditasi = $expiry_date->lte($one_year_from_now) && $expiry_date->gte($now);
+
+                // Check if expired
+                $is_kadaluarsa = $expiry_date->lt($now);
+
+                // Check if will expire within 1 year (but not expired)
+                $is_reakreditasi = !$is_kadaluarsa && $expiry_date->lte($one_year_from_now) && $expiry_date->gte($now);
             }
 
             return [
@@ -63,12 +69,18 @@ class AkreditasiService
                 'tanggal_kadaluarsa' => $latest ? $latest['tanggal_kadaluarsa'] : null,
                 'lembaga_akreditasi' => $latest ? $latest['lembaga_akreditasi'] : null,
                 'is_reakreditasi' => $is_reakreditasi,
+                'is_kadaluarsa' => $is_kadaluarsa,
                 'history_akreditasi' => $history,
             ];
         })->values();
 
-        // Sort by reakreditasi status first (reakreditasi items first, then aktif)
-        $sorted_data = $grouped_data->sortByDesc('is_reakreditasi')->values();
+        // Sort by kadaluarsa status first (kadaluarsa items first, then reakreditasi, then aktif)
+        $sorted_data = $grouped_data->sortByDesc(function ($item) {
+            // Priority: kadaluarsa (2) > reakreditasi (1) > aktif (0)
+            if ($item['is_kadaluarsa']) return 2;
+            if ($item['is_reakreditasi']) return 1;
+            return 0;
+        })->values();
 
         return $sorted_data;
     }
