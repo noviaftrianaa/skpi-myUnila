@@ -30,6 +30,7 @@ Route::group([
             Route::get('/preview/{username}', 'SsoRadiusController@preview');
             Route::get('/user-role/{username}', 'SsoRadiusController@userRole');
             Route::get('/users-with-roles', 'SsoRadiusController@usersWithRoles');
+            Route::post('/create', 'SsoRadiusController@store');
         });
 
         // Profile API - Get complete user profile (protected)
