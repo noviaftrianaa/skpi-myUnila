@@ -135,9 +135,42 @@ export default function PortalPage() {
 
   // Merge portal data with favorites
   const categoriesWithFavorites: CategoryWithFavorites[] = useMemo(() => {
-    if (!portalData?.categories) return [];
+    // Clone available categories or start empty
+    let categories: PortalCategory[] = portalData?.categories ? [...portalData.categories] : [];
 
-    return portalData.categories.map(category => ({
+    // --- DEMO: Inject Web Monitoring App ---
+    const monitoringApp: PortalApp = {
+      id_aplikasi: "web-mon-demo",
+      nm_aplikasi: "Web Monitoring",
+      ket_aplikasi: "Early warning system & monitoring konten ilegal (Judi Online)",
+      url: "/dashboard/monitoring",
+      icon_name: "heroicons:shield-check",
+      icon_color: "text-blue-600",
+      app_slug: "webmon",
+      urutan: 1,
+      id_organisasi: "univ",
+      nm_organisasi: "Universitas Lampung",
+      a_maintenance: false,
+      a_coming_soon: false,
+      a_terintegrasi: true,
+      a_live: true,
+      has_access: true,
+    };
+
+    const monitoringCategory: PortalCategory = {
+      id_kategori: "monitoring-demo",
+      nm_kategori: "Monitoring & Keamanan",
+      icon_kategori: "heroicons:shield-exclamation",
+      icon_color: "text-blue-600",
+      urutan: -1, // Ensure it's at the top
+      apps: [monitoringApp],
+    };
+
+    // Add to categories list
+    categories = [monitoringCategory, ...categories];
+    // --- END DEMO ---
+
+    return categories.map(category => ({
       ...category,
       apps: (category.apps || []).map(app => ({
         ...app,
@@ -355,6 +388,13 @@ export default function PortalPage() {
   const handleAppClick = async (app: AppWithFavorite) => {
     // Determine if app is in production (a_live AND a_terintegrasi)
     const isProduction = app.a_live && app.a_terintegrasi;
+
+    // --- DEMO: Bypass check for demo webmon ---
+    if (app.app_slug === 'webmon') {
+      router.push(app.url || '/dashboard/monitoring');
+      return;
+    }
+    // ------------------------------------------
 
     // Check if locked (no access) - only for production apps
     if (isProduction && !app.has_access) {
@@ -841,16 +881,14 @@ export default function PortalPage() {
                     return (
                       <DropdownItem
                         key={item.id}
-                        className={`h-auto py-3 px-4 border-b border-gray-100 last:border-0 ${
-                          !item.isRead ? "bg-blue-50" : "bg-white"
-                        } hover:bg-gray-50`}
+                        className={`h-auto py-3 px-4 border-b border-gray-100 last:border-0 ${!item.isRead ? "bg-blue-50" : "bg-white"
+                          } hover:bg-gray-50`}
                         textValue={item.title}
                       >
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">
-                            <div className={`w-2 h-2 rounded-full mt-2 ${
-                              !item.isRead ? "bg-myunila" : "bg-gray-300"
-                            }`}></div>
+                            <div className={`w-2 h-2 rounded-full mt-2 ${!item.isRead ? "bg-myunila" : "bg-gray-300"
+                              }`}></div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-gray-900 mb-1">
@@ -916,156 +954,148 @@ export default function PortalPage() {
                   )}
                   {/* Filter Button with Popover */}
                   <Popover
-                  placement="bottom-start"
-                  isOpen={isFilterOpen}
-                  onOpenChange={setIsFilterOpen}
-                  classNames={{
-                    content: "p-0 bg-white shadow-xl border border-gray-200 rounded-xl",
-                  }}
-                >
-                  <PopoverTrigger>
-                    <Button
-                      variant={hasActiveFilters ? "solid" : "bordered"}
-                      size="sm"
-                      className={
-                        hasActiveFilters
-                          ? "bg-myunila text-white border-myunila"
-                          : "border-gray-300 text-gray-600 hover:border-myunila hover:text-myunila"
-                      }
-                      startContent={<FiFilter className="w-3.5 h-3.5" />}
-                      endContent={
-                        activeFilterCount > 0 && (
-                          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-white/20">
-                            {activeFilterCount}
-                          </span>
-                        )
-                      }
-                    >
-                      Tampilkan Filter
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent>
-                    <div className="w-72 bg-white rounded-xl">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                        <h4 className="font-semibold text-gray-800">Filter Tampilan</h4>
-                        {hasActiveFilters && (
-                          <button
-                            onClick={clearFilters}
-                            className="text-xs text-red-500 hover:text-red-600 font-medium"
-                          >
-                            Reset Semua
-                          </button>
-                        )}
-                      </div>
+                    placement="bottom-start"
+                    isOpen={isFilterOpen}
+                    onOpenChange={setIsFilterOpen}
+                    classNames={{
+                      content: "p-0 bg-white shadow-xl border border-gray-200 rounded-xl",
+                    }}
+                  >
+                    <PopoverTrigger>
+                      <Button
+                        variant={hasActiveFilters ? "solid" : "bordered"}
+                        size="sm"
+                        className={
+                          hasActiveFilters
+                            ? "bg-myunila text-white border-myunila"
+                            : "border-gray-300 text-gray-600 hover:border-myunila hover:text-myunila"
+                        }
+                        startContent={<FiFilter className="w-3.5 h-3.5" />}
+                        endContent={
+                          activeFilterCount > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-white/20">
+                              {activeFilterCount}
+                            </span>
+                          )
+                        }
+                      >
+                        Tampilkan Filter
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="w-72 bg-white rounded-xl">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                          <h4 className="font-semibold text-gray-800">Filter Tampilan</h4>
+                          {hasActiveFilters && (
+                            <button
+                              onClick={clearFilters}
+                              className="text-xs text-red-500 hover:text-red-600 font-medium"
+                            >
+                              Reset Semua
+                            </button>
+                          )}
+                        </div>
 
-                      {/* Status Section */}
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</p>
-                        <div className="space-y-1">
-                          {/* Favorites */}
-                          <button
-                            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                              showFavoritesOnly ? 'bg-yellow-50 text-yellow-700' : 'hover:bg-gray-50 text-gray-700'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                              showFavoritesOnly
+                        {/* Status Section */}
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</p>
+                          <div className="space-y-1">
+                            {/* Favorites */}
+                            <button
+                              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${showFavoritesOnly ? 'bg-yellow-50 text-yellow-700' : 'hover:bg-gray-50 text-gray-700'
+                                }`}
+                            >
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${showFavoritesOnly
                                 ? 'bg-yellow-500 border-yellow-500'
                                 : 'border-gray-300 bg-white'
-                            }`}>
-                              {showFavoritesOnly && <FiCheck className="w-3 h-3 text-white" />}
-                            </div>
-                            <FiStar className={`w-4 h-4 ${showFavoritesOnly ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
-                            <span className="flex-1 text-left text-sm">Favorit</span>
-                            <span className="text-xs text-gray-400">({filterCounts.favorites})</span>
-                          </button>
+                                }`}>
+                                {showFavoritesOnly && <FiCheck className="w-3 h-3 text-white" />}
+                              </div>
+                              <FiStar className={`w-4 h-4 ${showFavoritesOnly ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                              <span className="flex-1 text-left text-sm">Favorit</span>
+                              <span className="text-xs text-gray-400">({filterCounts.favorites})</span>
+                            </button>
 
-                          {/* Coming Soon */}
-                          <button
-                            onClick={() => setShowComingSoonOnly(!showComingSoonOnly)}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                              showComingSoonOnly ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                              showComingSoonOnly
+                            {/* Coming Soon */}
+                            <button
+                              onClick={() => setShowComingSoonOnly(!showComingSoonOnly)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${showComingSoonOnly ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
+                                }`}
+                            >
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${showComingSoonOnly
                                 ? 'bg-blue-500 border-blue-500'
                                 : 'border-gray-300 bg-white'
-                            }`}>
-                              {showComingSoonOnly && <FiCheck className="w-3 h-3 text-white" />}
-                            </div>
-                            <Icon icon="heroicons:clock" className={`w-4 h-4 ${showComingSoonOnly ? 'text-blue-500' : 'text-gray-400'}`} />
-                            <span className="flex-1 text-left text-sm">Coming Soon</span>
-                            <span className="text-xs text-gray-400">({filterCounts.comingSoon})</span>
-                          </button>
+                                }`}>
+                                {showComingSoonOnly && <FiCheck className="w-3 h-3 text-white" />}
+                              </div>
+                              <Icon icon="heroicons:clock" className={`w-4 h-4 ${showComingSoonOnly ? 'text-blue-500' : 'text-gray-400'}`} />
+                              <span className="flex-1 text-left text-sm">Coming Soon</span>
+                              <span className="text-xs text-gray-400">({filterCounts.comingSoon})</span>
+                            </button>
 
-                          {/* Terintegrasi */}
-                          <button
-                            onClick={() => setShowTerintegrasiOnly(!showTerintegrasiOnly)}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                              showTerintegrasiOnly ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-700'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                              showTerintegrasiOnly
+                            {/* Terintegrasi */}
+                            <button
+                              onClick={() => setShowTerintegrasiOnly(!showTerintegrasiOnly)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${showTerintegrasiOnly ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-700'
+                                }`}
+                            >
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${showTerintegrasiOnly
                                 ? 'bg-emerald-500 border-emerald-500'
                                 : 'border-gray-300 bg-white'
-                            }`}>
-                              {showTerintegrasiOnly && <FiCheck className="w-3 h-3 text-white" />}
-                            </div>
-                            <Icon icon="heroicons:link" className={`w-4 h-4 ${showTerintegrasiOnly ? 'text-emerald-500' : 'text-gray-400'}`} />
-                            <span className="flex-1 text-left text-sm">Terintegrasi</span>
-                            <span className="text-xs text-gray-400">({filterCounts.terintegrasi})</span>
-                          </button>
+                                }`}>
+                                {showTerintegrasiOnly && <FiCheck className="w-3 h-3 text-white" />}
+                              </div>
+                              <Icon icon="heroicons:link" className={`w-4 h-4 ${showTerintegrasiOnly ? 'text-emerald-500' : 'text-gray-400'}`} />
+                              <span className="flex-1 text-left text-sm">Terintegrasi</span>
+                              <span className="text-xs text-gray-400">({filterCounts.terintegrasi})</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Category Section */}
-                      <div className="px-4 py-3">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kategori</p>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {uniqueCategories.map(kategori => {
-                            const isSelected = selectedKategoriIds.includes(kategori.id_kategori);
-                            return (
-                              <button
-                                key={kategori.id_kategori}
-                                onClick={() => toggleKategori(kategori.id_kategori)}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                                  isSelected ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-700'
-                                }`}
-                              >
-                                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                  isSelected
+                        {/* Category Section */}
+                        <div className="px-4 py-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kategori</p>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {uniqueCategories.map(kategori => {
+                              const isSelected = selectedKategoriIds.includes(kategori.id_kategori);
+                              return (
+                                <button
+                                  key={kategori.id_kategori}
+                                  onClick={() => toggleKategori(kategori.id_kategori)}
+                                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isSelected ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-700'
+                                    }`}
+                                >
+                                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected
                                     ? 'bg-purple-500 border-purple-500'
                                     : 'border-gray-300 bg-white'
-                                }`}>
-                                  {isSelected && <FiCheck className="w-3 h-3 text-white" />}
-                                </div>
-                                {kategori.icon_kategori && (
-                                  <Icon icon={kategori.icon_kategori} className={`w-4 h-4 ${isSelected ? 'text-purple-500' : 'text-gray-400'}`} />
-                                )}
-                                <span className="flex-1 text-left text-sm truncate">{kategori.nm_kategori}</span>
-                              </button>
-                            );
-                          })}
+                                    }`}>
+                                    {isSelected && <FiCheck className="w-3 h-3 text-white" />}
+                                  </div>
+                                  {kategori.icon_kategori && (
+                                    <Icon icon={kategori.icon_kategori} className={`w-4 h-4 ${isSelected ? 'text-purple-500' : 'text-gray-400'}`} />
+                                  )}
+                                  <span className="flex-1 text-left text-sm truncate">{kategori.nm_kategori}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                          <Button
+                            size="sm"
+                            className="w-full bg-myunila text-white"
+                            onClick={() => setIsFilterOpen(false)}
+                          >
+                            Terapkan Filter
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Footer */}
-                      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-                        <Button
-                          size="sm"
-                          className="w-full bg-myunila text-white"
-                          onClick={() => setIsFilterOpen(false)}
-                        >
-                          Terapkan Filter
-                        </Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
@@ -1144,14 +1174,14 @@ export default function PortalPage() {
                     {searchQuery
                       ? "Tidak ada aplikasi yang sesuai dengan pencarian"
                       : showFavoritesOnly
-                      ? "Belum ada aplikasi favorit"
-                      : showComingSoonOnly
-                      ? "Tidak ada aplikasi Coming Soon"
-                      : showTerintegrasiOnly
-                      ? "Tidak ada aplikasi terintegrasi"
-                      : selectedKategoriIds.length > 0
-                      ? "Tidak ada aplikasi dalam kategori yang dipilih"
-                      : "Tidak ada aplikasi tersedia"}
+                        ? "Belum ada aplikasi favorit"
+                        : showComingSoonOnly
+                          ? "Tidak ada aplikasi Coming Soon"
+                          : showTerintegrasiOnly
+                            ? "Tidak ada aplikasi terintegrasi"
+                            : selectedKategoriIds.length > 0
+                              ? "Tidak ada aplikasi dalam kategori yang dipilih"
+                              : "Tidak ada aplikasi tersedia"}
                   </p>
                   {hasActiveFilters && (
                     <Button
@@ -1199,13 +1229,12 @@ export default function PortalPage() {
                             <Card
                               isPressable
                               onPress={() => handleAppClick(app)}
-                              className={`bg-white hover:shadow-lg transition-all duration-300 border h-full w-full relative ${
-                                isLocked
-                                  ? 'border-gray-200'
-                                  : app.a_maintenance || app.a_coming_soon
-                                    ? 'opacity-75 border-gray-100'
-                                    : 'border-gray-100'
-                              }`}
+                              className={`bg-white hover:shadow-lg transition-all duration-300 border h-full w-full relative ${isLocked
+                                ? 'border-gray-200'
+                                : app.a_maintenance || app.a_coming_soon
+                                  ? 'opacity-75 border-gray-100'
+                                  : 'border-gray-100'
+                                }`}
                             >
                               <CardBody className="p-3 sm:p-4 flex flex-col h-full">
                                 {/* Mobile Layout */}
@@ -1290,11 +1319,10 @@ export default function PortalPage() {
                                 className="absolute top-2 right-2 sm:top-4 sm:right-4 cursor-pointer z-10 p-1 hover:bg-white/80 rounded-full transition-colors"
                               >
                                 <FiStar
-                                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
-                                    app.isFavorite
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300 hover:text-yellow-400"
-                                  }`}
+                                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${app.isFavorite
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300 hover:text-yellow-400"
+                                    }`}
                                 />
                               </div>
                             </Card>
@@ -1437,11 +1465,10 @@ export default function PortalPage() {
                         <div className="flex items-start gap-2 mb-2">
                           <Chip
                             size="sm"
-                            className={`text-xs ${
-                              announcement.isNew
-                                ? "bg-green-100 text-green-700"
-                                : "bg-orange-100 text-orange-700"
-                            }`}
+                            className={`text-xs ${announcement.isNew
+                              ? "bg-green-100 text-green-700"
+                              : "bg-orange-100 text-orange-700"
+                              }`}
                           >
                             {announcement.category}
                           </Chip>
@@ -1524,11 +1551,10 @@ export default function PortalPage() {
               clearFilters();
               setSidebarOpen(false);
             }}
-            className={`h-16 flex flex-col items-center justify-center gap-1 transition-all ${
-              activeTab === "home" && !hasActiveFilters
-                ? "text-myunila bg-blue-50"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`h-16 flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "home" && !hasActiveFilters
+              ? "text-myunila bg-blue-50"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
           >
             <FiHome className="w-5 h-5 flex-shrink-0" />
             <span className="text-xs font-medium">Beranda</span>
@@ -1541,11 +1567,10 @@ export default function PortalPage() {
               setShowFavoritesOnly(true);
               setSidebarOpen(false);
             }}
-            className={`h-16 flex flex-col items-center justify-center gap-1 transition-all relative ${
-              showFavoritesOnly
-                ? "text-myunila bg-blue-50"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`h-16 flex flex-col items-center justify-center gap-1 transition-all relative ${showFavoritesOnly
+              ? "text-myunila bg-blue-50"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
           >
             <FiStar className="w-5 h-5 flex-shrink-0" />
             <span className="text-xs font-medium">Favorit</span>
@@ -1556,11 +1581,10 @@ export default function PortalPage() {
 
           <Link href="/portal/announcements" className="flex-1">
             <button
-              className={`w-full h-16 flex flex-col items-center justify-center gap-1 transition-all ${
-                activeTab === "announcements"
-                  ? "text-myunila bg-blue-50"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`w-full h-16 flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "announcements"
+                ? "text-myunila bg-blue-50"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
             >
               <MdCampaign className="w-5 h-5 flex-shrink-0" />
               <span className="text-xs font-medium">Pengumuman</span>
@@ -1569,11 +1593,10 @@ export default function PortalPage() {
 
           <Link href="/portal/profile" className="flex-1">
             <button
-              className={`w-full h-16 flex flex-col items-center justify-center gap-1 transition-all ${
-                activeTab === "profile"
-                  ? "text-myunila bg-blue-50"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`w-full h-16 flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "profile"
+                ? "text-myunila bg-blue-50"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
             >
               <FiUser className="w-5 h-5 flex-shrink-0" />
               <span className="text-xs font-medium">Profil</span>
@@ -1616,23 +1639,20 @@ export default function PortalPage() {
                       <button
                         key={role.id_role_pengguna}
                         onClick={() => setSelectedRoleId(role.id_role_pengguna)}
-                        className={`w-full p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 text-left ${
-                          selectedRoleId === role.id_role_pengguna
-                            ? "border-myunila bg-blue-50 shadow-md"
-                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                        }`}
+                        className={`w-full p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 text-left ${selectedRoleId === role.id_role_pengguna
+                          ? "border-myunila bg-blue-50 shadow-md"
+                          : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
-                              selectedRoleId === role.id_role_pengguna ? "bg-myunila text-white" : "bg-gray-200 text-gray-600"
-                            }`}>
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${selectedRoleId === role.id_role_pengguna ? "bg-myunila text-white" : "bg-gray-200 text-gray-600"
+                              }`}>
                               <FiUser className="w-5 h-5 sm:w-6 sm:h-6" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`font-semibold text-sm sm:text-base ${
-                                selectedRoleId === role.id_role_pengguna ? "text-myunila" : "text-gray-800"
-                              }`}>
+                              <p className={`font-semibold text-sm sm:text-base ${selectedRoleId === role.id_role_pengguna ? "text-myunila" : "text-gray-800"
+                                }`}>
                                 {role.nm_peran}
                               </p>
                               <p className="text-xs text-gray-500 truncate">
