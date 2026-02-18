@@ -54,7 +54,7 @@ RUN apk del $PHPIZE_DEPS autoconf g++ make \
     && rm -rf /tmp/pear /tmp/* /var/cache/apk/*
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # Configure Composer for better network reliability
 RUN composer config -g process-timeout 600 \
