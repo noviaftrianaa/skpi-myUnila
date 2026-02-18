@@ -64,14 +64,20 @@ RUN composer config -g process-timeout 600 \
 COPY . /var/www
 
 # Install dependencies with increased timeout and retry
+# Note: composer install MUST succeed - do NOT add || true here
 RUN COMPOSER_PROCESS_TIMEOUT=600 composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --prefer-dist \
     --no-scripts \
-    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts) \
-    && composer run-script post-autoload-dump --no-interaction || true
+    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts)
+
+# Post-autoload-dump may fail on fresh install (no bootstrap/cache), so || true is OK here
+RUN composer run-script post-autoload-dump --no-interaction || true
+
+# Verify vendor was installed successfully
+RUN test -f /var/www/vendor/autoload.php || (echo "ERROR: vendor/autoload.php not found! Composer install failed." && exit 1)
 
 # Create necessary directories
 RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
