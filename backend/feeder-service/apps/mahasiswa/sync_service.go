@@ -388,7 +388,18 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 	// Step 4: Fetch GetDetailMahasiswaLulusDO (if id_jns_keluar exists)
 	var feederLulusDO *FeederMahasiswaLulusDO
 	if feederReg.IDJenisKeluar != nil && *feederReg.IDJenisKeluar != 0 {
-		feederLulusDO, _ = s.fetchDetailLulusDO(idRegPd) // Ignore error
+		feederLulusDO, err = s.fetchDetailLulusDO(idRegPd)
+		if err != nil || feederLulusDO == nil {
+			log.Printf("⚠️  [Sync %s] Failed to fetch LulusDO from Feeder API: %v, using existing DB data as fallback", npm, err)
+			// Fallback: preserve existing graduation data from database
+			existingReg, dbErr := s.repo.GetRegPdByID(ctx, idRegPd)
+			if dbErr == nil && existingReg != nil && existingReg.TglKeluar != nil {
+				feederLulusDO = buildLulusDOFromExistingRegPd(existingReg)
+				log.Printf("ℹ️  [Sync %s] Preserved existing graduation data from DB (tgl_keluar: %v)", npm, existingReg.TglKeluar)
+			} else {
+				log.Printf("⚠️  [Sync %s] No existing graduation data in DB either, graduation fields will be NULL", npm)
+			}
+		}
 	}
 
 	// Step 5: Fetch GetListPerkuliahanMahasiswa (semester activities)

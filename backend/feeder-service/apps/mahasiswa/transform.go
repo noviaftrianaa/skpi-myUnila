@@ -409,3 +409,39 @@ func IsSemesterPendek(idSemester string) bool {
 	lastChar := idSemester[len(idSemester)-1:]
 	return lastChar == "3"
 }
+
+// buildLulusDOFromExistingRegPd constructs a FeederMahasiswaLulusDO from existing
+// database RegPd data. This is used as a fallback when the Feeder API call to
+// GetDetailMahasiswaLulusDO fails, to prevent overwriting existing graduation
+// data with NULL values during the MERGE/upsert operation.
+func buildLulusDOFromExistingRegPd(reg *RegPd) *FeederMahasiswaLulusDO {
+	if reg == nil {
+		return nil
+	}
+
+	lulusDO := &FeederMahasiswaLulusDO{
+		IDJenisKeluar:       reg.IDJenisKeluar,
+		Keterangan:          reg.Keterangan,
+		NomorSKYudisium:     reg.SKYudisium,
+		IPK:                 reg.IPK,
+		NomorIjazah:         reg.NoSeriIjazah,
+		JalurSkripsi:        reg.JalurSkripsi,
+		JudulSkripsi:        reg.JudulSkripsi,
+		BlnAwalBimbingan:    reg.BlnAwalBimbingan,
+		BlnAkhirBimbingan:   reg.BlnAkhirBimbingan,
+		AsalIjazah:          reg.AsalDataIjazah,
+	}
+
+	// Convert time.Time back to string format for the DTO
+	if reg.TglKeluar != nil {
+		tglStr := reg.TglKeluar.Format("2006-01-02")
+		lulusDO.TanggalKeluar = &tglStr
+	}
+
+	if reg.TglSKYudisium != nil {
+		tglStr := reg.TglSKYudisium.Format("2006-01-02")
+		lulusDO.TanggalSKYudisium = &tglStr
+	}
+
+	return lulusDO
+}
