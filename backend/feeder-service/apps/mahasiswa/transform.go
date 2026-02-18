@@ -427,8 +427,8 @@ func buildLulusDOFromExistingRegPd(reg *RegPd) *FeederMahasiswaLulusDO {
 		NomorIjazah:         reg.NoSeriIjazah,
 		JalurSkripsi:        reg.JalurSkripsi,
 		JudulSkripsi:        reg.JudulSkripsi,
-		BlnAwalBimbingan:    reg.BlnAwalBimbingan,
-		BlnAkhirBimbingan:   reg.BlnAkhirBimbingan,
+		BulanAwalBimbingan:  reg.BlnAwalBimbingan,
+		BulanAkhirBimbingan: reg.BlnAkhirBimbingan,
 		AsalIjazah:          reg.AsalDataIjazah,
 	}
 
