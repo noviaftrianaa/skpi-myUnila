@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * SSO Radius Controller
@@ -1217,6 +1218,249 @@ class SsoRadiusController extends Controller
                 'success' => false,
                 'message' => 'Failed to get users with roles: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Create SSO user in radcheck (MySQL) then sync to man_akses (SQL Server)
+     * POST /api/live/v1/sso-radius/create
+     *
+     * Flow: validate username → create radcheck → sync man_akses.pengguna + role_pengguna
+     * If username already exists, return existing data with IDs
+     * Default password = SHA1(tanggal_lahir)
+     */
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'username' => 'required|string|max:255',
+                'nm_pengguna' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'tanggal_lahir' => 'required|date',
+                'nip' => 'nullable|string|max:255',
+                'status' => 'nullable|string|max:255',
+                'fakultas' => 'nullable|string|max:255',
+                'jurusan' => 'nullable|string|max:255',
+                'unit_kerja' => 'nullable|string|max:255',
+                'alamat' => 'nullable|string|max:255',
+                'no_telp' => 'nullable|string|max:255',
+            ]);
+
+            // Check if username already exists in radcheck
+            $existing = DB::connection('mysql')
+                ->table('radcheck')
+                ->where('username', $validated['username'])
+                ->first();
+
+            if ($existing) {
+                // User exists → return existing data with IDs
+                $pengguna = DB::connection('sqlsrv')
+                    ->table('man_akses.pengguna')
+                    ->where('username', $validated['username'])
+                    ->where('soft_delete', 0)
+                    ->first();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User already exists',
+                    'data' => [
+                        'radcheck_id' => $existing->id,
+                        'username' => $existing->username,
+                        'nm_pengguna' => $existing->nm_pengguna,
+                        'email' => $existing->email,
+                        'nip' => $existing->nip,
+                        'tanggal_lahir' => $existing->tanggal_lahir,
+                        'status' => $existing->status,
+                        'a_aktif' => $existing->a_aktif,
+                        'id_pengguna' => $pengguna->id_pengguna ?? null,
+                        'synced' => $pengguna ? true : false,
+                        'action' => 'EXISTING',
+                    ],
+                ], 200);
+            }
+
+            // Step 1: Create in radcheck (MySQL)
+            // Default password = SHA1(tanggal_lahir)
+            $passwordSha1 = sha1($validated['tanggal_lahir']);
+
+            $radcheckId = DB::connection('mysql')
+                ->table('radcheck')
+                ->insertGetId([
+                    'username' => $validated['username'],
+                    'attribute' => 'Cleartext-Password',
+                    'op' => ':=',
+                    'value' => $passwordSha1,
+                    'nm_pengguna' => $validated['nm_pengguna'],
+                    'email' => $validated['email'],
+                    'tanggal_lahir' => $validated['tanggal_lahir'],
+                    'nip' => $validated['nip'] ?? $validated['username'],
+                    'status' => $validated['status'] ?? null,
+                    'fakultas' => $validated['fakultas'] ?? null,
+                    'jurusan' => $validated['jurusan'] ?? null,
+                    'unit_kerja' => $validated['unit_kerja'] ?? null,
+                    'alamat' => $validated['alamat'] ?? null,
+                    'no_telp' => $validated['no_telp'] ?? null,
+                    'tanggal_daftar' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'soft_delete' => '0',
+                    'a_aktif' => '1',
+                ]);
+
+            // Step 2: Sync to man_akses (SQL Server)
+            // Fetch newly created user with computed domain_email
+            $newUser = DB::connection('mysql')
+                ->table('radcheck')
+                ->where('id', $radcheckId)
+                ->select(
+                    'id', 'username', 'value as password_hash',
+                    'nm_pengguna', 'email', 'tanggal_lahir', 'nip', 'status',
+                    DB::raw("SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', -1), '.', 1) AS domain_email")
+                )
+                ->first();
+
+            // Preload related data for role determination
+            $this->preloadFakultasDomains();
+            $this->preloadDataForChunk([$newUser]);
+
+            // Determine role based on email domain + PDUT verification
+            $roleData = $this->determineRole($newUser);
+
+            // Upsert man_akses.pengguna
+            $idPengguna = $this->syncPengguna($newUser, $roleData);
+
+            // Upsert man_akses.role_pengguna
+            $this->syncRolePengguna($idPengguna, $roleData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User created and synced successfully',
+                'data' => [
+                    'radcheck_id' => $radcheckId,
+                    'id_pengguna' => $idPengguna,
+                    'username' => $validated['username'],
+                    'nm_pengguna' => $validated['nm_pengguna'],
+                    'email' => $validated['email'],
+                    'nip' => $validated['nip'] ?? $validated['username'],
+                    'tanggal_lahir' => $validated['tanggal_lahir'],
+                    'role' => [
+                        'id_peran' => $roleData['id_peran'],
+                        'nm_peran' => $this->getRoleName($roleData['id_peran']),
+                        'id_organisasi' => $roleData['id_organisasi'],
+                    ],
+                    'action' => 'CREATED',
+                ],
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('SSO Radius store error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create user: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Upsert user ke man_akses.pengguna (SQL Server)
+     * Password format: password = SHA1, password_encrypt = bcrypt(SHA1)
+     */
+    private function syncPengguna(object $user, array $roleData): string
+    {
+        $existing = DB::connection('sqlsrv')
+            ->table('man_akses.pengguna')
+            ->where('username', $user->username)
+            ->where('soft_delete', 0)
+            ->first();
+
+        // Password strategy: SHA1 → bcrypt(SHA1) (same as UpdateSSOVersi2Seeder)
+        $passwordSha1 = !empty($user->password_hash) ? $user->password_hash : sha1('unilajaya');
+        $passwordBcrypt = password_hash($passwordSha1, PASSWORD_BCRYPT, ['cost' => 12]);
+
+        $userData = [
+            'username' => $user->username,
+            'nm_pengguna' => $user->nm_pengguna,
+            'email' => $user->email,
+            'tgl_lahir' => ($user->tanggal_lahir && $user->tanggal_lahir !== '0000-00-00') ? $user->tanggal_lahir : null,
+            'password' => $passwordSha1,
+            'password_encrypt' => $passwordBcrypt,
+            'id_pd_pengguna' => $roleData['id_pd_pengguna'],
+            'id_sdm_pengguna' => $roleData['id_sdm_pengguna'],
+            'id_user_sikep' => $roleData['id_user_sikep'],
+            'last_sync' => now(),
+            'last_update' => now(),
+            'id_updater' => '00000000-0000-0000-0000-000000000000',
+            'soft_delete' => 0,
+        ];
+
+        if ($existing) {
+            DB::connection('sqlsrv')
+                ->table('man_akses.pengguna')
+                ->where('id_pengguna', $existing->id_pengguna)
+                ->update($userData);
+
+            return $existing->id_pengguna;
+        }
+
+        $userId = Str::uuid()->toString();
+
+        DB::connection('sqlsrv')
+            ->table('man_akses.pengguna')
+            ->insert(array_merge($userData, [
+                'id_pengguna' => $userId,
+                'jenis_kelamin' => 'L',
+                'approval_pengguna' => 1,
+                'a_aktif' => 1,
+                'disable' => 0,
+                'tgl_create' => now(),
+            ]));
+
+        return $userId;
+    }
+
+    /**
+     * Upsert role ke man_akses.role_pengguna (SQL Server)
+     */
+    private function syncRolePengguna(string $userId, array $roleData): void
+    {
+        $existing = DB::connection('sqlsrv')
+            ->table('man_akses.role_pengguna')
+            ->where('id_pengguna', $userId)
+            ->where('id_peran', $roleData['id_peran'])
+            ->where('soft_delete', 0)
+            ->first();
+
+        $roleAttributes = [
+            'id_peran' => $roleData['id_peran'],
+            'id_organisasi' => $roleData['id_organisasi'],
+            'last_sync' => now(),
+            'last_update' => now(),
+            'id_updater' => $userId,
+            'soft_delete' => 0,
+        ];
+
+        if ($existing) {
+            DB::connection('sqlsrv')
+                ->table('man_akses.role_pengguna')
+                ->where('id_role_pengguna', $existing->id_role_pengguna)
+                ->update($roleAttributes);
+        } else {
+            DB::connection('sqlsrv')
+                ->table('man_akses.role_pengguna')
+                ->insert(array_merge($roleAttributes, [
+                    'id_role_pengguna' => Str::uuid()->toString(),
+                    'id_pengguna' => $userId,
+                    'approval_peran' => 1,
+                    'tgl_create' => now(),
+                    'last_active' => now(),
+                ]));
         }
     }
 }
