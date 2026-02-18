@@ -76,6 +76,11 @@
         }
     },
     "config": {
+        "audit": {
+            "ignore": {
+                "PKSA-y2cr-5h3j-g3ys": "Acknowledged - JWT used internally with controlled keys"
+            }
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
