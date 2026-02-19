@@ -251,7 +251,7 @@ func transformRegPd(
 
 	// Lulus/DO data (if available)
 	if lulusDOData != nil {
-		reg.IDJenisKeluar = lulusDOData.IDJenisKeluar
+		reg.IDJenisKeluar = flexibleIntToInt(lulusDOData.IDJenisKeluar)
 
 		if lulusDOData.TanggalKeluar != nil {
 			if tgl, err := parseDate(*lulusDOData.TanggalKeluar); err == nil {
@@ -268,13 +268,17 @@ func transformRegPd(
 			}
 		}
 
-		reg.IPK = lulusDOData.IPK
+		// Convert FlexibleFloat IPK to *float64
+		if lulusDOData.IPK != nil {
+			val := float64(*lulusDOData.IPK)
+			reg.IPK = &val
+		}
 		reg.NoSeriIjazah = lulusDOData.NomorIjazah
-		reg.JalurSkripsi = lulusDOData.JalurSkripsi
+		reg.JalurSkripsi = flexibleIntToInt(lulusDOData.JalurSkripsi)
 		reg.JudulSkripsi = lulusDOData.JudulSkripsi
 		reg.BlnAwalBimbingan = lulusDOData.BulanAwalBimbingan
 		reg.BlnAkhirBimbingan = lulusDOData.BulanAkhirBimbingan
-		reg.AsalDataIjazah = lulusDOData.AsalIjazah
+		reg.AsalDataIjazah = flexibleIntToInt(lulusDOData.AsalIjazah)
 	}
 
 	return reg
@@ -419,17 +423,38 @@ func buildLulusDOFromExistingRegPd(reg *RegPd) *FeederMahasiswaLulusDO {
 		return nil
 	}
 
+	// Convert *int to *FlexibleInt and *float64 to *FlexibleFloat
+	var fiIDJenisKeluar, fiJalurSkripsi, fiAsalIjazah *FlexibleInt
+	var ffIPK *FlexibleFloat
+
+	if reg.IDJenisKeluar != nil {
+		val := FlexibleInt(*reg.IDJenisKeluar)
+		fiIDJenisKeluar = &val
+	}
+	if reg.JalurSkripsi != nil {
+		val := FlexibleInt(*reg.JalurSkripsi)
+		fiJalurSkripsi = &val
+	}
+	if reg.AsalDataIjazah != nil {
+		val := FlexibleInt(*reg.AsalDataIjazah)
+		fiAsalIjazah = &val
+	}
+	if reg.IPK != nil {
+		val := FlexibleFloat(*reg.IPK)
+		ffIPK = &val
+	}
+
 	lulusDO := &FeederMahasiswaLulusDO{
-		IDJenisKeluar:       reg.IDJenisKeluar,
+		IDJenisKeluar:       fiIDJenisKeluar,
 		Keterangan:          reg.Keterangan,
 		NomorSKYudisium:     reg.SKYudisium,
-		IPK:                 reg.IPK,
+		IPK:                 ffIPK,
 		NomorIjazah:         reg.NoSeriIjazah,
-		JalurSkripsi:        reg.JalurSkripsi,
+		JalurSkripsi:        fiJalurSkripsi,
 		JudulSkripsi:        reg.JudulSkripsi,
 		BulanAwalBimbingan:  reg.BlnAwalBimbingan,
 		BulanAkhirBimbingan: reg.BlnAkhirBimbingan,
-		AsalIjazah:          reg.AsalDataIjazah,
+		AsalIjazah:          fiAsalIjazah,
 	}
 
 	// Convert time.Time back to string format for the DTO
