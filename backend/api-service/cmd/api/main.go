@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/diklat"
+	"github.com/myunila/api-service/apps/pdrd"
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
 	"github.com/myunila/api-service/external/database"
@@ -170,6 +171,9 @@ func main() {
 	// Initialize Diklat module (protected - dengan JWT auth middleware)
 	diklat.RegisterRoutes(apiV1, db, redis.Client)
 	log.Println("✅ Diklat module initialized")
+
+	pdrd.RegisterRoutes(apiV1, db, redis.Client)
+	log.Println("✅ PDRD module initialized")
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)

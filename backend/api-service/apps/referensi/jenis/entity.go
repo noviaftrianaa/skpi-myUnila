@@ -3,8 +3,8 @@ package jenis
 import (
 	"time"
 
-	parse "github.com/myunila/api-service/apps/referensi/types"
 	"github.com/myunila/api-service/internal/types"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/shopspring/decimal"
 )
 
@@ -304,10 +304,10 @@ type JenisTunjangan struct {
 }
 
 type JenisUnit struct {
-	IDSms                  parse.UUID           `db:"id_sms" json:"id_sms"`
-	IDFakUnila             parse.NullUUID       `db:"id_fak_unila" json:"id_fak_unila"`
+	IDSms                  utils.UUID           `db:"id_sms" json:"id_sms"`
+	IDFakUnila             utils.NullUUID       `db:"id_fak_unila" json:"id_fak_unila"`
 	IDLembNonSP            *string              `db:"id_lemb_non_sp" json:"id_lemb_non_sp"`
-	IDJurUnila             parse.NullUUID       `db:"id_jur_unila" json:"id_jur_unila"`
+	IDJurUnila             utils.NullUUID       `db:"id_jur_unila" json:"id_jur_unila"`
 	IDJur                  *string              `db:"id_jur" json:"id_jur"`
 	NmJur                  *string              `db:"nm_jur" json:"nm_jur"`
 	IDJenjDidik            string               `db:"id_jenj_didik" json:"id_jenj_didik"`
@@ -360,7 +360,7 @@ type JenisUnit struct {
 	FungsiSelainPrak       *string              `db:"fungsi_selain_prak" json:"fungsi_selain_prak"`
 	PenggunaanLab          *string              `db:"penggunaan_lab" json:"penggunaan_lab"`
 	APkl                   *int                 `db:"a_pkl" json:"a_pkl"`
-	IDSp                   parse.UUID           `db:"id_sp" json:"id_sp"`
+	IDSp                   utils.UUID           `db:"id_sp" json:"id_sp"`
 	IDJnsSms               int                  `db:"id_jns_sms" json:"id_jns_sms"`
 	NmJnsSms               string               `db:"nm_jns_sms" json:"nm_jns_sms"`
 	IDFungsiLab            string               `db:"id_fungsi_lab" json:"id_fungsi_lab"`
@@ -370,11 +370,11 @@ type JenisUnit struct {
 	IDBlob                 *string              `db:"id_blob" json:"id_blob"`
 	IDWil                  string               `db:"id_wil" json:"id_wil"`
 	NmWil                  string               `db:"nm_wil" json:"nm_wil"`
-	IDIndukSms             parse.NullUUID       `db:"id_induk_sms" json:"id_induk_sms"`
+	IDIndukSms             utils.NullUUID       `db:"id_induk_sms" json:"id_induk_sms"`
 	CreateDate             types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
-	IDCreator              parse.UUID           `db:"id_creator" json:"-"`
+	IDCreator              utils.UUID           `db:"id_creator" json:"-"`
 	LastUpdate             types.SQLServerTime  `db:"last_update" json:"-"`
-	IDUpdater              *parse.NullUUID      `db:"id_updater" json:"-"`
+	IDUpdater              *utils.NullUUID      `db:"id_updater" json:"-"`
 	SoftDelete             int                  `db:"soft_delete" json:"-"`
 	LastSync               types.SQLServerTime  `db:"last_sync" json:"last_sync"`
 }
