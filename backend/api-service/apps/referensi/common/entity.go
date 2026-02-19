@@ -3,8 +3,8 @@ package common
 import (
 	"time"
 
-	parse "github.com/myunila/api-service/apps/referensi/types"
 	"github.com/myunila/api-service/internal/types"
+	"github.com/myunila/api-service/pkg/utils"
 )
 
 // Semester adalah entity dari tabel ref.semester
@@ -139,7 +139,7 @@ type Jurusan struct {
 	IdIndukJurusan  *string             `db:"id_induk_jurusan" json:"id_induk_jurusan"`
 	IDJenjDidik     int                 `db:"id_jenj_didik" json:"id_jenj_didik"`
 	NMJenjDidik     string              `db:"nm_jenj_didik" json:"nm_jenj_didik"`
-	IDKelBidang     parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDKelBidang     utils.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
 	NmKelBidang     string              `db:"nm_kel_bidang" json:"nm_kel_bidang"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate      types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
@@ -192,12 +192,12 @@ type LevelWilayah struct {
 }
 
 type MediaPublikasi struct {
-	IDMediaPub     parse.UUID          `db:"id_media_pub" json:"id_media_pub"`
+	IDMediaPub     utils.UUID          `db:"id_media_pub" json:"id_media_pub"`
 	IDJnsMedia     int                 `db:"id_jns_media" json:"id_jns_media"`
 	NmJnsMedia     string              `db:"nm_jns_media" json:"nm_jns_media"`
-	IDKelBidang    parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDKelBidang    utils.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
 	NmKelBidang    string              `db:"nm_kel_bidang" json:"nm_kel_bidang"`
-	IDSp           parse.NullUUID      `db:"id_sp" json:"id_sp"`
+	IDSp           utils.NullUUID      `db:"id_sp" json:"id_sp"`
 	NmLemb         *string             `db:"nm_lemb" json:"nm_lemb"`
 	IDNegara       string              `db:"id_negara" json:"id_negara"`
 	NmNegara       string              `db:"nm_negara" json:"nm_negara"`
@@ -282,7 +282,7 @@ type Tse struct {
 }
 
 type SkimKegiatan struct {
-	IDSkim               parse.UUID          `db:"id_skim" json:"id_skim"`
+	IDSkim               utils.UUID          `db:"id_skim" json:"id_skim"`
 	IDJenjDidik          *int                `db:"id_jenj_didik" json:"id_jenj_didik"`
 	NmJenjDidik          *string             `db:"nm_jenj_didik" json:"nm_jenj_didik"`
 	NmSkim               string              `db:"nm_skim" json:"nm_skim"`
