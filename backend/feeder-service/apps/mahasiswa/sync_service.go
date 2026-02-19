@@ -603,22 +603,34 @@ func (s *service) fetchRiwayatPendidikanDetail(idRegPd string) (*FeederRiwayatPe
 }
 
 // Helper: fetchDetailLulusDO fetches graduate/dropout data
+// Neo Feeder API "GetDetail" may return a single object OR an array,
+// so we handle both formats to prevent unmarshaling errors.
 func (s *service) fetchDetailLulusDO(idRegPd string) (*FeederMahasiswaLulusDO, error) {
 	rawData, err := s.feederAPI.GetDetailMahasiswaLulusDO(idRegPd)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(rawData) == 0 {
+		return nil, nil
+	}
+
+	// Try parsing as array first (GetList style response)
 	var lulusList []*FeederMahasiswaLulusDO
-	if err := json.Unmarshal(rawData, &lulusList); err != nil {
-		return nil, err
+	if err := json.Unmarshal(rawData, &lulusList); err == nil {
+		if len(lulusList) == 0 {
+			return nil, nil
+		}
+		return lulusList[0], nil
 	}
 
-	if len(lulusList) == 0 {
-		return nil, nil // Not lulus/DO yet, return nil
+	// Fallback: try parsing as single object (GetDetail style response)
+	var lulusSingle FeederMahasiswaLulusDO
+	if err := json.Unmarshal(rawData, &lulusSingle); err != nil {
+		return nil, fmt.Errorf("failed to parse LulusDO response (tried array and object): %w, raw: %s", err, string(rawData[:min(len(rawData), 200)]))
 	}
 
-	return lulusList[0], nil
+	return &lulusSingle, nil
 }
 
 // Helper: fetchPerkuliahanMahasiswa fetches semester activity data
