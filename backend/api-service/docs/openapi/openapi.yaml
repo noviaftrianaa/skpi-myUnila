@@ -25,6 +25,8 @@ tags:
     description: Autentikasi dan manajemen token
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah)
+  - name: PDRD
+    description: Data peserta didik (mahasiswa) dan registrasi pendidikan
   - name: System
     description: System endpoints
 
@@ -274,6 +276,16 @@ paths:
   # ==========================================================================
   /health:
     $ref: './paths/system.yaml#/health'
+
+  # ==========================================================================
+  # PDRD ENDPOINTS
+  # ==========================================================================
+  /v1/pdrd/peserta_didik:
+    $ref: './paths/pdrd.yaml#/peserta-didik'
+  /v1/pdrd/peserta_didik_detail:
+    $ref: './paths/pdrd.yaml#/peserta-didik-detail'
+  /v1/pdrd/reg_pd:
+    $ref: './paths/pdrd.yaml#/reg-pd'
 
 components:
   schemas:

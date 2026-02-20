@@ -8,24 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/pdrd/helper"
 	"github.com/myunila/api-service/apps/pdrd/types"
-	internaltypes "github.com/myunila/api-service/internal/types"
-	"github.com/myunila/api-service/pkg/utils"
 )
-
-// KuliahMhs adalah struct untuk data semester keaktifan (pdrd.kuliah_mhs)
-type KuliahMhs struct {
-	IDRegPd      utils.UUID                  `db:"id_reg_pd"     json:"id_reg_pd"`
-	IDSmt        string                      `db:"id_smt"        json:"id_smt"`
-	IDPembiayaan *int                        `db:"id_pembiayaan" json:"id_pembiayaan"`
-	IDStatMhs    *string                     `db:"id_stat_mhs"   json:"id_stat_mhs"`
-	Ips          *float64                    `db:"ips"           json:"ips"`
-	SksSemester  *float64                    `db:"sks_semester"  json:"sks_semester"`
-	Ipk          *float64                    `db:"ipk"           json:"ipk"`
-	TotalSks     *float64                    `db:"total_sks"     json:"total_sks"`
-	BiayaSmt     *float64                    `db:"biaya_smt"     json:"biaya_smt"`
-	CreateDate   internaltypes.SQLServerTime `db:"create_date"   json:"waktu_ditambahkan"`
-	LastUpdate   internaltypes.SQLServerTime `db:"last_update"   json:"terakhir_diubah"`
-}
 
 // Repository adalah interface untuk akses data mahasiswa/peserta didik
 type Repository interface {
