@@ -1,0 +1,330 @@
+# PDRD (Peserta Didik) API Paths
+
+# =============================================================================
+# PESERTA DIDIK
+# =============================================================================
+
+peserta-didik:
+  get:
+    tags:
+      - PDRD
+    summary: Get daftar peserta didik
+    description: |
+      Mengambil daftar peserta didik dengan pagination dan pencarian.
+      Data diambil langsung dari tabel `pdrd.peserta_didik` tanpa join lookup.
+      Memerlukan autentikasi JWT.
+    operationId: getPesertaDidik
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data peserta didik
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/PesertaDidik'
+            example:
+              success: true
+              message: Berhasil mengambil data mahasiswa
+              data:
+                - id_pd: "550e8400-e29b-41d4-a716-446655440000"
+                  nm_pd: "Budi Santoso"
+                  jk: "L"
+                  nik: "1801012501990001"
+                  tgl_lahir: "1999-01-25T00:00:00Z"
+                  id_stat_mhs: "A"
+                  id_agama: 1
+                  id_kewarganegaraan: "ID"
+              meta:
+                page: 1
+                limit: 20
+                total: 150
+                total_pages: 8
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'
+
+peserta-didik-detail:
+  get:
+    tags:
+      - PDRD
+    summary: Get daftar peserta didik dengan detail lookup
+    description: |
+      Mengambil daftar peserta didik beserta nama-nama dari tabel lookup (referensi).
+      Melakukan JOIN ke tabel:
+      - `ref.wilayah` → `nm_wil`
+      - `ref.status_mahasiswa` → `nm_stat_mhs`
+      - `ref.jenis_tinggal` → `nm_jns_tinggal`
+      - `ref.agama` → `nm_agama`
+      - `ref.kebutuhan_khusus` (3x alias: kk, kk_ibu, kk_ayah) → `nm_kk`, `nm_kk_ibu`, `nm_kk_ayah`
+      - `ref.penghasilan` (3x alias: wali, ibu, ayah) → `nm_penghasilan_wali`, `nm_penghasilan_ibu`, `nm_penghasilan_ayah`
+
+      Memerlukan autentikasi JWT.
+    operationId: getPesertaDidikDetail
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_pd
+        in: query
+        description: Filter berdasarkan ID peserta didik (UUID)
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      - name: id_stat_mhs
+        in: query
+        description: Filter berdasarkan ID status mahasiswa
+        schema:
+          type: string
+          example: "A"
+      - name: id_agama
+        in: query
+        description: Filter berdasarkan ID agama
+        schema:
+          type: string
+          example: "1"
+      - name: id_wil
+        in: query
+        description: Filter berdasarkan ID wilayah
+        schema:
+          type: string
+          example: "180000"
+      - name: id_jns_tinggal
+        in: query
+        description: Filter berdasarkan ID jenis tinggal
+        schema:
+          type: string
+          example: "1"
+      - name: id_kk
+        in: query
+        description: Filter berdasarkan ID kebutuhan khusus mahasiswa
+        schema:
+          type: string
+          example: "0"
+      - name: id_kk_ibu
+        in: query
+        description: Filter berdasarkan ID kebutuhan khusus ibu
+        schema:
+          type: string
+          example: "0"
+      - name: id_kk_ayah
+        in: query
+        description: Filter berdasarkan ID kebutuhan khusus ayah
+        schema:
+          type: string
+          example: "0"
+      - name: id_alat_transport
+        in: query
+        description: Filter berdasarkan ID alat transportasi
+        schema:
+          type: string
+          example: "1"
+      - name: id_kewarganegaraan
+        in: query
+        description: Filter berdasarkan ID kewarganegaraan
+        schema:
+          type: string
+          example: "ID"
+    responses:
+      '200':
+        description: Berhasil mengambil data peserta didik dengan detail lookup
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/PesertaDidikDetail'
+            example:
+              success: true
+              message: Berhasil mengambil data peserta didik
+              data:
+                - id_pd: "550e8400-e29b-41d4-a716-446655440000"
+                  nm_pd: "Budi Santoso"
+                  jk: "L"
+                  id_stat_mhs: "A"
+                  nm_stat_mhs: "Aktif"
+                  id_agama: 1
+                  nm_agama: "Islam"
+                  id_wil: "180000"
+                  nm_wil: "Lampung"
+                  id_jns_tinggal: 1
+                  nm_jns_tinggal: "Kos/Kontrak"
+                  nm_penghasilan_ayah: "Rp. 1.000.000 - Rp. 2.000.000"
+                  nm_penghasilan_ibu: null
+                  nm_penghasilan_wali: null
+                  nm_kk: "Tidak Ada"
+                  nm_kk_ibu: null
+                  nm_kk_ayah: null
+              meta:
+                page: 1
+                limit: 20
+                total: 150
+                total_pages: 8
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'
+
+# =============================================================================
+# REG PD
+# =============================================================================
+
+reg-pd:
+  get:
+    tags:
+      - PDRD
+    summary: Get data registrasi peserta didik
+    description: |
+      Mengambil data registrasi peserta didik (`reg_pd`) beserta data peserta didik
+      dan nama lookup dari tabel referensi. Melakukan JOIN ke tabel:
+      - `pdrd.peserta_didik` → data lengkap mahasiswa
+      - `ref.wilayah`, `ref.status_mahasiswa`, `ref.jenis_tinggal`, `ref.agama`,
+        `ref.kebutuhan_khusus` (×3), `ref.penghasilan` (×3)
+      - `pdrd.satuan_pendidikan` → `nm_lemb`
+      - `pdrd.sms` → `nm_lemb_sms`
+      - `ref.jenis_pendaftaran` → `nm_jns_daftar`
+      - `ref.jalur_daftar` → `nm_jalur_daftar`
+      - `ref.pembiayaan` → `nm_pembiayaan`
+      - `ref.semester` → `nm_smt`
+
+      Parameter `id_reg_pd` **wajib** diisi. Memerlukan autentikasi JWT.
+    operationId: getRegPd
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_reg_pd
+        in: query
+        required: true
+        description: ID registrasi peserta didik (UUID)
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      - name: id_sp
+        in: query
+        description: Filter berdasarkan ID satuan pendidikan (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_sms
+        in: query
+        description: Filter berdasarkan ID satuan manajemen studi (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_pd
+        in: query
+        description: Filter berdasarkan ID peserta didik (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_jns_daftar
+        in: query
+        description: Filter berdasarkan ID jenis pendaftaran
+        schema:
+          type: integer
+          example: 1
+      - name: id_jalur_daftar
+        in: query
+        description: Filter berdasarkan ID jalur pendaftaran
+        schema:
+          type: integer
+          example: 1
+      - name: id_pembiayaan
+        in: query
+        description: Filter berdasarkan ID pembiayaan
+        schema:
+          type: integer
+          example: 1
+      - name: id_smt
+        in: query
+        description: Filter berdasarkan ID semester
+        schema:
+          type: integer
+          example: 20241
+      - name: id_pt_asal
+        in: query
+        description: Filter berdasarkan ID perguruan tinggi asal (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_prodi_asal
+        in: query
+        description: Filter berdasarkan ID program studi asal (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_jns_keluar
+        in: query
+        description: Filter berdasarkan ID jenis keluar
+        schema:
+          type: string
+          example: "1"
+    responses:
+      '200':
+        description: Berhasil mengambil data registrasi peserta didik
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/RegPd'
+            example:
+              success: true
+              message: Berhasil mengambil data registrasi peserta didik
+              data:
+                - id_reg_pd: "550e8400-e29b-41d4-a716-446655440001"
+                  id_sp: "550e8400-e29b-41d4-a716-446655440002"
+                  nm_lemb: "Universitas Lampung"
+                  id_pd: "550e8400-e29b-41d4-a716-446655440000"
+                  nm_pd: "Budi Santoso"
+                  nipd: "2017011001"
+                  id_jns_daftar: 1
+                  nm_jns_daftar: "Baru"
+                  nm_pembiayaan: "Mandiri"
+                  nm_stat_mhs: "Aktif"
+              meta:
+                page: 1
+                limit: 20
+                total: 1
+                total_pages: 1
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'
