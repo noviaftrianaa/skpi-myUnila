@@ -39,7 +39,7 @@ type PesertaDidik struct {
 	IDPenghasilanAyah *int                 `db:"id_penghasilan_ayah" json:"id_penghasilan_ayah"`
 	IDKkAyah          *int                 `db:"id_kk_ayah" json:"id_kk_ayah"`
 	NmIbuKandung      *string              `db:"nm_ibu_kandung" json:"nm_ibu_kandung"`
-	TglLahitIbu       *types.SQLServerTime `db:"tgl_lahir_ibu" json:"tgl_lahir_ibu"`
+	TglLahirIbu       *types.SQLServerTime `db:"tgl_lahir_ibu" json:"tgl_lahir_ibu"`
 	NikIbu            *string              `db:"nik_ibu" json:"nik_ibu"`
 	IDPendidikanIbu   *int                 `db:"id_pendidikan_ibu" json:"id_pendidikan_ibu"`
 	IDPekerjaanIbu    *int                 `db:"id_pekerjaan_ibu" json:"id_pekerjaan_ibu"`
