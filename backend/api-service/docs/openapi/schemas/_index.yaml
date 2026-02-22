@@ -33,3 +33,11 @@ Agama:
   $ref: './referensi.yaml#/Agama'
 Wilayah:
   $ref: './referensi.yaml#/Wilayah'
+
+# PDRD Schemas
+PesertaDidik:
+  $ref: './pdrd.yaml#/PesertaDidik'
+PesertaDidikDetail:
+  $ref: './pdrd.yaml#/PesertaDidikDetail'
+RegPd:
+  $ref: './pdrd.yaml#/RegPd'

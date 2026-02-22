@@ -133,44 +133,83 @@ func (r *repository) GetJenisBahanAjar(ctx context.Context, params types.Paginat
 // ============================================================================
 
 func (r *repository) GetJenisBeasiswa(ctx context.Context, params types.JenisBeasiswaParams) ([]JenisBeasiswa, int64, error) {
+	params.NormalizePagination()
+
 	cb := helper.NewCondBuilder()
-	cb.AppendInt("id_sumber_dana", params.IDSumberDana)
-	cb.AppendInt("u_pd", params.UPd)
-	cb.AppendInt("u_ptk", params.UPtk)
-	cb.AppendInt("u_non_ca", params.UNonCa)
-	cb.AppendInt("kat_beasiswa", params.KatBeasiswa)
-	cb.Like("nm_jns_beasiswa", params.Search)
+	cb.AppendInt("jb.id_sumber_dana", params.IDSumberDana)
+	cb.AppendInt("jb.u_pd", params.UPd)
+	cb.AppendInt("jb.u_ptk", params.UPtk)
+	cb.AppendInt("jb.u_non_ca", params.UNonCa)
+	cb.AppendInt("jb.kat_beasiswa", params.KatBeasiswa)
+	cb.Like("jb.nm_jns_beasiswa", params.Search)
 
 	conds, args := cb.Build()
+	conds = append(conds, "jb.expired_date IS NULL")
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.jenis_beasiswa",
-			Select:      "id_jns_beasiswa, id_sumber_dana, nm_jns_beasiswa, u_pd, u_ptk, u_non_ca, kat_beasiswa, create_date, last_update, expired_date",
-			DefaultSort: "id_jns_beasiswa",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (JenisBeasiswa, error) {
-			var j JenisBeasiswa
-			err := rows.Scan(
-				&j.IDJnsBeasiswa,
-				&j.IDSumberDana,
-				&j.NmJnsBeasiswa,
-				&j.UPd,
-				&j.UPtk,
-				&j.UNonCa,
-				&j.KatBeasiswa,
-				&j.CreateDate,
-				&j.LastUpdate,
-				&j.ExpiredDate,
-			)
-			return j, err
-		},
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.jenis_beasiswa jb
+		LEFT JOIN ref.sumber_dana sd ON sd.id_sumber_dana = jb.id_sumber_dana
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "jb.id_jns_beasiswa"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			jb.id_jns_beasiswa, jb.id_sumber_dana, jb.nm_jns_beasiswa, jb.u_pd, jb.u_ptk, jb.u_non_ca, jb.kat_beasiswa, jb.create_date, jb.last_update, jb.expired_date, sd.nm_sumber_dana
+		FROM ref.jenis_beasiswa jb
+		LEFT JOIN ref.sumber_dana sd ON sd.id_sumber_dana = jb.id_sumber_dana
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []JenisBeasiswa
+	for rows.Next() {
+		var s JenisBeasiswa
+		if err := rows.StructScan(&s); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -1202,26 +1241,28 @@ func (r *repository) GetJenisTunjangan(ctx context.Context, params types.Paginat
 // Jenis Unit
 // ============================================================================
 
+// jurusan, jenjang pendidikan, jns sms, fungsi lab, kelompok usaha, wilayah,
+
 func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitParams) ([]JenisUnit, int64, error) {
 	// Normalize pagination params
 	params.NormalizePagination()
 
 	// Build conditions using CondBuilder
 	cb := helper.NewCondBuilder()
-	cb.AppendUUID("id_fak_unila", params.IDFakUnila)
-	cb.AppendUUID("id_lemb_non_sp", params.IDLembNonSP)
-	cb.AppendUUID("id_jur_unila", params.IDJurUnila)
-	cb.AppendUUID("id_jur", params.IDJur)
-	cb.AppendUUID("id_jenj_didik", params.IDJenjDidik)
-	cb.AppendUUID("id_sp", params.IDSp)
-	cb.AppendUUID("id_blob", params.IDBlob)
-	cb.AppendUUID("id_wil", params.IDWil)
-	cb.AppendUUID("id_induk_sms", params.IDIndukSms)
-	cb.AppendUUID("id_creator", params.IDCreator)
-	cb.AppendUUID("id_updater", params.IDUpdater)
-	cb.AppendInt("id_jns_sms", params.IDJnsSms)
-	cb.AppendString("id_fungsi_lab", params.IDFungsiLab)
-	cb.AppendString("id_kel_usaha", params.IDKelUsaha)
+	cb.AppendUUID("sm.id_fak_unila", params.IDFakUnila)
+	cb.AppendUUID("sm.id_lemb_non_sp", params.IDLembNonSP)
+	cb.AppendUUID("sm.id_jur_unila", params.IDJurUnila)
+	cb.AppendUUID("sm.id_jur", params.IDJur)
+	cb.AppendUUID("sm.id_jenj_didik", params.IDJenjDidik)
+	cb.AppendUUID("sm.id_sp", params.IDSp)
+	cb.AppendUUID("sm.id_blob", params.IDBlob)
+	cb.AppendUUID("sm.id_wil", params.IDWil)
+	cb.AppendUUID("sm.id_induk_sm", params.IDIndukSms)
+	cb.AppendInt("sm.id_jns_sms", params.IDJnsSms)
+	cb.AppendString("sm.id_fungsi_lab", params.IDFungsiLab)
+	cb.AppendString("sm.id_kel_usaha", params.IDKelUsaha)
+
+	cb.Like("sm.nm_lemb", params.Search)
 
 	conds, args := cb.Build()
 
@@ -1235,7 +1276,7 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	}
 
 	// COUNT query
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sms WHERE %s", whereClause)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jur = sm.id_jur LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sm.id_jenj_didik LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kel_usaha = sm.id_kel_usaha LEFT JOIN ref.wilayah w ON w.id_wil = sm.id_wil WHERE %s", whereClause)
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
@@ -1243,7 +1284,7 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	}
 
 	// Determine sort column
-	sortBy := "create_date"
+	sortBy := "sm.create_date"
 	if params.SortBy != "" {
 		sortBy = params.SortBy
 	}
@@ -1251,18 +1292,18 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 	// Main SELECT query with pagination
 	query := fmt.Sprintf(`
 		SELECT 
-			id_sms, id_fak_unila, id_lemb_non_sp, id_jur_unila, id_jur, id_jenj_didik, 
-			kd_kl, kd_satker, smt_mulai, a_selenggara_subst, stat_prodi_unila, tgl_tutup, 
-			kode_snpmb, kode_prodi, nm_prodi_english, kpst_pd, sks_lulus, gelar_lulusan, 
-			stat_prodi, polesei_nilai, a_kependidikan, jln, rt, rw, nm_dsn, ds_kel, kode_pos, 
-			lintang, bujur, no_tel, no_fax, email, website, singkatan, tgl_berdiri, 
-			sk_selenggara, tgl_sk_selenggara, tmt_sk_selenggara, tst_sk_selenggara, 
-			sistem_ajar, a_pjj, a_psdku, luas_lab, kapasitas_prak_satu_shift, jml_mhs_pengguna, 
-			jml_jam_penggunaan, jml_prodi_pengguna, jml_modul_prak_sendiri, jml_modul_prak_lain, 
-			fungsi_selain_prak, penggunaan_lab, a_pkl, id_sp, id_jns_sms, id_fungsi_lab, 
-			id_kel_usaha, id_blob, id_wil, id_induk_sms, create_date, id_creator, last_update, 
-			id_updater, soft_delete, last_sync
-		FROM pdrd.sms
+			sm.id_sms, sm.id_fak_unila, sm.id_lemb_non_sp, sm.id_jur_unila, sm.id_jur, sm.id_jenj_didik, sm.nm_lemb,
+			sm.kd_kl, sm.kd_satker, sm.smt_mulai, sm.a_selenggara_subst, sm.stat_prodi_unila, sm.tgl_tutup, 
+			sm.kode_snpmb, sm.kode_prodi, sm.nm_prodi_english, sm.kpst_pd, sm.sks_lulus, sm.gelar_lulusan, 
+			sm.stat_prodi, sm.polesei_nilai, sm.a_kependidikan, sm.jln, sm.rt, sm.rw, sm.nm_dsn, sm.ds_kel, sm.kode_pos, 
+			sm.lintang, sm.bujur, sm.no_tel, sm.no_fax, sm.email, sm.website, sm.singkatan, sm.tgl_berdiri, 
+			sm.sk_selenggara, sm.tgl_sk_selenggara, sm.tmt_sk_selenggara, sm.tst_sk_selenggara, 
+			sm.sistem_ajar, sm.a_pjj, sm.a_psdku, sm.luas_lab, sm.kapasitas_prak_satu_shift, sm.jml_mhs_pengguna, 
+			sm.jml_jam_penggunaan, sm.jml_prodi_pengguna, sm.jml_modul_prak_sendiri, sm.jml_modul_prak_lain, 
+			sm.fungsi_selain_prak, sm.penggunaan_lab, sm.a_pkl, sm.id_sp, sm.id_jns_sms, sm.id_fungsi_lab, 
+			sm.id_kel_usaha, sm.id_blob, sm.id_wil, sm.id_induk_sms, sm.create_date, sm.id_creator, sm.last_update, 
+			sm.id_updater, sm.soft_delete, sm.last_sync, j.nm_jur, jp.nm_jenj_didik, js.nm_jns_sms, fl.nm_fungsi_lab, ku.nm_kel_usaha, w.nm_wil
+		FROM pdrd.sms sm LEFT JOIN ref.jurusan j ON j.id_jur = sm.id_jur LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = sm.id_jenj_didik LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = sm.id_jns_sms LEFT JOIN ref.fungsi_lab fl ON fl.id_fungsi_lab = sm.id_fungsi_lab LEFT JOIN ref.kelompok_usaha ku ON ku.id_kel_usaha = sm.id_kel_usaha LEFT JOIN ref.wilayah w ON w.id_wil = sm.id_wil 
 		WHERE %s
 		ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
@@ -1273,88 +1314,19 @@ func (r *repository) GetJenisUnit(ctx context.Context, params types.JenisUnitPar
 		len(args)+2,
 	)
 
-	// Add pagination args
 	args = append(args, params.Offset(), params.Limit)
 
-	// Execute query
-	rows, err := r.db.QueryContext(ctx, query, args...)
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 
-	// Scan results
 	var result []JenisUnit
 	for rows.Next() {
 		var j JenisUnit
-		err := rows.Scan(
-			&j.IDSms,
-			&j.IDFakUnila,
-			&j.IDLembNonSP,
-			&j.IDJurUnila,
-			&j.IDJur,
-			&j.IDJenjDidik,
-			&j.KdKl,
-			&j.KdSatker,
-			&j.SmtMulai,
-			&j.ASelenggaraSubst,
-			&j.StatProdiUnila,
-			&j.TglTutup,
-			&j.KodeSnpmb,
-			&j.KodeProdi,
-			&j.NmProdiEnglish,
-			&j.KpstPd,
-			&j.SKsLulus,
-			&j.GelarLulusan,
-			&j.StatProdi,
-			&j.PoleseiNilai,
-			&j.AKependidikan,
-			&j.Jln,
-			&j.Rt,
-			&j.Rw,
-			&j.NmDsn,
-			&j.DsKel,
-			&j.KodePos,
-			&j.Lintang,
-			&j.Bujur,
-			&j.NoTel,
-			&j.NoFax,
-			&j.Email,
-			&j.Website,
-			&j.Singkatan,
-			&j.TglBerdiri,
-			&j.SkSelenggara,
-			&j.TglSkSelenggara,
-			&j.TmtSkSelenggara,
-			&j.TstSkSelenggara,
-			&j.SistemAjar,
-			&j.APjj,
-			&j.APsdku,
-			&j.LuasLab,
-			&j.KapasitasPrakSatuShift,
-			&j.JmlMhsPengguna,
-			&j.JmlJamPengguna,
-			&j.JmlProdiPengguna,
-			&j.JmlModulPrakSendiri,
-			&j.JmlModulPrakLain,
-			&j.FungsiSelainPrak,
-			&j.PenggunaanLab,
-			&j.APkl,
-			&j.IDSp,
-			&j.IDJnsSms,
-			&j.IDFungsiLab,
-			&j.IDKelUsaha,
-			&j.IDBlob,
-			&j.IDWil,
-			&j.IDIndukSms,
-			&j.CreateDate,
-			&j.IDCreator,
-			&j.LastUpdate,
-			&j.IDUpdater,
-			&j.SoftDelete,
-			&j.LastSync,
-		)
-		if err != nil {
+		if err := rows.StructScan(&j); err != nil {
 			return nil, 0, err
 		}
 		result = append(result, j)
