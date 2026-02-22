@@ -3,6 +3,8 @@ package peta
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/myunila/api-service/apps/referensi/helper"
@@ -61,43 +63,81 @@ func (r *repository) GetPetaKatgiatJabfung(ctx context.Context, params types.Pag
 // ============================================================================
 
 func (r *repository) GetPetaKatgiatJnsdok(ctx context.Context, params types.PetaKatgiatJnsdokParams) ([]PetaKatgiatJnsdok, int64, error) {
-	cb := helper.NewCondBuilder()
-	if params.IDJnsDok != 0 {
-		cb.AppendInt("id_jns_dok", &params.IDJnsDok)
-	}
-	if params.AWajib != 0 {
-		cb.AppendInt("a_wajib", &params.AWajib)
-	}
-	if params.NoUrut != 0 {
-		cb.AppendInt("no_urut", &params.NoUrut)
-	}
-	conds, args := cb.Build()
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.peta_katgiat_jnsdok",
-			Select:      `id_katgiat, id_jns_dok, a_wajib, no_urut, create_date, last_update, expired_date`,
-			DefaultSort: "id_katgiat, id_jns_dok",
-		},
-		params.PaginationParams,
-		conds,
-		args,
-		func(rows *sql.Rows) (PetaKatgiatJnsdok, error) {
-			var p PetaKatgiatJnsdok
-			err := rows.Scan(
-				&p.IDKatgiat,
-				&p.IDJnsDok,
-				&p.AWajib,
-				&p.NoUrut,
-				&p.CreateDate,
-				&p.LastUpdate,
-				&p.ExpiredDate,
-			)
-			return p, err
-		},
+	params.NormalizePagination()
+
+	cb := helper.NewCondBuilder()
+	cb.AppendInt("pkj.id_jns_dok", params.IDJnsDok)
+	cb.AppendInt("pkj.a_wajib", params.AWajib)
+	cb.AppendInt("pkj.no_urut", params.NoUrut)
+
+	conds, args := cb.Build()
+	conds = append(conds, "pkj.expired_date IS NULL")
+
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.peta_katgiat_jnsdok pkj
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = pkj.id_jns_dok
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "pkj.id_jns_dok"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			pkj.id_katgiat, pkj.id_jns_dok, pkj.a_wajib, pkj.no_urut, pkj.create_date, pkj.last_update, pkj.expired_date, jd.nm_jns_dok
+		FROM ref.peta_katgiat_jnsdok pkj
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = pkj.id_jns_dok
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []PetaKatgiatJnsdok
+	for rows.Next() {
+		var p PetaKatgiatJnsdok
+		if err := rows.StructScan(&p); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }
 
 // ============================================================================
@@ -105,30 +145,75 @@ func (r *repository) GetPetaKatgiatJnsdok(ctx context.Context, params types.Peta
 // ============================================================================
 
 func (r *repository) GetPetaKatgiatJnspub(ctx context.Context, params types.PaginationParams) ([]PetaKatgiatJnspub, int64, error) {
-	cb := helper.NewCondBuilder()
-	conds, args := cb.Build()
+	params.NormalizePagination()
 
-	return helper.QueryPaged(
-		ctx,
-		r.db,
-		helper.BaseQueryConfig{
-			Table:       "ref.peta_katgiat_jnspub",
-			Select:      `id_katgiat, id_jns_pub, create_date, last_update, expired_date`,
-			DefaultSort: "id_katgiat, id_jns_pub",
-		},
-		params,
-		conds,
-		args,
-		func(rows *sql.Rows) (PetaKatgiatJnspub, error) {
-			var p PetaKatgiatJnspub
-			err := rows.Scan(
-				&p.IDKatgiat,
-				&p.IDJnsPub,
-				&p.CreateDate,
-				&p.LastUpdate,
-				&p.ExpiredDate,
-			)
-			return p, err
-		},
+	cb := helper.NewCondBuilder()
+
+	conds, args := cb.Build()
+	conds = append(conds, "pk.expired_date IS NULL")
+
+	whereClause := "1=1"
+	if len(conds) > 0 {
+		whereClause = strings.Join(conds, " AND ")
+	}
+
+	// ===== COUNT QUERY (JOIN WAJIB SAMA) =====
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM ref.peta_katgiat_jnspub pk
+		LEFT JOIN ref.jenis_publikasi jp ON jp.id_jns_pub = pk.id_jns_pub
+		WHERE %s`,
+		whereClause,
 	)
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// ===== Sorting =====
+	sortBy := "pk.id_jns_pub"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+
+	// ===== MAIN QUERY =====
+	query := fmt.Sprintf(`
+		SELECT
+			pk.id_katgiat, pk.id_jns_pub, pk.create_date, pk.last_update, pk.expired_date, jp.nm_jns_pub
+		FROM ref.peta_katgiat_jnspub pk
+		LEFT JOIN ref.jenis_publikasi jp ON jp.id_jns_pub = pk.id_jns_pub
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause,
+		sortBy,
+		params.Order,
+		len(args)+1,
+		len(args)+2,
+	)
+
+	args = append(args, params.Offset(), params.Limit)
+
+	// ===== EXECUTE + STRUCTSCAN =====
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []PetaKatgiatJnspub
+	for rows.Next() {
+		var p PetaKatgiatJnspub
+		if err := rows.StructScan(&p); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return result, total, nil
 }

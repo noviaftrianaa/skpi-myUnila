@@ -3,12 +3,12 @@ package kelompok
 import (
 	"time"
 
-	parse "github.com/myunila/api-service/apps/referensi/types"
 	"github.com/myunila/api-service/internal/types"
+	"github.com/myunila/api-service/pkg/utils"
 )
 
 type KelompokBidang struct {
-	IDKelBidang   parse.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
+	IDKelBidang   utils.UUID          `db:"id_kel_bidang" json:"id_kel_bidang"`
 	KodeKelBidang string              `db:"kode_kel_bidang" json:"kode_kel_bidang"`
 	NmKelBidang   *string             `db:"nm_kel_bidang" json:"nm_kel_bidang"`
 	USma          int                 `db:"u_sma" json:"u_sma"`
@@ -19,7 +19,7 @@ type KelompokBidang struct {
 	KatKel        *string             `db:"kat_kel" json:"kat_kel"`
 	KetKelBidang  *string             `db:"ket_kel_bidang" json:"ket_kel_bidang,omitempty"`
 	ALeafNode     int                 `db:"a_leaf_node" json:"a_leaf_node"`
-	IDIndukBidang parse.NullUUID      `db:"id_induk_bidang" json:"id_induk_bidang,omitempty"`
+	IDIndukBidang utils.NullUUID      `db:"id_induk_bidang" json:"id_induk_bidang,omitempty"`
 	CreateDate    types.SQLServerTime `db:"create_date" json:"waktu_ditambahkan"`
 	LastUpdate    types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
 	ExpiredDate   *time.Time          `db:"expired_date" json:"-"`
