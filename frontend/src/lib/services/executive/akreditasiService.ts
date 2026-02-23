@@ -68,6 +68,8 @@ export interface GetFakultasParams {
   search?: string;
   page?: number;
   per_page?: number;
+  id_organisasi?: string;
+  level_organisasi?: number;
 }
 
 export interface GetProdiParams {

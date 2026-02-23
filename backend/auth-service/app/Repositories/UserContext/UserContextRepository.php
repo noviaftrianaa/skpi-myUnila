@@ -82,6 +82,7 @@ class UserContextRepository
                 CONVERT(VARCHAR(36), rp.id_role_pengguna) as id_role_pengguna,
                 rp.id_peran,
                 pr.nm_peran,
+                uo.id_induk_organisasi,
                 CONVERT(VARCHAR(36), rp.id_organisasi) as id_organisasi,
                 uo.nm_lemb as nm_organisasi,
                 uo.level_organisasi,

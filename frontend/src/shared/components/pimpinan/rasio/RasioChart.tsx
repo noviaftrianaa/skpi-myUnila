@@ -1,5 +1,14 @@
 import { Button } from "@heroui/react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface RasioChartProps {
   data: Array<{
@@ -11,34 +20,131 @@ interface RasioChartProps {
   onLihatData: () => void;
 }
 
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <p className="mb-2 font-bold text-gray-800">{data.name}</p>
+        <div className="space-y-1">
+          <p className="text-sm">
+            <span className="font-semibold text-blue-600">Rasio :</span>
+            {data.rasio}
+          </p>
+          <p className="pt-2 mt-2 text-sm font-bold text-purple-600 border-t border-gray-200"></p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const RasioChart = ({ data, onLihatData }: RasioChartProps) => {
+  // Transform data to show normalized values for comparison
+  // Dosen always = 1 (as base), Mahasiswa = ratio value
+  const chartData = data.map((item) => {
+    const rasioValue = parseInt(item.rasio.split(":")[1]);
+    return {
+      name: item.name,
+      dosen: 1,
+      mahasiswa: rasioValue,
+      rasio: item.rasio,
+      dosenAsli: item.dosen,
+      mahasiswaAsli: item.mahasiswa,
+    };
+  });
+
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="p-6 bg-white shadow-sm rounded-xl">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          Grafik Rasio Dosen-Mahasiswa
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Grafik Rasio Dosen-Mahasiswa
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Dosen dinormalisasi ke 1 untuk membandingkan rasio
+          </p>
+        </div>
         <Button
           color="primary"
           variant="solid"
           onPress={onLihatData}
-          className="bg-myunila text-white"
+          className="text-white bg-myunila"
         >
           Lihat Data
         </Button>
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
+        <BarChart
+          data={chartData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis
+            dataKey="name"
+            angle={-45}
+            textAnchor="end"
+            height={100}
+            interval={0}
+            tick={{ fontSize: 12 }}
+            stroke="#666"
+          />
+          <YAxis
+            label={{
+              value: "Rasio (Normalisasi)",
+              angle: -90,
+              position: "insideLeft",
+              style: { textAnchor: "middle" },
+            }}
+            tick={{ fontSize: 12 }}
+            stroke="#666"
+          />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Bar dataKey="dosen" fill="#3b82f6" name="Dosen" />
-          <Bar dataKey="mahasiswa" fill="#22c55e" name="Mahasiswa" />
+          <Bar
+            dataKey="dosen"
+            fill="#3b82f6"
+            name="Dosen (Normalisasi)"
+            radius={[4, 4, 0, 0]}
+          />
+          <Bar
+            dataKey="mahasiswa"
+            fill="#22c55e"
+            name="Mahasiswa per Dosen"
+            radius={[4, 4, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
+
+      {/* Rasio Summary */}
+      <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
+        {data.map((item, index) => {
+          const ratioValue = parseInt(item.rasio.split(":")[1]);
+          let color = "#22c55e"; // Green
+          if (ratioValue > 20) color = "#eab308"; // Yellow
+          if (ratioValue > 30) color = "#ef4444"; // Red
+
+          return (
+            <div
+              key={index}
+              className="p-3 border-2 rounded-lg"
+              style={{ borderColor: color, backgroundColor: `${color}10` }}
+            >
+              <p className="mb-1 text-sm font-semibold text-gray-800">
+                {item.name}
+              </p>
+              <p className="text-2xl font-bold" style={{ color }}>
+                {item.rasio}
+              </p>
+              <p className="mt-1 text-xs text-gray-600">
+                {item.dosen} dosen : {item.mahasiswa} mhs
+              </p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

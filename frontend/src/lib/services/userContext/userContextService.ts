@@ -37,6 +37,7 @@ export interface ActiveContext {
   id_organisasi: string;
   nm_organisasi: string;
   level_organisasi: number;
+  id_induk_organisasi: string | null;
   selected_at: string;
 }
 

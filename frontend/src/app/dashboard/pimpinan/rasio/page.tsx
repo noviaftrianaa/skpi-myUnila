@@ -9,12 +9,14 @@ import { executiveRasioService } from "@/lib/services/executive";
 import { RasioStatsCard } from "@/shared/components/pimpinan/rasio/RasioStatsCard";
 import { RasioChart } from "@/shared/components/pimpinan/rasio/RasioChart";
 import { RasioDataModal } from "@/shared/components/pimpinan/rasio/RasioDataModal";
+import { useUserContext } from "@/contexts/UserContextContext";
 
 // ========================================
 // Main Page Component
 // ========================================
 
 export default function RasioPage() {
+  const { activeContext } = useUserContext();
   const [selectedTahunAjaran, setSelectedTahunAjaran] = useState<string>("");
   const [selectedFakultas, setSelectedFakultas] = useState<string>("");
   const [selectedProdi, setSelectedProdi] = useState<string>("");
@@ -36,10 +38,19 @@ export default function RasioPage() {
 
   // Fetch fakultas list
   const { data: fakultasList = [], isLoading: isLoadingFakultas } = useQuery({
-    queryKey: ["rasio", "fakultas", selectedTahunAjaran],
+    queryKey: [
+      "rasio",
+      "fakultas",
+      selectedTahunAjaran,
+      activeContext?.id_organisasi,
+    ],
     queryFn: () =>
       executiveRasioService.getFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id:
+          activeContext?.level_organisasi === 4
+            ? activeContext.id_organisasi
+            : undefined,
       }),
     enabled: !!selectedTahunAjaran,
   });
@@ -72,6 +83,25 @@ export default function RasioPage() {
   const handleProdiChange = (value: string) => {
     setSelectedProdi(value);
   };
+
+  // Auto-select based on user role
+  useEffect(() => {
+    if (!activeContext || !fakultasList.length) return;
+
+    // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
+    if (activeContext.level_organisasi == 4) {
+      // Dekan: Auto-select their fakultas
+      setSelectedFakultas(activeContext.id_organisasi);
+    } else if (activeContext.level_organisasi == 5) {
+      // Kaprodi: Auto-select parent fakultas, then their prodi
+      setSelectedFakultas(activeContext?.id_induk_organisasi);
+      // Wait for prodi list to load, then auto-select
+      const timer = setTimeout(() => {
+        setSelectedProdi(activeContext.id_organisasi);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [activeContext, fakultasList]);
 
   // Get chart data based on selection
   const getChartData = () => {
@@ -186,7 +216,11 @@ export default function RasioPage() {
               title="Perhatian"
             >
               <p className="text-black">
-                Silahkan pilih tahun ajaran, fakultas, dan prodi di bawah ini!
+                {activeContext?.level_organisasi == 3
+                  ? "Silahkan pilih tahun ajaran, fakultas, dan prodi di bawah ini!"
+                  : activeContext?.level_organisasi == 4
+                    ? "Menampilkan data untuk fakultas Anda. Silahkan pilih tahun ajaran dan prodi."
+                    : "Menampilkan data untuk program studi Anda. Silahkan pilih tahun ajaran."}
               </p>
             </Alert>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -218,60 +252,65 @@ export default function RasioPage() {
               </Select>
 
               {/* Select Fakultas */}
-              <Select
-                placeholder="Pilih fakultas"
-                selectedKeys={selectedFakultas ? [selectedFakultas] : []}
-                onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as string;
-                  handleFakultasChange(value);
-                }}
-                variant="flat"
-                labelPlacement="outside"
-                isDisabled={!selectedTahunAjaran || isLoadingFakultas}
-                isLoading={isLoadingFakultas}
-                classNames={{
-                  base: "flex-1 min-w-[180px]",
-                  trigger:
-                    "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
-                  label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
-                  innerWrapper: "text-slate-700",
-                }}
-              >
-                {fakultasList.map((fakultas) => (
-                  <SelectItem key={fakultas.id}>
-                    {fakultas.nama_fakultas}
-                  </SelectItem>
-                ))}
-              </Select>
+              {activeContext?.level_organisasi != 4 &&
+                activeContext?.level_organisasi != 5 && (
+                  <Select
+                    placeholder="Pilih fakultas"
+                    selectedKeys={selectedFakultas ? [selectedFakultas] : []}
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys)[0] as string;
+                      handleFakultasChange(value);
+                    }}
+                    variant="flat"
+                    labelPlacement="outside"
+                    isDisabled={!selectedTahunAjaran || isLoadingFakultas}
+                    isLoading={isLoadingFakultas}
+                    classNames={{
+                      base: "flex-1 min-w-[180px]",
+                      trigger:
+                        "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                      label: "text-gray-700 font-medium text-sm",
+                      value: "text-slate-700 font-semibold text-sm",
+                      popoverContent: "bg-white rounded-lg shadow-xl",
+                      innerWrapper: "text-slate-700",
+                    }}
+                  >
+                    {fakultasList.map((fakultas) => (
+                      <SelectItem key={fakultas.id}>
+                        {fakultas.nama_fakultas}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                )}
 
               {/* Select Prodi */}
-              <Select
-                placeholder="Pilih Prodi"
-                selectedKeys={selectedProdi ? [selectedProdi] : []}
-                onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as string;
-                  handleProdiChange(value);
-                }}
-                variant="flat"
-                labelPlacement="outside"
-                isDisabled={!selectedFakultas || isLoadingProdi}
-                isLoading={isLoadingProdi}
-                classNames={{
-                  base: "flex-1 min-w-[180px]",
-                  trigger:
-                    "h-12 bg-white shadow-sm hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
-                  label: "text-gray-700 font-medium text-sm",
-                  selectorIcon: "text-gray-500",
-                  value: "text-gray-900 text-sm font-medium",
-                  popoverContent: "bg-white rounded-lg shadow-xl",
-                }}
-              >
-                {prodiList.map((prodi) => (
-                  <SelectItem key={prodi.id}>{prodi.nama_prodi}</SelectItem>
-                ))}
-              </Select>
+              {activeContext?.level_organisasi != 5 && (
+                <Select
+                  placeholder="Pilih Prodi"
+                  selectedKeys={selectedProdi ? [selectedProdi] : []}
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0] as string;
+                    handleProdiChange(value);
+                  }}
+                  variant="flat"
+                  labelPlacement="outside"
+                  isDisabled={!selectedFakultas || isLoadingProdi}
+                  isLoading={isLoadingProdi}
+                  classNames={{
+                    base: "flex-1 min-w-[180px]",
+                    trigger:
+                      "h-12 bg-white shadow-sm hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                    label: "text-gray-700 font-medium text-sm",
+                    selectorIcon: "text-gray-500",
+                    value: "text-gray-900 text-sm font-medium",
+                    popoverContent: "bg-white rounded-lg shadow-xl",
+                  }}
+                >
+                  {prodiList.map((prodi) => (
+                    <SelectItem key={prodi.id}>{prodi.nama_prodi}</SelectItem>
+                  ))}
+                </Select>
+              )}
             </div>
           </div>
 

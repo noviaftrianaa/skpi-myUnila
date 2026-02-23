@@ -18,7 +18,10 @@ class RasioController extends Controller
     {
         try {
             $idSmt = $request->query('tahun_ajaran');
-            $data = $this->rasioService->getRasioFakultas($idSmt);
+            $fakultasId = $request->query('fakultas_id');
+
+            $data = $this->rasioService->getRasioFakultas($idSmt, $fakultasId);
+
             return response()->json([
                 'status' => 'success',
                 'data' => $data

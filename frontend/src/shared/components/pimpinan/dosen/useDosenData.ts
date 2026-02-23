@@ -15,6 +15,11 @@ export interface UseDosenDataParams {
   selectedTahunAjaran: string;
   selectedFakultas: string;
   selectedProdi: string;
+  userContext?: {
+    id_organisasi: string;
+    level_organisasi: number;
+    id_induk_organisasi: string;
+  } | null;
 }
 
 // ========================================
@@ -30,6 +35,7 @@ export const useDosenData = ({
   selectedTahunAjaran,
   selectedFakultas,
   selectedProdi,
+  userContext,
 }: UseDosenDataParams) => {
   // Fetch tahun ajaran list
   const { data: tahunAjaranList = [], isLoading: isLoadingTahunAjaran } =
@@ -59,10 +65,11 @@ export const useDosenData = ({
     data: jabfungFakultasList = [],
     isLoading: isLoadingJabfungFakultas,
   } = useQuery({
-    queryKey: ["dosen", "jabfung", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "jabfung", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executiveJabfungService.getJabfungFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi === 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "jabfung",
   });

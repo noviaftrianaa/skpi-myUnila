@@ -14,10 +14,17 @@ class AkreditasiController extends Controller
         $this->akreditasiService = $akreditasi;
     }
 
-    public function getDataAkreditasiFakultas()
+    public function getDataAkreditasiFakultas(Request $request)
     {
         try {
-            $data = $this->akreditasiService->getDataAkreditasiFakultas();
+            $idOrganisasi = $request->query('id_organisasi');
+            $levelOrganisasi = $request->query('level_organisasi');
+
+            $data = $this->akreditasiService->getDataAkreditasiFakultas(
+                $idOrganisasi,
+                $levelOrganisasi
+            );
+
             return response()->json([
                 'status' => 'success',
                 'data' => $data
@@ -25,7 +32,8 @@ class AkreditasiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
             ], 500);
         }
     }

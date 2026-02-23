@@ -27,12 +27,14 @@ import {
   getChartSubtitle,
   type DosenStats,
 } from "@/shared/components/pimpinan/dosen";
+import { useUserContext } from "@/contexts/UserContextContext";
 
 // ========================================
 // Main Page Component
 // ========================================
 
 export default function DosenPage() {
+  const { activeContext } = useUserContext();
   const [selectedTipeData, setSelectedTipeData] = useState<string>("");
   const [selectedTahunAjaran, setSelectedTahunAjaran] = useState<string>("");
   const [selectedFakultas, setSelectedFakultas] = useState<string>("");
@@ -65,6 +67,7 @@ export default function DosenPage() {
     selectedTahunAjaran,
     selectedFakultas,
     selectedProdi,
+    userContext: activeContext,
   });
 
   // Handle tipe data change
@@ -87,6 +90,25 @@ export default function DosenPage() {
   const handleProdiChange = (value: string) => {
     setSelectedProdi(value);
   };
+
+  // Auto-select based on user role
+  useEffect(() => {
+    if (!activeContext || !fakultasList.length) return;
+
+    // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
+    if (activeContext.level_organisasi == 4) {
+      // Dekan: Auto-select their fakultas
+      setSelectedFakultas(activeContext.id_organisasi);
+    } else if (activeContext.level_organisasi == 5) {
+      // Kaprodi: Auto-select parent fakultas, then their prodi
+      setSelectedFakultas(activeContext.id_induk_organisasi);
+      // Wait for prodi list to load, then auto-select
+      const timer = setTimeout(() => {
+        setSelectedProdi(activeContext.id_organisasi);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [activeContext, fakultasList]);
 
   // Get chart data and stats
   const chartData = getChartData(
@@ -134,12 +156,12 @@ export default function DosenPage() {
 
   // Get selected names for modal
   const selectedTahunAjaranName =
-    tahunAjaranList.find((t) => t.id_thn_ajaran === selectedTahunAjaran)
+    tahunAjaranList.find((t) => t.id_thn_ajaran == selectedTahunAjaran)
       ?.nm_thn_ajaran || "";
   const selectedFakultasName =
-    fakultasList.find((f) => f.id === selectedFakultas)?.nama_fakultas || "";
+    fakultasList.find((f) => f.id == selectedFakultas)?.nama_fakultas || "";
   const selectedProdiName =
-    prodiList.find((p) => p.id === selectedProdi)?.nama_prodi || "";
+    prodiList.find((p) => p.id == selectedProdi)?.nama_prodi || "";
 
   // Initialize default values
   useEffect(() => {
@@ -209,8 +231,11 @@ export default function DosenPage() {
               title="Perhatian"
             >
               <p className="text-black">
-                Silahkan pilih tipe data, fakultas, prodi, dan tahun ajaran di
-                bawah ini!
+                {activeContext?.level_organisasi == 3
+                  ? "Silahkan pilih tipe data, fakultas, prodi, dan tahun ajaran di bawah ini!"
+                  : activeContext?.level_organisasi == 4
+                    ? "Menampilkan data untuk fakultas Anda. Silahkan pilih tipe data, prodi, dan tahun ajaran."
+                    : "Menampilkan data untuk program studi Anda. Silahkan pilih tipe data dan tahun ajaran."}
               </p>
             </Alert>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -249,101 +274,108 @@ export default function DosenPage() {
               </Select>
 
               {/* Select Fakultas */}
-              <Select
-                placeholder="Pilih fakultas"
-                selectedKeys={selectedFakultas ? [selectedFakultas] : []}
-                onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as string;
-                  handleFakultasChange(value);
-                }}
-                variant="flat"
-                labelPlacement="outside"
-                isDisabled={isLoadingFakultas}
-                isLoading={isLoadingFakultas}
-                classNames={{
-                  base: "flex-1 min-w-[180px]",
-                  trigger:
-                    "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
-                  label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm truncate",
-                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[400px]",
-                  innerWrapper: "text-slate-700",
-                }}
-                listboxProps={{
-                  itemClasses: {
-                    base: "data-[hover=true]:bg-default-100",
-                    title:
-                      "text-sm font-medium text-foreground truncate max-w-full",
-                  },
-                }}
-                renderValue={(items) => {
-                  return items.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex items-center max-w-full gap-2 truncate"
-                      title={item.textValue}
-                    >
-                      <span className="truncate">{item.textValue}</span>
-                    </div>
-                  ));
-                }}
-              >
-                {fakultasList.map((fakultas) => (
-                  <SelectItem
-                    key={fakultas.id}
-                    textValue={fakultas.nama_fakultas}
+              {activeContext?.level_organisasi != 4 &&
+                activeContext?.level_organisasi != 5 && (
+                  <Select
+                    placeholder="Pilih fakultas"
+                    selectedKeys={selectedFakultas ? [selectedFakultas] : []}
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys)[0] as string;
+                      handleFakultasChange(value);
+                    }}
+                    variant="flat"
+                    labelPlacement="outside"
+                    isDisabled={isLoadingFakultas}
+                    isLoading={isLoadingFakultas}
+                    classNames={{
+                      base: "flex-1 min-w-[180px]",
+                      trigger:
+                        "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                      label: "text-gray-700 font-medium text-sm",
+                      value: "text-slate-700 font-semibold text-sm truncate",
+                      popoverContent:
+                        "bg-white rounded-lg shadow-xl max-w-[400px]",
+                      innerWrapper: "text-slate-700",
+                    }}
+                    listboxProps={{
+                      itemClasses: {
+                        base: "data-[hover=true]:bg-default-100",
+                        title:
+                          "text-sm font-medium text-foreground truncate max-w-full",
+                      },
+                    }}
+                    renderValue={(items) => {
+                      return items.map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex items-center max-w-full gap-2 truncate"
+                          title={item.textValue}
+                        >
+                          <span className="truncate">{item.textValue}</span>
+                        </div>
+                      ));
+                    }}
                   >
-                    {fakultas.nama_fakultas}
-                  </SelectItem>
-                ))}
-              </Select>
+                    {fakultasList.map((fakultas) => (
+                      <SelectItem
+                        key={fakultas.id}
+                        textValue={fakultas.nama_fakultas}
+                      >
+                        {fakultas.nama_fakultas}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                )}
 
               {/* Select Prodi */}
-              <Select
-                placeholder="Pilih prodi"
-                selectedKeys={selectedProdi ? [selectedProdi] : []}
-                onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as string;
-                  handleProdiChange(value);
-                }}
-                variant="flat"
-                labelPlacement="outside"
-                isDisabled={!selectedFakultas || isLoadingProdi}
-                isLoading={isLoadingProdi}
-                classNames={{
-                  base: "flex-1 min-w-[180px]",
-                  trigger:
-                    "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
-                  label: "text-gray-700 font-medium text-sm",
-                  value: "text-slate-700 font-semibold text-sm truncate",
-                  popoverContent: "bg-white rounded-lg shadow-xl max-w-[500px]",
-                  innerWrapper: "text-slate-700",
-                }}
-                listboxProps={{
-                  itemClasses: {
-                    base: "data-[hover=true]:bg-default-100",
-                    title:
-                      "text-sm font-medium text-foreground truncate max-w-full",
-                  },
-                }}
-                renderValue={(items) => {
-                  return items.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex items-center max-w-full gap-2 truncate"
-                      title={item.textValue}
-                    >
-                      <span className="truncate">{item.textValue}</span>
-                    </div>
-                  ));
-                }}
-              >
-                {prodiList.map((prodi) => (
-                  <SelectItem key={prodi.id} textValue={prodi.nama_prodi}>
-                    {prodi.nama_prodi}
-                  </SelectItem>
-                ))}
-              </Select>
+              {activeContext?.level_organisasi != 5 && (
+                <Select
+                  placeholder="Pilih prodi"
+                  selectedKeys={selectedProdi ? [selectedProdi] : []}
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0] as string;
+                    handleProdiChange(value);
+                  }}
+                  variant="flat"
+                  labelPlacement="outside"
+                  isDisabled={!selectedFakultas || isLoadingProdi}
+                  isLoading={isLoadingProdi}
+                  classNames={{
+                    base: "flex-1 min-w-[180px]",
+                    trigger:
+                      "bg-white/95 backdrop-blur-sm h-12 shadow-sm hover:bg-white hover:shadow-md transition-all rounded-lg border-2 border-gray-300",
+                    label: "text-gray-700 font-medium text-sm",
+                    value: "text-slate-700 font-semibold text-sm truncate",
+                    popoverContent:
+                      "bg-white rounded-lg shadow-xl max-w-[500px]",
+                    innerWrapper: "text-slate-700",
+                  }}
+                  listboxProps={{
+                    itemClasses: {
+                      base: "data-[hover=true]:bg-default-100",
+                      title:
+                        "text-sm font-medium text-foreground truncate max-w-full",
+                    },
+                  }}
+                  renderValue={(items) => {
+                    return items.map((item) => (
+                      <div
+                        key={item.key}
+                        className="flex items-center max-w-full gap-2 truncate"
+                        title={item.textValue}
+                      >
+                        <span className="truncate">{item.textValue}</span>
+                      </div>
+                    ));
+                  }}
+                >
+                  {prodiList.map((prodi) => (
+                    <SelectItem key={prodi.id} textValue={prodi.nama_prodi}>
+                      {prodi.nama_prodi}
+                    </SelectItem>
+                  ))}
+                </Select>
+              )}
 
               {/* Select Tahun Ajaran */}
               <Select

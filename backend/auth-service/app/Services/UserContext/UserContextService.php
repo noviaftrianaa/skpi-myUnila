@@ -159,6 +159,7 @@ class UserContextService
                 'id_organisasi' => $role->id_organisasi,
                 'nm_organisasi' => $role->nm_organisasi,
                 'level_organisasi' => $role->level_organisasi,
+                'id_induk_organisasi' => $role->id_induk_organisasi,
                 'selected_at' => now()->toIso8601String(),
             ];
 

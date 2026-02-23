@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button, Spinner } from "@heroui/react";
 import {
@@ -22,12 +22,14 @@ import {
 } from "@/shared/components/pimpinan/akreditasi/columns";
 import { HistoryModal } from "@/shared/components/pimpinan/akreditasi/HistoryModal";
 import { Fakultas, Prodi } from "@/lib/services/executive/akreditasiService";
+import { useUserContext } from "@/contexts/UserContextContext";
 
 // ========================================
 // Main Page Component
 // ========================================
 
 export default function AkreditasiPage() {
+  const { activeContext } = useUserContext();
   const [selectedFakultas, setSelectedFakultas] = useState<Fakultas | null>(
     null,
   );
@@ -37,17 +39,43 @@ export default function AkreditasiPage() {
   } | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Fetch fakultas data
+  // Fetch fakultas data (for Rektor and Dekan only)
+  // For Kaprodi (level 5), we'll fetch prodi data separately
   const {
     data: fakultasData = [],
     isLoading: isLoadingFakultas,
     error: fakultasError,
   } = useQuery({
-    queryKey: ["akreditasi", "fakultas"],
-    queryFn: () => executiveAkreditasiService.getAllFakultas(),
+    queryKey: [
+      "akreditasi",
+      "fakultas",
+      activeContext?.id_organisasi,
+      activeContext?.level_organisasi,
+    ],
+    queryFn: () =>
+      executiveAkreditasiService.getAllFakultas({
+        id_organisasi: activeContext?.id_organisasi,
+        level_organisasi: activeContext?.level_organisasi,
+      }),
+    enabled: activeContext?.level_organisasi !== 5, // Disable for Kaprodi
   });
 
-  // Fetch prodi data when fakultas is selected
+  // Fetch prodi data for Kaprodi directly
+  const {
+    data: kaprodiProdiData = [],
+    isLoading: isLoadingKaprodiProdi,
+    error: kaprodiProdiError,
+  } = useQuery({
+    queryKey: ["akreditasi", "kaprodi-prodi", activeContext?.id_organisasi],
+    queryFn: () =>
+      executiveAkreditasiService.getAllFakultas({
+        id_organisasi: activeContext?.id_organisasi,
+        level_organisasi: activeContext?.level_organisasi,
+      }),
+    enabled: activeContext?.level_organisasi == 5, // Only for Kaprodi
+  });
+
+  // Fetch prodi data when fakultas is selected (only for Rektor/Dekan)
   const {
     data: prodiData = [],
     isLoading: isLoadingProdi,
@@ -56,7 +84,7 @@ export default function AkreditasiPage() {
     queryKey: ["akreditasi", "prodi", selectedFakultas?.id],
     queryFn: () =>
       executiveAkreditasiService.getProdiByFakultasId(selectedFakultas!.id),
-    enabled: !!selectedFakultas,
+    enabled: !!selectedFakultas && activeContext?.level_organisasi !== 5,
   });
 
   // Handle fakultas click - drill down to prodi
@@ -81,19 +109,51 @@ export default function AkreditasiPage() {
     setSelectedProdiHistory(null);
   };
 
-  // Calculate statistics
+  // Check if returned data is Prodi array (for Kaprodi role)
+  // Prodi has 'nama_prodi' field, Fakultas has 'nama_lembaga' field
+  const isKaprodiView = activeContext?.level_organisasi == 5;
+  console.log(isKaprodiView);
+  const isDataProdi =
+    kaprodiProdiData.length > 0 &&
+    kaprodiProdiData[0] &&
+    "nama_prodi" in kaprodiProdiData[0];
+  const prodiDataForKaprodi =
+    isKaprodiView && isDataProdi
+      ? (kaprodiProdiData as unknown as Prodi[])
+      : (kaprodiProdiData as Prodi[]);
+
+  // Auto-drill down untuk Dekan
+  useEffect(() => {
+    if (!activeContext || !fakultasData.length) return;
+
+    // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
+    if (activeContext.level_organisasi === 4 && fakultasData.length === 1) {
+      // Dekan: Auto-select ke fakultasnya
+      setSelectedFakultas(fakultasData[0]);
+    }
+    // Kaprodi: No auto-select needed, directly show prodi table
+  }, [activeContext, fakultasData]);
+
+  // Calculate statistics (only for Rektor role - level 3)
   const stats = {
     totalFakultas: fakultasData.length,
     totalProdiAktif: fakultasData.reduce(
-      (sum, f) => sum + parseInt(f.prodi_aktif.toString() || "0"),
+      (sum, f) =>
+        "prodi_aktif" in f
+          ? sum + parseInt(f.prodi_aktif.toString() || "0")
+          : sum,
       0,
     ),
     totalProdiReakreditasi: fakultasData.reduce(
-      (sum, f) => sum + parseInt(f.prodi_akan_kadaluarsa.toString() || "0"),
+      (sum, f) =>
+        "prodi_akan_kadaluarsa" in f
+          ? sum + parseInt(f.prodi_akan_kadaluarsa.toString() || "0")
+          : sum,
       0,
     ),
     totalJenjangProdi: fakultasData.reduce(
-      (sum, f) => sum + parseInt(f.total_prodi || "0"),
+      (sum, f) =>
+        "total_prodi" in f ? sum + parseInt(f.total_prodi || "0") : sum,
       0,
     ),
   };
@@ -103,7 +163,7 @@ export default function AkreditasiPage() {
   const prodiColumns = getProdiColumns(handleShowHistory, formatDate);
 
   // Loading state
-  if (isLoadingFakultas) {
+  if (isLoadingFakultas || isLoadingKaprodiProdi) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Spinner size="lg" color="primary" />
@@ -112,13 +172,14 @@ export default function AkreditasiPage() {
   }
 
   // Error state
-  if (fakultasError) {
+  if (fakultasError || kaprodiProdiError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <FiAlertCircle className="w-16 h-16 text-danger" />
         <p className="text-lg text-danger">Gagal memuat data akreditasi</p>
         <p className="text-sm text-gray-500">
-          {(fakultasError as Error).message || "Terjadi kesalahan pada server"}
+          {(fakultasError || (kaprodiProdiError as Error))?.message ||
+            "Terjadi kesalahan pada server"}
         </p>
       </div>
     );
@@ -139,18 +200,24 @@ export default function AkreditasiPage() {
               <h1 className="text-3xl font-bold text-gray-800">
                 {selectedFakultas
                   ? `Akreditasi - ${selectedFakultas.nama_lembaga}`
-                  : "Data Akreditasi Program Studi"}
+                  : activeContext?.level_organisasi == 4
+                    ? `Akreditasi - ${activeContext.nm_organisasi}`
+                    : activeContext?.level_organisasi == 5
+                      ? `Akreditasi - ${activeContext.nm_organisasi}`
+                      : "Data Akreditasi Program Studi"}
               </h1>
             </div>
             <p className="text-gray-600 ml-11">
               {selectedFakultas
                 ? "Daftar program studi beserta status akreditasinya"
-                : "Ringkasan akreditasi program studi per fakultas"}
+                : isKaprodiView
+                  ? "Data akreditasi program studi Anda"
+                  : "Ringkasan akreditasi program studi per fakultas"}
             </p>
           </div>
 
           {/* Back Button */}
-          {selectedFakultas && (
+          {selectedFakultas && activeContext?.level_organisasi == 3 && (
             <Button
               onPress={handleBack}
               variant="flat"
@@ -163,7 +230,7 @@ export default function AkreditasiPage() {
           )}
 
           {/* Stats Cards */}
-          {!selectedFakultas && (
+          {!selectedFakultas && activeContext?.level_organisasi === 3 && (
             <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
               <StatsCard
                 title="Total Fakultas"
@@ -193,7 +260,19 @@ export default function AkreditasiPage() {
           )}
 
           {/* Tables */}
-          {!selectedFakultas ? (
+          {/* For Kaprodi: directly show prodi table */}
+          {isKaprodiView ? (
+            <DataTable
+              key="kaprodi-prodi-table"
+              data={prodiDataForKaprodi}
+              columns={prodiColumns}
+              searchable={true}
+              searchKeys={["nama_prodi", "jenjang"]}
+              searchPlaceholder="Cari prodi..."
+              defaultRowsPerPage={10}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
+          ) : !selectedFakultas ? (
             <DataTable
               key="fakultas-table"
               data={fakultasData}

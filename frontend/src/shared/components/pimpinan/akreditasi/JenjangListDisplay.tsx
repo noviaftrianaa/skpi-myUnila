@@ -5,6 +5,11 @@ export const JenjangListDisplay = ({
 }: {
   jenjangList: JenjangList;
 }) => {
+  // Defensive check to handle undefined or null values
+  if (!jenjangList || typeof jenjangList !== 'object') {
+    return <span className="text-xs text-gray-500">-</span>;
+  }
+
   return (
     <ul className="m-0 space-y-1 text-xs">
       {Object.entries(jenjangList).map(([jenjang, jumlah]) => {

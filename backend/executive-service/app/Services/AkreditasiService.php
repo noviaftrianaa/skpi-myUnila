@@ -13,16 +13,44 @@ class AkreditasiService
         $this->akreditasiRepository = $akreditasi;
     }
 
-    public function getDataAkreditasiFakultas()
+    public function getDataAkreditasiFakultas($idOrganisasi = null, $levelOrganisasi = null)
     {
+        // Untuk Kaprodi (level 5), redirect ke method prodi khusus kaprodi
+        if ($levelOrganisasi == 5 && $idOrganisasi) {
+            return $this->getDataAkreditasiProdiByKaprodi($idOrganisasi);
+        }
+
         $data_fakultas = $this->akreditasiRepository->getDataAkreditasiFakultas();
+
+        // Filter berdasarkan level organisasi
+        // Level 3 = Rektor (University), Level 4 = Dekan (Faculty), Level 5 = Kaprodi (Study Program)
+        if ($levelOrganisasi == 4 && $idOrganisasi) {
+            // Dekan: filter ke fakultasnya saja
+            $data_fakultas = $data_fakultas->filter(function ($item) use ($idOrganisasi) {
+                return $item['id'] == $idOrganisasi;
+            });
+        }
+
         return $data_fakultas;
+    }
+
+    public function getDataAkreditasiProdiByKaprodi($idProdi)
+    {
+        $raw_data = $this->akreditasiRepository->getDataAkreditasiProdiByKaprodi($idProdi);
+        return $this->processProdiData($raw_data);
     }
 
     public function getDataAkreditasiProdi($idProdi)
     {
         $raw_data = $this->akreditasiRepository->getDataAkreditasiProdi($idProdi);
+        return $this->processProdiData($raw_data);
+    }
 
+    /**
+     * Process raw prodi data and add accreditation history and status
+     */
+    private function processProdiData($raw_data)
+    {
         // Group data by prodi ID and add history
         $grouped_data = collect($raw_data)->groupBy('id')->map(function ($items) {
             $first = $items->first();

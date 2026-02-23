@@ -14,7 +14,7 @@ class RasioService
         $this->rasioRepository = $rasio;
     }
 
-    public function getRasioFakultas($idSmt = null)
+    public function getRasioFakultas($idSmt = null, $fakultasId = null)
     {
         $raw_data = $this->rasioRepository->getRasioFakultas($idSmt);
 
@@ -33,6 +33,13 @@ class RasioService
                 'rasio' => $rasio,
             ];
         })->values();
+
+        // Filter by fakultas ID if provided
+        if ($fakultasId) {
+            $fakultas_data = $fakultas_data->filter(function ($item) use ($fakultasId) {
+                return $item['id'] == $fakultasId;
+            })->values();
+        }
 
         return $fakultas_data;
     }
