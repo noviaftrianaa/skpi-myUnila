@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Input, Select, SelectItem } from "@heroui/react";
-import { FiEye, FiCalendar } from "react-icons/fi";
+import { Chip, Select, SelectItem } from "@heroui/react";
+import { FiEye } from "react-icons/fi";
 import { loggerService, type JwtLog } from "@/lib/services/manakses/loggerService";
 import { aplikasiService, type Aplikasi } from "@/lib/services/manakses/aplikasiService";
 import { format } from "date-fns";
@@ -220,16 +220,23 @@ export default function JwtLogsTable() {
           columns={columns}
           data={data}
           loading={loading}
-          currentPage={currentPage}
-          rowsPerPage={rowsPerPage}
-          totalRecords={totalRecords}
-          onPageChange={setCurrentPage}
-          onRowsPerPageChange={setRowsPerPage}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          searchable={true}
+          searchKeys={["username", "nm_pengguna", "nm_aplikasi", "token_value", "ip_address"]}
           searchPlaceholder="Cari username, nama, aplikasi, token..."
-          sortBy={sortBy}
-          sortOrder={sortOrder}
+          defaultRowsPerPage={10}
+          rowsPerPageOptions={[5, 10, 25, 50, 100]}
+          serverSide={true}
+          totalRecords={totalRecords}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onRowsPerPageChange={(newRowsPerPage) => {
+            setRowsPerPage(newRowsPerPage);
+            setCurrentPage(1);
+          }}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
           onSortChange={(key, order) => {
             setSortBy(key);
             setSortOrder(order);
@@ -272,6 +279,7 @@ export default function JwtLogsTable() {
               </Select>
             </div>
           }
+          className="shadow-lg"
         />
       </motion.div>
       </motion.div>

@@ -289,6 +289,8 @@ class UserController extends Controller
         session()->forget('login.role');
         $array = $request->all();
         $role = RolePengguna::where('id_pengguna', Auth::user()->id_pengguna)->where('id_peran',$array['id_peran'])->first();
+        $role->last_active = now();
+        $role->save();
         session()->put('login.role', $role);
         MenuRole();
         $peran = Peran::where('id_peran', $role->id_peran)->first();
