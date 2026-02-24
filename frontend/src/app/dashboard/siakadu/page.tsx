@@ -2,7 +2,7 @@
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, Progress, Chip, Button } from "@heroui/react";
 import {
   FiUsers,
@@ -313,10 +313,11 @@ export default function SiakaduDashboardPage() {
   const todaySchedule = role === "admin" ? [] : scheduleConfig[role as keyof typeof scheduleConfig] || [];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Siakadu"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={siakaduMenuConfig}
+      appKey="siakadu"
+      fallbackMenus={siakaduMenuConfig}
       pageTitle="Dashboard"
     >
       <div className="space-y-6">
@@ -726,6 +727,6 @@ export default function SiakaduDashboardPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

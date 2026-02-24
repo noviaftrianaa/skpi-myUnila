@@ -1,7 +1,7 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, Button, Chip } from "@heroui/react";
 import { FiPlus, FiTrash2, FiSave } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
@@ -40,10 +40,11 @@ export default function KRSPage() {
   const totalSKS = matakuliah.reduce((sum, mk) => sum + mk.sks, 0);
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Siakadu"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={siakaduMenuConfig}
+      appKey="siakadu"
+      fallbackMenus={siakaduMenuConfig}
       pageTitle="Kartu Rencana Studi (KRS)"
     >
       <div className="space-y-6">
@@ -175,6 +176,6 @@ export default function KRSPage() {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
