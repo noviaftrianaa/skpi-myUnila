@@ -1,0 +1,11 @@
+{
+  "app_slug": "webmon",
+  "roles": [1, 107],
+  "menus": [
+    {"nm_menu": "Dashboard", "nm_file": "/dashboard/monitoring", "icon": "heroicons:squares-2x2", "urutan": 1},
+    {"nm_menu": "Situs Terdaftar", "nm_file": "/dashboard/monitoring/sites", "icon": "heroicons:globe-alt", "urutan": 2},
+    {"nm_menu": "Pemindaian", "nm_file": "/dashboard/monitoring/scanner", "icon": "heroicons:presentation-chart-line", "urutan": 3},
+    {"nm_menu": "Ancaman", "nm_file": "/dashboard/monitoring/threats", "icon": "heroicons:exclamation-triangle", "urutan": 4},
+    {"nm_menu": "Kata Kunci", "nm_file": "/dashboard/monitoring/keywords", "icon": "heroicons:queue-list", "urutan": 5}
+  ]
+}

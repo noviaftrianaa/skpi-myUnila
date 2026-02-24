@@ -8,16 +8,18 @@ use Illuminate\Support\Facades\DB;
 /**
  * Portal RBAC Seeder (JSON-based)
  *
- * Seeds menu_role table for all portal apps from JSON configuration.
+ * Seeds menu_role table for portal apps from JSON configuration.
+ * Supports both per-app files (portal_menus/{app_slug}.json)
+ * and the legacy single file (portal_menus.json).
+ *
  * Menus must already exist (run PortalMenuSeeder first).
  *
  * Supports per-menu role overrides: if a menu has a "roles" field in JSON,
  * it overrides the app-level roles. Children inherit parent's roles if not specified.
  *
- * Configuration file: database/seeders/data/portal_menus.json
- *
  * Usage:
- *   php artisan db:seed --class=PortalRbacSeeder
+ *   php artisan db:seed --class=PortalRbacSeeder              # all apps
+ *   Called programmatically with $appSlug to seed a single app
  */
 class PortalRbacSeeder extends Seeder
 {
@@ -27,71 +29,169 @@ class PortalRbacSeeder extends Seeder
     // Default updater ID
     private const UPDATER_ID = '00000000-0000-0000-0000-000000000000';
 
-    // JSON config path
-    private string $configPath;
+    // Per-app JSON directory
+    private string $perAppDir;
 
-    // Loaded config
-    private array $config = [];
+    // Legacy single JSON file
+    private string $legacyConfigPath;
+
+    // Optional: filter by app slug
+    private ?string $appSlug = null;
+
+    /**
+     * Set app slug filter (called from artisan command)
+     */
+    public function setAppSlug(?string $appSlug): self
+    {
+        $this->appSlug = $appSlug;
+        return $this;
+    }
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $this->configPath = database_path('seeders/data/portal_menus.json');
+        $this->perAppDir = database_path('seeders/data/portal_menus');
+        $this->legacyConfigPath = database_path('seeders/data/portal_menus.json');
 
-        // Load JSON configuration
-        if (!$this->loadConfig()) {
+        $appConfigs = $this->loadAppConfigs();
+
+        if (empty($appConfigs)) {
+            $this->command->warn('No app configurations found!');
             return;
         }
 
         $this->command->info('Seeding Portal RBAC (menu_role) from JSON configuration...');
-        $this->command->info("Config file: {$this->configPath}");
         $this->command->info('');
-
-        // Process each app in the config
-        $apps = $this->config['apps'] ?? [];
-
-        if (empty($apps)) {
-            $this->command->warn('No apps found in configuration!');
-            return;
-        }
 
         $totalRoles = 0;
 
-        foreach ($apps as $appConfig) {
+        foreach ($appConfigs as $appConfig) {
             $result = $this->seedAppRbac($appConfig);
             $totalRoles += $result;
         }
 
         $this->command->info('');
         $this->command->info("=== Summary ===");
-        $this->command->info("Total Apps: " . count($apps));
+        $this->command->info("Total Apps: " . count($appConfigs));
         $this->command->info("Total Role Assignments: {$totalRoles}");
         $this->command->info('');
         $this->command->info('Portal RBAC seeding completed!');
     }
 
     /**
-     * Load JSON configuration
+     * Load app configurations.
+     * Priority: per-app files > legacy single file
      */
-    private function loadConfig(): bool
+    private function loadAppConfigs(): array
     {
-        if (!file_exists($this->configPath)) {
-            $this->command->error("Configuration file not found: {$this->configPath}");
-            $this->command->line("Please create the file with proper menu structure.");
-            return false;
+        // If filtering by specific app slug
+        if ($this->appSlug) {
+            return $this->loadSingleApp($this->appSlug);
         }
 
-        $json = file_get_contents($this->configPath);
-        $this->config = json_decode($json, true);
+        // Try per-app directory first
+        if (is_dir($this->perAppDir)) {
+            $configs = $this->loadAllPerAppFiles();
+            if (!empty($configs)) {
+                $this->command->info("Source: per-app files from {$this->perAppDir}");
+                return $configs;
+            }
+        }
+
+        // Fallback to legacy single file
+        return $this->loadLegacyConfig();
+    }
+
+    /**
+     * Load a single app config by slug
+     */
+    private function loadSingleApp(string $appSlug): array
+    {
+        // Try per-app file first
+        $perAppFile = $this->perAppDir . '/' . $appSlug . '.json';
+        if (file_exists($perAppFile)) {
+            $config = $this->loadJsonFile($perAppFile);
+            if ($config) {
+                $this->command->info("Source: {$perAppFile}");
+                return [$config];
+            }
+        }
+
+        // Fallback: search in legacy config
+        if (file_exists($this->legacyConfigPath)) {
+            $legacy = $this->loadJsonFile($this->legacyConfigPath);
+            if ($legacy) {
+                foreach ($legacy['apps'] ?? [] as $app) {
+                    if (($app['app_slug'] ?? '') === $appSlug) {
+                        $this->command->info("Source: {$this->legacyConfigPath} (app: {$appSlug})");
+                        return [$app];
+                    }
+                }
+            }
+        }
+
+        $this->command->error("App '{$appSlug}' not found in any configuration file!");
+        return [];
+    }
+
+    /**
+     * Load all per-app JSON files from portal_menus/ directory
+     */
+    private function loadAllPerAppFiles(): array
+    {
+        $configs = [];
+        $files = glob($this->perAppDir . '/*.json');
+
+        foreach ($files as $file) {
+            $basename = basename($file);
+            if (str_starts_with($basename, '_')) {
+                continue;
+            }
+
+            $config = $this->loadJsonFile($file);
+            if ($config && isset($config['app_slug'])) {
+                $configs[] = $config;
+            }
+        }
+
+        return $configs;
+    }
+
+    /**
+     * Load legacy single JSON file
+     */
+    private function loadLegacyConfig(): array
+    {
+        if (!file_exists($this->legacyConfigPath)) {
+            $this->command->error("No configuration files found!");
+            return [];
+        }
+
+        $config = $this->loadJsonFile($this->legacyConfigPath);
+        if (!$config) {
+            return [];
+        }
+
+        $this->command->info("Source: {$this->legacyConfigPath} (legacy)");
+        return $config['apps'] ?? [];
+    }
+
+    /**
+     * Load and parse a JSON file
+     */
+    private function loadJsonFile(string $path): ?array
+    {
+        $json = file_get_contents($path);
+        $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->command->error("Invalid JSON in configuration file: " . json_last_error_msg());
-            return false;
+            $this->command->error("Invalid JSON in {$path}: " . json_last_error_msg());
+            return null;
         }
 
-        return true;
+        return $data;
     }
 
     /**

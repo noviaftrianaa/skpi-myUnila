@@ -1,0 +1,39 @@
+{
+  "app_slug": "manajemen-akses",
+  "roles": [1, 107],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/manajemen-akses",
+      "icon": "heroicons:home",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Manajemen",
+      "nm_file": "#manajemen",
+      "icon": "heroicons:cog-6-tooth",
+      "urutan": 2,
+      "children": [
+        {"nm_menu": "Daftar Pengguna", "nm_file": "/dashboard/manajemen-akses/manajemen/pengguna", "urutan": 1},
+        {"nm_menu": "Daftar Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/aplikasi", "urutan": 2},
+        {"nm_menu": "Role Base Access", "nm_file": "/dashboard/manajemen-akses/manajemen/rbac", "urutan": 3},
+        {"nm_menu": "Menu Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/menu", "urutan": 4},
+        {"nm_menu": "Kategori Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/kategori-aplikasi", "urutan": 5},
+        {"nm_menu": "Daftar Unit", "nm_file": "/dashboard/manajemen-akses/manajemen/unit", "urutan": 6},
+        {"nm_menu": "Peran", "nm_file": "/dashboard/manajemen-akses/manajemen/peran", "urutan": 7},
+        {"nm_menu": "WS Endpoint", "nm_file": "/dashboard/manajemen-akses/manajemen/ws-endpoint", "urutan": 8}
+      ]
+    },
+    {
+      "nm_menu": "Logger",
+      "nm_file": "#logger",
+      "icon": "heroicons:presentation-chart-line",
+      "urutan": 3,
+      "children": [
+        {"nm_menu": "Log Login", "nm_file": "/dashboard/manajemen-akses/logger/log-login", "urutan": 1},
+        {"nm_menu": "Log JWT", "nm_file": "/dashboard/manajemen-akses/logger/log-jwt", "urutan": 2},
+        {"nm_menu": "Log Akses", "nm_file": "/dashboard/manajemen-akses/logger/log-akses", "urutan": 3}
+      ]
+    }
+  ]
+}

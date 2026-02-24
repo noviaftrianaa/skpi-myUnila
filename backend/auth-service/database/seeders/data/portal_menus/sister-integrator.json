@@ -1,0 +1,56 @@
+{
+  "app_slug": "sister-integrator",
+  "roles": [1, 107, 33, 38, 37, 36, 35, 34],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/sister-integrator",
+      "icon": "heroicons:squares-2x2",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Referensi",
+      "nm_file": "/dashboard/sister-integrator/referensi",
+      "icon": "heroicons:book-open",
+      "urutan": 2
+    },
+    {
+      "nm_menu": "Data PDRD",
+      "nm_file": "#pdrd",
+      "icon": "heroicons:circle-stack",
+      "urutan": 3,
+      "children": [
+        {"nm_menu": "Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/dosen", "urutan": 1},
+        {"nm_menu": "Penugasan PTK", "nm_file": "/dashboard/sister-integrator/pdrd/penugasan", "urutan": 2},
+        {"nm_menu": "Penelitian", "nm_file": "/dashboard/sister-integrator/pdrd/penelitian", "urutan": 3},
+        {"nm_menu": "Pengabdian", "nm_file": "/dashboard/sister-integrator/pdrd/pengabdian", "urutan": 4},
+        {"nm_menu": "Publikasi", "nm_file": "/dashboard/sister-integrator/pdrd/publikasi", "urutan": 5},
+        {"nm_menu": "Pendidikan Formal", "nm_file": "/dashboard/sister-integrator/pdrd/pendidikan-formal", "urutan": 6},
+        {"nm_menu": "Riwayat Pekerjaan", "nm_file": "/dashboard/sister-integrator/pdrd/riwayat-pekerjaan", "urutan": 7},
+        {"nm_menu": "Jabatan Fungsional", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-fungsional", "urutan": 8},
+        {"nm_menu": "Jabatan Struktural", "nm_file": "/dashboard/sister-integrator/pdrd/jabatan-struktural", "urutan": 9},
+        {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/sister-integrator/pdrd/tugas-tambahan", "urutan": 10},
+        {"nm_menu": "Sertifikasi Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/sertifikasi-dosen", "urutan": 11},
+        {"nm_menu": "Bidang Ilmu", "nm_file": "/dashboard/sister-integrator/pdrd/bidang-ilmu", "urutan": 12}
+      ]
+    },
+    {
+      "nm_menu": "Monitoring",
+      "nm_file": "/dashboard/sister-integrator/monitoring",
+      "icon": "heroicons:presentation-chart-line",
+      "urutan": 4
+    },
+    {
+      "nm_menu": "Sync Logs",
+      "nm_file": "/dashboard/sister-integrator/logs",
+      "icon": "heroicons:document-text",
+      "urutan": 5
+    },
+    {
+      "nm_menu": "API Configuration",
+      "nm_file": "/dashboard/sister-integrator/settings",
+      "icon": "heroicons:cog-6-tooth",
+      "urutan": 6
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "_comment": "Role reference - ini hanya untuk referensi developer, tidak di-load oleh seeder",
+  "_roles": {
+    "ADMINISTRATOR": 1,
+    "DEVELOPER": 107,
+    "LP3M": 33,
+    "REKTOR": 38,
+    "WR1": 37,
+    "WR2": 36,
+    "WR3": 35,
+    "WR4": 34,
+    "MAHASISWA": 39,
+    "DOSEN": 46,
+    "TENDIK": 111,
+    "DEKAN": 43,
+    "KAPRODI": 42,
+    "ADMIN_PRODI": 6,
+    "ADMIN_FAKULTAS": 106,
+    "HELPDESK": 32
+  },
+  "_role_groups": {
+    "PIMPINAN": [1, 107, 33, 38, 37, 36, 35, 34],
+    "PIMPINAN_FULL": [1, 107, 33, 38, 37, 36, 35, 34, 43],
+    "DEVELOPER_ONLY": [1, 107],
+    "AKADEMIK": [1, 107, 39, 46, 42, 6, 106, 43],
+    "ALL": [1, 107, 39, 46, 111]
+  }
+}

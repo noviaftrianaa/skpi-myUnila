@@ -1,0 +1,54 @@
+{
+  "app_slug": "feeder-integrator",
+  "roles": [1, 107, 33, 38, 37, 36, 35, 34],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/feeder-integrator",
+      "icon": "heroicons:squares-2x2",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Referensi",
+      "nm_file": "/dashboard/feeder-integrator/referensi",
+      "icon": "heroicons:book-open",
+      "urutan": 2
+    },
+    {
+      "nm_menu": "Data PDRD",
+      "nm_file": "#feeder-pdrd",
+      "icon": "heroicons:circle-stack",
+      "urutan": 3,
+      "children": [
+        {"nm_menu": "Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/mahasiswa", "urutan": 1},
+        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/aktivitas-mahasiswa", "urutan": 2},
+        {"nm_menu": "Matkul Kurikulum", "nm_file": "/dashboard/feeder-integrator/pdrd/matkul-kurikulum", "urutan": 3},
+        {"nm_menu": "Rencana Evaluasi MK", "nm_file": "/dashboard/feeder-integrator/pdrd/rencana-evaluasi", "urutan": 4},
+        {"nm_menu": "Kelas Pengajaran", "nm_file": "/dashboard/feeder-integrator/pdrd/kelas-kuliah", "urutan": 5},
+        {"nm_menu": "Nilai Perkuliahan", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-perkuliahan", "urutan": 6},
+        {"nm_menu": "Nilai Konversi", "nm_file": "/dashboard/feeder-integrator/pdrd/nilai-konversi", "urutan": 7},
+        {"nm_menu": "Transkrip Nilai", "nm_file": "/dashboard/feeder-integrator/pdrd/transkrip-nilai", "urutan": 8},
+        {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/feeder-integrator/pdrd/prestasi", "urutan": 9},
+        {"nm_menu": "Dosen Pembimbing", "nm_file": "/dashboard/feeder-integrator/pdrd/dosen-pembimbing", "urutan": 10}
+      ]
+    },
+    {
+      "nm_menu": "Monitoring",
+      "nm_file": "/dashboard/feeder-integrator/monitoring",
+      "icon": "heroicons:presentation-chart-line",
+      "urutan": 4
+    },
+    {
+      "nm_menu": "Sync Logs",
+      "nm_file": "/dashboard/feeder-integrator/logs",
+      "icon": "heroicons:document-text",
+      "urutan": 5
+    },
+    {
+      "nm_menu": "API Configuration",
+      "nm_file": "/dashboard/feeder-integrator/settings",
+      "icon": "heroicons:cog-6-tooth",
+      "urutan": 6
+    }
+  ]
+}
