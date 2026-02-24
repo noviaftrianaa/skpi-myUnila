@@ -1235,6 +1235,8 @@ class SsoRadiusController extends Controller
             $validated = $request->validate([
                 'username' => 'required|string|max:255',
                 'nm_pengguna' => 'required|string|max:255',
+                'fname' => 'nullable|string|max:255',
+                'lname' => 'nullable|string|max:255',
                 'email' => 'required|email|max:255',
                 'tanggal_lahir' => 'required|date',
                 'nip' => 'nullable|string|max:255',
@@ -1289,10 +1291,12 @@ class SsoRadiusController extends Controller
                 ->table('radcheck')
                 ->insertGetId([
                     'username' => $validated['username'],
-                    'attribute' => 'Cleartext-Password',
+                    'attribute' => 'SHA1-Password',
                     'op' => ':=',
                     'value' => $passwordSha1,
                     'nm_pengguna' => $validated['nm_pengguna'],
+                    'fname' => $validated['fname'] ?? null,
+                    'lname' => $validated['lname'] ?? null,
                     'email' => $validated['email'],
                     'tanggal_lahir' => $validated['tanggal_lahir'],
                     'nip' => $validated['nip'] ?? $validated['username'],
