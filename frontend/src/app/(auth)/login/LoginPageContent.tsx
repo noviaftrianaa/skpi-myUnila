@@ -41,13 +41,16 @@ export default function LoginPageContent() {
     }
   }, [searchParams]);
 
-  // Clear errors when inputs change
+  // Clear errors when inputs change - only trigger when there's actually an error to clear
   useEffect(() => {
-    if (localError || error) {
+    if (localError) {
       setLocalError(null);
+    }
+    if (error) {
       clearError();
     }
-  }, [username, password, clearError, error, localError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username, password]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,62 +198,14 @@ export default function LoginPageContent() {
         }}
       />
 
-      {/* Animated Background Elements */}
+      {/* Background Elements - CSS animations only (GPU-friendly) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-0 -right-20 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [0, -90, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
+        <div className="absolute top-0 -right-20 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl animate-[pulse_20s_ease-in-out_infinite]" />
+        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl animate-[pulse_25s_ease-in-out_infinite_2s]" />
       </div>
 
       {/* Grid Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDMiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40" />
-
-      {/* Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${10 + i * 10}%`,
-              top: `${20 + (i * 15) % 60}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.1, 0.3, 0.1],
-            }}
-            transition={{
-              duration: 4 + i * 0.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.3,
-            }}
-          >
-            <div className={`w-2 h-2 rounded-full ${i % 2 === 0 ? 'bg-blue-400' : 'bg-indigo-400'} opacity-40`} />
-          </motion.div>
-        ))}
-      </div>
+      <div className="absolute inset-0 hidden sm:block bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDMiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40" />
 
       {/* Main Container */}
       <motion.div
@@ -265,14 +220,10 @@ export default function LoginPageContent() {
             <div className="relative w-full">
               {/* Logo and Title */}
               <div className="mb-10">
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="mb-4"
-                >
+                <div className="mb-4">
                   <Logo size="lg" className="mb-2" />
                   <p className="text-gray-600 font-medium text-sm xl:text-base">Portal Satu Data Universitas Lampung</p>
-                </motion.div>
+                </div>
 
                 <h2 className="text-2xl xl:text-3xl font-bold text-gray-800 mb-3 leading-tight">
                   <span className="bg-gradient-to-r from-myunila to-blue-700 bg-clip-text text-transparent">
@@ -320,7 +271,7 @@ export default function LoginPageContent() {
 
           {/* Right Side - Login Form */}
           <motion.div variants={itemVariants}>
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100/50 p-5 sm:p-6 md:p-8 lg:p-10 xl:p-12">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100/50 p-5 sm:p-6 md:p-8 lg:p-10 xl:p-12">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-6 sm:mb-8 text-center">
                 <div className="mb-3 sm:mb-4">
@@ -367,7 +318,7 @@ export default function LoginPageContent() {
                     radius="lg"
                     classNames={{
                       input: "text-gray-800 text-sm sm:text-base",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-myunila focus-within:border-myunila transition-all duration-300 shadow-sm hover:shadow-md !outline-none min-h-[44px] sm:min-h-[48px]",
+                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-myunila focus-within:border-myunila transition-colors duration-200 shadow-sm !outline-none min-h-[44px] sm:min-h-[48px]",
                       base: "!outline-none",
                     }}
                     startContent={
@@ -395,7 +346,7 @@ export default function LoginPageContent() {
                     radius="lg"
                     classNames={{
                       input: "text-gray-800 text-sm sm:text-base",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-myunila focus-within:border-myunila transition-all duration-300 shadow-sm hover:shadow-md !outline-none min-h-[44px] sm:min-h-[48px]",
+                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-myunila focus-within:border-myunila transition-colors duration-200 shadow-sm !outline-none min-h-[44px] sm:min-h-[48px]",
                       base: "!outline-none",
                     }}
                     startContent={

@@ -1244,6 +1244,7 @@ class SsoRadiusController extends Controller
                 'unit_kerja' => 'nullable|string|max:255',
                 'alamat' => 'nullable|string|max:255',
                 'no_telp' => 'nullable|string|max:255',
+                'value' => 'nullable|string|max:255',
             ]);
 
             // Check if username already exists in radcheck
@@ -1280,8 +1281,9 @@ class SsoRadiusController extends Controller
             }
 
             // Step 1: Create in radcheck (MySQL)
-            // Default password = SHA1(tanggal_lahir)
-            $passwordSha1 = sha1($validated['tanggal_lahir']);
+            // Password: SHA1(value) jika dikirim dari client, atau SHA1(tanggal_lahir) sebagai default
+            $passwordSource = !empty($validated['value']) ? $validated['value'] : $validated['tanggal_lahir'];
+            $passwordSha1 = sha1($passwordSource);
 
             $radcheckId = DB::connection('mysql')
                 ->table('radcheck')

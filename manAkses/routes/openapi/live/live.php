@@ -11,7 +11,7 @@ Route::group([
 ], function () {
     Route::post('/auth/login', 'LoginController@login');
     Route::post('/auth/login/ssoLogin', 'LoginController@ssoLogin')->name('login.sso.post');
-    Route::get('/auth/login/sso', 'LoginController@sso')->name('login.sso');
+    Route::get('/auth/login/sso', 'LoginController@ssoAPIClient')->name('login.sso');
     Route::post('/auth/cek_token', 'LoginController@checkToken')->name('check.token');
 
     Route::middleware('api', 'auth.api')->group(function () {

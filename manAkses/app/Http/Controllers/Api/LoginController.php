@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\AuthApi;
 use App\Models\Logger\LogJwt;
+use App\Models\Logger\LogLogin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Env;
 use Illuminate\Support\Facades\DB;
@@ -172,7 +173,7 @@ class LoginController extends Controller
 
     }
 
-    public function sso(Request $request)
+    public function ssoAPIClient(Request $request)
     {
         InputValidator([
             'app_key'      => ['required']
@@ -215,6 +216,22 @@ class LoginController extends Controller
                 'ip_address' => $this->request->ip(),
                 'sso' => true
             ];
+
+            // Log login ke logger.log_login
+            LogLogin::create([
+                'id_log_login'  => guid(),
+                'id_aplikasi'   => $aplikasi->id_aplikasi,
+                'id_pengguna'   => $user->id_pengguna,
+                'username'      => $pengguna->username,
+                'email'         => $pengguna->email,
+                'status'        => 'success',
+                'ip_address'    => $this->request->ip(),
+                'user_agent'    => $this->request->userAgent(),
+                'browser'       => getBrowser(),
+                'os'            => getOS(),
+                'a_sesi_aktif'  => 1,
+                'waktu_login'   => date('Y-m-d H:i:s'),
+            ]);
 
             return $this->generateJwt($header, $payload, $aplikasi->url);
         }
