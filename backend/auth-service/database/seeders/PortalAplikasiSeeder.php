@@ -262,6 +262,7 @@ class PortalAplikasiSeeder extends Seeder
             ['app_slug' => 'api-gateway', 'nm_aplikasi' => 'API Gateway', 'ket_aplikasi' => 'Kong Dashboard', 'url' => '/portal/kong-admin', 'icon_name' => 'heroicons:cube', 'icon_color' => 'text-blue-600', 'kategori' => 'Tools & Utilities', 'urutan' => 1, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'monitoring', 'nm_aplikasi' => 'Monitoring & Observability', 'ket_aplikasi' => 'Grafana, Prometheus, Loki', 'url' => '/portal/monitoring', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 2, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'manajemen-akses', 'nm_aplikasi' => 'Manajemen Akses myUnila', 'ket_aplikasi' => 'Identity & Access Management', 'url' => '/dashboard/manajemen-akses', 'icon_name' => 'heroicons:key', 'icon_color' => 'text-indigo-600', 'kategori' => 'Tools & Utilities', 'urutan' => 3, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
+            ['app_slug' => 'webmon', 'nm_aplikasi' => 'Web Monitoring', 'ket_aplikasi' => 'Web Monitoring & Early Warning System', 'url' => '/dashboard/monitoring', 'icon_name' => 'heroicons:shield-check', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 4, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
         ];
     }
 }

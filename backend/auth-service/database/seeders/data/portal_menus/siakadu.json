@@ -1,0 +1,30 @@
+{
+  "_comment": "Siakadu has per-menu roles: admin=[1,107], mahasiswa=[39], dosen=[46]",
+  "app_slug": "siakadu",
+  "roles": [1, 107, 39, 46],
+  "menus": [
+    {"nm_menu": "Dashboard", "nm_file": "/dashboard/siakadu", "icon": "heroicons:squares-2x2", "urutan": 1, "roles": [1, 107, 39, 46]},
+    {"nm_menu": "Mahasiswa", "nm_file": "/dashboard/siakadu/mahasiswa", "icon": "heroicons:users", "urutan": 2, "roles": [1, 107]},
+    {"nm_menu": "Dosen Ajar", "nm_file": "/dashboard/siakadu/dosen-ajar", "icon": "heroicons:user", "urutan": 3, "roles": [1, 107]},
+    {"nm_menu": "Kurikulum", "nm_file": "/dashboard/siakadu/kurikulum", "icon": "heroicons:book-open", "urutan": 4, "roles": [1, 107]},
+    {"nm_menu": "Matakuliah", "nm_file": "/dashboard/siakadu/matakuliah", "icon": "heroicons:document-text", "urutan": 5, "roles": [1, 107]},
+    {"nm_menu": "Kelas Kuliah", "nm_file": "/dashboard/siakadu/kelas-kuliah", "icon": "heroicons:academic-cap", "urutan": 6, "roles": [1, 107, 39, 46]},
+    {"nm_menu": "Status Mahasiswa", "nm_file": "/dashboard/siakadu/status-mahasiswa", "icon": "heroicons:check-circle", "urutan": 7, "roles": [1, 107]},
+    {"nm_menu": "Nilai Mahasiswa", "nm_file": "/dashboard/siakadu/nilai-mahasiswa", "icon": "heroicons:clipboard-document-list", "urutan": 8, "roles": [1, 107]},
+    {"nm_menu": "Mahasiswa Lulus", "nm_file": "/dashboard/siakadu/mahasiswa-lulus", "icon": "heroicons:academic-cap", "urutan": 9, "roles": [1, 107]},
+    {"nm_menu": "Chat Grup Kelas", "nm_file": "/dashboard/siakadu/chat-grup", "icon": "heroicons:chat-bubble-left-right", "urutan": 10, "roles": [39, 46]},
+    {"nm_menu": "Biodata", "nm_file": "/dashboard/siakadu/biodata", "icon": "heroicons:user", "urutan": 11, "roles": [39]},
+    {"nm_menu": "Jadwal Kuliah", "nm_file": "/dashboard/siakadu/jadwal-kuliah", "icon": "heroicons:calendar", "urutan": 12, "roles": [39]},
+    {
+      "nm_menu": "KRS/KHS/Transkrip", "nm_file": "#krs-khs-transkrip", "icon": "heroicons:document-text", "urutan": 13, "roles": [39],
+      "children": [
+        {"nm_menu": "KRS", "nm_file": "/dashboard/siakadu/krs", "urutan": 1},
+        {"nm_menu": "KHS", "nm_file": "/dashboard/siakadu/khs", "urutan": 2},
+        {"nm_menu": "Transkrip", "nm_file": "/dashboard/siakadu/transkrip", "urutan": 3}
+      ]
+    },
+    {"nm_menu": "Status Kuliah", "nm_file": "/dashboard/siakadu/status-kuliah", "icon": "heroicons:check-circle", "urutan": 14, "roles": [39]},
+    {"nm_menu": "Jadwal Kelas", "nm_file": "/dashboard/siakadu/jadwal-kelas", "icon": "heroicons:calendar-days", "urutan": 15, "roles": [46]},
+    {"nm_menu": "Nilai Kuliah", "nm_file": "/dashboard/siakadu/nilai-kuliah", "icon": "heroicons:clipboard-document-check", "urutan": 16, "roles": [46]}
+  ]
+}
