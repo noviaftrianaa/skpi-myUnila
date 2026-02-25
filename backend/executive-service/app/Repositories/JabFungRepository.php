@@ -36,6 +36,25 @@ class JabFungRepository
     }
 
     /**
+     * Get jabfung data at university level with optional fakultas filter
+     * Used for dekan role filtering - returns per fakultas breakdown
+     *
+     * @param int|null $idThnAjaran
+     * @param string|null $fakultasId Filter for specific fakultas (for dekan role)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getJabfungByLevelWithFilter($idThnAjaran = null, $fakultasId = null)
+    {
+        // If fakultasId is provided, still call getJabfungFakultasLevel to get per prodi breakdown
+        if ($fakultasId) {
+            return $this->getJabfungFakultasLevel($idThnAjaran, $fakultasId);
+        }
+
+        // University Level - Per fakultas jabfung breakdown
+        return $this->getJabfungUniversityLevel($idThnAjaran);
+    }
+
+    /**
      * Get jabfung data at university level (per fakultas)
      *
      * @param int $idThnAjaran
@@ -472,17 +491,26 @@ class JabFungRepository
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getFakultasList()
+    public function getFakultasList($fakultasId = null)
     {
         $sql = "
             SELECT id_sms AS id, nm_lemb AS nama_fakultas
             FROM pdrd.sms
             WHERE soft_delete = 0
                 AND id_jns_sms = 1
-            ORDER BY nm_lemb ASC
         ";
 
-        return collect(DB::select($sql));
+        $params = [];
+
+        // Add fakultas filter if provided
+        if ($fakultasId) {
+            $sql .= " AND id_sms = CAST(? AS uniqueidentifier)";
+            $params[] = $fakultasId;
+        }
+
+        $sql .= " ORDER BY nm_lemb ASC";
+
+        return collect(DB::select($sql, $params));
     }
 
     /**

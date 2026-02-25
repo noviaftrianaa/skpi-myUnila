@@ -18,11 +18,12 @@ class JabFungService
      * Get jabfung data at university level (per fakultas)
      *
      * @param int|null $idThnAjaran
+     * @param string|null $fakultasId
      * @return \Illuminate\Support\Collection
      */
-    public function getJabfungFakultas($idThnAjaran = null)
+    public function getJabfungFakultas($idThnAjaran = null, $fakultasId = null)
     {
-        $raw_data = $this->jabfungRepository->getJabfungByLevel($idThnAjaran);
+        $raw_data = $this->jabfungRepository->getJabfungByLevel($idThnAjaran, $fakultasId);
 
         // Transform to match frontend Fakultas interface
         $fakultas_data = collect($raw_data)->map(function ($item) {
@@ -124,11 +125,12 @@ class JabFungService
     /**
      * Get fakultas list
      *
+     * @param string|null $fakultasId
      * @return \Illuminate\Support\Collection
      */
-    public function getFakultasList()
+    public function getFakultasList($fakultasId = null)
     {
-        return $this->jabfungRepository->getFakultasList();
+        return $this->jabfungRepository->getFakultasList($fakultasId);
     }
 
     /**

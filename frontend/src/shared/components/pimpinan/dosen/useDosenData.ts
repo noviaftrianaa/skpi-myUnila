@@ -102,10 +102,11 @@ export const useDosenData = ({
     data: jenjangFakultasList = [],
     isLoading: isLoadingJenjangFakultas,
   } = useQuery({
-    queryKey: ["dosen", "jenjang", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "jenjang", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executiveJenjangPendidikanService.getJenjangFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "jenjang_pendidikan",
   });
@@ -138,10 +139,11 @@ export const useDosenData = ({
     data: panggolFakultasList = [],
     isLoading: isLoadingPanggolFakultas,
   } = useQuery({
-    queryKey: ["dosen", "panggol", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "panggol", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executivePangkatGolonganService.getPangkatGolonganFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "pang_gol",
   });
@@ -174,10 +176,11 @@ export const useDosenData = ({
     data: ikatanKerjaFakultasList = [],
     isLoading: isLoadingIkatanKerjaFakultas,
   } = useQuery({
-    queryKey: ["dosen", "ikatan-kerja", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "ikatan-kerja", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executiveIkatanKerjaService.getIkatanKerjaFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "ikatan_kerja",
   });
@@ -210,10 +213,11 @@ export const useDosenData = ({
     data: jenisKelaminFakultasList = [],
     isLoading: isLoadingJenisKelaminFakultas,
   } = useQuery({
-    queryKey: ["dosen", "jenis-kelamin", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "jenis-kelamin", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executiveJenisKelaminService.getJenisKelaminFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "jenis_kelamin",
   });
@@ -246,10 +250,11 @@ export const useDosenData = ({
     data: statusKepegawaianFakultasList = [],
     isLoading: isLoadingStatusKepegawaianFakultas,
   } = useQuery({
-    queryKey: ["dosen", "status-kepegawaian", "fakultas", selectedTahunAjaran],
+    queryKey: ["dosen", "status-kepegawaian", "fakultas", selectedTahunAjaran, userContext?.id_organisasi],
     queryFn: () =>
       executiveStatusKepegawaianService.getStatusKepegawaianFakultas({
         tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4 ? userContext.id_organisasi : undefined,
       }),
     enabled: !!selectedTahunAjaran && selectedTipeData === "status_pegawai",
   });

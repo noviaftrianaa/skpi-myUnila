@@ -48,7 +48,7 @@ export default function RasioPage() {
       executiveRasioService.getFakultas({
         tahun_ajaran: selectedTahunAjaran,
         fakultas_id:
-          activeContext?.level_organisasi === 4
+          activeContext?.level_organisasi == 4
             ? activeContext.id_organisasi
             : undefined,
       }),
@@ -91,13 +91,13 @@ export default function RasioPage() {
     // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
     if (activeContext.level_organisasi == 4) {
       // Dekan: Auto-select their fakultas
-      setSelectedFakultas(activeContext.id_organisasi);
+      setSelectedFakultas(activeContext.id_organisasi || "");
     } else if (activeContext.level_organisasi == 5) {
       // Kaprodi: Auto-select parent fakultas, then their prodi
-      setSelectedFakultas(activeContext?.id_induk_organisasi);
+      setSelectedFakultas(activeContext.id_induk_organisasi || "");
       // Wait for prodi list to load, then auto-select
       const timer = setTimeout(() => {
-        setSelectedProdi(activeContext.id_organisasi);
+        setSelectedProdi(activeContext.id_organisasi || "");
       }, 100);
       return () => clearTimeout(timer);
     }

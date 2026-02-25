@@ -24,7 +24,8 @@ class JabFungController extends Controller
     {
         try {
             $idThnAjaran = $request->query('tahun_ajaran');
-            $data = $this->jabfungService->getJabfungFakultas($idThnAjaran);
+            $fakultasId = $request->query('fakultas_id');
+            $data = $this->jabfungService->getJabfungFakultas($idThnAjaran, $fakultasId);
             return response()->json([
                 'status' => 'success',
                 'data' => $data

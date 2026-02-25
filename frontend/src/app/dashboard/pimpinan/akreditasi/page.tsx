@@ -84,7 +84,7 @@ export default function AkreditasiPage() {
     queryKey: ["akreditasi", "prodi", selectedFakultas?.id],
     queryFn: () =>
       executiveAkreditasiService.getProdiByFakultasId(selectedFakultas!.id),
-    enabled: !!selectedFakultas && activeContext?.level_organisasi !== 5,
+    enabled: !!selectedFakultas && activeContext?.level_organisasi != 5,
   });
 
   // Handle fakultas click - drill down to prodi
@@ -127,7 +127,7 @@ export default function AkreditasiPage() {
     if (!activeContext || !fakultasData.length) return;
 
     // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
-    if (activeContext.level_organisasi === 4 && fakultasData.length === 1) {
+    if (activeContext.level_organisasi == 4 && fakultasData.length == 1) {
       // Dekan: Auto-select ke fakultasnya
       setSelectedFakultas(fakultasData[0]);
     }
@@ -230,7 +230,7 @@ export default function AkreditasiPage() {
           )}
 
           {/* Stats Cards */}
-          {!selectedFakultas && activeContext?.level_organisasi === 3 && (
+          {!selectedFakultas && activeContext?.level_organisasi == 3 && (
             <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
               <StatsCard
                 title="Total Fakultas"

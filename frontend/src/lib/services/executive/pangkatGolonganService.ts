@@ -82,6 +82,7 @@ export interface PaginationResponse<T> {
 
 export interface GetPangkatGolonganFakultasParams {
   tahun_ajaran?: string;
+  fakultas_id?: string;
 }
 
 export interface GetPangkatGolonganProdiParams {

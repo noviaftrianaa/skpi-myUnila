@@ -90,13 +90,26 @@ class ExecutiveAkreditasiService {
    * @param params - Optional query parameters (search, page, per_page)
    */
   async getAllFakultas(params?: GetFakultasParams) {
-    const response = await executiveClient.get<{ data: Fakultas[] }>(
+    const response = await executiveClient.get<{ data: Fakultas[] | Record<string, Fakultas> }>(
       "/akreditasi/fakultas",
       {
         params,
       },
     );
-    return response.data.data || [];
+    const data = response.data.data;
+
+    // Handle both array format (Rektor) and object format (Dekan/Kaprodi)
+    // For Dekan/Kaprodi, API returns { "6": { ... } } instead of array
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Convert object with numeric keys to array
+    if (data && typeof data === 'object') {
+      return Object.values(data);
+    }
+
+    return [];
   }
 
   /**
