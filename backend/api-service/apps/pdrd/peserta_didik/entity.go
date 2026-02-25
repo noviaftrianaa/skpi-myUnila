@@ -55,12 +55,12 @@ type PesertaDidik struct {
 	IDStatMhs         string               `db:"id_stat_mhs" json:"id_stat_mhs"`
 	IDAlatTransport   *int                 `db:"id_alat_transport" json:"id_alat_transport"`
 	IDWil             *string              `db:"id_wil" json:"id_wil"`
-	CreateDate        types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
-	IDCreator         utils.UUID           `db:"id_creator" json:"id_creator"`
+	CreateDate        types.SQLServerTime  `db:"create_date" json:"-"`
+	IDCreator         utils.UUID           `db:"id_creator" json:"-"`
 	LastUpdate        types.SQLServerTime  `db:"last_update" json:"terakhir_diubah"`
-	IDUpdater         utils.NullUUID       `db:"id_updater" json:"id_updater"`
+	IDUpdater         utils.NullUUID       `db:"id_updater" json:"-"`
 	SoftDelete        int                  `db:"soft_delete" json:"-"`
-	LastSync          types.SQLServerTime  `db:"last_sync" json:"-"`
+	LastSync          types.SQLServerTime  `db:"last_sync" json:"last_sync"`
 }
 
 // PesertaDidikDetail adalah entity dari tabel pdrd.peserta_didik
@@ -123,12 +123,12 @@ type PesertaDidikDetail struct {
 	IDAlatTransport   *int                 `db:"id_alat_transport" json:"id_alat_transport"`
 	IDWil             *string              `db:"id_wil" json:"id_wil"`
 	NmWil             *string              `db:"nm_wil" json:"nm_wil"`
-	CreateDate        types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
-	IDCreator         utils.UUID           `db:"id_creator" json:"id_creator"`
+	CreateDate        types.SQLServerTime  `db:"create_date" json:"-"`
+	IDCreator         utils.UUID           `db:"id_creator" json:"-"`
 	LastUpdate        types.SQLServerTime  `db:"last_update" json:"terakhir_diubah"`
-	IDUpdater         utils.NullUUID       `db:"id_updater" json:"id_updater"`
+	IDUpdater         utils.NullUUID       `db:"id_updater" json:"-"`
 	SoftDelete        int                  `db:"soft_delete" json:"-"`
-	LastSync          types.SQLServerTime  `db:"last_sync" json:"-"`
+	LastSync          types.SQLServerTime  `db:"last_sync" json:"last_sync"`
 }
 
 type RegPd struct {
@@ -174,10 +174,28 @@ type RegPd struct {
 	SertProf          *string              `db:"sert_prof" json:"sert_prof"`
 	APindahMhsAsing   *int                 `db:"a_pindah_mhs_asing" json:"a_pindah_mhs_asing"`
 	BiayaMasukKuliah  *float64             `db:"biaya_masuk_kuliah" json:"biaya_masuk_kuliah"`
-	CreateDate        types.SQLServerTime  `db:"create_date" json:"waktu_ditambahkan"`
-	IDCreator         utils.UUID           `db:"id_creator" json:"id_creator"`
+	CreateDate        types.SQLServerTime  `db:"create_date" json:"-"`
+	IDCreator         utils.UUID           `db:"id_creator" json:"-"`
 	LastUpdate        types.SQLServerTime  `db:"last_update" json:"terakhir_diubah"`
-	IDUpdater         utils.NullUUID       `db:"id_updater" json:"id_updater"`
+	IDUpdater         utils.NullUUID       `db:"id_updater" json:"-"`
 	SoftDelete        int                  `db:"soft_delete" json:"-"`
-	LastSync          types.SQLServerTime  `db:"last_sync" json:"-"`
+	LastSync          types.SQLServerTime  `db:"last_sync" json:"last_sync"`
+}
+
+type StatusKuliahMahasiswa struct {
+	IDRegPd      utils.UUID          `db:"id_reg_pd" json:"id_reg_pd"`
+	IDSmt        string              `db:"id_smt" json:"id_smt"`
+	IDPembiayaan *int                `db:"id_pembiayaan" json:"id_pembiayaan"`
+	IDStatMhs    string              `db:"id_stat_mhs" json:"id_stat_mhs"`
+	Ips          *float64            `db:"ips" json:"ips"`
+	SksSemester  *float64            `db:"sks_semester" json:"sks_semester"`
+	Ipk          *float64            `db:"ipk" json:"ipk"`
+	TotalSks     *float64            `db:"total_sks" json:"total_sks"`
+	BiayaSmt     *float64            `db:"biaya_smt" json:"biaya_smt"`
+	CreateDate   types.SQLServerTime `db:"create_date" json:"-"`
+	IDCreator    utils.UUID          `db:"id_creator" json:"-"`
+	LastUpdate   types.SQLServerTime `db:"last_update" json:"terakhir_diubah"`
+	IDUpdater    *utils.NullUUID     `db:"id_updater" json:"-"`
+	SoftDelete   int                 `db:"soft_delete" json:"-"`
+	LastSync     types.SQLServerTime `db:"last_sync" json:"last_sync"`
 }

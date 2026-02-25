@@ -17,6 +17,7 @@ type Service interface {
 	GetPesertaDidik(ctx context.Context, params types.PaginationParams) ([]PesertaDidik, int64, error)
 	GetPesertaDidikDetail(ctx context.Context, params types.PesertaDidikDetailParams) ([]PesertaDidikDetail, int64, error)
 	GetRegPd(ctx context.Context, params types.RegPdParams) ([]RegPd, int64, error)
+	GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error)
 }
 
 type service struct {
@@ -119,6 +120,40 @@ func (s *service) GetRegPd(ctx context.Context, params types.RegPdParams) ([]Reg
 	}
 
 	data, total, err := s.repo.GetRegPd(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
+
+	return data, total, nil
+}
+
+// GetStatusKuliahMahasiswa mengambil data kuliah_mhs per semester dengan caching
+func (s *service) GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error) {
+	cacheKeyData := fmt.Sprintf("status_kuliah:data:page:%d:limit:%d:id_reg_pd:%s:id_smt:%v:id_stat_mhs:%v:sort:%s:%s",
+		params.Page, params.Limit,
+		params.IDRegPd, params.IDSmt, params.IDStatMhs,
+		params.SortBy, params.Order)
+	cacheKeyTotal := fmt.Sprintf("status_kuliah:total:id_reg_pd:%s:id_smt:%v:id_stat_mhs:%v",
+		params.IDRegPd, params.IDSmt, params.IDStatMhs)
+
+	cachedData, err1 := cache.Get(ctx, cacheKeyData)
+	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
+
+	if err1 == nil && err2 == nil {
+		var data []StatusKuliahMahasiswa
+		var total int64
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for status kuliah mahasiswa")
+			return data, total, nil
+		}
+	}
+
+	data, total, err := s.repo.GetStatusKuliahMahasiswa(ctx, params)
 	if err != nil {
 		return nil, 0, err
 	}

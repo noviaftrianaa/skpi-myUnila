@@ -175,19 +175,12 @@ PesertaDidik:
       type: string
       nullable: true
       example: "180000"
-    waktu_ditambahkan:
-      type: string
-      format: date-time
-    id_creator:
-      type: string
-      format: uuid
     terakhir_diubah:
       type: string
       format: date-time
-    id_updater:
+    last_sync:
       type: string
-      format: uuid
-      nullable: true
+      format: date-time
 
 # =============================================================================
 # PESERTA DIDIK DETAIL SCHEMA (dengan lookup names dari JOIN)
@@ -249,6 +242,69 @@ PesertaDidikDetail:
           example: null
 
 # =============================================================================
+# STATUS KULIAH MAHASISWA SCHEMA
+# =============================================================================
+
+StatusKuliahMahasiswa:
+  type: object
+  description: Data status kuliah mahasiswa dari tabel pdrd.kuliah_mhs
+  properties:
+    id_reg_pd:
+      type: string
+      format: uuid
+      description: ID registrasi peserta didik
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    id_smt:
+      type: string
+      description: ID semester
+      example: "20241"
+    id_pembiayaan:
+      type: integer
+      nullable: true
+      description: ID pembiayaan pada semester ini
+      example: 1
+    id_stat_mhs:
+      type: string
+      description: ID status mahasiswa pada semester ini
+      example: "A"
+    ips:
+      type: number
+      format: float
+      nullable: true
+      description: Indeks Prestasi Semester
+      example: 3.80
+    sks_semester:
+      type: number
+      format: float
+      nullable: true
+      description: Jumlah SKS yang diambil pada semester ini
+      example: 21
+    ipk:
+      type: number
+      format: float
+      nullable: true
+      description: Indeks Prestasi Kumulatif hingga semester ini
+      example: 3.75
+    total_sks:
+      type: number
+      format: float
+      nullable: true
+      description: Total SKS yang telah ditempuh
+      example: 84
+    biaya_smt:
+      type: number
+      format: float
+      nullable: true
+      description: Biaya kuliah semester ini
+      example: 5000000
+    terakhir_diubah:
+      type: string
+      format: date-time
+    last_sync:
+      type: string
+      format: date-time
+
+# =============================================================================
 # REG PD SCHEMA
 # =============================================================================
 
@@ -256,7 +312,7 @@ RegPd:
   allOf:
     - $ref: '#/PesertaDidikDetail'
     - type: object
-      description: Data registrasi peserta didik dari tabel pdrd.reg_pd beserta data peserta didik
+      description: Data riwayat pendidikan mahasiswa dari tabel pdrd.reg_pd beserta data peserta didik
       properties:
         id_reg_pd:
           type: string
@@ -428,16 +484,9 @@ RegPd:
           type: number
           format: float
           nullable: true
-        waktu_ditambahkan:
-          type: string
-          format: date-time
-        id_creator:
-          type: string
-          format: uuid
         terakhir_diubah:
           type: string
           format: date-time
-        id_updater:
+        last_sync:
           type: string
-          format: uuid
-          nullable: true
+          format: date-time

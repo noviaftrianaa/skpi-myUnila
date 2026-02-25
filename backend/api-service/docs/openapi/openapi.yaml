@@ -280,12 +280,14 @@ paths:
   # ==========================================================================
   # PDRD ENDPOINTS
   # ==========================================================================
-  /v1/pdrd/peserta_didik:
-    $ref: './paths/pdrd.yaml#/peserta-didik'
-  /v1/pdrd/peserta_didik_detail:
-    $ref: './paths/pdrd.yaml#/peserta-didik-detail'
-  /v1/pdrd/reg_pd:
-    $ref: './paths/pdrd.yaml#/reg-pd'
+  /v1/pdrd/list_mahasiswa:
+    $ref: './paths/pdrd.yaml#/list-mahasiswa'
+  /v1/pdrd/detail_biodata_mahasiswa:
+    $ref: './paths/pdrd.yaml#/detail-biodata-mahasiswa'
+  /v1/pdrd/riwayat_pendidikan_mahasiswa:
+    $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
+  /v1/pdrd/status_kuliah_mahasiswa:
+    $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
 
 components:
   schemas:

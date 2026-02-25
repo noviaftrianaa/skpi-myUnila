@@ -4,11 +4,11 @@
 # PESERTA DIDIK
 # =============================================================================
 
-peserta-didik:
+list-mahasiswa:
   get:
     tags:
       - PDRD
-    summary: Get daftar peserta didik
+    summary: Get list mahasiswa
     description: |
       Mengambil daftar peserta didik dengan pagination dan pencarian.
       Data diambil langsung dari tabel `pdrd.peserta_didik` tanpa join lookup.
@@ -58,11 +58,11 @@ peserta-didik:
       '500':
         $ref: '../responses/errors.yaml#/InternalServerError'
 
-peserta-didik-detail:
+detail-biodata-mahasiswa:
   get:
     tags:
       - PDRD
-    summary: Get daftar peserta didik dengan detail lookup
+    summary: Get detail biodata mahasiswa
     description: |
       Mengambil daftar peserta didik beserta nama-nama dari tabel lookup (referensi).
       Melakukan JOIN ke tabel:
@@ -193,13 +193,13 @@ peserta-didik-detail:
 # REG PD
 # =============================================================================
 
-reg-pd:
+riwayat-pendidikan-mahasiswa:
   get:
     tags:
       - PDRD
-    summary: Get data registrasi peserta didik
+    summary: Get riwayat pendidikan mahasiswa
     description: |
-      Mengambil data registrasi peserta didik (`reg_pd`) beserta data peserta didik
+      Mengambil riwayat pendidikan mahasiswa (`reg_pd`) beserta data peserta didik
       dan nama lookup dari tabel referensi. Melakukan JOIN ke tabel:
       - `pdrd.peserta_didik` → data lengkap mahasiswa
       - `ref.wilayah`, `ref.status_mahasiswa`, `ref.jenis_tinggal`, `ref.agama`,
@@ -291,7 +291,7 @@ reg-pd:
           example: "1"
     responses:
       '200':
-        description: Berhasil mengambil data registrasi peserta didik
+        description: Berhasil mengambil riwayat pendidikan mahasiswa
         content:
           application/json:
             schema:
@@ -305,7 +305,7 @@ reg-pd:
                         $ref: '../schemas/pdrd.yaml#/RegPd'
             example:
               success: true
-              message: Berhasil mengambil data registrasi peserta didik
+              message: Berhasil mengambil riwayat pendidikan mahasiswa
               data:
                 - id_reg_pd: "550e8400-e29b-41d4-a716-446655440001"
                   id_sp: "550e8400-e29b-41d4-a716-446655440002"
@@ -324,6 +324,87 @@ reg-pd:
                 total_pages: 1
       '400':
         $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'
+
+# =============================================================================
+# STATUS KULIAH MAHASISWA
+# =============================================================================
+
+status-kuliah-mahasiswa:
+  get:
+    tags:
+      - PDRD
+    summary: Get status kuliah mahasiswa
+    description: |
+      Mengambil data status kuliah mahasiswa dari tabel `pdrd.kuliah_mhs`.
+      Setiap record mewakili satu semester kuliah mahasiswa, berisi informasi
+      IPS, IPK, SKS semester, total SKS, biaya semester, dan status mahasiswa.
+      Memerlukan autentikasi JWT.
+    operationId: getStatusKuliahMahasiswa
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_reg_pd
+        in: query
+        required: true
+        description: Filter berdasarkan ID registrasi peserta didik (UUID)
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      - name: id_smt
+        in: query
+        description: Filter berdasarkan ID semester
+        schema:
+          type: integer
+          example: 20241
+      - name: id_stat_mhs
+        in: query
+        description: Filter berdasarkan ID status mahasiswa pada semester tersebut
+        schema:
+          type: string
+          example: "A"
+    responses:
+      '200':
+        description: Berhasil mengambil data status kuliah mahasiswa
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/StatusKuliahMahasiswa'
+            example:
+              success: true
+              message: Berhasil mengambil data status kuliah mahasiswa
+              data:
+                - id_reg_pd: "550e8400-e29b-41d4-a716-446655440001"
+                  id_smt: "20241"
+                  id_pembiayaan: 1
+                  id_stat_mhs: "A"
+                  ips: 3.80
+                  sks_semester: 21
+                  ipk: 3.75
+                  total_sks: 84
+                  biaya_smt: 5000000
+                  terakhir_diubah: "2024-08-01T00:00:00Z"
+                  last_sync: "2024-08-01T00:00:00Z"
+              meta:
+                page: 1
+                limit: 20
+                total: 8
+                total_pages: 1
       '401':
         $ref: '../responses/errors.yaml#/Unauthorized'
       '500':

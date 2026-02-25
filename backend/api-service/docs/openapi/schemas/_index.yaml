@@ -41,3 +41,5 @@ PesertaDidikDetail:
   $ref: './pdrd.yaml#/PesertaDidikDetail'
 RegPd:
   $ref: './pdrd.yaml#/RegPd'
+StatusKuliahMahasiswa:
+  $ref: './pdrd.yaml#/StatusKuliahMahasiswa'
