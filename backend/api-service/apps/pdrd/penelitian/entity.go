@@ -99,7 +99,7 @@ type PdAnggotaLitabmas struct {
 	IDLitabmas      utils.NullUUID      `db:"id_litabmas" json:"id_litabmas"`
 	IDPd            utils.NullUUID      `db:"id_pd" json:"id_pd"`
 	PeranLitabmas   *string             `db:"peran_litabmas" json:"peran_litabmas"`
-	StatAktif       *int                `db:"stat_aktif" json:"stat_aktif"`
+	StatAktifPd     *int                `db:"stat_aktif_pd" json:"stat_aktif_pd"`
 	NmPd            *string             `db:"nm_pd" json:"nm_pd"`
 	Nipd            *string             `db:"nipd" json:"nipd"`
 	CreateDate      types.SQLServerTime `db:"create_date" json:"-"`

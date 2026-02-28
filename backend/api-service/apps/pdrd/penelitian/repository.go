@@ -272,7 +272,7 @@ func (r *repository) GetLitabmas(
 			pal.id_pd_ang_litabmas,
 			pal.id_pd,
 			pal.peran_litabmas,
-			pal.stat_aktif AS stat_aktif,
+			pal.stat_aktif AS stat_aktif_pd,
 			pal.nm_pd,
 			pal.nipd,
 			l.create_date,
