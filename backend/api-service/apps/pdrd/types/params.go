@@ -83,7 +83,8 @@ type PublikasiParams struct {
 
 type LitabmasParams struct {
 	PaginationParams
-	IDSdm         string  `query:"id_sdm"`          // Filter by ID SDM (wajib)
+	IDLitabmas    string  `query:"id_litabmas"`     // Filter by ID litabmas
+	IDSdm         *string `query:"id_sdm"`          // Filter by ID SDM (wajib)
 	JnsLitabmas   *string `query:"jns_litabmas"`    // Filter by jenis litabmas (L=Penelitian, M=Pengabdian)
 	IDLembIptek   *string `query:"id_lemb_iptek"`   // Filter by ID lembaga iptek
 	IDSkim        *string `query:"id_skim"`         // Filter by ID skim kegiatan

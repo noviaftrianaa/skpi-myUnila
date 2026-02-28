@@ -190,7 +190,8 @@ func (r *repository) GetLitabmas(
 
 	// ===== BUILD CONDITIONS =====
 	cb := helper.NewCondBuilder()
-	cb.AppendUUID("sal.id_sdm", strPtr(params.IDSdm))
+	cb.AppendUUID("l.id_litabmas", strPtr(params.IDLitabmas))
+	cb.AppendUUID("sal.id_sdm", params.IDSdm)
 	cb.AppendString("l.jns_litabmas", params.JnsLitabmas)
 	cb.AppendUUID("l.id_lemb_iptek", params.IDLembIptek)
 	cb.AppendUUID("l.id_skim", params.IDSkim)

@@ -65,13 +65,13 @@ func (s *service) GetPublikasi(ctx context.Context, params types.PublikasiParams
 
 // GetLitabmas mengambil daftar litabmas (penelitian/pengabdian) dengan pagination dan caching
 func (s *service) GetLitabmas(ctx context.Context, params types.LitabmasParams) ([]Litabmas, int64, error) {
-	cacheKeyData := fmt.Sprintf("litabmas:data:page:%d:limit:%d:id_sdm:%s:jns:%v:lemb:%v:skim:%v:thn:%v:bidang:%v:tse:%v:smi:%v:jns_lit:%v:search:%s:sort:%s:%s",
+	cacheKeyData := fmt.Sprintf("litabmas:data:page:%d:limit:%d:id_litabmas:%v:id_sdm:%s:jns:%v:lemb:%v:skim:%v:thn:%v:bidang:%v:tse:%v:smi:%v:jns_lit:%v:search:%s:sort:%s:%s",
 		params.Page, params.Limit,
-		params.IDSdm, params.JnsLitabmas, params.IDLembIptek, params.IDSkim,
+		params.IDLitabmas, params.IDSdm, params.JnsLitabmas, params.IDLembIptek, params.IDSkim,
 		params.IDThnKegiatan, params.IDKelBidang, params.IDTse, params.IDSmi, params.IDJnsLit,
 		params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("litabmas:total:id_sdm:%s:jns:%v:skim:%v:thn:%v:search:%s",
-		params.IDSdm, params.JnsLitabmas, params.IDSkim, params.IDThnKegiatan, params.Search)
+	cacheKeyTotal := fmt.Sprintf("litabmas:total:id_litabmas:%v:id_sdm:%s:jns:%v:skim:%v:thn:%v:search:%s",
+		params.IDLitabmas, params.IDSdm, params.JnsLitabmas, params.IDSkim, params.IDThnKegiatan, params.Search)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

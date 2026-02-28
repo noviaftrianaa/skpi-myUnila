@@ -42,8 +42,8 @@ func (h *Handler) GetLitabmas(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
 	}
 
-	if params.IDSdm == "" {
-		return response.BadRequest(c, "Parameter id_sdm wajib diisi", nil)
+	if params.IDLitabmas == "" {
+		return response.BadRequest(c, "Parameter id_litabmas wajib diisi", nil)
 	}
 
 	data, total, err := h.svc.GetLitabmas(c.Context(), params)
