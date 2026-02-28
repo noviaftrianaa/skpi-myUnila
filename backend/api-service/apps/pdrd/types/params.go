@@ -69,3 +69,27 @@ type StatusKuliahMahasiswaParams struct {
 	IDSmt     *int    `query:"id_smt"`      // Filter by semester
 	IDStatMhs *string `query:"id_stat_mhs"` // Filter by ID status mahasiswa
 }
+
+type PublikasiParams struct {
+	PaginationParams
+	IDJnsPub     *int    `query:"id_jns_pub"`     // Filter by ID jenis publikasi
+	NamaJurnal   *string `query:"nama_jurnal"`    // Filter by nama jurnal
+	Edisi        *string `query:"edisi"`          // Filter by edisi
+	Penerbit     *string `query:"penerbit"`       // Filter by penerbit
+	IDKatCapaian *int    `query:"id_kat_capaian"` // Filter by ID kategori capaian
+	IDMediaPub   *string `query:"id_media_pub"`   // Filter by ID media publikasi
+	IDLitabmas   *string `query:"id_litabmas"`    // Filter by ID litabmas
+}
+
+type LitabmasParams struct {
+	PaginationParams
+	IDSdm         string  `query:"id_sdm"`          // Filter by ID SDM (wajib)
+	JnsLitabmas   *string `query:"jns_litabmas"`    // Filter by jenis litabmas (L=Penelitian, M=Pengabdian)
+	IDLembIptek   *string `query:"id_lemb_iptek"`   // Filter by ID lembaga iptek
+	IDSkim        *string `query:"id_skim"`         // Filter by ID skim kegiatan
+	IDThnKegiatan *int    `query:"id_thn_kegiatan"` // Filter by tahun kegiatan
+	IDKelBidang   *string `query:"id_kel_bidang"`   // Filter by ID kelompok bidang
+	IDTse         *int    `query:"id_tse"`          // Filter by ID tse
+	IDSmi         *string `query:"id_smi"`          // Filter by ID smi
+	IDJnsLit      *int    `query:"id_jns_lit"`      // Filter by ID jenis penelitian
+}
