@@ -85,10 +85,14 @@ show_menu() {
     echo -e "  ${MAGENTA}39)${NC} Go Hot Reload - ALL Go Services"
     echo -e "  ${MAGENTA}40)${NC} Go Hot Reload - Pilih Service"
     echo -e "  ${MAGENTA}41)${NC} Dev Mode - Backend Only (no frontend)"
+    echo -e "  ${MAGENTA}42)${NC} Go Hot Reload - Monitoring Only"
+    echo ""
+    echo -e "  ${CYAN}--- Quick Rebuild (Monitoring) ---${NC}"
+    echo -e "  ${GREEN}43)${NC} Quick Rebuild - Monitoring Only"
     echo ""
     echo -e "  ${RED}0)${NC}  Exit"
     echo ""
-    echo -n "Pilihan [0-41]: "
+    echo -n "Pilihan [0-43]: "
 }
 
 # Function to show container status
@@ -117,8 +121,9 @@ show_logs() {
     echo "  10) Redis"
     echo "  11) MeiliSearch"
     echo "  12) Kong"
+    echo "  13) Monitoring"
     echo ""
-    read -p "Pilihan [1-12]: " log_choice
+    read -p "Pilihan [1-13]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
@@ -133,6 +138,7 @@ show_logs() {
         10) docker logs myunila-redis --tail 100 -f ;;
         11) docker logs myunila-meilisearch --tail 100 -f ;;
         12) docker logs myunila-kong --tail 100 -f ;;
+        13) docker logs myunila-monitoring-service --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -207,6 +213,14 @@ test_endpoints() {
         echo -e "${RED}✗ $DASHBOARD_STATUS${NC}"
     fi
 
+    echo -n "Monitoring:       "
+    MONITORING_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8089/health 2>/dev/null || echo "000")
+    if [ "$MONITORING_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $MONITORING_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $MONITORING_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
     echo "  Public:      http://localhost:8082"
@@ -216,6 +230,7 @@ test_endpoints() {
     echo "  API Service: http://localhost:8085"
     echo "  Keuangan:    http://localhost:8088"
     echo "  Dashboard:   http://localhost:8087"
+    echo "  Monitoring:  http://localhost:8089"
     echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
@@ -521,6 +536,16 @@ while true; do
             ;;
         41)
             bash "$SCRIPT_DIR/dev-mode.sh" --no-frontend
+            read -p "Press Enter to continue..."
+            ;;
+        42)
+            bash "$SCRIPT_DIR/go-hot-reload.sh" monitoring
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === Quick Rebuild (Monitoring) ===
+        43)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" monitoring
             read -p "Press Enter to continue..."
             ;;
 

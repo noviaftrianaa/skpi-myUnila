@@ -63,7 +63,7 @@ rebuild_service() {
     docker compose --env-file .env -f "$compose_file" up -d ${docker_service_name}
 
     # Clear Laravel caches if it's a PHP service (not Go services)
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -165,6 +165,9 @@ case "$SERVICE" in
     dashboard)
         rebuild_service "dashboard"
         ;;
+    monitoring)
+        rebuild_service "monitoring"
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -183,6 +186,7 @@ case "$SERVICE" in
         rebuild_service "myunila"
         rebuild_service "api"
         rebuild_service "dashboard"
+        rebuild_service "monitoring"
         rebuild_nginx
 
         # Setup Kong routes after all services are up
@@ -264,6 +268,9 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "api" ]; then
     echo "  API Docs:  http://localhost:8085/api/docs"
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
-    echo "  Dashboard: curl http://localhost:8087/api/health"
+    echo "  Dashboard:   curl http://localhost:8087/api/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "monitoring" ]; then
+    echo "  Monitoring:  curl http://localhost:8089/health"
 fi
 echo ""
