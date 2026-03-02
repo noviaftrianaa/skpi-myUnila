@@ -84,6 +84,33 @@ export interface GetDataDosenParams {
   search?: string;
 }
 
+export interface GetRasioFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  fakultas_id?: string;
+  years_back?: number;
+}
+
+export interface GetRasioProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  prodi_id?: string;
+  years_back?: number;
+}
+
+export interface HistoricalRasioData {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: Fakultas[];
+}
+
+export interface HistoricalRasioProdiData {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: Prodi[];
+}
+
 // ========================================
 // Service
 // ========================================
@@ -172,6 +199,47 @@ class ExecutiveRasioService {
   async getFakultasList(): Promise<Fakultas[]> {
     const response = await executiveClient.get<{ data: Fakultas[] }>(
       "/rasio/master/fakultas",
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical rasio fakultas data for the last N years
+   * @param params - Parameters including tahun_ajaran, optional fakultas_id filter, and years_back (default: 5)
+   */
+  async getRasioFakultasHistorical(
+    params?: GetRasioFakultasHistoricalParams,
+  ): Promise<HistoricalRasioData[]> {
+    const response = await executiveClient.get<{ data: HistoricalRasioData[] }>(
+      "/rasio/fakultas/historical",
+      {
+        params: {
+          tahun_ajaran: params?.tahun_ajaran,
+          fakultas_id: params?.fakultas_id,
+          years_back: params?.years_back ?? 5,
+        },
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical rasio prodi data for the last N years
+   * @param params - Parameters including fakultas_id, tahun_ajaran, optional prodi_id filter, and years_back (default: 5)
+   */
+  async getRasioProdiHistorical(
+    params: GetRasioProdiHistoricalParams,
+  ): Promise<HistoricalRasioProdiData[]> {
+    const response = await executiveClient.get<{ data: HistoricalRasioProdiData[] }>(
+      "/rasio/prodi/historical",
+      {
+        params: {
+          fakultas_id: params.fakultas_id,
+          tahun_ajaran: params.tahun_ajaran,
+          prodi_id: params.prodi_id,
+          years_back: params.years_back ?? 5,
+        },
+      },
     );
     return response.data.data || [];
   }

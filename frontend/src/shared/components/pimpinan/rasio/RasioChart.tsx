@@ -62,9 +62,7 @@ export const RasioChart = ({ data, onLihatData }: RasioChartProps) => {
           <h2 className="text-xl font-semibold text-gray-800">
             Grafik Rasio Dosen-Mahasiswa
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Dosen dinormalisasi ke 1 untuk membandingkan rasio
-          </p>
+          <p className="mt-1 text-sm text-gray-500"></p>
         </div>
         <Button
           color="primary"
@@ -76,44 +74,47 @@ export const RasioChart = ({ data, onLihatData }: RasioChartProps) => {
         </Button>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={800}>
         <BarChart
           data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          layout="vertical"
+          margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
+          barCategoryGap="10%"
+          barGap={22}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
-            dataKey="name"
-            angle={-45}
-            textAnchor="end"
-            height={100}
-            interval={0}
-            tick={{ fontSize: 12 }}
+            type="number"
+            label={{
+              value: "Rasio (Normalisasi)",
+              position: "insideBottom",
+              offset: -5,
+            }}
+            tick={{ fontSize: 11 }}
             stroke="#666"
           />
           <YAxis
-            label={{
-              value: "Rasio (Normalisasi)",
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle" },
-            }}
-            tick={{ fontSize: 12 }}
+            type="category"
+            dataKey="name"
+            tick={{ fontSize: 11 }}
             stroke="#666"
+            width={110}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Bar
             dataKey="dosen"
             fill="#3b82f6"
-            name="Dosen (Normalisasi)"
-            radius={[4, 4, 0, 0]}
+            name="Dosen"
+            radius={[0, 4, 4, 0]}
+            barSize={30}
           />
           <Bar
             dataKey="mahasiswa"
             fill="#22c55e"
             name="Mahasiswa per Dosen"
-            radius={[4, 4, 0, 0]}
+            radius={[0, 4, 4, 0]}
+            barSize={30}
           />
         </BarChart>
       </ResponsiveContainer>

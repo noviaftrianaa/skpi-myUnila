@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Alert, Select, SelectItem } from "@heroui/react";
 import { FiBarChart2 } from "react-icons/fi";
@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { executiveRasioService } from "@/lib/services/executive";
 import { RasioStatsCard } from "@/shared/components/pimpinan/rasio/RasioStatsCard";
 import { RasioChart } from "@/shared/components/pimpinan/rasio/RasioChart";
+import { RasioTrendChart } from "@/shared/components/pimpinan/rasio/RasioTrendChart";
+import { RasioPercentageChart } from "@/shared/components/pimpinan/rasio/RasioPercentageChart";
 import { RasioDataModal } from "@/shared/components/pimpinan/rasio/RasioDataModal";
 import { useUserContext } from "@/contexts/UserContextContext";
 
@@ -65,6 +67,123 @@ export default function RasioPage() {
       }),
     enabled: !!selectedFakultas && !!selectedTahunAjaran,
   });
+
+  // Fetch historical data for trend chart - Fakultas level (for rektor view)
+  const {
+    data: historicalFakultasData = [],
+    isLoading: isLoadingHistoricalFakultas,
+  } = useQuery({
+    queryKey: [
+      "rasio",
+      "historical-fakultas",
+      selectedTahunAjaran,
+      activeContext?.id_organisasi,
+    ],
+    queryFn: () =>
+      executiveRasioService.getRasioFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id:
+          activeContext?.level_organisasi == 4
+            ? activeContext.id_organisasi
+            : undefined,
+      }),
+    enabled:
+      !!selectedTahunAjaran &&
+      !selectedFakultas &&
+      activeContext?.level_organisasi != 4,
+  });
+
+  // Fetch historical data for trend chart - Prodi level (when fakultas is selected)
+  const {
+    data: historicalProdiData = [],
+    isLoading: isLoadingHistoricalProdi,
+  } = useQuery({
+    queryKey: [
+      "rasio",
+      "historical-prodi",
+      selectedTahunAjaran,
+      selectedFakultas,
+      selectedProdi,
+    ],
+    queryFn: () =>
+      executiveRasioService.getRasioProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && !!selectedFakultas,
+  });
+
+  // Determine which historical data to use based on selection
+  const historicalData = useMemo(() => {
+    if (selectedFakultas) {
+      return historicalProdiData;
+    }
+    return historicalFakultasData;
+  }, [selectedFakultas, historicalFakultasData, historicalProdiData]);
+
+  const isLoadingHistorical = selectedFakultas
+    ? isLoadingHistoricalProdi
+    : isLoadingHistoricalFakultas;
+
+  // Calculate percentage data for pie chart based on current selection
+  const percentageData = useMemo(() => {
+    let totalDosen = 0;
+    let totalMahasiswa = 0;
+
+    if (selectedProdi) {
+      // Single prodi selected
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalDosen = prodi.jumlah_dosen;
+        totalMahasiswa = prodi.jumlah_mahasiswa;
+      }
+    } else if (selectedFakultas) {
+      // Fakultas selected - show all prodis in that fakultas
+      totalDosen = prodiList.reduce((sum, p) => sum + p.jumlah_dosen, 0);
+      totalMahasiswa = prodiList.reduce((sum, p) => sum + p.jumlah_mahasiswa, 0);
+    } else {
+      // No filter - show all fakultas
+      totalDosen = fakultasList.reduce((sum, f) => sum + f.total_dosen, 0);
+      totalMahasiswa = fakultasList.reduce((sum, f) => sum + f.total_mahasiswa, 0);
+    }
+
+    return [
+      {
+        name: "Dosen",
+        value: totalDosen,
+        color: "#3b82f6", // blue
+      },
+      {
+        name: "Mahasiswa",
+        value: totalMahasiswa,
+        color: "#22c55e", // green
+      },
+    ];
+  }, [fakultasList, prodiList, selectedFakultas, selectedProdi]);
+
+  // Calculate title and subtitle for percentage chart
+  const percentageTitle = useMemo(() => {
+    if (selectedProdi) {
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
+      return `Presentase Dosen vs Mahasiswa - ${prodi?.nama_prodi || "Prodi"}`;
+    } else if (selectedFakultas) {
+      const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
+      return `Presentase Dosen vs Mahasiswa - ${fakultas?.nama_fakultas || "Fakultas"}`;
+    }
+    return "Presentase Dosen vs Mahasiswa - Universitas";
+  }, [fakultasList, prodiList, selectedFakultas, selectedProdi]);
+
+  const percentageSubtitle = useMemo(() => {
+    if (selectedProdi) {
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
+      return `Data ${prodi?.nama_prodi || "prodi tersebut"}`;
+    } else if (selectedFakultas) {
+      const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
+      return `Data ${fakultas?.nama_fakultas || "fakultas tersebut"}`;
+    }
+    return "Data universitas (semua fakultas)";
+  }, [fakultasList, prodiList, selectedFakultas, selectedProdi]);
 
   // Handle tahun ajaran change
   const handleTahunAjaranChange = (value: string) => {
@@ -335,6 +454,29 @@ export default function RasioPage() {
               color="purple"
             />
           </div>
+          {/* Historical Trend Chart */}
+          {historicalData && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <RasioTrendChart data={historicalData} />
+            </motion.div>
+          )}
+
+          {/* Percentage Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <RasioPercentageChart
+              data={percentageData}
+              title={percentageTitle}
+              subtitle={percentageSubtitle}
+            />
+          </motion.div>
 
           {/* Chart Card */}
           <RasioChart data={chartData} onLihatData={handleLihatData} />

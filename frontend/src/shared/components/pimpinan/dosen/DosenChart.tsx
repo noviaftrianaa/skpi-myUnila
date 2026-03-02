@@ -79,17 +79,23 @@ export const DosenChart = <T extends Record<string, any>>({
     switch (chartType) {
       case "bar":
         return (
-          <BarChart data={data} barCategoryGap="20%" barGap={4}>
+          <BarChart
+            data={data}
+            barSize={30}
+            layout="vertical"
+            barCategoryGap="35%"
+            barGap={6}
+            margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
+            <XAxis type="number" tick={{ fontSize: 11 }} />
+            <YAxis
+              type="category"
               dataKey={xAxisKey}
               interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={120}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
+              width={110}
             />
-            <YAxis />
             <Tooltip />
             <Legend verticalAlign="top" />
             {keys.map((item) => (
@@ -98,8 +104,7 @@ export const DosenChart = <T extends Record<string, any>>({
                 dataKey={item.key}
                 fill={item.color || "#3b82f6"}
                 name={item.name}
-                className=" mt-60"
-                barSize={18}
+                barSize={20}
               />
             ))}
           </BarChart>
@@ -107,17 +112,22 @@ export const DosenChart = <T extends Record<string, any>>({
 
       case "bar-stacked":
         return (
-          <BarChart data={data}>
+          <BarChart
+            data={data}
+            layout="vertical"
+            barCategoryGap="35%"
+            barSize={30}
+            margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
+            <XAxis type="number" tick={{ fontSize: 11 }} />
+            <YAxis
+              type="category"
               dataKey={xAxisKey}
               interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={200}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
+              width={110}
             />
-            <YAxis />
             <Tooltip />
             <Legend verticalAlign="top" />
             {keys.map((item) => (
@@ -191,7 +201,7 @@ export const DosenChart = <T extends Record<string, any>>({
   };
 
   return (
-    <div className="p-6 bg-white shadow-sm rounded-xl relative">
+    <div className="relative p-6 bg-white shadow-sm rounded-xl">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
@@ -208,15 +218,21 @@ export const DosenChart = <T extends Record<string, any>>({
         </Button>
       </div>
 
-      <div className={isLoading ? "blur-sm pointer-events-none transition-all duration-300" : ""}>
-        <ResponsiveContainer width="100%" height={500}>
+      <div
+        className={
+          isLoading
+            ? "blur-sm pointer-events-none transition-all duration-300"
+            : ""
+        }
+      >
+        <ResponsiveContainer width="100%" height={600}>
           {renderChart()}
         </ResponsiveContainer>
       </div>
 
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/30 backdrop-blur-sm rounded-xl z-10">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/30 backdrop-blur-sm rounded-xl">
           <Spinner
             size="lg"
             color="primary"
@@ -226,7 +242,7 @@ export const DosenChart = <T extends Record<string, any>>({
               circle2: "border-b-myunila",
             }}
           />
-          <p className="text-gray-700 font-medium animate-pulse">
+          <p className="font-medium text-gray-700 animate-pulse">
             Memuat data grafik...
           </p>
         </div>

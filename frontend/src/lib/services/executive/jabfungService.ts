@@ -77,6 +77,26 @@ export interface GetProdiParams {
   fakultas_id: string;
 }
 
+export interface GetJabfungFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  fakultas_id?: string;
+  years_back?: number;
+}
+
+export interface GetJabfungProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  prodi_id?: string;
+  years_back?: number;
+}
+
+export interface HistoricalJabfungData {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: JabfungFakultas[] | JabfungProdi[];
+}
+
 // ========================================
 // Service
 // ========================================
@@ -171,6 +191,38 @@ class ExecutiveJabfungService {
     }>("/dosen/jabfung/master/prodi", {
       params,
     });
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jabfung data at university/fakultas level
+   * @param params - Query parameters (tahun_ajaran, fakultas_id, years_back)
+   */
+  async getJabfungFakultasHistorical(
+    params?: GetJabfungFakultasHistoricalParams,
+  ): Promise<HistoricalJabfungData[]> {
+    const response = await executiveClient.get<{ data: HistoricalJabfungData[] }>(
+      "/dosen/jabfung/fakultas/historical",
+      {
+        params,
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jabfung data at fakultas level (per prodi)
+   * @param params - Query parameters (fakultas_id, tahun_ajaran, prodi_id, years_back)
+   */
+  async getJabfungProdiHistorical(
+    params: GetJabfungProdiHistoricalParams,
+  ): Promise<HistoricalJabfungData[]> {
+    const response = await executiveClient.get<{ data: HistoricalJabfungData[] }>(
+      "/dosen/jabfung/prodi/historical",
+      {
+        params,
+      },
+    );
     return response.data.data || [];
   }
 }

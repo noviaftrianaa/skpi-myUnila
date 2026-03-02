@@ -97,6 +97,37 @@ export const useDosenData = ({
       selectedTipeData === "jabfung",
   });
 
+  // Fetch jabfung fakultas historical data (5 years)
+  const {
+    data: jabfungFakultasHistorical = [],
+    isLoading: isLoadingJabfungFakultasHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jabfung", "fakultas", "historical", selectedTahunAjaran, userContext?.id_organisasi, selectedFakultas],
+    queryFn: () =>
+      executiveJabfungService.getJabfungFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4
+          ? userContext.id_organisasi
+          : selectedFakultas || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "jabfung",
+  });
+
+  // Fetch jabfung prodi historical data (5 years)
+  const {
+    data: jabfungProdiHistorical = [],
+    isLoading: isLoadingJabfungProdiHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jabfung", "prodi", "historical", selectedFakultas, selectedTahunAjaran, selectedProdi],
+    queryFn: () =>
+      executiveJabfungService.getJabfungProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran && selectedTipeData === "jabfung",
+  });
+
   // Fetch jenjang pendidikan fakultas data
   const {
     data: jenjangFakultasList = [],
@@ -319,6 +350,10 @@ export const useDosenData = ({
     isLoadingJabfungFakultas,
     jabfungProdiList,
     isLoadingJabfungProdi,
+    jabfungFakultasHistorical,
+    isLoadingJabfungFakultasHistorical,
+    jabfungProdiHistorical,
+    isLoadingJabfungProdiHistorical,
 
     // Jenjang data
     jenjangFakultasList,

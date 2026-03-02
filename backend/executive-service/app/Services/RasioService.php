@@ -133,4 +133,96 @@ class RasioService
     {
         return $this->rasioRepository->getTahunAjaranList();
     }
+
+    /**
+     * Get historical rasio fakultas data for the last N years
+     *
+     * @param string $selectedYearId Selected academic year ID from dropdown
+     * @param int $yearsBack Number of years to go back (default: 5)
+     * @param string|null $fakultasId Filter by fakultas (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRasioFakultasHistorical($selectedYearId, $yearsBack = 5, $fakultasId = null)
+    {
+        // Calculate start year (go back N-1 years from selected year)
+        $selectedYear = (int) $selectedYearId;
+        $startYear = $selectedYear - ($yearsBack - 1);
+
+        // Get historical data from repository
+        $rawHistoricalData = $this->rasioRepository->getRasioFakultasHistorical($startYear, $selectedYear, $fakultasId);
+
+        // Transform each year's data
+        $historicalData = $rawHistoricalData->map(function ($yearData) {
+            $transformedData = collect($yearData['data'])->map(function ($item) {
+                // Calculate rasio string format (1:XX)
+                $rasio = $item['jumlah_dosen'] > 0
+                    ? '1:' . round($item['jumlah_mahasiswa'] / $item['jumlah_dosen'])
+                    : '1:0';
+
+                return [
+                    'id' => $item['id'],
+                    'nama_fakultas' => $item['nama_fakultas'],
+                    'total_dosen' => (int) $item['jumlah_dosen'],
+                    'total_mahasiswa' => (int) $item['jumlah_mahasiswa'],
+                    'rasio' => $rasio,
+                ];
+            })->values();
+
+            return [
+                'tahun' => $yearData['tahun'],
+                'tahun_id' => $yearData['tahun_id'],
+                'smt_id' => $yearData['smt_id'],
+                'data' => $transformedData
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Get historical rasio prodi data for the last N years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param string $selectedYearId Selected academic year ID from dropdown
+     * @param int $yearsBack Number of years to go back (default: 5)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRasioProdiHistorical($fakultasId, $selectedYearId, $yearsBack = 5, $prodiId = null)
+    {
+        // Calculate start year (go back N-1 years from selected year)
+        $selectedYear = (int) $selectedYearId;
+        $startYear = $selectedYear - ($yearsBack - 1);
+
+        // Get historical data from repository
+        $rawHistoricalData = $this->rasioRepository->getRasioProdiHistorical($fakultasId, $startYear, $selectedYear, $prodiId);
+
+        // Transform each year's data
+        $historicalData = $rawHistoricalData->map(function ($yearData) {
+            $transformedData = collect($yearData['data'])->map(function ($item) {
+                // Calculate rasio string format (1:XX)
+                $rasio = $item['jumlah_dosen'] > 0
+                    ? '1:' . round($item['jumlah_mahasiswa'] / $item['jumlah_dosen'])
+                    : '1:0';
+
+                return [
+                    'id' => $item['id'],
+                    'nama_prodi' => $item['nama_prodi'],
+                    'fakultas_id' => $item['fakultas_id'],
+                    'jumlah_dosen' => (int) $item['jumlah_dosen'],
+                    'jumlah_mahasiswa' => (int) $item['jumlah_mahasiswa'],
+                    'rasio' => $rasio,
+                ];
+            })->values();
+
+            return [
+                'tahun' => $yearData['tahun'],
+                'tahun_id' => $yearData['tahun_id'],
+                'smt_id' => $yearData['smt_id'],
+                'data' => $transformedData
+            ];
+        });
+
+        return $historicalData;
+    }
 }

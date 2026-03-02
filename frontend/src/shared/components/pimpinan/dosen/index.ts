@@ -11,6 +11,12 @@ export { DosenStatsCard } from "./DosenStatsCard";
 
 export { JabfungStatsCards, JenjangStatsCards, PangGolStatsCards, IkatanKerjaStatsCards, JenisKelaminStatsCards, StatusKepegawaianStatsCards } from "./DosenStatsCards";
 
+export { DosenTrendChart } from "./DosenTrendChart";
+export type { TrendDataItem } from "./DosenTrendChart";
+
+export { DosenPercentageChart } from "./DosenPercentageChart";
+export type { PercentageData } from "./DosenPercentageChart";
+
 // ========================================
 // Hooks
 // ========================================

@@ -44,6 +44,8 @@ Route::prefix('v1')->group(function () {
 
         // Rasio routes
         Route::get('/fakultas', [RasioController::class, 'getRasioFakultas']);
+        Route::get('/fakultas/historical', [RasioController::class, 'getRasioFakultasHistorical']);
+        Route::get('/prodi/historical', [RasioController::class, 'getRasioProdiHistorical']);
         Route::get('/fakultas/{idProdi}', [RasioController::class, 'getRasioProdi']);
 
         // Detail data with pagination
@@ -60,7 +62,9 @@ Route::prefix('v1')->group(function () {
 
             // Jabfung data routes
             Route::get('/fakultas', [JabFungController::class, 'getJabfungFakultas']);
+            Route::get('/fakultas/historical', [JabFungController::class, 'getJabfungFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [JabFungController::class, 'getJabfungProdi']);
+            Route::get('/prodi/historical', [JabFungController::class, 'getJabfungProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [JabFungController::class, 'getDataDosen']);

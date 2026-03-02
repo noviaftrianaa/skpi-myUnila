@@ -143,4 +143,103 @@ class JabFungService
     {
         return $this->jabfungRepository->getProdiListByFakultas($idFakultas);
     }
+
+    /**
+     * Get historical jabfung data at university/fakultas level for multiple years
+     *
+     * @param string $selectedYearId Selected academic year ID from dropdown
+     * @param int $yearsBack Number of years to go back (default: 5)
+     * @param string|null $fakultasId Filter by fakultas (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getJabfungFakultasHistorical($selectedYearId, $yearsBack = 5, $fakultasId = null)
+    {
+        // Convert id_smt to id_thn_ajaran if needed
+        $tahunId = strlen((string)$selectedYearId) > 4
+            ? (int) floor((int)$selectedYearId / 10)
+            : (int) $selectedYearId;
+
+        // Calculate start year (go back N-1 years from selected year)
+        $selectedYear = (int) $tahunId;
+        $startYear = $selectedYear - ($yearsBack - 1);
+
+        // Get historical data from repository
+        $rawHistoricalData = $this->jabfungRepository->getJabfungFakultasHistorical($startYear, $selectedYear, $fakultasId);
+
+        // Transform each year's data
+        $historicalData = $rawHistoricalData->map(function ($yearData) {
+            $transformedData = collect($yearData['data'])->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_fakultas' => $item->nama_fakultas,
+                    'belum_jabfung' => (int) $item->belum_jabfung,
+                    'asisten_ahli' => (int) $item->asisten_ahli,
+                    'lektor' => (int) $item->lektor,
+                    'lektor_kepala' => (int) $item->lektor_kepala,
+                    'profesor' => (int) $item->profesor,
+                    'total' => (int) $item->total,
+                ];
+            })->values();
+
+            return [
+                'tahun' => $yearData['tahun'],
+                'tahun_id' => $yearData['tahun_id'],
+                'smt_id' => $yearData['smt_id'],
+                'data' => $transformedData
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Get historical jabfung data at fakultas level (per prodi) for multiple years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param string $selectedYearId Selected academic year ID from dropdown
+     * @param int $yearsBack Number of years to go back (default: 5)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getJabfungProdiHistorical($fakultasId, $selectedYearId, $yearsBack = 5, $prodiId = null)
+    {
+        // Convert id_smt to id_thn_ajaran if needed
+        $tahunId = strlen((string)$selectedYearId) > 4
+            ? (int) floor((int)$selectedYearId / 10)
+            : (int) $selectedYearId;
+
+        // Calculate start year (go back N-1 years from selected year)
+        $selectedYear = (int) $tahunId;
+        $startYear = $selectedYear - ($yearsBack - 1);
+
+        // Get historical data from repository
+        $rawHistoricalData = $this->jabfungRepository->getJabfungProdiHistorical($fakultasId, $startYear, $selectedYear, $prodiId);
+
+        // Transform each year's data
+        $historicalData = $rawHistoricalData->map(function ($yearData) {
+            $transformedData = collect($yearData['data'])->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_prodi' => $item->nama_prodi,
+                    'fakultas_id' => $item->fakultas_id,
+                    'nama_fakultas' => $item->nama_fakultas,
+                    'belum_jabfung' => (int) $item->belum_jabfung,
+                    'asisten_ahli' => (int) $item->asisten_ahli,
+                    'lektor' => (int) $item->lektor,
+                    'lektor_kepala' => (int) $item->lektor_kepala,
+                    'profesor' => (int) $item->profesor,
+                    'total' => (int) $item->total,
+                ];
+            })->values();
+
+            return [
+                'tahun' => $yearData['tahun'],
+                'tahun_id' => $yearData['tahun_id'],
+                'smt_id' => $yearData['smt_id'],
+                'data' => $transformedData
+            ];
+        });
+
+        return $historicalData;
+    }
 }

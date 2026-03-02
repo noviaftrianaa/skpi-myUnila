@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Alert, Select, SelectItem } from "@heroui/react";
 import { FiUsers } from "react-icons/fi";
@@ -25,7 +25,10 @@ import {
   getCurrentTipeDataOption,
   getChartTitle,
   getChartSubtitle,
+  DosenTrendChart,
+  DosenPercentageChart,
   type DosenStats,
+  type PercentageData,
 } from "@/shared/components/pimpinan/dosen";
 import { useUserContext } from "@/contexts/UserContextContext";
 
@@ -51,6 +54,8 @@ export default function DosenPage() {
     isLoadingProdi,
     jabfungFakultasList,
     jabfungProdiList,
+    jabfungFakultasHistorical,
+    jabfungProdiHistorical,
     jenjangFakultasList,
     jenjangProdiList,
     panggolFakultasList,
@@ -67,7 +72,11 @@ export default function DosenPage() {
     selectedTahunAjaran,
     selectedFakultas,
     selectedProdi,
-    userContext: activeContext,
+    userContext: activeContext ? {
+      id_organisasi: activeContext.id_organisasi || "",
+      level_organisasi: activeContext.level_organisasi,
+      id_induk_organisasi: activeContext.id_induk_organisasi || "",
+    } : null,
   });
 
   // Handle tipe data change
@@ -98,13 +107,19 @@ export default function DosenPage() {
     // Level 3 = Rektor, Level 4 = Dekan, Level 5 = Kaprodi
     if (activeContext.level_organisasi == 4) {
       // Dekan: Auto-select their fakultas
-      setSelectedFakultas(activeContext.id_organisasi);
+      if (activeContext.id_organisasi) {
+        setSelectedFakultas(activeContext.id_organisasi);
+      }
     } else if (activeContext.level_organisasi == 5) {
       // Kaprodi: Auto-select parent fakultas, then their prodi
-      setSelectedFakultas(activeContext.id_induk_organisasi);
+      if (activeContext.id_induk_organisasi) {
+        setSelectedFakultas(activeContext.id_induk_organisasi);
+      }
       // Wait for prodi list to load, then auto-select
       const timer = setTimeout(() => {
-        setSelectedProdi(activeContext.id_organisasi);
+        if (activeContext.id_organisasi) {
+          setSelectedProdi(activeContext.id_organisasi);
+        }
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -203,6 +218,99 @@ export default function DosenPage() {
   const selectedDataKeys = selectedTipeData
     ? dataKeysMap[selectedTipeData]
     : undefined;
+
+  // Calculate percentage data for jabfung
+  const jabfungPercentageData = useMemo(() => {
+    if (selectedTipeData !== "jabfung") return [];
+
+    let totalBelumJabfung = 0;
+    let totalAsistenAhli = 0;
+    let totalLektor = 0;
+    let totalLektorKepala = 0;
+    let totalProfesor = 0;
+
+    if (selectedProdi && jabfungProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = jabfungProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalBelumJabfung = prodi.belum_jabfung;
+        totalAsistenAhli = prodi.asisten_ahli;
+        totalLektor = prodi.lektor;
+        totalLektorKepala = prodi.lektor_kepala;
+        totalProfesor = prodi.profesor;
+      }
+    } else if (selectedFakultas && jabfungProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      jabfungProdiList.forEach((p) => {
+        totalBelumJabfung += p.belum_jabfung;
+        totalAsistenAhli += p.asisten_ahli;
+        totalLektor += p.lektor;
+        totalLektorKepala += p.lektor_kepala;
+        totalProfesor += p.profesor;
+      });
+    } else if (jabfungFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      jabfungFakultasList.forEach((f) => {
+        totalBelumJabfung += f.belum_jabfung;
+        totalAsistenAhli += f.asisten_ahli;
+        totalLektor += f.lektor;
+        totalLektorKepala += f.lektor_kepala;
+        totalProfesor += f.profesor;
+      });
+    }
+
+    return [
+      { name: "Belum Jabfung", value: totalBelumJabfung, color: "#94a3b8" },
+      { name: "Asisten Ahli", value: totalAsistenAhli, color: "#3b82f6" },
+      { name: "Lektor", value: totalLektor, color: "#22c55e" },
+      { name: "Lektor Kepala", value: totalLektorKepala, color: "#f59e0b" },
+      { name: "Profesor", value: totalProfesor, color: "#ef4444" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    jabfungFakultasList,
+    jabfungProdiList,
+  ]);
+
+  // Get historical data based on filter
+  const jabfungHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "jabfung") return [];
+
+    // If prodi is selected, use prodi historical data (filtered by that prodi)
+    if (selectedProdi && jabfungProdiHistorical.length > 0) {
+      return jabfungProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    // Note: jabfungFakultasHistorical is now filtered by selectedFakultas in the query
+    return jabfungFakultasHistorical;
+  }, [selectedTipeData, selectedProdi, jabfungFakultasHistorical, jabfungProdiHistorical]);
+
+  // Get chart title for percentage chart
+  const getPercentageChartTitle = () => {
+    if (selectedProdi) {
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
+      return `Presentase Jabatan Fungsional - ${prodi?.nama_prodi || ""}`;
+    } else if (selectedFakultas) {
+      const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
+      return `Presentase Jabatan Fungsional - ${fakultas?.nama_fakultas || ""}`;
+    }
+    return "Presentase Jabatan Fungsional - Universitas";
+  };
+
+  // Get chart title for trend chart
+  const getTrendChartTitle = () => {
+    if (selectedProdi) {
+      const prodi = prodiList.find((p) => p.id === selectedProdi);
+      return `Tren Jabatan Fungsional (5 Tahun) - ${prodi?.nama_prodi || ""}`;
+    } else if (selectedFakultas) {
+      const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
+      return `Tren Jabatan Fungsional (5 Tahun) - ${fakultas?.nama_fakultas || ""}`;
+    }
+    return "Tren Jabatan Fungsional (5 Tahun) - Universitas";
+  };
   return (
     <>
       <div className="space-y-6">
@@ -450,6 +558,27 @@ export default function DosenPage() {
             disabled={isChartDisabled}
             isLoading={isLoadingChartData}
           />
+
+          {/* Historical Trend Chart (only for jabfung) */}
+          {selectedTipeData === "jabfung" &&
+            selectedTahunAjaran &&
+            jabfungHistoricalData.length > 0 && (
+              <DosenTrendChart
+                data={jabfungHistoricalData}
+                title={getTrendChartTitle()}
+              />
+            )}
+
+          {/* Percentage Chart (only for jabfung) */}
+          {selectedTipeData === "jabfung" &&
+            selectedTahunAjaran &&
+            jabfungPercentageData.length > 0 && (
+              <DosenPercentageChart
+                data={jabfungPercentageData}
+                title={getPercentageChartTitle()}
+                subtitle={`Data tahun ${selectedTahunAjaran}`}
+              />
+            )}
         </motion.div>
       </div>
 

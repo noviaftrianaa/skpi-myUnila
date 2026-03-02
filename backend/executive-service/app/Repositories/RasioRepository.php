@@ -418,4 +418,114 @@ class RasioRepository
 
         return $data[0];
     }
+
+    /**
+     * Get historical rasio fakultas data for multiple years
+     *
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @param string|null $fakultasId Filter by fakultas (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRasioFakultasHistorical($startYearId, $endYearId = null, $fakultasId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) use ($fakultasId) {
+            $data = $this->getRasioFakultas($year->id_smt);
+
+            // Filter by fakultas if specified
+            if ($fakultasId) {
+                $data = $data->filter(function ($item) use ($fakultasId) {
+                    return $item['id'] === $fakultasId;
+                })->values();
+            }
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Format tahun ajaran ID to display string
+     * Example: 20201 -> "2020/2021"
+     *
+     * @param int $tahunId
+     * @return string
+     */
+    private function formatTahunAjaran($tahunId)
+    {
+        $year = (int) substr((string) $tahunId, 0, 4);
+        return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get historical rasio prodi data for multiple years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRasioProdiHistorical($fakultasId, $startYearId, $endYearId = null, $prodiId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) use ($fakultasId, $prodiId) {
+            $data = $this->getRasioProdi($fakultasId, $year->id_smt);
+
+            // Filter by prodi if specified
+            if ($prodiId) {
+                $data = $data->filter(function ($item) use ($prodiId) {
+                    return $item['id'] === $prodiId;
+                })->values();
+            }
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
 }
