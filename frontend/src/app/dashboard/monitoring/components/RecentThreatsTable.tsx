@@ -1,79 +1,35 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip } from "@heroui/react";
+import { Chip, Spinner } from "@heroui/react";
+import { threatService, Threat } from "@/lib/services/webmon/threatService";
 
-interface Threat {
-    id: string;
-    url: string;
-    site_name: string;
-    score: number;
-    category: string;
-    detected_at: string;
-    status: "Baru" | "ikonfirmasi" | "False Positive" | "Resolved";
-}
-
-const dummyThreats: Threat[] = [
-    {
-        id: "1",
-        url: "https://example.unila.ac.id/blog/post-123",
-        site_name: "Blog Fakultas Teknik",
-        score: 85,
-        category: "Slot Gacor",
-        detected_at: "2026-02-18 10:30",
-        status: "Baru",
-    },
-    {
-        id: "2",
-        url: "https://example.unila.ac.id/forum/discussion",
-        site_name: "Forum Mahasiswa",
-        score: 92,
-        category: "Judi Online",
-        detected_at: "2026-02-18 09:15",
-        status: "ikonfirmasi",
-    },
-    {
-        id: "3",
-        url: "https://biologi.unila.ac.id/news/detil",
-        site_name: "Jurusan Biologi",
-        score: 60,
-        category: "Poker",
-        detected_at: "2026-02-17 14:20",
-        status: "Resolved",
-    },
-    {
-        id: "4",
-        url: "https://kkn.unila.ac.id/laporan",
-        site_name: "KKN Periode 1",
-        score: 45,
-        category: "Unknown",
-        detected_at: "2026-02-17 11:00",
-        status: "False Positive",
-    },
-    {
-        id: "5",
-        url: "https://fisip.unila.ac.id/agenda",
-        site_name: "FISIP Agenda",
-        score: 78,
-        category: "Togel",
-        detected_at: "2026-02-16 16:45",
-        status: "Resolved",
-    },
-];
+const statusMap: Record<string, { label: string; color: "danger" | "warning" | "success" | "default" }> = {
+    pending:        { label: "Baru",          color: "danger" },
+    confirmed:      { label: "Dikonfirmasi",  color: "warning" },
+    resolved:       { label: "Resolved",      color: "success" },
+    false_positive: { label: "False Positive",color: "default" },
+};
 
 const columns: Column<Threat>[] = [
-    { key: "site_name", label: "Nama Situs", sortable: true },
     {
-        key: "url",
+        key: "site_id",
+        label: "Site",
+        sortable: true,
+        render: (item) => <span className="text-xs font-medium">{item.site_id}</span>,
+    },
+    {
+        key: "page_url",
         label: "URL",
         sortable: true,
         render: (item) => (
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate max-w-[200px] block">
-                {item.url}
+            <a href={item.page_url} target="_blank" rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate max-w-[200px] block text-xs">
+                {item.page_url}
             </a>
-        )
+        ),
     },
     {
         key: "category",
@@ -83,46 +39,60 @@ const columns: Column<Threat>[] = [
             <Chip size="sm" variant="flat" color="warning" className="text-xs">
                 {item.category}
             </Chip>
-        )
+        ),
     },
     {
-        key: "score",
+        key: "threat_score",
         label: "Skor",
         sortable: true,
         render: (item) => (
-            <span className={`font-bold ${item.score > 80 ? 'text-red-600' : item.score > 50 ? 'text-orange-600' : 'text-yellow-600'}`}>
-                {item.score}
+            <span className={`font-bold text-sm ${item.threat_score > 15 ? "text-red-600" : item.threat_score > 8 ? "text-orange-600" : "text-yellow-600"}`}>
+                {item.threat_score}
             </span>
-        )
+        ),
     },
     {
         key: "status",
         label: "Status",
         sortable: true,
         render: (item) => {
-            const colorMap: Record<string, "danger" | "warning" | "success" | "default"> = {
-                "Baru": "danger",
-                "ikonfirmasi": "warning",
-                "Resolved": "success",
-                "False Positive": "default"
-            };
-            return (
-                <Chip size="sm" color={colorMap[item.status]} variant="solid">
-                    {item.status}
-                </Chip>
-            );
-        }
+            const cfg = statusMap[item.status] ?? { label: item.status, color: "default" as const };
+            return <Chip size="sm" color={cfg.color} variant="solid">{cfg.label}</Chip>;
+        },
     },
-    { key: "detected_at", label: "Waktu Deteksi", sortable: true },
+    {
+        key: "detected_at",
+        label: "Waktu Deteksi",
+        sortable: true,
+        render: (item) => (
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+                {item.detected_at ? new Date(item.detected_at).toLocaleString("id-ID") : "-"}
+            </span>
+        ),
+    },
 ];
 
 export default function RecentThreatsTable() {
+    const [data, setData] = useState<Threat[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        threatService.listThreats({ limit: 10 })
+            .then((res) => setData(res.data || []))
+            .catch(() => {})
+            .finally(() => setIsLoading(false));
+    }, []);
+
+    if (isLoading) {
+        return <div className="flex justify-center py-8"><Spinner label="Memuat ancaman..." /></div>;
+    }
+
     return (
         <DataTable
-            data={dummyThreats}
+            data={data}
             columns={columns}
             searchable
-            searchKeys={["site_name", "url", "category"]}
+            searchKeys={["site_id", "page_url", "category"]}
             searchPlaceholder="Cari ancaman..."
             defaultRowsPerPage={5}
             noWrapper

@@ -1,21 +1,25 @@
-
 "use client";
 
 import React from "react";
 import { Card, CardBody } from "@heroui/react";
 import { FiAlertCircle, FiCheckCircle, FiXCircle, FiFlag } from "react-icons/fi";
+import { ThreatStats } from "@/lib/services/webmon/threatService";
 
-const stats = [
-    { title: "Indikasi Baru", count: 12, icon: FiAlertCircle, color: "text-red-500", bg: "bg-red-100" },
-    { title: "Terkonfirmasi", count: 8, icon: FiFlag, color: "text-orange-500", bg: "bg-orange-100" },
-    { title: "Telah Ditangani", count: 145, icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100" },
-    { title: "False Positive", count: 5, icon: FiXCircle, color: "text-gray-500", bg: "bg-gray-100" },
-];
+interface ThreatStatsCardsProps {
+    stats?: ThreatStats | null;
+}
 
-export default function ThreatStatsCards() {
+export default function ThreatStatsCards({ stats }: ThreatStatsCardsProps) {
+    const cards = [
+        { title: "Indikasi Baru", count: stats?.pending ?? 0, icon: FiAlertCircle, color: "text-red-500", bg: "bg-red-100" },
+        { title: "Terkonfirmasi", count: stats?.confirmed ?? 0, icon: FiFlag, color: "text-orange-500", bg: "bg-orange-100" },
+        { title: "Telah Ditangani", count: stats?.resolved ?? 0, icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-100" },
+        { title: "False Positive", count: stats?.false_positive ?? 0, icon: FiXCircle, color: "text-gray-500", bg: "bg-gray-100" },
+    ];
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
+            {cards.map((stat, index) => (
                 <Card key={index} shadow="sm">
                     <CardBody className="flex flex-row items-center gap-4 p-4">
                         <div className={`p-3 rounded-xl ${stat.bg}`}>

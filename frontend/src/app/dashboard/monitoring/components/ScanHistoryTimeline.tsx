@@ -1,62 +1,29 @@
 
 "use client";
 
-import { Card, CardBody, CardHeader, Divider, Chip, Button } from "@heroui/react";
+import { Card, CardBody, CardHeader, Divider, Chip } from "@heroui/react";
 import { FiClock, FiCheckCircle, FiAlertTriangle, FiSearch, FiXCircle } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { crawlerService, CrawlJob } from "@/lib/services/webmon/crawlerService";
 
-interface ScanEvent {
-    id: string;
-    timestamp: string;
-    site: string;
-    url: string;
-    result: "clean" | "warning" | "threat" | "error";
-    findings: number;
-    duration: string;
-    details: string;
+const jobTypeLabel: Record<string, string> = {
+    full: "Full Crawl",
+    incremental: "Incremental",
+    single: "Single Site",
+};
+
+function jobToScanResult(job: CrawlJob): "clean" | "warning" | "threat" | "error" {
+    if (job.status === "done")    return "clean";
+    if (job.status === "failed")  return "error";
+    if (job.status === "running") return "warning";
+    return "warning"; // queued
 }
 
-const dummyScans: ScanEvent[] = [
-    {
-        id: "1", timestamp: "2026-02-18 13:45", site: "Portal FT",
-        url: "ft.unila.ac.id", result: "threat", findings: 3,
-        duration: "4.2s", details: "3 link judi terdeteksi pada halaman utama dan /berita",
-    },
-    {
-        id: "2", timestamp: "2026-02-18 13:30", site: "Portal FKIP",
-        url: "fkip.unila.ac.id", result: "warning", findings: 1,
-        duration: "3.8s", details: "1 iframe mencurigakan pada /berita, belum terverifikasi",
-    },
-    {
-        id: "3", timestamp: "2026-02-18 13:15", site: "Portal FEB",
-        url: "feb.unila.ac.id", result: "clean", findings: 0,
-        duration: "2.1s", details: "Scan selesai, tidak ada temuan",
-    },
-    {
-        id: "4", timestamp: "2026-02-18 13:00", site: "Portal FISIP",
-        url: "fisip.unila.ac.id", result: "clean", findings: 0,
-        duration: "1.8s", details: "Scan selesai, tidak ada temuan",
-    },
-    {
-        id: "5", timestamp: "2026-02-18 12:45", site: "Portal FMIPA",
-        url: "fmipa.unila.ac.id", result: "clean", findings: 0,
-        duration: "2.3s", details: "Scan selesai, tidak ada temuan",
-    },
-    {
-        id: "6", timestamp: "2026-02-18 12:30", site: "Portal FH",
-        url: "fh.unila.ac.id", result: "error", findings: 0,
-        duration: "10.0s", details: "Timeout saat mengakses halaman — server tidak merespons",
-    },
-    {
-        id: "7", timestamp: "2026-02-18 12:15", site: "Portal FK",
-        url: "fk.unila.ac.id", result: "clean", findings: 0,
-        duration: "1.5s", details: "Scan selesai, tidak ada temuan",
-    },
-    {
-        id: "8", timestamp: "2026-02-18 12:00", site: "Portal FP",
-        url: "fp.unila.ac.id", result: "warning", findings: 1,
-        duration: "5.6s", details: "Keyword blacklist terdeteksi pada meta tags",
-    },
-];
+function jobDuration(job: CrawlJob): string {
+    if (!job.started_at || !job.finished_at) return "-";
+    const ms = new Date(job.finished_at).getTime() - new Date(job.started_at).getTime();
+    return ms < 60000 ? `${(ms / 1000).toFixed(1)}s` : `${(ms / 60000).toFixed(1)}m`;
+}
 
 const resultConfig = {
     clean: {
@@ -86,6 +53,14 @@ const resultConfig = {
 };
 
 export default function ScanHistoryTimeline() {
+    const [jobs, setJobs] = useState<CrawlJob[]>([]);
+
+    useEffect(() => {
+        crawlerService.listJobs({ limit: 8 })
+            .then((res) => setJobs(res.data || []))
+            .catch(() => {});
+    }, []);
+
     return (
         <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-shadow duration-300 h-full">
             <CardHeader className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2">
@@ -105,59 +80,51 @@ export default function ScanHistoryTimeline() {
             </CardHeader>
             <Divider />
             <CardBody className="p-3 sm:p-4 max-h-[360px] sm:max-h-[420px] lg:max-h-[520px] overflow-y-auto">
-                <div className="relative">
-                    {/* Timeline line */}
-                    <div className="absolute left-[15px] sm:left-[17px] top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
-
-                    <div className="space-y-0">
-                        {dummyScans.map((scan) => {
-                            const config = resultConfig[scan.result];
-                            return (
-                                <div key={scan.id} className="relative flex gap-2 sm:gap-3 pb-4 sm:pb-5 last:pb-0 group">
-                                    {/* Dot */}
-                                    <div className="relative z-10 flex-shrink-0">
-                                        <div
-                                            className={`w-[30px] h-[30px] sm:w-[36px] sm:h-[36px] rounded-full flex items-center justify-center bg-white dark:bg-gray-800 border-2 ${config.line} shadow-sm group-hover:scale-110 transition-transform`}
-                                        >
-                                            {config.icon}
+                {jobs.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400 text-xs">Belum ada riwayat scan.</div>
+                ) : (
+                    <div className="relative">
+                        <div className="absolute left-[15px] sm:left-[17px] top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
+                        <div className="space-y-0">
+                            {jobs.map((job) => {
+                                const result = jobToScanResult(job);
+                                const config = resultConfig[result];
+                                return (
+                                    <div key={job.id} className="relative flex gap-2 sm:gap-3 pb-4 sm:pb-5 last:pb-0 group">
+                                        <div className="relative z-10 flex-shrink-0">
+                                            <div className={`w-[30px] h-[30px] sm:w-[36px] sm:h-[36px] rounded-full flex items-center justify-center bg-white dark:bg-gray-800 border-2 ${config.line} shadow-sm group-hover:scale-110 transition-transform`}>
+                                                {config.icon}
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2.5 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-900/80 transition-colors">
-                                        <div className="flex items-start sm:items-center justify-between gap-1 flex-col sm:flex-row">
-                                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                                <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white">
-                                                    {scan.site}
-                                                </span>
-                                                <Chip size="sm" variant="flat" color={config.color} className="text-[10px]">
-                                                    {config.label}
-                                                </Chip>
-                                                {scan.findings > 0 && (
-                                                    <Chip size="sm" variant="solid" color="danger" className="text-[10px]">
-                                                        {scan.findings} temuan
+                                        <div className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2.5 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-900/80 transition-colors">
+                                            <div className="flex items-start sm:items-center justify-between gap-1 flex-col sm:flex-row">
+                                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                                    <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white">
+                                                        {jobTypeLabel[job.job_type] ?? job.job_type}
+                                                    </span>
+                                                    <Chip size="sm" variant="flat" color={config.color} className="text-[10px]">
+                                                        {config.label}
                                                     </Chip>
-                                                )}
+                                                </div>
+                                                <div className="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px] text-gray-500">
+                                                    <FiClock className="w-3 h-3 flex-shrink-0" />
+                                                    <span className="whitespace-nowrap">
+                                                        {job.started_at ? new Date(job.started_at).toLocaleString("id-ID") : "Menunggu"}
+                                                    </span>
+                                                    <span className="hidden sm:inline">•</span>
+                                                    <span className="hidden sm:inline">{jobDuration(job)}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px] text-gray-500">
-                                                <FiClock className="w-3 h-3 flex-shrink-0" />
-                                                <span className="whitespace-nowrap">{scan.timestamp}</span>
-                                                <span className="hidden sm:inline">•</span>
-                                                <span className="hidden sm:inline">{scan.duration}</span>
-                                            </div>
+                                            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                                {job.error_msg || job.notes || `Job ${job.job_type} oleh ${job.triggered_by}`}
+                                            </p>
                                         </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                            {scan.details}
-                                        </p>
-                                        <p className="text-[9px] sm:text-[10px] text-gray-400 mt-1 font-mono truncate">
-                                            {scan.url}
-                                        </p>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
             </CardBody>
         </Card>
     );

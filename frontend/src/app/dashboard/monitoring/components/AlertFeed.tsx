@@ -3,7 +3,8 @@
 
 import { Card, CardBody, CardHeader, Divider, Chip, Button } from "@heroui/react";
 import { FiAlertTriangle, FiAlertOctagon, FiInfo, FiCheckCircle, FiBell } from "react-icons/fi";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { threatService, Threat } from "@/lib/services/webmon/threatService";
 
 interface AlertItem {
     id: string;
@@ -16,44 +17,21 @@ interface AlertItem {
     isRead: boolean;
 }
 
-const dummyAlerts: AlertItem[] = [
-    {
-        id: "1", timestamp: "2026-02-18 13:45",
-        title: "Injeksi link judi terdeteksi",
-        description: "Ditemukan 3 link tersembunyi ke situs slot gacor pada halaman utama",
-        severity: "critical", unit: "Fakultas Teknik", url: "ft.unila.ac.id", isRead: false,
-    },
-    {
-        id: "2", timestamp: "2026-02-18 12:30",
-        title: "Iframe mencurigakan terdeteksi",
-        description: "Iframe tersembunyi mengarah ke domain togel online",
-        severity: "high", unit: "FKIP", url: "fkip.unila.ac.id/berita", isRead: false,
-    },
-    {
-        id: "3", timestamp: "2026-02-18 10:15",
-        title: "Keyword blacklist terdeteksi",
-        description: 'Kata kunci "slot gacor" ditemukan di meta description',
-        severity: "medium", unit: "FEB", url: "feb.unila.ac.id/info", isRead: true,
-    },
-    {
-        id: "4", timestamp: "2026-02-18 09:00",
-        title: "SSL Certificate warning",
-        description: "Sertifikat SSL akan kedaluwarsa dalam 7 hari",
-        severity: "medium", unit: "FISIP", url: "fisip.unila.ac.id", isRead: true,
-    },
-    {
-        id: "5", timestamp: "2026-02-17 22:00",
-        title: "Scan selesai — aman",
-        description: "Scan rutin selesai, tidak ada temuan baru",
-        severity: "low", unit: "FMIPA", url: "fmipa.unila.ac.id", isRead: true,
-    },
-    {
-        id: "6", timestamp: "2026-02-17 18:30",
-        title: "Redirect mencurigakan",
-        description: "Auto-redirect ke domain judi terdeteksi dari halaman alumni",
-        severity: "critical", unit: "Fakultas Teknik", url: "ft.unila.ac.id/alumni", isRead: true,
-    },
-];
+function threatToAlert(t: Threat): AlertItem {
+    const score = t.threat_score;
+    const severity: AlertItem["severity"] =
+        score >= 15 ? "critical" : score >= 10 ? "high" : score >= 5 ? "medium" : "low";
+    return {
+        id: String(t.id),
+        timestamp: t.detected_at ? new Date(t.detected_at).toLocaleString("id-ID") : "-",
+        title: `[JUDOL] ${t.category} terdeteksi`,
+        description: `Kata kunci: ${t.matched_keywords}`,
+        severity,
+        unit: t.site_name || t.site_id,
+        url: t.page_url,
+        isRead: t.status !== "pending",
+    };
+}
 
 const severityConfig = {
     critical: {
@@ -84,13 +62,20 @@ const severityConfig = {
 
 export default function AlertFeed() {
     const [filter, setFilter] = useState<"all" | "critical" | "high" | "medium" | "low">("all");
+    const [alerts, setAlerts] = useState<AlertItem[]>([]);
+
+    useEffect(() => {
+        threatService.listThreats({ limit: 12 })
+            .then((res) => setAlerts((res.data || []).map(threatToAlert)))
+            .catch(() => {});
+    }, []);
 
     const filteredAlerts = useMemo(() => {
-        if (filter === "all") return dummyAlerts;
-        return dummyAlerts.filter((a) => a.severity === filter);
-    }, [filter]);
+        if (filter === "all") return alerts;
+        return alerts.filter((a) => a.severity === filter);
+    }, [filter, alerts]);
 
-    const unreadCount = dummyAlerts.filter((a) => !a.isRead).length;
+    const unreadCount = alerts.filter((a) => !a.isRead).length;
 
     return (
         <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-shadow duration-300 h-full">

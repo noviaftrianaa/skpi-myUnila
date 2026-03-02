@@ -1,29 +1,20 @@
-
 "use client";
 
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip, Button, Tooltip } from "@heroui/react";
+import { Chip, Button, Tooltip, Spinner } from "@heroui/react";
 import { FiExternalLink, FiEdit2, FiTrash2, FiRefreshCw } from "react-icons/fi";
-import { dummySites } from "../../data";
+import { Site } from "@/lib/services/webmon/siteService";
 
-interface Site {
-    id: string;
-    url: string;
-    name: string;
-    platform: string;
-    status: string;
-    fakultas: string;
-    last_sync: string;
-    health: {
-        is_online: boolean;
-        response_time: number;
-        ssl_valid: boolean;
-        ssl_expiry: string;
-    };
+interface SiteTableProps {
+    data: Site[];
+    isLoading?: boolean;
+    onEdit: (site: Site) => void;
+    onSync?: (site: Site) => void;
+    onDelete?: (site: Site) => void;
 }
 
-export default function SiteTable({ onEdit }: { onEdit: (site: Site) => void }) {
+export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete }: SiteTableProps) {
     const columns: Column<Site>[] = [
         {
             key: "name",
@@ -44,7 +35,12 @@ export default function SiteTable({ onEdit }: { onEdit: (site: Site) => void }) 
             ),
         },
         { key: "platform", label: "Platform", sortable: true },
-        { key: "fakultas", label: "Unit/Fakultas", sortable: true },
+        {
+            key: "fakultas_id",
+            label: "Fakultas/Unit",
+            sortable: true,
+            render: (site) => <span className="text-sm">{site.fakultas_id || site.unit_id || "-"}</span>,
+        },
         {
             key: "status",
             label: "Status",
@@ -66,25 +62,25 @@ export default function SiteTable({ onEdit }: { onEdit: (site: Site) => void }) 
             ),
         },
         {
-            key: "health",
+            key: "last_check",
             label: "Kesehatan",
-            render: (site) => (
-                <div className="flex gap-2">
-                    <Tooltip content={site.health.is_online ? "Online" : "Offline"}>
-                        <div
-                            className={`w-3 h-3 rounded-full ${site.health.is_online ? "bg-green-500" : "bg-red-500"
-                                }`}
-                        />
-                    </Tooltip>
-                    <Tooltip content="SSL Valid">
-                        <div
-                            className={`w-3 h-3 rounded-full ${site.health.ssl_valid ? "bg-green-500" : "bg-red-500"
-                                }`}
-                        />
-                    </Tooltip>
-                    <span className="text-xs text-gray-500">{site.health.response_time}ms</span>
-                </div>
-            ),
+            render: (site) => {
+                const c = site.last_check;
+                if (!c) return <span className="text-xs text-gray-400">Belum dicek</span>;
+                return (
+                    <div className="flex items-center gap-2">
+                        <Tooltip content={c.is_up ? "Online" : "Offline"}>
+                            <div className={`w-3 h-3 rounded-full ${c.is_up ? "bg-green-500" : "bg-red-500"}`} />
+                        </Tooltip>
+                        <span className="text-xs text-gray-500">{c.response_time_ms}ms</span>
+                        {c.ssl_expiry_days !== undefined && (
+                            <Tooltip content={`SSL: ${c.ssl_expiry_days} hari lagi`}>
+                                <div className={`w-3 h-3 rounded-full ${c.ssl_expiry_days > 30 ? "bg-green-500" : "bg-orange-500"}`} />
+                            </Tooltip>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             key: "actions",
@@ -92,17 +88,23 @@ export default function SiteTable({ onEdit }: { onEdit: (site: Site) => void }) 
             render: (site) => (
                 <div className="flex items-center gap-1">
                     <Tooltip content="Sync Now">
-                        <Button isIconOnly size="sm" variant="light" color="primary" radius="full" className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                        <Button isIconOnly size="sm" variant="light" color="primary" radius="full"
+                            className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onPress={() => onSync?.(site)}>
                             <FiRefreshCw className="w-4 h-4" />
                         </Button>
                     </Tooltip>
                     <Tooltip content="Edit">
-                        <Button isIconOnly size="sm" variant="light" radius="full" onPress={() => onEdit(site)} className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <Button isIconOnly size="sm" variant="light" radius="full"
+                            onPress={() => onEdit(site)}
+                            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                             <FiEdit2 className="w-4 h-4" />
                         </Button>
                     </Tooltip>
                     <Tooltip content="Hapus">
-                        <Button isIconOnly size="sm" variant="light" color="danger" radius="full" className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        <Button isIconOnly size="sm" variant="light" color="danger" radius="full"
+                            className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onPress={() => onDelete?.(site)}>
                             <FiTrash2 className="w-4 h-4" />
                         </Button>
                     </Tooltip>
@@ -111,12 +113,16 @@ export default function SiteTable({ onEdit }: { onEdit: (site: Site) => void }) 
         },
     ];
 
+    if (isLoading) {
+        return <div className="flex justify-center py-10"><Spinner label="Memuat data situs..." /></div>;
+    }
+
     return (
         <DataTable
-            data={dummySites}
+            data={data}
             columns={columns}
             searchable
-            searchKeys={["name", "url", "fakultas"]}
+            searchKeys={["name", "url", "fakultas_id"]}
             searchPlaceholder="Cari situs..."
             noWrapper
             className="border-none shadow-none"

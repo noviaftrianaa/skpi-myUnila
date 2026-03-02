@@ -1,38 +1,35 @@
-
 "use client";
 
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip, Button, Tooltip } from "@heroui/react";
+import { Chip, Button, Tooltip, Spinner } from "@heroui/react";
 import { FiCheck, FiX, FiExternalLink, FiEye } from "react-icons/fi";
-import { dummyThreats } from "../../data";
+import { Threat } from "@/lib/services/webmon/threatService";
 
-interface Threat {
-    id: string;
-    site_name: string;
-    url: string;
-    threat_score: number;
-    status: string;
-    detected_at: string;
-    matched_keywords: { keyword: string; category: string; weight: number }[];
+interface ThreatTableProps {
+    data: Threat[];
+    isLoading?: boolean;
+    onUpdateStatus?: (id: number, status: string) => void;
 }
 
-export default function ThreatTable() {
+export default function ThreatTable({ data, isLoading, onUpdateStatus }: ThreatTableProps) {
     const columns: Column<Threat>[] = [
         {
-            key: "site_name",
+            key: "page_url",
             label: "Situs / URL",
             sortable: true,
             render: (threat) => (
                 <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">{threat.site_name}</div>
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                        {threat.site_name || threat.site_id}
+                    </div>
                     <a
-                        href={threat.url}
+                        href={threat.page_url}
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs text-blue-500 hover:underline flex items-center gap-1 break-all"
                     >
-                        {threat.url} <FiExternalLink className="w-3 h-3" />
+                        {threat.page_url} <FiExternalLink className="w-3 h-3" />
                     </a>
                 </div>
             ),
@@ -42,9 +39,9 @@ export default function ThreatTable() {
             label: "Keyword",
             render: (threat) => (
                 <div className="flex flex-wrap gap-1">
-                    {threat.matched_keywords.map((k, i) => (
+                    {threat.matched_keywords.split(",").map((k, i) => (
                         <Chip key={i} size="sm" variant="flat" color="danger">
-                            {k.keyword}
+                            {k.trim()}
                         </Chip>
                     ))}
                 </div>
@@ -55,10 +52,16 @@ export default function ThreatTable() {
             label: "Skor",
             sortable: true,
             render: (threat) => (
-                <span className={`font-bold ${threat.threat_score >= 8 ? "text-red-600" : "text-yellow-600"}`}>
+                <span className={`font-bold ${threat.threat_score >= 15 ? "text-red-600" : "text-yellow-600"}`}>
                     {threat.threat_score}
                 </span>
             ),
+        },
+        {
+            key: "category",
+            label: "Kategori",
+            sortable: true,
+            render: (threat) => <Chip size="sm" variant="flat">{threat.category}</Chip>,
         },
         {
             key: "status",
@@ -69,11 +72,13 @@ export default function ThreatTable() {
                     size="sm"
                     variant="dot"
                     color={
-                        threat.status === "new"
+                        threat.status === "pending"
                             ? "danger"
                             : threat.status === "confirmed"
                                 ? "warning"
-                                : "success"
+                                : threat.status === "resolved"
+                                    ? "success"
+                                    : "default"
                     }
                 >
                     {threat.status}
@@ -84,7 +89,11 @@ export default function ThreatTable() {
             key: "detected_at",
             label: "Terdeteksi",
             sortable: true,
-            render: (threat) => <span className="text-xs text-gray-500">{new Date(threat.detected_at).toLocaleString()}</span>,
+            render: (threat) => (
+                <span className="text-xs text-gray-500">
+                    {new Date(threat.detected_at).toLocaleString("id-ID")}
+                </span>
+            ),
         },
         {
             key: "actions",
@@ -92,19 +101,24 @@ export default function ThreatTable() {
             render: (threat) => (
                 <div className="flex items-center gap-1">
                     <Tooltip content="Lihat Detail">
-                        <Button isIconOnly size="sm" variant="light" radius="full" className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <Button isIconOnly size="sm" variant="light" radius="full"
+                            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                             <FiEye className="w-4 h-4" />
                         </Button>
                     </Tooltip>
-                    {threat.status === "new" && (
+                    {threat.status === "pending" && (
                         <>
                             <Tooltip content="Konfirmasi Ancaman">
-                                <Button isIconOnly size="sm" variant="light" color="warning" radius="full" className="text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20">
+                                <Button isIconOnly size="sm" variant="light" color="warning" radius="full"
+                                    className="text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                                    onPress={() => onUpdateStatus?.(threat.id, "confirmed")}>
                                     <FiCheck className="w-4 h-4" />
                                 </Button>
                             </Tooltip>
                             <Tooltip content="Tandai False Positive">
-                                <Button isIconOnly size="sm" variant="light" color="success" radius="full" className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20">
+                                <Button isIconOnly size="sm" variant="light" color="success" radius="full"
+                                    className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                    onPress={() => onUpdateStatus?.(threat.id, "false_positive")}>
                                     <FiX className="w-4 h-4" />
                                 </Button>
                             </Tooltip>
@@ -115,12 +129,16 @@ export default function ThreatTable() {
         },
     ];
 
+    if (isLoading) {
+        return <div className="flex justify-center py-10"><Spinner label="Memuat data ancaman..." /></div>;
+    }
+
     return (
         <DataTable
-            data={dummyThreats}
+            data={data}
             columns={columns}
             searchable
-            searchKeys={["site_name", "url", "status"]}
+            searchKeys={["page_url", "status", "category"]}
             searchPlaceholder="Cari ancaman..."
             noWrapper
             className="border-none shadow-none"
