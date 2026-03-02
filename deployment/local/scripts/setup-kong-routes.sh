@@ -1291,6 +1291,76 @@ if [ -n "$KEUANGAN_DOCS_SERVICE_ID" ]; then
 fi
 
 ###############################################################################
+# Web Monitoring Service (Go Fiber, port 8089)
+###############################################################################
+echo ""
+echo -e "${GREEN}[+] Setting up Web Monitoring Service...${NC}"
+
+WEBMON_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "webmon-service",
+    "url": "http://myunila-monitoring-service:8089",
+    "connect_timeout": 300000,
+    "write_timeout": 300000,
+    "read_timeout": 300000,
+    "retries": 3
+  }')
+
+WEBMON_SERVICE_ID=$(parse_json_id "$WEBMON_SERVICE")
+
+if [ -z "$WEBMON_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-service (may already exist)${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-service created: $WEBMON_SERVICE_ID${NC}"
+
+    WEBMON_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-route",
+        "paths": ["/webmon-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    WEBMON_ROUTE_ID=$(parse_json_id "$WEBMON_ROUTE")
+
+    if [ -n "$WEBMON_ROUTE_ID" ]; then
+        # CORS
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # JWT
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "key_claim_name": "iss",
+              "claims_to_verify": ["exp"],
+              "header_names": ["Authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-service route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+###############################################################################
 # 10. Gateway Routes (for consistency with production)
 # Production uses /gateway/{service}/docs via Nginx proxy
 # Local: add same routes for frontend consistency
@@ -1405,6 +1475,8 @@ echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v
 echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
 echo "  Keuangan (protected):  http://localhost:9800/keuangan-service/api/v1"
+echo "  WebMon (protected):    http://localhost:9800/webmon-service/api/v1"
+echo "  WebMon (public):       http://localhost:9800/webmon-service/v1/public"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""

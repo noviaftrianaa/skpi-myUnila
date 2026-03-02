@@ -1023,9 +1023,84 @@ else
 fi
 
 ###############################################################################
-# 9. API Documentation Routes (Protected with JWT via header AND cookie)
+# 9. MinIO Storage Service (Public - no auth, read-only)
 ###############################################################################
-echo -e "${GREEN}[9/9] Setting up API Documentation Routes (Protected)...${NC}"
+echo -e "${GREEN}[9/10] Setting up MinIO Storage Service...${NC}"
+
+# Create MinIO Storage Service
+# Note: Upstream is at MinIO VM (192.168.120.47:9000)
+MINIO_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"minio-storage\",
+    \"url\": \"${MINIO_STORAGE_URL:-http://192.168.120.47:9000}\",
+    \"connect_timeout\": 5000,
+    \"write_timeout\": 30000,
+    \"read_timeout\": 30000,
+    \"retries\": 2
+  }")
+
+MINIO_SERVICE_ID=$(parse_json_id "$MINIO_SERVICE")
+
+if [ -z "$MINIO_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create MinIO Storage service${NC}"
+else
+    echo -e "${GREEN}  ✓ MinIO Storage service created: $MINIO_SERVICE_ID${NC}"
+
+    # Route: Public read-only (no JWT, GET/HEAD only)
+    echo -e "${YELLOW}  → Creating public storage route...${NC}"
+    MINIO_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MINIO_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "minio-storage-route",
+        "paths": ["/gateway/storage"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "methods": ["GET", "HEAD"],
+        "regex_priority": 200
+      }')
+
+    MINIO_ROUTE_ID=$(parse_json_id "$MINIO_ROUTE")
+
+    if [ -n "$MINIO_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "HEAD", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Range"],
+              "exposed_headers": ["Content-Length", "Content-Type", "ETag"],
+              "credentials": false,
+              "max_age": 86400
+            }
+          }' > /dev/null
+
+        # Add rate limiting plugin (protect MinIO from abuse)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "rate-limiting",
+            "config": {
+              "minute": 300,
+              "hour": 5000,
+              "policy": "local"
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ Public storage route created (GET/HEAD only, rate-limited)${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 10. API Documentation Routes (Protected with JWT via header AND cookie)
+###############################################################################
+echo -e "${GREEN}[10/10] Setting up API Documentation Routes (Protected)...${NC}"
 
 # Note: JWT plugin configured to read token from BOTH header AND cookie
 # This allows browser access after login (token stored in cookie)
@@ -1489,6 +1564,77 @@ if [ -n "$DASHBOARD_DOCS_SERVICE_ID" ]; then
     fi
 fi
 
+###############################################################################
+# Web Monitoring Service (Go Fiber, port 8089)
+###############################################################################
+echo ""
+echo -e "${GREEN}[+] Setting up Web Monitoring Service...${NC}"
+
+WEBMON_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"webmon-service\",
+    \"url\": \"${WEBMON_SERVICE_URL:-http://192.168.120.43:8089}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 3
+  }")
+
+WEBMON_SERVICE_ID=$(parse_json_id "$WEBMON_SERVICE")
+
+if [ -z "$WEBMON_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-service${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-service created: $WEBMON_SERVICE_ID${NC}"
+
+    # Single route: /webmon-service (strip_path=true, JWT required)
+    WEBMON_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-route",
+        "paths": ["/webmon-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    WEBMON_ROUTE_ID=$(parse_json_id "$WEBMON_ROUTE")
+
+    if [ -n "$WEBMON_ROUTE_ID" ]; then
+        # CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "key_claim_name": "iss",
+              "claims_to_verify": ["exp"],
+              "header_names": ["Authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-service route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
@@ -1504,8 +1650,10 @@ echo "  Feeder (JWT required): /feeder-service/* → backend/*"
 echo "  MyUnila (JWT req):     /myunila-service/* → backend/*"
 echo "  MyUnila (public):      /myunila-service/public/* → backend/*"
 echo "  Keuangan (JWT req):    /keuangan-service/* → backend/*"
+echo "  WebMon (JWT req):      /webmon-service/* → backend/*"
 echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
 echo "  API/OneData (JWT req): /api-service/* → backend/*"
+echo "  MinIO Storage (public):/gateway/storage/* → MinIO:9000/* (GET/HEAD only)"
 echo ""
 echo -e "${YELLOW}API Documentation Routes (JWT + Developer role required):${NC}"
 echo "  Auth Docs:      /gateway/auth-service/docs/*"
@@ -1531,6 +1679,9 @@ echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR
 echo ""
 echo "  # MyUnila SIKEP (requires JWT)"
 echo "  curl -H 'Authorization: Bearer <token>' http://localhost:9800/myunila-service/api/v1/sikep/referensi/metadata"
+echo ""
+echo "  # MinIO Storage (public, read-only)"
+echo "  curl http://localhost:9800/gateway/storage/myunila-photos/sdm/{id_sdm}.jpg"
 echo ""
 echo "  # Check Kong services and routes"
 echo "  curl $KONG_ADMIN_URL/services"
