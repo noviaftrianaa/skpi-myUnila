@@ -754,12 +754,13 @@ Agent berikutnya **HARUS** mengikuti konvensi berikut agar konsisten:
 **Frontend**: Sites management sub-page, public /berita page, BloggerConnectForm
 
 ### Phase 3: Crawler + Detection (3 minggu)
-**Backend**: Colly crawler engine, keyword detector, crawl job scheduling, crawl session management
+**Backend**: Colly crawler engine, keyword detector, crawl job scheduling, crawl session management, `apps/google_gsc/` module (GSC API client + auto URL removal trigger)
+**Database**: Tambah tabel `monitoring.gsc_removal_logs`
 **Frontend**: Scanner page, threats page, keywords page
 
 ### Phase 4: Public Dashboard + Alerts (2 minggu)
-**Backend**: Daily summary generator, public endpoints, email alert service
-**Frontend**: /keamanan-web public page
+**Backend**: Daily summary generator, public endpoints, email alert service, GSC recrawl endpoint (trigger setelah admin bersihkan konten)
+**Frontend**: /keamanan-web public page, tombol "Request Google Removal" di ThreatDetailModal
 
 ### Phase 5: Enhancement — Reporting & Export
 - PDF/Excel export dashboard data
@@ -781,6 +782,178 @@ Agent berikutnya **HARUS** mengikuti konvensi berikut agar konsisten:
 - Subdomain auto-discovery
 - Telegram bot notifications
 - Google CSE cross-reference
+
+---
+
+## 10. Google Search Console Integration
+
+### 10.1 Overview
+
+Setelah crawler mendeteksi halaman terinjeksi judol, sistem secara otomatis mengajukan
+**temporary URL removal** ke Google Search Console API — halaman hilang dari hasil
+pencarian Google selama ~6 bulan, memberi waktu admin unit untuk membersihkan konten.
+
+> **Penting**: Fitur ini hanya menghapus dari **Google Search results**, bukan dari server.
+> Admin unit tetap harus membersihkan konten yang terinjeksi.
+
+```
+Crawler detects threat (score >= GSC_AUTO_REMOVE_THRESHOLD)
+        │
+        ▼
+monitoring.detected_threats (status = 'new')
+        │
+        ▼
+apps/google_gsc/service.go
+  ├── SubmitURLRemoval(url)   → POST ke Google Search Console API
+  └── Log ke monitoring.gsc_removal_logs
+        │
+        ▼
+Google Search Console
+  → URL tidak muncul di Google Search (~6 bulan)
+```
+
+---
+
+### 10.2 Setup Google Cloud Console (Admin — One-time)
+
+#### A1. Buat Project
+1. Buka https://console.cloud.google.com
+2. Klik dropdown project → **New Project**
+3. Name: `myunila-webmon` → **Create**
+
+#### A2. Enable Google Search Console API
+1. **APIs & Services → Library**
+2. Search: `Google Search Console API` → **Enable**
+
+#### A3. Buat Service Account
+1. **APIs & Services → Credentials → Create Credentials → Service Account**
+2. Name: `webmon-gsc-bot`
+3. Description: `Web Monitoring - GSC URL Removal Bot`
+4. Role: **Editor**
+5. Klik **Done**
+
+#### A4. Download JSON Key
+1. Klik service account → tab **Keys → Add Key → Create new key → JSON**
+2. Simpan sebagai `gsc-service-account.json`
+3. Taruh di server: `/app/secrets/gsc-service-account.json`
+4. **JANGAN commit ke git** — pastikan ada di `.gitignore`
+
+---
+
+### 10.3 Setup Google Search Console (Admin — One-time)
+
+#### B1. Tambah Domain Property
+1. Buka https://search.google.com/search-console
+2. **Add Property → Domain**
+3. Masukkan: `unila.ac.id`
+   _(Domain property = otomatis covers semua `*.unila.ac.id`)_
+
+#### B2. Verifikasi via DNS TXT Record
+1. Login ke DNS manager domain `unila.ac.id`
+2. Tambah record:
+   ```
+   Name:  @  (atau unila.ac.id)
+   Type:  TXT
+   Value: google-site-verification=XXXXXXXXXXXX
+   TTL:   3600
+   ```
+3. Kembali ke Search Console → klik **Verify**
+   _(Propagasi DNS bisa 5–60 menit)_
+
+#### B3. Tambah Service Account sebagai User
+1. Property `unila.ac.id` → **Settings → Users and permissions → Add user**
+2. Email: `webmon-gsc-bot@myunila-webmon.iam.gserviceaccount.com`
+3. Permission: **Full**
+4. Klik **Add**
+
+---
+
+### 10.4 Database: Tabel `monitoring.gsc_removal_logs`
+
+```sql
+CREATE TABLE monitoring.gsc_removal_logs (
+    id              BIGINT IDENTITY(1,1) PRIMARY KEY,
+    threat_id       UNIQUEIDENTIFIER NOT NULL,
+    url             NVARCHAR(2000)   NOT NULL,
+    action          NVARCHAR(20)     NOT NULL,      -- removal / recrawl
+    gsc_request_id  NVARCHAR(200)    NULL,
+    status          NVARCHAR(20)     NOT NULL DEFAULT 'submitted',
+        -- submitted / completed / failed
+    submitted_by    NVARCHAR(200)    NULL,           -- 'auto' atau user email
+    submitted_at    DATETIME2        NOT NULL DEFAULT GETDATE(),
+    error_message   NVARCHAR(MAX)    NULL,
+
+    CONSTRAINT FK_gsc_logs_threat FOREIGN KEY (threat_id)
+        REFERENCES monitoring.detected_threats (id)
+);
+
+CREATE INDEX IX_gsc_logs_threat ON monitoring.gsc_removal_logs (threat_id);
+CREATE INDEX IX_gsc_logs_submitted ON monitoring.gsc_removal_logs (submitted_at DESC);
+```
+
+---
+
+### 10.5 Go Dependencies (Tambah ke `go.mod`)
+
+```bash
+go get google.golang.org/api@latest
+go get golang.org/x/oauth2@latest
+```
+
+---
+
+### 10.6 Environment Variables
+
+```env
+# Google Search Console Integration
+GSC_SERVICE_ACCOUNT_JSON=/app/secrets/gsc-service-account.json
+GSC_SITE_URL=sc-domain:unila.ac.id
+GSC_AUTO_REMOVE_THRESHOLD=15
+GSC_ENABLED=true
+```
+
+---
+
+### 10.7 Module Structure: `apps/google_gsc/`
+
+```
+apps/google_gsc/
+├── entity.go       # GSCRemovalLog, GSCRemovalRequest struct
+├── service.go      # SubmitURLRemoval(), SubmitRecrawl() via Google API
+├── repository.go   # INSERT/SELECT monitoring.gsc_removal_logs
+└── router.go       # Endpoints: remove, recrawl, logs
+```
+
+#### API Endpoints
+
+```
+POST /v1/gsc/remove             body: {url, threat_id}  → Submit URL removal ke Google
+POST /v1/gsc/recrawl/:threatId                          → Submit recrawl setelah konten bersih
+GET  /v1/gsc/logs?threat_id=    query param             → History removal logs
+```
+
+#### Auto-trigger dari Crawler
+
+Di `apps/detector/service.go`, setelah `INSERT` ke `detected_threats`:
+
+```go
+if threat.ThreatScore >= cfg.GSCAutoRemoveThreshold && cfg.GSCEnabled {
+    go gscService.SubmitURLRemoval(ctx, threat.URL)
+}
+```
+
+---
+
+### 10.8 Limitasi & Catatan
+
+| Hal | Detail |
+|-----|--------|
+| Durasi removal | ~6 bulan, lalu Google recrawl ulang |
+| Apa yang dihapus | Hanya dari **Google Search results**, konten di server tetap ada |
+| Quota | 1.000 removal request/hari per property |
+| Rate limit | 1.200 query/menit |
+| Biaya | **Gratis** (Google Search Console API tidak berbayar) |
+| Cakupan | Domain property `unila.ac.id` covers semua `*.unila.ac.id` |
 
 ---
 
