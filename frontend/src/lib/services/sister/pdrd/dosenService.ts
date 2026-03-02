@@ -239,6 +239,16 @@ export interface SisterDosenSyncResult {
   synced_at: string;
 }
 
+// Photo sync result
+export interface SisterDosenPhotoSyncResult {
+  total_processed: number;
+  total_success: number;
+  total_failed: number;
+  total_skipped: number;
+  duration: string;
+  synced_by: string;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -315,6 +325,22 @@ export const sisterDosenService = {
       responseType: 'blob'
     });
     return response.data;
+  },
+
+  /**
+   * Trigger batch sync of dosen photos from SISTER API to MinIO storage
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncPhotosToMinIO(syncedBy: string): Promise<SisterDosenPhotoSyncResult> {
+    const response = await sisterClient.post<SisterApiResponse<SisterDosenPhotoSyncResult>>(
+      '/dosen/sync-photos',
+      null,
+      {
+        params: { synced_by: syncedBy },
+        timeout: 600000, // 10 minutes - photo sync takes longer
+      }
+    );
+    return response.data.data;
   },
 
   /**

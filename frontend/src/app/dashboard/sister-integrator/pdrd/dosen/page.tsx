@@ -27,12 +27,13 @@ import {
   FiArrowLeft,
   FiAlertCircle,
   FiUser,
+  FiCamera,
 } from "react-icons/fi";
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
-import { sisterDosenService, type SisterDosenStats } from "@/lib/services/sister/pdrd/dosenService";
+import { sisterDosenService, type SisterDosenStats, type SisterDosenPhotoSyncResult } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
@@ -54,6 +55,14 @@ export default function DosenManagementPage() {
     totalRecords: number;
     message: string;
   } | null>(null);
+
+  // Photo Sync State
+  const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);
+  const [showPhotoSyncModal, setShowPhotoSyncModal] = useState(false);
+  const [showPhotoProgressModal, setShowPhotoProgressModal] = useState(false);
+  const [photoSyncProgress, setPhotoSyncProgress] = useState(0);
+  const [photoSyncStatus, setPhotoSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [photoSyncResult, setPhotoSyncResult] = useState<SisterDosenPhotoSyncResult | null>(null);
 
   // Fetch stats on mount
   useEffect(() => {
@@ -132,6 +141,59 @@ export default function DosenManagementPage() {
     }
   };
 
+  const handlePhotoSyncClick = () => {
+    setShowPhotoSyncModal(true);
+  };
+
+  const handleConfirmPhotoSync = async () => {
+    setShowPhotoSyncModal(false);
+    setShowPhotoProgressModal(true);
+    setIsSyncingPhotos(true);
+    setPhotoSyncStatus("syncing");
+    setPhotoSyncProgress(0);
+
+    try {
+      // Simulate progress (photo sync takes longer)
+      const progressInterval = setInterval(() => {
+        setPhotoSyncProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 5;
+        });
+      }, 1000);
+
+      // Call photo sync API
+      const response = await sisterDosenService.syncPhotosToMinIO(user?.name || "system");
+
+      clearInterval(progressInterval);
+      setPhotoSyncProgress(100);
+      setPhotoSyncResult(response);
+      setPhotoSyncStatus("success");
+      toast.success(`Berhasil sync ${response.total_success} foto dosen (${response.total_skipped} skipped)`);
+
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => {
+        setShowPhotoProgressModal(false);
+        setPhotoSyncProgress(0);
+        setPhotoSyncStatus("idle");
+        setPhotoSyncResult(null);
+      }, 3000);
+    } catch (error) {
+      console.error("Error syncing photos:", error);
+      setPhotoSyncStatus("error");
+      toast.error("Gagal melakukan sinkronisasi foto");
+      setTimeout(() => {
+        setShowPhotoProgressModal(false);
+        setPhotoSyncProgress(0);
+        setPhotoSyncStatus("idle");
+      }, 2000);
+    } finally {
+      setIsSyncingPhotos(false);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Belum pernah";
     return new Date(dateString).toLocaleString("id-ID", {
@@ -178,16 +240,28 @@ export default function DosenManagementPage() {
               Data SDM aktif di homebase Unila pada periode tahun ajaran 2025
             </p>
           </div>
-          <Button
-            color="primary"
-            size="lg"
-            startContent={<MdSync className="w-5 h-5" />}
-            onClick={handleSyncClick}
-            isLoading={isSyncing}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
-          >
-            Sinkronisasi Data
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              color="primary"
+              size="lg"
+              startContent={<FiCamera className="w-5 h-5" />}
+              onClick={handlePhotoSyncClick}
+              isLoading={isSyncingPhotos}
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+            >
+              Sinkronisasi Foto
+            </Button>
+            <Button
+              color="primary"
+              size="lg"
+              startContent={<MdSync className="w-5 h-5" />}
+              onClick={handleSyncClick}
+              isLoading={isSyncing}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+            >
+              Sinkronisasi Data
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards - Compact Horizontal Layout (Match Referensi Style) */}
@@ -491,6 +565,216 @@ export default function DosenManagementPage() {
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <p className="text-sm text-red-700 dark:text-red-300">
                     Gagal melakukan sinkronisasi. Silakan coba lagi atau hubungi administrator.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* Photo Sync Confirmation Modal */}
+      <Modal
+        isOpen={showPhotoSyncModal}
+        onOpenChange={setShowPhotoSyncModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                    <FiCamera className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      Konfirmasi Sinkronisasi Foto
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                      Foto Dosen dari SISTER ke MinIO
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody className="py-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Proses ini akan mengambil foto dosen dari SISTER API dan menyimpannya ke MinIO storage.
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Foto yang sudah ada di MinIO akan di-skip</li>
+                          <li>Hanya foto baru yang akan diunduh</li>
+                          <li>Proses memerlukan waktu lebih lama (5-15 menit)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">User</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {user?.name || "System"}
+                    </span>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleConfirmPhotoSync}
+                  startContent={<FiCamera className="w-4 h-4" />}
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white"
+                >
+                  Mulai Sinkronisasi Foto
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Photo Sync Progress Modal */}
+      <Modal
+        isOpen={showPhotoProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  photoSyncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : photoSyncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-teal-500 to-cyan-600"
+                }`}
+              >
+                {photoSyncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : photoSyncStatus === "error" ? (
+                  <FiAlertCircle className="w-6 h-6" />
+                ) : (
+                  <FiCamera className="w-6 h-6 animate-pulse" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {photoSyncStatus === "success"
+                    ? "Sinkronisasi Foto Berhasil!"
+                    : photoSyncStatus === "error"
+                    ? "Sinkronisasi Foto Gagal"
+                    : "Sedang Sinkronisasi Foto..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {photoSyncStatus === "syncing" && "Mengunduh foto dari SISTER API ke MinIO"}
+                  {photoSyncStatus === "success" && photoSyncResult &&
+                    `${photoSyncResult.total_success} foto baru, ${photoSyncResult.total_skipped} sudah ada`}
+                  {photoSyncStatus === "error" && "Terjadi kesalahan saat sinkronisasi foto"}
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Progress
+                  </span>
+                  <span className="text-sm font-bold text-teal-600 dark:text-teal-400">
+                    {photoSyncProgress}%
+                  </span>
+                </div>
+                <Progress
+                  value={photoSyncProgress}
+                  color={
+                    photoSyncStatus === "success"
+                      ? "success"
+                      : photoSyncStatus === "error"
+                      ? "danger"
+                      : "primary"
+                  }
+                  className="h-2"
+                  classNames={{
+                    indicator: photoSyncStatus === "syncing" ? "animate-pulse" : "",
+                  }}
+                />
+              </div>
+
+              {photoSyncStatus === "syncing" && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-teal-50 dark:bg-teal-900/20">
+                  <Spinner size="sm" color="primary" />
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mengunduh dan mengunggah foto dosen ke MinIO storage...
+                  </p>
+                </div>
+              )}
+
+              {photoSyncStatus === "success" && photoSyncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      Sinkronisasi foto selesai ({photoSyncResult.duration})
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Total Diproses</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-300">
+                        {photoSyncResult.total_processed}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Foto Baru</span>
+                      <span className="font-bold text-green-700 dark:text-green-300">
+                        {photoSyncResult.total_success}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Sudah Ada (Skip)</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-300">
+                        {photoSyncResult.total_skipped}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Gagal</span>
+                      <span className="font-bold text-red-700 dark:text-red-300">
+                        {photoSyncResult.total_failed}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {photoSyncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Gagal melakukan sinkronisasi foto. Silakan coba lagi atau hubungi administrator.
                   </p>
                 </div>
               )}

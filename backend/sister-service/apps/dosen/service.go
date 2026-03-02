@@ -7,6 +7,7 @@ import (
 	"log"
 	appLogger "sister-service/apps/logger"
 	"sister-service/external/sister_api"
+	minioClient "sister-service/internal/minio"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -20,6 +21,7 @@ type Service interface {
 	GetDosenBidangIlmu(idSdm string) ([]map[string]interface{}, error)
 	SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error)
 	SyncSingleDosenTest(idSDM string) (*DosenSyncResult, error)
+	SyncDosenPhotosToMinIO(syncedBy string) (*BatchPhotoSyncResult, error)
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
@@ -31,15 +33,17 @@ type service struct {
 	redisClient   *redis.Client
 	repo          Repository
 	loggerService appLogger.Service
+	minioClient   *minioClient.Client
 }
 
-// NewService creates a new dosen service with Redis caching
-func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Repository, loggerSvc appLogger.Service) Service {
+// NewService creates a new dosen service with Redis caching and optional MinIO
+func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Repository, loggerSvc appLogger.Service, minio *minioClient.Client) Service {
 	return &service{
 		sisterAPI:     sisterAPI,
 		redisClient:   redisClient,
 		repo:          repo,
 		loggerService: loggerSvc,
+		minioClient:   minio,
 	}
 }
 

@@ -16,6 +16,7 @@ type Repository interface {
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
+	GetAllActiveDosenIDs() ([]DosenIDName, error)
 }
 
 type repository struct {
@@ -578,4 +579,17 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 	}
 
 	return stats, nil
+}
+
+// GetAllActiveDosenIDs returns id_sdm and nm_sdm for all active dosen
+func (r *repository) GetAllActiveDosenIDs() ([]DosenIDName, error) {
+	query := `SELECT CONVERT(NVARCHAR(36), id_sdm) as id_sdm, nm_sdm FROM pdrd.sdm WHERE soft_delete = 0`
+
+	var results []DosenIDName
+	err := r.db.Select(&results, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dosen IDs: %w", err)
+	}
+
+	return results, nil
 }

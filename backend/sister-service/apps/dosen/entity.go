@@ -179,6 +179,34 @@ type DosenListResult struct {
 	TotalPages int      `json:"total_pages"`
 }
 
+// PhotoSyncResult represents the result of syncing a single dosen photo
+type PhotoSyncResult struct {
+	IDSDM       string `json:"id_sdm"`
+	Nama        string `json:"nama"`
+	Success     bool   `json:"success"`
+	Error       string `json:"error,omitempty"`
+	FileSize    int    `json:"file_size,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+	MinIOPath   string `json:"minio_path,omitempty"`
+}
+
+// BatchPhotoSyncResult represents the result of batch photo sync
+type BatchPhotoSyncResult struct {
+	TotalProcessed int               `json:"total_processed"`
+	TotalSuccess   int               `json:"total_success"`
+	TotalFailed    int               `json:"total_failed"`
+	TotalSkipped   int               `json:"total_skipped"`
+	Duration       string            `json:"duration"`
+	SyncedBy       string            `json:"synced_by"`
+	Results        []PhotoSyncResult `json:"results,omitempty"`
+}
+
+// DosenIDName represents a simple dosen ID and name pair for photo sync
+type DosenIDName struct {
+	IDSDM string `db:"id_sdm"`
+	Nama  string `db:"nm_sdm"`
+}
+
 // DosenStats represents dosen statistics
 type DosenStats struct {
 	TotalDosen      int                    `json:"total_dosen"`

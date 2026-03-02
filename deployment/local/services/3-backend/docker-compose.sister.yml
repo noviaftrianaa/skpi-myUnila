@@ -42,6 +42,14 @@ services:
       REDIS_HOST: ${SISTER_REDIS_HOST:-redis}
       REDIS_PORT: ${SISTER_REDIS_PORT:-6379}
 
+      # MinIO Object Storage
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-192.168.120.47:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-myunila-storage}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://192.168.120.47:9000}
+
       # Timezone
       TZ: ${TZ:-Asia/Jakarta}
     networks:

@@ -1,6 +1,7 @@
 package dosen
 
 import (
+	"fmt"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -249,6 +250,35 @@ func (ctrl *Controller) GetDosenStats(c *fiber.Ctx) error {
 		"success": true,
 		"message": "Dosen statistics retrieved successfully",
 		"data":    stats,
+	})
+}
+
+// SyncDosenPhotos handles POST /api/v1/dosen/sync-photos
+// @Summary Sync all dosen photos from SISTER API to MinIO
+// @Description Batch fetches dosen photos from SISTER API and uploads to MinIO storage
+// @Tags Dosen
+// @Produce json
+// @Param synced_by query string true "Username of person who triggered the sync"
+// @Success 200 {object} BatchPhotoSyncResult "Photo sync result"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync-photos [post]
+func (ctrl *Controller) SyncDosenPhotos(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	result, err := ctrl.service.SyncDosenPhotosToMinIO(syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen photos",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Photo sync completed: %d success, %d skipped, %d failed",
+			result.TotalSuccess, result.TotalSkipped, result.TotalFailed),
+		"data": result,
 	})
 }
 
