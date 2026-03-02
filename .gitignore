@@ -41,6 +41,12 @@ deployment/local/start-simpedam-proxy.bat
 *.log
 .DS_Store
 
-# Documentation folders - ignore summary and security, allow sql
+# Documentation folders - ignore summary and sensitive security reports
 docs/summary/
 docs/security/
+
+# Monitoring GSC secrets
+deployment/local/secrets/
+
+# Root-level plan/temp docs
+MINIO_SETUP_PLAN.md
