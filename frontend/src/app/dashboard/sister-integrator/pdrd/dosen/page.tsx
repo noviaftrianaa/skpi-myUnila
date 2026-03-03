@@ -451,6 +451,8 @@ export default function DosenManagementPage() {
 
         {/* Scheduled Syncs Section */}
         <ScheduleList syncType="dosen" />
+        <ScheduleList syncType="dosen_foto" />
+        <ScheduleList syncType="dosen_dokumen" />
 
         {/* Data Table using SisterDosenTable Component */}
         <SisterDosenTable />
