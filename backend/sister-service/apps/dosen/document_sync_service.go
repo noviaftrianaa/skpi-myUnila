@@ -130,30 +130,11 @@ func (s *service) syncDosenDokumen(dosen DosenIDName) DokumenSyncResult {
 
 	for _, doc := range docs {
 		ext := extractExtension(doc.NamaFile, doc.JenisFile)
-		minioPath := fmt.Sprintf("documents/sdm/%s/%d/%s%s", dosen.IDSDM, doc.IDJenisDokumen, doc.ID, ext)
+		// MinIO path: documents/sdm/{id_sdm}/{id_dok}.{ext}
+		// Flat per-dosen — each dok has unique UUID, no need for jenis_dokumen subfolder
+		minioPath := fmt.Sprintf("documents/sdm/%s/%s%s", dosen.IDSDM, doc.ID, ext)
 
-		// Skip if already in MinIO AND in DB
-		if s.minioClient.ObjectExists(minioPath) {
-			result.Skipped++
-			continue
-		}
-
-		// Download binary from SISTER
-		fileBytes, contentType, err := s.sisterAPI.GetDosenDokumenDownload(doc.ID)
-		if err != nil {
-			log.Printf("⚠️  Failed to download dokumen %s for %s: %v", doc.NamaFile, dosen.IDSDM, err)
-			result.Failed++
-			continue
-		}
-
-		// Upload to MinIO
-		if err := s.minioClient.PutObject(minioPath, fileBytes, contentType); err != nil {
-			log.Printf("⚠️  Failed to upload dokumen %s to MinIO: %v", minioPath, err)
-			result.Failed++
-			continue
-		}
-
-		// Build DB item
+		// Build DB item (needed for both new upload and existing file upsert)
 		nmDok := ""
 		if doc.Nama != nil {
 			nmDok = *doc.Nama
@@ -167,10 +148,35 @@ func (s *service) syncDosenDokumen(dosen DosenIDName) DokumenSyncResult {
 			keterangan = *doc.Keterangan
 		}
 
+		contentType := doc.JenisFile
+
+		// If already in MinIO, skip download/upload but still upsert DB metadata
+		alreadyInMinIO := s.minioClient.ObjectExists(minioPath)
+		if !alreadyInMinIO {
+			// Download binary from SISTER
+			fileBytes, ct, err := s.sisterAPI.GetDosenDokumenDownload(doc.ID)
+			if err != nil {
+				log.Printf("⚠️  Failed to download dokumen %s for %s: %v", doc.NamaFile, dosen.IDSDM, err)
+				result.Failed++
+				continue
+			}
+			contentType = ct
+
+			// Upload to MinIO
+			if err := s.minioClient.PutObject(minioPath, fileBytes, contentType); err != nil {
+				log.Printf("⚠️  Failed to upload dokumen %s to MinIO: %v", minioPath, err)
+				result.Failed++
+				continue
+			}
+
+			log.Printf("📄 Uploaded dokumen %s for %s — %d bytes → %s",
+				doc.NamaFile, dosen.Nama, len(fileBytes), minioPath)
+		}
+
 		item := &DokumenSyncItem{
 			IDSDM:      dosen.IDSDM,
 			IDDok:      doc.ID,
-			IDJnsDok:   doc.IDJenisDokumen,
+			IDJnsDok:   doc.IDJenisDokumen, // 0 if API doesn't return it
 			NmJnsDok:   doc.JenisDokumen,
 			NmDok:      nmDok,
 			NmFile:     doc.NamaFile,
@@ -180,17 +186,18 @@ func (s *service) syncDosenDokumen(dosen DosenIDName) DokumenSyncResult {
 			MinioPath:  minioPath,
 		}
 
-		// Upsert metadata to DB
+		// Always upsert metadata to DB (INSERT or UPDATE)
 		if err := s.repo.UpsertDokumen(item); err != nil {
 			log.Printf("⚠️  Failed to upsert dokumen metadata for %s/%s: %v", dosen.IDSDM, doc.ID, err)
-			// File uploaded but DB failed — count as partial success
 			result.Failed++
 			continue
 		}
 
-		log.Printf("📄 Synced dokumen %s for %s — %d bytes → %s",
-			doc.NamaFile, dosen.Nama, len(fileBytes), minioPath)
-		result.Success++
+		if alreadyInMinIO {
+			result.Skipped++
+		} else {
+			result.Success++
+		}
 
 		// Small delay between document downloads within same dosen
 		time.Sleep(100 * time.Millisecond)

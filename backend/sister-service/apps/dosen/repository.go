@@ -688,6 +688,11 @@ func (r *repository) UpsertDokumen(item *DokumenSyncItem) error {
 		MERGE dok.dok_sdm AS target
 		USING (SELECT @p1 AS id_sdm, @p2 AS id_dok) AS source
 		ON target.id_sdm = source.id_sdm AND target.id_dok = source.id_dok
+		WHEN MATCHED THEN
+			UPDATE SET
+				last_update = @p5,
+				last_sync   = @p6,
+				soft_delete = 0
 		WHEN NOT MATCHED THEN
 			INSERT (id_sdm, id_dok, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
 			VALUES (source.id_sdm, source.id_dok, @p3, @p4, @p5, NULL, 0, @p6);

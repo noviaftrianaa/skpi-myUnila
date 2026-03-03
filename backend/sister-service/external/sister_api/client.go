@@ -876,9 +876,9 @@ type DosenDokumenItem struct {
 }
 
 // GetDosenDokumen fetches list of documents for a dosen from Sister API
-// Endpoint: GET /1.0/data_pribadi/dokumen?id_sdm={id_sdm}
+// Endpoint: GET /1.0/dokumen?id_sdm={id_sdm}  (per SISTER API v1 OpenAPI spec)
 func (c *Client) GetDosenDokumen(idSdm string) ([]DosenDokumenItem, error) {
-	body, err := c.Get(fmt.Sprintf("/1.0/data_pribadi/dokumen?id_sdm=%s", idSdm))
+	body, err := c.Get(fmt.Sprintf("/1.0/dokumen?id_sdm=%s", idSdm))
 	if err != nil {
 		return nil, err
 	}
@@ -890,14 +890,14 @@ func (c *Client) GetDosenDokumen(idSdm string) ([]DosenDokumenItem, error) {
 }
 
 // GetDosenDokumenDownload downloads a document binary from Sister API
-// Endpoint: GET /1.0/data_pribadi/dokumen/{id}/download
+// Endpoint: GET /1.0/dokumen/{id}/download  (per SISTER API v1 OpenAPI spec)
 // Returns file bytes, content type, and error
 func (c *Client) GetDosenDokumenDownload(idDokumen string) ([]byte, string, error) {
 	if err := c.EnsureAuthenticated(); err != nil {
 		return nil, "", err
 	}
 
-	url := fmt.Sprintf("%s/1.0/data_pribadi/dokumen/%s/download", c.BaseURL, idDokumen)
+	url := fmt.Sprintf("%s/1.0/dokumen/%s/download", c.BaseURL, idDokumen)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
