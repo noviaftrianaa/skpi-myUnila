@@ -59,9 +59,19 @@ func NewClient(cfg config.MinIOConfig) (*Client, error) {
 	return c, nil
 }
 
-// setupBucketPolicy sets S3 bucket policies:
-//   - photos/sdm/* → public read (browsers can fetch profile photos directly)
-//   - documents/sdm/* → private (access only via JWT-protected service endpoint)
+// setupBucketPolicy sets S3 bucket policies based on top-level prefix:
+//
+// Bucket layout convention:
+//
+//	photos/                     ← public-read (all entity types)
+//	  sdm/{id_sdm}.jpg          ← dosen profile photo
+//	  pd/{id_pd}.jpg            ← mahasiswa profile photo (future)
+//
+//	documents/                  ← private (all entity types, access via JWT endpoint)
+//	  sdm/{id_sdm}/{jns}/{id}   ← dosen documents
+//	  pd/{id_pd}/{jns}/{id}     ← mahasiswa documents (future)
+//
+// Policy: photos/* → public-read | documents/* → private (no statement = deny)
 func (c *Client) setupBucketPolicy(ctx context.Context) error {
 	type Statement struct {
 		Effect    string            `json:"Effect"`
@@ -74,6 +84,8 @@ func (c *Client) setupBucketPolicy(ctx context.Context) error {
 		Statement []Statement `json:"Statement"`
 	}
 
+	// Only photos/* is public-read — covers sdm, pd, and any future entity type.
+	// documents/* has no Allow statement → denied to anonymous (private by default).
 	policy := Policy{
 		Version: "2012-10-17",
 		Statement: []Statement{
@@ -81,7 +93,7 @@ func (c *Client) setupBucketPolicy(ctx context.Context) error {
 				Effect:    "Allow",
 				Principal: map[string]string{"AWS": "*"},
 				Action:    []string{"s3:GetObject"},
-				Resource:  []string{fmt.Sprintf("arn:aws:s3:::%s/photos/sdm/*", c.bucket)},
+				Resource:  []string{fmt.Sprintf("arn:aws:s3:::%s/photos/*", c.bucket)},
 			},
 		},
 	}
@@ -95,7 +107,7 @@ func (c *Client) setupBucketPolicy(ctx context.Context) error {
 		return fmt.Errorf("failed to apply bucket policy: %w", err)
 	}
 
-	log.Printf("✅ Bucket policy applied: photos/sdm/* public-read, documents/sdm/* private")
+	log.Printf("✅ Bucket policy: photos/* = public-read | documents/* = private")
 	return nil
 }
 
