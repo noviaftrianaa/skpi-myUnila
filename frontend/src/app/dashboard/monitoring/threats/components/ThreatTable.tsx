@@ -10,9 +10,10 @@ interface ThreatTableProps {
     data: Threat[];
     isLoading?: boolean;
     onUpdateStatus?: (id: number, status: string) => void;
+    onViewDetail?: (id: number) => void;
 }
 
-export default function ThreatTable({ data, isLoading, onUpdateStatus }: ThreatTableProps) {
+export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDetail }: ThreatTableProps) {
     const columns: Column<Threat>[] = [
         {
             key: "page_url",
@@ -102,7 +103,8 @@ export default function ThreatTable({ data, isLoading, onUpdateStatus }: ThreatT
                 <div className="flex items-center gap-1">
                     <Tooltip content="Lihat Detail">
                         <Button isIconOnly size="sm" variant="light" radius="full"
-                            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            onPress={() => onViewDetail?.(threat.id)}>
                             <FiEye className="w-4 h-4" />
                         </Button>
                     </Tooltip>

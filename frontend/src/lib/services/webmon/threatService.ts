@@ -9,6 +9,7 @@ export interface Threat {
   matched_keywords: string; // comma-separated string
   threat_score: number;
   category: string;
+  snippet?: string;         // 200-char context snippet dari halaman
   status: string; // pending / confirmed / false_positive / resolved
   detected_at: string;
   confirmed_at?: string;

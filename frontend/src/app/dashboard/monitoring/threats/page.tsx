@@ -3,15 +3,40 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ThreatStatsCards from "./components/ThreatStatsCards";
 import ThreatTable from "./components/ThreatTable";
+import ThreatDetailModal from "./components/ThreatDetailModal";
 import { Card, CardBody, Button } from "@heroui/react";
 import { FiDownload } from "react-icons/fi";
 import { threatService, Threat, ThreatStats } from "@/lib/services/webmon/threatService";
 import { toast } from "react-hot-toast";
 
+function exportThreatsCSV(threats: Threat[]) {
+    const headers = ["ID", "Situs", "URL Halaman", "Kategori", "Skor", "Keyword", "Status", "Terdeteksi"];
+    const rows = threats.map((t) => [
+        t.id,
+        `"${(t.site_name || t.site_id).replace(/"/g, '""')}"`,
+        `"${t.page_url.replace(/"/g, '""')}"`,
+        t.category,
+        t.threat_score,
+        `"${t.matched_keywords.replace(/"/g, '""')}"`,
+        t.status,
+        t.detected_at ? new Date(t.detected_at).toLocaleDateString("id-ID") : "-",
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `laporan-ancaman-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 export default function ThreatsPage() {
     const [threats, setThreats] = useState<Threat[]>([]);
     const [stats, setStats] = useState<ThreatStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedThreatId, setSelectedThreatId] = useState<number | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     const fetchData = useCallback(async () => {
         try {
@@ -41,6 +66,20 @@ export default function ThreatsPage() {
         }
     };
 
+    const handleViewDetail = (id: number) => {
+        setSelectedThreatId(id);
+        setIsDetailOpen(true);
+    };
+
+    const handleExport = () => {
+        if (threats.length === 0) {
+            toast.error("Tidak ada data untuk diekspor");
+            return;
+        }
+        exportThreatsCSV(threats);
+        toast.success(`${threats.length} data diekspor ke CSV`);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -50,8 +89,16 @@ export default function ThreatsPage() {
                         Daftar konten ilegal yang terdeteksi pada situs universitas.
                     </p>
                 </div>
-                <Button color="primary" variant="flat" radius="md" startContent={<FiDownload />} className="font-medium">
-                    Export Laporan
+                <Button
+                    color="primary"
+                    variant="flat"
+                    radius="md"
+                    startContent={<FiDownload />}
+                    className="font-medium"
+                    onPress={handleExport}
+                    isDisabled={isLoading || threats.length === 0}
+                >
+                    Export Laporan ({threats.length})
                 </Button>
             </div>
 
@@ -62,9 +109,21 @@ export default function ThreatsPage() {
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-bold">Daftar Temuan</h3>
                     </div>
-                    <ThreatTable data={threats} isLoading={isLoading} onUpdateStatus={handleUpdateStatus} />
+                    <ThreatTable
+                        data={threats}
+                        isLoading={isLoading}
+                        onUpdateStatus={handleUpdateStatus}
+                        onViewDetail={handleViewDetail}
+                    />
                 </CardBody>
             </Card>
+
+            <ThreatDetailModal
+                threatId={selectedThreatId}
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                onStatusUpdated={fetchData}
+            />
         </div>
     );
 }
