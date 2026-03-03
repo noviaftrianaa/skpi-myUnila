@@ -1,4 +1,6 @@
-import { webmonClient as webmonPublicClient } from '@/lib/api/webmonClient';
+// Public endpoints (/v1/public/*) — no auth required
+// Kong route: /webmon-service/v1/public (priority 300, no JWT)
+import { webmonPublicClient } from '@/lib/api/webmonClient';
 
 export interface MonitoringStatus {
   status: string;         // aman / waspada / bahaya
