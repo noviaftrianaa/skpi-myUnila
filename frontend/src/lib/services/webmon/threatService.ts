@@ -9,7 +9,7 @@ export interface Threat {
   matched_keywords: string; // comma-separated string
   threat_score: number;
   category: string;
-  snippet?: string;         // 200-char context snippet dari halaman
+  snippet?: string;         // HTML evidence: elemen yang mengandung keyword ancaman
   status: string; // pending / confirmed / false_positive / resolved
   detected_at: string;
   confirmed_at?: string;
@@ -40,14 +40,15 @@ export interface ThreatFilter {
   limit?: number;
 }
 
-export interface PaginatedThreats {
-  success: boolean;
-  message: string;
-  data: Threat[];
-  meta: { total: number; page: number; limit: number; total_pages: number };
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
 }
 
-async function listThreats(filter: ThreatFilter = {}): Promise<PaginatedThreats> {
+async function listThreats(filter: ThreatFilter = {}): Promise<PaginatedResult<Threat>> {
   const params = new URLSearchParams();
   if (filter.status) params.set('status', filter.status);
   if (filter.site_id) params.set('site_id', filter.site_id);
@@ -56,7 +57,8 @@ async function listThreats(filter: ThreatFilter = {}): Promise<PaginatedThreats>
   if (filter.page) params.set('page', String(filter.page));
   if (filter.limit) params.set('limit', String(filter.limit));
   const res = await webmonClient.get(`/api/v1/threats?${params}`);
-  return res.data;
+  const d = res.data?.data || {};
+  return { items: d.items || [], total: d.total || 0, page: d.page || 1, limit: d.limit || 10, total_pages: d.total_pages || 0 };
 }
 
 async function getThreat(id: number): Promise<Threat> {

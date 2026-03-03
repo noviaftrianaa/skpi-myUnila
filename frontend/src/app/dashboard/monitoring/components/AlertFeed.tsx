@@ -66,7 +66,7 @@ export default function AlertFeed() {
 
     useEffect(() => {
         threatService.listThreats({ limit: 12 })
-            .then((res) => setAlerts((res.data || []).map(threatToAlert)))
+            .then((res) => setAlerts((res.items || []).map(threatToAlert)))
             .catch(() => {});
     }, []);
 

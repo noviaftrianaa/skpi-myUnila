@@ -1,23 +1,51 @@
 
 "use client";
 
-import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+import { useEffect, useState } from "react";
+import { Card, CardBody, CardHeader, Divider, Skeleton } from "@heroui/react";
 import { FiPieChart, FiShield } from "react-icons/fi";
 import { PieChart } from "./charts";
+import { threatService, ThreatStats } from "@/lib/services/webmon/threatService";
+import { siteService, SiteStats } from "@/lib/services/webmon/siteService";
+
+const CATEGORY_LABELS: Record<string, string> = {
+    slot: "Slot Gacor",
+    togel: "Togel Online",
+    casino: "Casino",
+    poker: "Poker",
+    porn: "Pornografi",
+    scam: "Penipuan",
+    phishing: "Phishing",
+    other: "Lainnya",
+};
 
 export default function MonitoringCharts() {
-    const threatCategories = [
-        { name: "Slot Gacor", value: 45 },
-        { name: "Togel Online", value: 30 },
-        { name: "Poker/Casino", value: 15 },
-        { name: "Judi Bola", value: 10 },
-    ];
+    const [threatCats, setThreatCats] = useState<{ name: string; value: number }[]>([]);
+    const [siteStatus, setSiteStatus] = useState<{ name: string; value: number }[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const siteStatus = [
-        { name: "Aman", value: 38 },
-        { name: "Waspada", value: 5 },
-        { name: "Bahaya", value: 2 },
-    ];
+    useEffect(() => {
+        Promise.all([
+            threatService.getStats().catch(() => null),
+            siteService.getStats().catch(() => null),
+        ]).then(([ts, ss]) => {
+            if (ts?.by_category) {
+                setThreatCats(
+                    ts.by_category
+                        .filter((c) => c.count > 0)
+                        .map((c) => ({ name: CATEGORY_LABELS[c.category] || c.category, value: c.count }))
+                );
+            }
+            if (ss) {
+                const statuses: { name: string; value: number }[] = [];
+                if (ss.active > 0) statuses.push({ name: "Aktif", value: ss.active });
+                if (ss.inactive > 0) statuses.push({ name: "Tidak Aktif", value: ss.inactive });
+                if (ss.compromised > 0) statuses.push({ name: "Terkompromi", value: ss.compromised });
+                if (ss.maintenance > 0) statuses.push({ name: "Maintenance", value: ss.maintenance });
+                setSiteStatus(statuses);
+            }
+        }).finally(() => setLoading(false));
+    }, []);
 
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -37,12 +65,18 @@ export default function MonitoringCharts() {
                 </CardHeader>
                 <Divider />
                 <CardBody className="px-2 sm:px-4 py-3 sm:py-4">
-                    <PieChart
-                        data={threatCategories}
-                        donut
-                        height={280}
-                        colors={["#ef4444", "#f97316", "#eab308", "#3b82f6"]}
-                    />
+                    {loading ? (
+                        <Skeleton className="h-[280px] w-full rounded-lg" />
+                    ) : threatCats.length === 0 ? (
+                        <div className="flex items-center justify-center h-[280px] text-sm text-gray-400">Belum ada data ancaman</div>
+                    ) : (
+                        <PieChart
+                            data={threatCats}
+                            donut
+                            height={280}
+                            colors={["#ef4444", "#f97316", "#eab308", "#3b82f6", "#8b5cf6", "#ec4899"]}
+                        />
+                    )}
                 </CardBody>
             </Card>
 
@@ -62,11 +96,17 @@ export default function MonitoringCharts() {
                 </CardHeader>
                 <Divider />
                 <CardBody className="px-2 sm:px-4 py-3 sm:py-4">
-                    <PieChart
-                        data={siteStatus}
-                        height={280}
-                        colors={["#10b981", "#f59e0b", "#ef4444"]}
-                    />
+                    {loading ? (
+                        <Skeleton className="h-[280px] w-full rounded-lg" />
+                    ) : siteStatus.length === 0 ? (
+                        <div className="flex items-center justify-center h-[280px] text-sm text-gray-400">Belum ada data situs</div>
+                    ) : (
+                        <PieChart
+                            data={siteStatus}
+                            height={280}
+                            colors={["#10b981", "#f59e0b", "#ef4444", "#6b7280"]}
+                        />
+                    )}
                 </CardBody>
             </Card>
         </div>

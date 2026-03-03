@@ -17,7 +17,7 @@ export interface KeywordFilter {
   limit?: number;
 }
 
-async function listKeywords(filter: KeywordFilter = {}): Promise<{ data: Keyword[]; meta: { total: number } }> {
+async function listKeywords(filter: KeywordFilter = {}): Promise<{ items: Keyword[]; total: number }> {
   const params = new URLSearchParams();
   if (filter.category) params.set('category', filter.category);
   if (filter.is_active !== undefined) params.set('is_active', filter.is_active);
@@ -25,7 +25,8 @@ async function listKeywords(filter: KeywordFilter = {}): Promise<{ data: Keyword
   if (filter.page) params.set('page', String(filter.page));
   params.set('limit', String(filter.limit || 100));
   const res = await webmonClient.get(`/api/v1/keywords?${params}`);
-  return res.data;
+  const d = res.data?.data || {};
+  return { items: d.items || [], total: d.total || 0 };
 }
 
 async function createKeyword(data: Omit<Keyword, 'id'>): Promise<Keyword> {

@@ -5,7 +5,8 @@ import {
     FiGlobe,
     FiAlertTriangle,
     FiList,
-    FiSearch
+    FiSearch,
+    FiSettings,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -40,5 +41,10 @@ export const monitoringMenuConfig: MenuItem[] = [
         title: "Google Search Console",
         icon: <FiSearch className="w-5 h-5" />,
         href: "/dashboard/monitoring/gsc",
+    },
+    {
+        title: "Pengaturan",
+        icon: <FiSettings className="w-5 h-5" />,
+        href: "/dashboard/monitoring/settings",
     },
 ];

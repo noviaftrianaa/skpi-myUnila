@@ -57,7 +57,7 @@ export default function ScanHistoryTimeline() {
 
     useEffect(() => {
         crawlerService.listJobs({ limit: 8 })
-            .then((res) => setJobs(res.data || []))
+            .then((res) => setJobs(res.items || []))
             .catch(() => {});
     }, []);
 

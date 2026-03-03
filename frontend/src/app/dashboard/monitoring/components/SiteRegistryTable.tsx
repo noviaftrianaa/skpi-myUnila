@@ -166,7 +166,7 @@ export default function SiteRegistryTable() {
 
     useEffect(() => {
         siteService.listSites({ limit: 300 })
-            .then((res) => setSites((res.data || []).map(siteToEntry)))
+            .then((res) => setSites((res.items || []).map(siteToEntry)))
             .catch(() => {});
     }, []);
 

@@ -32,14 +32,15 @@ export interface CrawlStats {
   total_threats: number;
 }
 
-async function listJobs(filter: { status?: string; site_id?: string; page?: number; limit?: number } = {}): Promise<{ data: CrawlJob[]; meta: { total: number } }> {
+async function listJobs(filter: { status?: string; site_id?: string; page?: number; limit?: number } = {}): Promise<{ items: CrawlJob[]; total: number }> {
   const params = new URLSearchParams();
   if (filter.status) params.set('status', filter.status);
   if (filter.site_id) params.set('site_id', filter.site_id);
   if (filter.page) params.set('page', String(filter.page));
   params.set('limit', String(filter.limit || 20));
   const res = await webmonClient.get(`/api/v1/crawl/jobs?${params}`);
-  return res.data;
+  const d = res.data?.data || {};
+  return { items: d.items || [], total: d.total || 0 };
 }
 
 async function createJob(data: { site_id?: string; job_type: string; notes?: string }): Promise<CrawlJob> {
@@ -57,9 +58,13 @@ async function listSessions(jobId: number): Promise<CrawlSession[]> {
   return res.data.data;
 }
 
+async function deleteJob(id: number): Promise<void> {
+  await webmonClient.delete(`/api/v1/crawl/jobs/${id}`);
+}
+
 async function getStats(): Promise<CrawlStats> {
   const res = await webmonClient.get('/api/v1/crawl/stats');
   return res.data.data;
 }
 
-export const crawlerService = { listJobs, createJob, getJob, listSessions, getStats };
+export const crawlerService = { listJobs, createJob, getJob, listSessions, deleteJob, getStats };

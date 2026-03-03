@@ -40,9 +40,10 @@ async function getQuota(): Promise<GSCQuota> {
 
 async function getLogs(params?: ListLogsParams): Promise<{ data: GSCRemovalLog[]; total: number }> {
   const res = await webmonClient.get('/api/v1/gsc/logs', { params });
+  const d = res.data?.data || {};
   return {
-    data: res.data.data || [],
-    total: res.data.total || 0,
+    data: d.items || [],
+    total: d.total || 0,
   };
 }
 

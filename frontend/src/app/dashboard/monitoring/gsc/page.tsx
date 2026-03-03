@@ -33,7 +33,7 @@ export default function GSCDashboardPage() {
                 <div>
                     <strong>Cara kerja:</strong> Sistem secara otomatis mengirim permintaan penghapusan URL ke Google
                     ketika ancaman terdeteksi dengan skor ≥ threshold (default: 15). Anda juga bisa submit manual di sini.
-                    Google Indexing API memiliki batas <strong>200 request/hari</strong> pada paket gratis.
+                    Google Indexing API memiliki batas <strong>200 request/hari</strong> (default). Quota bisa ditingkatkan melalui Google Cloud Console.
                 </div>
             </div>
 

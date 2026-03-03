@@ -1,19 +1,35 @@
 
 "use client";
 
-import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+import { useEffect, useState } from "react";
+import { Card, CardBody, CardHeader, Divider, Skeleton } from "@heroui/react";
 import { FiTrendingUp } from "react-icons/fi";
 import { LineChart } from "./charts";
+import { threatService, Threat } from "@/lib/services/webmon/threatService";
 
 export default function TrendChart() {
-    const trendData = [
-        { name: "Jan", value: 12 },
-        { name: "Feb", value: 8 },
-        { name: "Mar", value: 15 },
-        { name: "Apr", value: 10 },
-        { name: "Mei", value: 5 },
-        { name: "Jun", value: 8 },
-    ];
+    const [data, setData] = useState<{ name: string; value: number }[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        threatService.listThreats({ limit: 100 })
+            .then((res) => {
+                const now = new Date();
+                const months: { name: string; value: number }[] = [];
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const label = d.toLocaleString("id-ID", { month: "short" });
+                    const count = (res.items || []).filter((t: Threat) => {
+                        const det = new Date(t.detected_at);
+                        return det.getMonth() === d.getMonth() && det.getFullYear() === d.getFullYear();
+                    }).length;
+                    months.push({ name: label, value: count });
+                }
+                setData(months);
+            })
+            .catch(() => setData([]))
+            .finally(() => setLoading(false));
+    }, []);
 
     return (
         <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-shadow duration-300 h-full">
@@ -34,13 +50,17 @@ export default function TrendChart() {
             </CardHeader>
             <Divider />
             <CardBody className="px-2 sm:px-4 py-3 sm:py-4">
-                <LineChart
-                    data={trendData}
-                    height={280}
-                    color="#3b82f6"
-                    showArea={true}
-                    smooth={true}
-                />
+                {loading ? (
+                    <Skeleton className="h-[280px] w-full rounded-lg" />
+                ) : (
+                    <LineChart
+                        data={data}
+                        height={280}
+                        color="#3b82f6"
+                        showArea={true}
+                        smooth={true}
+                    />
+                )}
             </CardBody>
         </Card>
     );

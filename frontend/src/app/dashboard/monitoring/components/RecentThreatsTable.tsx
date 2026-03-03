@@ -78,7 +78,7 @@ export default function RecentThreatsTable() {
 
     useEffect(() => {
         threatService.listThreats({ limit: 10 })
-            .then((res) => setData(res.data || []))
+            .then((res) => setData(res.items || []))
             .catch(() => {})
             .finally(() => setIsLoading(false));
     }, []);
