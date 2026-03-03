@@ -3,6 +3,7 @@ package minio
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -43,13 +44,59 @@ func NewClient(cfg config.MinIOConfig) (*Client, error) {
 		return nil, fmt.Errorf("bucket %s does not exist", cfg.Bucket)
 	}
 
-	log.Printf("✅ MinIO client initialized (endpoint: %s, bucket: %s)", cfg.Endpoint, cfg.Bucket)
-
-	return &Client{
+	c := &Client{
 		client:    client,
 		bucket:    cfg.Bucket,
 		publicURL: cfg.PublicURL,
-	}, nil
+	}
+
+	// Apply bucket policies: photos/ public-read, documents/ private
+	if err := c.setupBucketPolicy(ctx); err != nil {
+		log.Printf("⚠️  Failed to set bucket policy: %v", err)
+	}
+
+	log.Printf("✅ MinIO client initialized (endpoint: %s, bucket: %s)", cfg.Endpoint, cfg.Bucket)
+	return c, nil
+}
+
+// setupBucketPolicy sets S3 bucket policies:
+//   - photos/sdm/* → public read (browsers can fetch profile photos directly)
+//   - documents/sdm/* → private (access only via JWT-protected service endpoint)
+func (c *Client) setupBucketPolicy(ctx context.Context) error {
+	type Statement struct {
+		Effect    string            `json:"Effect"`
+		Principal map[string]string `json:"Principal"`
+		Action    []string          `json:"Action"`
+		Resource  []string          `json:"Resource"`
+	}
+	type Policy struct {
+		Version   string      `json:"Version"`
+		Statement []Statement `json:"Statement"`
+	}
+
+	policy := Policy{
+		Version: "2012-10-17",
+		Statement: []Statement{
+			{
+				Effect:    "Allow",
+				Principal: map[string]string{"AWS": "*"},
+				Action:    []string{"s3:GetObject"},
+				Resource:  []string{fmt.Sprintf("arn:aws:s3:::%s/photos/sdm/*", c.bucket)},
+			},
+		},
+	}
+
+	policyJSON, err := json.Marshal(policy)
+	if err != nil {
+		return fmt.Errorf("failed to marshal bucket policy: %w", err)
+	}
+
+	if err := c.client.SetBucketPolicy(ctx, c.bucket, string(policyJSON)); err != nil {
+		return fmt.Errorf("failed to apply bucket policy: %w", err)
+	}
+
+	log.Printf("✅ Bucket policy applied: photos/sdm/* public-read, documents/sdm/* private")
+	return nil
 }
 
 // PutObject uploads data to MinIO at the specified path
