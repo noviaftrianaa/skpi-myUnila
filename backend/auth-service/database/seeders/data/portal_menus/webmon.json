@@ -7,6 +7,7 @@
     {"nm_menu": "Pemindaian", "nm_file": "/dashboard/monitoring/scanner", "icon": "heroicons:presentation-chart-line", "urutan": 3},
     {"nm_menu": "Ancaman", "nm_file": "/dashboard/monitoring/threats", "icon": "heroicons:exclamation-triangle", "urutan": 4},
     {"nm_menu": "Kata Kunci", "nm_file": "/dashboard/monitoring/keywords", "icon": "heroicons:queue-list", "urutan": 5},
-    {"nm_menu": "Google Search Console", "nm_file": "/dashboard/monitoring/gsc", "icon": "heroicons:magnifying-glass-circle", "urutan": 6}
+    {"nm_menu": "Google Search Console", "nm_file": "/dashboard/monitoring/gsc", "icon": "heroicons:magnifying-glass-circle", "urutan": 6},
+    {"nm_menu": "Pengaturan", "nm_file": "/dashboard/monitoring/settings", "icon": "heroicons:cog-6-tooth", "urutan": 7}
   ]
 }

@@ -43,9 +43,11 @@ create table monitoring.sites (
         constraint ckc_is_active_sites check (is_active in (0,1)),
     fakultas_id         nvarchar(50)        null,
     unit_id             nvarchar(50)        null,
+    id_sms              uniqueidentifier    null,
     admin_name          nvarchar(200)       null,
     admin_email         nvarchar(200)       null,
     admin_phone         nvarchar(50)        null,
+    admin_whatsapp      nvarchar(50)        null,
     notes               nvarchar(max)       null,
     is_behind_kong      numeric(1)          not null default 0
         constraint ckc_is_behind_kong_sites check (is_behind_kong in (0,1)),
