@@ -9,6 +9,7 @@ import (
 	"monitoring-service/apps/google_gsc"
 	"monitoring-service/apps/keywords"
 	"monitoring-service/apps/scheduler"
+	"monitoring-service/apps/settings"
 	"monitoring-service/apps/site"
 	"monitoring-service/apps/summary"
 	"monitoring-service/apps/threats"
@@ -33,6 +34,29 @@ func main() {
 	} else {
 		log.Println("⚠️  Redis not available — caching disabled")
 	}
+
+	// 2b. Auto-migrate: ensure new columns exist
+	db.Exec(`
+		IF NOT EXISTS (
+			SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE TABLE_SCHEMA='monitoring' AND TABLE_NAME='detected_threats' AND COLUMN_NAME='snippet'
+		)
+		ALTER TABLE monitoring.detected_threats ADD snippet NVARCHAR(MAX) NULL
+	`)
+	db.Exec(`
+		IF NOT EXISTS (
+			SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE TABLE_SCHEMA='monitoring' AND TABLE_NAME='sites' AND COLUMN_NAME='admin_whatsapp'
+		)
+		ALTER TABLE monitoring.sites ADD admin_whatsapp NVARCHAR(50) NULL
+	`)
+	db.Exec(`
+		IF NOT EXISTS (
+			SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE TABLE_SCHEMA='monitoring' AND TABLE_NAME='sites' AND COLUMN_NAME='id_sms'
+		)
+		ALTER TABLE monitoring.sites ADD id_sms UNIQUEIDENTIFIER NULL
+	`)
 
 	// 3. Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -100,6 +124,9 @@ func main() {
 
 	// Phase 6: Google Search Console (Indexing API)
 	google_gsc.Init(app, db, config.Cfg.GSC)
+
+	// Settings module
+	settings.Init(app, db)
 
 	// Phase 7: Public summary API + daily summary cron
 	summarySvc := summary.Init(app, db)

@@ -17,9 +17,12 @@ type Site struct {
 	IsActive        int        `json:"is_active"        db:"is_active"`
 	FakultasID      *string    `json:"fakultas_id"      db:"fakultas_id"`
 	UnitID          *string    `json:"unit_id"          db:"unit_id"`
+	IDSMS           *string    `json:"id_sms"           db:"id_sms"`
+	NamaUnit        *string    `json:"nama_unit,omitempty" db:"-"`
 	AdminName       *string    `json:"admin_name"       db:"admin_name"`
 	AdminEmail      *string    `json:"admin_email"      db:"admin_email"`
 	AdminPhone      *string    `json:"admin_phone"      db:"admin_phone"`
+	AdminWhatsApp   *string    `json:"admin_whatsapp"   db:"admin_whatsapp"`
 	Notes           *string    `json:"notes"            db:"notes"`
 	IsBehindKong    int        `json:"is_behind_kong"   db:"is_behind_kong"`
 	IsSSOEnabled    int        `json:"is_sso_enabled"   db:"is_sso_enabled"`
@@ -73,9 +76,11 @@ type CreateSiteRequest struct {
 	SyncIntervalMin int     `json:"sync_interval_min"`
 	FakultasID      *string `json:"fakultas_id"`
 	UnitID          *string `json:"unit_id"`
+	IDSMS           *string `json:"id_sms"`
 	AdminName       *string `json:"admin_name"`
 	AdminEmail      *string `json:"admin_email"`
 	AdminPhone      *string `json:"admin_phone"`
+	AdminWhatsApp   *string `json:"admin_whatsapp"`
 	Notes           *string `json:"notes"`
 	IsBehindKong    int     `json:"is_behind_kong"`
 	IsSSOEnabled    int     `json:"is_sso_enabled"`
@@ -94,9 +99,11 @@ type UpdateSiteRequest struct {
 	IsActive        *int    `json:"is_active"`
 	FakultasID      *string `json:"fakultas_id"`
 	UnitID          *string `json:"unit_id"`
+	IDSMS           *string `json:"id_sms"`
 	AdminName       *string `json:"admin_name"`
 	AdminEmail      *string `json:"admin_email"`
 	AdminPhone      *string `json:"admin_phone"`
+	AdminWhatsApp   *string `json:"admin_whatsapp"`
 	Notes           *string `json:"notes"`
 	IsBehindKong    *int    `json:"is_behind_kong"`
 	IsSSOEnabled    *int    `json:"is_sso_enabled"`
@@ -132,4 +139,12 @@ type PublicSite struct {
 	Name       string  `json:"name"        db:"name"`
 	Status     string  `json:"status"      db:"status"`
 	FakultasID *string `json:"fakultas_id" db:"fakultas_id"`
+}
+
+// SMSUnit is an organizational unit from pdrd.sms
+type SMSUnit struct {
+	IDSMS     string  `json:"id_sms"     db:"id_sms"`
+	NmLemb    string  `json:"nm_lemb"    db:"nm_lemb"`
+	Singkatan *string `json:"singkatan"  db:"singkatan"`
+	Website   *string `json:"website"    db:"website"`
 }

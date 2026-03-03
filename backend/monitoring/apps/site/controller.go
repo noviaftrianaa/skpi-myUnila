@@ -128,6 +128,40 @@ func (c *Controller) Stats(ctx *fiber.Ctx) error {
 	return response.Success(ctx, "Statistik sites", stats)
 }
 
+// CheckAll godoc
+// POST /api/v1/sites/check-all
+func (c *Controller) CheckAll(ctx *fiber.Ctx) error {
+	if c.svc.IsCheckAllRunning() {
+		return response.Success(ctx, "Check all sedang berjalan, tunggu hingga selesai", map[string]interface{}{
+			"status": "running",
+		})
+	}
+
+	checkerID := middleware.GetUserID(ctx)
+
+	// Run in background goroutine
+	go func() {
+		total, ok, fail := c.svc.CheckAll(checkerID)
+		_ = total
+		_ = ok
+		_ = fail
+	}()
+
+	return response.Success(ctx, "Check all dimulai di background. Proses akan memakan beberapa menit.", map[string]interface{}{
+		"status": "started",
+	})
+}
+
+// ListSMSUnits godoc
+// GET /api/v1/sites/sms-units
+func (c *Controller) ListSMSUnits(ctx *fiber.Ctx) error {
+	units, err := c.svc.ListSMSUnits()
+	if err != nil {
+		return response.InternalServerError(ctx, "Gagal mengambil data unit SMS", err.Error())
+	}
+	return response.Success(ctx, "Daftar unit SMS", units)
+}
+
 // PublicList godoc
 // GET /v1/public/sites
 func (c *Controller) PublicList(ctx *fiber.Ctx) error {

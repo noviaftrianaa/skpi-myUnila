@@ -18,6 +18,8 @@ func Init(app *fiber.App, db *sqlx.DB) Service {
 
 	// Stats first (must be before /:id to avoid route conflict)
 	api.Get("/sites/stats/overview", ctrl.Stats)
+	api.Get("/sites/sms-units", ctrl.ListSMSUnits)
+	api.Post("/sites/check-all", ctrl.CheckAll)
 
 	// CRUD
 	api.Get("/sites", ctrl.List)

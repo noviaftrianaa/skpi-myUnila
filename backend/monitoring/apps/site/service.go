@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,9 +23,12 @@ type Service interface {
 	Update(id string, req UpdateSiteRequest, updaterID string) (*Site, error)
 	Delete(id, updaterID string) error
 	CheckNow(id, checkerID string) (*SiteCheck, error)
+	CheckAll(checkerID string) (total, ok, fail int)
+	IsCheckAllRunning() bool
 	HealthHistory(siteID string, days int) ([]*SiteCheck, error)
 	Stats() (*SiteStats, error)
 	ListPublic() ([]*PublicSite, error)
+	ListSMSUnits() ([]*SMSUnit, error)
 	// called by scheduler
 	RunHealthChecks() error
 	// called by crawler
@@ -29,8 +36,9 @@ type Service interface {
 }
 
 type service struct {
-	repo       Repository
-	httpClient *http.Client
+	repo            Repository
+	httpClient      *http.Client
+	checkAllRunning int32
 }
 
 func NewService(repo Repository) Service {
@@ -77,9 +85,11 @@ func (s *service) Create(req CreateSiteRequest, creatorID string) (*Site, error)
 		IsActive:        1,
 		FakultasID:      req.FakultasID,
 		UnitID:          req.UnitID,
+		IDSMS:           req.IDSMS,
 		AdminName:       req.AdminName,
 		AdminEmail:      req.AdminEmail,
 		AdminPhone:      req.AdminPhone,
+		AdminWhatsApp:   req.AdminWhatsApp,
 		Notes:           req.Notes,
 		IsBehindKong:    req.IsBehindKong,
 		IsSSOEnabled:    req.IsSSOEnabled,
@@ -131,6 +141,10 @@ func (s *service) ListActive() ([]*Site, error) {
 	return s.repo.ListActive()
 }
 
+func (s *service) ListSMSUnits() ([]*SMSUnit, error) {
+	return s.repo.ListSMSUnits()
+}
+
 func (s *service) RunHealthChecks() error {
 	sites, err := s.repo.ListActive()
 	if err != nil {
@@ -153,6 +167,55 @@ func (s *service) RunHealthChecks() error {
 	return nil
 }
 
+func (s *service) CheckAll(checkerID string) (total, ok, fail int) {
+	if !atomic.CompareAndSwapInt32(&s.checkAllRunning, 0, 1) {
+		return 0, 0, 0 // already running
+	}
+	defer atomic.StoreInt32(&s.checkAllRunning, 0)
+
+	sites, err := s.repo.ListAllSites()
+	if err != nil {
+		log.Printf("CheckAll: failed to list sites: %v", err)
+		return 0, 0, 0
+	}
+
+	total = len(sites)
+	log.Printf("🔍 CheckAll: checking %d sites...", total)
+
+	var okCount, failCount int32
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 20) // max 20 concurrent checks
+
+	for _, site := range sites {
+		wg.Add(1)
+		go func(st *Site) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			if _, err := s.doCheck(st, checkerID); err != nil {
+				atomic.AddInt32(&failCount, 1)
+			} else {
+				atomic.AddInt32(&okCount, 1)
+			}
+		}(site)
+	}
+
+	wg.Wait()
+	ok = int(okCount)
+	fail = int(failCount)
+	log.Printf("✅ CheckAll done: %d total, %d ok, %d fail", total, ok, fail)
+
+	// Best-effort auto-mapping id_sms for sites that don't have one yet
+	go s.autoMapSMS(sites)
+
+	return
+}
+
+func (s *service) IsCheckAllRunning() bool {
+	return atomic.LoadInt32(&s.checkAllRunning) == 1
+}
+
 // doCheck performs the actual HTTP health check for a site
 func (s *service) doCheck(site *Site, checkerID string) (*SiteCheck, error) {
 	now := time.Now()
@@ -164,11 +227,17 @@ func (s *service) doCheck(site *Site, checkerID string) (*SiteCheck, error) {
 		LastUpdate: now,
 	}
 
+	// Ensure URL has scheme
+	siteURL := site.URL
+	if !strings.HasPrefix(siteURL, "http://") && !strings.HasPrefix(siteURL, "https://") {
+		siteURL = "https://" + siteURL
+	}
+
 	start := time.Now()
-	req, err := http.NewRequest(http.MethodHead, site.URL, nil)
+	req, err := http.NewRequest(http.MethodHead, siteURL, nil)
 	if err != nil {
 		// Try GET if HEAD fails
-		req, err = http.NewRequest(http.MethodGet, site.URL, nil)
+		req, err = http.NewRequest(http.MethodGet, siteURL, nil)
 		if err != nil {
 			check.IsUp = 0
 			check.HTTPCode = 0
@@ -233,4 +302,61 @@ func (s *service) doCheck(site *Site, checkerID string) (*SiteCheck, error) {
 	}
 
 	return check, nil
+}
+
+// autoMapSMS tries to match sites (without id_sms) to pdrd.sms units by domain or name.
+func (s *service) autoMapSMS(sites []*Site) {
+	units, err := s.repo.ListSMSUnits()
+	if err != nil || len(units) == 0 {
+		return
+	}
+
+	mapped := 0
+	for _, st := range sites {
+		if st.IDSMS != nil && *st.IDSMS != "" {
+			continue // already mapped
+		}
+
+		siteDomain := extractDomain(st.URL)
+		siteNameLower := strings.ToLower(st.Name)
+
+		for _, u := range units {
+			// Match by domain
+			if u.Website != nil && *u.Website != "" {
+				unitDomain := extractDomain(*u.Website)
+				if unitDomain != "" && siteDomain != "" && unitDomain == siteDomain {
+					idSms := u.IDSMS
+					_ = s.repo.Update(st.ID, UpdateSiteRequest{IDSMS: &idSms}, sysUserID)
+					mapped++
+					break
+				}
+			}
+			// Match by singkatan (abbreviation) in site name
+			if u.Singkatan != nil && *u.Singkatan != "" {
+				abbr := strings.ToLower(*u.Singkatan)
+				if len(abbr) >= 3 && strings.Contains(siteNameLower, abbr) {
+					idSms := u.IDSMS
+					_ = s.repo.Update(st.ID, UpdateSiteRequest{IDSMS: &idSms}, sysUserID)
+					mapped++
+					break
+				}
+			}
+		}
+	}
+
+	if mapped > 0 {
+		log.Printf("🔗 AutoMapSMS: mapped %d sites to pdrd.sms units", mapped)
+	}
+}
+
+// extractDomain returns the hostname from a URL string.
+func extractDomain(rawURL string) string {
+	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
+		rawURL = "https://" + rawURL
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(u.Hostname())
 }

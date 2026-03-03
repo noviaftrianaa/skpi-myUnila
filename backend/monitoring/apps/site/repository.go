@@ -18,10 +18,13 @@ type Repository interface {
 	InsertCheck(check *SiteCheck) error
 	GetLatestCheck(siteID string) (*SiteCheckSummary, error)
 	ListActive() ([]*Site, error)
+	ListAllSites() ([]*Site, error)
 	UpdateStatus(siteID, status string, updaterID string) error
 	Stats() (*SiteStats, error)
 	ListPublic() ([]*PublicSite, error)
 	CountConsecutiveDown(siteID string) (int, error)
+	ListSMSUnits() ([]*SMSUnit, error)
+	LookupNamaUnit(idSMS string) string
 }
 
 type repository struct {
@@ -36,8 +39,10 @@ func (r *repository) List(f SiteListFilter) ([]*Site, int, error) {
 	if f.Page <= 0 {
 		f.Page = 1
 	}
-	if f.Limit <= 0 || f.Limit > 100 {
+	if f.Limit <= 0 {
 		f.Limit = 20
+	} else if f.Limit > 100 {
+		f.Limit = 100
 	}
 	offset := (f.Page - 1) * f.Limit
 
@@ -77,12 +82,14 @@ func (r *repository) List(f SiteListFilter) ([]*Site, int, error) {
 
 	// Data query with pagination
 	dataSQL := fmt.Sprintf(`
-		SELECT s.id, s.url, s.name, s.platform, s.platform_version,
+		SELECT CONVERT(nvarchar(36), s.id) AS id, s.url, s.name, s.platform, s.platform_version,
 		       s.blogger_blog_id, s.sync_interval_min, s.last_synced_at,
 		       s.status, s.is_active, s.fakultas_id, s.unit_id,
-		       s.admin_name, s.admin_email, s.admin_phone, s.notes,
+		       CONVERT(nvarchar(36), s.id_sms) AS id_sms,
+		       s.admin_name, s.admin_email, s.admin_phone, s.admin_whatsapp, s.notes,
 		       s.is_behind_kong, s.is_sso_enabled,
-		       s.create_date, s.id_creator, s.last_update, s.id_updater, s.soft_delete
+		       s.create_date, CONVERT(nvarchar(36), s.id_creator) AS id_creator,
+		       s.last_update, CONVERT(nvarchar(36), s.id_updater) AS id_updater, s.soft_delete
 		FROM monitoring.sites s
 		WHERE %s
 		ORDER BY s.name ASC
@@ -106,6 +113,10 @@ func (r *repository) List(f SiteListFilter) ([]*Site, int, error) {
 		if chk, err := r.GetLatestCheck(s.ID); err == nil {
 			s.LastCheck = chk
 		}
+		// Enrich with unit name from pdrd.sms
+		if s.IDSMS != nil && *s.IDSMS != "" {
+			s.NamaUnit = strPtr(r.LookupNamaUnit(*s.IDSMS))
+		}
 		sites = append(sites, s)
 	}
 	return sites, total, nil
@@ -114,12 +125,14 @@ func (r *repository) List(f SiteListFilter) ([]*Site, int, error) {
 func (r *repository) GetByID(id string) (*Site, error) {
 	s := &Site{}
 	err := r.db.QueryRowx(`
-		SELECT id, url, name, platform, platform_version,
+		SELECT CONVERT(nvarchar(36), id) AS id, url, name, platform, platform_version,
 		       blogger_blog_id, blogger_api_key, sync_interval_min, last_synced_at,
 		       status, is_active, fakultas_id, unit_id,
-		       admin_name, admin_email, admin_phone, notes,
+		       CONVERT(nvarchar(36), id_sms) AS id_sms,
+		       admin_name, admin_email, admin_phone, admin_whatsapp, notes,
 		       is_behind_kong, is_sso_enabled,
-		       create_date, id_creator, last_update, id_updater, soft_delete
+		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		       last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.sites
 		WHERE id = @p1 AND soft_delete = 0`, id).StructScan(s)
 	if err != nil {
@@ -127,6 +140,9 @@ func (r *repository) GetByID(id string) (*Site, error) {
 	}
 	if chk, err := r.GetLatestCheck(id); err == nil {
 		s.LastCheck = chk
+	}
+	if s.IDSMS != nil && *s.IDSMS != "" {
+		s.NamaUnit = strPtr(r.LookupNamaUnit(*s.IDSMS))
 	}
 	return s, nil
 }
@@ -136,22 +152,22 @@ func (r *repository) Create(s *Site) error {
 		INSERT INTO monitoring.sites (
 			id, url, name, platform, platform_version,
 			blogger_blog_id, blogger_api_key, sync_interval_min,
-			status, is_active, fakultas_id, unit_id,
-			admin_name, admin_email, admin_phone, notes,
+			status, is_active, fakultas_id, unit_id, id_sms,
+			admin_name, admin_email, admin_phone, admin_whatsapp, notes,
 			is_behind_kong, is_sso_enabled,
 			create_date, id_creator, last_update, soft_delete
 		) VALUES (
 			@p1, @p2, @p3, @p4, @p5,
 			@p6, @p7, @p8,
-			@p9, @p10, @p11, @p12,
-			@p13, @p14, @p15, @p16,
-			@p17, @p18,
-			@p19, @p20, @p21, 0
+			@p9, @p10, @p11, @p12, TRY_CONVERT(UNIQUEIDENTIFIER, @p13),
+			@p14, @p15, @p16, @p17, @p18,
+			@p19, @p20,
+			@p21, @p22, @p23, 0
 		)`,
 		s.ID, s.URL, s.Name, s.Platform, s.PlatformVersion,
 		s.BloggerBlogID, s.BloggerAPIKey, s.SyncIntervalMin,
-		s.Status, s.IsActive, s.FakultasID, s.UnitID,
-		s.AdminName, s.AdminEmail, s.AdminPhone, s.Notes,
+		s.Status, s.IsActive, s.FakultasID, s.UnitID, s.IDSMS,
+		s.AdminName, s.AdminEmail, s.AdminPhone, s.AdminWhatsApp, s.Notes,
 		s.IsBehindKong, s.IsSSOEnabled,
 		s.CreateDate, s.IDCreator, s.LastUpdate,
 	)
@@ -231,6 +247,16 @@ func (r *repository) Update(id string, req UpdateSiteRequest, updaterID string) 
 	if req.AdminPhone != nil {
 		sets = append(sets, fmt.Sprintf("admin_phone = @p%d", idx))
 		args = append(args, *req.AdminPhone)
+		idx++
+	}
+	if req.AdminWhatsApp != nil {
+		sets = append(sets, fmt.Sprintf("admin_whatsapp = @p%d", idx))
+		args = append(args, *req.AdminWhatsApp)
+		idx++
+	}
+	if req.IDSMS != nil {
+		sets = append(sets, fmt.Sprintf("id_sms = TRY_CONVERT(UNIQUEIDENTIFIER, @p%d)", idx))
+		args = append(args, *req.IDSMS)
 		idx++
 	}
 	if req.Notes != nil {
@@ -326,14 +352,45 @@ func (r *repository) GetLatestCheck(siteID string) (*SiteCheckSummary, error) {
 
 func (r *repository) ListActive() ([]*Site, error) {
 	rows, err := r.db.Queryx(`
-		SELECT id, url, name, platform, platform_version,
+		SELECT CONVERT(nvarchar(36), id) AS id, url, name, platform, platform_version,
 		       blogger_blog_id, blogger_api_key, sync_interval_min, last_synced_at,
 		       status, is_active, fakultas_id, unit_id,
-		       admin_name, admin_email, admin_phone, notes,
+		       CONVERT(nvarchar(36), id_sms) AS id_sms,
+		       admin_name, admin_email, admin_phone, admin_whatsapp, notes,
 		       is_behind_kong, is_sso_enabled,
-		       create_date, id_creator, last_update, id_updater, soft_delete
+		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		       last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.sites
 		WHERE is_active = 1 AND soft_delete = 0
+		ORDER BY name ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sites []*Site
+	for rows.Next() {
+		s := &Site{}
+		if err := rows.StructScan(s); err != nil {
+			return nil, err
+		}
+		sites = append(sites, s)
+	}
+	return sites, nil
+}
+
+func (r *repository) ListAllSites() ([]*Site, error) {
+	rows, err := r.db.Queryx(`
+		SELECT CONVERT(nvarchar(36), id) AS id, url, name, platform, platform_version,
+		       blogger_blog_id, blogger_api_key, sync_interval_min, last_synced_at,
+		       status, is_active, fakultas_id, unit_id,
+		       CONVERT(nvarchar(36), id_sms) AS id_sms,
+		       admin_name, admin_email, admin_phone, admin_whatsapp, notes,
+		       is_behind_kong, is_sso_enabled,
+		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		       last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
+		FROM monitoring.sites
+		WHERE soft_delete = 0
 		ORDER BY name ASC`)
 	if err != nil {
 		return nil, err
@@ -446,7 +503,7 @@ func (r *repository) Stats() (*SiteStats, error) {
 
 func (r *repository) ListPublic() ([]*PublicSite, error) {
 	rows, err := r.db.Queryx(`
-		SELECT id, url, name, status, fakultas_id
+		SELECT CONVERT(nvarchar(36), id) AS id, url, name, status, fakultas_id
 		FROM monitoring.sites
 		WHERE soft_delete = 0 AND is_active = 1
 		ORDER BY name ASC`)
@@ -464,4 +521,47 @@ func (r *repository) ListPublic() ([]*PublicSite, error) {
 		sites = append(sites, s)
 	}
 	return sites, nil
+}
+
+// LookupNamaUnit returns the unit name from pdrd.sms for a given id_sms
+func (r *repository) LookupNamaUnit(idSMS string) string {
+	var name string
+	err := r.db.QueryRow(`
+		SELECT nm_lemb FROM pdrd.sms
+		WHERE CONVERT(nvarchar(36), id_sms) = @p1 AND soft_delete = 0`, idSMS).Scan(&name)
+	if err != nil {
+		return ""
+	}
+	return name
+}
+
+// ListSMSUnits returns all organizational units from pdrd.sms for Unila
+func (r *repository) ListSMSUnits() ([]*SMSUnit, error) {
+	rows, err := r.db.Queryx(`
+		SELECT CONVERT(nvarchar(36), id_sms) AS id_sms,
+		       nm_lemb, singkatan, website
+		FROM pdrd.sms
+		WHERE soft_delete = 0
+		ORDER BY nm_lemb ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var units []*SMSUnit
+	for rows.Next() {
+		u := &SMSUnit{}
+		if err := rows.StructScan(u); err != nil {
+			return nil, err
+		}
+		units = append(units, u)
+	}
+	return units, nil
+}
+
+func strPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
