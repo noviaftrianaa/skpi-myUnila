@@ -12,7 +12,6 @@ interface KeywordFormModalProps {
 
 export default function KeywordFormModal({ isOpen, onClose, initialData }: KeywordFormModalProps) {
     return (
-    return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}

@@ -21,7 +21,6 @@ export default function SiteFormModal({ isOpen, onClose, initialData }: SiteForm
     }, [isOpen, initialData]);
 
     return (
-    return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}

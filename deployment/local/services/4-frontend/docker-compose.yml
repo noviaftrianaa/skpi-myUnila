@@ -13,6 +13,7 @@ services:
         NEXT_PUBLIC_SISTER_API_URL: "${NEXT_PUBLIC_SISTER_API_URL:-http://localhost:9800/sister-service}"
         NEXT_PUBLIC_FEEDER_API_URL: "${NEXT_PUBLIC_FEEDER_API_URL:-http://localhost:9800/feeder-service}"
         NEXT_PUBLIC_MYUNILA_API_URL: "${NEXT_PUBLIC_MYUNILA_API_URL:-http://localhost:9800/myunila-service}"
+        NEXT_PUBLIC_WEBMON_API_URL: "${NEXT_PUBLIC_WEBMON_API_URL:-http://localhost:9800/webmon-service}"
     image: myunila/frontend:latest
     container_name: myunila-frontend
     environment:
