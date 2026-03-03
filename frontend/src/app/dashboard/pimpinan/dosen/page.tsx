@@ -32,6 +32,31 @@ import {
 } from "@/shared/components/pimpinan/dosen";
 import { useUserContext } from "@/contexts/UserContextContext";
 
+// Category keys for trend charts
+const JABFUNG_CATEGORIES = [
+  { key: "profesor", name: "Profesor", color: "#ef4444" },
+  { key: "lektor_kepala", name: "Lektor Kepala", color: "#f59e0b" },
+  { key: "lektor", name: "Lektor", color: "#22c55e" },
+  { key: "asisten_ahli", name: "Asisten Ahli", color: "#3b82f6" },
+  { key: "belum_jabfung", name: "Belum Jabfung", color: "#94a3b8" },
+];
+
+const IKATAN_KERJA_CATEGORIES = [
+  { key: "dosen_tetap", name: "Dosen Tetap", color: "#3b82f6" },
+  { key: "dosen_pns_dpk", name: "PNS DPK", color: "#6366f1" },
+  { key: "dokter_pendidik_klinis", name: "Dokter Pendidik Klinis", color: "#8b5cf6" },
+  { key: "dosen_tetap_bh", name: "Dosen Tetap BH", color: "#a855f7" },
+  { key: "dosen_tidak_tetap", name: "Dosen Tidak Tetap", color: "#22c55e" },
+  { key: "p3k_asn", name: "P3K ASN", color: "#14b8a6" },
+  { key: "dosen_perjanjian_kerja", name: "Perjanjian Kerja", color: "#06b6d4" },
+  { key: "instruktur", name: "Instruktur", color: "#f59e0b" },
+  { key: "tutor", name: "Tutor", color: "#f97316" },
+  { key: "jft", name: "JFT", color: "#ef4444" },
+  { key: "pengajar_nondosen", name: "Pengajar Nondosen", color: "#dc2626" },
+  { key: "dosen_tetap_pk_waktu_tertentu", name: "Tetap PKWTT", color: "#b91c1c" },
+  { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
+];
+
 // ========================================
 // Main Page Component
 // ========================================
@@ -62,6 +87,8 @@ export default function DosenPage() {
     panggolProdiList,
     ikatanKerjaFakultasList,
     ikatanKerjaProdiList,
+    ikatanKerjaFakultasHistorical,
+    ikatanKerjaProdiHistorical,
     jenisKelaminFakultasList,
     jenisKelaminProdiList,
     statusKepegawaianFakultasList,
@@ -72,11 +99,13 @@ export default function DosenPage() {
     selectedTahunAjaran,
     selectedFakultas,
     selectedProdi,
-    userContext: activeContext ? {
-      id_organisasi: activeContext.id_organisasi || "",
-      level_organisasi: activeContext.level_organisasi,
-      id_induk_organisasi: activeContext.id_induk_organisasi || "",
-    } : null,
+    userContext: activeContext
+      ? {
+          id_organisasi: activeContext.id_organisasi || "",
+          level_organisasi: activeContext.level_organisasi,
+          id_induk_organisasi: activeContext.id_induk_organisasi || "",
+        }
+      : null,
   });
 
   // Handle tipe data change
@@ -286,31 +315,170 @@ export default function DosenPage() {
     // If fakultas is selected (or no filter), use fakultas historical data
     // Note: jabfungFakultasHistorical is now filtered by selectedFakultas in the query
     return jabfungFakultasHistorical;
-  }, [selectedTipeData, selectedProdi, jabfungFakultasHistorical, jabfungProdiHistorical]);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    jabfungFakultasHistorical,
+    jabfungProdiHistorical,
+  ]);
+
+  // Get ikatan kerja historical data based on filter
+  const ikatanKerjaHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "ikatan_kerja") return [];
+
+    // If prodi is selected, use prodi historical data
+    if (selectedProdi && ikatanKerjaProdiHistorical.length > 0) {
+      return ikatanKerjaProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    return ikatanKerjaFakultasHistorical;
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    ikatanKerjaFakultasHistorical,
+    ikatanKerjaProdiHistorical,
+  ]);
 
   // Get chart title for percentage chart
   const getPercentageChartTitle = () => {
+    const tipeDataName = TipeDataOptions.find(opt => opt.value === selectedTipeData)?.label || "";
     if (selectedProdi) {
       const prodi = prodiList.find((p) => p.id === selectedProdi);
-      return `Presentase Jabatan Fungsional - ${prodi?.nama_prodi || ""}`;
+      return `Presentase ${tipeDataName} - ${prodi?.nama_prodi || ""}`;
     } else if (selectedFakultas) {
       const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
-      return `Presentase Jabatan Fungsional - ${fakultas?.nama_fakultas || ""}`;
+      return `Presentase ${tipeDataName} - ${fakultas?.nama_fakultas || ""}`;
     }
-    return "Presentase Jabatan Fungsional - Universitas";
+    return `Presentase ${tipeDataName} - Universitas`;
   };
 
   // Get chart title for trend chart
   const getTrendChartTitle = () => {
+    const tipeDataName = TipeDataOptions.find(opt => opt.value === selectedTipeData)?.label || "";
     if (selectedProdi) {
       const prodi = prodiList.find((p) => p.id === selectedProdi);
-      return `Tren Jabatan Fungsional (5 Tahun) - ${prodi?.nama_prodi || ""}`;
+      return `Tren ${tipeDataName} (5 Tahun) - ${prodi?.nama_prodi || ""}`;
     } else if (selectedFakultas) {
       const fakultas = fakultasList.find((f) => f.id === selectedFakultas);
-      return `Tren Jabatan Fungsional (5 Tahun) - ${fakultas?.nama_fakultas || ""}`;
+      return `Tren ${tipeDataName} (5 Tahun) - ${fakultas?.nama_fakultas || ""}`;
     }
-    return "Tren Jabatan Fungsional (5 Tahun) - Universitas";
+    return `Tren ${tipeDataName} (5 Tahun) - Universitas`;
   };
+
+  // Calculate percentage data for ikatan kerja
+  const ikatanKerjaPercentageData = useMemo(() => {
+    if (selectedTipeData !== "ikatan_kerja") return [];
+
+    let totalDosenTetap = 0;
+    let totalDosenPnsDpk = 0;
+    let totalDokterPendidikKlinis = 0;
+    let totalDosenTetapBh = 0;
+    let totalDosenTidakTetap = 0;
+    let totalP3kAsn = 0;
+    let totalDosenPerjanjianKerja = 0;
+    let totalInstruktur = 0;
+    let totalTutor = 0;
+    let totalJft = 0;
+    let totalPengajarNondosen = 0;
+    let totalDosenTetapPkWaktuTertentu = 0;
+    let totalBelumIkatanKerja = 0;
+
+    if (selectedProdi && ikatanKerjaProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = ikatanKerjaProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalDosenTetap = prodi.dosen_tetap;
+        totalDosenPnsDpk = prodi.dosen_pns_dpk;
+        totalDokterPendidikKlinis = prodi.dokter_pendidik_klinis;
+        totalDosenTetapBh = prodi.dosen_tetap_bh;
+        totalDosenTidakTetap = prodi.dosen_tidak_tetap;
+        totalP3kAsn = prodi.p3k_asn;
+        totalDosenPerjanjianKerja = prodi.dosen_perjanjian_kerja;
+        totalInstruktur = prodi.instruktur;
+        totalTutor = prodi.tutor;
+        totalJft = prodi.jft;
+        totalPengajarNondosen = prodi.pengajar_nondosen;
+        totalDosenTetapPkWaktuTertentu = prodi.dosen_tetap_pk_waktu_tertentu;
+        totalBelumIkatanKerja = prodi.belum_ikatan_kerja;
+      }
+    } else if (selectedFakultas && ikatanKerjaProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      ikatanKerjaProdiList.forEach((p) => {
+        totalDosenTetap += p.dosen_tetap;
+        totalDosenPnsDpk += p.dosen_pns_dpk;
+        totalDokterPendidikKlinis += p.dokter_pendidik_klinis;
+        totalDosenTetapBh += p.dosen_tetap_bh;
+        totalDosenTidakTetap += p.dosen_tidak_tetap;
+        totalP3kAsn += p.p3k_asn;
+        totalDosenPerjanjianKerja += p.dosen_perjanjian_kerja;
+        totalInstruktur += p.instruktur;
+        totalTutor += p.tutor;
+        totalJft += p.jft;
+        totalPengajarNondosen += p.pengajar_nondosen;
+        totalDosenTetapPkWaktuTertentu += p.dosen_tetap_pk_waktu_tertentu;
+        totalBelumIkatanKerja += p.belum_ikatan_kerja;
+      });
+    } else if (ikatanKerjaFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      ikatanKerjaFakultasList.forEach((f) => {
+        totalDosenTetap += f.dosen_tetap;
+        totalDosenPnsDpk += f.dosen_pns_dpk;
+        totalDokterPendidikKlinis += f.dokter_pendidik_klinis;
+        totalDosenTetapBh += f.dosen_tetap_bh;
+        totalDosenTidakTetap += f.dosen_tidak_tetap;
+        totalP3kAsn += f.p3k_asn;
+        totalDosenPerjanjianKerja += f.dosen_perjanjian_kerja;
+        totalInstruktur += f.instruktur;
+        totalTutor += f.tutor;
+        totalJft += f.jft;
+        totalPengajarNondosen += f.pengajar_nondosen;
+        totalDosenTetapPkWaktuTertentu += f.dosen_tetap_pk_waktu_tertentu;
+        totalBelumIkatanKerja += f.belum_ikatan_kerja;
+      });
+    }
+
+    return [
+      { name: "Dosen Tetap", value: totalDosenTetap, color: "#3b82f6" },
+      { name: "PNS DPK", value: totalDosenPnsDpk, color: "#6366f1" },
+      { name: "Dokter Pendidik Klinis", value: totalDokterPendidikKlinis, color: "#8b5cf6" },
+      { name: "Dosen Tetap BH", value: totalDosenTetapBh, color: "#a855f7" },
+      { name: "Dosen Tidak Tetap", value: totalDosenTidakTetap, color: "#22c55e" },
+      { name: "P3K ASN", value: totalP3kAsn, color: "#14b8a6" },
+      { name: "Perjanjian Kerja", value: totalDosenPerjanjianKerja, color: "#06b6d4" },
+      { name: "Instruktur", value: totalInstruktur, color: "#f59e0b" },
+      { name: "Tutor", value: totalTutor, color: "#f97316" },
+      { name: "JFT", value: totalJft, color: "#ef4444" },
+      { name: "Pengajar Nondosen", value: totalPengajarNondosen, color: "#dc2626" },
+      { name: "Tetap PKWTT", value: totalDosenTetapPkWaktuTertentu, color: "#b91c1c" },
+      { name: "Belum Ikatan Kerja", value: totalBelumIkatanKerja, color: "#cbd5e1" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    ikatanKerjaFakultasList,
+    ikatanKerjaProdiList,
+  ]);
+
+  // Configuration for trend and percentage charts (must be after all useMemo hooks)
+  const chartConfig: Record<string, {
+    historicalData: typeof jabfungHistoricalData;
+    percentageData: typeof jabfungPercentageData;
+    categoryKeys: Array<{ key: string; name: string; color: string }>;
+  }> = {
+    jabfung: {
+      historicalData: jabfungHistoricalData,
+      percentageData: jabfungPercentageData,
+      categoryKeys: JABFUNG_CATEGORIES,
+    },
+    ikatan_kerja: {
+      historicalData: ikatanKerjaHistoricalData,
+      percentageData: ikatanKerjaPercentageData,
+      categoryKeys: IKATAN_KERJA_CATEGORIES,
+    },
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -539,6 +707,30 @@ export default function DosenPage() {
               ) : null;
             })()}
 
+          {/* Historical Trend Chart & Percentage Chart */}
+          {selectedTahunAjaran &&
+            selectedTipeData &&
+            chartConfig[selectedTipeData] && (
+              <>
+                {/* Historical Trend Chart */}
+                {chartConfig[selectedTipeData].historicalData.length > 0 && (
+                  <DosenTrendChart
+                    data={chartConfig[selectedTipeData].historicalData}
+                    title={getTrendChartTitle()}
+                    categoryKeys={chartConfig[selectedTipeData].categoryKeys}
+                  />
+                )}
+
+                {/* Percentage Chart */}
+                {chartConfig[selectedTipeData].percentageData.length > 0 && (
+                  <DosenPercentageChart
+                    data={chartConfig[selectedTipeData].percentageData}
+                    title={getPercentageChartTitle()}
+                    subtitle={`Data tahun ${selectedTahunAjaran}`}
+                  />
+                )}
+              </>
+            )}
           {/* Chart Card */}
           <DosenChart
             data={chartData}
@@ -558,27 +750,6 @@ export default function DosenPage() {
             disabled={isChartDisabled}
             isLoading={isLoadingChartData}
           />
-
-          {/* Historical Trend Chart (only for jabfung) */}
-          {selectedTipeData === "jabfung" &&
-            selectedTahunAjaran &&
-            jabfungHistoricalData.length > 0 && (
-              <DosenTrendChart
-                data={jabfungHistoricalData}
-                title={getTrendChartTitle()}
-              />
-            )}
-
-          {/* Percentage Chart (only for jabfung) */}
-          {selectedTipeData === "jabfung" &&
-            selectedTahunAjaran &&
-            jabfungPercentageData.length > 0 && (
-              <DosenPercentageChart
-                data={jabfungPercentageData}
-                title={getPercentageChartTitle()}
-                subtitle={`Data tahun ${selectedTahunAjaran}`}
-              />
-            )}
         </motion.div>
       </div>
 

@@ -239,6 +239,37 @@ export const useDosenData = ({
       selectedTipeData === "ikatan_kerja",
   });
 
+  // Fetch ikatan kerja fakultas historical data (5 years)
+  const {
+    data: ikatanKerjaFakultasHistorical = [],
+    isLoading: isLoadingIkatanKerjaFakultasHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "ikatan-kerja", "fakultas", "historical", selectedTahunAjaran, userContext?.id_organisasi, selectedFakultas],
+    queryFn: () =>
+      executiveIkatanKerjaService.getIkatanKerjaFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4
+          ? userContext.id_organisasi
+          : selectedFakultas || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "ikatan_kerja",
+  });
+
+  // Fetch ikatan kerja prodi historical data (5 years)
+  const {
+    data: ikatanKerjaProdiHistorical = [],
+    isLoading: isLoadingIkatanKerjaProdiHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "ikatan-kerja", "prodi", "historical", selectedFakultas, selectedTahunAjaran, selectedProdi],
+    queryFn: () =>
+      executiveIkatanKerjaService.getIkatanKerjaProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran && selectedTipeData === "ikatan_kerja",
+  });
+
   // Fetch jenis kelamin fakultas data
   const {
     data: jenisKelaminFakultasList = [],
@@ -372,6 +403,10 @@ export const useDosenData = ({
     isLoadingIkatanKerjaFakultas,
     ikatanKerjaProdiList,
     isLoadingIkatanKerjaProdi,
+    ikatanKerjaFakultasHistorical,
+    isLoadingIkatanKerjaFakultasHistorical,
+    ikatanKerjaProdiHistorical,
+    isLoadingIkatanKerjaProdiHistorical,
 
     // Jenis kelamin data
     jenisKelaminFakultasList,

@@ -1,4 +1,11 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 export interface PercentageData {
   name: string;
@@ -24,17 +31,24 @@ const COLORS = {
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const total = payload.reduce((sum: number, entry: any) => sum + entry.payload.value, 0);
+    const total = payload.reduce(
+      (sum: number, entry: any) => sum + entry.payload.value,
+      0,
+    );
     const percentage = ((data.value / total) * 100).toFixed(1);
 
     return (
       <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
         <p className="mb-2 font-bold text-gray-800">{data.name}</p>
         <p className="text-sm text-gray-600">
-          Jumlah: <span className="font-semibold text-gray-800">{data.value.toLocaleString()}</span>
+          Jumlah:{" "}
+          <span className="font-semibold text-gray-800">
+            {data.value.toLocaleString()}
+          </span>
         </p>
         <p className="text-sm text-gray-600">
-          Presentase: <span className="font-semibold text-gray-800">{percentage}%</span>
+          Presentase:{" "}
+          <span className="font-semibold text-gray-800">{percentage}%</span>
         </p>
       </div>
     );
@@ -42,12 +56,16 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export const DosenPercentageChart = ({ data, title, subtitle }: DosenPercentageChartProps) => {
+export const DosenPercentageChart = ({
+  data,
+  title,
+  subtitle,
+}: DosenPercentageChartProps) => {
   // Calculate total
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   // Add percentage to each data item
-  const dataWithPercentage = data.map(item => ({
+  const dataWithPercentage = data.map((item) => ({
     ...item,
     percentage: ((item.value / total) * 100).toFixed(1),
   }));
@@ -59,7 +77,8 @@ export const DosenPercentageChart = ({ data, title, subtitle }: DosenPercentageC
           {title || "Presentase Jabatan Fungsional"}
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          {subtitle || "Perbandingan jumlah dosen berdasarkan jabatan fungsional"}
+          {subtitle ||
+            "Perbandingan jumlah dosen berdasarkan jabatan fungsional"}
         </p>
       </div>
 
@@ -79,10 +98,7 @@ export const DosenPercentageChart = ({ data, title, subtitle }: DosenPercentageC
                 dataKey="value"
               >
                 {dataWithPercentage.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.color}
-                  />
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -121,34 +137,6 @@ export const DosenPercentageChart = ({ data, title, subtitle }: DosenPercentageC
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-gray-600">Total Dosen</p>
-            <p className="text-xl font-bold text-blue-600">
-              {total.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Semua jabatan fungsional</p>
-          </div>
-
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-gray-600">Sudah Jabfung</p>
-            <p className="text-xl font-bold text-green-600">
-              {dataWithPercentage
-                .filter(d => d.name !== "Belum Jabfung")
-                .reduce((sum, d) => sum + d.value, 0)
-                .toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {((dataWithPercentage
-                .filter(d => d.name !== "Belum Jabfung")
-                .reduce((sum, d) => sum + d.value, 0) / total) * 100).toFixed(1)}% dari total
-            </p>
-          </div>
         </div>
       </div>
     </div>

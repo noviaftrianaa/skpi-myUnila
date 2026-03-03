@@ -106,7 +106,9 @@ Route::prefix('v1')->group(function () {
 
             // Ikatan kerja data routes
             Route::get('/fakultas', [IkatanKerjaController::class, 'getIkatanKerjaFakultas']);
+            Route::get('/fakultas/historical', [IkatanKerjaController::class, 'getIkatanKerjaFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [IkatanKerjaController::class, 'getIkatanKerjaProdi']);
+            Route::get('/prodi/historical', [IkatanKerjaController::class, 'getIkatanKerjaProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [IkatanKerjaController::class, 'getDataDosen']);

@@ -389,4 +389,100 @@ class IkatanKerjaRepository
 
         return collect(DB::select($sql, [$idFakultas]));
     }
+
+    /**
+     * Get historical ikatan kerja data at university/fakultas level for multiple years
+     *
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @param string|null $fakultasId Filter by fakultas (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getIkatanKerjaFakultasHistorical($startYearId, $endYearId = null, $fakultasId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) use ($fakultasId) {
+            $data = $this->getIkatanKerjaByLevel($year->id_thn_ajaran, $fakultasId);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Get historical ikatan kerja data at fakultas level (per prodi) for multiple years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getIkatanKerjaProdiHistorical($fakultasId, $startYearId, $endYearId = null, $prodiId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) use ($fakultasId, $prodiId) {
+            $data = $this->getIkatanKerjaByLevel($year->id_thn_ajaran, $fakultasId, $prodiId);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Format tahun ajaran ID to display string
+     * Example: 20201 -> "2020/2021"
+     *
+     * @param int $tahunId
+     * @return string
+     */
+    private function formatTahunAjaran($tahunId)
+    {
+        $year = (int) substr((string) $tahunId, 0, 4);
+        return "{$year}/" . ($year + 1);
+    }
 }

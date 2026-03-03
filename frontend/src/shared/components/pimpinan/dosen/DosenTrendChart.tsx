@@ -1,4 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Button } from "@heroui/react";
 
 export interface TrendDataItem {
@@ -9,11 +18,26 @@ export interface TrendDataItem {
     id: string;
     nama_fakultas?: string;
     nama_prodi?: string;
+    // Jabfung fields
     belum_jabfung?: number;
     asisten_ahli?: number;
     lektor?: number;
     lektor_kepala?: number;
     profesor?: number;
+    // Ikatan kerja fields
+    dosen_tetap?: number;
+    dosen_pns_dpk?: number;
+    dokter_pendidik_klinis?: number;
+    dosen_tetap_bh?: number;
+    dosen_tidak_tetap?: number;
+    p3k_asn?: number;
+    dosen_perjanjian_kerja?: number;
+    instruktur?: number;
+    tutor?: number;
+    jft?: number;
+    pengajar_nondosen?: number;
+    dosen_tetap_pk_waktu_tertentu?: number;
+    belum_ikatan_kerja?: number;
     total: number;
   }>;
 }
@@ -22,7 +46,7 @@ interface DosenTrendChartProps {
   data: TrendDataItem[];
   title?: string;
   onLihatData?: () => void;
-  // Jabfung category keys to track
+  // Category keys to track (jabfung or ikatan kerja)
   categoryKeys?: Array<{
     key: string;
     name: string;
@@ -38,18 +62,41 @@ const JABFUNG_CATEGORIES = [
   { key: "belum_jabfung", name: "Belum Jabfung", color: "#94a3b8" },
 ];
 
+const IKATAN_KERJA_CATEGORIES = [
+  { key: "dosen_tetap", name: "Dosen Tetap", color: "#3b82f6" },
+  { key: "dosen_pns_dpk", name: "PNS DPK", color: "#6366f1" },
+  {
+    key: "dokter_pendidik_klinis",
+    name: "Dokter Pendidik Klinis",
+    color: "#8b5cf6",
+  },
+  { key: "dosen_tetap_bh", name: "Dosen Tetap BH", color: "#a855f7" },
+  { key: "dosen_tidak_tetap", name: "Dosen Tidak Tetap", color: "#22c55e" },
+  { key: "p3k_asn", name: "P3K ASN", color: "#14b8a6" },
+  { key: "dosen_perjanjian_kerja", name: "Perjanjian Kerja", color: "#06b6d4" },
+  { key: "instruktur", name: "Instruktur", color: "#f59e0b" },
+  { key: "tutor", name: "Tutor", color: "#f97316" },
+  { key: "jft", name: "JFT", color: "#ef4444" },
+  { key: "pengajar_nondosen", name: "Pengajar Nondosen", color: "#dc2626" },
+  {
+    key: "dosen_tetap_pk_waktu_tertentu",
+    name: "Tetap PKWTT",
+    color: "#b91c1c",
+  },
+  { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
+];
+
 // Custom Tooltip Component
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+      <div className="z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
         <p className="mb-2 font-bold text-gray-800">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="mb-1">
             <p className="text-sm">
               <span style={{ color: entry.color }}>●</span>{" "}
-              <span className="font-semibold">{entry.name}:</span>{" "}
-              {entry.value}
+              <span className="font-semibold">{entry.name}:</span> {entry.value}
             </p>
           </div>
         ))}
@@ -59,30 +106,44 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const DosenTrendChart = ({ data, title, onLihatData, categoryKeys = JABFUNG_CATEGORIES }: DosenTrendChartProps) => {
+export const DosenTrendChart = ({
+  data,
+  title,
+  onLihatData,
+  categoryKeys = JABFUNG_CATEGORIES,
+}: DosenTrendChartProps) => {
   // Determine if data is at prodi level or fakultas level
-  const isProdiLevel = data.length > 0 && data[0].data.length > 0 && !!data[0].data[0].nama_prodi;
+  const isProdiLevel =
+    data.length > 0 && data[0].data.length > 0 && !!data[0].data[0].nama_prodi;
 
   // Get unique names for lines (either fakultas or prodi names)
-  const entityNames = data.length > 0 && data[0].data.length > 0
-    ? [...new Set(data.flatMap(year => year.data.map(d => isProdiLevel ? d.nama_prodi : d.nama_fakultas)))]
-    : [];
-
-  const isMultiEntity = entityNames.length > 1;
+  const entityNames =
+    data.length > 0 && data[0].data.length > 0
+      ? [
+          ...new Set(
+            data.flatMap((year) =>
+              year.data.map((d) =>
+                isProdiLevel ? d.nama_prodi : d.nama_fakultas,
+              ),
+            ),
+          ),
+        ]
+      : [];
 
   // Transform data to format suitable for line chart
-  const chartData = data.map(yearData => {
+  const chartData = data.map((yearData) => {
     const yearItem: any = {
       tahun: yearData.tahun,
     };
 
-    yearData.data.forEach(entity => {
-      // Always aggregate by jabfung category, regardless of entity count
-      categoryKeys.forEach(cat => {
+    yearData.data.forEach((entity) => {
+      // Always aggregate by category, regardless of entity count
+      categoryKeys.forEach((cat) => {
         if (!yearItem[cat.key]) {
           yearItem[cat.key] = 0;
         }
-        yearItem[cat.key] += entity[cat.key as keyof typeof entity] || 0;
+        const value = entity[cat.key as keyof typeof entity];
+        yearItem[cat.key] += typeof value === "number" ? value : 0;
       });
     });
 
@@ -120,11 +181,7 @@ export const DosenTrendChart = ({ data, title, onLihatData, categoryKeys = JABFU
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="tahun"
-            tick={{ fontSize: 12 }}
-            stroke="#666"
-          />
+          <XAxis dataKey="tahun" tick={{ fontSize: 12 }} stroke="#666" />
           <YAxis
             label={{
               value: "Jumlah Dosen",
@@ -139,7 +196,7 @@ export const DosenTrendChart = ({ data, title, onLihatData, categoryKeys = JABFU
           <Legend />
 
           {/* Always show jabfung category lines (aggregated totals) */}
-          {categoryKeys.map(cat => (
+          {categoryKeys.map((cat) => (
             <Line
               key={cat.key}
               type="monotone"
@@ -148,6 +205,7 @@ export const DosenTrendChart = ({ data, title, onLihatData, categoryKeys = JABFU
               strokeWidth={2}
               name={cat.name}
               dot={{ r: 4 }}
+              className=" -z-10"
             />
           ))}
         </LineChart>
@@ -157,24 +215,31 @@ export const DosenTrendChart = ({ data, title, onLihatData, categoryKeys = JABFU
       <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
         {data.slice(0, 3).map((yearData, index) => {
           // Calculate jabfung totals for this year
-          const jabfungTotals = categoryKeys.reduce((acc, cat) => {
-            acc[cat.key] = yearData.data.reduce((sum, entity) => {
-              return sum + (entity[cat.key as keyof typeof entity] || 0);
-            }, 0);
-            return acc;
-          }, {} as Record<string, number>);
+          const jabfungTotals = categoryKeys.reduce(
+            (acc, cat) => {
+              acc[cat.key] = yearData.data.reduce((sum, entity) => {
+                const value = entity[cat.key as keyof typeof entity];
+                return sum + (typeof value === "number" ? value : 0);
+              }, 0);
+              return acc;
+            },
+            {} as Record<string, number>,
+          );
 
           return (
             <div
               key={index}
-              className="p-4 bg-gray-50 border border-gray-200 rounded-lg"
+              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
             >
               <p className="mb-2 text-sm font-semibold text-gray-800">
                 {yearData.tahun}
               </p>
               <div className="space-y-1">
                 {categoryKeys.map((cat) => (
-                  <div key={cat.key} className="flex items-center justify-between">
+                  <div
+                    key={cat.key}
+                    className="flex items-center justify-between"
+                  >
                     <p className="text-xs text-gray-600">{cat.name}</p>
                     <p
                       className="text-sm font-bold"

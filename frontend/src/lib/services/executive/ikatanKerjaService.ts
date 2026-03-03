@@ -89,6 +89,26 @@ export interface GetProdiParams {
   fakultas_id: string;
 }
 
+export interface GetIkatanKerjaFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  fakultas_id?: string;
+  years_back?: number;
+}
+
+export interface GetIkatanKerjaProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  prodi_id?: string;
+  years_back?: number;
+}
+
+export interface HistoricalIkatanKerjaData {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: IkatanKerjaFakultas[] | IkatanKerjaProdi[];
+}
+
 class ExecutiveIkatanKerjaService {
   async getIkatanKerjaFakultas(
     params?: GetIkatanKerjaFakultasParams,
@@ -156,6 +176,47 @@ class ExecutiveIkatanKerjaService {
       params,
     });
 
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical ikatan kerja fakultas data for the last N years
+   * @param params - Parameters including tahun_ajaran, optional fakultas_id filter, and years_back (default: 5)
+   */
+  async getIkatanKerjaFakultasHistorical(
+    params?: GetIkatanKerjaFakultasHistoricalParams,
+  ): Promise<HistoricalIkatanKerjaData[]> {
+    const response = await executiveClient.get<{ data: HistoricalIkatanKerjaData[] }>(
+      "/dosen/ikatan-kerja/fakultas/historical",
+      {
+        params: {
+          tahun_ajaran: params?.tahun_ajaran,
+          fakultas_id: params?.fakultas_id,
+          years_back: params?.years_back ?? 5,
+        },
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical ikatan kerja prodi data for the last N years
+   * @param params - Parameters including fakultas_id, tahun_ajaran, optional prodi_id filter, and years_back (default: 5)
+   */
+  async getIkatanKerjaProdiHistorical(
+    params: GetIkatanKerjaProdiHistoricalParams,
+  ): Promise<HistoricalIkatanKerjaData[]> {
+    const response = await executiveClient.get<{ data: HistoricalIkatanKerjaData[] }>(
+      "/dosen/ikatan-kerja/prodi/historical",
+      {
+        params: {
+          fakultas_id: params.fakultas_id,
+          tahun_ajaran: params.tahun_ajaran,
+          prodi_id: params.prodi_id,
+          years_back: params.years_back ?? 5,
+        },
+      },
+    );
     return response.data.data || [];
   }
 }

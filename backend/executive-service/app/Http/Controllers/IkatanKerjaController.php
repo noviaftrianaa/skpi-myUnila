@@ -126,4 +126,59 @@ class IkatanKerjaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get historical ikatan kerja data at university/fakultas level
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getIkatanKerjaFakultasHistorical(Request $request)
+    {
+        try {
+            $selectedYear = $request->query('tahun_ajaran');
+            $fakultasId = $request->query('fakultas_id');
+            $yearsBack = (int) $request->query('years_back', 5);
+
+            $data = $this->ikatanKerjaService->getIkatanKerjaFakultasHistorical($selectedYear, $yearsBack, $fakultasId);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get historical ikatan kerja data at fakultas level (per prodi)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getIkatanKerjaProdiHistorical(Request $request)
+    {
+        try {
+            $fakultasId = $request->query('fakultas_id');
+            $selectedYear = $request->query('tahun_ajaran');
+            $prodiId = $request->query('prodi_id');
+            $yearsBack = (int) $request->query('years_back', 5);
+
+            $data = $this->ikatanKerjaService->getIkatanKerjaProdiHistorical($fakultasId, $selectedYear, $yearsBack, $prodiId);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
