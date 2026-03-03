@@ -28,12 +28,13 @@ import {
   FiAlertCircle,
   FiUser,
   FiCamera,
+  FiFile,
 } from "react-icons/fi";
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import Link from "next/link";
-import { sisterDosenService, type SisterDosenStats, type SisterDosenPhotoSyncResult } from "@/lib/services/sister/pdrd/dosenService";
+import { sisterDosenService, type SisterDosenStats, type SisterDosenPhotoSyncResult, type SisterDosenDokumenSyncResult } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
@@ -63,6 +64,14 @@ export default function DosenManagementPage() {
   const [photoSyncProgress, setPhotoSyncProgress] = useState(0);
   const [photoSyncStatus, setPhotoSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [photoSyncResult, setPhotoSyncResult] = useState<SisterDosenPhotoSyncResult | null>(null);
+
+  // Dokumen Sync State
+  const [isSyncingDokumen, setIsSyncingDokumen] = useState(false);
+  const [showDokumenSyncModal, setShowDokumenSyncModal] = useState(false);
+  const [showDokumenProgressModal, setShowDokumenProgressModal] = useState(false);
+  const [dokumenSyncProgress, setDokumenSyncProgress] = useState(0);
+  const [dokumenSyncStatus, setDokumenSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [dokumenSyncResult, setDokumenSyncResult] = useState<SisterDosenDokumenSyncResult | null>(null);
 
   // Fetch stats on mount
   useEffect(() => {
@@ -194,6 +203,60 @@ export default function DosenManagementPage() {
     }
   };
 
+  const handleDokumenSyncClick = () => {
+    setShowDokumenSyncModal(true);
+  };
+
+  const handleConfirmDokumenSync = async () => {
+    setShowDokumenSyncModal(false);
+    setShowDokumenProgressModal(true);
+    setIsSyncingDokumen(true);
+    setDokumenSyncStatus("syncing");
+    setDokumenSyncProgress(0);
+
+    try {
+      // Simulate slow progress (dokumen sync takes very long)
+      const progressInterval = setInterval(() => {
+        setDokumenSyncProgress((prev) => {
+          if (prev >= 85) {
+            clearInterval(progressInterval);
+            return 85;
+          }
+          return prev + 3;
+        });
+      }, 2000);
+
+      const response = await sisterDosenService.syncDokumenToMinIO(user?.name || "system");
+
+      clearInterval(progressInterval);
+      setDokumenSyncProgress(100);
+      setDokumenSyncResult(response);
+      setDokumenSyncStatus("success");
+      toast.success(
+        `Berhasil sync ${response.total_success} dokumen (${response.total_skipped} skipped)`
+      );
+
+      // Auto-dismiss after 4 seconds
+      setTimeout(() => {
+        setShowDokumenProgressModal(false);
+        setDokumenSyncProgress(0);
+        setDokumenSyncStatus("idle");
+        setDokumenSyncResult(null);
+      }, 4000);
+    } catch (error) {
+      console.error("Error syncing dokumen:", error);
+      setDokumenSyncStatus("error");
+      toast.error("Gagal melakukan sinkronisasi dokumen");
+      setTimeout(() => {
+        setShowDokumenProgressModal(false);
+        setDokumenSyncProgress(0);
+        setDokumenSyncStatus("idle");
+      }, 2000);
+    } finally {
+      setIsSyncingDokumen(false);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Belum pernah";
     return new Date(dateString).toLocaleString("id-ID", {
@@ -241,6 +304,16 @@ export default function DosenManagementPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              color="primary"
+              size="lg"
+              startContent={<FiFile className="w-5 h-5" />}
+              onClick={handleDokumenSyncClick}
+              isLoading={isSyncingDokumen}
+              className="bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
+            >
+              Sinkronisasi Dokumen
+            </Button>
             <Button
               color="primary"
               size="lg"
@@ -775,6 +848,222 @@ export default function DosenManagementPage() {
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <p className="text-sm text-red-700 dark:text-red-300">
                     Gagal melakukan sinkronisasi foto. Silakan coba lagi atau hubungi administrator.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* Dokumen Sync Confirmation Modal */}
+      <Modal
+        isOpen={showDokumenSyncModal}
+        onOpenChange={setShowDokumenSyncModal}
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg">
+                    <FiFile className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      Konfirmasi Sinkronisasi Dokumen
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                      Dokumen Dosen dari SISTER ke MinIO
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody className="py-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                    <div className="flex items-start gap-3">
+                      <FiAlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Proses ini akan mengambil dokumen dosen dari SISTER API dan menyimpannya ke MinIO storage.
+                        </p>
+                        <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+                          <li>Dokumen yang sudah ada di MinIO akan di-skip</li>
+                          <li>File disimpan di MinIO (bukan di database)</li>
+                          <li>Proses dapat memerlukan waktu sangat lama (10-60 menit)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">User</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {user?.name || "System"}
+                    </span>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="light"
+                  onPress={onClose}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </Button>
+                <Button
+                  color="warning"
+                  onPress={handleConfirmDokumenSync}
+                  startContent={<FiFile className="w-4 h-4" />}
+                  className="bg-gradient-to-r from-orange-500 to-amber-600 text-white"
+                >
+                  Mulai Sinkronisasi Dokumen
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Dokumen Sync Progress Modal */}
+      <Modal
+        isOpen={showDokumenProgressModal}
+        isDismissable={false}
+        hideCloseButton
+        size="md"
+        backdrop="blur"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-gray-800",
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg ${
+                  dokumenSyncStatus === "success"
+                    ? "bg-gradient-to-br from-green-500 to-green-600"
+                    : dokumenSyncStatus === "error"
+                    ? "bg-gradient-to-br from-red-500 to-red-600"
+                    : "bg-gradient-to-br from-orange-500 to-amber-600"
+                }`}
+              >
+                {dokumenSyncStatus === "success" ? (
+                  <FiCheckCircle className="w-6 h-6" />
+                ) : dokumenSyncStatus === "error" ? (
+                  <FiAlertCircle className="w-6 h-6" />
+                ) : (
+                  <FiFile className="w-6 h-6 animate-pulse" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {dokumenSyncStatus === "success"
+                    ? "Sinkronisasi Dokumen Berhasil!"
+                    : dokumenSyncStatus === "error"
+                    ? "Sinkronisasi Dokumen Gagal"
+                    : "Sedang Sinkronisasi Dokumen..."}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  {dokumenSyncStatus === "syncing" && "Mengunduh dokumen dari SISTER ke MinIO storage"}
+                  {dokumenSyncStatus === "success" && dokumenSyncResult &&
+                    `${dokumenSyncResult.total_success} baru, ${dokumenSyncResult.total_skipped} sudah ada`}
+                  {dokumenSyncStatus === "error" && "Terjadi kesalahan saat sinkronisasi dokumen"}
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Progress
+                  </span>
+                  <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                    {dokumenSyncProgress}%
+                  </span>
+                </div>
+                <Progress
+                  value={dokumenSyncProgress}
+                  color={
+                    dokumenSyncStatus === "success"
+                      ? "success"
+                      : dokumenSyncStatus === "error"
+                      ? "danger"
+                      : "warning"
+                  }
+                  className="h-2"
+                  classNames={{
+                    indicator: dokumenSyncStatus === "syncing" ? "animate-pulse" : "",
+                  }}
+                />
+              </div>
+
+              {dokumenSyncStatus === "syncing" && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20">
+                  <Spinner size="sm" color="warning" />
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Mengunduh dan mengunggah dokumen dosen ke MinIO storage...
+                  </p>
+                </div>
+              )}
+
+              {dokumenSyncStatus === "success" && dokumenSyncResult && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      Sinkronisasi dokumen selesai ({dokumenSyncResult.duration})
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Total Dosen</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-300">
+                        {dokumenSyncResult.total_dosen}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Total Dokumen</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-300">
+                        {dokumenSyncResult.total_dokumen}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Berhasil Upload</span>
+                      <span className="font-bold text-green-700 dark:text-green-300">
+                        {dokumenSyncResult.total_success}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Sudah Ada (Skip)</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-300">
+                        {dokumenSyncResult.total_skipped}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Gagal</span>
+                      <span className="font-bold text-red-700 dark:text-red-300">
+                        {dokumenSyncResult.total_failed}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {dokumenSyncStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Gagal melakukan sinkronisasi dokumen. Silakan coba lagi atau hubungi administrator.
                   </p>
                 </div>
               )}

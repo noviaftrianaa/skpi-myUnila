@@ -249,6 +249,17 @@ export interface SisterDosenPhotoSyncResult {
   synced_by: string;
 }
 
+// Dokumen sync result
+export interface SisterDosenDokumenSyncResult {
+  total_dosen: number;
+  total_dokumen: number;
+  total_success: number;
+  total_skipped: number;
+  total_failed: number;
+  duration: string;
+  synced_by: string;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -338,6 +349,22 @@ export const sisterDosenService = {
       {
         params: { synced_by: syncedBy },
         timeout: 600000, // 10 minutes - photo sync takes longer
+      }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Trigger batch sync of dosen documents from SISTER API to MinIO storage
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncDokumenToMinIO(syncedBy: string): Promise<SisterDosenDokumenSyncResult> {
+    const response = await sisterClient.post<SisterApiResponse<SisterDosenDokumenSyncResult>>(
+      '/dosen/sync-dokumen',
+      null,
+      {
+        params: { synced_by: syncedBy },
+        timeout: 720000, // 12 minutes - dokumen sync can take very long
       }
     );
     return response.data.data;

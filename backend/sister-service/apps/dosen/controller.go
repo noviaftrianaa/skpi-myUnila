@@ -323,6 +323,113 @@ func (ctrl *Controller) SyncDosenFromSister(c *fiber.Ctx) error {
 	})
 }
 
+// SyncDosenDokumen handles POST /api/v1/dosen/sync-dokumen
+// @Summary Sync all dosen documents from SISTER API to MinIO
+// @Description Batch fetches dosen documents from SISTER API and uploads to MinIO storage
+// @Tags Dosen
+// @Produce json
+// @Param synced_by query string false "Username of person who triggered the sync"
+// @Success 200 {object} BatchDokumenSyncResult "Dokumen sync result"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync-dokumen [post]
+func (ctrl *Controller) SyncDosenDokumen(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	result, err := ctrl.service.SyncDosenDokumenToMinIO(syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen documents",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Dokumen sync completed: %d dosen, %d docs (%d success, %d skipped, %d failed)",
+			result.TotalDosen, result.TotalDokumen, result.TotalSuccess, result.TotalSkipped, result.TotalFailed),
+		"data": result,
+	})
+}
+
+// GetDosenDokumenList handles GET /api/v1/dosen/dokumen/:id_sdm
+// @Summary Get list of documents for a dosen
+// @Description Returns metadata of all documents synced from SISTER API for a given dosen
+// @Tags Dosen
+// @Produce json
+// @Param id_sdm path string true "Dosen ID (UUID)"
+// @Success 200 {object} map[string]interface{} "Dokumen list"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/dokumen/{id_sdm} [get]
+func (ctrl *Controller) GetDosenDokumenList(c *fiber.Ctx) error {
+	idSDM := c.Params("id_sdm")
+	if idSDM == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_sdm parameter is required",
+		})
+	}
+
+	docs, err := ctrl.service.GetDosenDokumen(idSDM)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("%d dokumen found", len(docs)),
+		"data":    docs,
+	})
+}
+
+// DownloadDosenDokumen handles GET /api/v1/dosen/dokumen/download/:id_dok
+// @Summary Download a dosen document from MinIO
+// @Description Streams document binary from MinIO storage
+// @Tags Dosen
+// @Produce application/octet-stream
+// @Param id_dok path string true "Document ID (UUID)"
+// @Success 200 {file} binary "Document binary"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Document not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/dokumen/download/{id_dok} [get]
+func (ctrl *Controller) DownloadDosenDokumen(c *fiber.Ctx) error {
+	idDok := c.Params("id_dok")
+	if idDok == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_dok parameter is required",
+		})
+	}
+
+	data, contentType, fileName, err := ctrl.service.DownloadDosenDokumen(idDok)
+	if err != nil {
+		if err.Error() == "dokumen not found" || err.Error() == "dokumen has no MinIO path" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"success": false,
+				"message": "Document not found",
+				"error":   err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to download document",
+			"error":   err.Error(),
+		})
+	}
+
+	c.Set("Content-Type", contentType)
+	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	c.Set("Cache-Control", "private, max-age=3600")
+
+	return c.Send(data)
+}
+
 // SyncSingleDosenTest handles POST /dosen/sync-one/:id_sdm
 // @Summary Sync single dosen by ID (for testing/debugging)
 // @Description Syncs a single dosen from SISTER API by ID with detailed logging

@@ -25,12 +25,16 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 		// Sync routes (POST)
 		dosenAPI.Post("/sync", ctrl.SyncDosenFromSister)
 		dosenAPI.Post("/sync-photos", ctrl.SyncDosenPhotos)
+		dosenAPI.Post("/sync-dokumen", ctrl.SyncDosenDokumen)
 		dosenAPI.Post("/test/:id_sdm", ctrl.SyncSingleDosenTest)
 
 		// GET routes (also protected with JWT)
 		dosenAPI.Get("/", ctrl.GetDosenList)
 		dosenAPI.Get("/stats", ctrl.GetDosenStats)
 		dosenAPI.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
+		// Dokumen routes — download must be before /:id_sdm to avoid param collision
+		dosenAPI.Get("/dokumen/download/:id_dok", ctrl.DownloadDosenDokumen)
+		dosenAPI.Get("/dokumen/:id_sdm", ctrl.GetDosenDokumenList)
 		dosenAPI.Get("/:id_sdm", ctrl.GetDosenDetail)
 	}
 

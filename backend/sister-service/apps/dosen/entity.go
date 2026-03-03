@@ -207,6 +207,40 @@ type DosenIDName struct {
 	Nama  string `db:"nm_sdm"`
 }
 
+// DokumenSyncItem represents a single document to be synced from SISTER to MinIO
+type DokumenSyncItem struct {
+	IDSDM      string `json:"id_sdm"`
+	IDDok      string `json:"id_dok"`
+	IDJnsDok   int    `json:"id_jns_dok"`
+	NmJnsDok   string `json:"nm_jns_dok"`
+	NmDok      string `json:"nm_dok"`
+	NmFile     string `json:"nm_file"`
+	JenisFile  string `json:"jenis_file"`
+	Keterangan string `json:"keterangan"`
+	WktUnggah  string `json:"wkt_unggah"`
+	MinioPath  string `json:"minio_path,omitempty"`
+}
+
+// DokumenSyncResult represents the result of syncing documents for a single dosen
+type DokumenSyncResult struct {
+	IDSDM   string `json:"id_sdm"`
+	Total   int    `json:"total"`
+	Success int    `json:"success"`
+	Skipped int    `json:"skipped"`
+	Failed  int    `json:"failed"`
+}
+
+// BatchDokumenSyncResult represents the aggregate result of syncing all dosen documents
+type BatchDokumenSyncResult struct {
+	TotalDosen   int    `json:"total_dosen"`
+	TotalDokumen int    `json:"total_dokumen"`
+	TotalSuccess int    `json:"total_success"`
+	TotalSkipped int    `json:"total_skipped"`
+	TotalFailed  int    `json:"total_failed"`
+	Duration     string `json:"duration"`
+	SyncedBy     string `json:"synced_by"`
+}
+
 // DosenStats represents dosen statistics
 type DosenStats struct {
 	TotalDosen      int                    `json:"total_dosen"`

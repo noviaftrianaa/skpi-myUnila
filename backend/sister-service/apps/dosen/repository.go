@@ -17,6 +17,9 @@ type Repository interface {
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
 	GetAllActiveDosenIDs() ([]DosenIDName, error)
+	UpsertDokumen(item *DokumenSyncItem) error
+	GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error)
+	GetDokumenMinioPath(idDok string) (string, error)
 }
 
 type repository struct {
@@ -592,4 +595,171 @@ func (r *repository) GetAllActiveDosenIDs() ([]DosenIDName, error) {
 	}
 
 	return results, nil
+}
+
+// systemSyncUUID is a fixed UUID used as id_creator/id_updater for system sync operations
+const systemSyncUUID = "00000000-0000-0000-0000-000000000001"
+
+// UpsertDokumen upserts a document into dok.dokumen and dok.dok_sdm
+// file_dok is intentionally left NULL — files are stored in MinIO (item.MinioPath = url field)
+func (r *repository) UpsertDokumen(item *DokumenSyncItem) error {
+	now := time.Now()
+
+	// Truncate nm_dok to 60 chars (schema constraint)
+	nmDok := item.NmDok
+	if len(nmDok) > 60 {
+		nmDok = nmDok[:60]
+	}
+
+	// Truncate ket_dok to 200 chars
+	ketDok := item.Keterangan
+	if len(ketDok) > 200 {
+		ketDok = ketDok[:200]
+	}
+
+	// Parse wkt_unggah — try multiple formats
+	var wktUnggah interface{}
+	for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02 15:04:05.999"} {
+		if t, err := time.ParseInLocation(layout, item.WktUnggah, time.Local); err == nil {
+			wktUnggah = t
+			break
+		}
+	}
+	if wktUnggah == nil {
+		wktUnggah = now
+	}
+
+	// MERGE dok.dokumen — url stores MinIO object path, file_dok stays NULL
+	mergeDokumen := `
+		MERGE dok.dokumen AS target
+		USING (SELECT
+			@p1  AS id_dok,
+			@p2  AS id_jns_dok,
+			@p3  AS nm_dok,
+			@p4  AS ket_dok,
+			@p5  AS wkt_unggah,
+			@p6  AS url,
+			@p7  AS media_type,
+			@p8  AS file_name,
+			@p9  AS create_date,
+			@p10 AS id_creator,
+			@p11 AS last_update,
+			@p12 AS last_sync
+		) AS source ON target.id_dok = source.id_dok
+		WHEN MATCHED THEN
+			UPDATE SET
+				id_jns_dok  = source.id_jns_dok,
+				nm_dok      = source.nm_dok,
+				ket_dok     = source.ket_dok,
+				wkt_unggah  = source.wkt_unggah,
+				url         = source.url,
+				media_type  = source.media_type,
+				file_name   = source.file_name,
+				last_update = source.last_update,
+				last_sync   = source.last_sync
+		WHEN NOT MATCHED THEN
+			INSERT (id_dok, id_jns_dok, nm_dok, ket_dok, file_dok, wkt_unggah, url, media_type,
+			        file_name, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+			VALUES (source.id_dok, source.id_jns_dok, source.nm_dok, source.ket_dok, NULL,
+			        source.wkt_unggah, source.url, source.media_type, source.file_name,
+			        source.create_date, source.id_creator, source.last_update, NULL, 0, source.last_sync);
+	`
+
+	_, err := r.db.Exec(mergeDokumen,
+		item.IDDok,    // @p1
+		item.IDJnsDok, // @p2
+		nmDok,         // @p3
+		ketDok,        // @p4
+		wktUnggah,     // @p5
+		item.MinioPath, // @p6 url = MinIO object path
+		item.JenisFile, // @p7 media_type
+		item.NmFile,    // @p8 file_name
+		now,            // @p9 create_date
+		systemSyncUUID, // @p10 id_creator
+		now,            // @p11 last_update
+		now,            // @p12 last_sync
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upsert dok.dokumen for %s: %w", item.IDDok, err)
+	}
+
+	// MERGE dok.dok_sdm — junction antara pdrd.sdm dan dok.dokumen
+	mergeDokSDM := `
+		MERGE dok.dok_sdm AS target
+		USING (SELECT @p1 AS id_sdm, @p2 AS id_dok) AS source
+		ON target.id_sdm = source.id_sdm AND target.id_dok = source.id_dok
+		WHEN NOT MATCHED THEN
+			INSERT (id_sdm, id_dok, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+			VALUES (source.id_sdm, source.id_dok, @p3, @p4, @p5, NULL, 0, @p6);
+	`
+
+	_, err = r.db.Exec(mergeDokSDM,
+		item.IDSDM,     // @p1
+		item.IDDok,     // @p2
+		now,            // @p3 create_date
+		systemSyncUUID, // @p4 id_creator
+		now,            // @p5 last_update
+		now,            // @p6 last_sync
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upsert dok.dok_sdm for sdm=%s dok=%s: %w", item.IDSDM, item.IDDok, err)
+	}
+
+	return nil
+}
+
+// GetDokumenBySDM retrieves all documents for a dosen from dok.dok_sdm + dok.dokumen
+func (r *repository) GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error) {
+	query := `
+		SELECT
+			CONVERT(NVARCHAR(36), ds.id_sdm) AS id_sdm,
+			CONVERT(NVARCHAR(36), d.id_dok)  AS id_dok,
+			d.id_jns_dok,
+			ISNULL(jd.nm_jns_dok, '')        AS nm_jns_dok,
+			ISNULL(d.nm_dok, '')             AS nm_dok,
+			ISNULL(d.file_name, '')          AS nm_file,
+			ISNULL(d.media_type, '')         AS jenis_file,
+			ISNULL(d.ket_dok, '')            AS keterangan,
+			CONVERT(NVARCHAR(19), d.wkt_unggah, 120) AS wkt_unggah,
+			ISNULL(d.url, '')                AS minio_path
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		WHERE ds.id_sdm = @p1 AND ds.soft_delete = 0
+		ORDER BY d.wkt_unggah DESC
+	`
+
+	rows, err := r.db.Query(query, idSDM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dokumen for sdm %s: %w", idSDM, err)
+	}
+	defer rows.Close()
+
+	var results []DokumenSyncItem
+	for rows.Next() {
+		var item DokumenSyncItem
+		if err := rows.Scan(
+			&item.IDSDM, &item.IDDok, &item.IDJnsDok, &item.NmJnsDok,
+			&item.NmDok, &item.NmFile, &item.JenisFile, &item.Keterangan,
+			&item.WktUnggah, &item.MinioPath,
+		); err != nil {
+			log.Printf("⚠️  Failed to scan dokumen row: %v", err)
+			continue
+		}
+		results = append(results, item)
+	}
+
+	return results, nil
+}
+
+// GetDokumenMinioPath retrieves the MinIO object path (url field) for a document
+func (r *repository) GetDokumenMinioPath(idDok string) (string, error) {
+	var minioPath string
+	err := r.db.Get(&minioPath, `
+		SELECT ISNULL(url, '') FROM dok.dokumen WHERE id_dok = @p1 AND soft_delete = 0
+	`, idDok)
+	if err != nil {
+		return "", fmt.Errorf("dokumen not found: %w", err)
+	}
+	return minioPath, nil
 }

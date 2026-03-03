@@ -22,6 +22,9 @@ type Service interface {
 	SyncDosenFromSister(idSP string, syncedBy string) (*BatchDosenSyncResult, error)
 	SyncSingleDosenTest(idSDM string) (*DosenSyncResult, error)
 	SyncDosenPhotosToMinIO(syncedBy string) (*BatchPhotoSyncResult, error)
+	SyncDosenDokumenToMinIO(syncedBy string) (*BatchDokumenSyncResult, error)
+	GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error)
+	DownloadDosenDokumen(idDok string) ([]byte, string, string, error)
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
@@ -47,28 +50,38 @@ func NewService(sisterAPI *sister_api.Client, redisClient *redis.Client, repo Re
 	}
 }
 
-// GetDosenPhoto fetches dosen photo from cache or SISTER API
+// GetDosenPhoto fetches dosen photo: MinIO (primary) → Redis cache → SISTER API (fallback)
 func (s *service) GetDosenPhoto(idSdm string) ([]byte, string, error) {
+	// 1. Cek MinIO — primary source setelah batch sync
+	if s.minioClient != nil {
+		objectPath := fmt.Sprintf("photos/sdm/%s.jpg", idSdm)
+		if s.minioClient.ObjectExists(objectPath) {
+			data, ct, err := s.minioClient.GetObject(objectPath)
+			if err == nil {
+				log.Printf("✅ Photo served from MinIO for ID: %s (%d bytes)", idSdm, len(data))
+				return data, ct, nil
+			}
+			log.Printf("⚠️  MinIO get failed for %s: %v, falling back to cache/SISTER", idSdm, err)
+		}
+	}
+
+	// 2. Cek Redis cache
 	cacheKey := fmt.Sprintf("dosen:photo:%s", idSdm)
 	cacheKeyType := fmt.Sprintf("dosen:photo:type:%s", idSdm)
-
-	// Try to get from cache first
 	if s.redisClient != nil {
 		cachedPhoto, err := s.redisClient.Get(ctx, cacheKey).Bytes()
 		if err == nil {
-			// Cache hit
 			cachedType, _ := s.redisClient.Get(ctx, cacheKeyType).Result()
 			if cachedType == "" {
-				cachedType = "image/jpeg" // default
+				cachedType = "image/jpeg"
 			}
 			log.Printf("✅ Photo cache HIT for ID: %s (%d bytes)", idSdm, len(cachedPhoto))
 			return cachedPhoto, cachedType, nil
 		}
-		// Cache miss, continue to fetch from SISTER
 		log.Printf("⚠️  Photo cache MISS for ID: %s, fetching from SISTER...", idSdm)
 	}
 
-	// Fetch from SISTER API
+	// 3. Fallback ke SISTER API (untuk dosen yang belum di-sync ke MinIO)
 	log.Printf("📷 Fetching dosen photo from SISTER for ID: %s", idSdm)
 	photoBytes, contentType, err := s.sisterAPI.GetDosenPhoto(idSdm)
 	if err != nil {
@@ -76,13 +89,12 @@ func (s *service) GetDosenPhoto(idSdm string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	log.Printf("✅ Photo fetched successfully: %d bytes, type: %s", len(photoBytes), contentType)
+	log.Printf("✅ Photo fetched from SISTER: %d bytes, type: %s", len(photoBytes), contentType)
 
-	// Cache the photo for 7 days (foto jarang berubah)
+	// Cache di Redis untuk 7 hari
 	if s.redisClient != nil {
-		cacheTTL := 7 * 24 * time.Hour // 7 days
-		err = s.redisClient.Set(ctx, cacheKey, photoBytes, cacheTTL).Err()
-		if err != nil {
+		cacheTTL := 7 * 24 * time.Hour
+		if err := s.redisClient.Set(ctx, cacheKey, photoBytes, cacheTTL).Err(); err != nil {
 			log.Printf("⚠️  Failed to cache photo: %v", err)
 		} else {
 			s.redisClient.Set(ctx, cacheKeyType, contentType, cacheTTL)
@@ -203,4 +215,63 @@ func (s *service) logSyncResult(endpointName, endpointKey, syncType, syncedBy st
 // This is useful for scheduled syncs to ensure they always use a fresh token
 func (s *service) ForceRefreshToken() error {
 	return s.sisterAPI.ForceRefreshToken()
+}
+
+// GetDosenDokumen returns list of documents for a dosen from DB (dok.dok_sdm + dok.dokumen)
+func (s *service) GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error) {
+	return s.repo.GetDokumenBySDM(idSDM)
+}
+
+// DownloadDosenDokumen retrieves a document from MinIO by its id_dok.
+// Returns: file bytes, content type, file name, error
+func (s *service) DownloadDosenDokumen(idDok string) ([]byte, string, string, error) {
+	if s.minioClient == nil {
+		return nil, "", "", fmt.Errorf("MinIO client not configured")
+	}
+
+	// Get MinIO path from DB
+	minioPath, err := s.repo.GetDokumenMinioPath(idDok)
+	if err != nil {
+		return nil, "", "", fmt.Errorf("dokumen not found: %w", err)
+	}
+	if minioPath == "" {
+		return nil, "", "", fmt.Errorf("dokumen has no MinIO path")
+	}
+
+	// Stream from MinIO
+	data, contentType, err := s.minioClient.GetObject(minioPath)
+	if err != nil {
+		return nil, "", "", fmt.Errorf("failed to retrieve file from storage: %w", err)
+	}
+
+	// Extract filename from path (last segment)
+	fileName := minioPath
+	if idx := len(minioPath) - 1; idx >= 0 {
+		parts := splitPath(minioPath)
+		if len(parts) > 0 {
+			fileName = parts[len(parts)-1]
+		}
+	}
+
+	return data, contentType, fileName, nil
+}
+
+// splitPath splits a MinIO object path by '/'
+func splitPath(p string) []string {
+	var parts []string
+	current := ""
+	for _, c := range p {
+		if c == '/' {
+			if current != "" {
+				parts = append(parts, current)
+				current = ""
+			}
+		} else {
+			current += string(c)
+		}
+	}
+	if current != "" {
+		parts = append(parts, current)
+	}
+	return parts
 }

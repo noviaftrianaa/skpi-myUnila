@@ -303,9 +303,9 @@ SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -d '{
     "name": "sister-service",
     "url": "http://myunila-sister-service:8083",
-    "connect_timeout": 300000,
-    "write_timeout": 300000,
-    "read_timeout": 300000,
+    "connect_timeout": 720000,
+    "write_timeout": 720000,
+    "read_timeout": 720000,
     "retries": 5
   }')
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/minio/minio-go/v7"
@@ -76,6 +77,28 @@ func (c *Client) ObjectExists(path string) bool {
 // GetPublicURL returns the public URL for an object
 func (c *Client) GetPublicURL(path string) string {
 	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, path)
+}
+
+// GetObject downloads an object from MinIO and returns its bytes and content type
+func (c *Client) GetObject(path string) ([]byte, string, error) {
+	ctx := context.Background()
+	obj, err := c.client.GetObject(ctx, c.bucket, path, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get object %s: %w", path, err)
+	}
+	defer obj.Close()
+
+	stat, err := obj.Stat()
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to stat object %s: %w", path, err)
+	}
+
+	data, err := io.ReadAll(obj)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to read object %s: %w", path, err)
+	}
+
+	return data, stat.ContentType, nil
 }
 
 // RemoveObject deletes an object at the specified path
