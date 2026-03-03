@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  monitoring-service:
+    build:
+      context: ../../../../../backend/monitoring
+      dockerfile: Dockerfile
+    image: myunila/monitoring-service:production
+    container_name: myunila-monitoring-service
+    ports:
+      - "8089:8089"
+    environment:
+      # App Configuration
+      APP_NAME: ${MONITORING_APP_NAME:-Monitoring Service}
+      APP_PORT: ${MONITORING_APP_PORT:-:8089}
+      APP_ENV: ${MONITORING_APP_ENV:-production}
+
+      # Database Configuration (SQL Server - 192.168.123.119)
+      DB_DRIVER: ${MONITORING_DB_DRIVER:-sqlserver}
+      DB_HOST: ${MONITORING_DB_HOST:-192.168.123.119}
+      DB_PORT: ${MONITORING_DB_PORT:-1433}
+      DB_USERNAME: ${MONITORING_DB_USERNAME}
+      DB_PASSWORD: ${MONITORING_DB_PASSWORD}
+      DB_DATABASE: ${MONITORING_DB_DATABASE}
+
+      # Database Connection Pool
+      DB_MAX_OPEN_CONNS: ${MONITORING_DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${MONITORING_DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME: ${MONITORING_DB_CONN_MAX_LIFETIME:-5m}
+
+      # Redis (shared with other services on VM3)
+      REDIS_HOST: ${REDIS_HOST:-192.168.120.41}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      # JWT (shared secret — same as auth-service)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGO: ${JWT_ALGO:-HS256}
+
+      # Blogger API
+      BLOGGER_API_KEY: ${BLOGGER_API_KEY:-}
+
+      # Google Search Console
+      GSC_SERVICE_ACCOUNT_JSON: ${GSC_SERVICE_ACCOUNT_JSON:-/app/secrets/gsc-service-account.json}
+      GSC_SITE_URL: ${GSC_SITE_URL:-sc-domain:unila.ac.id}
+      GSC_AUTO_REMOVE_THRESHOLD: ${GSC_AUTO_REMOVE_THRESHOLD:-15}
+      GSC_ENABLED: ${GSC_ENABLED:-false}
+
+      # Crawler
+      CRAWLER_MAX_DEPTH: ${CRAWLER_MAX_DEPTH:-3}
+      CRAWLER_MAX_PAGES: ${CRAWLER_MAX_PAGES:-500}
+      CRAWLER_RATE_LIMIT_MS: ${CRAWLER_RATE_LIMIT_MS:-1000}
+      CRAWLER_CONCURRENT_SITES: ${CRAWLER_CONCURRENT_SITES:-3}
+      CRAWLER_TIMEOUT_SEC: ${CRAWLER_TIMEOUT_SEC:-30}
+
+      # Go runtime — VM3 has 8 CPU / 16GB RAM
+      GOMAXPROCS: 4
+      GOGC: 100
+
+      # Timezone
+      TZ: Asia/Jakarta
+
+    volumes:
+      # GSC service account JSON (mount dari host, jangan di-commit)
+      - /var/www/my-unila/deployment/production/vm3-backend2/secrets:/app/secrets:ro
+
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 512M
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8089/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=monitoring,vm=vm3"
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
