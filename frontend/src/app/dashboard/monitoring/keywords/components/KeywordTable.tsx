@@ -2,7 +2,7 @@
 
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip, Button, Tooltip, Switch, Spinner } from "@heroui/react";
+import { Chip, Button, Tooltip } from "@heroui/react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { Keyword } from "@/lib/services/webmon/keywordService";
 
@@ -51,13 +51,22 @@ export default function KeywordTable({ data, isLoading, onEdit, onDelete, onTogg
             label: "Aktif",
             sortable: true,
             render: (item) => (
-                <Switch
-                    size="sm"
-                    isSelected={item.is_active === 1}
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={item.is_active === 1}
                     aria-label="Toggle keyword active state"
-                    color="success"
-                    onValueChange={() => onToggleActive?.(item)}
-                />
+                    onClick={() => onToggleActive?.(item)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-500 ${
+                        item.is_active === 1 ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                >
+                    <span
+                        className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ${
+                            item.is_active === 1 ? "translate-x-4" : "translate-x-0.5"
+                        }`}
+                    />
+                </button>
             ),
         },
         {
@@ -84,12 +93,10 @@ export default function KeywordTable({ data, isLoading, onEdit, onDelete, onTogg
         },
     ];
 
-    if (isLoading) {
-        return <div className="flex justify-center py-10"><Spinner label="Memuat keywords..." /></div>;
-    }
 
     return (
         <DataTable
+            loading={isLoading}
             data={data}
             columns={columns}
             searchable

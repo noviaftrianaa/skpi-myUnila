@@ -2,7 +2,7 @@
 
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip, Button, Tooltip, Spinner } from "@heroui/react";
+import { Chip, Button, Tooltip } from "@heroui/react";
 import { FiCheck, FiX, FiExternalLink, FiEye } from "react-icons/fi";
 import { Threat } from "@/lib/services/webmon/threatService";
 
@@ -131,12 +131,10 @@ export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDet
         },
     ];
 
-    if (isLoading) {
-        return <div className="flex justify-center py-10"><Spinner label="Memuat data ancaman..." /></div>;
-    }
 
     return (
         <DataTable
+            loading={isLoading}
             data={data}
             columns={columns}
             searchable

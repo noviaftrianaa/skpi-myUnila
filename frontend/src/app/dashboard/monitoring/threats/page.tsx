@@ -13,12 +13,12 @@ function exportThreatsCSV(threats: Threat[]) {
     const headers = ["ID", "Situs", "URL Halaman", "Kategori", "Skor", "Keyword", "Status", "Terdeteksi"];
     const rows = threats.map((t) => [
         t.id,
-        `"${(t.site_name || t.site_id).replace(/"/g, '""')}"`,
-        `"${t.page_url.replace(/"/g, '""')}"`,
-        t.category,
-        t.threat_score,
-        `"${t.matched_keywords.replace(/"/g, '""')}"`,
-        t.status,
+        `"${(t.site_name || t.site_id || "").replace(/"/g, '""')}"`,
+        `"${(t.page_url || "").replace(/"/g, '""')}"`,
+        t.category || "",
+        t.threat_score ?? 0,
+        `"${(t.matched_keywords || "").replace(/"/g, '""')}"`,
+        t.status || "",
         t.detected_at ? new Date(t.detected_at).toLocaleDateString("id-ID") : "-",
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -45,7 +45,7 @@ export default function ThreatsPage() {
                 threatService.listThreats({ limit: 100 }),
                 threatService.getStats(),
             ]);
-            setThreats(threatsRes.data || []);
+            setThreats(threatsRes.items || []);
             setStats(statsRes);
         } catch {
             toast.error("Gagal memuat data ancaman");
@@ -96,9 +96,9 @@ export default function ThreatsPage() {
                     startContent={<FiDownload />}
                     className="font-medium"
                     onPress={handleExport}
-                    isDisabled={isLoading || threats.length === 0}
+                    isDisabled={isLoading}
                 >
-                    Export Laporan ({threats.length})
+                    {isLoading ? "Memuat..." : `Export Laporan (${threats.length})`}
                 </Button>
             </div>
 

@@ -79,13 +79,30 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size="2xl"
+            scrollBehavior="inside"
+            backdrop="blur"
+            radius="lg"
+            classNames={{
+                backdrop: "bg-black/50 backdrop-blur-sm",
+                base: "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl",
+                header: "border-b border-gray-100 dark:border-gray-800 px-6 py-4",
+                body: "px-6 py-4 space-y-4",
+                footer: "border-t border-gray-100 dark:border-gray-800 px-6 py-4",
+                closeButton: "hover:bg-gray-100 dark:hover:bg-gray-800",
+            }}
+        >
             <ModalContent>
+                {() => (
+                <>
                 <ModalHeader className="flex items-center gap-3">
                     <FiAlertCircle className="w-5 h-5 text-red-500" />
                     <span>Detail Ancaman #{threatId}</span>
                 </ModalHeader>
-                <ModalBody className="gap-4 pb-2">
+                <ModalBody>
                     {loading ? (
                         <div className="flex justify-center py-10">
                             <Spinner label="Memuat detail..." />
@@ -104,11 +121,11 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                             </div>
 
                             {/* Site & URL */}
-                            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
                                         <p className="text-xs text-gray-500 mb-0.5">Situs</p>
-                                        <p className="font-semibold text-gray-900 text-sm">{threat.site_name || threat.site_id}</p>
+                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{threat.site_name || threat.site_id}</p>
                                     </div>
                                 </div>
                                 <div>
@@ -140,13 +157,20 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                 </div>
                             </div>
 
-                            {/* Snippet */}
+                            {/* Evidence / Snippet */}
                             {threat.snippet && (
                                 <div>
-                                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Cuplikan Konten</p>
-                                    <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-sm text-gray-700 italic leading-relaxed">
-                                        &ldquo;{threat.snippet}&rdquo;
+                                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                                        Bukti HTML ({threat.snippet.split("\n").filter(Boolean).length} elemen terdeteksi)
+                                    </p>
+                                    <div className="bg-gray-900 dark:bg-black rounded-lg p-3 max-h-[240px] overflow-auto">
+                                        <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all leading-relaxed">
+                                            {threat.snippet}
+                                        </pre>
                                     </div>
+                                    <p className="text-[10px] text-gray-400 mt-1">
+                                        Elemen HTML yang mengandung keyword ancaman (hidden spam links, injected content, dll)
+                                    </p>
                                 </div>
                             )}
 
@@ -186,13 +210,14 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                         onValueChange={setNotes}
                                         minRows={2}
                                         size="sm"
+                                        variant="bordered"
                                     />
                                 </div>
                             )}
                             {threat.notes && threat.status !== "pending" && (
                                 <div>
                                     <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Catatan</p>
-                                    <p className="text-sm text-gray-700">{threat.notes}</p>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">{threat.notes}</p>
                                 </div>
                             )}
                         </>
@@ -203,6 +228,7 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                         <>
                             <Button
                                 size="sm"
+                                radius="md"
                                 variant="flat"
                                 color="primary"
                                 startContent={<FiTrash2 className="w-3.5 h-3.5" />}
@@ -215,6 +241,7 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                 <>
                                     <Button
                                         size="sm"
+                                        radius="md"
                                         color="warning"
                                         variant="flat"
                                         startContent={<FiCheck className="w-3.5 h-3.5" />}
@@ -225,6 +252,7 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                     </Button>
                                     <Button
                                         size="sm"
+                                        radius="md"
                                         color="success"
                                         variant="flat"
                                         startContent={<FiX className="w-3.5 h-3.5" />}
@@ -238,6 +266,7 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                             {threat.status === "confirmed" && (
                                 <Button
                                     size="sm"
+                                    radius="md"
                                     color="success"
                                     startContent={<FiCheck className="w-3.5 h-3.5" />}
                                     isLoading={actionLoading === "resolved"}
@@ -248,8 +277,10 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                             )}
                         </>
                     )}
-                    <Button variant="light" size="sm" onPress={onClose}>Tutup</Button>
+                    <Button variant="light" radius="md" size="sm" onPress={onClose}>Tutup</Button>
                 </ModalFooter>
+                </>
+                )}
             </ModalContent>
         </Modal>
     );

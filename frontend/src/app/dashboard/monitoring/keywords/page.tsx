@@ -18,7 +18,7 @@ export default function KeywordsPage() {
         try {
             setIsLoading(true);
             const res = await keywordService.listKeywords({ limit: 200 });
-            setKeywords(res.data || []);
+            setKeywords(res.items || []);
         } catch {
             toast.error("Gagal memuat keywords");
         } finally {
