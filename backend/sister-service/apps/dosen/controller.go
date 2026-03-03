@@ -2,6 +2,7 @@ package dosen
 
 import (
 	"fmt"
+	"strings"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -409,17 +410,18 @@ func (ctrl *Controller) DownloadDosenDokumen(c *fiber.Ctx) error {
 
 	data, contentType, fileName, err := ctrl.service.DownloadDosenDokumen(idDok)
 	if err != nil {
-		if err.Error() == "dokumen not found" || err.Error() == "dokumen has no MinIO path" {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "dokumen not found") || strings.Contains(errMsg, "no MinIO path") {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"success": false,
 				"message": "Document not found",
-				"error":   err.Error(),
+				"error":   errMsg,
 			})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"message": "Failed to download document",
-			"error":   err.Error(),
+			"error":   errMsg,
 		})
 	}
 
