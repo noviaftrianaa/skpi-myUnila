@@ -32,7 +32,8 @@ func (r *repository) ListLast(n int) ([]*DailySummary, error) {
 		    total_sites_monitored, sites_online, sites_offline, sites_compromised,
 		    new_threats_count, resolved_threats_count, active_threats_count,
 		    overall_status, top_threat_categories,
-		    create_date, id_creator, last_update, id_updater, soft_delete
+		    create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		    last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.daily_summary
 		WHERE soft_delete = 0
 		ORDER BY summary_date DESC`, n)
@@ -46,7 +47,8 @@ func (r *repository) GetByDate(date string) (*DailySummary, error) {
 		    total_sites_monitored, sites_online, sites_offline, sites_compromised,
 		    new_threats_count, resolved_threats_count, active_threats_count,
 		    overall_status, top_threat_categories,
-		    create_date, id_creator, last_update, id_updater, soft_delete
+		    create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		    last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.daily_summary
 		WHERE CONVERT(date, summary_date) = CONVERT(date, @p1) AND soft_delete = 0`, date).StructScan(s)
 	if err != nil {

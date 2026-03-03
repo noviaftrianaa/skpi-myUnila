@@ -16,6 +16,7 @@ type Repository interface {
 	UpdateJobStarted(id int) error
 	UpdateJobFinished(id int, status string, errMsg *string) error
 	ListJobs(f JobFilter) ([]*CrawlJob, int, error)
+	SoftDeleteJob(id int) error
 
 	// CrawlSession
 	InsertSession(sess *CrawlSession) (int, error)
@@ -40,6 +41,23 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
+// Shared column lists with CONVERT for uniqueidentifier columns
+const jobColumns = `id, CONVERT(nvarchar(36), site_id) AS site_id, job_type, status,
+	CONVERT(nvarchar(36), triggered_by) AS triggered_by,
+	started_at, finished_at, error_msg, notes,
+	create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+	last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete`
+
+const sessionColumns = `id, job_id, CONVERT(nvarchar(36), site_id) AS site_id, status,
+	total_pages, threat_count, started_at, finished_at, error_msg,
+	create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+	last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete`
+
+const pageColumns = `id, session_id, CONVERT(nvarchar(36), site_id) AS site_id,
+	page_url, page_title, http_code, content_hash, has_threat, threat_score, crawled_at,
+	create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+	last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete`
+
 // ─── CrawlJob ────────────────────────────────────────────────────────────────
 
 func (r *repository) InsertJob(job *CrawlJob) (int, error) {
@@ -58,8 +76,8 @@ func (r *repository) InsertJob(job *CrawlJob) (int, error) {
 
 func (r *repository) GetJobByID(id int) (*CrawlJob, error) {
 	var j CrawlJob
-	err := r.db.Get(&j, `
-		SELECT * FROM monitoring.crawl_jobs WHERE id = @p1 AND soft_delete = 0`, id)
+	err := r.db.Get(&j,
+		`SELECT `+jobColumns+` FROM monitoring.crawl_jobs WHERE id = @p1 AND soft_delete = 0`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +146,7 @@ func (r *repository) ListJobs(f JobFilter) ([]*CrawlJob, int, error) {
 
 	pageArgs := append(args, limit, offset)
 	rows, err := r.db.Queryx(
-		`SELECT * FROM monitoring.crawl_jobs WHERE `+whereClause+
+		`SELECT `+jobColumns+` FROM monitoring.crawl_jobs WHERE `+whereClause+
 			fmt.Sprintf(` ORDER BY id DESC OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, n+1, n),
 		pageArgs...,
 	)
@@ -191,8 +209,8 @@ func (r *repository) UpdateSessionFinished(id, totalPages, threatCount int, stat
 
 func (r *repository) ListSessionsByJob(jobID int) ([]*CrawlSession, error) {
 	var list []*CrawlSession
-	err := r.db.Select(&list, `
-		SELECT * FROM monitoring.crawl_sessions
+	err := r.db.Select(&list,
+		`SELECT `+sessionColumns+` FROM monitoring.crawl_sessions
 		WHERE job_id = @p1 AND soft_delete = 0
 		ORDER BY id DESC`, jobID)
 	return list, err
@@ -218,11 +236,27 @@ func (r *repository) InsertPage(page *CrawlPage) (int, error) {
 
 func (r *repository) ListPagesBySession(sessionID int) ([]*CrawlPage, error) {
 	var list []*CrawlPage
-	err := r.db.Select(&list, `
-		SELECT * FROM monitoring.crawl_pages
+	err := r.db.Select(&list,
+		`SELECT `+pageColumns+` FROM monitoring.crawl_pages
 		WHERE session_id = @p1 AND soft_delete = 0
 		ORDER BY id DESC`, sessionID)
 	return list, err
+}
+
+func (r *repository) SoftDeleteJob(id int) error {
+	now := time.Now()
+	_, err := r.db.Exec(`
+		UPDATE monitoring.crawl_jobs SET soft_delete = 1, last_update = @p1 WHERE id = @p2`, now, id)
+	if err != nil {
+		return err
+	}
+	// Also soft-delete related sessions and pages
+	r.db.Exec(`
+		UPDATE monitoring.crawl_sessions SET soft_delete = 1, last_update = @p1 WHERE job_id = @p2`, now, id)
+	r.db.Exec(`
+		UPDATE monitoring.crawl_pages SET soft_delete = 1, last_update = @p1
+		WHERE session_id IN (SELECT id FROM monitoring.crawl_sessions WHERE job_id = @p2)`, now, id)
+	return nil
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────────────

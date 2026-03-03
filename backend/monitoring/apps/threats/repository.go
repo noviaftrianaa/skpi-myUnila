@@ -15,6 +15,7 @@ type Repository interface {
 	Stats() (*ThreatStats, error)
 	Insert(t *DetectedThreat) (int, error)
 	ExistsByURL(pageURL string) (bool, error)
+	UpdateSnippetByURL(pageURL string, snippet string) error
 	InsertAlert(a *AlertNotification) error
 }
 
@@ -66,11 +67,13 @@ func (r *repository) List(f ThreatFilter) ([]*DetectedThreat, int, error) {
 	r.db.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM monitoring.detected_threats t WHERE %s", whereStr), args...).Scan(&total)
 
 	dataSQL := fmt.Sprintf(`
-		SELECT t.id, t.site_id, t.crawl_page_id, t.page_url, t.page_title,
-		       t.matched_keywords, t.threat_score, t.category, t.status,
-		       t.detected_at, t.confirmed_at, t.confirmed_by,
-		       t.resolved_at, t.resolved_by, t.notes,
-		       t.create_date, t.id_creator, t.last_update, t.id_updater, t.soft_delete
+		SELECT t.id, CONVERT(nvarchar(36), t.site_id) AS site_id, t.crawl_page_id,
+		       t.page_url, t.page_title,
+		       t.matched_keywords, t.threat_score, t.category, t.snippet, t.status,
+		       t.detected_at, t.confirmed_at, CONVERT(nvarchar(36), t.confirmed_by) AS confirmed_by,
+		       t.resolved_at, CONVERT(nvarchar(36), t.resolved_by) AS resolved_by, t.notes,
+		       t.create_date, CONVERT(nvarchar(36), t.id_creator) AS id_creator,
+		       t.last_update, CONVERT(nvarchar(36), t.id_updater) AS id_updater, t.soft_delete
 		FROM monitoring.detected_threats t
 		WHERE %s
 		ORDER BY t.detected_at DESC
@@ -103,11 +106,13 @@ func (r *repository) List(f ThreatFilter) ([]*DetectedThreat, int, error) {
 func (r *repository) GetByID(id int) (*DetectedThreat, error) {
 	t := &DetectedThreat{}
 	err := r.db.QueryRowx(`
-		SELECT id, site_id, crawl_page_id, page_url, page_title,
-		       matched_keywords, threat_score, category, status,
-		       detected_at, confirmed_at, confirmed_by,
-		       resolved_at, resolved_by, notes,
-		       create_date, id_creator, last_update, id_updater, soft_delete
+		SELECT id, CONVERT(nvarchar(36), site_id) AS site_id, crawl_page_id,
+		       page_url, page_title,
+		       matched_keywords, threat_score, category, snippet, status,
+		       detected_at, confirmed_at, CONVERT(nvarchar(36), confirmed_by) AS confirmed_by,
+		       resolved_at, CONVERT(nvarchar(36), resolved_by) AS resolved_by, notes,
+		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		       last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.detected_threats
 		WHERE id = @p1 AND soft_delete = 0`, id).StructScan(t)
 	if err != nil {
@@ -181,11 +186,11 @@ func (r *repository) Stats() (*ThreatStats, error) {
 	}
 
 	rows2, _ := r.db.Queryx(`
-		SELECT TOP 10 t.site_id, s.name AS site_name, COUNT(*) AS cnt
+		SELECT TOP 10 CONVERT(nvarchar(36), t.site_id) AS site_id, s.name AS site_name, COUNT(*) AS cnt
 		FROM monitoring.detected_threats t
 		LEFT JOIN monitoring.sites s ON t.site_id = s.id
 		WHERE t.soft_delete = 0
-		GROUP BY t.site_id, s.name
+		GROUP BY CONVERT(nvarchar(36), t.site_id), s.name
 		ORDER BY cnt DESC`)
 	if rows2 != nil {
 		defer rows2.Close()
@@ -208,13 +213,13 @@ func (r *repository) Insert(t *DetectedThreat) (int, error) {
 	err := r.db.QueryRow(`
 		INSERT INTO monitoring.detected_threats (
 			site_id, crawl_page_id, page_url, page_title,
-			matched_keywords, threat_score, category, status, detected_at,
+			matched_keywords, threat_score, category, snippet, status, detected_at,
 			create_date, id_creator, last_update, soft_delete
 		)
 		OUTPUT INSERTED.id
-		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, 0)`,
+		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, 0)`,
 		t.SiteID, t.CrawlPageID, t.PageURL, t.PageTitle,
-		t.MatchedKeywords, t.ThreatScore, t.Category, t.Status, t.DetectedAt,
+		t.MatchedKeywords, t.ThreatScore, t.Category, t.Snippet, t.Status, t.DetectedAt,
 		t.CreateDate, t.IDCreator, t.LastUpdate,
 	).Scan(&id)
 	return id, err
@@ -226,6 +231,16 @@ func (r *repository) ExistsByURL(pageURL string) (bool, error) {
 		SELECT COUNT(*) FROM monitoring.detected_threats
 		WHERE page_url = @p1 AND status IN ('pending','confirmed') AND soft_delete = 0`, pageURL).Scan(&count)
 	return count > 0, err
+}
+
+func (r *repository) UpdateSnippetByURL(pageURL string, snippet string) error {
+	_, err := r.db.Exec(`
+		UPDATE monitoring.detected_threats
+		SET snippet = @p1, last_update = @p2
+		WHERE page_url = @p3 AND status IN ('pending','confirmed') AND soft_delete = 0`,
+		snippet, time.Now(), pageURL,
+	)
+	return err
 }
 
 func (r *repository) InsertAlert(a *AlertNotification) error {

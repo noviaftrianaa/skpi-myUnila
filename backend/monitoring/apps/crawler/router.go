@@ -23,6 +23,7 @@ func Init(app *fiber.App, db *sqlx.DB, siteSvc site.Service, det *detector.Detec
 	api.Get("/crawl/jobs", ctrl.ListJobs)
 	api.Post("/crawl/jobs", ctrl.CreateJob)
 	api.Get("/crawl/jobs/:id", ctrl.GetJob)
+	api.Delete("/crawl/jobs/:id", ctrl.DeleteJob)
 	api.Get("/crawl/jobs/:id/sessions", ctrl.ListSessions)
 
 	return svc

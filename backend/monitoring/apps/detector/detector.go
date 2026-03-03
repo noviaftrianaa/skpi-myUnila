@@ -85,6 +85,7 @@ type PageResult struct {
 	Category        string // dominant category
 	MatchedKeywords []string
 	IsTheat         bool
+	Snippet         string // HTML evidence of matched keywords
 }
 
 // ScanPage scans a page's content and title for threat keywords.
@@ -158,6 +159,10 @@ func (d *Detector) ReportIfThreat(
 	}
 
 	now := time.Now()
+	var snippetPtr *string
+	if result.Snippet != "" {
+		snippetPtr = &result.Snippet
+	}
 	threat := &threats.DetectedThreat{
 		SiteID:          siteID,
 		CrawlPageID:     crawlPageID,
@@ -166,6 +171,7 @@ func (d *Detector) ReportIfThreat(
 		MatchedKeywords: strings.Join(result.MatchedKeywords, ", "),
 		ThreatScore:     result.Score,
 		Category:        result.Category,
+		Snippet:         snippetPtr,
 		Status:          "pending",
 		DetectedAt:      now,
 		CreateDate:      now,

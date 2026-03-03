@@ -92,6 +92,18 @@ func (c *Controller) ListSessions(ctx *fiber.Ctx) error {
 	return response.Success(ctx, "Sessions berhasil diambil", sessions)
 }
 
+// DELETE /api/v1/crawl/jobs/:id
+func (c *Controller) DeleteJob(ctx *fiber.Ctx) error {
+	id, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil {
+		return response.BadRequest(ctx, "ID tidak valid", nil)
+	}
+	if err := c.svc.DeleteJob(id); err != nil {
+		return response.InternalServerError(ctx, "Gagal menghapus crawl job", err.Error())
+	}
+	return response.Success(ctx, "Crawl job berhasil dihapus", nil)
+}
+
 // GET /api/v1/crawl/stats
 func (c *Controller) Stats(ctx *fiber.Ctx) error {
 	stats, err := c.svc.Stats()

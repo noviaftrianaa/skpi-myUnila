@@ -47,6 +47,10 @@ func (s *service) Report(threat *DetectedThreat) (int, error) {
 		return 0, err
 	}
 	if exists {
+		// Update snippet for existing threat if new evidence is available
+		if threat.Snippet != nil && *threat.Snippet != "" {
+			_ = s.repo.UpdateSnippetByURL(threat.PageURL, *threat.Snippet)
+		}
 		return 0, nil // already tracked
 	}
 	id, err := s.repo.Insert(threat)

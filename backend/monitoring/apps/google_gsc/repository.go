@@ -80,9 +80,11 @@ func (r *repository) List(f LogFilter) ([]*GSCRemovalLog, int, error) {
 	r.db.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM monitoring.gsc_removal_logs WHERE %s", whereStr), args...).Scan(&total)
 
 	dataSQL := fmt.Sprintf(`
-		SELECT id, threat_id, url, action, gsc_request_id, status, submitted_by,
+		SELECT id, threat_id, url, action, gsc_request_id, status,
+		       CONVERT(nvarchar(36), submitted_by) AS submitted_by,
 		       submitted_at, error_message,
-		       create_date, id_creator, last_update, id_updater, soft_delete
+		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
+		       last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete
 		FROM monitoring.gsc_removal_logs
 		WHERE %s
 		ORDER BY submitted_at DESC

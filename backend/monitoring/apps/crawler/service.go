@@ -12,6 +12,7 @@ import (
 	"monitoring-service/apps/site"
 	"monitoring-service/internal/config"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 )
@@ -36,6 +37,8 @@ type Service interface {
 	ListSessions(jobID int) ([]*CrawlSession, error)
 	// Stats returns aggregated crawler statistics
 	Stats() (*CrawlStats, error)
+	// DeleteJob soft-deletes a job and its related sessions/pages
+	DeleteJob(id int) error
 }
 
 type service struct {
@@ -82,6 +85,10 @@ func (s *service) ListSessions(jobID int) ([]*CrawlSession, error) {
 
 func (s *service) Stats() (*CrawlStats, error) {
 	return s.repo.Stats()
+}
+
+func (s *service) DeleteJob(id int) error {
+	return s.repo.SoftDeleteJob(id)
 }
 
 func (s *service) TriggerFull(triggeredBy string) error {
@@ -176,8 +183,14 @@ func (s *service) crawlSite(jobID int, sv *site.Site) {
 	threatCount := 0
 	var mu sync.Mutex
 
+	// Ensure URL has scheme
+	siteURL := sv.URL
+	if !strings.HasPrefix(siteURL, "http://") && !strings.HasPrefix(siteURL, "https://") {
+		siteURL = "https://" + siteURL
+	}
+
 	// Extract domain from URL for AllowedDomains
-	domain := extractDomain(sv.URL)
+	domain := extractDomain(siteURL)
 
 	c := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
@@ -227,6 +240,8 @@ func (s *service) crawlSite(jobID int, sv *site.Site) {
 		hasThreat := 0
 		if result.IsTheat {
 			hasThreat = 1
+			// Extract HTML evidence showing exactly where keywords were found
+			result.Snippet = extractEvidence(e, result.MatchedKeywords)
 		}
 
 		// Save crawl page
@@ -270,8 +285,8 @@ func (s *service) crawlSite(jobID int, sv *site.Site) {
 		log.Printf("⚠️  Crawler: error on %s: %v", r.Request.URL, err)
 	})
 
-	if err := c.Visit(sv.URL); err != nil {
-		log.Printf("⚠️  Crawler: failed to visit %s: %v", sv.URL, err)
+	if err := c.Visit(siteURL); err != nil {
+		log.Printf("⚠️  Crawler: failed to visit %s: %v", siteURL, err)
 	}
 	c.Wait()
 
@@ -314,4 +329,65 @@ func extractVisibleText(e *colly.HTMLElement) string {
 		}
 	})
 	return strings.TrimSpace(sb.String())
+}
+
+// extractEvidence finds HTML elements containing matched keywords and returns their
+// outer HTML as evidence. This shows hidden spam links, injected anchors, etc.
+// Max 30 evidence items, max 8KB total.
+func extractEvidence(e *colly.HTMLElement, matchedKeywords []string) string {
+	if len(matchedKeywords) == 0 {
+		return ""
+	}
+
+	// Build lowercase keyword list for matching
+	kwLower := make([]string, len(matchedKeywords))
+	for i, kw := range matchedKeywords {
+		kwLower[i] = strings.ToLower(kw)
+	}
+
+	var evidence []string
+	seen := map[string]bool{}
+	maxItems := 30
+	maxTotalBytes := 8192
+
+	// Search through link elements first (most relevant for hidden spam)
+	e.DOM.Find("a, li, p, h1, h2, h3, span").Each(func(_ int, sel *goquery.Selection) {
+		if len(evidence) >= maxItems {
+			return
+		}
+		text := strings.ToLower(strings.TrimSpace(sel.Text()))
+		if text == "" {
+			return
+		}
+
+		for _, kw := range kwLower {
+			if !strings.Contains(text, kw) {
+				continue
+			}
+
+			html, err := goquery.OuterHtml(sel)
+			if err != nil || html == "" {
+				continue
+			}
+			html = strings.TrimSpace(html)
+
+			// Skip very large elements (likely wrapper divs)
+			if len(html) > 500 {
+				continue
+			}
+			// Deduplicate
+			if seen[html] {
+				continue
+			}
+			seen[html] = true
+			evidence = append(evidence, html)
+			break
+		}
+	})
+
+	result := strings.Join(evidence, "\n")
+	if len(result) > maxTotalBytes {
+		result = result[:maxTotalBytes]
+	}
+	return result
 }
