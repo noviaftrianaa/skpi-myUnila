@@ -8,15 +8,19 @@ export interface Site {
   platform: string;
   platform_version?: string;
   blogger_blog_id?: string;
+  blogger_api_key?: string;
   sync_interval_min: number;
   last_synced_at?: string;
   status: string;         // active / inactive / compromised / maintenance
   is_active: number;
   fakultas_id?: string;
   unit_id?: string;
+  id_sms?: string;
+  nama_unit?: string;
   admin_name?: string;
   admin_email?: string;
   admin_phone?: string;
+  admin_whatsapp?: string;
   notes?: string;
   is_behind_kong: number;
   is_sso_enabled: number;
@@ -50,14 +54,15 @@ export interface SiteListFilter {
   limit?: number;
 }
 
-export interface PaginatedResponse<T> {
-  success: boolean;
-  message: string;
-  data: T[];
-  meta: { total: number; page: number; limit: number; total_pages: number };
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
 }
 
-async function listSites(filter: SiteListFilter = {}): Promise<PaginatedResponse<Site>> {
+async function listSites(filter: SiteListFilter = {}): Promise<PaginatedResult<Site>> {
   const params = new URLSearchParams();
   if (filter.status) params.set('status', filter.status);
   if (filter.platform) params.set('platform', filter.platform);
@@ -67,7 +72,8 @@ async function listSites(filter: SiteListFilter = {}): Promise<PaginatedResponse
   if (filter.limit) params.set('limit', String(filter.limit));
 
   const res = await webmonClient.get(`/api/v1/sites?${params}`);
-  return res.data;
+  const d = res.data?.data || {};
+  return { items: d.items || [], total: d.total || 0, page: d.page || 1, limit: d.limit || 20, total_pages: d.total_pages || 0 };
 }
 
 async function getSite(id: string): Promise<Site> {
@@ -111,4 +117,21 @@ export function getApiError(error: unknown): string {
   return String(error);
 }
 
-export const siteService = { listSites, getSite, createSite, updateSite, deleteSite, syncNow, checkNow, getStats };
+async function checkAll(): Promise<{ status: string }> {
+  const res = await webmonClient.post('/api/v1/sites/check-all');
+  return res.data.data;
+}
+
+export interface SMSUnit {
+  id_sms: string;
+  nm_lemb: string;
+  singkatan?: string;
+  website?: string;
+}
+
+async function listSMSUnits(): Promise<SMSUnit[]> {
+  const res = await webmonClient.get('/api/v1/sites/sms-units');
+  return res.data.data || [];
+}
+
+export const siteService = { listSites, getSite, createSite, updateSite, deleteSite, syncNow, checkNow, checkAll, getStats, listSMSUnits };

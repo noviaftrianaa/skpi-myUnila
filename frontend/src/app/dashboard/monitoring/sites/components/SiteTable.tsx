@@ -2,8 +2,8 @@
 
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Chip, Button, Tooltip, Spinner } from "@heroui/react";
-import { FiExternalLink, FiEdit2, FiTrash2, FiRefreshCw } from "react-icons/fi";
+import { Chip, Button, Tooltip } from "@heroui/react";
+import { FiExternalLink, FiEdit2, FiTrash2, FiRefreshCw, FiMessageCircle } from "react-icons/fi";
 import { Site } from "@/lib/services/webmon/siteService";
 
 interface SiteTableProps {
@@ -12,34 +12,85 @@ interface SiteTableProps {
     onEdit: (site: Site) => void;
     onSync?: (site: Site) => void;
     onDelete?: (site: Site) => void;
+    serverSide?: boolean;
+    totalRecords?: number;
+    currentPage?: number;
+    onPageChange?: (page: number) => void;
+    onRowsPerPageChange?: (rows: number) => void;
+    onSearchChange?: (query: string) => void;
 }
 
-export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete }: SiteTableProps) {
+export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete, serverSide, totalRecords, currentPage, onPageChange, onRowsPerPageChange, onSearchChange }: SiteTableProps) {
     const columns: Column<Site>[] = [
         {
             key: "name",
             label: "Situs",
             sortable: true,
-            render: (site) => (
-                <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">{site.name}</div>
-                    <a
-                        href={site.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-blue-500 hover:underline flex items-center gap-1"
-                    >
-                        {site.url} <FiExternalLink className="w-3 h-3" />
-                    </a>
-                </div>
-            ),
+            render: (site) => {
+                const fullUrl = site.url.startsWith("http") ? site.url : `https://${site.url}`;
+                return (
+                    <div>
+                        <div className="font-semibold text-gray-900 dark:text-white text-sm">{site.name}</div>
+                        <a
+                            href={fullUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                        >
+                            {site.url} <FiExternalLink className="w-3 h-3" />
+                        </a>
+                    </div>
+                );
+            },
         },
         { key: "platform", label: "Platform", sortable: true },
         {
             key: "fakultas_id",
             label: "Fakultas/Unit",
             sortable: true,
-            render: (site) => <span className="text-sm">{site.fakultas_id || site.unit_id || "-"}</span>,
+            render: (site) => (
+                <div>
+                    <span className="text-sm">{site.nama_unit || site.fakultas_id || site.unit_id || "-"}</span>
+                    {site.id_sms && (
+                        <div className="text-[10px] text-blue-400">pdrd.sms linked</div>
+                    )}
+                </div>
+            ),
+        },
+        {
+            key: "admin_name",
+            label: "Penanggung Jawab",
+            render: (site) => {
+                if (!site.admin_name && !site.admin_whatsapp) return <span className="text-xs text-gray-400">-</span>;
+                const waNumber = site.admin_whatsapp?.replace(/^0/, "62").replace(/[^0-9]/g, "");
+                const waText = encodeURIComponent(
+                    `Yth. ${site.admin_name || "Pengelola"},\n\n` +
+                    `Kami dari Tim Monitoring Web Universitas Lampung menginformasikan bahwa website *${site.name}* (${site.url}) terdeteksi memerlukan perhatian.\n\n` +
+                    `Mohon segera lakukan pengecekan dan penanganan:\n` +
+                    `1. Periksa konten website dari sisipan ilegal (judi online, dll)\n` +
+                    `2. Ganti password admin & FTP\n` +
+                    `3. Update CMS dan plugin ke versi terbaru\n` +
+                    `4. Scan malware dan hapus file mencurigakan\n\n` +
+                    `Detail lengkap dapat dilihat di dashboard monitoring.\n\nTerima kasih.`
+                );
+                return (
+                    <div className="space-y-0.5">
+                        {site.admin_name && <div className="text-xs font-medium text-gray-800 dark:text-gray-200">{site.admin_name}</div>}
+                        {site.admin_email && <div className="text-[10px] text-gray-400">{site.admin_email}</div>}
+                        {waNumber && (
+                            <a
+                                href={`https://wa.me/${waNumber}?text=${waText}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700 hover:underline"
+                            >
+                                <FiMessageCircle className="w-3 h-3" />
+                                {site.admin_whatsapp}
+                            </a>
+                        )}
+                    </div>
+                );
+            },
         },
         {
             key: "status",
@@ -113,19 +164,22 @@ export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete }:
         },
     ];
 
-    if (isLoading) {
-        return <div className="flex justify-center py-10"><Spinner label="Memuat data situs..." /></div>;
-    }
-
     return (
         <DataTable
+            loading={isLoading}
             data={data}
             columns={columns}
             searchable
-            searchKeys={["name", "url", "fakultas_id"]}
+            searchKeys={["name", "url", "fakultas_id", "admin_name", "nama_unit"]}
             searchPlaceholder="Cari situs..."
             noWrapper
             className="border-none shadow-none"
+            serverSide={serverSide}
+            totalRecords={totalRecords}
+            currentPage={currentPage}
+            onPageChange={onPageChange}
+            onRowsPerPageChange={onRowsPerPageChange}
+            onSearchChange={onSearchChange}
         />
     );
 }
