@@ -357,13 +357,6 @@ export default function PortalPage() {
     // Determine if app is in production (a_live AND a_terintegrasi)
     const isProduction = app.a_live && app.a_terintegrasi;
 
-    // --- DEMO: Bypass check for demo webmon ---
-    if (app.app_slug === 'webmon') {
-      router.push(app.url || '/dashboard/monitoring');
-      return;
-    }
-    // ------------------------------------------
-
     // Check if locked (no access) - only for production apps
     if (isProduction && !app.has_access) {
       setSelectedApp(app);

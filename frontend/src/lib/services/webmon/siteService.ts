@@ -122,6 +122,23 @@ async function checkAll(): Promise<{ status: string }> {
   return res.data.data;
 }
 
+export interface CheckAllProgress {
+  status: string;       // idle, running, completed, failed
+  total: number;
+  checked: number;
+  ok: number;
+  fail: number;
+  started_at: string;
+  updated_at: string;
+  message: string;
+  checked_by: string;
+}
+
+async function getCheckProgress(): Promise<CheckAllProgress> {
+  const res = await webmonClient.get('/api/v1/sites/check-progress');
+  return res.data.data;
+}
+
 export interface SMSUnit {
   id_sms: string;
   nm_lemb: string;
@@ -134,4 +151,4 @@ async function listSMSUnits(): Promise<SMSUnit[]> {
   return res.data.data || [];
 }
 
-export const siteService = { listSites, getSite, createSite, updateSite, deleteSite, syncNow, checkNow, checkAll, getStats, listSMSUnits };
+export const siteService = { listSites, getSite, createSite, updateSite, deleteSite, syncNow, checkNow, checkAll, getCheckProgress, getStats, listSMSUnits };

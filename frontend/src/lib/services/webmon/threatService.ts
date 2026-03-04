@@ -29,6 +29,7 @@ export interface ThreatStats {
   resolved: number;
   by_category: { category: string; count: number }[];
   top_sites: { site_id: string; site_name: string; count: number }[];
+  top_fakultas?: { fakultas_id: string; fakultas_name: string; count: number }[];
 }
 
 export interface ThreatFilter {

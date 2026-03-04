@@ -15,36 +15,36 @@ export const monitoringMenuConfig: MenuItem[] = [
     {
         title: "Dashboard",
         icon: <MdDashboard className="w-5 h-5" />,
-        href: "/dashboard/monitoring",
+        href: "/dashboard/web-monitoring",
     },
     {
         title: "Situs Terdaftar",
         icon: <FiGlobe className="w-5 h-5" />,
-        href: "/dashboard/monitoring/sites",
+        href: "/dashboard/web-monitoring/sites",
     },
     {
         title: "Pemindaian",
         icon: <FiActivity className="w-5 h-5" />,
-        href: "/dashboard/monitoring/scanner",
+        href: "/dashboard/web-monitoring/scanner",
     },
     {
         title: "Ancaman",
         icon: <FiAlertTriangle className="w-5 h-5" />,
-        href: "/dashboard/monitoring/threats",
+        href: "/dashboard/web-monitoring/threats",
     },
     {
         title: "Kata Kunci",
         icon: <FiList className="w-5 h-5" />,
-        href: "/dashboard/monitoring/keywords",
+        href: "/dashboard/web-monitoring/keywords",
     },
     {
         title: "Google Search Console",
         icon: <FiSearch className="w-5 h-5" />,
-        href: "/dashboard/monitoring/gsc",
+        href: "/dashboard/web-monitoring/gsc",
     },
     {
         title: "Pengaturan",
         icon: <FiSettings className="w-5 h-5" />,
-        href: "/dashboard/monitoring/settings",
+        href: "/dashboard/web-monitoring/settings",
     },
 ];

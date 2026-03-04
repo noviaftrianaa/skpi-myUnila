@@ -12,6 +12,7 @@ interface SiteTableProps {
     onEdit: (site: Site) => void;
     onSync?: (site: Site) => void;
     onDelete?: (site: Site) => void;
+    waTemplate?: string;
     serverSide?: boolean;
     totalRecords?: number;
     currentPage?: number;
@@ -20,7 +21,17 @@ interface SiteTableProps {
     onSearchChange?: (query: string) => void;
 }
 
-export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete, serverSide, totalRecords, currentPage, onPageChange, onRowsPerPageChange, onSearchChange }: SiteTableProps) {
+const DEFAULT_WA_TEMPLATE =
+    `Yth. {nama_pj},\n\n` +
+    `Kami dari Tim Monitoring Web Universitas Lampung menginformasikan bahwa website *{nama_situs}* ({url_situs}) terdeteksi memerlukan perhatian.\n\n` +
+    `Mohon segera lakukan pengecekan dan penanganan:\n` +
+    `1. Periksa konten website dari sisipan ilegal (judi online, dll)\n` +
+    `2. Ganti password admin & FTP\n` +
+    `3. Update CMS dan plugin ke versi terbaru\n` +
+    `4. Scan malware dan hapus file mencurigakan\n\n` +
+    `Detail lengkap dapat dilihat di dashboard monitoring.\n\nTerima kasih.`;
+
+export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete, waTemplate, serverSide, totalRecords, currentPage, onPageChange, onRowsPerPageChange, onSearchChange }: SiteTableProps) {
     const columns: Column<Site>[] = [
         {
             key: "name",
@@ -63,15 +74,12 @@ export default function SiteTable({ data, isLoading, onEdit, onSync, onDelete, s
             render: (site) => {
                 if (!site.admin_name && !site.admin_whatsapp) return <span className="text-xs text-gray-400">-</span>;
                 const waNumber = site.admin_whatsapp?.replace(/^0/, "62").replace(/[^0-9]/g, "");
+                const template = waTemplate || DEFAULT_WA_TEMPLATE;
                 const waText = encodeURIComponent(
-                    `Yth. ${site.admin_name || "Pengelola"},\n\n` +
-                    `Kami dari Tim Monitoring Web Universitas Lampung menginformasikan bahwa website *${site.name}* (${site.url}) terdeteksi memerlukan perhatian.\n\n` +
-                    `Mohon segera lakukan pengecekan dan penanganan:\n` +
-                    `1. Periksa konten website dari sisipan ilegal (judi online, dll)\n` +
-                    `2. Ganti password admin & FTP\n` +
-                    `3. Update CMS dan plugin ke versi terbaru\n` +
-                    `4. Scan malware dan hapus file mencurigakan\n\n` +
-                    `Detail lengkap dapat dilihat di dashboard monitoring.\n\nTerima kasih.`
+                    template
+                        .replace(/\{nama_pj\}/g, site.admin_name || "Pengelola")
+                        .replace(/\{nama_situs\}/g, site.name)
+                        .replace(/\{url_situs\}/g, site.url)
                 );
                 return (
                     <div className="space-y-0.5">

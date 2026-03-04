@@ -11,11 +11,25 @@ import { threatService, ThreatStats } from "@/lib/services/webmon/threatService"
 export default function TopUnitsChart() {
     const [unitData, setUnitData] = useState<DrilldownData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasTopFakultas, setHasTopFakultas] = useState(false);
 
     useEffect(() => {
         threatService.getStats()
             .then((stats: ThreatStats) => {
-                if (stats.top_sites && stats.top_sites.length > 0) {
+                // Prefer top_fakultas (grouped by faculty) over top_sites
+                if (stats.top_fakultas && stats.top_fakultas.length > 0) {
+                    setHasTopFakultas(true);
+                    setUnitData(
+                        stats.top_fakultas
+                            .filter((f) => f.count > 0)
+                            .map((f) => ({
+                                id: f.fakultas_id,
+                                name: f.fakultas_name || f.fakultas_id,
+                                value: f.count,
+                            }))
+                    );
+                } else if (stats.top_sites && stats.top_sites.length > 0) {
+                    setHasTopFakultas(false);
                     setUnitData(
                         stats.top_sites
                             .filter((s) => s.count > 0)
@@ -40,10 +54,12 @@ export default function TopUnitsChart() {
                     </div>
                     <div>
                         <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-                            Top Situs Terdampak
+                            {hasTopFakultas ? "Top Fakultas Terdampak" : "Top Situs Terdampak"}
                         </h2>
                         <p className="text-[10px] sm:text-xs text-gray-500">
-                            Situs dengan jumlah ancaman terbanyak
+                            {hasTopFakultas
+                                ? "Fakultas dengan jumlah ancaman terbanyak"
+                                : "Situs dengan jumlah ancaman terbanyak"}
                         </p>
                     </div>
                 </div>
@@ -54,12 +70,14 @@ export default function TopUnitsChart() {
                     <Skeleton className="h-[300px] w-full rounded-lg" />
                 ) : unitData.length === 0 ? (
                     <div className="flex items-center justify-center h-[300px] text-sm text-gray-400">
-                        Belum ada data ancaman per situs
+                        {hasTopFakultas
+                            ? "Belum ada data ancaman per fakultas"
+                            : "Belum ada data ancaman per situs"}
                     </div>
                 ) : (
                     <DrilldownBarChart
                         data={unitData}
-                        title="Ancaman per Situs"
+                        title={hasTopFakultas ? "Ancaman per Fakultas" : "Ancaman per Situs"}
                         color="#ef4444"
                         height={300}
                         horizontal={true}

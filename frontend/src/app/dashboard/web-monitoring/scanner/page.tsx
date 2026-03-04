@@ -231,13 +231,13 @@ export default function ScannerPage() {
                                     </div>
                                 ) : (
                                     <>
+                                        <div className="flex-1">
+                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Situs</label>
                                         <Autocomplete
-                                            label="Pilih Situs"
                                             placeholder="Ketik untuk mencari situs..."
                                             size="sm"
                                             radius="md"
                                             variant="bordered"
-                                            className="flex-1"
                                             selectedKey={selectedSiteId}
                                             onSelectionChange={(key) => setSelectedSiteId(key as string || null)}
                                             popoverProps={{
@@ -258,6 +258,7 @@ export default function ScannerPage() {
                                                 </AutocompleteItem>
                                             ))}
                                         </Autocomplete>
+                                        </div>
                                         <Button
                                             color="warning"
                                             radius="md"

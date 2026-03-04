@@ -284,9 +284,13 @@ function RecentGSCLogs() {
 const GROUP_LABELS: Record<string, string> = {
     gsc: "Google Search Console",
     crawler: "Crawler",
-    alert: "Notifikasi",
+    alert: "Notifikasi & WhatsApp",
     general: "Umum",
 };
+
+function isMultiLine(s: MonitoringSetting): boolean {
+    return s.setting_key.includes("template") || (s.setting_value?.includes("\n") ?? false);
+}
 
 function DBSettingsSection() {
     const [settings, setSettings] = useState<MonitoringSetting[]>([]);
@@ -378,35 +382,58 @@ function DBSettingsSection() {
                                             </code>
                                             <div className="flex-1 min-w-0">
                                                 {editingId === s.id ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="text"
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            className="flex-1 text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            autoFocus
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === "Enter") saveEdit(s.id);
-                                                                if (e.key === "Escape") cancelEdit();
-                                                            }}
-                                                        />
-                                                        <Button size="sm" color="primary" isIconOnly isLoading={saving}
-                                                            onPress={() => saveEdit(s.id)} className="min-w-6 h-7">
-                                                            <FiSave className="w-3 h-3" />
-                                                        </Button>
-                                                        <Button size="sm" variant="light" isIconOnly onPress={cancelEdit} className="min-w-6 h-7">
-                                                            ✕
-                                                        </Button>
-                                                    </div>
+                                                    isMultiLine(s) ? (
+                                                        <div className="space-y-2">
+                                                            <textarea
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                rows={6}
+                                                                className="w-full text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-y"
+                                                                autoFocus
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Escape") cancelEdit();
+                                                                }}
+                                                            />
+                                                            <div className="flex items-center gap-2">
+                                                                <Button size="sm" color="primary" isLoading={saving}
+                                                                    onPress={() => saveEdit(s.id)} startContent={<FiSave className="w-3 h-3" />}>
+                                                                    Simpan
+                                                                </Button>
+                                                                <Button size="sm" variant="light" onPress={cancelEdit}>Batal</Button>
+                                                                <span className="text-[10px] text-gray-400 ml-auto">Placeholder: {"{nama_pj}"}, {"{nama_situs}"}, {"{url_situs}"}</span>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={editValue}
+                                                                onChange={(e) => setEditValue(e.target.value)}
+                                                                className="flex-1 text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                autoFocus
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") saveEdit(s.id);
+                                                                    if (e.key === "Escape") cancelEdit();
+                                                                }}
+                                                            />
+                                                            <Button size="sm" color="primary" isIconOnly isLoading={saving}
+                                                                onPress={() => saveEdit(s.id)} className="min-w-6 h-7">
+                                                                <FiSave className="w-3 h-3" />
+                                                            </Button>
+                                                            <Button size="sm" variant="light" isIconOnly onPress={cancelEdit} className="min-w-6 h-7">
+                                                                ✕
+                                                            </Button>
+                                                        </div>
+                                                    )
                                                 ) : (
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-900 dark:text-gray-200 break-all">
+                                                    <div className="flex items-start gap-2">
+                                                        <span className={`text-xs text-gray-900 dark:text-gray-200 break-all ${isMultiLine(s) ? "whitespace-pre-wrap" : ""}`}>
                                                             {s.setting_value ?? <span className="text-gray-400 italic">kosong</span>}
                                                         </span>
                                                         {s.is_sensitive !== 1 && (
                                                             <button
                                                                 onClick={() => startEdit(s)}
-                                                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-opacity"
+                                                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 transition-opacity shrink-0"
                                                             >
                                                                 <FiEdit2 className="w-3 h-3" />
                                                             </button>
