@@ -161,9 +161,18 @@ class DosenProfileService
             Log::warning('Failed to fetch bidang ilmu for dosen: ' . $e->getMessage());
         }
 
+        // Build photo URL from MinIO
+        $photoUrl = sprintf(
+            '%s/%s/photos/sdm/%s.jpg',
+            env('MINIO_PUBLIC_URL', 'http://192.168.120.47:9000'),
+            env('MINIO_BUCKET', 'myunila-photos'),
+            $idSdm
+        );
+
         // Format response
         $data = [
             'id' => $encryptedId,
+            'photo_url' => $photoUrl,
             'nama' => $namaLengkap, // Nama lengkap dengan gelar
             'nama_tanpa_gelar' => $profile->nm_sdm,
             'nidn' => $profile->nidn,

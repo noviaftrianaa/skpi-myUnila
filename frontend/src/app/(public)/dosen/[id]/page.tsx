@@ -209,7 +209,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`${SISTER_API_URL}/dosen/photo/${dosen.id}`}
+                    src={dosen.photo_url || `${SISTER_API_URL}/dosen/photo/${dosen.id}`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {
