@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Divider, Chip, Skeleton, Pagination, Select, SelectItem } from "@heroui/react";
-import { FiExternalLink, FiRefreshCw } from "react-icons/fi";
+import { Card, CardBody, CardHeader, Divider, Chip, Skeleton, Pagination, Select, SelectItem, Button, Checkbox } from "@heroui/react";
+import { FiExternalLink, FiRefreshCw, FiRotateCw } from "react-icons/fi";
 import { gscService, GSCRemovalLog } from "@/lib/services/webmon/gscService";
+import { toast } from "react-hot-toast";
 
 const STATUS_CONFIG: Record<string, { label: string; color: "success" | "warning" | "danger" | "default" | "primary" }> = {
     submitted: { label: "Disubmit", color: "primary" },
@@ -12,6 +13,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: "success" | "warning
     rate_limited: { label: "Rate Limit", color: "warning" },
     skipped:   { label: "Dilewati", color: "default" },
 };
+
+const RETRYABLE_STATUSES = new Set(["failed", "rate_limited", "skipped"]);
 
 interface GSCRemovalTableProps {
     refreshTrigger?: number;
@@ -23,10 +26,13 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
+    const [selected, setSelected] = useState<Set<number>>(new Set());
+    const [retrying, setRetrying] = useState(false);
     const limit = 15;
 
     const fetchLogs = useCallback(() => {
         setLoading(true);
+        setSelected(new Set());
         gscService.getLogs({ page, limit, status: statusFilter || undefined })
             .then(({ data, total }) => { setLogs(data); setTotal(total); })
             .catch(() => {})
@@ -34,6 +40,55 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
     }, [page, statusFilter, refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+    const retryableLogs = logs.filter((l) => RETRYABLE_STATUSES.has(l.status));
+    const allRetryableSelected = retryableLogs.length > 0 && retryableLogs.every((l) => selected.has(l.id));
+
+    const toggleSelect = (id: number) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (allRetryableSelected) {
+            setSelected(new Set());
+        } else {
+            setSelected(new Set(retryableLogs.map((l) => l.id)));
+        }
+    };
+
+    const handleRetrySelected = async () => {
+        const toRetry = logs.filter((l) => selected.has(l.id) && RETRYABLE_STATUSES.has(l.status));
+        if (toRetry.length === 0) return;
+
+        setRetrying(true);
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const log of toRetry) {
+            try {
+                await gscService.removeURL({
+                    threat_id: log.threat_id,
+                    url: log.url,
+                    action: log.action,
+                });
+                successCount++;
+            } catch {
+                failCount++;
+            }
+        }
+
+        if (successCount > 0) toast.success(`${successCount} URL berhasil di-resync`);
+        if (failCount > 0) toast.error(`${failCount} URL gagal di-resync`);
+
+        setRetrying(false);
+        setSelected(new Set());
+        fetchLogs();
+    };
 
     const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -46,6 +101,18 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
                         <p className="text-xs text-gray-500">Log request penghapusan URL dari Google Search</p>
                     </div>
                     <div className="flex items-center gap-2">
+                        {selected.size > 0 && (
+                            <Button
+                                size="sm"
+                                color="primary"
+                                variant="flat"
+                                startContent={<FiRotateCw className={`w-3.5 h-3.5 ${retrying ? "animate-spin" : ""}`} />}
+                                isLoading={retrying}
+                                onPress={handleRetrySelected}
+                            >
+                                Resync ({selected.size})
+                            </Button>
+                        )}
                         <Select
                             size="sm"
                             placeholder="Semua status"
@@ -81,6 +148,16 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
+                                    <th className="px-3 py-2.5 w-10">
+                                        {retryableLogs.length > 0 && (
+                                            <Checkbox
+                                                size="sm"
+                                                isSelected={allRetryableSelected}
+                                                isIndeterminate={selected.size > 0 && !allRetryableSelected}
+                                                onValueChange={toggleSelectAll}
+                                            />
+                                        )}
+                                    </th>
                                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase">URL</th>
                                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-24">Aksi</th>
                                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-28">Status</th>
@@ -91,8 +168,20 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
                             <tbody className="divide-y divide-gray-100">
                                 {logs.map((log) => {
                                     const sc = STATUS_CONFIG[log.status] ?? { label: log.status, color: "default" as const };
+                                    const canRetry = RETRYABLE_STATUSES.has(log.status);
                                     return (
-                                        <tr key={log.id} className="hover:bg-gray-50">
+                                        <tr key={log.id} className={`hover:bg-gray-50 ${selected.has(log.id) ? "bg-blue-50/50" : ""}`}>
+                                            <td className="px-3 py-3">
+                                                {canRetry ? (
+                                                    <Checkbox
+                                                        size="sm"
+                                                        isSelected={selected.has(log.id)}
+                                                        onValueChange={() => toggleSelect(log.id)}
+                                                    />
+                                                ) : (
+                                                    <span className="w-4 h-4 block" />
+                                                )}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <div className="text-xs text-gray-900 break-all max-w-xs line-clamp-2">{log.url}</div>
                                                 {log.error_message && (
