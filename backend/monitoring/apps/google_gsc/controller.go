@@ -89,14 +89,22 @@ func (c *Controller) RemoveByThreatID(ctx *fiber.Ctx) error {
 		return response.BadRequest(ctx, "Invalid threat ID", "")
 	}
 
+	// Try to get URL from body, fallback to lookup from threat
 	var body struct {
 		URL string `json:"url"`
 	}
-	if err := ctx.BodyParser(&body); err != nil || body.URL == "" {
-		return response.BadRequest(ctx, "url wajib diisi", "")
+	_ = ctx.BodyParser(&body)
+
+	url := body.URL
+	if url == "" {
+		// Auto-lookup URL from threat
+		url, err = c.svc.GetThreatURL(threatID)
+		if err != nil || url == "" {
+			return response.BadRequest(ctx, "Tidak dapat menemukan URL untuk threat ini", "")
+		}
 	}
 
-	req := RemoveURLRequest{ThreatID: threatID, URL: body.URL, Action: "URL_DELETED"}
+	req := RemoveURLRequest{ThreatID: threatID, URL: url, Action: "URL_DELETED"}
 	submittedBy := middleware.GetUserID(ctx)
 	result, err := c.svc.SubmitRemoval(req, submittedBy)
 	if err != nil {

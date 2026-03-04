@@ -28,6 +28,7 @@ type Service interface {
 	SubmitRecrawl(req RemoveURLRequest, submittedBy string) (*GSCRemovalLog, error)
 	GetQuota() (*QuotaStatus, error)
 	ListLogs(f LogFilter) ([]*GSCRemovalLog, int, error)
+	GetThreatURL(threatID int) (string, error)
 }
 
 type service struct {
@@ -93,6 +94,10 @@ func (s *service) GetQuota() (*QuotaStatus, error) {
 
 func (s *service) ListLogs(f LogFilter) ([]*GSCRemovalLog, int, error) {
 	return s.repo.List(f)
+}
+
+func (s *service) GetThreatURL(threatID int) (string, error) {
+	return s.repo.GetThreatURL(threatID)
 }
 
 func (s *service) SubmitRemoval(req RemoveURLRequest, submittedBy string) (*GSCRemovalLog, error) {

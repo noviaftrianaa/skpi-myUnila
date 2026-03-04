@@ -13,6 +13,7 @@ type Repository interface {
 	UpdateStatus(id int64, status string, gscRequestID *string, errMsg *string) error
 	List(f LogFilter) ([]*GSCRemovalLog, int, error)
 	CountToday() (int, error)
+	GetThreatURL(threatID int) (string, error)
 }
 
 type repository struct {
@@ -107,6 +108,15 @@ func (r *repository) List(f LogFilter) ([]*GSCRemovalLog, int, error) {
 		list = append(list, l)
 	}
 	return list, total, nil
+}
+
+func (r *repository) GetThreatURL(threatID int) (string, error) {
+	var url string
+	err := r.db.QueryRow(
+		`SELECT page_url FROM monitoring.detected_threats WHERE id = @p1 AND soft_delete = 0`,
+		threatID,
+	).Scan(&url)
+	return url, err
 }
 
 func (r *repository) CountToday() (int, error) {
