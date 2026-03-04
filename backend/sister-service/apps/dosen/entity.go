@@ -241,6 +241,30 @@ type BatchDokumenSyncResult struct {
 	SyncedBy     string `json:"synced_by"`
 }
 
+// DokumenListItem represents a document record joined with dosen name for listing
+type DokumenListItem struct {
+	IDSDM     string  `json:"id_sdm" db:"id_sdm"`
+	NamaSDM   string  `json:"nama_sdm" db:"nm_sdm"`
+	IDDok     string  `json:"id_dok" db:"id_dok"`
+	IDJnsDok  int     `json:"id_jns_dok" db:"id_jns_dok"`
+	NmJnsDok  *string `json:"nm_jns_dok" db:"nm_jns_dok"`
+	NmDok     *string `json:"nm_dok" db:"nm_dok"`
+	NmFile    *string `json:"file_name" db:"file_name"`
+	MediaType *string `json:"media_type" db:"media_type"`
+	MinioPath *string `json:"url" db:"url"`
+	WktUnggah *string `json:"wkt_unggah" db:"wkt_unggah"`
+	LastSync  *string `json:"last_sync" db:"last_sync"`
+}
+
+// DokumenListResult represents paginated dokumen list response
+type DokumenListResult struct {
+	Data       []DokumenListItem `json:"data"`
+	Total      int               `json:"total"`
+	Page       int               `json:"page"`
+	Limit      int               `json:"limit"`
+	TotalPages int               `json:"total_pages"`
+}
+
 // DosenStats represents dosen statistics
 type DosenStats struct {
 	TotalDosen      int                    `json:"total_dosen"`

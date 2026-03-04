@@ -20,6 +20,7 @@ type Repository interface {
 	UpsertDokumen(item *DokumenSyncItem) error
 	GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error)
 	GetDokumenMinioPath(idDok string) (string, error)
+	GetAllDokumen(page, limit int, search string) (*DokumenListResult, error)
 }
 
 type repository struct {
@@ -767,4 +768,74 @@ func (r *repository) GetDokumenMinioPath(idDok string) (string, error) {
 		return "", fmt.Errorf("dokumen not found: %w", err)
 	}
 	return minioPath, nil
+}
+
+// GetAllDokumen retrieves paginated list of all synced documents (dok.dok_sdm + dok.dokumen + pdrd.sdm)
+func (r *repository) GetAllDokumen(page, limit int, search string) (*DokumenListResult, error) {
+	offset := (page - 1) * limit
+
+	whereConditions := "WHERE ds.soft_delete = 0 AND d.soft_delete = 0"
+	args := []interface{}{}
+	argIndex := 1
+
+	if search != "" {
+		whereConditions += fmt.Sprintf(" AND (s.nm_sdm LIKE @p%d OR d.nm_dok LIKE @p%d OR d.file_name LIKE @p%d)", argIndex, argIndex, argIndex)
+		args = append(args, "%"+search+"%")
+		argIndex++
+	}
+
+	// Count total
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok
+		JOIN pdrd.sdm s ON s.id_sdm = ds.id_sdm
+		%s
+	`, whereConditions)
+
+	var total int
+	if err := r.db.Get(&total, countQuery, args...); err != nil {
+		return nil, fmt.Errorf("failed to count dokumen: %w", err)
+	}
+
+	// Get paginated data
+	dataQuery := fmt.Sprintf(`
+		SELECT
+			CONVERT(NVARCHAR(36), ds.id_sdm) AS id_sdm,
+			s.nm_sdm,
+			CONVERT(NVARCHAR(36), d.id_dok) AS id_dok,
+			d.id_jns_dok,
+			jd.nm_jns_dok,
+			d.nm_dok,
+			d.file_name,
+			d.media_type,
+			d.url,
+			CONVERT(NVARCHAR(19), d.wkt_unggah, 120) AS wkt_unggah,
+			CONVERT(NVARCHAR(19), ds.last_sync, 120) AS last_sync
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		JOIN pdrd.sdm s ON s.id_sdm = ds.id_sdm AND s.soft_delete = 0
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		%s
+		ORDER BY ds.last_sync DESC
+		OFFSET @p%d ROWS
+		FETCH NEXT @p%d ROWS ONLY
+	`, whereConditions, argIndex, argIndex+1)
+
+	args = append(args, offset, limit)
+
+	var results []DokumenListItem
+	if err := r.db.Select(&results, dataQuery, args...); err != nil {
+		return nil, fmt.Errorf("failed to get dokumen list: %w", err)
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return &DokumenListResult{
+		Data:       results,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
 }

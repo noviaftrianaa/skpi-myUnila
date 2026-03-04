@@ -353,6 +353,37 @@ func (ctrl *Controller) SyncDosenDokumen(c *fiber.Ctx) error {
 	})
 }
 
+// GetAllDokumen handles GET /api/v1/dosen/dokumen
+// @Summary Get paginated list of all synced documents
+// @Description Returns all documents from dok.dok_sdm joined with dok.dokumen and pdrd.sdm
+func (ctrl *Controller) GetAllDokumen(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 20)
+	search := c.Query("search", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	result, err := ctrl.service.GetAllDokumen(page, limit, search)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen list",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("%d dokumen found", result.Total),
+		"data":    result,
+	})
+}
+
 // GetDosenDokumenList handles GET /api/v1/dosen/dokumen/:id_sdm
 // @Summary Get list of documents for a dosen
 // @Description Returns metadata of all documents synced from SISTER API for a given dosen

@@ -32,8 +32,9 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 		dosenAPI.Get("/", ctrl.GetDosenList)
 		dosenAPI.Get("/stats", ctrl.GetDosenStats)
 		dosenAPI.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
-		// Dokumen routes — download must be before /:id_sdm to avoid param collision
+		// Dokumen routes — exact paths before param routes to avoid collision
 		dosenAPI.Get("/dokumen/download/:id_dok", ctrl.DownloadDosenDokumen)
+		dosenAPI.Get("/dokumen/all", ctrl.GetAllDokumen)
 		dosenAPI.Get("/dokumen/:id_sdm", ctrl.GetDosenDokumenList)
 		dosenAPI.Get("/:id_sdm", ctrl.GetDosenDetail)
 	}

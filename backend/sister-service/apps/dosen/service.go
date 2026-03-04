@@ -24,6 +24,7 @@ type Service interface {
 	SyncDosenPhotosToMinIO(syncedBy string) (*BatchPhotoSyncResult, error)
 	SyncDosenDokumenToMinIO(syncedBy string) (*BatchDokumenSyncResult, error)
 	GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error)
+	GetAllDokumen(page, limit int, search string) (*DokumenListResult, error)
 	DownloadDosenDokumen(idDok string) ([]byte, string, string, error)
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
@@ -220,6 +221,10 @@ func (s *service) ForceRefreshToken() error {
 // GetDosenDokumen returns list of documents for a dosen from DB (dok.dok_sdm + dok.dokumen)
 func (s *service) GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error) {
 	return s.repo.GetDokumenBySDM(idSDM)
+}
+
+func (s *service) GetAllDokumen(page, limit int, search string) (*DokumenListResult, error) {
+	return s.repo.GetAllDokumen(page, limit, search)
 }
 
 // DownloadDosenDokumen retrieves a document from MinIO by its id_dok.
