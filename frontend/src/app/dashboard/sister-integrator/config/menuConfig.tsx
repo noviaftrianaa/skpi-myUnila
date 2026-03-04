@@ -45,6 +45,16 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
+        title: "Foto Dosen",
+        href: "/dashboard/sister-integrator/pdrd/dosen-foto",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
+        title: "Dokumen Dosen",
+        href: "/dashboard/sister-integrator/pdrd/dosen-dokumen",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
         title: "Penugasan PTK",
         href: "/dashboard/sister-integrator/pdrd/penugasan",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
