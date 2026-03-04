@@ -95,6 +95,19 @@ values
     ('general', 'monitoring_name',
      'Unila Web Monitoring',
      'Nama sistem monitoring',
+     0, @now, @sys, @now, 0),
+
+    ('alert', 'whatsapp_template',
+     'Yth. {nama_pj},' + CHAR(10) + CHAR(10)
+     + 'Kami dari Tim Monitoring Web Universitas Lampung menginformasikan bahwa website *{nama_situs}* ({url_situs}) terdeteksi memerlukan perhatian.' + CHAR(10) + CHAR(10)
+     + 'Mohon segera lakukan pengecekan dan penanganan:' + CHAR(10)
+     + '1. Periksa konten website dari sisipan ilegal (judi online, dll)' + CHAR(10)
+     + '2. Ganti password admin & FTP' + CHAR(10)
+     + '3. Update CMS dan plugin ke versi terbaru' + CHAR(10)
+     + '4. Scan malware dan hapus file mencurigakan' + CHAR(10) + CHAR(10)
+     + 'Detail lengkap dapat dilihat di dashboard monitoring.' + CHAR(10) + CHAR(10)
+     + 'Terima kasih.',
+     'Template pesan WhatsApp ke PJ situs. Placeholder: {nama_pj}, {nama_situs}, {url_situs}',
      0, @now, @sys, @now, 0)
 go
 
