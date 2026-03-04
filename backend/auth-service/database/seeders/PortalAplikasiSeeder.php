@@ -110,6 +110,8 @@ class PortalAplikasiSeeder extends Seeder
             $aTerintegrasi = $app['a_terintegrasi'] ?? false;
             $aComingSoon = $app['a_coming_soon'] ?? false;
             $aMaintenance = $app['a_maintenance'] ?? false;
+            // a_live: explicitly set or auto-derive (terintegrasi + not coming_soon = live)
+            $aLive = $app['a_live'] ?? ($aTerintegrasi && !$aComingSoon);
 
             // Check if app exists by nm_aplikasi AND url (both must match)
             // Case-insensitive comparison for nm_aplikasi
@@ -127,7 +129,7 @@ class PortalAplikasiSeeder extends Seeder
                 // - a_generate_menu = 0 (false)
                 // - a_integrasi_cas = 0 (false)
                 // - a_sistem_internal_pt = 0 (false)
-                // - a_terintegrasi, a_coming_soon, a_maintenance from data
+                // - a_terintegrasi, a_coming_soon, a_maintenance, a_live from data
                 // - expired_date = NULL (no expiry)
                 DB::update(
                     "UPDATE man_akses.aplikasi SET
@@ -145,6 +147,7 @@ class PortalAplikasiSeeder extends Seeder
                         a_terintegrasi = ?,
                         a_coming_soon = ?,
                         a_maintenance = ?,
+                        a_live = ?,
                         a_aktif = 1,
                         expired_date = NULL,
                         last_update = GETDATE(),
@@ -161,6 +164,7 @@ class PortalAplikasiSeeder extends Seeder
                         $aTerintegrasi ? 1 : 0,
                         $aComingSoon ? 1 : 0,
                         $aMaintenance ? 1 : 0,
+                        $aLive ? 1 : 0,
                         $existing->id_aplikasi
                     ]
                 );
@@ -172,8 +176,8 @@ class PortalAplikasiSeeder extends Seeder
                     "INSERT INTO man_akses.aplikasi
                     (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan,
                      a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance,
-                     a_aktif, expired_date, tgl_create, last_update, last_sync)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?, 1, NULL, GETDATE(), GETDATE(), GETDATE())",
+                     a_live, a_aktif, expired_date, tgl_create, last_update, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?, ?, 1, NULL, GETDATE(), GETDATE(), GETDATE())",
                     [
                         Str::uuid()->toString(),
                         $app['nm_aplikasi'],
@@ -187,7 +191,8 @@ class PortalAplikasiSeeder extends Seeder
                         $app['urutan'],
                         $aTerintegrasi ? 1 : 0,
                         $aComingSoon ? 1 : 0,
-                        $aMaintenance ? 1 : 0
+                        $aMaintenance ? 1 : 0,
+                        $aLive ? 1 : 0
                     ]
                 );
                 $inserted++;
@@ -262,7 +267,7 @@ class PortalAplikasiSeeder extends Seeder
             ['app_slug' => 'api-gateway', 'nm_aplikasi' => 'API Gateway', 'ket_aplikasi' => 'Kong Dashboard', 'url' => '/portal/kong-admin', 'icon_name' => 'heroicons:cube', 'icon_color' => 'text-blue-600', 'kategori' => 'Tools & Utilities', 'urutan' => 1, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'monitoring', 'nm_aplikasi' => 'Monitoring & Observability', 'ket_aplikasi' => 'Grafana, Prometheus, Loki', 'url' => '/portal/monitoring', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 2, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'manajemen-akses', 'nm_aplikasi' => 'Manajemen Akses myUnila', 'ket_aplikasi' => 'Identity & Access Management', 'url' => '/dashboard/manajemen-akses', 'icon_name' => 'heroicons:key', 'icon_color' => 'text-indigo-600', 'kategori' => 'Tools & Utilities', 'urutan' => 3, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
-            ['app_slug' => 'webmon', 'nm_aplikasi' => 'Web Monitoring', 'ket_aplikasi' => 'Web Monitoring & Early Warning System', 'url' => '/dashboard/monitoring', 'icon_name' => 'heroicons:shield-check', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 4, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
+            ['app_slug' => 'webmon', 'nm_aplikasi' => 'Web Monitoring', 'ket_aplikasi' => 'Web Monitoring & Early Warning System', 'url' => '/dashboard/web-monitoring', 'icon_name' => 'heroicons:shield-check', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 4, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
         ];
     }
 }

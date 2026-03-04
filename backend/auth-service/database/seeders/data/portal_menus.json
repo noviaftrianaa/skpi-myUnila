@@ -309,6 +309,19 @@
         {"nm_menu": "Jadwal Kelas", "nm_file": "/dashboard/siakadu/jadwal-kelas", "icon": "heroicons:calendar-days", "urutan": 15, "roles": [46]},
         {"nm_menu": "Nilai Kuliah", "nm_file": "/dashboard/siakadu/nilai-kuliah", "icon": "heroicons:clipboard-document-check", "urutan": 16, "roles": [46]}
       ]
+    },
+    {
+      "app_slug": "webmon",
+      "roles": [1, 107],
+      "menus": [
+        {"nm_menu": "Dashboard", "nm_file": "/dashboard/web-monitoring", "icon": "heroicons:squares-2x2", "urutan": 1},
+        {"nm_menu": "Situs Terdaftar", "nm_file": "/dashboard/web-monitoring/sites", "icon": "heroicons:globe-alt", "urutan": 2},
+        {"nm_menu": "Pemindaian", "nm_file": "/dashboard/web-monitoring/scanner", "icon": "heroicons:magnifying-glass", "urutan": 3},
+        {"nm_menu": "Ancaman", "nm_file": "/dashboard/web-monitoring/threats", "icon": "heroicons:exclamation-triangle", "urutan": 4},
+        {"nm_menu": "Kata Kunci", "nm_file": "/dashboard/web-monitoring/keywords", "icon": "heroicons:queue-list", "urutan": 5},
+        {"nm_menu": "Google Search Console", "nm_file": "/dashboard/web-monitoring/gsc", "icon": "heroicons:magnifying-glass-circle", "urutan": 6},
+        {"nm_menu": "Pengaturan", "nm_file": "/dashboard/web-monitoring/settings", "icon": "heroicons:cog-6-tooth", "urutan": 7}
+      ]
     }
   ]
 }
