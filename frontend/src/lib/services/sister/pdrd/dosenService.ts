@@ -260,6 +260,30 @@ export interface SisterDosenDokumenSyncResult {
   synced_by: string;
 }
 
+// Dokumen list item (from dok.dok_sdm + dok.dokumen + pdrd.sdm)
+export interface SisterDokumenListItem {
+  id_sdm: string;
+  nama_sdm: string;
+  id_dok: string;
+  id_jns_dok: number;
+  nm_jns_dok: string | null;
+  nm_dok: string | null;
+  file_name: string | null;
+  media_type: string | null;
+  url: string | null;
+  wkt_unggah: string | null;
+  last_sync: string | null;
+}
+
+// Paginated dokumen list response
+export interface SisterDokumenListResult {
+  data: SisterDokumenListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -366,6 +390,21 @@ export const sisterDosenService = {
         params: { synced_by: syncedBy },
         timeout: 720000, // 12 minutes - dokumen sync can take very long
       }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get paginated list of all synced documents (dok.dok_sdm)
+   */
+  async getDokumenList(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<SisterDokumenListResult> {
+    const response = await sisterClient.get<SisterApiResponse<SisterDokumenListResult>>(
+      '/dosen/dokumen/all',
+      { params }
     );
     return response.data.data;
   },
