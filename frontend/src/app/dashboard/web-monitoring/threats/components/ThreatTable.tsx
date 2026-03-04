@@ -3,8 +3,10 @@
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { Chip, Button, Tooltip } from "@heroui/react";
-import { FiCheck, FiX, FiExternalLink, FiEye } from "react-icons/fi";
+import { FiCheck, FiX, FiExternalLink, FiEye, FiTrash2 } from "react-icons/fi";
 import { Threat } from "@/lib/services/webmon/threatService";
+import { gscService } from "@/lib/services/webmon/gscService";
+import { toast } from "react-hot-toast";
 
 interface ThreatTableProps {
     data: Threat[];
@@ -14,6 +16,19 @@ interface ThreatTableProps {
 }
 
 export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDetail }: ThreatTableProps) {
+    const [gscLoading, setGscLoading] = React.useState<number | null>(null);
+
+    const handleGSCRemove = async (threatId: number) => {
+        setGscLoading(threatId);
+        try {
+            await gscService.removeThreat(threatId);
+            toast.success("URL removal request dikirim ke Google Search Console");
+        } catch {
+            toast.error("Gagal mengirim GSC removal request");
+        } finally {
+            setGscLoading(null);
+        }
+    };
     const columns: Column<Threat>[] = [
         {
             key: "page_url",
@@ -106,6 +121,14 @@ export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDet
                             className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                             onPress={() => onViewDetail?.(threat.id)}>
                             <FiEye className="w-4 h-4" />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip content="Request GSC Removal">
+                        <Button isIconOnly size="sm" variant="light" color="primary" radius="full"
+                            className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            isLoading={gscLoading === threat.id}
+                            onPress={() => handleGSCRemove(threat.id)}>
+                            <FiTrash2 className="w-4 h-4" />
                         </Button>
                     </Tooltip>
                     {threat.status === "pending" && (

@@ -5,7 +5,7 @@ import {
     Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
     Button, Chip, Divider, Spinner, Textarea,
 } from "@heroui/react";
-import { FiExternalLink, FiCheck, FiX, FiTrash2, FiAlertCircle } from "react-icons/fi";
+import { FiExternalLink, FiCheck, FiX, FiTrash2, FiAlertCircle, FiMessageCircle } from "react-icons/fi";
 import { threatService, Threat } from "@/lib/services/webmon/threatService";
 import { gscService } from "@/lib/services/webmon/gscService";
 import { toast } from "react-hot-toast";
@@ -146,6 +146,43 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                     </div>
                                 )}
                             </div>
+
+                            {/* Penanggung Jawab */}
+                            {(threat.admin_name || threat.admin_whatsapp) && (
+                                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 space-y-1">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Penanggung Jawab (PJ)</p>
+                                    {threat.admin_name && (
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{threat.admin_name}</p>
+                                    )}
+                                    {threat.admin_email && (
+                                        <p className="text-xs text-gray-500">{threat.admin_email}</p>
+                                    )}
+                                    {threat.admin_whatsapp && (() => {
+                                        const waNumber = threat.admin_whatsapp!.replace(/^0/, "62").replace(/[^0-9]/g, "");
+                                        const waText = encodeURIComponent(
+                                            `Yth. ${threat.admin_name || "Pengelola"},\n\n` +
+                                            `Kami dari Tim Monitoring Web Universitas Lampung menginformasikan bahwa website *${threat.site_name || ""}* (${threat.page_url}) terdeteksi memerlukan perhatian.\n\n` +
+                                            `Mohon segera lakukan pengecekan dan penanganan:\n` +
+                                            `1. Periksa konten website dari sisipan ilegal (judi online, dll)\n` +
+                                            `2. Ganti password admin & FTP\n` +
+                                            `3. Update CMS dan plugin ke versi terbaru\n` +
+                                            `4. Scan malware dan hapus file mencurigakan\n\n` +
+                                            `Detail lengkap dapat dilihat di dashboard monitoring.\n\nTerima kasih.`
+                                        );
+                                        return (
+                                            <a
+                                                href={`https://wa.me/${waNumber}?text=${waText}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-medium transition-colors"
+                                            >
+                                                <FiMessageCircle className="w-3.5 h-3.5" />
+                                                Hubungi via WhatsApp ({threat.admin_whatsapp})
+                                            </a>
+                                        );
+                                    })()}
+                                </div>
+                            )}
 
                             {/* Keywords */}
                             <div>

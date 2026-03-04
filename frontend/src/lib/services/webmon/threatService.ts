@@ -19,6 +19,9 @@ export interface Threat {
   notes?: string;
   site_name?: string;
   site_url?: string;
+  admin_name?: string;
+  admin_email?: string;
+  admin_whatsapp?: string;
 }
 
 export interface ThreatStats {
@@ -77,4 +80,9 @@ async function getStats(): Promise<ThreatStats> {
   return res.data.data;
 }
 
-export const threatService = { listThreats, getThreat, updateStatus, getStats };
+async function getStatsByFakultas(fakultasId: string): Promise<{ id: string; name: string; count: number }[]> {
+  const res = await webmonClient.get(`/api/v1/threats/stats/fakultas/${encodeURIComponent(fakultasId)}`);
+  return res.data.data || [];
+}
+
+export const threatService = { listThreats, getThreat, updateStatus, getStats, getStatsByFakultas };
