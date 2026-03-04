@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardBody, CardHeader, Divider, Skeleton } from "@heroui/react";
 import { FiMapPin } from "react-icons/fi";
 import { DrilldownBarChart } from "./charts";
@@ -16,7 +16,6 @@ export default function TopUnitsChart() {
     useEffect(() => {
         threatService.getStats()
             .then((stats: ThreatStats) => {
-                // Prefer top_fakultas (grouped by faculty) over top_sites
                 if (stats.top_fakultas && stats.top_fakultas.length > 0) {
                     setHasTopFakultas(true);
                     setUnitData(
@@ -45,6 +44,23 @@ export default function TopUnitsChart() {
             .finally(() => setLoading(false));
     }, []);
 
+    const handleDrilldown = useCallback(async (item: DrilldownData, level: number): Promise<DrilldownData[] | undefined> => {
+        // Only fetch children for fakultas level (level 0 -> 1)
+        if (level !== 1 || !hasTopFakultas) return undefined;
+        try {
+            const children = await threatService.getStatsByFakultas(item.id);
+            return children
+                .filter((c) => c.count > 0)
+                .map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    value: c.count,
+                }));
+        } catch {
+            return undefined;
+        }
+    }, [hasTopFakultas]);
+
     return (
         <Card className="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-shadow duration-300 h-full">
             <CardHeader className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2">
@@ -58,7 +74,7 @@ export default function TopUnitsChart() {
                         </h2>
                         <p className="text-[10px] sm:text-xs text-gray-500">
                             {hasTopFakultas
-                                ? "Fakultas dengan jumlah ancaman terbanyak"
+                                ? "Fakultas dengan jumlah ancaman terbanyak (klik untuk detail prodi)"
                                 : "Situs dengan jumlah ancaman terbanyak"}
                         </p>
                     </div>
@@ -80,7 +96,9 @@ export default function TopUnitsChart() {
                         title={hasTopFakultas ? "Ancaman per Fakultas" : "Ancaman per Situs"}
                         color="#ef4444"
                         height={300}
+                        maxHeight={500}
                         horizontal={true}
+                        onDrilldownAsync={handleDrilldown}
                     />
                 )}
             </CardBody>

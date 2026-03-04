@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import BaseChart from "./BaseChart";
-import { Button, Chip } from "@heroui/react";
+import { Button, Chip, Spinner } from "@heroui/react";
 import { FiArrowLeft } from "react-icons/fi";
 
 export interface DrilldownData {
@@ -18,32 +18,59 @@ export interface DrilldownBarChartProps {
     title: string;
     color?: string;
     height?: number;
+    maxHeight?: number;
     onDrilldown?: (item: DrilldownData, level: number) => void;
+    onDrilldownAsync?: (item: DrilldownData, level: number) => Promise<DrilldownData[] | undefined>;
     valueFormatter?: (value: number) => string;
     horizontal?: boolean;
 }
+
+const BAR_HEIGHT = 40;
+const MIN_CHART_HEIGHT = 200;
 
 export default function DrilldownBarChart({
     data,
     title,
     color = "#3b82f6",
     height = 350,
+    maxHeight,
     onDrilldown,
+    onDrilldownAsync,
     valueFormatter = (v) => v.toLocaleString("id-ID"),
     horizontal = false,
 }: DrilldownBarChartProps) {
     const [drillLevel, setDrillLevel] = useState(0);
     const [drillPath, setDrillPath] = useState<DrilldownData[]>([]);
     const [currentData, setCurrentData] = useState<DrilldownData[]>(data);
+    const [asyncLoading, setAsyncLoading] = useState(false);
 
-    const handleDrilldown = (params: unknown) => {
+    const handleDrilldown = async (params: unknown) => {
         const p = params as { dataIndex: number };
         const item = currentData[p.dataIndex];
+
+        // If item has preloaded children, use them
         if (item.children && item.children.length > 0) {
             setDrillPath([...drillPath, item]);
             setCurrentData(item.children);
             setDrillLevel(drillLevel + 1);
             onDrilldown?.(item, drillLevel + 1);
+            return;
+        }
+
+        // If async drilldown handler is provided, fetch children
+        if (onDrilldownAsync) {
+            setAsyncLoading(true);
+            try {
+                const children = await onDrilldownAsync(item, drillLevel + 1);
+                if (children && children.length > 0) {
+                    const enrichedItem = { ...item, children };
+                    setDrillPath([...drillPath, enrichedItem]);
+                    setCurrentData(children);
+                    setDrillLevel(drillLevel + 1);
+                }
+            } finally {
+                setAsyncLoading(false);
+            }
         }
     };
 
@@ -62,10 +89,25 @@ export default function DrilldownBarChart({
         }
     };
 
+    // Dynamic height: at least height, grow with items, cap at maxHeight
+    const computedHeight = useMemo(() => {
+        if (!horizontal) return height;
+        const needed = Math.max(MIN_CHART_HEIGHT, currentData.length * BAR_HEIGHT + 60);
+        return maxHeight ? Math.min(needed, maxHeight) : needed;
+    }, [currentData.length, height, maxHeight, horizontal]);
+
+    const needsScroll = maxHeight != null && horizontal && currentData.length * BAR_HEIGHT + 60 > maxHeight;
+
+    // For scrollable: use full computed height inside a scrollable container
+    const chartHeight = needsScroll
+        ? Math.max(MIN_CHART_HEIGHT, currentData.length * BAR_HEIGHT + 60)
+        : computedHeight;
+
     const option = useMemo(() => {
         const names = currentData.map((d) => d.name);
         const values = currentData.map((d) => d.value);
         const hasChildren = currentData.some((d) => d.children && d.children.length > 0);
+        const isClickable = hasChildren || !!onDrilldownAsync;
 
         return {
             tooltip: {
@@ -75,15 +117,13 @@ export default function DrilldownBarChart({
                 },
                 formatter: (params: Array<{ name: string; value: number }>) => {
                     const item = params[0];
-                    const dataItem = currentData.find((d) => d.name === item.name);
-                    const hasChild = dataItem?.children && dataItem.children.length > 0;
                     return `
             <div style="padding: 8px;">
               <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
               <div style="color: ${color}; font-size: 18px; font-weight: 700;">
                 ${valueFormatter(item.value)}
               </div>
-              ${hasChild ? '<div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Klik untuk detail</div>' : ''}
+              ${isClickable && drillLevel < 2 ? '<div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">Klik untuk detail</div>' : ''}
             </div>
           `;
                 },
@@ -156,15 +196,25 @@ export default function DrilldownBarChart({
                         fontSize: 10,
                         color: "#374151",
                     },
-                    cursor: hasChildren ? "pointer" : "default",
+                    cursor: isClickable && drillLevel < 2 ? "pointer" : "default",
                 },
             ],
             animationDuration: 800,
             animationEasing: "cubicOut",
         };
-    }, [currentData, color, valueFormatter, horizontal]);
+    }, [currentData, color, valueFormatter, horizontal, onDrilldownAsync, drillLevel]);
 
     const levelLabels = ["Universitas", "Fakultas", "Program Studi"];
+
+    const chartContent = (
+        <BaseChart
+            option={option}
+            height={chartHeight}
+            onEvents={{
+                click: handleDrilldown,
+            }}
+        />
+    );
 
     return (
         <div className="space-y-3">
@@ -196,17 +246,21 @@ export default function DrilldownBarChart({
                 </Chip>
             </div>
 
-            {/* Chart */}
-            <BaseChart
-                option={option}
-                height={height}
-                onEvents={{
-                    click: handleDrilldown,
-                }}
-            />
+            {/* Chart - scrollable when many items */}
+            {asyncLoading ? (
+                <div className="flex items-center justify-center" style={{ height: computedHeight }}>
+                    <Spinner label="Memuat data..." />
+                </div>
+            ) : needsScroll ? (
+                <div className="overflow-y-auto" style={{ maxHeight: maxHeight }}>
+                    {chartContent}
+                </div>
+            ) : (
+                chartContent
+            )}
 
             {/* Hint */}
-            {currentData.some((d) => d.children && d.children.length > 0) && (
+            {drillLevel < 2 && (currentData.some((d) => d.children && d.children.length > 0) || onDrilldownAsync) && (
                 <p className="text-xs text-center text-gray-400">
                     Klik bar untuk melihat detail level berikutnya
                 </p>
