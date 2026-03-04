@@ -13,6 +13,7 @@ type Repository interface {
 	GetByID(id int) (*DetectedThreat, error)
 	UpdateStatus(id int, req UpdateStatusRequest, updaterID string) error
 	Stats() (*ThreatStats, error)
+	StatsByFakultas(fakultasID string) ([]map[string]interface{}, error)
 	Insert(t *DetectedThreat) (int, error)
 	ExistsByURL(pageURL string) (bool, error)
 	UpdateSnippetByURL(pageURL string, snippet string) error
@@ -119,9 +120,14 @@ func (r *repository) GetByID(id int) (*DetectedThreat, error) {
 		return nil, err
 	}
 	var siteName, siteURL string
-	r.db.QueryRow(`SELECT name, url FROM monitoring.sites WHERE id = @p1`, t.SiteID).Scan(&siteName, &siteURL)
+	var adminName, adminEmail, adminWhatsApp *string
+	r.db.QueryRow(`SELECT name, url, admin_name, admin_email, admin_whatsapp FROM monitoring.sites WHERE id = @p1`, t.SiteID).
+		Scan(&siteName, &siteURL, &adminName, &adminEmail, &adminWhatsApp)
 	t.SiteName = &siteName
 	t.SiteURL = &siteURL
+	t.AdminName = adminName
+	t.AdminEmail = adminEmail
+	t.AdminWhatsApp = adminWhatsApp
 	return t, nil
 }
 
@@ -206,15 +212,16 @@ func (r *repository) Stats() (*ThreatStats, error) {
 	}
 
 	// Top fakultas by threat count (drill-down via id_sms → id_fak_unila)
+	// Uses LEFT JOIN so sites without id_sms are grouped under "Lainnya"
 	rows3, _ := r.db.Queryx(`
-		SELECT TOP 10
-			CONVERT(nvarchar(36), fak.id_sms) AS fakultas_id,
-			fak.nm_lemb AS fakultas_name,
+		SELECT
+			ISNULL(CONVERT(nvarchar(36), fak.id_sms), '__lainnya__') AS fakultas_id,
+			ISNULL(fak.nm_lemb, 'Lainnya') AS fakultas_name,
 			COUNT(*) AS cnt
 		FROM monitoring.detected_threats t
 		INNER JOIN monitoring.sites s ON t.site_id = s.id
-		INNER JOIN pdrd.sms unit ON s.id_sms = unit.id_sms
-		INNER JOIN pdrd.sms fak ON unit.id_fak_unila = fak.id_sms
+		LEFT JOIN pdrd.sms unit ON s.id_sms = unit.id_sms
+		LEFT JOIN pdrd.sms fak ON unit.id_fak_unila = fak.id_sms
 		WHERE t.soft_delete = 0
 		GROUP BY CONVERT(nvarchar(36), fak.id_sms), fak.nm_lemb
 		ORDER BY cnt DESC`)
@@ -232,6 +239,63 @@ func (r *repository) Stats() (*ThreatStats, error) {
 	}
 
 	return s, nil
+}
+
+func (r *repository) StatsByFakultas(fakultasID string) ([]map[string]interface{}, error) {
+	var result []map[string]interface{}
+
+	if fakultasID == "__lainnya__" {
+		// Drilldown for "Lainnya": show individual sites without id_sms
+		rows, err := r.db.Queryx(`
+			SELECT CONVERT(nvarchar(36), s.id) AS item_id, s.name AS item_name, COUNT(*) AS cnt
+			FROM monitoring.detected_threats t
+			INNER JOIN monitoring.sites s ON t.site_id = s.id
+			WHERE t.soft_delete = 0 AND (s.id_sms IS NULL)
+			GROUP BY CONVERT(nvarchar(36), s.id), s.name
+			ORDER BY cnt DESC`)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var itemID, itemName string
+			var cnt int
+			if rows.Scan(&itemID, &itemName, &cnt) == nil {
+				result = append(result, map[string]interface{}{
+					"id": itemID, "name": itemName, "count": cnt,
+				})
+			}
+		}
+	} else {
+		// Drilldown for a specific fakultas: show prodi-level breakdown
+		rows, err := r.db.Queryx(`
+			SELECT CONVERT(nvarchar(36), unit.id_sms) AS item_id,
+			       unit.nm_lemb AS item_name,
+			       COUNT(*) AS cnt
+			FROM monitoring.detected_threats t
+			INNER JOIN monitoring.sites s ON t.site_id = s.id
+			INNER JOIN pdrd.sms unit ON s.id_sms = unit.id_sms
+			INNER JOIN pdrd.sms fak ON unit.id_fak_unila = fak.id_sms
+			WHERE t.soft_delete = 0
+			  AND CONVERT(nvarchar(36), fak.id_sms) = @p1
+			GROUP BY CONVERT(nvarchar(36), unit.id_sms), unit.nm_lemb
+			ORDER BY cnt DESC`, fakultasID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var itemID, itemName string
+			var cnt int
+			if rows.Scan(&itemID, &itemName, &cnt) == nil {
+				result = append(result, map[string]interface{}{
+					"id": itemID, "name": itemName, "count": cnt,
+				})
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func (r *repository) Insert(t *DetectedThreat) (int, error) {

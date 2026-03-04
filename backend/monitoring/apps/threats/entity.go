@@ -28,8 +28,11 @@ type DetectedThreat struct {
 	SoftDelete int        `json:"-"            db:"soft_delete"`
 
 	// Joined
-	SiteName *string `json:"site_name,omitempty" db:"-"`
-	SiteURL  *string `json:"site_url,omitempty"  db:"-"`
+	SiteName      *string `json:"site_name,omitempty"      db:"-"`
+	SiteURL       *string `json:"site_url,omitempty"       db:"-"`
+	AdminName     *string `json:"admin_name,omitempty"     db:"-"`
+	AdminEmail    *string `json:"admin_email,omitempty"    db:"-"`
+	AdminWhatsApp *string `json:"admin_whatsapp,omitempty" db:"-"`
 }
 
 type UpdateStatusRequest struct {

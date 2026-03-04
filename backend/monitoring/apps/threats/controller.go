@@ -83,3 +83,16 @@ func (c *Controller) Stats(ctx *fiber.Ctx) error {
 	}
 	return response.Success(ctx, "Statistik threats", stats)
 }
+
+// GET /api/v1/threats/stats/fakultas/:id
+func (c *Controller) StatsByFakultas(ctx *fiber.Ctx) error {
+	fakID := ctx.Params("id")
+	if fakID == "" {
+		return response.BadRequest(ctx, "Fakultas ID diperlukan", nil)
+	}
+	items, err := c.svc.StatsByFakultas(fakID)
+	if err != nil {
+		return response.InternalServerError(ctx, "Gagal mengambil detail fakultas", err.Error())
+	}
+	return response.Success(ctx, "Detail fakultas", items)
+}

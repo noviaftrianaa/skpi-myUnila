@@ -9,6 +9,7 @@ type Service interface {
 	GetByID(id int) (*DetectedThreat, error)
 	UpdateStatus(id int, req UpdateStatusRequest, updaterID string) (*DetectedThreat, error)
 	Stats() (*ThreatStats, error)
+	StatsByFakultas(fakultasID string) ([]map[string]interface{}, error)
 	// Called by detector
 	Report(threat *DetectedThreat) (int, error)
 }
@@ -38,6 +39,10 @@ func (s *service) UpdateStatus(id int, req UpdateStatusRequest, updaterID string
 
 func (s *service) Stats() (*ThreatStats, error) {
 	return s.repo.Stats()
+}
+
+func (s *service) StatsByFakultas(fakultasID string) ([]map[string]interface{}, error) {
+	return s.repo.StatsByFakultas(fakultasID)
 }
 
 func (s *service) Report(threat *DetectedThreat) (int, error) {

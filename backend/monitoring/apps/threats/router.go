@@ -16,6 +16,7 @@ func Init(app *fiber.App, db *sqlx.DB) Service {
 
 	// Stats first (before /:id to avoid route conflict)
 	api.Get("/threats/stats", ctrl.Stats)
+	api.Get("/threats/stats/fakultas/:id", ctrl.StatsByFakultas)
 
 	api.Get("/threats", ctrl.List)
 	api.Get("/threats/:id", ctrl.GetByID)
