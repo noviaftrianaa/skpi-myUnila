@@ -165,6 +165,37 @@ export const useDosenData = ({
       selectedTipeData === "jenjang_pendidikan",
   });
 
+  // Fetch jenjang pendidikan fakultas historical data (5 years)
+  const {
+    data: jenjangFakultasHistorical = [],
+    isLoading: isLoadingJenjangFakultasHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jenjang", "fakultas", "historical", selectedTahunAjaran, userContext?.id_organisasi, selectedFakultas],
+    queryFn: () =>
+      executiveJenjangPendidikanService.getJenjangFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4
+          ? userContext.id_organisasi
+          : selectedFakultas || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "jenjang_pendidikan",
+  });
+
+  // Fetch jenjang pendidikan prodi historical data (5 years)
+  const {
+    data: jenjangProdiHistorical = [],
+    isLoading: isLoadingJenjangProdiHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jenjang", "prodi", "historical", selectedFakultas, selectedTahunAjaran, selectedProdi],
+    queryFn: () =>
+      executiveJenjangPendidikanService.getJenjangProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran && selectedTipeData === "jenjang_pendidikan",
+  });
+
   // Fetch pangkat golongan fakultas data
   const {
     data: panggolFakultasList = [],
@@ -307,6 +338,37 @@ export const useDosenData = ({
       selectedTipeData === "jenis_kelamin",
   });
 
+  // Fetch jenis kelamin fakultas historical data (5 years)
+  const {
+    data: jenisKelaminFakultasHistorical = [],
+    isLoading: isLoadingJenisKelaminFakultasHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jenis-kelamin", "fakultas", "historical", selectedTahunAjaran, userContext?.id_organisasi, selectedFakultas],
+    queryFn: () =>
+      executiveJenisKelaminService.getJenisKelaminFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4
+          ? userContext.id_organisasi
+          : selectedFakultas || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "jenis_kelamin",
+  });
+
+  // Fetch jenis kelamin prodi historical data (5 years)
+  const {
+    data: jenisKelaminProdiHistorical = [],
+    isLoading: isLoadingJenisKelaminProdiHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "jenis-kelamin", "prodi", "historical", selectedFakultas, selectedTahunAjaran, selectedProdi],
+    queryFn: () =>
+      executiveJenisKelaminService.getJenisKelaminProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran && selectedTipeData === "jenis_kelamin",
+  });
+
   // Fetch status kepegawaian fakultas data
   const {
     data: statusKepegawaianFakultasList = [],
@@ -342,6 +404,37 @@ export const useDosenData = ({
       !!selectedFakultas &&
       !!selectedTahunAjaran &&
       selectedTipeData === "status_pegawai",
+  });
+
+  // Fetch status kepegawaian fakultas historical data (5 years)
+  const {
+    data: statusKepegawaianFakultasHistorical = [],
+    isLoading: isLoadingStatusKepegawaianFakultasHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "status-kepegawaian", "fakultas", "historical", selectedTahunAjaran, userContext?.id_organisasi, selectedFakultas],
+    queryFn: () =>
+      executiveStatusKepegawaianService.getStatusKepegawaianFakultasHistorical({
+        tahun_ajaran: selectedTahunAjaran,
+        fakultas_id: userContext?.level_organisasi == 4
+          ? userContext.id_organisasi
+          : selectedFakultas || undefined,
+      }),
+    enabled: !!selectedTahunAjaran && selectedTipeData === "status_pegawai",
+  });
+
+  // Fetch status kepegawaian prodi historical data (5 years)
+  const {
+    data: statusKepegawaianProdiHistorical = [],
+    isLoading: isLoadingStatusKepegawaianProdiHistorical,
+  } = useQuery({
+    queryKey: ["dosen", "status-kepegawaian", "prodi", "historical", selectedFakultas, selectedTahunAjaran, selectedProdi],
+    queryFn: () =>
+      executiveStatusKepegawaianService.getStatusKepegawaianProdiHistorical({
+        fakultas_id: selectedFakultas,
+        tahun_ajaran: selectedTahunAjaran,
+        prodi_id: selectedProdi || undefined,
+      }),
+    enabled: !!selectedFakultas && !!selectedTahunAjaran && selectedTipeData === "status_pegawai",
   });
 
   // Combined loading state for chart data
@@ -391,6 +484,10 @@ export const useDosenData = ({
     isLoadingJenjangFakultas,
     jenjangProdiList,
     isLoadingJenjangProdi,
+    jenjangFakultasHistorical,
+    isLoadingJenjangFakultasHistorical,
+    jenjangProdiHistorical,
+    isLoadingJenjangProdiHistorical,
 
     // Pangkat golongan data
     panggolFakultasList,
@@ -413,12 +510,20 @@ export const useDosenData = ({
     isLoadingJenisKelaminFakultas,
     jenisKelaminProdiList,
     isLoadingJenisKelaminProdi,
+    jenisKelaminFakultasHistorical,
+    isLoadingJenisKelaminFakultasHistorical,
+    jenisKelaminProdiHistorical,
+    isLoadingJenisKelaminProdiHistorical,
 
     // Status kepegawaian data
     statusKepegawaianFakultasList,
     isLoadingStatusKepegawaianFakultas,
     statusKepegawaianProdiList,
     isLoadingStatusKepegawaianProdi,
+    statusKepegawaianFakultasHistorical,
+    isLoadingStatusKepegawaianFakultasHistorical,
+    statusKepegawaianProdiHistorical,
+    isLoadingStatusKepegawaianProdiHistorical,
 
     // Combined loading state for charts
     isLoadingChartData,

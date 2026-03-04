@@ -27,7 +27,7 @@ export interface TrendDataItem {
     // Ikatan kerja fields
     dosen_tetap?: number;
     dosen_pns_dpk?: number;
-    dokter_pendidik_klinis?: number;
+    // dokter_pendidik_klinis?: number;
     dosen_tetap_bh?: number;
     dosen_tidak_tetap?: number;
     p3k_asn?: number;
@@ -38,6 +38,28 @@ export interface TrendDataItem {
     pengajar_nondosen?: number;
     dosen_tetap_pk_waktu_tertentu?: number;
     belum_ikatan_kerja?: number;
+    // Jenjang pendidikan fields
+    d3?: number;
+    d4?: number;
+    s1?: number;
+    s2?: number;
+    s2_terapan?: number;
+    s3?: number;
+    profesi?: number;
+    sp1?: number;
+    sp2?: number;
+    belum_jenjang?: number;
+    // Jenis kelamin fields
+    laki_laki?: number;
+    perempuan?: number;
+    // Status kepegawaian fields
+    pns?: number;
+    cpns?: number;
+    pppk?: number;
+    non_asn?: number;
+    asn_jf_non_dosen?: number;
+    dokter_pendidik_klinis?: number;
+    lainnya?: number;
     total: number;
   }>;
 }
@@ -85,6 +107,46 @@ const IKATAN_KERJA_CATEGORIES = [
   },
   { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
 ];
+
+const JENJANG_PENDIDIKAN_CATEGORIES = [
+  { key: "s3", name: "S3", color: "#ef4444" },
+  { key: "s2", name: "S2", color: "#f59e0b" },
+  { key: "s2_terapan", name: "S2 Terapan", color: "#22c55e" },
+  { key: "profesi", name: "Profesi", color: "#14b8a6" },
+  { key: "sp1", name: "Sp1", color: "#06b6d4" },
+  { key: "sp2", name: "Sp2", color: "#0ea5e9" },
+  { key: "s1", name: "S1", color: "#3b82f6" },
+  { key: "d4", name: "D4", color: "#6366f1" },
+  { key: "d3", name: "D3", color: "#8b5cf6" },
+  { key: "belum_jenjang", name: "Belum Jenjang", color: "#cbd5e1" },
+];
+
+const JENIS_KELAMIN_CATEGORIES = [
+  { key: "laki_laki", name: "Laki-laki", color: "#3b82f6" },
+  { key: "perempuan", name: "Perempuan", color: "#ec4899" },
+];
+
+const STATUS_KEPEGAWAIAN_CATEGORIES = [
+  { key: "pns", name: "PNS", color: "#3b82f6" },
+  { key: "cpns", name: "CPNS", color: "#22c55e" },
+  { key: "pppk", name: "PPPK", color: "#f59e0b" },
+  { key: "asn_jf_non_dosen", name: "ASN JF Non Dosen", color: "#8b5cf6" },
+  {
+    key: "dokter_pendidik_klinis",
+    name: "Dokter Pendidik Klinis",
+    color: "#06b6d4",
+  },
+  { key: "non_asn", name: "Non-ASN", color: "#ef4444" },
+  { key: "lainnya", name: "Lainnya", color: "#94a3b8" },
+];
+
+export {
+  JABFUNG_CATEGORIES,
+  IKATAN_KERJA_CATEGORIES,
+  JENJANG_PENDIDIKAN_CATEGORIES,
+  JENIS_KELAMIN_CATEGORIES,
+  STATUS_KEPEGAWAIAN_CATEGORIES,
+};
 
 // Custom Tooltip Component
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -205,7 +267,6 @@ export const DosenTrendChart = ({
               strokeWidth={2}
               name={cat.name}
               dot={{ r: 4 }}
-              className=" -z-10"
             />
           ))}
         </LineChart>

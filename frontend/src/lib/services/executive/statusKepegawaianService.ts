@@ -81,6 +81,36 @@ export interface GetProdiParams {
   fakultas_id: string;
 }
 
+export interface TrendDataItem {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: Array<{
+    id: string;
+    nama_fakultas?: string;
+    nama_prodi?: string;
+    pns: number;
+    cpns: number;
+    pppk: number;
+    non_asn: number;
+    asn_jf_non_dosen: number;
+    dokter_pendidik_klinis: number;
+    lainnya: number;
+    total: number;
+  }>;
+}
+
+export interface GetStatusKepegawaianFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  fakultas_id?: string;
+}
+
+export interface GetStatusKepegawaianProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  prodi_id?: string;
+}
+
 // ========================================
 // Service
 // ========================================
@@ -175,6 +205,41 @@ class ExecutiveStatusKepegawaianService {
     }>("/dosen/status-kepegawaian/master/prodi", {
       params,
     });
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical status kepegawaian data at university/fakultas level for multiple years
+   * @param params - Optional query parameters (tahun_ajaran, fakultas_id)
+   */
+  async getStatusKepegawaianFakultasHistorical(
+    params?: GetStatusKepegawaianFakultasHistoricalParams,
+  ): Promise<TrendDataItem[]> {
+    const response = await executiveClient.get<{ data: TrendDataItem[] }>(
+      "/dosen/status-kepegawaian/fakultas/historical",
+      {
+        params,
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical status kepegawaian data at fakultas level (per prodi) for multiple years
+   * @param params - Parameters including fakultas_id and optional tahun_ajaran, prodi_id
+   */
+  async getStatusKepegawaianProdiHistorical(
+    params: GetStatusKepegawaianProdiHistoricalParams,
+  ): Promise<TrendDataItem[]> {
+    const response = await executiveClient.get<{ data: TrendDataItem[] }>(
+      `/dosen/status-kepegawaian/fakultas/${params.fakultas_id}/historical`,
+      {
+        params: {
+          tahun_ajaran: params.tahun_ajaran,
+          prodi_id: params.prodi_id,
+        },
+      },
+    );
     return response.data.data || [];
   }
 }

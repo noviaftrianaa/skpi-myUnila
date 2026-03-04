@@ -11,7 +11,7 @@ export { DosenStatsCard } from "./DosenStatsCard";
 
 export { JabfungStatsCards, JenjangStatsCards, PangGolStatsCards, IkatanKerjaStatsCards, JenisKelaminStatsCards, StatusKepegawaianStatsCards } from "./DosenStatsCards";
 
-export { DosenTrendChart } from "./DosenTrendChart";
+export { DosenTrendChart, JABFUNG_CATEGORIES, IKATAN_KERJA_CATEGORIES, JENJANG_PENDIDIKAN_CATEGORIES, JENIS_KELAMIN_CATEGORIES, STATUS_KEPEGAWAIAN_CATEGORIES } from "./DosenTrendChart";
 export type { TrendDataItem } from "./DosenTrendChart";
 
 export { DosenPercentageChart } from "./DosenPercentageChart";

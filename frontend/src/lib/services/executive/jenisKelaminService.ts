@@ -71,6 +71,31 @@ export interface GetProdiParams {
   fakultas_id: string;
 }
 
+export interface TrendDataItem {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: Array<{
+    id: string;
+    nama_fakultas?: string;
+    nama_prodi?: string;
+    laki_laki: number;
+    perempuan: number;
+    total: number;
+  }>;
+}
+
+export interface GetJenisKelaminFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  fakultas_id?: string;
+}
+
+export interface GetJenisKelaminProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  prodi_id?: string;
+}
+
 // ========================================
 // Service
 // ========================================
@@ -165,6 +190,41 @@ class ExecutiveJenisKelaminService {
     }>("/dosen/jenis-kelamin/master/prodi", {
       params,
     });
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jenis kelamin data at university/fakultas level for multiple years
+   * @param params - Optional query parameters (tahun_ajaran, fakultas_id)
+   */
+  async getJenisKelaminFakultasHistorical(
+    params?: GetJenisKelaminFakultasHistoricalParams,
+  ): Promise<TrendDataItem[]> {
+    const response = await executiveClient.get<{ data: TrendDataItem[] }>(
+      "/dosen/jenis-kelamin/fakultas/historical",
+      {
+        params,
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jenis kelamin data at fakultas level (per prodi) for multiple years
+   * @param params - Parameters including fakultas_id and optional tahun_ajaran, prodi_id
+   */
+  async getJenisKelaminProdiHistorical(
+    params: GetJenisKelaminProdiHistoricalParams,
+  ): Promise<TrendDataItem[]> {
+    const response = await executiveClient.get<{ data: TrendDataItem[] }>(
+      `/dosen/jenis-kelamin/fakultas/${params.fakultas_id}/historical`,
+      {
+        params: {
+          tahun_ajaran: params.tahun_ajaran,
+          prodi_id: params.prodi_id,
+        },
+      },
+    );
     return response.data.data || [];
   }
 }

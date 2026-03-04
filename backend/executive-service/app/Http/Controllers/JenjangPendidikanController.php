@@ -156,4 +156,59 @@ class JenjangPendidikanController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get historical jenjang pendidikan data at university/fakultas level
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getJenjangFakultasHistorical(Request $request)
+    {
+        try {
+            $selectedYear = $request->query('tahun_ajaran');
+            $yearsBack = (int) $request->query('years_back', 5);
+            $fakultasId = $request->query('fakultas_id');
+
+            $data = $this->jenjangService->getJenjangFakultasHistorical($selectedYear, $yearsBack, $fakultasId);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get historical jenjang pendidikan data at fakultas level (per prodi)
+     *
+     * @param Request $request
+     * @param string $fakultasId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getJenjangProdiHistorical(Request $request, $fakultasId)
+    {
+        try {
+            $selectedYear = $request->query('tahun_ajaran');
+            $yearsBack = (int) $request->query('years_back', 5);
+            $prodiId = $request->query('prodi_id');
+
+            $data = $this->jenjangService->getJenjangProdiHistorical($fakultasId, $selectedYear, $yearsBack, $prodiId);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

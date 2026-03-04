@@ -455,4 +455,93 @@ class StatusKepegawaianRepository
 
         return $data[0];
     }
+
+    /**
+     * Get historical status kepegawaian data at university/fakultas level for multiple years
+     *
+     * @param int $startYearId Start tahun ajaran ID
+     * @param int|null $endYearId End tahun ajaran ID (optional, defaults to most recent)
+     * @param string|null $fakultasId Filter by fakultas (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getStatusKepegawaianFakultasHistorical($startYearId, $endYearId = null, $fakultasId = null)
+    {
+        // Get distinct years from the semester table
+        $sql_years = "
+            SELECT DISTINCT id_thn_ajaran, MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran >= ?
+                AND id_thn_ajaran <= ?
+                AND expired_date IS NULL
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran ASC
+        ";
+
+        $years = collect(DB::select($sql_years, [$startYearId, $endYearId ?? $startYearId]));
+
+        // Get historical data for each year
+        $historicalData = $years->map(function ($year) use ($fakultasId) {
+            $data = $this->getStatusKepegawaianByLevel($year->id_thn_ajaran, $fakultasId, null);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Get historical status kepegawaian data at fakultas level (per prodi) for multiple years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param int $startYearId Start tahun ajaran ID
+     * @param int|null $endYearId End tahun ajaran ID (optional, defaults to most recent)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getStatusKepegawaianProdiHistorical($fakultasId, $startYearId, $endYearId = null, $prodiId = null)
+    {
+        // Get distinct years from the semester table
+        $sql_years = "
+            SELECT DISTINCT id_thn_ajaran, MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran >= ?
+                AND id_thn_ajaran <= ?
+                AND expired_date IS NULL
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran ASC
+        ";
+
+        $years = collect(DB::select($sql_years, [$startYearId, $endYearId ?? $startYearId]));
+
+        // Get historical data for each year
+        $historicalData = $years->map(function ($year) use ($fakultasId, $prodiId) {
+            $data = $this->getStatusKepegawaianByLevel($year->id_thn_ajaran, $fakultasId, $prodiId);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Format tahun ajaran to display format (e.g., 2024 → "2024/2025")
+     *
+     * @param int $tahunId
+     * @return string
+     */
+    private function formatTahunAjaran($tahunId)
+    {
+        $year = (int) substr((string) $tahunId, 0, 4);
+        return "{$year}/" . ($year + 1);
+    }
 }

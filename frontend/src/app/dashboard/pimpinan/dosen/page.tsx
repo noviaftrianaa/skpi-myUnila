@@ -27,35 +27,15 @@ import {
   getChartSubtitle,
   DosenTrendChart,
   DosenPercentageChart,
+  JABFUNG_CATEGORIES,
+  IKATAN_KERJA_CATEGORIES,
+  JENJANG_PENDIDIKAN_CATEGORIES,
+  JENIS_KELAMIN_CATEGORIES,
+  STATUS_KEPEGAWAIAN_CATEGORIES,
   type DosenStats,
   type PercentageData,
 } from "@/shared/components/pimpinan/dosen";
 import { useUserContext } from "@/contexts/UserContextContext";
-
-// Category keys for trend charts
-const JABFUNG_CATEGORIES = [
-  { key: "profesor", name: "Profesor", color: "#ef4444" },
-  { key: "lektor_kepala", name: "Lektor Kepala", color: "#f59e0b" },
-  { key: "lektor", name: "Lektor", color: "#22c55e" },
-  { key: "asisten_ahli", name: "Asisten Ahli", color: "#3b82f6" },
-  { key: "belum_jabfung", name: "Belum Jabfung", color: "#94a3b8" },
-];
-
-const IKATAN_KERJA_CATEGORIES = [
-  { key: "dosen_tetap", name: "Dosen Tetap", color: "#3b82f6" },
-  { key: "dosen_pns_dpk", name: "PNS DPK", color: "#6366f1" },
-  { key: "dokter_pendidik_klinis", name: "Dokter Pendidik Klinis", color: "#8b5cf6" },
-  { key: "dosen_tetap_bh", name: "Dosen Tetap BH", color: "#a855f7" },
-  { key: "dosen_tidak_tetap", name: "Dosen Tidak Tetap", color: "#22c55e" },
-  { key: "p3k_asn", name: "P3K ASN", color: "#14b8a6" },
-  { key: "dosen_perjanjian_kerja", name: "Perjanjian Kerja", color: "#06b6d4" },
-  { key: "instruktur", name: "Instruktur", color: "#f59e0b" },
-  { key: "tutor", name: "Tutor", color: "#f97316" },
-  { key: "jft", name: "JFT", color: "#ef4444" },
-  { key: "pengajar_nondosen", name: "Pengajar Nondosen", color: "#dc2626" },
-  { key: "dosen_tetap_pk_waktu_tertentu", name: "Tetap PKWTT", color: "#b91c1c" },
-  { key: "belum_ikatan_kerja", name: "Belum Ikatan Kerja", color: "#cbd5e1" },
-];
 
 // ========================================
 // Main Page Component
@@ -83,6 +63,8 @@ export default function DosenPage() {
     jabfungProdiHistorical,
     jenjangFakultasList,
     jenjangProdiList,
+    jenjangFakultasHistorical,
+    jenjangProdiHistorical,
     panggolFakultasList,
     panggolProdiList,
     ikatanKerjaFakultasList,
@@ -91,8 +73,12 @@ export default function DosenPage() {
     ikatanKerjaProdiHistorical,
     jenisKelaminFakultasList,
     jenisKelaminProdiList,
+    jenisKelaminFakultasHistorical,
+    jenisKelaminProdiHistorical,
     statusKepegawaianFakultasList,
     statusKepegawaianProdiList,
+    statusKepegawaianFakultasHistorical,
+    statusKepegawaianProdiHistorical,
     isLoadingChartData,
   } = useDosenData({
     selectedTipeData,
@@ -461,10 +447,249 @@ export default function DosenPage() {
     ikatanKerjaProdiList,
   ]);
 
+  // Get jenjang pendidikan historical data based on filter
+  const jenjangHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "jenjang_pendidikan") return [];
+
+    // If prodi is selected, use prodi historical data
+    if (selectedProdi && jenjangProdiHistorical.length > 0) {
+      return jenjangProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    return jenjangFakultasHistorical;
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    jenjangFakultasHistorical,
+    jenjangProdiHistorical,
+  ]);
+
+  // Calculate percentage data for jenjang pendidikan
+  const jenjangPercentageData = useMemo(() => {
+    if (selectedTipeData !== "jenjang_pendidikan") return [];
+
+    let totalD3 = 0;
+    let totalD4 = 0;
+    let totalS1 = 0;
+    let totalS2 = 0;
+    let totalS2Terapan = 0;
+    let totalS3 = 0;
+    let totalProfesi = 0;
+    let totalSp1 = 0;
+    let totalSp2 = 0;
+    let totalBelumJenjang = 0;
+
+    if (selectedProdi && jenjangProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = jenjangProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalD3 = prodi.d3;
+        totalD4 = prodi.d4;
+        totalS1 = prodi.s1;
+        totalS2 = prodi.s2;
+        totalS2Terapan = prodi.s2_terapan;
+        totalS3 = prodi.s3;
+        totalProfesi = prodi.profesi;
+        totalSp1 = prodi.sp1;
+        totalSp2 = prodi.sp2;
+        totalBelumJenjang = prodi.belum_jenjang;
+      }
+    } else if (selectedFakultas && jenjangProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      jenjangProdiList.forEach((p) => {
+        totalD3 += p.d3;
+        totalD4 += p.d4;
+        totalS1 += p.s1;
+        totalS2 += p.s2;
+        totalS2Terapan += p.s2_terapan;
+        totalS3 += p.s3;
+        totalProfesi += p.profesi;
+        totalSp1 += p.sp1;
+        totalSp2 += p.sp2;
+        totalBelumJenjang += p.belum_jenjang;
+      });
+    } else if (jenjangFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      jenjangFakultasList.forEach((f) => {
+        totalD3 += f.d3;
+        totalD4 += f.d4;
+        totalS1 += f.s1;
+        totalS2 += f.s2;
+        totalS2Terapan += f.s2_terapan;
+        totalS3 += f.s3;
+        totalProfesi += f.profesi;
+        totalSp1 += f.sp1;
+        totalSp2 += f.sp2;
+        totalBelumJenjang += f.belum_jenjang;
+      });
+    }
+
+    return [
+      { name: "S3", value: totalS3, color: "#ef4444" },
+      { name: "S2", value: totalS2, color: "#f59e0b" },
+      { name: "S2 Terapan", value: totalS2Terapan, color: "#22c55e" },
+      { name: "Profesi", value: totalProfesi, color: "#14b8a6" },
+      { name: "Sp1", value: totalSp1, color: "#06b6d4" },
+      { name: "Sp2", value: totalSp2, color: "#0ea5e9" },
+      { name: "S1", value: totalS1, color: "#3b82f6" },
+      { name: "D4", value: totalD4, color: "#6366f1" },
+      { name: "D3", value: totalD3, color: "#8b5cf6" },
+      { name: "Belum Jenjang", value: totalBelumJenjang, color: "#cbd5e1" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    jenjangFakultasList,
+    jenjangProdiList,
+  ]);
+
+  // Get jenis kelamin historical data based on filter
+  const jenisKelaminHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "jenis_kelamin") return [];
+
+    // If prodi is selected, use prodi historical data
+    if (selectedProdi && jenisKelaminProdiHistorical.length > 0) {
+      return jenisKelaminProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    return jenisKelaminFakultasHistorical;
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    jenisKelaminFakultasHistorical,
+    jenisKelaminProdiHistorical,
+  ]);
+
+  // Calculate percentage data for jenis kelamin
+  const jenisKelaminPercentageData = useMemo(() => {
+    if (selectedTipeData !== "jenis_kelamin") return [];
+
+    let totalLakiLaki = 0;
+    let totalPerempuan = 0;
+
+    if (selectedProdi && jenisKelaminProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = jenisKelaminProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalLakiLaki = prodi.laki_laki;
+        totalPerempuan = prodi.perempuan;
+      }
+    } else if (selectedFakultas && jenisKelaminProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      jenisKelaminProdiList.forEach((p) => {
+        totalLakiLaki += p.laki_laki;
+        totalPerempuan += p.perempuan;
+      });
+    } else if (jenisKelaminFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      jenisKelaminFakultasList.forEach((f) => {
+        totalLakiLaki += f.laki_laki;
+        totalPerempuan += f.perempuan;
+      });
+    }
+
+    return [
+      { name: "Laki-laki", value: totalLakiLaki, color: "#3b82f6" },
+      { name: "Perempuan", value: totalPerempuan, color: "#ec4899" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    jenisKelaminFakultasList,
+    jenisKelaminProdiList,
+  ]);
+
+  // Get status kepegawaian historical data based on filter
+  const statusKepegawaianHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "status_pegawai") return [];
+
+    // If prodi is selected, use prodi historical data
+    if (selectedProdi && statusKepegawaianProdiHistorical.length > 0) {
+      return statusKepegawaianProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    return statusKepegawaianFakultasHistorical;
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    statusKepegawaianFakultasHistorical,
+    statusKepegawaianProdiHistorical,
+  ]);
+
+  // Calculate percentage data for status kepegawaian
+  const statusKepegawaianPercentageData = useMemo(() => {
+    if (selectedTipeData !== "status_pegawai") return [];
+
+    let totalPns = 0;
+    let totalCpns = 0;
+    let totalPppk = 0;
+    let totalNonAsn = 0;
+    let totalAsnJfNonDosen = 0;
+    let totalDokterPendidikKlinis = 0;
+    let totalLainnya = 0;
+
+    if (selectedProdi && statusKepegawaianProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalPns = prodi.pns;
+        totalCpns = prodi.cpns;
+        totalPppk = prodi.pppk;
+        totalNonAsn = prodi.non_asn;
+        totalAsnJfNonDosen = prodi.asn_jf_non_dosen;
+        totalDokterPendidikKlinis = prodi.dokter_pendidik_klinis;
+        totalLainnya = prodi.lainnya;
+      }
+    } else if (selectedFakultas && statusKepegawaianProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      statusKepegawaianProdiList.forEach((p) => {
+        totalPns += p.pns;
+        totalCpns += p.cpns;
+        totalPppk += p.pppk;
+        totalNonAsn += p.non_asn;
+        totalAsnJfNonDosen += p.asn_jf_non_dosen;
+        totalDokterPendidikKlinis += p.dokter_pendidik_klinis;
+        totalLainnya += p.lainnya;
+      });
+    } else if (statusKepegawaianFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      statusKepegawaianFakultasList.forEach((f) => {
+        totalPns += f.pns;
+        totalCpns += f.cpns;
+        totalPppk += f.pppk;
+        totalNonAsn += f.non_asn;
+        totalAsnJfNonDosen += f.asn_jf_non_dosen;
+        totalDokterPendidikKlinis += f.dokter_pendidik_klinis;
+        totalLainnya += f.lainnya;
+      });
+    }
+
+    return [
+      { name: "PNS", value: totalPns, color: "#3b82f6" },
+      { name: "CPNS", value: totalCpns, color: "#22c55e" },
+      { name: "PPPK", value: totalPppk, color: "#f59e0b" },
+      { name: "ASN JF Non Dosen", value: totalAsnJfNonDosen, color: "#8b5cf6" },
+      { name: "Dokter Pendidik Klinis", value: totalDokterPendidikKlinis, color: "#06b6d4" },
+      { name: "Non-ASN", value: totalNonAsn, color: "#ef4444" },
+      { name: "Lainnya", value: totalLainnya, color: "#94a3b8" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    statusKepegawaianFakultasList,
+    statusKepegawaianProdiList,
+  ]);
+
   // Configuration for trend and percentage charts (must be after all useMemo hooks)
   const chartConfig: Record<string, {
-    historicalData: typeof jabfungHistoricalData;
-    percentageData: typeof jabfungPercentageData;
+    historicalData: typeof jabfungHistoricalData | typeof jenjangHistoricalData | typeof ikatanKerjaHistoricalData | typeof jenisKelaminHistoricalData | typeof statusKepegawaianHistoricalData;
+    percentageData: typeof jabfungPercentageData | typeof jenjangPercentageData | typeof ikatanKerjaPercentageData | typeof jenisKelaminPercentageData | typeof statusKepegawaianPercentageData;
     categoryKeys: Array<{ key: string; name: string; color: string }>;
   }> = {
     jabfung: {
@@ -472,10 +697,25 @@ export default function DosenPage() {
       percentageData: jabfungPercentageData,
       categoryKeys: JABFUNG_CATEGORIES,
     },
+    jenjang_pendidikan: {
+      historicalData: jenjangHistoricalData,
+      percentageData: jenjangPercentageData,
+      categoryKeys: JENJANG_PENDIDIKAN_CATEGORIES,
+    },
     ikatan_kerja: {
       historicalData: ikatanKerjaHistoricalData,
       percentageData: ikatanKerjaPercentageData,
       categoryKeys: IKATAN_KERJA_CATEGORIES,
+    },
+    jenis_kelamin: {
+      historicalData: jenisKelaminHistoricalData,
+      percentageData: jenisKelaminPercentageData,
+      categoryKeys: JENIS_KELAMIN_CATEGORIES,
+    },
+    status_pegawai: {
+      historicalData: statusKepegawaianHistoricalData,
+      percentageData: statusKepegawaianPercentageData,
+      categoryKeys: STATUS_KEPEGAWAIAN_CATEGORIES,
     },
   };
 

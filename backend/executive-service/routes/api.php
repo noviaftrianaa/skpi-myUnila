@@ -78,7 +78,9 @@ Route::prefix('v1')->group(function () {
 
             // Jenjang pendidikan data routes
             Route::get('/fakultas', [JenjangPendidikanController::class, 'getJenjangFakultas']);
+            Route::get('/fakultas/historical', [JenjangPendidikanController::class, 'getJenjangFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [JenjangPendidikanController::class, 'getJenjangProdi']);
+            Route::get('/fakultas/{fakultasId}/historical', [JenjangPendidikanController::class, 'getJenjangProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [JenjangPendidikanController::class, 'getDataDosen']);
@@ -122,7 +124,9 @@ Route::prefix('v1')->group(function () {
 
             // Jenis kelamin data routes
             Route::get('/fakultas', [JenisKelaminController::class, 'getJenisKelaminFakultas']);
+            Route::get('/fakultas/historical', [JenisKelaminController::class, 'getJenisKelaminFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [JenisKelaminController::class, 'getJenisKelaminProdi']);
+            Route::get('/fakultas/{idFakultas}/historical', [JenisKelaminController::class, 'getJenisKelaminProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [JenisKelaminController::class, 'getDataDosen']);
@@ -136,7 +140,9 @@ Route::prefix('v1')->group(function () {
 
             // Status kepegawaian data routes
             Route::get('/fakultas', [StatusKepegawaianController::class, 'getStatusKepegawaianFakultas']);
+            Route::get('/fakultas/historical', [StatusKepegawaianController::class, 'getStatusKepegawaianFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [StatusKepegawaianController::class, 'getStatusKepegawaianProdi']);
+            Route::get('/fakultas/{idFakultas}/historical', [StatusKepegawaianController::class, 'getStatusKepegawaianProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [StatusKepegawaianController::class, 'getDataDosen']);

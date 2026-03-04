@@ -87,6 +87,26 @@ export interface GetProdiParams {
   fakultas_id: string;
 }
 
+export interface GetJenjangFakultasHistoricalParams {
+  tahun_ajaran?: string;
+  years_back?: number;
+  fakultas_id?: string;
+}
+
+export interface GetJenjangProdiHistoricalParams {
+  fakultas_id: string;
+  tahun_ajaran?: string;
+  years_back?: number;
+  prodi_id?: string;
+}
+
+export interface HistoricalJenjangData {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: JenjangFakultas[] | JenjangProdi[];
+}
+
 // ========================================
 // Service
 // ========================================
@@ -181,6 +201,42 @@ class ExecutiveJenjangPendidikanService {
     }>("/dosen/jenjang-pendidikan/master/prodi", {
       params,
     });
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jenjang pendidikan data at university/fakultas level
+   * @param params - Optional query parameters (tahun_ajaran, years_back, fakultas_id)
+   */
+  async getJenjangFakultasHistorical(
+    params?: GetJenjangFakultasHistoricalParams,
+  ): Promise<HistoricalJenjangData[]> {
+    const response = await executiveClient.get<{ data: HistoricalJenjangData[] }>(
+      "/dosen/jenjang-pendidikan/fakultas/historical",
+      {
+        params,
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get historical jenjang pendidikan data at fakultas level (per prodi)
+   * @param params - Parameters including fakultas_id and optional tahun_ajaran, years_back, prodi_id
+   */
+  async getJenjangProdiHistorical(
+    params: GetJenjangProdiHistoricalParams,
+  ): Promise<HistoricalJenjangData[]> {
+    const response = await executiveClient.get<{ data: HistoricalJenjangData[] }>(
+      `/dosen/jenjang-pendidikan/fakultas/${params.fakultas_id}/historical`,
+      {
+        params: {
+          tahun_ajaran: params.tahun_ajaran,
+          years_back: params.years_back,
+          prodi_id: params.prodi_id,
+        },
+      },
+    );
     return response.data.data || [];
   }
 }

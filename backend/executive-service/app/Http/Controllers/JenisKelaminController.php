@@ -156,4 +156,57 @@ class JenisKelaminController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get historical jenis kelamin data at university/fakultas level for multiple years
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getJenisKelaminFakultasHistorical(Request $request)
+    {
+        try {
+            $selectedYearId = $request->query('tahun_ajaran');
+            $yearsBack = (int) $request->query('years_back', 5);
+            $fakultasId = $request->query('fakultas_id');
+
+            $data = $this->jenisKelaminService->getJenisKelaminFakultasHistorical($selectedYearId, $yearsBack, $fakultasId);
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get historical jenis kelamin data at fakultas level (per prodi) for multiple years
+     *
+     * @param Request $request
+     * @param string $fakultasId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getJenisKelaminProdiHistorical(Request $request, $fakultasId)
+    {
+        try {
+            $selectedYearId = $request->query('tahun_ajaran');
+            $yearsBack = (int) $request->query('years_back', 5);
+            $prodiId = $request->query('prodi_id');
+
+            $data = $this->jenisKelaminService->getJenisKelaminProdiHistorical($fakultasId, $selectedYearId, $yearsBack, $prodiId);
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

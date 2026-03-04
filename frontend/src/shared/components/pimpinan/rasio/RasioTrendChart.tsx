@@ -1,4 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Button } from "@heroui/react";
 
 interface TrendDataItem {
@@ -42,9 +51,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => {
+export const RasioTrendChart = ({
+  data,
+  onLihatData,
+}: RasioTrendChartProps) => {
   // Aggregate data per year - calculate overall ratio
-  const chartData = data.map(yearData => {
+  const chartData = data.map((yearData) => {
     // Calculate totals for the year
     // Handle both Fakultas (total_dosen, total_mahasiswa) and Prodi (jumlah_dosen, jumlah_mahasiswa) field names
     const totalDosen = yearData.data.reduce((sum, entity) => {
@@ -65,7 +77,7 @@ export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => 
 
     return {
       tahun: yearData.tahun,
-      rasio: aggregatedRatio,
+      // rasio: aggregatedRatio,
       rasioDisplay: ratioDisplay,
       totalDosen,
       totalMahasiswa,
@@ -96,17 +108,13 @@ export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => 
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart
+        <AreaChart
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="tahun"
-            tick={{ fontSize: 12 }}
-            stroke="#666"
-          />
-          <YAxis
+          <XAxis dataKey="tahun" tick={{ fontSize: 12 }} stroke="#666" />
+          {/* <YAxis
             yAxisId="left"
             label={{
               value: "Rasio (1:N)",
@@ -116,7 +124,7 @@ export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => 
             }}
             tick={{ fontSize: 12 }}
             stroke="#666"
-          />
+          /> */}
           <YAxis
             yAxisId="right"
             orientation="right"
@@ -132,37 +140,39 @@ export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => 
           <Tooltip content={<CustomTooltip />} />
           <Legend />
 
-          <Line
+          {/* <Area
             yAxisId="left"
             type="monotone"
             dataKey="rasio"
             stroke="#3b82f6"
-            strokeWidth={3}
+            fill="#3b82f6"
+            strokeWidth={2}
+            fillOpacity={0.3}
             name="Rasio (1:N)"
-            dot={{ r: 6, fill: "#3b82f6" }}
-            activeDot={{ r: 8 }}
-          />
-          <Line
+          /> */}
+          <Area
             yAxisId="right"
             type="monotone"
             dataKey="totalDosen"
             stroke="#22c55e"
+            fill="#22c55e"
             strokeWidth={2}
+            fillOpacity={0.3}
             name="Total Dosen"
             dot={{ r: 4, fill: "#22c55e" }}
-            activeDot={{ r: 6 }}
           />
-          <Line
+          <Area
             yAxisId="right"
             type="monotone"
             dataKey="totalMahasiswa"
             stroke="#f59e0b"
+            fill="#f59e0b"
             strokeWidth={2}
+            fillOpacity={0.3}
             name="Total Mahasiswa"
             dot={{ r: 4, fill: "#f59e0b" }}
-            activeDot={{ r: 6 }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
 
       {/* Summary Statistics */}
@@ -175,23 +185,30 @@ export const RasioTrendChart = ({ data, onLihatData }: RasioTrendChartProps) => 
           return (
             <div
               key={index}
-              className="p-4 bg-gray-50 border border-gray-200 rounded-lg"
+              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
             >
               <p className="mb-1 text-sm font-semibold text-gray-800">
                 {yearData.tahun}
               </p>
               <div className="flex items-center justify-between mt-2">
                 <p className="text-xs text-gray-600">Rasio</p>
-                <p
-                  className="text-sm font-bold"
-                  style={{ color }}
-                >
+                <p className="text-sm font-bold" style={{ color }}>
                   {yearData.rasioDisplay}
                 </p>
               </div>
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-gray-500">Dosen: <span className="font-semibold text-green-600">{yearData.totalDosen}</span></p>
-                <p className="text-xs text-gray-500">Mhs: <span className="font-semibold text-amber-600">{yearData.totalMahasiswa}</span></p>
+                <p className="text-xs text-gray-500">
+                  Dosen:{" "}
+                  <span className="font-semibold text-green-600">
+                    {yearData.totalDosen}
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  Mhs:{" "}
+                  <span className="font-semibold text-amber-600">
+                    {yearData.totalMahasiswa}
+                  </span>
+                </p>
               </div>
             </div>
           );
