@@ -147,4 +147,5 @@ type SMSUnit struct {
 	NmLemb    string  `json:"nm_lemb"    db:"nm_lemb"`
 	Singkatan *string `json:"singkatan"  db:"singkatan"`
 	Website   *string `json:"website"    db:"website"`
+	Email     *string `json:"email"      db:"email"`
 }

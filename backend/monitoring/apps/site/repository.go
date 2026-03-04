@@ -539,7 +539,7 @@ func (r *repository) LookupNamaUnit(idSMS string) string {
 func (r *repository) ListSMSUnits() ([]*SMSUnit, error) {
 	rows, err := r.db.Queryx(`
 		SELECT CONVERT(nvarchar(36), id_sms) AS id_sms,
-		       nm_lemb, singkatan, website
+		       nm_lemb, singkatan, website, email
 		FROM pdrd.sms
 		WHERE soft_delete = 0
 		ORDER BY nm_lemb ASC`)

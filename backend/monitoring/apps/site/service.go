@@ -173,14 +173,18 @@ func (s *service) CheckAll(checkerID string) (total, ok, fail int) {
 	}
 	defer atomic.StoreInt32(&s.checkAllRunning, 0)
 
+	prog := GetCheckProgress()
+
 	sites, err := s.repo.ListAllSites()
 	if err != nil {
 		log.Printf("CheckAll: failed to list sites: %v", err)
+		prog.Fail(err.Error())
 		return 0, 0, 0
 	}
 
 	total = len(sites)
 	log.Printf("🔍 CheckAll: checking %d sites...", total)
+	prog.Start(total, checkerID)
 
 	var okCount, failCount int32
 	var wg sync.WaitGroup
@@ -195,8 +199,10 @@ func (s *service) CheckAll(checkerID string) (total, ok, fail int) {
 
 			if _, err := s.doCheck(st, checkerID); err != nil {
 				atomic.AddInt32(&failCount, 1)
+				prog.Increment(false)
 			} else {
 				atomic.AddInt32(&okCount, 1)
+				prog.Increment(true)
 			}
 		}(site)
 	}
@@ -205,6 +211,7 @@ func (s *service) CheckAll(checkerID string) (total, ok, fail int) {
 	ok = int(okCount)
 	fail = int(failCount)
 	log.Printf("✅ CheckAll done: %d total, %d ok, %d fail", total, ok, fail)
+	prog.Complete()
 
 	// Best-effort auto-mapping id_sms for sites that don't have one yet
 	go s.autoMapSMS(sites)
@@ -304,7 +311,8 @@ func (s *service) doCheck(site *Site, checkerID string) (*SiteCheck, error) {
 	return check, nil
 }
 
-// autoMapSMS tries to match sites (without id_sms) to pdrd.sms units by domain or name.
+// autoMapSMS tries to match sites (without id_sms) to pdrd.sms units using scoring.
+// Priority: domain(100) > exact name(90) > name substring(70) > email domain(60) > singkatan(40)
 func (s *service) autoMapSMS(sites []*Site) {
 	units, err := s.repo.ListSMSUnits()
 	if err != nil || len(units) == 0 {
@@ -320,27 +328,57 @@ func (s *service) autoMapSMS(sites []*Site) {
 		siteDomain := extractDomain(st.URL)
 		siteNameLower := strings.ToLower(st.Name)
 
+		var bestMatch *SMSUnit
+		bestScore := 0
+
 		for _, u := range units {
-			// Match by domain
+			score := 0
+			unitNameLower := strings.ToLower(u.NmLemb)
+
+			// 1. Domain exact match (highest priority)
 			if u.Website != nil && *u.Website != "" {
 				unitDomain := extractDomain(*u.Website)
 				if unitDomain != "" && siteDomain != "" && unitDomain == siteDomain {
-					idSms := u.IDSMS
-					_ = s.repo.Update(st.ID, UpdateSiteRequest{IDSMS: &idSms}, sysUserID)
-					mapped++
-					break
+					score = 100
 				}
 			}
-			// Match by singkatan (abbreviation) in site name
-			if u.Singkatan != nil && *u.Singkatan != "" {
+
+			// 2. Exact name match (case-insensitive)
+			if score == 0 && siteNameLower == unitNameLower {
+				score = 90
+			}
+
+			// 3. nm_lemb contained in site name (min 5 chars to avoid false positives)
+			if score == 0 && len(unitNameLower) >= 5 && strings.Contains(siteNameLower, unitNameLower) {
+				score = 70
+			}
+
+			// 4. Email domain match
+			if score == 0 && u.Email != nil && *u.Email != "" && siteDomain != "" {
+				emailDomain := extractEmailDomain(*u.Email)
+				if emailDomain != "" && emailDomain == siteDomain {
+					score = 60
+				}
+			}
+
+			// 5. Singkatan match (abbreviation substring, min 3 chars)
+			if score == 0 && u.Singkatan != nil && *u.Singkatan != "" {
 				abbr := strings.ToLower(*u.Singkatan)
 				if len(abbr) >= 3 && strings.Contains(siteNameLower, abbr) {
-					idSms := u.IDSMS
-					_ = s.repo.Update(st.ID, UpdateSiteRequest{IDSMS: &idSms}, sysUserID)
-					mapped++
-					break
+					score = 40
 				}
 			}
+
+			if score > bestScore {
+				bestScore = score
+				bestMatch = u
+			}
+		}
+
+		if bestMatch != nil {
+			idSms := bestMatch.IDSMS
+			_ = s.repo.Update(st.ID, UpdateSiteRequest{IDSMS: &idSms}, sysUserID)
+			mapped++
 		}
 	}
 
@@ -359,4 +397,13 @@ func extractDomain(rawURL string) string {
 		return ""
 	}
 	return strings.ToLower(u.Hostname())
+}
+
+// extractEmailDomain returns the domain part of an email address.
+func extractEmailDomain(email string) string {
+	parts := strings.SplitN(email, "@", 2)
+	if len(parts) == 2 {
+		return strings.ToLower(parts[1])
+	}
+	return ""
 }

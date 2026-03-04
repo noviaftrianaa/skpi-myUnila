@@ -152,6 +152,13 @@ func (c *Controller) CheckAll(ctx *fiber.Ctx) error {
 	})
 }
 
+// CheckProgress godoc
+// GET /api/v1/sites/check-progress
+func (c *Controller) CheckProgress(ctx *fiber.Ctx) error {
+	p := GetCheckProgress()
+	return response.Success(ctx, "Check progress", p.Snapshot())
+}
+
 // ListSMSUnits godoc
 // GET /api/v1/sites/sms-units
 func (c *Controller) ListSMSUnits(ctx *fiber.Ctx) error {
