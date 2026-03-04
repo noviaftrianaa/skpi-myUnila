@@ -205,6 +205,32 @@ func (r *repository) Stats() (*ThreatStats, error) {
 		}
 	}
 
+	// Top fakultas by threat count (drill-down via id_sms → id_fak_unila)
+	rows3, _ := r.db.Queryx(`
+		SELECT TOP 10
+			CONVERT(nvarchar(36), fak.id_sms) AS fakultas_id,
+			fak.nm_lemb AS fakultas_name,
+			COUNT(*) AS cnt
+		FROM monitoring.detected_threats t
+		INNER JOIN monitoring.sites s ON t.site_id = s.id
+		INNER JOIN pdrd.sms unit ON s.id_sms = unit.id_sms
+		INNER JOIN pdrd.sms fak ON unit.id_fak_unila = fak.id_sms
+		WHERE t.soft_delete = 0
+		GROUP BY CONVERT(nvarchar(36), fak.id_sms), fak.nm_lemb
+		ORDER BY cnt DESC`)
+	if rows3 != nil {
+		defer rows3.Close()
+		for rows3.Next() {
+			var fakID, fakName string
+			var cnt int
+			if rows3.Scan(&fakID, &fakName, &cnt) == nil {
+				s.TopFakultas = append(s.TopFakultas, map[string]interface{}{
+					"fakultas_id": fakID, "fakultas_name": fakName, "count": cnt,
+				})
+			}
+		}
+	}
+
 	return s, nil
 }
 

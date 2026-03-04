@@ -54,6 +54,7 @@ type ThreatStats struct {
 	Resolved      int                      `json:"resolved"`
 	ByCategory    []map[string]interface{} `json:"by_category"`
 	TopSites      []map[string]interface{} `json:"top_sites"`
+	TopFakultas   []map[string]interface{} `json:"top_fakultas"`
 }
 
 // AlertNotification maps to monitoring.alert_notifications
