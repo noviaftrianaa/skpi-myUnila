@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { FiShield, FiAlertOctagon, FiDownload } from "react-icons/fi";
 import {
     OverviewStatCards,
@@ -16,6 +17,7 @@ import {
 import { Card, CardBody, CardHeader, Divider, Button } from "@heroui/react";
 
 export default function WebMonitoringPage() {
+    useRequireAuth();
     return (
         <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
             {/* Header */}
