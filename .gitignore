@@ -26,6 +26,7 @@ deployment/production/**/.env.production
 
 # Local development environment files (contains credentials)
 deployment/local/.env
+deployment/local/services/**/.env
 frontend/.env.local
 
 # SIMPEDAM proxy files (local tools)
