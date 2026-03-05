@@ -142,6 +142,7 @@ async function getCheckProgress(): Promise<CheckAllProgress> {
 export interface SMSUnit {
   id_sms: string;
   nm_lemb: string;
+  jenjang?: string;
   singkatan?: string;
   website?: string;
 }

@@ -207,16 +207,19 @@ export default function SiteFormModal({ isOpen, onClose, initialData }: SiteForm
                                             className: "text-gray-800 dark:text-gray-200",
                                         }}
                                     >
-                                        {smsUnits.map((u) => (
-                                            <AutocompleteItem key={u.id_sms} textValue={u.nm_lemb}>
-                                                <div>
-                                                    <div className="text-sm font-medium">{u.nm_lemb}</div>
-                                                    {u.singkatan && (
-                                                        <div className="text-xs text-gray-400">{u.singkatan}</div>
-                                                    )}
-                                                </div>
-                                            </AutocompleteItem>
-                                        ))}
+                                        {smsUnits.map((u) => {
+                                            const label = u.jenjang ? `${u.nm_lemb} (${u.jenjang})` : u.nm_lemb;
+                                            return (
+                                                <AutocompleteItem key={u.id_sms} textValue={label}>
+                                                    <div>
+                                                        <div className="text-sm font-medium">{label}</div>
+                                                        {u.singkatan && (
+                                                            <div className="text-xs text-gray-400">{u.singkatan}</div>
+                                                        )}
+                                                    </div>
+                                                </AutocompleteItem>
+                                            );
+                                        })}
                                     </Autocomplete>
                                 </div>
 
