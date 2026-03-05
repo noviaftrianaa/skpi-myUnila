@@ -70,7 +70,9 @@ func (r *repository) List(f ThreatFilter) ([]*DetectedThreat, int, error) {
 	dataSQL := fmt.Sprintf(`
 		SELECT t.id, CONVERT(nvarchar(36), t.site_id) AS site_id, t.crawl_page_id,
 		       t.page_url, t.page_title,
-		       t.matched_keywords, t.threat_score, t.category, t.snippet, t.status,
+		       t.matched_keywords, t.threat_score, t.category, t.snippet,
+		       t.is_cloaked, t.redirect_chain,
+		       t.status,
 		       t.detected_at, t.confirmed_at, CONVERT(nvarchar(36), t.confirmed_by) AS confirmed_by,
 		       t.resolved_at, CONVERT(nvarchar(36), t.resolved_by) AS resolved_by, t.notes,
 		       t.create_date, CONVERT(nvarchar(36), t.id_creator) AS id_creator,
@@ -109,7 +111,9 @@ func (r *repository) GetByID(id int) (*DetectedThreat, error) {
 	err := r.db.QueryRowx(`
 		SELECT id, CONVERT(nvarchar(36), site_id) AS site_id, crawl_page_id,
 		       page_url, page_title,
-		       matched_keywords, threat_score, category, snippet, status,
+		       matched_keywords, threat_score, category, snippet,
+		       is_cloaked, redirect_chain,
+		       status,
 		       detected_at, confirmed_at, CONVERT(nvarchar(36), confirmed_by) AS confirmed_by,
 		       resolved_at, CONVERT(nvarchar(36), resolved_by) AS resolved_by, notes,
 		       create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
@@ -303,13 +307,17 @@ func (r *repository) Insert(t *DetectedThreat) (int, error) {
 	err := r.db.QueryRow(`
 		INSERT INTO monitoring.detected_threats (
 			site_id, crawl_page_id, page_url, page_title,
-			matched_keywords, threat_score, category, snippet, status, detected_at,
+			matched_keywords, threat_score, category, snippet,
+			is_cloaked, redirect_chain,
+			status, detected_at,
 			create_date, id_creator, last_update, soft_delete
 		)
 		OUTPUT INSERTED.id
-		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, 0)`,
+		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, 0)`,
 		t.SiteID, t.CrawlPageID, t.PageURL, t.PageTitle,
-		t.MatchedKeywords, t.ThreatScore, t.Category, t.Snippet, t.Status, t.DetectedAt,
+		t.MatchedKeywords, t.ThreatScore, t.Category, t.Snippet,
+		t.IsCloaked, t.RedirectChain,
+		t.Status, t.DetectedAt,
 		t.CreateDate, t.IDCreator, t.LastUpdate,
 	).Scan(&id)
 	return id, err

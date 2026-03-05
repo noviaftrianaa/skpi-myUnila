@@ -13,6 +13,8 @@ type DetectedThreat struct {
 	ThreatScore     int        `json:"threat_score"     db:"threat_score"`
 	Category        string     `json:"category"         db:"category"`
 	Snippet         *string    `json:"snippet"          db:"snippet"`
+	IsCloaked       int        `json:"is_cloaked"       db:"is_cloaked"`
+	RedirectChain   *string    `json:"redirect_chain,omitempty" db:"redirect_chain"`
 	Status          string     `json:"status"           db:"status"`
 	DetectedAt      time.Time  `json:"detected_at"      db:"detected_at"`
 	ConfirmedAt     *time.Time `json:"confirmed_at"     db:"confirmed_at"`
