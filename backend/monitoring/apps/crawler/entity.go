@@ -42,22 +42,33 @@ type CrawlSession struct {
 
 // CrawlPage represents a single crawled page (monitoring.crawl_pages)
 type CrawlPage struct {
-	ID             int        `json:"id"               db:"id"`
-	SessionID      int        `json:"session_id"       db:"session_id"`
-	SiteID         string     `json:"site_id"          db:"site_id"`
-	PageURL        string     `json:"page_url"         db:"page_url"`
-	PageTitle      *string    `json:"page_title"       db:"page_title"`
-	HTTPCode       int        `json:"http_code"        db:"http_code"`
-	ContentHash    *string    `json:"content_hash"     db:"content_hash"`
-	HasThreat      int        `json:"has_threat"       db:"has_threat"`
-	ThreatScore    int        `json:"threat_score"     db:"threat_score"`
-	CrawledAt      time.Time  `json:"crawled_at"       db:"crawled_at"`
+	ID        int     `json:"id"           db:"id"`
+	SessionID int     `json:"session_id"   db:"session_id"`
+	SiteID    string  `json:"site_id"      db:"site_id"`
+	PageURL   string  `json:"page_url"     db:"page_url"`
+	PageTitle *string `json:"page_title"   db:"page_title"`
+	HTTPCode  int     `json:"http_code"    db:"http_code"`
+	ContentHash *string `json:"content_hash" db:"content_hash"`
+	HasThreat   int     `json:"has_threat"   db:"has_threat"`
+	ThreatScore int     `json:"threat_score" db:"threat_score"`
+	// Redirect chain tracking
+	RedirectChain       *string `json:"redirect_chain,omitempty"  db:"redirect_chain"`
+	HasExternalRedirect int     `json:"has_external_redirect"     db:"has_external_redirect"`
+	// Cloaking detection
+	IsCloaked            int `json:"is_cloaked"             db:"is_cloaked"`
+	CloakingScore        int `json:"cloaking_score"         db:"cloaking_score"`
+	GooglebotThreatScore int `json:"googlebot_threat_score" db:"googlebot_threat_score"`
+	// AMP scan
+	AMPUrl         *string `json:"amp_url,omitempty"  db:"amp_url"`
+	AMPThreatScore int     `json:"amp_threat_score"   db:"amp_threat_score"`
+
+	CrawledAt  time.Time `json:"crawled_at" db:"crawled_at"`
 	// Audit
-	CreateDate time.Time  `json:"-" db:"create_date"`
-	IDCreator  string     `json:"-" db:"id_creator"`
-	LastUpdate time.Time  `json:"-" db:"last_update"`
-	IDUpdater  *string    `json:"-" db:"id_updater"`
-	SoftDelete int        `json:"-"           db:"soft_delete"`
+	CreateDate time.Time `json:"-" db:"create_date"`
+	IDCreator  string    `json:"-" db:"id_creator"`
+	LastUpdate time.Time `json:"-" db:"last_update"`
+	IDUpdater  *string   `json:"-" db:"id_updater"`
+	SoftDelete int       `json:"-" db:"soft_delete"`
 }
 
 // CreateJobRequest is the body for POST /api/v1/crawl/jobs

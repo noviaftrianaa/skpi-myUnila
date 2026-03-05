@@ -54,7 +54,11 @@ const sessionColumns = `id, job_id, CONVERT(nvarchar(36), site_id) AS site_id, s
 	last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete`
 
 const pageColumns = `id, session_id, CONVERT(nvarchar(36), site_id) AS site_id,
-	page_url, page_title, http_code, content_hash, has_threat, threat_score, crawled_at,
+	page_url, page_title, http_code, content_hash, has_threat, threat_score,
+	redirect_chain, has_external_redirect,
+	is_cloaked, cloaking_score, googlebot_threat_score,
+	amp_url, amp_threat_score,
+	crawled_at,
 	create_date, CONVERT(nvarchar(36), id_creator) AS id_creator,
 	last_update, CONVERT(nvarchar(36), id_updater) AS id_updater, soft_delete`
 
@@ -222,13 +226,22 @@ func (r *repository) InsertPage(page *CrawlPage) (int, error) {
 	query := `
 		INSERT INTO monitoring.crawl_pages
 		  (session_id, site_id, page_url, page_title, http_code, content_hash,
-		   has_threat, threat_score, crawled_at, create_date, id_creator, last_update, soft_delete)
+		   has_threat, threat_score,
+		   redirect_chain, has_external_redirect,
+		   is_cloaked, cloaking_score, googlebot_threat_score,
+		   amp_url, amp_threat_score,
+		   crawled_at, create_date, id_creator, last_update, soft_delete)
 		OUTPUT INSERTED.id
-		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, 0)`
+		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8,
+		        @p9, @p10, @p11, @p12, @p13, @p14, @p15,
+		        @p16, @p17, @p18, @p19, 0)`
 	var id int
 	err := r.db.QueryRow(query,
 		page.SessionID, page.SiteID, page.PageURL, page.PageTitle,
 		page.HTTPCode, page.ContentHash, page.HasThreat, page.ThreatScore,
+		page.RedirectChain, page.HasExternalRedirect,
+		page.IsCloaked, page.CloakingScore, page.GooglebotThreatScore,
+		page.AMPUrl, page.AMPThreatScore,
 		page.CrawledAt, page.CreateDate, page.IDCreator, page.LastUpdate,
 	).Scan(&id)
 	return id, err

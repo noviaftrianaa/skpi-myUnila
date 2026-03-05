@@ -59,12 +59,15 @@ type GSCConfig struct {
 }
 
 type CrawlerConfig struct {
-	MaxDepth         int
-	MaxPages         int
-	RateLimitMs      int
-	ConcurrentSites  int
-	TimeoutSec       int
-	UserAgent        string
+	MaxDepth                    int
+	MaxPages                    int
+	RateLimitMs                 int
+	ConcurrentSites             int
+	TimeoutSec                  int
+	UserAgent                   string
+	CloakingEnabled             bool
+	CloakingSimilarityThreshold float64
+	AMPScanEnabled              bool
 }
 
 var Cfg Config
@@ -110,12 +113,15 @@ func LoadConfig() {
 			Enabled:             getEnvBool("GSC_ENABLED", true),
 		},
 		Crawler: CrawlerConfig{
-			MaxDepth:        getEnvInt("CRAWLER_MAX_DEPTH", 3),
-			MaxPages:        getEnvInt("CRAWLER_MAX_PAGES", 500),
-			RateLimitMs:     getEnvInt("CRAWLER_RATE_LIMIT_MS", 1000),
-			ConcurrentSites: getEnvInt("CRAWLER_CONCURRENT_SITES", 3),
-			TimeoutSec:      getEnvInt("CRAWLER_TIMEOUT_SEC", 30),
-			UserAgent:       getEnv("CRAWLER_USER_AGENT", "MyUnila-WebMon/1.0 (+https://my.unila.ac.id/webmon)"),
+			MaxDepth:                    getEnvInt("CRAWLER_MAX_DEPTH", 3),
+			MaxPages:                    getEnvInt("CRAWLER_MAX_PAGES", 500),
+			RateLimitMs:                 getEnvInt("CRAWLER_RATE_LIMIT_MS", 1000),
+			ConcurrentSites:             getEnvInt("CRAWLER_CONCURRENT_SITES", 3),
+			TimeoutSec:                  getEnvInt("CRAWLER_TIMEOUT_SEC", 30),
+			UserAgent:                   getEnv("CRAWLER_USER_AGENT", "MyUnila-WebMon/1.0 (+https://my.unila.ac.id/webmon)"),
+			CloakingEnabled:             getEnvBool("CRAWLER_CLOAKING_ENABLED", true),
+			CloakingSimilarityThreshold: getEnvFloat("CRAWLER_CLOAKING_THRESHOLD", 0.7),
+			AMPScanEnabled:              getEnvBool("CRAWLER_AMP_SCAN_ENABLED", true),
 		},
 	}
 
@@ -133,6 +139,15 @@ func getEnvInt(key string, fallback int) int {
 	if value, exists := os.LookupEnv(key); exists {
 		if intVal, err := strconv.Atoi(value); err == nil {
 			return intVal
+		}
+	}
+	return fallback
+}
+
+func getEnvFloat(key string, fallback float64) float64 {
+	if value, exists := os.LookupEnv(key); exists {
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			return f
 		}
 	}
 	return fallback
