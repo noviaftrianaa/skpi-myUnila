@@ -283,6 +283,17 @@ create table monitoring.crawl_pages (
     has_threat      numeric(1)          not null default 0
         constraint ckc_has_threat_crawl_pages check (has_threat in (0,1)),
     threat_score    int                 not null default 0,
+    -- redirect chain tracking
+    redirect_chain          nvarchar(max)   null,
+    has_external_redirect   numeric(1)      not null default 0,
+    -- cloaking detection
+    is_cloaked              numeric(1)      not null default 0,
+    cloaking_score          int             not null default 0,
+    googlebot_threat_score  int             not null default 0,
+    -- AMP scan
+    amp_url                 nvarchar(2000)  null,
+    amp_threat_score        int             not null default 0,
+    -- timestamps
     crawled_at      datetime            not null,
     create_date     datetime            not null,
     id_creator      uniqueidentifier    not null,
@@ -300,6 +311,8 @@ create index idx_crawl_pages_2 on monitoring.crawl_pages (has_threat, threat_sco
 go
 create index idx_crawl_pages_3 on monitoring.crawl_pages (site_id, crawled_at desc) where soft_delete = 0
 go
+create index idx_crawl_pages_cloaked on monitoring.crawl_pages (is_cloaked) where is_cloaked = 1 and soft_delete = 0
+go
 print '>> monitoring.crawl_pages created.'
 go
 
@@ -313,6 +326,9 @@ create table monitoring.detected_threats (
     matched_keywords    nvarchar(max)       not null,
     threat_score        int                 not null,
     category            nvarchar(50)        not null default 'generic',
+    snippet             nvarchar(max)       null,
+    is_cloaked          numeric(1)          not null default 0,
+    redirect_chain      nvarchar(max)       null,
     status              nvarchar(20)        not null default 'pending',
     detected_at         datetime            not null,
     confirmed_at        datetime            null,
@@ -337,6 +353,8 @@ go
 create index idx_threats_3 on monitoring.detected_threats (threat_score desc) where soft_delete = 0
 go
 create index idx_threats_4 on monitoring.detected_threats (category) where soft_delete = 0
+go
+create index idx_threats_cloaked on monitoring.detected_threats (is_cloaked) where is_cloaked = 1 and soft_delete = 0
 go
 print '>> monitoring.detected_threats created.'
 go
