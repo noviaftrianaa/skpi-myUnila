@@ -1053,7 +1053,7 @@ else
       -H "Content-Type: application/json" \
       -d '{
         "name": "minio-storage-route",
-        "paths": ["/gateway/storage"],
+        "paths": ["/storage"],
         "strip_path": true,
         "preserve_host": false,
         "protocols": ["http", "https"],
@@ -1702,7 +1702,7 @@ echo "  Keuangan (JWT req):    /keuangan-service/* → backend/*"
 echo "  WebMon (JWT req):      /webmon-service/* → backend/*"
 echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
 echo "  API/OneData (JWT req): /api-service/* → backend/*"
-echo "  MinIO Storage (public):/gateway/storage/* → MinIO:9000/* (GET/HEAD only)"
+echo "  MinIO Storage (public):/storage/* → MinIO:9000/* (GET/HEAD only)"
 echo ""
 echo -e "${YELLOW}API Documentation Routes (JWT + Developer role required):${NC}"
 echo "  Auth Docs:      /gateway/auth-service/docs/*"
@@ -1730,7 +1730,7 @@ echo "  # MyUnila SIKEP (requires JWT)"
 echo "  curl -H 'Authorization: Bearer <token>' http://localhost:9800/myunila-service/api/v1/sikep/referensi/metadata"
 echo ""
 echo "  # MinIO Storage (public, read-only)"
-echo "  curl http://localhost:9800/gateway/storage/myunila-photos/sdm/{id_sdm}.jpg"
+echo "  curl http://localhost:9800/storage/myunila-photos/sdm/{id_sdm}.jpg"
 echo ""
 echo "  # Check Kong services and routes"
 echo "  curl $KONG_ADMIN_URL/services"
