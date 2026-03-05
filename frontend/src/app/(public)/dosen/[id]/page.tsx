@@ -17,6 +17,9 @@ const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
   ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`
   : 'http://localhost:9800/sister-service/public/api/v1';
 
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  || 'http://localhost:9800/public-service/api/v1';
+
 type TabType = 'overview' | 'pengajaran' | 'penelitian' | 'publikasi';
 
 // Helper function to generate smart pagination
@@ -209,7 +212,7 @@ export default function DosenProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={dosen.photo_url || `${SISTER_API_URL}/dosen/photo/${dosen.id}`}
+                    src={`${PUBLIC_API_URL}/dosen/${dosen.id}/photo`}
                     alt={dosen.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {
