@@ -146,6 +146,12 @@ func (d *Detector) ScanPage(titleAndH1, bodyText string) *PageResult {
 	}
 }
 
+// ThreatExtra holds optional deep-scan metadata for a reported threat.
+type ThreatExtra struct {
+	IsCloaked     bool
+	RedirectChain *string // JSON array string
+}
+
 // ReportIfThreat checks scan result and inserts a detected_threat if threshold exceeded.
 // Returns true if threat was reported.
 func (d *Detector) ReportIfThreat(
@@ -153,6 +159,7 @@ func (d *Detector) ReportIfThreat(
 	crawlPageID *int,
 	pageURL, pageTitle string,
 	result *PageResult,
+	extra *ThreatExtra,
 ) bool {
 	if !result.IsTheat {
 		return false
@@ -178,6 +185,12 @@ func (d *Detector) ReportIfThreat(
 		IDCreator:       sysUserID,
 		LastUpdate:      now,
 	}
+	if extra != nil {
+		if extra.IsCloaked {
+			threat.IsCloaked = 1
+		}
+		threat.RedirectChain = extra.RedirectChain
+	}
 
 	id, err := d.thrSvc.Report(threat)
 	if err != nil {
@@ -185,8 +198,12 @@ func (d *Detector) ReportIfThreat(
 		return false
 	}
 	if id > 0 {
-		log.Printf("🚨 Threat detected: %s (score=%d, cat=%s, keywords=%s)",
-			pageURL, result.Score, result.Category, strings.Join(result.MatchedKeywords, ","))
+		cloakTag := ""
+		if extra != nil && extra.IsCloaked {
+			cloakTag = " [CLOAKED]"
+		}
+		log.Printf("🚨 Threat detected%s: %s (score=%d, cat=%s, keywords=%s)",
+			cloakTag, pageURL, result.Score, result.Category, strings.Join(result.MatchedKeywords, ","))
 	}
 	return id > 0
 }
