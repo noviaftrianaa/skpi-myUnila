@@ -223,7 +223,7 @@ export default function ScannerPage() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-end gap-2">
+                            <div className="space-y-3">
                                 {sitesLoading ? (
                                     <div className="flex items-center gap-2 text-xs text-gray-400 py-2">
                                         <Spinner size="sm" />
@@ -231,7 +231,7 @@ export default function ScannerPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="flex-1">
+                                        <div>
                                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Pilih Situs</label>
                                         <Autocomplete
                                             placeholder="Ketik untuk mencari situs..."
@@ -263,13 +263,13 @@ export default function ScannerPage() {
                                             color="warning"
                                             radius="md"
                                             size="sm"
-                                            className="font-medium flex-shrink-0 text-white"
+                                            className="font-medium text-white w-full"
                                             startContent={<FiPlay className="w-3.5 h-3.5" />}
                                             isLoading={scanLoading === "single"}
                                             isDisabled={!selectedSiteId || scanLoading !== null}
                                             onPress={handleScanSingle}
                                         >
-                                            Jalankan
+                                            Jalankan Scan
                                         </Button>
                                     </>
                                 )}
