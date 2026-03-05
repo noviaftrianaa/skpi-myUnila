@@ -118,7 +118,51 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                 </Chip>
                                 <ScoreBadge score={threat.threat_score} />
                                 <Chip variant="flat" size="sm">{threat.category}</Chip>
+                                {threat.is_cloaked === 1 && (
+                                    <Chip color="danger" variant="flat" size="sm" className="font-bold">
+                                        🕵️ Cloaking
+                                    </Chip>
+                                )}
                             </div>
+
+                            {/* Cloaking Alert */}
+                            {threat.is_cloaked === 1 && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                                    <p className="text-xs font-semibold text-red-600 uppercase mb-1">🕵️ Cloaking Terdeteksi</p>
+                                    <p className="text-xs text-red-700 dark:text-red-300">
+                                        Halaman ini menampilkan konten berbeda ke Googlebot vs pengunjung biasa.
+                                        Konten judi/spam hanya muncul saat diakses oleh mesin pencari Google.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Redirect Chain */}
+                            {threat.redirect_chain && (() => {
+                                try {
+                                    const chain = JSON.parse(threat.redirect_chain) as { status: number; from: string; to: string }[];
+                                    if (chain.length === 0) return null;
+                                    return (
+                                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                                            <p className="text-xs font-semibold text-amber-600 uppercase mb-2">🔗 Redirect Chain</p>
+                                            <div className="space-y-1">
+                                                {chain.map((hop, i) => (
+                                                    <div key={i} className="flex items-center gap-2 text-xs">
+                                                        <Chip size="sm" variant="flat" color={hop.status >= 300 && hop.status < 400 ? "warning" : "danger"}>
+                                                            {hop.status}
+                                                        </Chip>
+                                                        <span className="text-gray-500 truncate max-w-[200px]">{hop.from}</span>
+                                                        <span className="text-gray-400">→</span>
+                                                        <a href={hop.to} target="_blank" rel="noreferrer"
+                                                           className="text-blue-600 hover:underline truncate max-w-[200px]">
+                                                            {hop.to}
+                                                        </a>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                } catch { return null; }
+                            })()}
 
                             {/* Site & URL */}
                             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2">

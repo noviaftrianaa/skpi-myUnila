@@ -36,8 +36,15 @@ export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDet
             sortable: true,
             render: (threat) => (
                 <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                        {threat.site_name || threat.site_id}
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                            {threat.site_name || threat.site_id}
+                        </span>
+                        {threat.is_cloaked === 1 && (
+                            <Tooltip content="Cloaking: konten berbeda untuk Googlebot vs pengunjung biasa">
+                                <Chip size="sm" color="danger" variant="flat" className="text-[10px] h-5">🕵️ Cloaking</Chip>
+                            </Tooltip>
+                        )}
                     </div>
                     <a
                         href={threat.page_url}

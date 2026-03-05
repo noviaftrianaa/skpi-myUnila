@@ -10,6 +10,8 @@ export interface Threat {
   threat_score: number;
   category: string;
   snippet?: string;         // HTML evidence: elemen yang mengandung keyword ancaman
+  is_cloaked?: number;      // 1 = detected via cloaking (Googlebot vs normal UA)
+  redirect_chain?: string;  // JSON array of redirect hops
   status: string; // pending / confirmed / false_positive / resolved
   detected_at: string;
   confirmed_at?: string;
