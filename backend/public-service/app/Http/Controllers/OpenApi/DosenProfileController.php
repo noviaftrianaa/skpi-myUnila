@@ -5,6 +5,7 @@ namespace App\Http\Controllers\OpenApi;
 use App\Http\Controllers\Controller;
 use App\Services\DosenProfileService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class DosenProfileController extends Controller
 {
@@ -148,5 +149,27 @@ class DosenProfileController extends Controller
         $statusCode = $result['success'] ? 200 : ($result['message'] === 'Invalid dosen ID' ? 400 : 404);
 
         return response()->json($result, $statusCode);
+    }
+
+    /**
+     * Redirect to dosen photo on MinIO using encrypted ID.
+     * This prevents exposing raw id_sdm UUID in frontend.
+     */
+    public function photo(string $id)
+    {
+        try {
+            $idSdm = Crypt::decryptString($id);
+        } catch (\Exception $e) {
+            abort(404);
+        }
+
+        $photoUrl = sprintf(
+            '%s/%s/photos/sdm/%s.jpg',
+            env('MINIO_PUBLIC_URL', 'http://192.168.120.47:9000'),
+            env('MINIO_BUCKET', 'myunila-photos'),
+            $idSdm
+        );
+
+        return redirect()->away($photoUrl);
     }
 }

@@ -161,13 +161,8 @@ class DosenProfileService
             Log::warning('Failed to fetch bidang ilmu for dosen: ' . $e->getMessage());
         }
 
-        // Build photo URL from MinIO
-        $photoUrl = sprintf(
-            '%s/%s/photos/sdm/%s.jpg',
-            env('MINIO_PUBLIC_URL', 'http://192.168.120.47:9000'),
-            env('MINIO_BUCKET', 'myunila-photos'),
-            $idSdm
-        );
+        // Build photo URL via backend endpoint (hides raw id_sdm)
+        $photoUrl = url("/api/v1/dosen/{$encryptedId}/photo");
 
         // Format response
         $data = [
