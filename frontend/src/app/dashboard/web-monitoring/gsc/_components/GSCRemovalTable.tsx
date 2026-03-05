@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Divider, Chip, Skeleton, Pagination, Select, SelectItem, Button, Checkbox } from "@heroui/react";
+import { Card, CardBody, CardHeader, Divider, Chip, Skeleton, Pagination, Select, SelectItem, Button } from "@heroui/react";
 import { FiExternalLink, FiRefreshCw, FiRotateCw } from "react-icons/fi";
 import { gscService, GSCRemovalLog } from "@/lib/services/webmon/gscService";
 import { toast } from "react-hot-toast";
@@ -144,52 +144,56 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
                         Belum ada log URL removal
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                    {/* Desktop table */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                                 <tr>
-                                    <th className="px-3 py-2.5 w-10">
+                                    <th className="px-3 py-2.5 w-10 text-center">
                                         {retryableLogs.length > 0 && (
-                                            <Checkbox
-                                                size="sm"
-                                                isSelected={allRetryableSelected}
-                                                isIndeterminate={selected.size > 0 && !allRetryableSelected}
-                                                onValueChange={toggleSelectAll}
+                                            <input
+                                                type="checkbox"
+                                                checked={allRetryableSelected}
+                                                ref={(el) => { if (el) el.indeterminate = selected.size > 0 && !allRetryableSelected; }}
+                                                onChange={toggleSelectAll}
+                                                className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                             />
                                         )}
                                     </th>
-                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase">URL</th>
-                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-24">Aksi</th>
-                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-28">Status</th>
-                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-36">Disubmit</th>
-                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase w-10"></th>
+                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">URL</th>
+                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-24">Aksi</th>
+                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-28">Status</th>
+                                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-36">Disubmit</th>
+                                    <th className="w-10"></th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {logs.map((log) => {
                                     const sc = STATUS_CONFIG[log.status] ?? { label: log.status, color: "default" as const };
                                     const canRetry = RETRYABLE_STATUSES.has(log.status);
                                     return (
-                                        <tr key={log.id} className={`hover:bg-gray-50 ${selected.has(log.id) ? "bg-blue-50/50" : ""}`}>
-                                            <td className="px-3 py-3">
+                                        <tr key={log.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 ${selected.has(log.id) ? "bg-blue-50/60 dark:bg-blue-900/20" : ""}`}>
+                                            <td className="px-3 py-3 text-center">
                                                 {canRetry ? (
-                                                    <Checkbox
-                                                        size="sm"
-                                                        isSelected={selected.has(log.id)}
-                                                        onValueChange={() => toggleSelect(log.id)}
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selected.has(log.id)}
+                                                        onChange={() => toggleSelect(log.id)}
+                                                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                                     />
                                                 ) : (
                                                     <span className="w-4 h-4 block" />
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="text-xs text-gray-900 break-all max-w-xs line-clamp-2">{log.url}</div>
+                                                <div className="text-xs text-gray-900 dark:text-gray-100 break-all max-w-xs line-clamp-2">{log.url}</div>
                                                 {log.error_message && (
                                                     <div className="text-xs text-red-500 mt-0.5">{log.error_message}</div>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className="text-xs text-gray-600">
+                                                <span className="text-xs text-gray-600 dark:text-gray-400">
                                                     {log.action === "URL_DELETED" ? "Dihapus" : "Diperbarui"}
                                                 </span>
                                             </td>
@@ -212,6 +216,63 @@ export default function GSCRemovalTable({ refreshTrigger }: GSCRemovalTableProps
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Mobile card list */}
+                    <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                        {retryableLogs.length > 0 && (
+                            <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={allRetryableSelected}
+                                    ref={(el) => { if (el) el.indeterminate = selected.size > 0 && !allRetryableSelected; }}
+                                    onChange={toggleSelectAll}
+                                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                />
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pilih semua yang bisa di-retry</span>
+                            </div>
+                        )}
+                        {logs.map((log) => {
+                            const sc = STATUS_CONFIG[log.status] ?? { label: log.status, color: "default" as const };
+                            const canRetry = RETRYABLE_STATUSES.has(log.status);
+                            return (
+                                <div key={log.id} className={`px-4 py-3 transition-colors ${selected.has(log.id) ? "bg-blue-50/60 dark:bg-blue-900/20" : ""}`}>
+                                    <div className="flex items-start gap-3">
+                                        {canRetry ? (
+                                            <input
+                                                type="checkbox"
+                                                checked={selected.has(log.id)}
+                                                onChange={() => toggleSelect(log.id)}
+                                                className="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer flex-shrink-0"
+                                            />
+                                        ) : (
+                                            <span className="w-4 flex-shrink-0" />
+                                        )}
+                                        <div className="flex-1 min-w-0 space-y-1.5">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <Chip size="sm" color={sc.color} variant="flat">{sc.label}</Chip>
+                                                <span className="text-xs text-gray-500">
+                                                    {log.action === "URL_DELETED" ? "Dihapus" : "Diperbarui"}
+                                                </span>
+                                                <a href={log.url} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-600 ml-auto">
+                                                    <FiExternalLink className="w-3.5 h-3.5" />
+                                                </a>
+                                            </div>
+                                            <p className="text-xs text-gray-900 dark:text-gray-100 break-all line-clamp-2">{log.url}</p>
+                                            {log.error_message && (
+                                                <p className="text-xs text-red-500">{log.error_message}</p>
+                                            )}
+                                            <p className="text-[11px] text-gray-400">
+                                                {log.submitted_at
+                                                    ? new Date(log.submitted_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                                                    : "-"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    </>
                 )}
 
                 {totalPages > 1 && (
