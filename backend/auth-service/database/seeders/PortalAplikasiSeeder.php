@@ -93,7 +93,7 @@ class PortalAplikasiSeeder extends Seeder
         $apps = $this->getAplikasiData();
 
         $inserted = 0;
-        $updated = 0;
+        $skipped = 0;
 
         foreach ($apps as $app) {
             $kategoriId = $kategoris[$app['kategori']] ?? null;
@@ -122,54 +122,8 @@ class PortalAplikasiSeeder extends Seeder
             );
 
             if ($existing) {
-                // UPDATE existing app
-                // Boolean flags:
-                // - a_tampil_portal = 1 (show in portal)
-                // - a_aktif = 1 (active)
-                // - a_generate_menu = 0 (false)
-                // - a_integrasi_cas = 0 (false)
-                // - a_sistem_internal_pt = 0 (false)
-                // - a_terintegrasi, a_coming_soon, a_maintenance, a_live from data
-                // - expired_date = NULL (no expiry)
-                DB::update(
-                    "UPDATE man_akses.aplikasi SET
-                        ket_aplikasi = ?,
-                        icon_name = ?,
-                        icon_color = ?,
-                        id_kategori = ?,
-                        id_organisasi = ?,
-                        app_slug = ?,
-                        urutan = ?,
-                        a_tampil_portal = 1,
-                        a_generate_menu = 0,
-                        a_integrasi_cas = 0,
-                        a_sistem_internal_pt = 0,
-                        a_terintegrasi = ?,
-                        a_coming_soon = ?,
-                        a_maintenance = ?,
-                        a_live = ?,
-                        a_aktif = 1,
-                        expired_date = NULL,
-                        last_update = GETDATE(),
-                        last_sync = GETDATE()
-                    WHERE id_aplikasi = ?",
-                    [
-                        $app['ket_aplikasi'],
-                        $app['icon_name'],
-                        $app['icon_color'],
-                        $kategoriId,
-                        $idOrganisasi,
-                        $app['app_slug'],
-                        $app['urutan'],
-                        $aTerintegrasi ? 1 : 0,
-                        $aComingSoon ? 1 : 0,
-                        $aMaintenance ? 1 : 0,
-                        $aLive ? 1 : 0,
-                        $existing->id_aplikasi
-                    ]
-                );
-                $updated++;
-                $this->command->line("  ~ Updated '{$app['nm_aplikasi']}'");
+                $skipped++;
+                $this->command->line("  - Skipped '{$app['nm_aplikasi']}' (already exists)");
             } else {
                 // INSERT new app
                 DB::insert(
@@ -200,7 +154,7 @@ class PortalAplikasiSeeder extends Seeder
             }
         }
 
-        $this->command->info("  Aplikasi: {$inserted} inserted, {$updated} updated");
+        $this->command->info("  Aplikasi: {$inserted} inserted, {$skipped} skipped");
     }
 
     /**
