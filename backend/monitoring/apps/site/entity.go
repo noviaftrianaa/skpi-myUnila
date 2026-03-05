@@ -145,6 +145,7 @@ type PublicSite struct {
 type SMSUnit struct {
 	IDSMS     string  `json:"id_sms"     db:"id_sms"`
 	NmLemb    string  `json:"nm_lemb"    db:"nm_lemb"`
+	Jenjang   *string `json:"jenjang"    db:"jenjang"`
 	Singkatan *string `json:"singkatan"  db:"singkatan"`
 	Website   *string `json:"website"    db:"website"`
 	Email     *string `json:"email"      db:"email"`

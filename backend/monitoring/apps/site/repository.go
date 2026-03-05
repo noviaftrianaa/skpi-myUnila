@@ -535,14 +535,22 @@ func (r *repository) LookupNamaUnit(idSMS string) string {
 	return name
 }
 
-// ListSMSUnits returns all organizational units from pdrd.sms for Unila
+// ListSMSUnits returns program studi units from pdrd.sms for Unila
 func (r *repository) ListSMSUnits() ([]*SMSUnit, error) {
 	rows, err := r.db.Queryx(`
-		SELECT CONVERT(nvarchar(36), id_sms) AS id_sms,
-		       nm_lemb, singkatan, website, email
-		FROM pdrd.sms
-		WHERE soft_delete = 0
-		ORDER BY nm_lemb ASC`)
+		SELECT CONVERT(nvarchar(36), sms.id_sms) AS id_sms,
+		       sms.nm_lemb, sms.singkatan, sms.website, sms.email,
+		       didik.nm_jenj_didik AS jenjang
+		FROM pdrd.sms AS sms
+		INNER JOIN ref.jenjang_pendidikan AS didik
+		    ON didik.id_jenj_didik = sms.id_jenj_didik
+		    AND didik.expired_date IS NULL
+		WHERE sms.soft_delete = 0
+		  AND sms.stat_prodi = 'A'
+		  AND CAST(sms.id_sp AS VARCHAR(50)) = 'E2B705A7-173E-464A-9FAC-509128709515'
+		  AND sms.id_jns_sms = '3'
+		  AND sms.id_fak_unila IS NOT NULL
+		ORDER BY sms.nm_lemb ASC`)
 	if err != nil {
 		return nil, err
 	}
