@@ -9,7 +9,7 @@
 #   --help, -h       Show this help message
 #   --vm1            Rebuild only VM1 (Frontend & Kong)
 #   --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)
-#   --vm3            Rebuild only VM3 (Sister & Feeder services)
+#   --vm3            Rebuild only VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)
 #   --check          Dry run - only check connections
 #
 # Examples:
@@ -44,7 +44,7 @@ show_help() {
     echo "  --help, -h       Show this help message"
     echo "  --vm1            Rebuild only VM1 (Frontend & Kong)"
     echo "  --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)"
-    echo "  --vm3            Rebuild only VM3 (Sister & Feeder services)"
+    echo "  --vm3            Rebuild only VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)"
     echo "  --check          Dry run - only check connections"
     echo "  --cleanup        Clean up Docker resources on all VMs (no rebuild)"
     echo ""
@@ -152,7 +152,7 @@ main() {
             echo -e "${YELLOW}  This will rebuild services on:${NC}"
             echo -e "${YELLOW}  - VM1 (Frontend & Kong)${NC}"
             echo -e "${YELLOW}  - VM2 (Dashboard, Auth & MyUnila)${NC}"
-            echo -e "${YELLOW}  - VM3 (Sister & Feeder Services)${NC}"
+            echo -e "${YELLOW}  - VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)${NC}"
             echo -e "${YELLOW}========================================${NC}"
             echo ""
             read -p "Continue? (yes/no): " confirm

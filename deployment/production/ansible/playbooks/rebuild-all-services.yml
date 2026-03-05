@@ -278,9 +278,9 @@
         msg: "{{ vm2_cleanup.stdout_lines }}"
 
 # ============================================
-# VM3 - Backend Services 2 (Sister + Feeder + MyUnila)
+# VM3 - Backend Services 2 (Sister + Feeder + MyUnila + Keuangan + API + Monitoring)
 # ============================================
-- name: Rebuild VM3 - Sister, Feeder & MyUnila Services
+- name: Rebuild VM3 - All Backend2 Services
   hosts: backend2
   become: yes
   gather_facts: no
@@ -376,6 +376,99 @@
         delay: 5
         timeout: 60
 
+    - name: Clean Docker build cache for Keuangan Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Keuangan Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/keuangan/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: keuangan_build
+
+    - name: Restart Keuangan Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/keuangan/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Keuangan Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8088
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for API Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild API Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/api/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: api_build
+
+    - name: Restart API Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/api/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for API Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8085
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for Monitoring Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Monitoring Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/monitoring/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: monitoring_build
+
+    - name: Restart Monitoring Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/monitoring/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Monitoring Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8089
+        delay: 5
+        timeout: 60
+
     - name: Verify VM3 services status
       shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
       register: vm3_status
@@ -440,3 +533,6 @@
           - Sister:      http://192.168.120.41:9800/sister-service/health
           - Feeder:      http://192.168.120.41:9800/feeder-service/health
           - MyUnila:     http://192.168.120.41:9800/myunila-service/health
+          - Keuangan:    http://192.168.120.41:9800/keuangan-service/health
+          - API:         http://192.168.120.41:9800/api-service/health
+          - Monitoring:  http://192.168.120.41:9800/webmon-service/api/v1/health
