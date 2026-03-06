@@ -74,6 +74,7 @@ interface DosenTrendChartProps {
     name: string;
     color: string;
   }>;
+  selectedCategory?: string | null;
 }
 
 const JABFUNG_CATEGORIES = [
@@ -173,7 +174,13 @@ export const DosenTrendChart = ({
   title,
   onLihatData,
   categoryKeys = JABFUNG_CATEGORIES,
+  selectedCategory,
 }: DosenTrendChartProps) => {
+  // Filter categories based on selectedCategory
+  const filteredCategories = selectedCategory
+    ? categoryKeys.filter((cat) => cat.key === selectedCategory)
+    : categoryKeys;
+
   // Determine if data is at prodi level or fakultas level
   const isProdiLevel =
     data.length > 0 && data[0].data.length > 0 && !!data[0].data[0].nama_prodi;
@@ -200,7 +207,7 @@ export const DosenTrendChart = ({
 
     yearData.data.forEach((entity) => {
       // Always aggregate by category, regardless of entity count
-      categoryKeys.forEach((cat) => {
+      filteredCategories.forEach((cat) => {
         if (!yearItem[cat.key]) {
           yearItem[cat.key] = 0;
         }
@@ -258,7 +265,7 @@ export const DosenTrendChart = ({
           <Legend />
 
           {/* Always show jabfung category lines (aggregated totals) */}
-          {categoryKeys.map((cat) => (
+          {filteredCategories.map((cat) => (
             <Line
               key={cat.key}
               type="monotone"
@@ -276,7 +283,7 @@ export const DosenTrendChart = ({
       <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
         {data.slice(0, 3).map((yearData, index) => {
           // Calculate jabfung totals for this year
-          const jabfungTotals = categoryKeys.reduce(
+          const jabfungTotals = filteredCategories.reduce(
             (acc, cat) => {
               acc[cat.key] = yearData.data.reduce((sum, entity) => {
                 const value = entity[cat.key as keyof typeof entity];
@@ -296,7 +303,7 @@ export const DosenTrendChart = ({
                 {yearData.tahun}
               </p>
               <div className="space-y-1">
-                {categoryKeys.map((cat) => (
+                {filteredCategories.map((cat) => (
                   <div
                     key={cat.key}
                     className="flex items-center justify-between"

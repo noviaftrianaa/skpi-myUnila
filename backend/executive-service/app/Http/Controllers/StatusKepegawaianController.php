@@ -76,8 +76,9 @@ class StatusKepegawaianController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $statusKepegawaian = $request->query('status_kepegawaian');
 
-            $result = $this->statusKepegawaianService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->statusKepegawaianService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $statusKepegawaian);
 
             return response()->json([
                 'status' => 'success',

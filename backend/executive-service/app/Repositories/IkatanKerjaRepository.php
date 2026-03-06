@@ -145,17 +145,17 @@ class IkatanKerjaRepository
                 COALESCE(treg.id_ikatan_kerja, '-') AS id_ikatan_kerja,
                 CASE
                     WHEN treg.id_ikatan_kerja = 'A' THEN 'Dosen Tetap'
-                    WHEN treg.id_ikatan_kerja = 'B' THEN 'Dosen PNS DPK'
+                    WHEN treg.id_ikatan_kerja = 'B' THEN 'PNS DPK'
                     WHEN treg.id_ikatan_kerja = 'E' THEN 'Dokter Pendidik Klinis'
                     WHEN treg.id_ikatan_kerja = 'F' THEN 'Dosen Tetap BH'
                     WHEN treg.id_ikatan_kerja = 'G' THEN 'Dosen Tidak Tetap'
                     WHEN treg.id_ikatan_kerja = 'H' THEN 'P3K ASN'
-                    WHEN treg.id_ikatan_kerja = 'I' THEN 'Dosen dengan Perjanjian Kerja'
+                    WHEN treg.id_ikatan_kerja = 'I' THEN 'Perjanjian Kerja'
                     WHEN treg.id_ikatan_kerja = 'J' THEN 'Instruktur'
                     WHEN treg.id_ikatan_kerja = 'K' THEN 'Tutor'
-                    WHEN treg.id_ikatan_kerja = 'L' THEN 'JFT (Jabatan Fungsional Tertentu)'
+                    WHEN treg.id_ikatan_kerja = 'L' THEN 'JFT'
                     WHEN treg.id_ikatan_kerja = 'M' THEN 'Pengajar Nondosen'
-                    WHEN treg.id_ikatan_kerja = 'N' THEN 'Dosen Tetap Perjanjian Kerja Waktu Tertentu'
+                    WHEN treg.id_ikatan_kerja = 'N' THEN 'Tetap PKWTT'
                     ELSE 'Belum Ikatan Kerja'
                 END AS ikatan_kerja,
                 tsms.id_sms AS id_prodi,
@@ -206,7 +206,7 @@ class IkatanKerjaRepository
     /**
      * Get dosen data with pagination.
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $ikatanKerja = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -217,6 +217,31 @@ class IkatanKerjaRepository
         } elseif ($idFakultas) {
             $whereClause = ' AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)';
             $bindings[] = $idFakultas;
+        }
+
+        // Add ikatan kerja filter
+        if ($ikatanKerja) {
+            // Map display name to id_ikatan_kerja code
+            $ikatanKerjaMap = [
+                'Dosen Tetap' => 'A',
+                'PNS DPK' => 'B',
+                'Dokter Pendidik Klinis' => 'E',
+                'Dosen Tetap BH' => 'F',
+                'Dosen Tidak Tetap' => 'G',
+                'P3K ASN' => 'H',
+                'Perjanjian Kerja' => 'I',
+                'Instruktur' => 'J',
+                'Tutor' => 'K',
+                'JFT' => 'L',
+                'Pengajar Nondosen' => 'M',
+                'Tetap PKWTT' => 'N',
+                'Belum Ikatan Kerja' => 'X',
+            ];
+
+            if (isset($ikatanKerjaMap[$ikatanKerja])) {
+                $whereClause .= ' AND treg.id_ikatan_kerja = ?';
+                $bindings[] = $ikatanKerjaMap[$ikatanKerja];
+            }
         }
 
         $total = $this->getDosenCount($bindings, $whereClause, $search);
@@ -285,17 +310,17 @@ class IkatanKerjaRepository
                 CONCAT(tsms.nm_lemb, ' (', jenj.nm_jenj_didik, ') ') AS nama_prodi,
                 CASE
                     WHEN treg.id_ikatan_kerja = 'A' THEN 'Dosen Tetap'
-                    WHEN treg.id_ikatan_kerja = 'B' THEN 'Dosen PNS DPK'
+                    WHEN treg.id_ikatan_kerja = 'B' THEN 'PNS DPK'
                     WHEN treg.id_ikatan_kerja = 'E' THEN 'Dokter Pendidik Klinis'
                     WHEN treg.id_ikatan_kerja = 'F' THEN 'Dosen Tetap BH'
                     WHEN treg.id_ikatan_kerja = 'G' THEN 'Dosen Tidak Tetap'
                     WHEN treg.id_ikatan_kerja = 'H' THEN 'P3K ASN'
-                    WHEN treg.id_ikatan_kerja = 'I' THEN 'Dosen dengan Perjanjian Kerja'
+                    WHEN treg.id_ikatan_kerja = 'I' THEN 'Perjanjian Kerja'
                     WHEN treg.id_ikatan_kerja = 'J' THEN 'Instruktur'
                     WHEN treg.id_ikatan_kerja = 'K' THEN 'Tutor'
-                    WHEN treg.id_ikatan_kerja = 'L' THEN 'JFT (Jabatan Fungsional Tertentu)'
+                    WHEN treg.id_ikatan_kerja = 'L' THEN 'JFT'
                     WHEN treg.id_ikatan_kerja = 'M' THEN 'Pengajar Nondosen'
-                    WHEN treg.id_ikatan_kerja = 'N' THEN 'Dosen Tetap Perjanjian Kerja Waktu Tertentu'
+                    WHEN treg.id_ikatan_kerja = 'N' THEN 'Tetap PKWTT'
                     ELSE 'Belum Ikatan Kerja'
                 END AS ikatan_kerja,
                 stat_peg.nm_stat_pegawai AS status

@@ -97,6 +97,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  pangkat_golongan?: string;
 }
 
 export interface GetProdiParams {

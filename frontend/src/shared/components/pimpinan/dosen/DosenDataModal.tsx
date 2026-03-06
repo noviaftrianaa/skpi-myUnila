@@ -24,6 +24,7 @@ interface DosenDataModalProps {
   selectedFakultasName?: string;
   selectedProdi: string;
   selectedProdiName?: string;
+  selectedCategory?: string | null;
 }
 
 // Tipe data display names
@@ -48,6 +49,7 @@ export const DosenDataModal = ({
   selectedFakultasName,
   selectedProdi,
   selectedProdiName,
+  selectedCategory,
 }: DosenDataModalProps) => {
   // Dosen pagination state
   const [dosenPagination, setDosenPagination] = useState({
@@ -64,12 +66,13 @@ export const DosenDataModal = ({
       selectedTahunAjaran,
       selectedProdi ? undefined : selectedFakultas,
       selectedProdi,
+      selectedCategory,
       dosenPagination.page,
       dosenPagination.perPage,
       dosenPagination.search,
     ],
     queryFn: () => {
-      const params = {
+      const baseParams = {
         tahun_ajaran: selectedTahunAjaran,
         fakultas_id: selectedProdi ? undefined : selectedFakultas || undefined,
         prodi_id: selectedProdi || undefined,
@@ -77,6 +80,100 @@ export const DosenDataModal = ({
         page: dosenPagination.page,
         search: dosenPagination.search || undefined,
       };
+
+      // Map selectedCategory to API parameter based on tipe data
+      let categoryParams = {};
+      if (selectedCategory) {
+        switch (selectedTipeData) {
+          case "jabfung":
+            const jabfungMap: Record<string, string> = {
+              "belum_jabfung": "Belum Jabfung",
+              "asisten_ahli": "Asisten Ahli",
+              "lektor": "Lektor",
+              "lektor_kepala": "Lektor Kepala",
+              "profesor": "Profesor",
+            };
+            categoryParams = { jabfung: jabfungMap[selectedCategory] };
+            break;
+          case "jenjang_pendidikan":
+            const jenjangMap: Record<string, string> = {
+              "d3": "D3",
+              "d4": "D4",
+              "s1": "S1",
+              "s2": "S2",
+              "s2_terapan": "S2 Terapan",
+              "s3": "S3",
+              "profesi": "Profesi",
+              "sp1": "Sp1",
+              "sp2": "Sp2",
+              "belum_jenjang": "Belum Jenjang",
+            };
+            categoryParams = { jenjang_didik: jenjangMap[selectedCategory] };
+            break;
+          case "jenis_kelamin":
+            const jenisKelaminMap: Record<string, string> = {
+              "laki_laki": "Laki-laki",
+              "perempuan": "Perempuan",
+            };
+            categoryParams = { jenis_kelamin: jenisKelaminMap[selectedCategory] };
+            break;
+          case "status_pegawai":
+            const statusKepegawaianMap: Record<string, string> = {
+              "pns": "PNS",
+              "cpns": "CPNS",
+              "pppk": "PPPK",
+              "non_asn": "Non ASN",
+              "asn_jf_non_dosen": "ASN JF Non Dosen",
+              "dokter_pendidik_klinis": "Dokter Pendidik Klinis",
+              "lainnya": "Lainnya",
+            };
+            categoryParams = { status_kepegawaian: statusKepegawaianMap[selectedCategory] };
+            break;
+          case "ikatan_kerja":
+            const ikatanKerjaMap: Record<string, string> = {
+              "dosen_tetap": "Dosen Tetap",
+              "dosen_pns_dpk": "PNS DPK",
+              "dokter_pendidik_klinis": "Dokter Pendidik Klinis",
+              "dosen_tetap_bh": "Dosen Tetap BH",
+              "dosen_tidak_tetap": "Dosen Tidak Tetap",
+              "p3k_asn": "P3K ASN",
+              "dosen_perjanjian_kerja": "Perjanjian Kerja",
+              "instruktur": "Instruktur",
+              "tutor": "Tutor",
+              "jft": "JFT",
+              "pengajar_nondosen": "Pengajar Nondosen",
+              "dosen_tetap_pk_waktu_tertentu": "Tetap PKWTT",
+              "belum_ikatan_kerja": "Belum Ikatan Kerja",
+            };
+            categoryParams = { ikatan_kerja: ikatanKerjaMap[selectedCategory] };
+            break;
+          case "pang_gol":
+            const pangGolMap: Record<string, string> = {
+              "juru_muda": "Juru Muda",
+              "juru_muda_tk1": "Juru Muda Tk. I",
+              "juru": "Juru",
+              "juru_tk1": "Juru Tk. I",
+              "pengatur_muda": "Pengatur Muda",
+              "pengatur_muda_tk1": "Pengatur Muda Tk. I",
+              "pengatur": "Pengatur",
+              "pengatur_tk1": "Pengatur Tk. I",
+              "penata_muda": "Penata Muda",
+              "penata_muda_tk1": "Penata Muda Tk. I",
+              "penata": "Penata",
+              "penata_tk1": "Penata Tk. I",
+              "pembina": "Pembina",
+              "pembina_tk1": "Pembina Tk. I",
+              "pembina_utama_muda": "Pembina Utama Muda",
+              "pembina_utama_madya": "Pembina Utama Madya",
+              "pembina_utama": "Pembina Utama",
+              "belum_pangkat_gol": "Belum Pangkat",
+            };
+            categoryParams = { pangkat_golongan: pangGolMap[selectedCategory] };
+            break;
+        }
+      }
+
+      const params = { ...baseParams, ...categoryParams };
 
       if (selectedTipeData === "jenjang_pendidikan") {
         return executiveJenjangPendidikanService.getDataDosen(params);
@@ -271,6 +368,82 @@ export const DosenDataModal = ({
       parts.push(`Fakultas: ${selectedFakultasName}`);
     }
 
+    if (selectedCategory) {
+      // Get category name from chartConfig or mapping
+      const categoryMap: Record<string, Record<string, string>> = {
+        jabfung: {
+          "belum_jabfung": "Belum Jabfung",
+          "asisten_ahli": "Asisten Ahli",
+          "lektor": "Lektor",
+          "lektor_kepala": "Lektor Kepala",
+          "profesor": "Profesor",
+        },
+        jenjang_pendidikan: {
+          "d3": "D3",
+          "d4": "D4",
+          "s1": "S1",
+          "s2": "S2",
+          "s2_terapan": "S2 Terapan",
+          "s3": "S3",
+          "profesi": "Profesi",
+          "sp1": "Sp1",
+          "sp2": "Sp2",
+          "belum_jenjang": "Belum Jenjang",
+        },
+        jenis_kelamin: {
+          "laki_laki": "Laki-laki",
+          "perempuan": "Perempuan",
+        },
+        status_pegawai: {
+          "pns": "PNS",
+          "cpns": "CPNS",
+          "pppk": "PPPK",
+          "non_asn": "Non ASN",
+          "asn_jf_non_dosen": "ASN JF Non Dosen",
+          "dokter_pendidik_klinis": "Dokter Pendidik Klinis",
+          "lainnya": "Lainnya",
+        },
+        ikatan_kerja: {
+          "dosen_tetap": "Dosen Tetap",
+          "dosen_pns_dpk": "PNS DPK",
+          "dokter_pendidik_klinis": "Dokter Pendidik Klinis",
+          "dosen_tetap_bh": "Dosen Tetap BH",
+          "dosen_tidak_tetap": "Dosen Tidak Tetap",
+          "p3k_asn": "P3K ASN",
+          "dosen_perjanjian_kerja": "Perjanjian Kerja",
+          "instruktur": "Instruktur",
+          "tutor": "Tutor",
+          "jft": "JFT",
+          "pengajar_nondosen": "Pengajar Nondosen",
+          "dosen_tetap_pk_waktu_tertentu": "Tetap PKWTT",
+          "belum_ikatan_kerja": "Belum Ikatan Kerja",
+        },
+        pang_gol: {
+          "juru_muda": "Juru Muda",
+          "juru_muda_tk1": "Juru Muda Tk. I",
+          "juru": "Juru",
+          "juru_tk1": "Juru Tk. I",
+          "pengatur_muda": "Pengatur Muda",
+          "pengatur_muda_tk1": "Pengatur Muda Tk. I",
+          "pengatur": "Pengatur",
+          "pengatur_tk1": "Pengatur Tk. I",
+          "penata_muda": "Penata Muda",
+          "penata_muda_tk1": "Penata Muda Tk. I",
+          "penata": "Penata",
+          "penata_tk1": "Penata Tk. I",
+          "pembina": "Pembina",
+          "pembina_tk1": "Pembina Tk. I",
+          "pembina_utama_muda": "Pembina Utama Muda",
+          "pembina_utama_madya": "Pembina Utama Madya",
+          "pembina_utama": "Pembina Utama",
+          "belum_pangkat_gol": "Belum Pangkat",
+        },
+      };
+
+      const categoryName = categoryMap[selectedTipeData]?.[selectedCategory] || selectedCategory;
+      parts.push(`Kategori: ${categoryName}`);
+    }
+
     if (parts.length === 0) {
       return "Semua Fakultas";
     }
@@ -288,8 +461,9 @@ export const DosenDataModal = ({
       subtitle={getSubtitle()}
     >
       <DataTable
-        key={`dosen-table-${selectedTipeData}-${selectedTahunAjaran}-${selectedFakultas}-${selectedProdi}`}
+        key={`dosen-table-${selectedTipeData}-${selectedTahunAjaran}-${selectedFakultas}-${selectedProdi}-${selectedCategory}`}
         data={dosenData}
+        total={dosenTotal}
         columns={getDosenColumns()}
         searchPlaceholder="Cari dosen..."
         defaultRowsPerPage={10}

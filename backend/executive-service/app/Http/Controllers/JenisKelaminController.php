@@ -76,8 +76,9 @@ class JenisKelaminController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $jenisKelamin = $request->query('jenis_kelamin');
 
-            $result = $this->jenisKelaminService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->jenisKelaminService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $jenisKelamin);
 
             return response()->json([
                 'status' => 'success',

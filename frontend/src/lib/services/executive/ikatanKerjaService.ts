@@ -83,6 +83,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  ikatan_kerja?: string;
 }
 
 export interface GetProdiParams {

@@ -282,9 +282,10 @@ class JabFungRepository
      * @param int $perPage
      * @param int $page
      * @param string|null $search
+     * @param string|null $jabfung
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $jabfung = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -296,6 +297,11 @@ class JabFungRepository
         } elseif ($idFakultas) {
             $whereClause = " AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)";
             $bindings[] = $idFakultas;
+        }
+
+        // Add jabfung filter
+        if ($jabfung) {
+            $whereClause .= $this->getJabfungFilterClause($jabfung, $bindings);
         }
 
         // Get total count
@@ -667,5 +673,35 @@ class JabFungRepository
     {
         $year = (int) substr((string) $tahunId, 0, 4);
         return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get jabfung filter clause and bindings
+     *
+     * @param string $jabfung Display name of jabfung category
+     * @param array $bindings Reference to bindings array
+     * @return string WHERE clause for jabfung filtering
+     */
+    private function getJabfungFilterClause($jabfung, &$bindings)
+    {
+        $jabfungMap = [
+            'Belum Jabfung' => 'NULL',
+            'Asisten Ahli' => '(40, 41)',
+            'Lektor' => '(43, 44)',
+            'Lektor Kepala' => '(46, 47, 48)',
+            'Profesor' => '(50, 51)',
+        ];
+
+        if (!isset($jabfungMap[$jabfung])) {
+            return '';
+        }
+
+        $jabfungIds = $jabfungMap[$jabfung];
+
+        if ($jabfungIds === 'NULL') {
+            return ' AND tjabfung.id_jabfung IS NULL';
+        } else {
+            return ' AND tjabfung.id_jabfung IN ' . $jabfungIds;
+        }
     }
 }

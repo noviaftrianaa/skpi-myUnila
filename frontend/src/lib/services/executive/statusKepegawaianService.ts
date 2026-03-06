@@ -75,6 +75,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  status_kepegawaian?: string;
 }
 
 export interface GetProdiParams {

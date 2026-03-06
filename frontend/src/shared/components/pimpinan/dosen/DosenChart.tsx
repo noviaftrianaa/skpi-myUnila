@@ -49,6 +49,8 @@ interface DosenChartProps<T = Record<string, any>> {
   disabled?: boolean;
   // Show loading state
   isLoading?: boolean;
+  // Filter by selected category
+  selectedCategory?: string | null;
 }
 
 export const DosenChart = <T extends Record<string, any>>({
@@ -63,6 +65,7 @@ export const DosenChart = <T extends Record<string, any>>({
   subtitle,
   disabled = false,
   isLoading = false,
+  selectedCategory,
 }: DosenChartProps<T>) => {
   // Default jabfung data keys
   const defaultJabfungKeys = [
@@ -73,7 +76,11 @@ export const DosenChart = <T extends Record<string, any>>({
     { key: "profesor", name: "Profesor", color: COLORS[4] },
   ];
 
-  const keys = dataKeys || defaultJabfungKeys;
+  // Filter dataKeys based on selectedCategory
+  const baseKeys = dataKeys || defaultJabfungKeys;
+  const keys = selectedCategory
+    ? baseKeys.filter((item) => item.key === selectedCategory)
+    : baseKeys;
 
   const renderChart = () => {
     switch (chartType) {

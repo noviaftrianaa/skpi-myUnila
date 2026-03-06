@@ -59,8 +59,9 @@ class IkatanKerjaController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $ikatanKerja = $request->query('ikatan_kerja');
 
-            $result = $this->ikatanKerjaService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->ikatanKerjaService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $ikatanKerja);
 
             return response()->json([
                 'status' => 'success',

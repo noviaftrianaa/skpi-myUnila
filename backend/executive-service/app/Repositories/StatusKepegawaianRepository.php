@@ -222,7 +222,7 @@ class StatusKepegawaianRepository
      * @param string|null $search
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $statusKepegawaian = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -234,6 +234,11 @@ class StatusKepegawaianRepository
         } elseif ($idFakultas) {
             $whereClause = " AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)";
             $bindings[] = $idFakultas;
+        }
+
+        // Add status kepegawaian filter
+        if ($statusKepegawaian) {
+            $whereClause .= $this->getStatusKepegawaianFilterClause($statusKepegawaian, $bindings);
         }
 
         // Get total count
@@ -543,5 +548,33 @@ class StatusKepegawaianRepository
     {
         $year = (int) substr((string) $tahunId, 0, 4);
         return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get status kepegawaian filter clause and bindings
+     *
+     * @param string $statusKepegawaian Display name of status kepegawaian category
+     * @param array $bindings Reference to bindings array
+     * @return string WHERE clause for status kepegawaian filtering
+     */
+    private function getStatusKepegawaianFilterClause($statusKepegawaian, &$bindings)
+    {
+        $statusKepegawaianMap = [
+            'PNS' => [1],
+            'CPNS' => [13],
+            'PPPK' => [14],
+            'Non ASN' => [16],
+            'ASN JF Non Dosen' => [18],
+            'Dokter Pendidik Klinis' => [17],
+        ];
+
+        if ($statusKepegawaian === 'Lainnya') {
+            return ' AND tstat_kepeg.id_stat_pegawai NOT IN (1, 13, 14, 16, 17, 18)';
+        } elseif (isset($statusKepegawaianMap[$statusKepegawaian])) {
+            $bindings[] = $statusKepegawaianMap[$statusKepegawaian][0];
+            return ' AND tstat_kepeg.id_stat_pegawai = ?';
+        }
+
+        return '';
     }
 }

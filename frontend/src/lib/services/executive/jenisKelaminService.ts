@@ -65,6 +65,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  jenis_kelamin?: string;
 }
 
 export interface GetProdiParams {

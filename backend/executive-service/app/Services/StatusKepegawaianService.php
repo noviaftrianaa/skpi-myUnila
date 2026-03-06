@@ -84,11 +84,12 @@ class StatusKepegawaianService
      * @param int $perPage
      * @param int $page
      * @param string|null $search
+     * @param string|null $statusKepegawaian
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $statusKepegawaian = null)
     {
-        $result = $this->statusKepegawaianRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+        $result = $this->statusKepegawaianRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $statusKepegawaian);
 
         // Transform to match frontend Dosen interface
         $dosen_data = collect($result['data'])->map(function ($item) {

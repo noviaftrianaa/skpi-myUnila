@@ -1,10 +1,28 @@
 import type { TipeDataOption, DosenStats } from "./types";
-import type { JabfungFakultas, JabfungProdi } from "@/lib/services/executive/jabfungService";
-import type { JenjangFakultas, JenjangProdi } from "@/lib/services/executive/jenjangPendidikanService";
-import type { PangkatGolonganFakultas, PangkatGolonganProdi } from "@/lib/services/executive/pangkatGolonganService";
-import type { IkatanKerjaFakultas, IkatanKerjaProdi } from "@/lib/services/executive/ikatanKerjaService";
-import type { JenisKelaminFakultas, JenisKelaminProdi } from "@/lib/services/executive/jenisKelaminService";
-import type { StatusKepegawaianFakultas, StatusKepegawaianProdi } from "@/lib/services/executive/statusKepegawaianService";
+import type {
+  JabfungFakultas,
+  JabfungProdi,
+} from "@/lib/services/executive/jabfungService";
+import type {
+  JenjangFakultas,
+  JenjangProdi,
+} from "@/lib/services/executive/jenjangPendidikanService";
+import type {
+  PangkatGolonganFakultas,
+  PangkatGolonganProdi,
+} from "@/lib/services/executive/pangkatGolonganService";
+import type {
+  IkatanKerjaFakultas,
+  IkatanKerjaProdi,
+} from "@/lib/services/executive/ikatanKerjaService";
+import type {
+  JenisKelaminFakultas,
+  JenisKelaminProdi,
+} from "@/lib/services/executive/jenisKelaminService";
+import type {
+  StatusKepegawaianFakultas,
+  StatusKepegawaianProdi,
+} from "@/lib/services/executive/statusKepegawaianService";
 
 // ========================================
 // Chart Data Types
@@ -410,7 +428,9 @@ export const getChartData = (
 
   if (selectedTipeData === "status_pegawai") {
     if (selectedProdi && statusKepegawaianProdiList) {
-      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      const prodi = statusKepegawaianProdiList.find(
+        (p) => p.id === selectedProdi,
+      );
       if (prodi) {
         return [
           {
@@ -747,16 +767,19 @@ export const getStats = (
         (sum, p) => ({
           dosenTetap: sum.dosenTetap + p.dosen_tetap,
           dosenPnsDpk: sum.dosenPnsDpk + p.dosen_pns_dpk,
-          dokterPendidikKlinis: sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
+          dokterPendidikKlinis:
+            sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
           dosenTetapBh: sum.dosenTetapBh + p.dosen_tetap_bh,
           dosenTidakTetap: sum.dosenTidakTetap + p.dosen_tidak_tetap,
           p3kAsn: sum.p3kAsn + p.p3k_asn,
-          dosenPerjanjianKerja: sum.dosenPerjanjianKerja + p.dosen_perjanjian_kerja,
+          dosenPerjanjianKerja:
+            sum.dosenPerjanjianKerja + p.dosen_perjanjian_kerja,
           instruktur: sum.instruktur + p.instruktur,
           tutor: sum.tutor + p.tutor,
           jft: sum.jft + p.jft,
           pengajarNondosen: sum.pengajarNondosen + p.pengajar_nondosen,
-          dosenTetapPkWaktuTertentu: sum.dosenTetapPkWaktuTertentu + p.dosen_tetap_pk_waktu_tertentu,
+          dosenTetapPkWaktuTertentu:
+            sum.dosenTetapPkWaktuTertentu + p.dosen_tetap_pk_waktu_tertentu,
           belumIkatanKerja: sum.belumIkatanKerja + p.belum_ikatan_kerja,
         }),
         {
@@ -782,16 +805,19 @@ export const getStats = (
         (sum, f) => ({
           dosenTetap: sum.dosenTetap + f.dosen_tetap,
           dosenPnsDpk: sum.dosenPnsDpk + f.dosen_pns_dpk,
-          dokterPendidikKlinis: sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
+          dokterPendidikKlinis:
+            sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
           dosenTetapBh: sum.dosenTetapBh + f.dosen_tetap_bh,
           dosenTidakTetap: sum.dosenTidakTetap + f.dosen_tidak_tetap,
           p3kAsn: sum.p3kAsn + f.p3k_asn,
-          dosenPerjanjianKerja: sum.dosenPerjanjianKerja + f.dosen_perjanjian_kerja,
+          dosenPerjanjianKerja:
+            sum.dosenPerjanjianKerja + f.dosen_perjanjian_kerja,
           instruktur: sum.instruktur + f.instruktur,
           tutor: sum.tutor + f.tutor,
           jft: sum.jft + f.jft,
           pengajarNondosen: sum.pengajarNondosen + f.pengajar_nondosen,
-          dosenTetapPkWaktuTertentu: sum.dosenTetapPkWaktuTertentu + f.dosen_tetap_pk_waktu_tertentu,
+          dosenTetapPkWaktuTertentu:
+            sum.dosenTetapPkWaktuTertentu + f.dosen_tetap_pk_waktu_tertentu,
           belumIkatanKerja: sum.belumIkatanKerja + f.belum_ikatan_kerja,
         }),
         {
@@ -851,7 +877,9 @@ export const getStats = (
 
   if (selectedTipeData === "status_pegawai") {
     if (selectedProdi && statusKepegawaianProdiList) {
-      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      const prodi = statusKepegawaianProdiList.find(
+        (p) => p.id === selectedProdi,
+      );
       return {
         pns: prodi?.pns || 0,
         cpns: prodi?.cpns || 0,
@@ -871,7 +899,8 @@ export const getStats = (
           pppk: sum.pppk + p.pppk,
           nonAsn: sum.nonAsn + p.non_asn,
           asnJfNonDosen: sum.asnJfNonDosen + p.asn_jf_non_dosen,
-          dokterPendidikKlinis: sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
+          dokterPendidikKlinis:
+            sum.dokterPendidikKlinis + p.dokter_pendidik_klinis,
           lainnya: sum.lainnya + p.lainnya,
         }),
         {
@@ -894,7 +923,8 @@ export const getStats = (
           pppk: sum.pppk + f.pppk,
           nonAsn: sum.nonAsn + f.non_asn,
           asnJfNonDosen: sum.asnJfNonDosen + f.asn_jf_non_dosen,
-          dokterPendidikKlinis: sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
+          dokterPendidikKlinis:
+            sum.dokterPendidikKlinis + f.dokter_pendidik_klinis,
           lainnya: sum.lainnya + f.lainnya,
         }),
         {
@@ -941,10 +971,12 @@ export const getChartTitle = (
   fakultasList: Array<{ id: string; nama_fakultas: string }>,
   tipeDataOptions: TipeDataOption[],
 ): string => {
-  const tipeOption = tipeDataOptions.find((opt) => opt.value === selectedTipeData);
+  const tipeOption = tipeDataOptions.find(
+    (opt) => opt.value === selectedTipeData,
+  );
   if (!tipeOption) return "Grafik Data Dosen";
 
-  let title = `Grafik ${tipeOption.label}`;
+  let title = `Grafik Sebaran ${tipeOption.label}`;
   if (selectedProdi) {
     const prodi = prodiList.find((p) => p.id === selectedProdi);
     title += ` - ${prodi?.nama_prodi || ""}`;

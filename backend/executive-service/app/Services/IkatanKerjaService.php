@@ -68,9 +68,9 @@ class IkatanKerjaService
         })->values();
     }
 
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $ikatanKerja = null)
     {
-        $result = $this->ikatanKerjaRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+        $result = $this->ikatanKerjaRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $ikatanKerja);
 
         $dosenData = collect($result['data'])->map(function ($item) {
             return [

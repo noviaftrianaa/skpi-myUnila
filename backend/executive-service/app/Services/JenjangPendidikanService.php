@@ -90,11 +90,12 @@ class JenjangPendidikanService
      * @param int $perPage
      * @param int $page
      * @param string|null $search
+     * @param string|null $jenjangDidik
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $jenjangDidik = null)
     {
-        $result = $this->jenjangRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+        $result = $this->jenjangRepository->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $jenjangDidik);
 
         // Transform to match frontend Dosen interface
         $dosen_data = collect($result['data'])->map(function ($item) {

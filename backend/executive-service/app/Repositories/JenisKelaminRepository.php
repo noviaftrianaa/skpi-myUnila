@@ -209,7 +209,7 @@ class JenisKelaminRepository
      * @param string|null $search
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $jenisKelamin = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -221,6 +221,11 @@ class JenisKelaminRepository
         } elseif ($idFakultas) {
             $whereClause = " AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)";
             $bindings[] = $idFakultas;
+        }
+
+        // Add jenis kelamin filter
+        if ($jenisKelamin) {
+            $whereClause .= $this->getJenisKelaminFilterClause($jenisKelamin, $bindings);
         }
 
         // Get total count
@@ -537,5 +542,27 @@ class JenisKelaminRepository
     {
         $year = (int) substr((string) $tahunId, 0, 4);
         return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get jenis kelamin filter clause and bindings
+     *
+     * @param string $jenisKelamin Display name of jenis kelamin category
+     * @param array $bindings Reference to bindings array
+     * @return string WHERE clause for jenis kelamin filtering
+     */
+    private function getJenisKelaminFilterClause($jenisKelamin, &$bindings)
+    {
+        $jenisKelaminMap = [
+            'Laki-laki' => 'L',
+            'Perempuan' => 'P',
+        ];
+
+        if (isset($jenisKelaminMap[$jenisKelamin])) {
+            $bindings[] = $jenisKelaminMap[$jenisKelamin];
+            return ' AND tsdm.jk = ?';
+        }
+
+        return '';
     }
 }

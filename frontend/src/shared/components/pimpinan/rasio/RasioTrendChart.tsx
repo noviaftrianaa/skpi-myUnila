@@ -1,6 +1,6 @@
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -108,23 +108,12 @@ export const RasioTrendChart = ({
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <AreaChart
+        <LineChart
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="tahun" tick={{ fontSize: 12 }} stroke="#666" />
-          {/* <YAxis
-            yAxisId="left"
-            label={{
-              value: "Rasio (1:N)",
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle" },
-            }}
-            tick={{ fontSize: 12 }}
-            stroke="#666"
-          /> */}
           <YAxis
             yAxisId="right"
             orientation="right"
@@ -140,47 +129,38 @@ export const RasioTrendChart = ({
           <Tooltip content={<CustomTooltip />} />
           <Legend />
 
-          {/* <Area
-            yAxisId="left"
-            type="monotone"
-            dataKey="rasio"
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            strokeWidth={2}
-            fillOpacity={0.3}
-            name="Rasio (1:N)"
-          /> */}
-          <Area
+          <Line
             yAxisId="right"
             type="monotone"
             dataKey="totalDosen"
-            stroke="#22c55e"
-            fill="#22c55e"
+            stroke="#2563eb"
             strokeWidth={2}
-            fillOpacity={0.3}
             name="Total Dosen"
-            dot={{ r: 4, fill: "#22c55e" }}
+            dot={{ r: 4, fill: "#2563eb" }}
           />
-          <Area
+          <Line
             yAxisId="right"
             type="monotone"
             dataKey="totalMahasiswa"
-            stroke="#f59e0b"
-            fill="#f59e0b"
+            stroke="#16a34a"
             strokeWidth={2}
-            fillOpacity={0.3}
             name="Total Mahasiswa"
-            dot={{ r: 4, fill: "#f59e0b" }}
+            dot={{ r: 4, fill: "#16a34a" }}
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
 
       {/* Summary Statistics */}
       <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3">
         {chartData.slice(0, 3).map((yearData, index) => {
-          let color = "#22c55e"; // green
-          if (yearData.rasio > 20) color = "#eab308"; // yellow
-          if (yearData.rasio > 30) color = "#ef4444"; // red
+          // Calculate ratio from the data
+          const ratio =
+            yearData.totalDosen > 0
+              ? Math.round(yearData.totalMahasiswa / yearData.totalDosen)
+              : 0;
+          let color = "#16a34a"; // green
+          if (ratio > 20) color = "#eab308"; // yellow
+          if (ratio > 30) color = "#ef4444"; // red
 
           return (
             <div
@@ -199,13 +179,13 @@ export const RasioTrendChart = ({
               <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-gray-500">
                   Dosen:{" "}
-                  <span className="font-semibold text-green-600">
+                  <span className="font-semibold" style={{ color: "#2563eb" }}>
                     {yearData.totalDosen}
                   </span>
                 </p>
                 <p className="text-xs text-gray-500">
                   Mhs:{" "}
-                  <span className="font-semibold text-amber-600">
+                  <span className="font-semibold" style={{ color: "#16a34a" }}>
                     {yearData.totalMahasiswa}
                   </span>
                 </p>

@@ -77,8 +77,9 @@ class JabFungController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $jabfung = $request->query('jabfung');
 
-            $result = $this->jabfungService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->jabfungService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $jabfung);
 
             return response()->json([
                 'status' => 'success',

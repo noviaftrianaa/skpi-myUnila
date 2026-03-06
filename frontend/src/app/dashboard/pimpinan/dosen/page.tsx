@@ -47,6 +47,7 @@ export default function DosenPage() {
   const [selectedTahunAjaran, setSelectedTahunAjaran] = useState<string>("");
   const [selectedFakultas, setSelectedFakultas] = useState<string>("");
   const [selectedProdi, setSelectedProdi] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
 
   // Custom hook for data fetching
@@ -97,6 +98,12 @@ export default function DosenPage() {
   // Handle tipe data change
   const handleTipeDataChange = (value: string) => {
     setSelectedTipeData(value);
+    setSelectedCategory(null); // Reset category selection when tipe data changes
+  };
+
+  // Handle category selection from stats cards
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory((prev) => (prev === category ? null : category)); // Toggle selection
   };
 
   // Handle tahun ajaran change
@@ -328,7 +335,9 @@ export default function DosenPage() {
 
   // Get chart title for percentage chart
   const getPercentageChartTitle = () => {
-    const tipeDataName = TipeDataOptions.find(opt => opt.value === selectedTipeData)?.label || "";
+    const tipeDataName =
+      TipeDataOptions.find((opt) => opt.value === selectedTipeData)?.label ||
+      "";
     if (selectedProdi) {
       const prodi = prodiList.find((p) => p.id === selectedProdi);
       return `Presentase ${tipeDataName} - ${prodi?.nama_prodi || ""}`;
@@ -341,7 +350,9 @@ export default function DosenPage() {
 
   // Get chart title for trend chart
   const getTrendChartTitle = () => {
-    const tipeDataName = TipeDataOptions.find(opt => opt.value === selectedTipeData)?.label || "";
+    const tipeDataName =
+      TipeDataOptions.find((opt) => opt.value === selectedTipeData)?.label ||
+      "";
     if (selectedProdi) {
       const prodi = prodiList.find((p) => p.id === selectedProdi);
       return `Tren ${tipeDataName} (5 Tahun) - ${prodi?.nama_prodi || ""}`;
@@ -427,17 +438,41 @@ export default function DosenPage() {
     return [
       { name: "Dosen Tetap", value: totalDosenTetap, color: "#3b82f6" },
       { name: "PNS DPK", value: totalDosenPnsDpk, color: "#6366f1" },
-      { name: "Dokter Pendidik Klinis", value: totalDokterPendidikKlinis, color: "#8b5cf6" },
+      {
+        name: "Dokter Pendidik Klinis",
+        value: totalDokterPendidikKlinis,
+        color: "#8b5cf6",
+      },
       { name: "Dosen Tetap BH", value: totalDosenTetapBh, color: "#a855f7" },
-      { name: "Dosen Tidak Tetap", value: totalDosenTidakTetap, color: "#22c55e" },
+      {
+        name: "Dosen Tidak Tetap",
+        value: totalDosenTidakTetap,
+        color: "#22c55e",
+      },
       { name: "P3K ASN", value: totalP3kAsn, color: "#14b8a6" },
-      { name: "Perjanjian Kerja", value: totalDosenPerjanjianKerja, color: "#06b6d4" },
+      {
+        name: "Perjanjian Kerja",
+        value: totalDosenPerjanjianKerja,
+        color: "#06b6d4",
+      },
       { name: "Instruktur", value: totalInstruktur, color: "#f59e0b" },
       { name: "Tutor", value: totalTutor, color: "#f97316" },
       { name: "JFT", value: totalJft, color: "#ef4444" },
-      { name: "Pengajar Nondosen", value: totalPengajarNondosen, color: "#dc2626" },
-      { name: "Tetap PKWTT", value: totalDosenTetapPkWaktuTertentu, color: "#b91c1c" },
-      { name: "Belum Ikatan Kerja", value: totalBelumIkatanKerja, color: "#cbd5e1" },
+      {
+        name: "Pengajar Nondosen",
+        value: totalPengajarNondosen,
+        color: "#dc2626",
+      },
+      {
+        name: "Tetap PKWTT",
+        value: totalDosenTetapPkWaktuTertentu,
+        color: "#b91c1c",
+      },
+      {
+        name: "Belum Ikatan Kerja",
+        value: totalBelumIkatanKerja,
+        color: "#cbd5e1",
+      },
     ].filter((item) => item.value > 0);
   }, [
     selectedTipeData,
@@ -635,7 +670,9 @@ export default function DosenPage() {
 
     if (selectedProdi && statusKepegawaianProdiList.length > 0) {
       // Prodi level - show data for selected prodi only
-      const prodi = statusKepegawaianProdiList.find((p) => p.id === selectedProdi);
+      const prodi = statusKepegawaianProdiList.find(
+        (p) => p.id === selectedProdi,
+      );
       if (prodi) {
         totalPns = prodi.pns;
         totalCpns = prodi.cpns;
@@ -674,7 +711,11 @@ export default function DosenPage() {
       { name: "CPNS", value: totalCpns, color: "#22c55e" },
       { name: "PPPK", value: totalPppk, color: "#f59e0b" },
       { name: "ASN JF Non Dosen", value: totalAsnJfNonDosen, color: "#8b5cf6" },
-      { name: "Dokter Pendidik Klinis", value: totalDokterPendidikKlinis, color: "#06b6d4" },
+      {
+        name: "Dokter Pendidik Klinis",
+        value: totalDokterPendidikKlinis,
+        color: "#06b6d4",
+      },
       { name: "Non-ASN", value: totalNonAsn, color: "#ef4444" },
       { name: "Lainnya", value: totalLainnya, color: "#94a3b8" },
     ].filter((item) => item.value > 0);
@@ -687,11 +728,24 @@ export default function DosenPage() {
   ]);
 
   // Configuration for trend and percentage charts (must be after all useMemo hooks)
-  const chartConfig: Record<string, {
-    historicalData: typeof jabfungHistoricalData | typeof jenjangHistoricalData | typeof ikatanKerjaHistoricalData | typeof jenisKelaminHistoricalData | typeof statusKepegawaianHistoricalData;
-    percentageData: typeof jabfungPercentageData | typeof jenjangPercentageData | typeof ikatanKerjaPercentageData | typeof jenisKelaminPercentageData | typeof statusKepegawaianPercentageData;
-    categoryKeys: Array<{ key: string; name: string; color: string }>;
-  }> = {
+  const chartConfig: Record<
+    string,
+    {
+      historicalData:
+        | typeof jabfungHistoricalData
+        | typeof jenjangHistoricalData
+        | typeof ikatanKerjaHistoricalData
+        | typeof jenisKelaminHistoricalData
+        | typeof statusKepegawaianHistoricalData;
+      percentageData:
+        | typeof jabfungPercentageData
+        | typeof jenjangPercentageData
+        | typeof ikatanKerjaPercentageData
+        | typeof jenisKelaminPercentageData
+        | typeof statusKepegawaianPercentageData;
+      categoryKeys: Array<{ key: string; name: string; color: string }>;
+    }
+  > = {
     jabfung: {
       historicalData: jabfungHistoricalData,
       percentageData: jabfungPercentageData,
@@ -933,19 +987,59 @@ export default function DosenPage() {
             </div>
           </div>
 
-          {/* Komponen komponen total jumlah sesuai dengan tipe data misalkan : 
+          {/* Komponen komponen total jumlah sesuai dengan tipe data misalkan :
 
           - Jabatan Fungsional : Belum Jabfung, Asisten Ahli, Rektor (Jumlah dari total sesuai yang di drilldown)
 
           */}
+
+          {/* Info Alert */}
+          {selectedTahunAjaran && selectedTipeData && (
+            <Alert
+              className="mb-4 bg-blue-300 rounded-xl"
+              color="warning"
+              title="Tips Interaktif"
+              description="Klik pada kartu statistik di bawah untuk memfilter grafik berdasarkan kategori. Klik lagi untuk menampilkan semua data."
+            />
+          )}
+
           {selectedTahunAjaran &&
             selectedTipeData &&
             (() => {
               const SelectedComponent = statsCardComponents[selectedTipeData];
               return SelectedComponent ? (
-                <SelectedComponent stats={stats} />
+                <SelectedComponent
+                  stats={stats}
+                  onCategoryClick={handleCategoryClick}
+                  selectedCategory={selectedCategory}
+                />
               ) : null;
             })()}
+
+          {/* Active Filter Indicator */}
+          {selectedCategory && (
+            <div className="flex items-center gap-2 p-3 mb-6 border border-blue-200 rounded-lg bg-blue-50">
+              <span className="text-sm font-semibold text-blue-800">
+                🎯 Filter Aktif:
+              </span>
+              <span className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-full">
+                {(() => {
+                  const categories =
+                    chartConfig[selectedTipeData]?.categoryKeys;
+                  const category = categories?.find(
+                    (c) => c.key === selectedCategory,
+                  );
+                  return category?.name || selectedCategory;
+                })()}
+              </span>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="ml-auto text-sm font-medium text-blue-600 hover:text-blue-800"
+              >
+                ✕ Reset Filter
+              </button>
+            </div>
+          )}
 
           {/* Historical Trend Chart & Percentage Chart */}
           {selectedTahunAjaran &&
@@ -958,6 +1052,7 @@ export default function DosenPage() {
                     data={chartConfig[selectedTipeData].historicalData}
                     title={getTrendChartTitle()}
                     categoryKeys={chartConfig[selectedTipeData].categoryKeys}
+                    selectedCategory={selectedCategory}
                   />
                 )}
 
@@ -967,6 +1062,7 @@ export default function DosenPage() {
                     data={chartConfig[selectedTipeData].percentageData}
                     title={getPercentageChartTitle()}
                     subtitle={`Data tahun ${selectedTahunAjaran}`}
+                    selectedCategory={selectedCategory}
                   />
                 )}
               </>
@@ -989,6 +1085,7 @@ export default function DosenPage() {
             dataKeys={selectedDataKeys}
             disabled={isChartDisabled}
             isLoading={isLoadingChartData}
+            selectedCategory={selectedCategory}
           />
         </motion.div>
       </div>
@@ -1005,6 +1102,7 @@ export default function DosenPage() {
         selectedFakultasName={selectedFakultasName}
         selectedProdi={selectedProdi}
         selectedProdiName={selectedProdiName}
+        selectedCategory={selectedCategory}
       />
     </>
   );

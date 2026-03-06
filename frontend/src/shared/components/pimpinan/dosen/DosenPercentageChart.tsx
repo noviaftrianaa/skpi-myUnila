@@ -17,6 +17,7 @@ interface DosenPercentageChartProps {
   data: PercentageData[];
   title?: string;
   subtitle?: string;
+  selectedCategory?: string | null;
 }
 
 const COLORS = {
@@ -60,14 +61,25 @@ export const DosenPercentageChart = ({
   data,
   title,
   subtitle,
+  selectedCategory,
 }: DosenPercentageChartProps) => {
-  // Calculate total
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  // Filter data based on selectedCategory
+  // Map category names (e.g., "belum_jabfung" -> "Belum Jabfung")
+  const filteredData = selectedCategory
+    ? data.filter((item) => {
+        // Convert item name to lowercase and replace spaces with underscores
+        const normalizedName = item.name.toLowerCase().replace(/\s+/g, "_");
+        return normalizedName === selectedCategory;
+      })
+    : data;
+
+  // Calculate total based on filtered data
+  const total = filteredData.reduce((sum, item) => sum + item.value, 0);
 
   // Add percentage to each data item
-  const dataWithPercentage = data.map((item) => ({
+  const dataWithPercentage = filteredData.map((item) => ({
     ...item,
-    percentage: ((item.value / total) * 100).toFixed(1),
+    percentage: total > 0 ? ((item.value / total) * 100).toFixed(1) : "0.0",
   }));
 
   return (

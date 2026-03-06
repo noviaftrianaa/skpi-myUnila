@@ -76,8 +76,9 @@ class JenjangPendidikanController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $jenjangDidik = $request->query('jenjang_didik');
 
-            $result = $this->jenjangService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->jenjangService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $jenjangDidik);
 
             return response()->json([
                 'status' => 'success',

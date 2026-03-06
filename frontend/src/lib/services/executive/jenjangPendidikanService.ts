@@ -81,6 +81,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  jenjang_didik?: string;
 }
 
 export interface GetProdiParams {

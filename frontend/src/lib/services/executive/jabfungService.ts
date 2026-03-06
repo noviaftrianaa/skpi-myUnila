@@ -71,6 +71,7 @@ export interface GetDataDosenParams {
   per_page?: number;
   page?: number;
   search?: string;
+  jabfung?: string;
 }
 
 export interface GetProdiParams {

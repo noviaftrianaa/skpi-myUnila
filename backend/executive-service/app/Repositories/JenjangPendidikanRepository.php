@@ -267,7 +267,7 @@ class JenjangPendidikanRepository
      * @param string|null $search
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $jenjangDidik = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -279,6 +279,11 @@ class JenjangPendidikanRepository
         } elseif ($idFakultas) {
             $whereClause = " AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)";
             $bindings[] = $idFakultas;
+        }
+
+        // Add jenjang didik filter
+        if ($jenjangDidik) {
+            $whereClause .= $this->getJenjangFilterClause($jenjangDidik, $bindings);
         }
 
         // Get total count
@@ -613,5 +618,36 @@ class JenjangPendidikanRepository
     {
         $year = (int) substr((string) $tahunId, 0, 4);
         return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get jenjang didik filter clause and bindings
+     *
+     * @param string $jenjangDidik Display name of jenjang didik category
+     * @param array $bindings Reference to bindings array
+     * @return string WHERE clause for jenjang didik filtering
+     */
+    private function getJenjangFilterClause($jenjangDidik, &$bindings)
+    {
+        $jenjangMap = [
+            'D3' => 22,
+            'D4' => 23,
+            'S1' => 30,
+            'S2' => 35,
+            'S2 Terapan' => 36,
+            'S3' => 40,
+            'Profesi' => 31,
+            'Sp1' => 32,
+            'Sp2' => 37,
+        ];
+
+        if ($jenjangDidik === 'Belum Jenjang') {
+            return ' AND tjenj.id_jenj_didik IS NULL';
+        } elseif (isset($jenjangMap[$jenjangDidik])) {
+            $bindings[] = $jenjangMap[$jenjangDidik];
+            return ' AND tjenj.id_jenj_didik = ?';
+        }
+
+        return '';
     }
 }
