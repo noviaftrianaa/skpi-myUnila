@@ -284,6 +284,26 @@ export interface SisterDokumenListResult {
   total_pages: number;
 }
 
+// Photo statistics
+export interface SisterPhotoStats {
+  total_dosen: number;
+  total_photos: number;
+  total_missing: number;
+  last_sync: string | null;
+}
+
+// Dokumen statistics
+export interface SisterDokumenStats {
+  total_dokumen: number;
+  total_dosen_with_dokumen: number;
+  by_jenis_dok: Array<{
+    id_jns_dok: number;
+    nm_jns_dok: string;
+    total: number;
+  }>;
+  last_sync: string | null;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -401,10 +421,41 @@ export const sisterDosenService = {
     page?: number;
     limit?: number;
     search?: string;
+    id_jns_dok?: number;
   }): Promise<SisterDokumenListResult> {
     const response = await sisterClient.get<SisterApiResponse<SisterDokumenListResult>>(
       '/dosen/dokumen/all',
       { params }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get photo statistics (total dosen, with photo, missing, last sync)
+   */
+  async getPhotoStats(): Promise<SisterPhotoStats> {
+    const response = await sisterClient.get<SisterApiResponse<SisterPhotoStats>>(
+      '/dosen/photos/stats'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get dokumen statistics (total, by jenis, last sync)
+   */
+  async getDokumenStats(): Promise<SisterDokumenStats> {
+    const response = await sisterClient.get<SisterApiResponse<SisterDokumenStats>>(
+      '/dosen/dokumen/stats'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get jenis dokumen list for filter dropdown
+   */
+  async getJenisDokumenList(): Promise<Array<{ id_jns_dok: number; nm_jns_dok: string; total: number }>> {
+    const response = await sisterClient.get<SisterApiResponse<Array<{ id_jns_dok: number; nm_jns_dok: string; total: number }>>>(
+      '/dosen/dokumen/jenis'
     );
     return response.data.data;
   },

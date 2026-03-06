@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import {
   Card,
   CardBody,
@@ -15,16 +16,24 @@ import {
   ModalBody,
   ModalFooter,
   Progress,
+  Chip,
+  Image,
 } from "@heroui/react";
 import {
   FiCamera,
   FiCheckCircle,
   FiAlertCircle,
+  FiDatabase,
+  FiClock,
+  FiImage,
+  FiXCircle,
 } from "react-icons/fi";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import {
   sisterDosenService,
+  type SisterDosen,
+  type SisterPhotoStats,
   type SisterDosenPhotoSyncResult,
 } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
@@ -32,16 +41,72 @@ import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 const APP_KEY = "sister-integrator";
 
+const MINIO_PHOTO_BASE = process.env.NEXT_PUBLIC_MINIO_URL
+  ? `${process.env.NEXT_PUBLIC_MINIO_URL}/myunila-storage/photos/sdm`
+  : "http://192.168.120.47:9000/myunila-storage/photos/sdm";
+
 export default function DosenFotoPage() {
   useRequireAuth();
   const { user } = useAuth();
 
+  // Stats state
+  const [photoStats, setPhotoStats] = useState<SisterPhotoStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Table state
+  const [data, setData] = useState<SisterDosen[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  // Sync state
   const [isSyncing, setIsSyncing] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<SisterDosenPhotoSyncResult | null>(null);
+
+  // Fetch stats on mount
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // Fetch dosen list when filters change
+  useEffect(() => {
+    fetchDosenList();
+  }, [currentPage, rowsPerPage, searchQuery]);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      const data = await sisterDosenService.getPhotoStats();
+      setPhotoStats(data);
+    } catch (error) {
+      console.error("Error fetching photo stats:", error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const fetchDosenList = async () => {
+    setLoading(true);
+    try {
+      const response = await sisterDosenService.getList({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: searchQuery || undefined,
+      });
+      setData(response.data);
+      setTotalRecords(response.total);
+    } catch (error) {
+      console.error("Error loading dosen:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSyncClick = () => setShowConfirmModal(true);
 
@@ -66,7 +131,9 @@ export default function DosenFotoPage() {
       setSyncProgress(100);
       setSyncResult(response);
       setSyncStatus("success");
-      toast.success(`Berhasil sync ${response.total_success} foto dosen (${response.total_skipped} skipped)`);
+      toast.success(`Berhasil sync ${response.total_success} foto dosen`);
+
+      fetchStats();
 
       setTimeout(() => {
         setShowProgressModal(false);
@@ -88,6 +155,124 @@ export default function DosenFotoPage() {
     }
   };
 
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "Belum pernah";
+    return new Date(dateString).toLocaleString("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const columns: Column<SisterDosen>[] = [
+    {
+      key: "photo",
+      label: "FOTO",
+      align: "center",
+      width: "80px",
+      render: (item) => (
+        <div className="flex justify-center">
+          <Image
+            src={`${MINIO_PHOTO_BASE}/${item.id_sdm}.jpg`}
+            alt={item.nama_sdm}
+            width={48}
+            height={48}
+            className="rounded-lg object-cover"
+            fallbackSrc="/images/avatar-placeholder.png"
+          />
+        </div>
+      ),
+    },
+    {
+      key: "nama_sdm",
+      label: "NAMA",
+      sortable: true,
+      render: (item) => (
+        <div>
+          <div className="font-medium text-gray-900 dark:text-white">
+            {item.nama_sdm}
+          </div>
+          <div className="text-xs text-gray-400 font-mono truncate max-w-[200px]">
+            {item.id_sdm}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "nidn",
+      label: "NIDN / NUPTK",
+      render: (item) => (
+        <div className="text-sm">
+          <div className="font-mono text-gray-700 dark:text-gray-300">
+            {item.nidn || "-"}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {item.nuptk || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "jenis_kelamin",
+      label: "JK",
+      align: "center",
+      width: "80px",
+      render: (item) => (
+        <Chip
+          size="sm"
+          variant="flat"
+          color={item.jenis_kelamin === "L" ? "primary" : "secondary"}
+        >
+          {item.jenis_kelamin === "L" ? "L" : "P"}
+        </Chip>
+      ),
+    },
+    {
+      key: "email",
+      label: "EMAIL",
+      render: (item) => (
+        <div className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs">
+          {item.email || "-"}
+        </div>
+      ),
+    },
+    {
+      key: "last_sync",
+      label: "LAST SYNC",
+      align: "center",
+      width: "150px",
+      render: (item) => (
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {item.last_sync
+            ? new Date(item.last_sync).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "Belum sync"}
+        </div>
+      ),
+    },
+  ];
+
+  if (isLoadingStats) {
+    return (
+      <DashboardLayoutWithDynamicMenu
+        appName="SISTER Integrator"
+        appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
+        fallbackMenus={sisterIntegratorMenuConfig}
+        appKey={APP_KEY}
+        pageTitle="Foto Dosen"
+      >
+        <div className="flex justify-center items-center h-96">
+          <Spinner size="lg" color="primary" />
+        </div>
+      </DashboardLayoutWithDynamicMenu>
+    );
+  }
+
   return (
     <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
@@ -101,10 +286,10 @@ export default function DosenFotoPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Sinkronisasi Foto Dosen
+              Foto Dosen
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Mengunduh foto dosen dari SISTER API dan menyimpannya ke MinIO storage
+              Data foto dosen dari SISTER API yang tersimpan di MinIO storage
             </p>
           </div>
           <Button
@@ -119,26 +304,134 @@ export default function DosenFotoPage() {
           </Button>
         </div>
 
-        {/* Info Card */}
-        <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border border-teal-200 dark:border-teal-800">
-          <CardBody className="p-4">
-            <div className="flex items-start gap-3">
-              <FiCamera className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-teal-800 dark:text-teal-200 mb-1">Cara Kerja</p>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
-                  <li>Foto diambil dari SISTER API untuk setiap dosen aktif</li>
-                  <li>Foto yang sudah ada di MinIO akan di-skip (tidak diunduh ulang)</li>
-                  <li>Hanya foto baru yang akan diunduh dan diunggah</li>
-                  <li>Proses memerlukan waktu 5-15 menit tergantung jumlah foto baru</li>
-                </ul>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Dosen */}
+          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiDatabase className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-purple-100 mb-1">Total Dosen</p>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {photoStats?.total_dosen.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-purple-100/80">Seluruh dosen terdaftar</p>
+                </div>
               </div>
-            </div>
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
 
-        {/* Scheduler */}
+          {/* Total Foto */}
+          <Card className="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiImage className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-emerald-100">Foto Tersedia</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">MinIO</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {photoStats?.total_photos.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-emerald-100/80">
+                    {photoStats && photoStats.total_dosen > 0
+                      ? `${((photoStats.total_photos / photoStats.total_dosen) * 100).toFixed(1)}% dari total dosen`
+                      : "Foto di MinIO storage"}
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Foto Belum Ada */}
+          <Card className="bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiXCircle className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-orange-100">Belum Ada Foto</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/30 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Missing</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white tracking-tight leading-none mb-1">
+                    {photoStats?.total_missing.toLocaleString() || "0"}
+                  </h3>
+                  <p className="text-[10px] text-orange-100/80">
+                    {photoStats && photoStats.total_dosen > 0
+                      ? `${((photoStats.total_missing / photoStats.total_dosen) * 100).toFixed(1)}% belum sync`
+                      : "Perlu sinkronisasi"}
+                  </p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Last Sync */}
+          <Card className="bg-gradient-to-br from-blue-500 via-cyan-600 to-sky-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
+            <CardBody className="p-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
+                  <FiClock className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-blue-100">Last Sync</p>
+                    <div className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold text-white">Recent</span>
+                    </div>
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-tight mb-1 truncate">
+                    {formatDate(photoStats?.last_sync)}
+                  </h3>
+                  <p className="text-[10px] text-blue-100/80">Terakhir sinkronisasi foto</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Scheduled Syncs */}
         <ScheduleList syncType="dosen_foto" />
+
+        {/* Data Table with Photos */}
+        <DataTable
+          data={data}
+          columns={columns}
+          searchable={true}
+          searchKeys={["nama_sdm", "nidn", "nuptk", "email"]}
+          searchPlaceholder="Cari nama, NIDN, NUPTK, atau email..."
+          defaultRowsPerPage={10}
+          rowsPerPageOptions={[5, 10, 25, 50, 100]}
+          loading={loading}
+          serverSide={true}
+          totalRecords={totalRecords}
+          onPageChange={setCurrentPage}
+          onRowsPerPageChange={(rows) => {
+            setRowsPerPage(rows);
+            setCurrentPage(1);
+          }}
+          onSearchChange={(query) => {
+            setSearchQuery(query);
+            setCurrentPage(1);
+          }}
+          className="shadow-lg"
+        />
       </div>
 
       {/* Confirmation Modal */}
