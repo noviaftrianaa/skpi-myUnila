@@ -20,7 +20,9 @@ type Repository interface {
 	UpsertDokumen(item *DokumenSyncItem) error
 	GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error)
 	GetDokumenMinioPath(idDok string) (string, error)
-	GetAllDokumen(page, limit int, search string) (*DokumenListResult, error)
+	GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error)
+	GetDokumenStats() (*DokumenStats, error)
+	GetJenisDokumenList() ([]map[string]interface{}, error)
 }
 
 type repository struct {
@@ -771,7 +773,7 @@ func (r *repository) GetDokumenMinioPath(idDok string) (string, error) {
 }
 
 // GetAllDokumen retrieves paginated list of all synced documents (dok.dok_sdm + dok.dokumen + pdrd.sdm)
-func (r *repository) GetAllDokumen(page, limit int, search string) (*DokumenListResult, error) {
+func (r *repository) GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error) {
 	offset := (page - 1) * limit
 
 	whereConditions := "WHERE ds.soft_delete = 0 AND d.soft_delete = 0"
@@ -781,6 +783,12 @@ func (r *repository) GetAllDokumen(page, limit int, search string) (*DokumenList
 	if search != "" {
 		whereConditions += fmt.Sprintf(" AND (s.nm_sdm LIKE @p%d OR d.nm_dok LIKE @p%d OR d.file_name LIKE @p%d)", argIndex, argIndex, argIndex)
 		args = append(args, "%"+search+"%")
+		argIndex++
+	}
+
+	if idJnsDok > 0 {
+		whereConditions += fmt.Sprintf(" AND d.id_jns_dok = @p%d", argIndex)
+		args = append(args, idJnsDok)
 		argIndex++
 	}
 
@@ -838,4 +846,106 @@ func (r *repository) GetAllDokumen(page, limit int, search string) (*DokumenList
 		Limit:      limit,
 		TotalPages: totalPages,
 	}, nil
+}
+
+// GetDokumenStats retrieves document statistics
+func (r *repository) GetDokumenStats() (*DokumenStats, error) {
+	stats := &DokumenStats{}
+
+	// Total dokumen
+	err := r.db.Get(&stats.TotalDokumen, `
+		SELECT COUNT(*) FROM dok.dokumen WHERE soft_delete = 0
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count dokumen: %w", err)
+	}
+
+	// Total unique dosen with dokumen
+	err = r.db.Get(&stats.TotalDosen, `
+		SELECT COUNT(DISTINCT ds.id_sdm)
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		WHERE ds.soft_delete = 0
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count dosen with dokumen: %w", err)
+	}
+
+	// By jenis dokumen
+	rows, err := r.db.Query(`
+		SELECT
+			ISNULL(jd.id_jns_dok, d.id_jns_dok) AS id_jns_dok,
+			ISNULL(jd.nm_jns_dok, 'Tidak Diketahui') AS nm_jns_dok,
+			COUNT(*) AS total
+		FROM dok.dokumen d
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		WHERE d.soft_delete = 0
+		GROUP BY ISNULL(jd.id_jns_dok, d.id_jns_dok), ISNULL(jd.nm_jns_dok, 'Tidak Diketahui')
+		ORDER BY total DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dokumen by jenis: %w", err)
+	}
+	defer rows.Close()
+
+	stats.ByJenisDok = []map[string]interface{}{}
+	for rows.Next() {
+		var idJns int
+		var nmJns string
+		var total int
+		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
+			stats.ByJenisDok = append(stats.ByJenisDok, map[string]interface{}{
+				"id_jns_dok": idJns,
+				"nm_jns_dok": nmJns,
+				"total":      total,
+			})
+		}
+	}
+
+	// Last sync
+	var lastSync *time.Time
+	err = r.db.Get(&lastSync, `
+		SELECT TOP 1 synced_at
+		FROM logger.sync_logs
+		WHERE endpoint_name = 'Dosen Dokumen' AND status = 'success'
+		ORDER BY synced_at DESC
+	`)
+	if err == nil && lastSync != nil {
+		stats.LastSync = lastSync
+	}
+
+	return stats, nil
+}
+
+// GetJenisDokumenList retrieves list of jenis dokumen for filter dropdown
+func (r *repository) GetJenisDokumenList() ([]map[string]interface{}, error) {
+	rows, err := r.db.Query(`
+		SELECT jd.id_jns_dok, jd.nm_jns_dok, COUNT(d.id_dok) AS total
+		FROM ref.jenis_dokumen jd
+		LEFT JOIN dok.dokumen d ON d.id_jns_dok = jd.id_jns_dok AND d.soft_delete = 0
+		WHERE jd.expired_date IS NULL
+		GROUP BY jd.id_jns_dok, jd.nm_jns_dok
+		HAVING COUNT(d.id_dok) > 0
+		ORDER BY total DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jenis dokumen: %w", err)
+	}
+	defer rows.Close()
+
+	var results []map[string]interface{}
+	for rows.Next() {
+		var idJns int
+		var nmJns string
+		var total int
+		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
+			results = append(results, map[string]interface{}{
+				"id_jns_dok": idJns,
+				"nm_jns_dok": nmJns,
+				"total":      total,
+			})
+		}
+	}
+
+	return results, nil
 }

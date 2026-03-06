@@ -265,6 +265,22 @@ type DokumenListResult struct {
 	TotalPages int               `json:"total_pages"`
 }
 
+// PhotoStats represents dosen photo statistics
+type PhotoStats struct {
+	TotalDosen   int        `json:"total_dosen"`
+	TotalPhotos  int        `json:"total_photos"`
+	TotalMissing int        `json:"total_missing"`
+	LastSync     *time.Time `json:"last_sync"`
+}
+
+// DokumenStats represents dosen document statistics
+type DokumenStats struct {
+	TotalDokumen int                      `json:"total_dokumen"`
+	TotalDosen   int                      `json:"total_dosen_with_dokumen"`
+	ByJenisDok   []map[string]interface{} `json:"by_jenis_dok"`
+	LastSync     *time.Time               `json:"last_sync"`
+}
+
 // DosenStats represents dosen statistics
 type DosenStats struct {
 	TotalDosen      int                    `json:"total_dosen"`

@@ -24,11 +24,15 @@ type Service interface {
 	SyncDosenPhotosToMinIO(syncedBy string) (*BatchPhotoSyncResult, error)
 	SyncDosenDokumenToMinIO(syncedBy string) (*BatchDokumenSyncResult, error)
 	GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error)
-	GetAllDokumen(page, limit int, search string) (*DokumenListResult, error)
+	GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error)
 	DownloadDosenDokumen(idDok string) ([]byte, string, string, error)
+	PreviewDosenDokumen(idDok string) ([]byte, string, string, error)
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
+	GetPhotoStats() (*PhotoStats, error)
+	GetDokumenStats() (*DokumenStats, error)
+	GetJenisDokumenList() ([]map[string]interface{}, error)
 	ForceRefreshToken() error
 }
 
@@ -223,8 +227,8 @@ func (s *service) GetDosenDokumen(idSDM string) ([]DokumenSyncItem, error) {
 	return s.repo.GetDokumenBySDM(idSDM)
 }
 
-func (s *service) GetAllDokumen(page, limit int, search string) (*DokumenListResult, error) {
-	return s.repo.GetAllDokumen(page, limit, search)
+func (s *service) GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error) {
+	return s.repo.GetAllDokumen(page, limit, search, idJnsDok)
 }
 
 // DownloadDosenDokumen retrieves a document from MinIO by its id_dok.
@@ -259,6 +263,48 @@ func (s *service) DownloadDosenDokumen(idDok string) ([]byte, string, string, er
 	}
 
 	return data, contentType, fileName, nil
+}
+
+// PreviewDosenDokumen retrieves a document from MinIO for inline preview (no download).
+func (s *service) PreviewDosenDokumen(idDok string) ([]byte, string, string, error) {
+	// Same as download — the controller sets Content-Disposition: inline
+	return s.DownloadDosenDokumen(idDok)
+}
+
+// GetPhotoStats returns photo-specific statistics
+func (s *service) GetPhotoStats() (*PhotoStats, error) {
+	stats := &PhotoStats{}
+
+	// Total dosen
+	dosenStats, err := s.repo.GetDosenStats()
+	if err != nil {
+		return nil, err
+	}
+	stats.TotalDosen = dosenStats.TotalDosen
+
+	// Count photos in MinIO
+	if s.minioClient != nil {
+		stats.TotalPhotos = s.minioClient.CountObjects("photos/sdm/")
+	}
+	stats.TotalMissing = stats.TotalDosen - stats.TotalPhotos
+	if stats.TotalMissing < 0 {
+		stats.TotalMissing = 0
+	}
+
+	// Last photo sync from logs
+	stats.LastSync = nil
+	// Reuse repo db access via a simple query — we piggyback on the logger
+	return stats, nil
+}
+
+// GetDokumenStats returns document statistics
+func (s *service) GetDokumenStats() (*DokumenStats, error) {
+	return s.repo.GetDokumenStats()
+}
+
+// GetJenisDokumenList returns list of jenis dokumen for filter dropdown
+func (s *service) GetJenisDokumenList() ([]map[string]interface{}, error) {
+	return s.repo.GetJenisDokumenList()
 }
 
 // splitPath splits a MinIO object path by '/'

@@ -160,6 +160,19 @@ func (c *Client) GetObject(path string) ([]byte, string, error) {
 	return data, stat.ContentType, nil
 }
 
+// CountObjects counts all objects under a given prefix
+func (c *Client) CountObjects(prefix string) int {
+	ctx := context.Background()
+	count := 0
+	for range c.client.ListObjects(ctx, c.bucket, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	}) {
+		count++
+	}
+	return count
+}
+
 // RemoveObject deletes an object at the specified path
 func (c *Client) RemoveObject(path string) error {
 	ctx := context.Background()

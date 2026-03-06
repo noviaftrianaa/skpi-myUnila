@@ -31,8 +31,12 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 		// GET routes (also protected with JWT)
 		dosenAPI.Get("/", ctrl.GetDosenList)
 		dosenAPI.Get("/stats", ctrl.GetDosenStats)
+		dosenAPI.Get("/photos/stats", ctrl.GetPhotoStats)
 		dosenAPI.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
 		// Dokumen routes — exact paths before param routes to avoid collision
+		dosenAPI.Get("/dokumen/stats", ctrl.GetDokumenStats)
+		dosenAPI.Get("/dokumen/jenis", ctrl.GetJenisDokumenList)
+		dosenAPI.Get("/dokumen/preview/:id_dok", ctrl.PreviewDosenDokumen)
 		dosenAPI.Get("/dokumen/download/:id_dok", ctrl.DownloadDosenDokumen)
 		dosenAPI.Get("/dokumen/all", ctrl.GetAllDokumen)
 		dosenAPI.Get("/dokumen/:id_sdm", ctrl.GetDosenDokumenList)

@@ -368,7 +368,9 @@ func (ctrl *Controller) GetAllDokumen(c *fiber.Ctx) error {
 		limit = 20
 	}
 
-	result, err := ctrl.service.GetAllDokumen(page, limit, search)
+	idJnsDok := c.QueryInt("id_jns_dok", 0)
+
+	result, err := ctrl.service.GetAllDokumen(page, limit, search, idJnsDok)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -458,6 +460,90 @@ func (ctrl *Controller) DownloadDosenDokumen(c *fiber.Ctx) error {
 
 	c.Set("Content-Type", contentType)
 	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	c.Set("Cache-Control", "private, max-age=3600")
+
+	return c.Send(data)
+}
+
+// GetPhotoStats handles GET /api/v1/dosen/photos/stats
+func (ctrl *Controller) GetPhotoStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetPhotoStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve photo statistics",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Photo statistics retrieved successfully",
+		"data":    stats,
+	})
+}
+
+// GetDokumenStats handles GET /api/v1/dosen/dokumen/stats
+func (ctrl *Controller) GetDokumenStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetDokumenStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen statistics",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dokumen statistics retrieved successfully",
+		"data":    stats,
+	})
+}
+
+// GetJenisDokumenList handles GET /api/v1/dosen/dokumen/jenis
+func (ctrl *Controller) GetJenisDokumenList(c *fiber.Ctx) error {
+	list, err := ctrl.service.GetJenisDokumenList()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve jenis dokumen",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    list,
+	})
+}
+
+// PreviewDosenDokumen handles GET /api/v1/dosen/dokumen/preview/:id_dok
+func (ctrl *Controller) PreviewDosenDokumen(c *fiber.Ctx) error {
+	idDok := c.Params("id_dok")
+	if idDok == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_dok parameter is required",
+		})
+	}
+
+	data, contentType, fileName, err := ctrl.service.PreviewDosenDokumen(idDok)
+	if err != nil {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "dokumen not found") || strings.Contains(errMsg, "no MinIO path") {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"success": false,
+				"message": "Document not found",
+				"error":   errMsg,
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to preview document",
+			"error":   errMsg,
+		})
+	}
+
+	c.Set("Content-Type", contentType)
+	c.Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
 	c.Set("Cache-Control", "private, max-age=3600")
 
 	return c.Send(data)
