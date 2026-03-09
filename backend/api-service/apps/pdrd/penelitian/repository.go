@@ -123,7 +123,7 @@ func (r *repository) GetPublikasi(
 			p.id_kat_capaian,
 			kcl.nm_kat_capaian,
 			p.id_media_pub,
-			ISNULL(mp.nm_jns_media, '') AS nm_jns_media,
+			mp.nm_media_pub,
 			p.id_litabmas,
 			lt.judul_litabmas,
 			p.create_date,

@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/pdrd/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -30,13 +31,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetPublikasi mengambil daftar publikasi dengan pagination dan caching
 func (s *service) GetPublikasi(ctx context.Context, params types.PublikasiParams) ([]Publikasi, int64, error) {
-	cacheKeyData := fmt.Sprintf("publikasi:data:page:%d:limit:%d:jns_pub:%v:jurnal:%v:edisi:%v:penerbit:%v:kat_capaian:%v:media:%v:litabmas:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit,
-		params.IDJnsPub, params.NamaJurnal, params.Edisi, params.Penerbit,
-		params.IDKatCapaian, params.IDMediaPub, params.IDLitabmas,
-		params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("publikasi:total:jns_pub:%v:kat_capaian:%v:media:%v:litabmas:%v:search:%s",
-		params.IDJnsPub, params.IDKatCapaian, params.IDMediaPub, params.IDLitabmas, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("publikasi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("publikasi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -65,13 +62,9 @@ func (s *service) GetPublikasi(ctx context.Context, params types.PublikasiParams
 
 // GetLitabmas mengambil daftar litabmas (penelitian/pengabdian) dengan pagination dan caching
 func (s *service) GetLitabmas(ctx context.Context, params types.LitabmasParams) ([]Litabmas, int64, error) {
-	cacheKeyData := fmt.Sprintf("litabmas:data:page:%d:limit:%d:id_litabmas:%v:id_sdm:%v:jns:%v:lemb:%v:skim:%v:thn:%v:bidang:%v:tse:%v:smi:%v:jns_lit:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit,
-		params.IDLitabmas, params.IDSdm, params.JnsLitabmas, params.IDLembIptek, params.IDSkim,
-		params.IDThnKegiatan, params.IDKelBidang, params.IDTse, params.IDSmi, params.IDJnsLit,
-		params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("litabmas:total:id_litabmas:%v:id_sdm:%v:jns:%v:skim:%v:thn:%v:search:%s",
-		params.IDLitabmas, params.IDSdm, params.JnsLitabmas, params.IDSkim, params.IDThnKegiatan, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("litabmas:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("litabmas:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

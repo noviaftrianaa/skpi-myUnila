@@ -43,7 +43,7 @@ type Publikasi struct {
 	IDKatCapaian     *int                 `db:"id_kat_capaian" json:"id_kat_capaian"`
 	NmKatCapaian     *string              `db:"nm_kat_capaian" json:"nm_kat_capaian"`
 	IDMediaPub       utils.UUID           `db:"id_media_pub" json:"id_media_pub"`
-	NmJnsMedia       string               `db:"nm_jns_media" json:"nm_jns_media"`
+	NmMediaPub       *string              `db:"nm_media_pub" json:"nm_media_pub"`
 	IDLitabmas       utils.NullUUID       `db:"id_litabmas" json:"id_litabmas"`
 	JudulLitabmas    *string              `db:"judul_litabmas" json:"judul_litabmas"`
 	CreateDate       types.SQLServerTime  `db:"create_date" json:"-"`
@@ -63,11 +63,11 @@ type Litabmas struct {
 	JudulLitabmas      string               `db:"judul_litabmas" json:"judul_litabmas"`
 	LamaKegiatan       int                  `db:"lama_kegiatan" json:"lama_kegiatan"`
 	ThnLaksKe          int                  `db:"thn_laks_ke" json:"thn_laks_ke"`
-	DanaDikti          int                  `db:"dana_dikti" json:"dana_dikti"`
-	DanaPt             int                  `db:"dana_pt" json:"dana_pt"`
-	DanaInstitusiLain  int                  `db:"dana_institusi_lain" json:"dana_institusi_lain"`
+	DanaDikti          float64              `db:"dana_dikti" json:"dana_dikti"`
+	DanaPt             float64              `db:"dana_pt" json:"dana_pt"`
+	DanaInstitusiLain  float64              `db:"dana_institusi_lain" json:"dana_institusi_lain"`
 	InKind             *string              `db:"in_kind" json:"in_kind"`
-	StatAktif          int                  `db:"stat_aktif" json:"stat_aktif"`
+	StatAktif          float64              `db:"stat_aktif" json:"stat_aktif"`
 	JnsLitabmas        *string              `db:"jns_litabmas" json:"jns_litabmas"`
 	SkTugas            *string              `db:"sk_tugas" json:"sk_tugas"`
 	TglSkTugas         *types.SQLServerTime `db:"tgl_sk_tugas" json:"tgl_sk_tugas"`

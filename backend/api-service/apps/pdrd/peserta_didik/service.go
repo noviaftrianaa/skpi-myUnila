@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/pdrd/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -32,9 +33,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetPesertaDidik mengambil daftar mahasiswa dengan pagination dan caching
 func (s *service) GetPesertaDidik(ctx context.Context, params types.PaginationParams) ([]PesertaDidik, int64, error) {
-	cacheKeyData := fmt.Sprintf("peserta_didik:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("peserta_didik:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("peserta_didik:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("peserta_didik:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -63,14 +64,9 @@ func (s *service) GetPesertaDidik(ctx context.Context, params types.PaginationPa
 
 // GetPesertaDidikDetail mengambil daftar mahasiswa dengan join lookup tables dan caching
 func (s *service) GetPesertaDidikDetail(ctx context.Context, params types.PesertaDidikDetailParams) ([]PesertaDidikDetail, int64, error) {
-	cacheKeyData := fmt.Sprintf("peserta_didik:detail:data:page:%d:limit:%d:id_pd:%v:stat:%v:wil:%v:agama:%v:jns_tinggal:%v:kk:%v:kk_ibu:%v:kk_ayah:%v:transport:%v:kwn:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit,
-		params.IDPd, params.IDStatMhs, params.IDWil, params.IDAgama,
-		params.IDJnsTinggal, params.IDKk, params.IDKkIbu, params.IDKkAyah,
-		params.IDAlatTransport, params.IDKewarganegaraan,
-		params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("peserta_didik:detail:total:id_pd:%v:stat:%v:wil:%v:agama:%v:search:%s",
-		params.IDPd, params.IDStatMhs, params.IDWil, params.IDAgama, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("peserta_didik_detail:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("peserta_didik_detail:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -99,13 +95,9 @@ func (s *service) GetPesertaDidikDetail(ctx context.Context, params types.Pesert
 
 // GetRegPd mengambil data reg_pd dengan join lookup tables dan caching
 func (s *service) GetRegPd(ctx context.Context, params types.RegPdParams) ([]RegPd, int64, error) {
-	cacheKeyData := fmt.Sprintf("reg_pd:data:page:%d:limit:%d:id_reg_pd:%s:id_sp:%v:id_sms:%v:id_pd:%v:jns_daftar:%v:jalur:%v:pembiayaan:%v:smt:%v:jns_keluar:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit,
-		params.IDRegPd, params.IDSP, params.IDSms, params.IDPd,
-		params.IDJnsDaftar, params.IDJalurDaftar, params.IDPembiayaan, params.IDSmt,
-		params.IDJnsKeluar, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("reg_pd:total:id_reg_pd:%s:id_sp:%v:id_pd:%v:jns_daftar:%v:search:%s",
-		params.IDRegPd, params.IDSP, params.IDPd, params.IDJnsDaftar, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("reg_pd:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("reg_pd:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -134,12 +126,9 @@ func (s *service) GetRegPd(ctx context.Context, params types.RegPdParams) ([]Reg
 
 // GetStatusKuliahMahasiswa mengambil data kuliah_mhs per semester dengan caching
 func (s *service) GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error) {
-	cacheKeyData := fmt.Sprintf("status_kuliah:data:page:%d:limit:%d:id_reg_pd:%s:id_smt:%v:id_stat_mhs:%v:sort:%s:%s",
-		params.Page, params.Limit,
-		params.IDRegPd, params.IDSmt, params.IDStatMhs,
-		params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("status_kuliah:total:id_reg_pd:%s:id_smt:%v:id_stat_mhs:%v",
-		params.IDRegPd, params.IDSmt, params.IDStatMhs)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("status_kuliah:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("status_kuliah:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
