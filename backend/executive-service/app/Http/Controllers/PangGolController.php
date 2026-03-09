@@ -76,8 +76,9 @@ class PangGolController extends Controller
             $perPage = (int) $request->query('per_page', 10);
             $page = (int) $request->query('page', 1);
             $search = $request->query('search');
+            $pangkatGolongan = $request->query('pangkat_golongan');
 
-            $result = $this->panggolService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search);
+            $result = $this->panggolService->getDataDosen($idThnAjaran, $idFakultas, $idProdi, $perPage, $page, $search, $pangkatGolongan);
 
             return response()->json([
                 'status' => 'success',
@@ -145,6 +146,71 @@ class PangGolController extends Controller
         try {
             $idFakultas = $request->query('fakultas_id');
             $data = $this->panggolService->getProdiListByFakultas($idFakultas);
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pangkat golongan historical data at university/fakultas level
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPangkatGolonganFakultasHistorical(Request $request)
+    {
+        try {
+            $tahunAjaran = $request->query('tahun_ajaran');
+            $fakultasId = $request->query('fakultas_id');
+
+            if (!$tahunAjaran) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'tahun_ajaran parameter is required'
+                ], 400);
+            }
+
+            $data = $this->panggolService->getPangkatGolonganFakultasHistorical($tahunAjaran, 5, $fakultasId);
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pangkat golongan historical data at fakultas/prodi level
+     *
+     * @param Request $request
+     * @param string $idFakultas
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPangkatGolonganProdiHistorical(Request $request, $idFakultas)
+    {
+        try {
+            $tahunAjaran = $request->query('tahun_ajaran');
+            $prodiId = $request->query('prodi_id');
+
+            if (!$tahunAjaran) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'tahun_ajaran parameter is required'
+                ], 400);
+            }
+
+            $data = $this->panggolService->getPangkatGolonganProdiHistorical($idFakultas, $tahunAjaran, 5, $prodiId);
             return response()->json([
                 'status' => 'success',
                 'data' => $data

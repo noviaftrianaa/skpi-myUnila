@@ -92,8 +92,7 @@ class PangGolRepository
             LEFT JOIN (
                 SELECT
                     MAX(rwy_kepangkatan.id_pangkat_gol) AS id_pangkat_gol,
-                    id_sdm,
-                    pangkat_golongan.nm_pangkat
+                    id_sdm
                 FROM pdrd.rwy_kepangkatan
                 LEFT JOIN ref.pangkat_golongan ON pangkat_golongan.id_pangkat_gol = rwy_kepangkatan.id_pangkat_gol
                 WHERE (
@@ -102,7 +101,7 @@ class PangGolRepository
                 )
                 AND pangkat_golongan.expired_date IS NULL
                 AND rwy_kepangkatan.soft_delete = 0
-                GROUP BY id_sdm, nm_pangkat
+                GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
@@ -177,8 +176,7 @@ class PangGolRepository
             LEFT JOIN (
                 SELECT
                     MAX(rwy_kepangkatan.id_pangkat_gol) AS id_pangkat_gol,
-                    id_sdm,
-                    pangkat_golongan.nm_pangkat
+                    id_sdm
                 FROM pdrd.rwy_kepangkatan
                 LEFT JOIN ref.pangkat_golongan ON pangkat_golongan.id_pangkat_gol = rwy_kepangkatan.id_pangkat_gol
                 WHERE (
@@ -187,7 +185,7 @@ class PangGolRepository
                 )
                 AND pangkat_golongan.expired_date IS NULL
                 AND rwy_kepangkatan.soft_delete = 0
-                GROUP BY id_sdm, nm_pangkat
+                GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
@@ -217,24 +215,24 @@ class PangGolRepository
                     ELSE tpanggol.id_pangkat_gol
                 END AS id_pangkat_gol,
                 CASE
-                    WHEN tpanggol.id_pangkat_gol = 1 THEN 'Juru Muda'
-                    WHEN tpanggol.id_pangkat_gol = 2 THEN 'Juru Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 3 THEN 'Juru'
-                    WHEN tpanggol.id_pangkat_gol = 4 THEN 'Juru Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 5 THEN 'Pengatur Muda'
-                    WHEN tpanggol.id_pangkat_gol = 6 THEN 'Pengatur Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 7 THEN 'Pengatur'
-                    WHEN tpanggol.id_pangkat_gol = 8 THEN 'Pengatur Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 9 THEN 'Penata Muda'
-                    WHEN tpanggol.id_pangkat_gol = 10 THEN 'Penata Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 11 THEN 'Penata'
-                    WHEN tpanggol.id_pangkat_gol = 12 THEN 'Penata Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 13 THEN 'Pembina'
-                    WHEN tpanggol.id_pangkat_gol = 14 THEN 'Pembina Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 15 THEN 'Pembina Utama Muda'
-                    WHEN tpanggol.id_pangkat_gol = 16 THEN 'Pembina Utama Madya'
-                    WHEN tpanggol.id_pangkat_gol = 17 THEN 'Pembina Utama'
-                    ELSE 'Belum Pangkat Golongan'
+                    WHEN tpanggol.id_pangkat_gol = 1 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Muda')
+                    WHEN tpanggol.id_pangkat_gol = 2 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 3 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru')
+                    WHEN tpanggol.id_pangkat_gol = 4 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 5 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Muda')
+                    WHEN tpanggol.id_pangkat_gol = 6 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 7 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur')
+                    WHEN tpanggol.id_pangkat_gol = 8 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 9 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Muda')
+                    WHEN tpanggol.id_pangkat_gol = 10 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 11 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata')
+                    WHEN tpanggol.id_pangkat_gol = 12 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 13 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina')
+                    WHEN tpanggol.id_pangkat_gol = 14 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 15 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama Muda')
+                    WHEN tpanggol.id_pangkat_gol = 16 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama Madya')
+                    WHEN tpanggol.id_pangkat_gol = 17 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama')
+                    ELSE 'Belum Pangkat'
                 END AS pangkat_golongan,
                 tsms.id_sms AS id_prodi,
                 tsms.nm_lemb AS nama_prodi,
@@ -268,8 +266,7 @@ class PangGolRepository
             LEFT JOIN (
                 SELECT
                     MAX(rwy_kepangkatan.id_pangkat_gol) AS id_pangkat_gol,
-                    id_sdm,
-                    pangkat_golongan.nm_pangkat
+                    id_sdm
                 FROM pdrd.rwy_kepangkatan
                 LEFT JOIN ref.pangkat_golongan ON pangkat_golongan.id_pangkat_gol = rwy_kepangkatan.id_pangkat_gol
                 WHERE (
@@ -278,7 +275,7 @@ class PangGolRepository
                 )
                 AND pangkat_golongan.expired_date IS NULL
                 AND rwy_kepangkatan.soft_delete = 0
-                GROUP BY id_sdm, nm_pangkat
+                GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
@@ -307,7 +304,7 @@ class PangGolRepository
      * @param string|null $search
      * @return array
      */
-    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null)
+    public function getDataDosen($idThnAjaran = null, $idFakultas = null, $idProdi = null, $perPage = 10, $page = 1, $search = null, $pangkatGolongan = null)
     {
         $bindings = [$idThnAjaran];
 
@@ -319,6 +316,11 @@ class PangGolRepository
         } elseif ($idFakultas) {
             $whereClause = " AND tsms.id_fak_unila = CAST(? AS uniqueidentifier)";
             $bindings[] = $idFakultas;
+        }
+
+        // Add pangkat golongan filter using kode_gol
+        if ($pangkatGolongan) {
+            $whereClause .= $this->getPangkatGolonganFilterClause($pangkatGolongan, $bindings);
         }
 
         // Get total count
@@ -387,6 +389,8 @@ class PangGolRepository
                 GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
+            LEFT JOIN ref.pangkat_golongan
+                ON pangkat_golongan.id_pangkat_gol = tpanggol.id_pangkat_gol
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -424,24 +428,24 @@ class PangGolRepository
                 fakultas.nm_lemb AS nama_fakultas,
                 CONCAT(tsms.nm_lemb, ' (', jenj.nm_jenj_didik, ') ') AS nama_prodi,
                 CASE
-                    WHEN tpanggol.id_pangkat_gol = 1 THEN 'Juru Muda'
-                    WHEN tpanggol.id_pangkat_gol = 2 THEN 'Juru Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 3 THEN 'Juru'
-                    WHEN tpanggol.id_pangkat_gol = 4 THEN 'Juru Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 5 THEN 'Pengatur Muda'
-                    WHEN tpanggol.id_pangkat_gol = 6 THEN 'Pengatur Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 7 THEN 'Pengatur'
-                    WHEN tpanggol.id_pangkat_gol = 8 THEN 'Pengatur Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 9 THEN 'Penata Muda'
-                    WHEN tpanggol.id_pangkat_gol = 10 THEN 'Penata Muda Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 11 THEN 'Penata'
-                    WHEN tpanggol.id_pangkat_gol = 12 THEN 'Penata Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 13 THEN 'Pembina'
-                    WHEN tpanggol.id_pangkat_gol = 14 THEN 'Pembina Tk. I'
-                    WHEN tpanggol.id_pangkat_gol = 15 THEN 'Pembina Utama Muda'
-                    WHEN tpanggol.id_pangkat_gol = 16 THEN 'Pembina Utama Madya'
-                    WHEN tpanggol.id_pangkat_gol = 17 THEN 'Pembina Utama'
-                    ELSE 'Belum Pangkat Golongan'
+                    WHEN tpanggol.id_pangkat_gol = 1 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Muda')
+                    WHEN tpanggol.id_pangkat_gol = 2 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 3 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru')
+                    WHEN tpanggol.id_pangkat_gol = 4 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Juru Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 5 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Muda')
+                    WHEN tpanggol.id_pangkat_gol = 6 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 7 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur')
+                    WHEN tpanggol.id_pangkat_gol = 8 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pengatur Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 9 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Muda')
+                    WHEN tpanggol.id_pangkat_gol = 10 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Muda Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 11 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata')
+                    WHEN tpanggol.id_pangkat_gol = 12 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Penata Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 13 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina')
+                    WHEN tpanggol.id_pangkat_gol = 14 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Tk. I')
+                    WHEN tpanggol.id_pangkat_gol = 15 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama Muda')
+                    WHEN tpanggol.id_pangkat_gol = 16 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama Madya')
+                    WHEN tpanggol.id_pangkat_gol = 17 THEN CONCAT(pangkat_golongan.kode_gol, ' - ', 'Pembina Utama')
+                    ELSE 'Belum Pangkat'
                 END AS pangkat_golongan,
                 stat_peg.nm_stat_pegawai AS status
             FROM pdrd.sdm tsdm
@@ -485,6 +489,8 @@ class PangGolRepository
                 GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
+            LEFT JOIN ref.pangkat_golongan
+                ON pangkat_golongan.id_pangkat_gol = tpanggol.id_pangkat_gol
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -585,4 +591,160 @@ class PangGolRepository
 
         return $data[0];
     }
+
+    /**
+     * Get historical pangkat golongan data at university level (per fakultas) for multiple years
+     *
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getPangkatGolonganFakultasHistorical($startYearId, $endYearId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) {
+            $data = $this->getPangkatGolonganByLevel($year->id_thn_ajaran);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Get historical pangkat golongan data at fakultas level (per prodi) for multiple years
+     *
+     * @param string $fakultasId Faculty ID
+     * @param int $startYearId Starting academic year ID
+     * @param int|null $endYearId Ending academic year ID (optional)
+     * @param string|null $prodiId Filter by prodi (optional)
+     * @return \Illuminate\Support\Collection
+     */
+    public function getPangkatGolonganProdiHistorical($fakultasId, $startYearId, $endYearId = null, $prodiId = null)
+    {
+        // Get all academic years in range
+        $sql_years = "
+            SELECT DISTINCT
+                id_thn_ajaran,
+                MIN(id_smt) as id_smt
+            FROM ref.semester
+            WHERE id_thn_ajaran BETWEEN ? AND ?
+                AND tgl_mulai < GETDATE()
+                AND expired_date IS NULL
+                AND smt != 3
+            GROUP BY id_thn_ajaran
+            ORDER BY id_thn_ajaran
+        ";
+
+        $endYear = $endYearId ?? $startYearId;
+        $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
+
+        $historicalData = $years->map(function ($year) use ($fakultasId, $prodiId) {
+            $data = $this->getPangkatGolonganByLevel($year->id_thn_ajaran, $fakultasId, $prodiId);
+
+            return [
+                'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),
+                'tahun_id' => (string) $year->id_thn_ajaran,
+                'smt_id' => (string) $year->id_smt,
+                'data' => $data
+            ];
+        });
+
+        return $historicalData;
+    }
+
+    /**
+     * Format tahun ajaran ID to display string
+     * Example: 20201 -> "2020/2021"
+     *
+     * @param int $tahunId
+     * @return string
+     */
+    private function formatTahunAjaran($tahunId)
+    {
+        $year = (int) substr((string) $tahunId, 0, 4);
+        return "{$year}/" . ($year + 1);
+    }
+
+    /**
+     * Get pangkat golongan filter clause and bindings
+     * Uses kode_gol for filtering
+     *
+     * @param string $pangkatGolongan Category key from frontend (snake_case)
+     * @param array $bindings Reference to bindings array
+     * @return string WHERE clause for pangkat golongan filtering
+     */
+    private function getPangkatGolonganFilterClause($pangkatGolongan, &$bindings)
+    {
+        // Map display names to kode_gol
+        $pangkatGolonganMap = [
+            'Juru Muda' => 'I/a',
+            'Juru Muda Tk. I' => 'I/b',
+            'Juru' => 'I/c',
+            'Juru Tk. I' => 'I/d',
+            'Pengatur Muda' => 'II/a',
+            'Pengatur Muda Tk. I' => 'II/b',
+            'Pengatur' => 'II/c',
+            'Pengatur Tk. I' => 'II/d',
+            'Penata Muda' => 'III/a',
+            'Penata Muda Tk. I' => 'III/b',
+            'Penata' => 'III/c',
+            'Penata Tk. I' => 'III/d',
+            'Pembina' => 'IV/a',
+            'Pembina Tk. I' => 'IV/b',
+            'Pembina Utama Muda' => 'IV/c',
+            'Pembina Utama Madya' => 'IV/d',
+            'Pembina Utama' => 'IV/e',
+        ];
+
+        if ($pangkatGolongan === 'Belum Pangkat') {
+            return ' AND pangkat_golongan.kode_gol IS NULL OR pangkat_golongan.kode_gol = \'\'';
+        } elseif (isset($pangkatGolonganMap[$pangkatGolongan])) {
+            $bindings[] = $pangkatGolonganMap[$pangkatGolongan];
+            return ' AND pangkat_golongan.kode_gol = ?';
+        }
+
+        return '';
+    }
 }
+
+// "id_pangkat_gol"	"nm_pangkat"	"kode_gol"
+// "1"	"Juru Muda"	"I/a"
+// "2"	"Juru Muda Tk. I"	"I/b"
+// "3"	"Juru"	"I/c"
+// "4"	"Juru Tk. I"	"I/d"
+// "5"	"Pengatur Muda"	"II/a"
+// "6"	"Pengatur Muda Tk. I"	"II/b"
+// "7"	"Pengatur"	"II/c"
+// "8"	"Pengatur Tk. I"	"II/d"
+// "9"	"Penata Muda"	"III/a"
+// "10"	"Penata Muda Tk. I"	"III/b"
+// "11"	"Penata"	"III/c"
+// "12"	"Penata Tk. I"	"III/d"
+// "13"	"Pembina"	"IV/a"
+// "14"	"Pembina Tk. I"	"IV/b"
+// "15"	"Pembina Utama Muda"	"IV/c"
+// "16"	"Pembina Utama Madya"	"IV/d"
+// "17"	"Pembina Utama"	"IV/e"
+// "99"	"'-"	"'-"

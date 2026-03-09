@@ -100,6 +100,19 @@ export interface GetDataDosenParams {
   pangkat_golongan?: string;
 }
 
+export interface GetHistoricalParams {
+  tahun_ajaran: string;
+  fakultas_id?: string;
+  prodi_id?: string;
+}
+
+export interface HistoricalDataItem {
+  tahun: string;
+  tahun_id: string;
+  smt_id: string;
+  data: PangkatGolonganFakultas[] | PangkatGolonganProdi[];
+}
+
 export interface GetProdiParams {
   fakultas_id: string;
 }
@@ -131,6 +144,22 @@ class ExecutivePangkatGolonganService {
   }
 
   /**
+   * Get pangkat golongan historical data at university/fakultas level
+   * @param params - Query parameters (tahun_ajaran, fakultas_id)
+   */
+  async getPangkatGolonganFakultasHistorical(
+    params: GetHistoricalParams,
+  ): Promise<HistoricalDataItem[]> {
+    const response = await executiveClient.get<{ data: HistoricalDataItem[] }>(
+      "/dosen/pangkat-golongan/fakultas/historical",
+      {
+        params,
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
    * Get pangkat golongan data at fakultas level (per prodi)
    * @param params - Parameters including idFakultas and optional tahun_ajaran
    */
@@ -142,6 +171,26 @@ class ExecutivePangkatGolonganService {
       {
         params: {
           tahun_ajaran: params.tahun_ajaran,
+        },
+      },
+    );
+    return response.data.data || [];
+  }
+
+  /**
+   * Get pangkat golongan historical data at fakultas/prodi level
+   * @param params - Parameters including idFakultas, tahun_ajaran, prodi_id
+   */
+  async getPangkatGolonganProdiHistorical(
+    params: GetHistoricalParams & { idFakultas: string },
+  ): Promise<HistoricalDataItem[]> {
+    const response = await executiveClient.get<{ data: HistoricalDataItem[] }>(
+      `/dosen/pangkat-golongan/prodi/historical`,
+      {
+        params: {
+          tahun_ajaran: params.tahun_ajaran,
+          fakultas_id: params.idFakultas,
+          prodi_id: params.prodi_id,
         },
       },
     );

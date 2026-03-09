@@ -60,6 +60,25 @@ export interface TrendDataItem {
     asn_jf_non_dosen?: number;
     dokter_pendidik_klinis?: number;
     lainnya?: number;
+    // Pangkat golongan fields
+    juru_muda?: number;
+    juru_muda_tk_1?: number;
+    juru?: number;
+    juru_tk_1?: number;
+    pengatur_muda?: number;
+    pengatur_muda_tk_1?: number;
+    pengatur?: number;
+    pengatur_tk_1?: number;
+    penata_muda?: number;
+    penata_muda_tk_1?: number;
+    penata?: number;
+    penata_tk_1?: number;
+    pembina?: number;
+    pembina_tk_1?: number;
+    pembina_utama_muda?: number;
+    pembina_utama_madya?: number;
+    pembina_utama?: number;
+    belum_pangkat_gol?: number;
     total: number;
   }>;
 }
@@ -127,6 +146,27 @@ const JENIS_KELAMIN_CATEGORIES = [
   { key: "perempuan", name: "Perempuan", color: "#ec4899" },
 ];
 
+const PANGKAT_GOLONGAN_CATEGORIES = [
+  { key: "juru_muda", name: "Juru Muda", color: "#06b6d4" },
+  { key: "juru_muda_tk_1", name: "Juru Muda Tk. I", color: "#0ea5e9" },
+  { key: "juru", name: "Juru", color: "#3b82f6" },
+  { key: "juru_tk_1", name: "Juru Tk. I", color: "#6366f1" },
+  { key: "pengatur_muda", name: "Pengatur Muda", color: "#8b5cf6" },
+  { key: "pengatur_muda_tk_1", name: "Pengatur Muda Tk. I", color: "#a855f7" },
+  { key: "pengatur", name: "Pengatur", color: "#d946ef" },
+  { key: "pengatur_tk_1", name: "Pengatur Tk. I", color: "#ec4899" },
+  { key: "penata_muda", name: "Penata Muda", color: "#22c55e" },
+  { key: "penata_muda_tk_1", name: "Penata Muda Tk. I", color: "#14b8a6" },
+  { key: "penata", name: "Penata", color: "#06b6d4" },
+  { key: "penata_tk_1", name: "Penata Tk. I", color: "#0ea5e9" },
+  { key: "pembina", name: "Pembina", color: "#3b82f6" },
+  { key: "pembina_tk_1", name: "Pembina Tk. I", color: "#6366f1" },
+  { key: "pembina_utama_muda", name: "Pembina Utama Muda", color: "#8b5cf6" },
+  { key: "pembina_utama_madya", name: "Pembina Utama Madya", color: "#a855f7" },
+  { key: "pembina_utama", name: "Pembina Utama", color: "#d946ef" },
+  { key: "belum_pangkat_gol", name: "Belum Pangkat", color: "#cbd5e1" },
+];
+
 const STATUS_KEPEGAWAIAN_CATEGORIES = [
   { key: "pns", name: "PNS", color: "#3b82f6" },
   { key: "cpns", name: "CPNS", color: "#22c55e" },
@@ -146,6 +186,7 @@ export {
   IKATAN_KERJA_CATEGORIES,
   JENJANG_PENDIDIKAN_CATEGORIES,
   JENIS_KELAMIN_CATEGORIES,
+  PANGKAT_GOLONGAN_CATEGORIES,
   STATUS_KEPEGAWAIAN_CATEGORIES,
 };
 

@@ -42,24 +42,24 @@ export interface JenjangStats {
 
 // Stats types for pangkat golongan
 export interface PangGolStats {
-  juruMuda: number;
-  juruMudaTk1: number;
+  juru_muda: number;
+  juru_muda_tk_1: number;
   juru: number;
-  juruTk1: number;
-  pengaturMuda: number;
-  pengaturMudaTk1: number;
+  juru_tk_1: number;
+  pengatur_muda: number;
+  pengatur_muda_tk_1: number;
   pengatur: number;
-  pengaturTk1: number;
-  penataMuda: number;
-  penataMudaTk1: number;
+  pengatur_tk_1: number;
+  penata_muda: number;
+  penata_muda_tk_1: number;
   penata: number;
-  penataTk1: number;
+  penata_tk_1: number;
   pembina: number;
-  pembinaTk1: number;
-  pembinaUtamaMuda: number;
-  pembinaUtamaMadya: number;
-  pembinaUtama: number;
-  belumPangkatGol: number;
+  pembina_tk_1: number;
+  pembina_utama_muda: number;
+  pembina_utama_madya: number;
+  pembina_utama: number;
+  belum_pangkat_gol: number;
 }
 
 // Stats types for ikatan kerja

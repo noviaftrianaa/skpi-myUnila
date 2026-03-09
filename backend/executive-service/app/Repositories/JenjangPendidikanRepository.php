@@ -337,6 +337,16 @@ class JenjangPendidikanRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
+            LEFT JOIN (
+                SELECT
+                    id_sdm,
+                    MAX(id_jenj_didik) AS id_jenj_didik
+                FROM pdrd.rwy_pend_formal
+                WHERE soft_delete = 0
+                    AND id_jenj_didik != 99
+                GROUP BY id_sdm
+            ) AS tjenj
+                ON tjenj.id_sdm = tsdm.id_sdm
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)

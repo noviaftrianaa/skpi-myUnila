@@ -94,7 +94,9 @@ Route::prefix('v1')->group(function () {
 
             // Pangkat golongan data routes
             Route::get('/fakultas', [PangGolController::class, 'getPangkatGolonganFakultas']);
+            Route::get('/fakultas/historical', [PangGolController::class, 'getPangkatGolonganFakultasHistorical']);
             Route::get('/fakultas/{idFakultas}', [PangGolController::class, 'getPangkatGolonganProdi']);
+            Route::get('/prodi/historical', [PangGolController::class, 'getPangkatGolonganProdiHistorical']);
 
             // Detail data with pagination
             Route::get('/data', [PangGolController::class, 'getDataDosen']);

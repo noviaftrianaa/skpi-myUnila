@@ -32,6 +32,7 @@ import {
   JENJANG_PENDIDIKAN_CATEGORIES,
   JENIS_KELAMIN_CATEGORIES,
   STATUS_KEPEGAWAIAN_CATEGORIES,
+  PANGKAT_GOLONGAN_CATEGORIES,
   type DosenStats,
   type PercentageData,
 } from "@/shared/components/pimpinan/dosen";
@@ -68,6 +69,8 @@ export default function DosenPage() {
     jenjangProdiHistorical,
     panggolFakultasList,
     panggolProdiList,
+    panggolFakultasHistorical,
+    panggolProdiHistorical,
     ikatanKerjaFakultasList,
     ikatanKerjaProdiList,
     ikatanKerjaFakultasHistorical,
@@ -727,6 +730,144 @@ export default function DosenPage() {
     statusKepegawaianProdiList,
   ]);
 
+  // Get pangkat golongan historical data based on filter
+  const panggolHistoricalData = useMemo(() => {
+    if (selectedTipeData !== "pang_gol") return [];
+
+    // If prodi is selected, use prodi historical data
+    if (selectedProdi && panggolProdiHistorical.length > 0) {
+      return panggolProdiHistorical;
+    }
+
+    // If fakultas is selected (or no filter), use fakultas historical data
+    return panggolFakultasHistorical;
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    panggolFakultasHistorical,
+    panggolProdiHistorical,
+  ]);
+
+  // Calculate percentage data for pangkat golongan
+  const panggolPercentageData = useMemo(() => {
+    if (selectedTipeData !== "pang_gol") return [];
+
+    let totalJuruMuda = 0;
+    let totalJuruMudaTk1 = 0;
+    let totalJuru = 0;
+    let totalJuruTk1 = 0;
+    let totalPengaturMuda = 0;
+    let totalPengaturMudaTk1 = 0;
+    let totalPengatur = 0;
+    let totalPengaturTk1 = 0;
+    let totalPenataMuda = 0;
+    let totalPenataMudaTk1 = 0;
+    let totalPenata = 0;
+    let totalPenataTk1 = 0;
+    let totalPembina = 0;
+    let totalPembinaTk1 = 0;
+    let totalPembinaUtamaMuda = 0;
+    let totalPembinaUtamaMadya = 0;
+    let totalPembinaUtama = 0;
+    let totalBelumPangkatGol = 0;
+
+    if (selectedProdi && panggolProdiList.length > 0) {
+      // Prodi level - show data for selected prodi only
+      const prodi = panggolProdiList.find((p) => p.id === selectedProdi);
+      if (prodi) {
+        totalJuruMuda = prodi.juru_muda;
+        totalJuruMudaTk1 = prodi.juru_muda_tk_1;
+        totalJuru = prodi.juru;
+        totalJuruTk1 = prodi.juru_tk_1;
+        totalPengaturMuda = prodi.pengatur_muda;
+        totalPengaturMudaTk1 = prodi.pengatur_muda_tk_1;
+        totalPengatur = prodi.pengatur;
+        totalPengaturTk1 = prodi.pengatur_tk_1;
+        totalPenataMuda = prodi.penata_muda;
+        totalPenataMudaTk1 = prodi.penata_muda_tk_1;
+        totalPenata = prodi.penata;
+        totalPenataTk1 = prodi.penata_tk_1;
+        totalPembina = prodi.pembina;
+        totalPembinaTk1 = prodi.pembina_tk_1;
+        totalPembinaUtamaMuda = prodi.pembina_utama_muda;
+        totalPembinaUtamaMadya = prodi.pembina_utama_madya;
+        totalPembinaUtama = prodi.pembina_utama;
+        totalBelumPangkatGol = prodi.belum_pangkat_gol;
+      }
+    } else if (selectedFakultas && panggolProdiList.length > 0) {
+      // Fakultas level - aggregate all prodis in the fakultas
+      panggolProdiList.forEach((p) => {
+        totalJuruMuda += p.juru_muda;
+        totalJuruMudaTk1 += p.juru_muda_tk_1;
+        totalJuru += p.juru;
+        totalJuruTk1 += p.juru_tk_1;
+        totalPengaturMuda += p.pengatur_muda;
+        totalPengaturMudaTk1 += p.pengatur_muda_tk_1;
+        totalPengatur += p.pengatur;
+        totalPengaturTk1 += p.pengatur_tk_1;
+        totalPenataMuda += p.penata_muda;
+        totalPenataMudaTk1 += p.penata_muda_tk_1;
+        totalPenata += p.penata;
+        totalPenataTk1 += p.penata_tk_1;
+        totalPembina += p.pembina;
+        totalPembinaTk1 += p.pembina_tk_1;
+        totalPembinaUtamaMuda += p.pembina_utama_muda;
+        totalPembinaUtamaMadya += p.pembina_utama_madya;
+        totalPembinaUtama += p.pembina_utama;
+        totalBelumPangkatGol += p.belum_pangkat_gol;
+      });
+    } else if (panggolFakultasList.length > 0) {
+      // University level - aggregate all fakultas
+      panggolFakultasList.forEach((f) => {
+        totalJuruMuda += f.juru_muda;
+        totalJuruMudaTk1 += f.juru_muda_tk_1;
+        totalJuru += f.juru;
+        totalJuruTk1 += f.juru_tk_1;
+        totalPengaturMuda += f.pengatur_muda;
+        totalPengaturMudaTk1 += f.pengatur_muda_tk_1;
+        totalPengatur += f.pengatur;
+        totalPengaturTk1 += f.pengatur_tk_1;
+        totalPenataMuda += f.penata_muda;
+        totalPenataMudaTk1 += f.penata_muda_tk_1;
+        totalPenata += f.penata;
+        totalPenataTk1 += f.penata_tk_1;
+        totalPembina += f.pembina;
+        totalPembinaTk1 += f.pembina_tk_1;
+        totalPembinaUtamaMuda += f.pembina_utama_muda;
+        totalPembinaUtamaMadya += f.pembina_utama_madya;
+        totalPembinaUtama += f.pembina_utama;
+        totalBelumPangkatGol += f.belum_pangkat_gol;
+      });
+    }
+
+    return [
+      { name: "IV/e - Pembina Utama", value: totalPembinaUtama, color: "#d946ef" },
+      { name: "IV/d - Pembina Utama Madya", value: totalPembinaUtamaMadya, color: "#a855f7" },
+      { name: "IV/c - Pembina Utama Muda", value: totalPembinaUtamaMuda, color: "#8b5cf6" },
+      { name: "IV/b - Pembina Tk. I", value: totalPembinaTk1, color: "#6366f1" },
+      { name: "IV/a - Pembina", value: totalPembina, color: "#3b82f6" },
+      { name: "III/d - Penata Tk. I", value: totalPenataTk1, color: "#0ea5e9" },
+      { name: "III/c - Penata", value: totalPenata, color: "#06b6d4" },
+      { name: "III/b - Penata Muda Tk. I", value: totalPenataMudaTk1, color: "#14b8a6" },
+      { name: "III/a - Penata Muda", value: totalPenataMuda, color: "#22c55e" },
+      { name: "II/d - Pengatur Tk. I", value: totalPengaturTk1, color: "#f97316" },
+      { name: "II/c - Pengatur", value: totalPengatur, color: "#f59e0b" },
+      { name: "II/b - Pengatur Muda Tk. I", value: totalPengaturMudaTk1, color: "#ec4899" },
+      { name: "II/a - Pengatur Muda", value: totalPengaturMuda, color: "#d946ef" },
+      { name: "I/d - Juru Tk. I", value: totalJuruTk1, color: "#8b5cf6" },
+      { name: "I/c - Juru", value: totalJuru, color: "#a855f7" },
+      { name: "I/b - Juru Muda Tk. I", value: totalJuruMudaTk1, color: "#6366f1" },
+      { name: "I/a - Juru Muda", value: totalJuruMuda, color: "#3b82f6" },
+      { name: "- - Belum Pangkat", value: totalBelumPangkatGol, color: "#cbd5e1" },
+    ].filter((item) => item.value > 0);
+  }, [
+    selectedTipeData,
+    selectedProdi,
+    selectedFakultas,
+    panggolFakultasList,
+    panggolProdiList,
+  ]);
+
   // Configuration for trend and percentage charts (must be after all useMemo hooks)
   const chartConfig: Record<
     string,
@@ -736,13 +877,15 @@ export default function DosenPage() {
         | typeof jenjangHistoricalData
         | typeof ikatanKerjaHistoricalData
         | typeof jenisKelaminHistoricalData
-        | typeof statusKepegawaianHistoricalData;
+        | typeof statusKepegawaianHistoricalData
+        | typeof panggolHistoricalData;
       percentageData:
         | typeof jabfungPercentageData
         | typeof jenjangPercentageData
         | typeof ikatanKerjaPercentageData
         | typeof jenisKelaminPercentageData
-        | typeof statusKepegawaianPercentageData;
+        | typeof statusKepegawaianPercentageData
+        | typeof panggolPercentageData;
       categoryKeys: Array<{ key: string; name: string; color: string }>;
     }
   > = {
@@ -755,6 +898,11 @@ export default function DosenPage() {
       historicalData: jenjangHistoricalData,
       percentageData: jenjangPercentageData,
       categoryKeys: JENJANG_PENDIDIKAN_CATEGORIES,
+    },
+    pang_gol: {
+      historicalData: panggolHistoricalData,
+      percentageData: panggolPercentageData,
+      categoryKeys: PANGKAT_GOLONGAN_CATEGORIES,
     },
     ikatan_kerja: {
       historicalData: ikatanKerjaHistoricalData,

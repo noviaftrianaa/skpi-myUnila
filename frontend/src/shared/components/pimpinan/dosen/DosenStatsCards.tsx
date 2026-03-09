@@ -227,46 +227,154 @@ export const PangGolStatsCards = ({
   selectedCategory
 }: PangGolStatsCardsProps) => {
   const panggolStats = stats as {
-    juruMuda: number;
-    juruMudaTk1: number;
+    juru_muda: number;
+    juru_muda_tk_1: number;
     juru: number;
-    juruTk1: number;
-    pengaturMuda: number;
-    pengaturMudaTk1: number;
+    juru_tk_1: number;
+    pengatur_muda: number;
+    pengatur_muda_tk_1: number;
     pengatur: number;
-    pengaturTk1: number;
-    penataMuda: number;
-    penataMudaTk1: number;
+    pengatur_tk_1: number;
+    penata_muda: number;
+    penata_muda_tk_1: number;
     penata: number;
-    penataTk1: number;
+    penata_tk_1: number;
     pembina: number;
-    pembinaTk1: number;
-    pembinaUtamaMuda: number;
-    pembinaUtamaMadya: number;
-    pembinaUtama: number;
-    belumPangkatGol: number;
+    pembina_tk_1: number;
+    pembina_utama_muda: number;
+    pembina_utama_madya: number;
+    pembina_utama: number;
+    belum_pangkat_gol: number;
   };
 
   return (
     <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-5 lg:grid-cols-9">
-      <DosenStatsCard title="Juru Muda" value={panggolStats.juruMuda || 0} color="cyan" />
-      <DosenStatsCard title="Juru Muda Tk. I" value={panggolStats.juruMudaTk1 || 0} color="blue" />
-      <DosenStatsCard title="Juru" value={panggolStats.juru || 0} color="indigo" />
-      <DosenStatsCard title="Juru Tk. I" value={panggolStats.juruTk1 || 0} color="violet" />
-      <DosenStatsCard title="Pengatur Muda" value={panggolStats.pengaturMuda || 0} color="purple" />
-      <DosenStatsCard title="Pengatur Muda Tk. I" value={panggolStats.pengaturMudaTk1 || 0} color="fuchsia" />
-      <DosenStatsCard title="Pengatur" value={panggolStats.pengatur || 0} color="pink" />
-      <DosenStatsCard title="Pengatur Tk. I" value={panggolStats.pengaturTk1 || 0} color="rose" />
-      <DosenStatsCard title="Penata Muda" value={panggolStats.penataMuda || 0} color="green" />
-      <DosenStatsCard title="Penata Muda Tk. I" value={panggolStats.penataMudaTk1 || 0} color="emerald" />
-      <DosenStatsCard title="Penata" value={panggolStats.penata || 0} color="teal" />
-      <DosenStatsCard title="Penata Tk. I" value={panggolStats.penataTk1 || 0} color="orange" />
-      <DosenStatsCard title="Pembina" value={panggolStats.pembina || 0} color="amber" />
-      <DosenStatsCard title="Pembina Tk. I" value={panggolStats.pembinaTk1 || 0} color="yellow" />
-      <DosenStatsCard title="Pembina Utama Muda" value={panggolStats.pembinaUtamaMuda || 0} color="red" />
-      <DosenStatsCard title="Pembina Utama Madya" value={panggolStats.pembinaUtamaMadya || 0} color="destructive" />
-      <DosenStatsCard title="Pembina Utama" value={panggolStats.pembinaUtama || 0} color="slate" />
-      <DosenStatsCard title="Belum Pangkat" value={panggolStats.belumPangkatGol || 0} color="gray" />
+      <DosenStatsCard
+        title="I/a - Juru Muda"
+        value={panggolStats.juru_muda || 0}
+        color="cyan"
+        onClick={() => onCategoryClick?.("juru_muda")}
+        isSelected={selectedCategory === "juru_muda"}
+      />
+      <DosenStatsCard
+        title="I/b - Juru Muda Tk. I"
+        value={panggolStats.juru_muda_tk_1 || 0}
+        color="blue"
+        onClick={() => onCategoryClick?.("juru_muda_tk_1")}
+        isSelected={selectedCategory === "juru_muda_tk_1"}
+      />
+      <DosenStatsCard
+        title="I/c - Juru"
+        value={panggolStats.juru || 0}
+        color="indigo"
+        onClick={() => onCategoryClick?.("juru")}
+        isSelected={selectedCategory === "juru"}
+      />
+      <DosenStatsCard
+        title="I/d - Juru Tk. I"
+        value={panggolStats.juru_tk_1 || 0}
+        color="violet"
+        onClick={() => onCategoryClick?.("juru_tk_1")}
+        isSelected={selectedCategory === "juru_tk_1"}
+      />
+      <DosenStatsCard
+        title="II/a - Pengatur Muda"
+        value={panggolStats.pengatur_muda || 0}
+        color="purple"
+        onClick={() => onCategoryClick?.("pengatur_muda")}
+        isSelected={selectedCategory === "pengatur_muda"}
+      />
+      <DosenStatsCard
+        title="II/b - Pengatur Muda Tk. I"
+        value={panggolStats.pengatur_muda_tk_1 || 0}
+        color="fuchsia"
+        onClick={() => onCategoryClick?.("pengatur_muda_tk_1")}
+        isSelected={selectedCategory === "pengatur_muda_tk_1"}
+      />
+      <DosenStatsCard
+        title="II/c - Pengatur"
+        value={panggolStats.pengatur || 0}
+        color="pink"
+        onClick={() => onCategoryClick?.("pengatur")}
+        isSelected={selectedCategory === "pengatur"}
+      />
+      <DosenStatsCard
+        title="II/d - Pengatur Tk. I"
+        value={panggolStats.pengatur_tk_1 || 0}
+        color="rose"
+        onClick={() => onCategoryClick?.("pengatur_tk_1")}
+        isSelected={selectedCategory === "pengatur_tk_1"}
+      />
+      <DosenStatsCard
+        title="III/a - Penata Muda"
+        value={panggolStats.penata_muda || 0}
+        color="green"
+        onClick={() => onCategoryClick?.("penata_muda")}
+        isSelected={selectedCategory === "penata_muda"}
+      />
+      <DosenStatsCard
+        title="III/b - Penata Muda Tk. I"
+        value={panggolStats.penata_muda_tk_1 || 0}
+        color="emerald"
+        onClick={() => onCategoryClick?.("penata_muda_tk_1")}
+        isSelected={selectedCategory === "penata_muda_tk_1"}
+      />
+      <DosenStatsCard
+        title="III/c - Penata"
+        value={panggolStats.penata || 0}
+        color="teal"
+        onClick={() => onCategoryClick?.("penata")}
+        isSelected={selectedCategory === "penata"}
+      />
+      <DosenStatsCard
+        title="III/d - Penata Tk. I"
+        value={panggolStats.penata_tk_1 || 0}
+        color="orange"
+        onClick={() => onCategoryClick?.("penata_tk_1")}
+        isSelected={selectedCategory === "penata_tk_1"}
+      />
+      <DosenStatsCard
+        title="IV/a - Pembina"
+        value={panggolStats.pembina || 0}
+        color="amber"
+        onClick={() => onCategoryClick?.("pembina")}
+        isSelected={selectedCategory === "pembina"}
+      />
+      <DosenStatsCard
+        title="IV/b - Pembina Tk. I"
+        value={panggolStats.pembina_tk_1 || 0}
+        color="yellow"
+        onClick={() => onCategoryClick?.("pembina_tk_1")}
+        isSelected={selectedCategory === "pembina_tk_1"}
+      />
+      <DosenStatsCard
+        title="IV/c - Pembina Utama Muda"
+        value={panggolStats.pembina_utama_muda || 0}
+        color="red"
+        onClick={() => onCategoryClick?.("pembina_utama_muda")}
+        isSelected={selectedCategory === "pembina_utama_muda"}
+      />
+      <DosenStatsCard
+        title="IV/d - Pembina Utama Madya"
+        value={panggolStats.pembina_utama_madya || 0}
+        color="destructive"
+        onClick={() => onCategoryClick?.("pembina_utama_madya")}
+        isSelected={selectedCategory === "pembina_utama_madya"}
+      />
+      <DosenStatsCard
+        title="IV/e - Pembina Utama"
+        value={panggolStats.pembina_utama || 0}
+        color="slate"
+        onClick={() => onCategoryClick?.("pembina_utama")}
+        isSelected={selectedCategory === "pembina_utama"}
+      />
+      <DosenStatsCard
+        title="- - Belum Pangkat"
+        value={panggolStats.belum_pangkat_gol || 0}
+        color="gray"
+        onClick={() => onCategoryClick?.("belum_pangkat_gol")}
+        isSelected={selectedCategory === "belum_pangkat_gol"}
+      />
     </div>
   );
 };
