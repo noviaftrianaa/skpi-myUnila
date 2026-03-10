@@ -409,3 +409,243 @@ status-kuliah-mahasiswa:
         $ref: '../responses/errors.yaml#/Unauthorized'
       '500':
         $ref: '../responses/errors.yaml#/InternalServerError'
+
+# =============================================================================
+# PENELITIAN
+# =============================================================================
+
+publikasi:
+  get:
+    tags:
+      - PDRD
+    summary: Get list publikasi
+    description: |
+      Mengambil daftar publikasi ilmiah dengan pagination dan filter.
+      Data diambil dari tabel `pdrd.publikasi` dengan join ke tabel:
+      - `ref.jenis_publikasi` → `nm_jns_pub`
+      - `ref.kategori_capaian_luaran` → `nm_kat_capaian`
+      - `ref.media_publikasi` → `nm_media_pub`
+      - `pdrd.litabmas` → `judul_litabmas`
+
+      Memerlukan autentikasi JWT.
+    operationId: getPublikasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_jns_pub
+        in: query
+        description: Filter berdasarkan ID jenis publikasi
+        schema:
+          type: integer
+          example: 1
+      - name: nama_jurnal
+        in: query
+        description: Filter berdasarkan nama jurnal
+        schema:
+          type: string
+          example: "Jurnal Teknik Informatika"
+      - name: edisi
+        in: query
+        description: Filter berdasarkan edisi
+        schema:
+          type: string
+      - name: penerbit
+        in: query
+        description: Filter berdasarkan penerbit
+        schema:
+          type: string
+      - name: id_kat_capaian
+        in: query
+        description: Filter berdasarkan ID kategori capaian luaran
+        schema:
+          type: integer
+          example: 1
+      - name: id_media_pub
+        in: query
+        description: Filter berdasarkan ID media publikasi (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_litabmas
+        in: query
+        description: Filter berdasarkan ID litabmas (UUID)
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Berhasil mengambil data publikasi
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/Publikasi'
+            example:
+              success: true
+              message: Berhasil mengambil data publikasi
+              data:
+                - id_publikasi: "550e8400-e29b-41d4-a716-446655440010"
+                  id_jns_pub: 1
+                  nm_jns_pub: "Jurnal Nasional"
+                  judul: "Analisis Sistem Informasi Universitas"
+                  nama_jurnal: "Jurnal Teknik Informatika"
+                  tgl_terbit: "2024-06-01T00:00:00Z"
+                  doi: "10.1000/xyz123"
+                  id_media_pub: "550e8400-e29b-41d4-a716-446655440011"
+                  nm_media_pub: "Jurnal"
+                  terakhir_ditambahkan: "2024-07-01T00:00:00Z"
+                  last_sync: "2024-07-01T00:00:00Z"
+              meta:
+                page: 1
+                limit: 10
+                total: 25
+                total_pages: 3
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'
+
+litabmas:
+  get:
+    tags:
+      - PDRD
+    summary: Get list litabmas (penelitian & pengabdian)
+    description: |
+      Mengambil daftar data penelitian/pengabdian masyarakat (litabmas) dengan pagination dan filter.
+      Data diambil dari tabel `pdrd.litabmas` dengan join ke tabel:
+      - `pdrd.satuan_pendidikan` → `nm_lemb`
+      - `pdrd.pd_anggota_litabmas` → data anggota
+      - `ref.skim_kegiatan` → `nm_skim`
+      - `ref.kelompok_bidang` → `nm_kel_bidang`
+      - `ref.tse` → `nm_tse`
+      - `ref.jenis_penelitian` → `nm_jns_lit`
+
+      Parameter `id_litabmas` **wajib** diisi. Memerlukan autentikasi JWT.
+    operationId: getLitabmas
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_litabmas
+        in: query
+        required: true
+        description: ID litabmas (UUID) - wajib diisi
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440020"
+      - name: id_sdm
+        in: query
+        description: Filter berdasarkan ID SDM (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: jns_litabmas
+        in: query
+        description: |
+          Filter berdasarkan jenis litabmas.
+          - `L` = Penelitian
+          - `M` = Pengabdian Masyarakat
+        schema:
+          type: string
+          enum: ["L", "M"]
+          example: "L"
+      - name: id_lemb_iptek
+        in: query
+        description: Filter berdasarkan ID lembaga iptek (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_skim
+        in: query
+        description: Filter berdasarkan ID skim kegiatan (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_thn_kegiatan
+        in: query
+        description: Filter berdasarkan tahun kegiatan
+        schema:
+          type: integer
+          example: 2024
+      - name: id_kel_bidang
+        in: query
+        description: Filter berdasarkan ID kelompok bidang (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_tse
+        in: query
+        description: Filter berdasarkan ID TSE
+        schema:
+          type: integer
+      - name: id_smi
+        in: query
+        description: Filter berdasarkan ID SMI (UUID)
+        schema:
+          type: string
+          format: uuid
+      - name: id_jns_lit
+        in: query
+        description: Filter berdasarkan ID jenis penelitian
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data litabmas
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/Litabmas'
+            example:
+              success: true
+              message: Berhasil mengambil data litabmas
+              data:
+                - id_litabmas: "550e8400-e29b-41d4-a716-446655440020"
+                  id_sdm: "550e8400-e29b-41d4-a716-446655440021"
+                  id_lemb_iptek: "550e8400-e29b-41d4-a716-446655440022"
+                  nm_lemb: "Universitas Lampung"
+                  judul_litabmas: "Pengembangan Sistem Informasi Berbasis AI"
+                  jns_litabmas: "L"
+                  lama_kegiatan: 3
+                  thn_laks_ke: 1
+                  dana_dikti: 50000000
+                  dana_pt: 10000000
+                  dana_institusi_lain: 0
+                  id_thn_kegiatan: 2024
+                  nm_skim: "Penelitian Dasar"
+                  terakhir_ditambahkan: "2024-01-15T00:00:00Z"
+                  last_sync: "2024-01-15T00:00:00Z"
+              meta:
+                page: 1
+                limit: 10
+                total: 5
+                total_pages: 1
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '500':
+        $ref: '../responses/errors.yaml#/InternalServerError'

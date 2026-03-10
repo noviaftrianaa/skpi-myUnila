@@ -288,6 +288,10 @@ paths:
     $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
   /v1/pdrd/status_kuliah_mahasiswa:
     $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
+  /v1/pdrd/publikasi:
+    $ref: './paths/pdrd.yaml#/publikasi'
+  /v1/pdrd/litabmas:
+    $ref: './paths/pdrd.yaml#/litabmas'
 
 components:
   schemas:
