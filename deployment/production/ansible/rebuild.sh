@@ -11,6 +11,7 @@
 #   --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)
 #   --vm3            Rebuild only VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)
 #   --vm5            Rebuild only VM5 Staging (All services)
+#   --vm5 <service>  Rebuild specific service on VM5 (e.g. sister, frontend)
 #   --check          Dry run - only check connections
 #
 # Examples:
@@ -56,7 +57,10 @@ show_help() {
     echo "  $0 --vm1              # Rebuild only VM1"
     echo "  $0 --vm2              # Rebuild only VM2"
     echo "  $0 --vm3              # Rebuild only VM3"
-    echo "  $0 --vm5              # Rebuild only VM5 Staging"
+    echo "  $0 --vm5              # Rebuild only VM5 Staging (all)"
+    echo "  $0 --vm5 sister       # Rebuild only sister on VM5"
+    echo "  $0 --vm5 frontend     # Rebuild only frontend on VM5"
+    echo "  $0 --vm5 auth dashboard  # Rebuild auth & dashboard on VM5"
     echo "  $0 --check            # Check connections only"
     echo "  $0 --cleanup          # Clean up Docker resources"
     echo ""
@@ -150,7 +154,20 @@ main() {
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "backend2"
             ;;
         --vm5)
-            run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "staging"
+            shift
+            if [ $# -gt 0 ]; then
+                # Rebuild specific service(s) on VM5 via Ansible
+                SERVICES="$*"
+                echo -e "${GREEN}========================================${NC}"
+                echo -e "${GREEN}  Rebuilding on VM5: $SERVICES${NC}"
+                echo -e "${GREEN}========================================${NC}"
+                echo ""
+                ansible-playbook -i "$INVENTORY" "$PLAYBOOK_DIR/rebuild-vm5-service.yml" \
+                    --limit "staging" \
+                    -e "services=$SERVICES"
+            else
+                run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "staging"
+            fi
             ;;
         "")
             # No arguments - rebuild all

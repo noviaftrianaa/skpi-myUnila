@@ -1,0 +1,138 @@
+---
+# Playbook: Rebuild specific service(s) on VM5 Staging
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/rebuild-vm5-service.yml --limit staging -e "services=sister"
+#   ansible-playbook -i inventory/hosts.yml playbooks/rebuild-vm5-service.yml --limit staging -e "services=auth dashboard"
+#
+# Or via rebuild.sh:
+#   ./rebuild.sh --vm5 sister
+#   ./rebuild.sh --vm5 auth dashboard frontend
+
+- name: Rebuild VM5 Staging Service(s)
+  hosts: staging
+  become: yes
+  gather_facts: no
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deployment_dir: "{{ app_dir }}/deployment/production/vm5-staging"
+    branch: "master"
+    services: ""
+
+    # Service → compose file mapping
+    service_compose_map:
+      postgres: "services/infrastructure/docker-compose.postgres.yml"
+      redis: "services/infrastructure/docker-compose.redis.yml"
+      meilisearch: "services/infrastructure/docker-compose.meilisearch.yml"
+      kong: "services/gateway/docker-compose.kong.yml"
+      frontend: "services/frontend/docker-compose.frontend.yml"
+      nginx: "services/backend-php/docker-compose.nginx.yml"
+      auth: "services/backend-php/docker-compose.auth.yml"
+      dashboard: "services/backend-php/docker-compose.dashboard.yml"
+      public: "services/backend-php/docker-compose.public.yml"
+      sister: "services/backend-go/docker-compose.sister.yml"
+      feeder: "services/backend-go/docker-compose.feeder.yml"
+      myunila: "services/backend-go/docker-compose.myunila.yml"
+      api: "services/backend-go/docker-compose.api.yml"
+      keuangan: "services/backend-go/docker-compose.keuangan.yml"
+      monitoring: "services/backend-go/docker-compose.monitoring.yml"
+
+    # Container name mapping
+    service_container_map:
+      postgres: "myunila-kong-postgres-staging"
+      redis: "myunila-redis-staging"
+      meilisearch: "myunila-meilisearch-staging"
+      kong: "myunila-kong-staging"
+      frontend: "myunila-frontend-staging"
+      nginx: "myunila-nginx-staging"
+      auth: "myunila-auth-staging"
+      dashboard: "myunila-dashboard-staging"
+      public: "myunila-public-staging"
+      sister: "myunila-sister-staging"
+      feeder: "myunila-feeder-staging"
+      myunila: "myunila-myunila-staging"
+      api: "myunila-api-staging"
+      keuangan: "myunila-keuangan-staging"
+      monitoring: "myunila-monitoring-staging"
+
+  tasks:
+    - name: Validate services parameter
+      fail:
+        msg: "No services specified. Use -e 'services=sister' or -e 'services=auth dashboard'"
+      when: services | length == 0
+
+    - name: Pull latest code
+      shell: git pull origin {{ branch }}
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+
+    - name: Parse service list
+      set_fact:
+        service_list: "{{ services.split() }}"
+
+    - name: Validate service names
+      fail:
+        msg: "Unknown service '{{ item }}'. Available: {{ service_compose_map.keys() | join(', ') }}"
+      when: item not in service_compose_map
+      loop: "{{ service_list }}"
+
+    - name: Rebuild each service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env \
+          -f {{ service_compose_map[item] }} \
+          up -d --build --force-recreate
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      loop: "{{ service_list }}"
+      register: rebuild_results
+
+    - name: Wait for services to be healthy
+      shell: |
+        CONTAINER="{{ service_container_map[item] }}"
+        for i in $(seq 1 30); do
+          STATUS=$(docker inspect --format='{{ '{{' }}.State.Health.Status{{ '}}' }}' "$CONTAINER" 2>/dev/null || echo "none")
+          if [ "$STATUS" = "healthy" ]; then
+            echo "healthy"
+            exit 0
+          elif [ "$STATUS" = "none" ]; then
+            RUNNING=$(docker inspect --format='{{ '{{' }}.State.Running{{ '}}' }}' "$CONTAINER" 2>/dev/null || echo "false")
+            if [ "$RUNNING" = "true" ]; then
+              echo "running"
+              exit 0
+            fi
+          fi
+          sleep 2
+        done
+        echo "timeout"
+        exit 1
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      loop: "{{ service_list }}"
+      register: health_results
+      ignore_errors: yes
+
+    - name: Show results
+      debug:
+        msg: |
+          Service: {{ item.item }}
+          Status: {{ item.stdout | default('unknown') }}
+      loop: "{{ health_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Docker cleanup
+      shell: docker image prune -f
+      become_user: "{{ ansible_user }}"
+
+    - name: Show container status
+      shell: docker ps -a --format "table {{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}" | grep staging
+      become_user: "{{ ansible_user }}"
+      register: container_status
+
+    - name: Display status
+      debug:
+        msg: "{{ container_status.stdout_lines }}"
