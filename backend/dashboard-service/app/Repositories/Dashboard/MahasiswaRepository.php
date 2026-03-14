@@ -789,13 +789,15 @@ class MahasiswaRepository extends BaseRepository
                 GROUP BY s.id_fak_unila
             ) mhs_cnt ON mhs_cnt.id_fak_unila = uo.id_organisasi
             LEFT JOIN (
-                SELECT s2.id_fak_unila, COUNT(DISTINCT peg.id_sdm) as cnt
-                FROM sdm.pegawai peg
-                INNER JOIN sdm.dosen d ON peg.id_sdm = d.id_sdm AND d.soft_delete = 0
-                INNER JOIN sdm.penugasan_dosen pd ON d.id_sdm = pd.id_sdm AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms s2 ON pd.id_sms = s2.id_sms AND s2.soft_delete = 0
-                WHERE peg.soft_delete = 0 AND peg.id_sp = ?
-                  AND peg.id_stat_aktif = 1
+                SELECT s2.id_fak_unila, COUNT(DISTINCT sdm2.id_sdm) as cnt
+                FROM pdrd.sdm sdm2
+                INNER JOIN pdrd.reg_ptk ptk2 ON ptk2.id_sdm = sdm2.id_sdm AND ptk2.soft_delete = 0
+                INNER JOIN pdrd.sms s2 ON ptk2.id_sms = s2.id_sms AND s2.soft_delete = 0
+                WHERE sdm2.soft_delete = 0
+                  AND sdm2.id_jns_sdm = 12
+                  AND sdm2.id_stat_aktif = 1
+                  AND ptk2.id_jns_keluar IS NULL
+                  AND CAST(ptk2.id_sp AS VARCHAR(50)) = ?
                 GROUP BY s2.id_fak_unila
             ) dosen_cnt ON dosen_cnt.id_fak_unila = uo.id_organisasi
             WHERE uo.soft_delete = 0

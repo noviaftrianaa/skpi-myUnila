@@ -11,7 +11,7 @@ class KeuanganRepository extends BaseRepository
     // =========================================
 
     /**
-     * Total pembayaran UKT (total_tagihan - sisa_tagihan) for given semesters
+     * Total pembayaran UKT for given semesters
      */
     public function getTotalPendapatanUKT(array $semesters): float
     {
@@ -19,7 +19,7 @@ class KeuanganRepository extends BaseRepository
         $inClause = $this->buildInClause($semesters, $bindings);
 
         $sql = "
-            SELECT ISNULL(SUM(CAST(sm.total_tagihan AS FLOAT) - CAST(ISNULL(sm.sisa_tagihan, 0) AS FLOAT)), 0)
+            SELECT ISNULL(SUM(CAST(sm.nominal AS FLOAT)), 0)
             FROM keuangan.spp_mhs sm
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
@@ -37,7 +37,7 @@ class KeuanganRepository extends BaseRepository
         $inClause = $this->buildInClause($semesters, $bindings);
 
         $sql = "
-            SELECT ISNULL(SUM(CAST(sm.total_tagihan AS FLOAT)), 0)
+            SELECT ISNULL(SUM(CAST(sm.nominal AS FLOAT)), 0)
             FROM keuangan.spp_mhs sm
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
@@ -63,7 +63,7 @@ class KeuanganRepository extends BaseRepository
             SELECT
                 CAST(y.yr AS VARCHAR) as name,
                 ISNULL((
-                    SELECT SUM(CAST(sm.total_tagihan AS FLOAT) - CAST(ISNULL(sm.sisa_tagihan, 0) AS FLOAT))
+                    SELECT SUM(CAST(sm.nominal AS FLOAT))
                     FROM keuangan.spp_mhs sm
                     WHERE sm.soft_delete = 0
                       AND LEFT(CAST(sm.id_smt AS VARCHAR), 4) = CAST(y.yr AS VARCHAR)
@@ -86,21 +86,12 @@ class KeuanganRepository extends BaseRepository
 
         $sql = "
             SELECT
-                CASE
-                    WHEN sm.sisa_tagihan = 0 OR sm.sisa_tagihan IS NULL THEN 'Lunas'
-                    WHEN sm.a_cicil = 1 THEN 'Cicilan'
-                    ELSE 'Belum Lunas'
-                END as name,
+                ISNULL(sm.flag_by, 'Tidak Diketahui') as name,
                 COUNT(*) as value
             FROM keuangan.spp_mhs sm
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
-            GROUP BY
-                CASE
-                    WHEN sm.sisa_tagihan = 0 OR sm.sisa_tagihan IS NULL THEN 'Lunas'
-                    WHEN sm.a_cicil = 1 THEN 'Cicilan'
-                    ELSE 'Belum Lunas'
-                END
+            GROUP BY sm.flag_by
             ORDER BY value DESC
         ";
 
@@ -143,14 +134,13 @@ class KeuanganRepository extends BaseRepository
         $sql = "
             SELECT
                 uo.nm_lemb as name,
-                ISNULL(SUM(CAST(sm.sisa_tagihan AS FLOAT)), 0) as value
+                ISNULL(SUM(CAST(sm.nominal AS FLOAT)), 0) as value
             FROM keuangan.spp_mhs sm
             INNER JOIN pdrd.reg_pd rp ON sm.id_reg_pd = rp.id_reg_pd AND rp.soft_delete = 0
             INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
-              AND sm.sisa_tagihan > 0
             GROUP BY uo.nm_lemb
             ORDER BY value DESC
         ";
@@ -170,14 +160,14 @@ class KeuanganRepository extends BaseRepository
         $sql = "
             SELECT
                 ISNULL(jd.nm_jalur_daftar, 'Tidak Diketahui') as name,
-                ISNULL(SUM(CAST(sm.total_tagihan AS FLOAT) - CAST(ISNULL(sm.sisa_tagihan, 0) AS FLOAT)), 0) as value
+                ISNULL(SUM(CAST(sm.nominal AS FLOAT)), 0) as value
             FROM keuangan.spp_mhs sm
             INNER JOIN pdrd.reg_pd rp ON sm.id_reg_pd = rp.id_reg_pd AND rp.soft_delete = 0
             LEFT JOIN ref.jalur_daftar jd ON rp.id_jalur_daftar = jd.id_jalur_daftar
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
             GROUP BY jd.nm_jalur_daftar
-            HAVING SUM(CAST(sm.total_tagihan AS FLOAT) - CAST(ISNULL(sm.sisa_tagihan, 0) AS FLOAT)) > 0
+            HAVING SUM(CAST(sm.nominal AS FLOAT)) > 0
             ORDER BY value DESC
         ";
 
