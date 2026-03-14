@@ -1064,13 +1064,13 @@ else
     MINIO_ROUTE_ID=$(parse_json_id "$MINIO_ROUTE")
 
     if [ -n "$MINIO_ROUTE_ID" ]; then
-        # Add CORS plugin
+        # Add CORS plugin (SECURITY: restrict origins to known domains only)
         curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_ROUTE_ID/plugins" \
           -H "Content-Type: application/json" \
           -d '{
             "name": "cors",
             "config": {
-              "origins": ["*"],
+              "origins": ["https://my.unila.ac.id", "https://unila.ac.id"],
               "methods": ["GET", "HEAD", "OPTIONS"],
               "headers": ["Accept", "Content-Type", "Range"],
               "exposed_headers": ["Content-Length", "Content-Type", "ETag"],
@@ -1091,7 +1091,39 @@ else
             }
           }' > /dev/null
 
-        echo -e "${GREEN}  ✓ Public storage route created (GET/HEAD only, rate-limited)${NC}"
+        echo -e "${GREEN}  ✓ Public storage route created (GET/HEAD, rate-limited, CORS restricted)${NC}"
+
+        # SECURITY: Block access to documents/ prefix via Kong (defence in depth)
+        # Documents are already private at MinIO bucket policy level,
+        # but this adds an extra layer of protection at the gateway.
+        echo -e "${YELLOW}  → Creating block route for documents (defence in depth)...${NC}"
+        MINIO_BLOCK_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MINIO_SERVICE_ID/routes" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "minio-storage-block-documents",
+            "paths": ["/storage/myunila-storage/documents"],
+            "strip_path": true,
+            "preserve_host": false,
+            "protocols": ["http", "https"],
+            "methods": ["GET", "HEAD"],
+            "regex_priority": 300
+          }')
+
+        MINIO_BLOCK_ROUTE_ID=$(parse_json_id "$MINIO_BLOCK_ROUTE")
+
+        if [ -n "$MINIO_BLOCK_ROUTE_ID" ]; then
+            # Terminate requests to documents path with 403
+            curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_BLOCK_ROUTE_ID/plugins" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "name": "request-termination",
+                "config": {
+                  "status_code": 403,
+                  "message": "Access denied. Documents are not publicly accessible."
+                }
+              }' > /dev/null
+            echo -e "${GREEN}  ✓ Documents path blocked at gateway level${NC}"
+        fi
     fi
 fi
 

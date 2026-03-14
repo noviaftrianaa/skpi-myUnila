@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: myunila-redis-staging
+    env_file:
+      - ../../.env
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    volumes:
+      - redis_data:/data
+    networks:
+      - myunila-staging-network
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass} ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=redis,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network
+
+volumes:
+  redis_data:
+    driver: local
+    name: myunila-redis-data-staging

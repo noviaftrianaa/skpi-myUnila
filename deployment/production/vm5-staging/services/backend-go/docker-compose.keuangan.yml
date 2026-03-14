@@ -1,0 +1,65 @@
+services:
+  keuangan-service:
+    build:
+      context: ../../../../../backend/keuangan-service
+      dockerfile: Dockerfile
+    image: myunila/keuangan-service:staging
+    container_name: myunila-keuangan-staging
+    ports:
+      - "8088:8088"
+    environment:
+      # App Configuration
+      APP_NAME: ${KEUANGAN_APP_NAME:-Keuangan Service}
+      APP_PORT: ${KEUANGAN_APP_PORT:-:8088}
+      APP_ENV: ${KEUANGAN_APP_ENV:-staging}
+
+      # Database Configuration
+      DB_DRIVER: ${KEUANGAN_DB_DRIVER:-sqlserver}
+      DB_HOST: ${KEUANGAN_DB_HOST:-${SISTER_DB_HOST}}
+      DB_PORT: ${KEUANGAN_DB_PORT:-${SISTER_DB_PORT:-1433}}
+      DB_USERNAME: ${KEUANGAN_DB_USERNAME:-${SISTER_DB_USERNAME}}
+      DB_PASSWORD: ${KEUANGAN_DB_PASSWORD:-${SISTER_DB_PASSWORD}}
+      DB_DATABASE: ${KEUANGAN_DB_DATABASE:-${SISTER_DB_DATABASE}}
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+
+      # Encryption Key
+      API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+
+      # Go runtime (reduced for staging)
+      GOMAXPROCS: 2
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=keuangan,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

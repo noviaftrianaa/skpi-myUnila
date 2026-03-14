@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ../../../../../backend/auth-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=staging
+    image: myunila/auth-service:staging
+    container_name: myunila-auth-staging
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila Auth}"
+      APP_ENV: staging
+      APP_KEY: "${AUTH_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+
+      # Database (SQL Server - Main)
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${AUTH_DB_HOST}"
+      DB_PORT: "${AUTH_DB_PORT}"
+      DB_DATABASE: "${AUTH_DB_DATABASE}"
+      DB_USERNAME: "${AUTH_DB_USERNAME}"
+      DB_PASSWORD: "${AUTH_DB_PASSWORD}"
+
+      # Radius Database (MySQL - SSO)
+      RADIUS_DB_HOST: "${RADIUS_DB_HOST}"
+      RADIUS_DB_PORT: "${RADIUS_DB_PORT:-3306}"
+      RADIUS_DB_DATABASE: "${RADIUS_DB_DATABASE:-radius}"
+      RADIUS_DB_USERNAME: "${RADIUS_DB_USERNAME}"
+      RADIUS_DB_PASSWORD: "${RADIUS_DB_PASSWORD}"
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_EXPIRATION: "${JWT_EXPIRATION:-3600}"
+      JWT_ALGORITHM: "${JWT_ALGORITHM:-HS256}"
+
+      # Aplikasi ID
+      APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
+      APP_APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"
+
+      # Redis & Cache (local container)
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=auth,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

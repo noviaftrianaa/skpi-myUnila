@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ../../../../../frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_AUTH_API_URL=${NEXT_PUBLIC_AUTH_API_URL}
+        - NEXT_PUBLIC_PUBLIC_API_URL=${NEXT_PUBLIC_PUBLIC_API_URL}
+        - NEXT_PUBLIC_SISTER_API_URL=${NEXT_PUBLIC_SISTER_API_URL}
+        - NEXT_PUBLIC_FEEDER_API_URL=${NEXT_PUBLIC_FEEDER_API_URL}
+        - NEXT_PUBLIC_MYUNILA_API_URL=${NEXT_PUBLIC_MYUNILA_API_URL}
+        - NEXT_PUBLIC_DASHBOARD_API_URL=${NEXT_PUBLIC_DASHBOARD_API_URL}
+        - NEXT_PUBLIC_ONEDATA_API_URL=${NEXT_PUBLIC_ONEDATA_API_URL}
+        - NEXT_PUBLIC_WEBMON_API_URL=${NEXT_PUBLIC_WEBMON_API_URL}
+    image: myunila/frontend:staging
+    container_name: myunila-frontend-staging
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL}"
+      NEXT_PUBLIC_AUTH_API_URL: "${NEXT_PUBLIC_AUTH_API_URL}"
+      NEXT_PUBLIC_PUBLIC_API_URL: "${NEXT_PUBLIC_PUBLIC_API_URL}"
+      NEXT_PUBLIC_SISTER_API_URL: "${NEXT_PUBLIC_SISTER_API_URL}"
+      NEXT_PUBLIC_FEEDER_API_URL: "${NEXT_PUBLIC_FEEDER_API_URL}"
+      NEXT_PUBLIC_MYUNILA_API_URL: "${NEXT_PUBLIC_MYUNILA_API_URL}"
+      NEXT_PUBLIC_DASHBOARD_API_URL: "${NEXT_PUBLIC_DASHBOARD_API_URL}"
+      NEXT_PUBLIC_ONEDATA_API_URL: "${NEXT_PUBLIC_ONEDATA_API_URL}"
+      NEXT_PUBLIC_WEBMON_API_URL: "${NEXT_PUBLIC_WEBMON_API_URL}"
+      # Performance tuning (reduced for staging)
+      NODE_OPTIONS: "--max-old-space-size=1024"
+      UV_THREADPOOL_SIZE: 4
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1536M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    ports:
+      - "${FRONTEND_PORT}:3000"
+
+    networks:
+      - myunila-staging-network
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  myunila-staging-network:
+    external: true

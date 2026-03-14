@@ -37,10 +37,18 @@ deployment/local/start-simpedam-proxy.bat
 # Keep .env.example files for reference
 !deployment/production/**/.env.example
 
+# Allow encrypted env files (SOPS)
+!deployment/production/**/.env.encrypted
+
 # Temporary files
 *.tmp
 *.log
 .DS_Store
+
+# Generated/temp docs (not source code)
+docs/progress-report*.html
+docs/progress-report*.pptx
+docs/generate_pptx.py
 
 # Documentation folders - ignore summary and sensitive security reports
 docs/summary/
