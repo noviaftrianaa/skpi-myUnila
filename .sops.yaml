@@ -1,0 +1,33 @@
+# SOPS Configuration for MyUnila
+# Encrypt .env files with age
+#
+# Usage:
+#   Encrypt: sops --encrypt .env > .env.encrypted
+#   Decrypt: sops --decrypt .env.encrypted > .env
+#   Edit:    sops .env.encrypted
+
+creation_rules:
+  # VM5 Staging
+  - path_regex: deployment/production/vm5-staging/\.env$
+    age: >-
+      age1jtq6ekcu4jaa5pfflaypl2x0m92kuzxwfmhtv9zqq0nyy3a0eyps06hln7
+
+  # VM1 Frontend & Kong
+  - path_regex: deployment/production/vm1-frontend-kong/\.env$
+    age: >-
+      age1jtq6ekcu4jaa5pfflaypl2x0m92kuzxwfmhtv9zqq0nyy3a0eyps06hln7
+
+  # VM2 Backend 1
+  - path_regex: deployment/production/vm2-backend1/\.env$
+    age: >-
+      age1jtq6ekcu4jaa5pfflaypl2x0m92kuzxwfmhtv9zqq0nyy3a0eyps06hln7
+
+  # VM3 Backend 2
+  - path_regex: deployment/production/vm3-backend2/\.env$
+    age: >-
+      age1jtq6ekcu4jaa5pfflaypl2x0m92kuzxwfmhtv9zqq0nyy3a0eyps06hln7
+
+  # Catch-all for any .env file
+  - path_regex: \.env$
+    age: >-
+      age1jtq6ekcu4jaa5pfflaypl2x0m92kuzxwfmhtv9zqq0nyy3a0eyps06hln7
