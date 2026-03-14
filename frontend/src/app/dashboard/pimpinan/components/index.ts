@@ -15,7 +15,7 @@ export { default as PieChart } from "./charts/PieChart";
 export type { StatCardProps } from "./StatCard";
 export type { FilterPanelProps, FilterOption } from "./FilterPanel";
 export type { IKUCardProps } from "./IKUCard";
-export type { IKUDetailData } from "./IKUDetailModal";
+export type { IKUDetailData, JenjangDetail, StatusBreakdown, KategoriKerja, KegiatanBreakdownItem } from "./IKUDetailModal";
 export type { DrilldownData, DrilldownBarChartProps } from "./charts/DrilldownBarChart";
 
 export { DashboardSkeleton, ErrorAlert } from "./DashboardSkeleton";

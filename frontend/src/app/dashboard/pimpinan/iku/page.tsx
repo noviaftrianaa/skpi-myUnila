@@ -1,227 +1,275 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { FiTarget, FiInfo } from "react-icons/fi";
+import { FiTarget } from "react-icons/fi";
 import { pimpinanMenuConfig } from "../config/menuConfig";
 import {
   FilterPanel,
   IKUCard,
   IKUDetailModal,
-  IKUDetailData
+  IKUDetailData,
+  DashboardSkeleton,
+  ErrorAlert,
 } from "../components";
-import { useDashboardReference } from "../hooks";
+import { useDashboardData } from "../hooks";
+import { ENDPOINTS } from "@/shared/api/endpoints";
+import type { IkuData } from "../types";
 
 const APP_KEY = "dashboard-pimpinan";
 
-// ============================================
-// DATA IKU 2026 (STRICT TO PDF 2026 VERIFIED)
-// ============================================
-
-// Helper to generate mock drilldown data in 60-75% range
-const generateDrilldown = (target: number): any[] => {
-  const facs = ["FEB", "Hukum", "KIP", "Pertanian", "Teknik", "ISIP", "MIPA", "Kedokteran"];
-  return facs.map((f, i) => {
-    // Randomize value between 60% to 75% of target
-    // 0.60 to 0.75
-    const percentage = 0.60 + (Math.random() * 0.15);
-    let val = target * percentage;
-
-    // Round to 1 decimal, or integer if target is integer-like (large)
-    if (target > 50) {
-      val = Math.round(val);
-    } else {
-      val = Math.round(val * 10) / 10;
-    }
-
-    // Ensure it doesn't exceed target (since we want 60-75%)
-    if (val > target) val = target * 0.75;
-    if (val < 0) val = 0;
-
-    const isAchieved = val >= target;
-
-    return {
-      id: `fac-${i}`,
-      name: `Fakultas ${f}`,
-      value: val,
-      target: target,
-      status: "Belum Tercapai", // Since 60-75%, it's mostly "Belum Tercapai"
-      children: [
-        { id: `prodi-${i}-1`, name: `S1 ${f} A`, value: val, target, status: "Belum Tercapai" },
-        { id: `prodi-${i}-2`, name: `S1 ${f} B`, value: val * 0.95, target, status: "Belum Tercapai" },
-        { id: `prodi-${i}-3`, name: `D3 ${f} C`, value: val * 1.05, target, status: val * 1.05 >= target ? "Tercapai" : "Belum Tercapai" },
-      ]
-    };
-  });
-};
-
-const IKU_DATA_SOURCE: IKUDetailData[] = [
-  {
-    id: 1,
-    code: "IKU 1",
-    title: "Angka Efisiensi Edukasi Perguruan Tinggi (AEE)",
-    definition: "Indikator yang mengukur tingkat keberhasilan mahasiswa menyelesaikan studi tepat waktu sesuai masa studi standar, dibandingkan dengan total mahasiswa yang masuk pada periode tertentu.",
-    value: 54.5, // Target 80 (68%)
-    target: 80.0,
-    color: "#10b981", // Emerald
-    trendData: [
-      { name: '2022', value: 45.0 }, { name: '2023', value: 50.2 }, { name: '2024', value: 54.5 }
-    ],
-    drilldownData: generateDrilldown(80),
-    description: "Rumus: (Lulusan Tepat Waktu / Mahasiswa Baru Angkatan Terkait) x 100%"
-  },
-  {
-    id: 2,
-    code: "IKU 2",
-    title: "Lulusan Langsung Bekerja/Studi Lanjut/Wiraswasta",
-    definition: "Indikator yang mengukur persentase lulusan S1 dan D4/D3/D2 yang berhasil mendapat pekerjaan, melanjutkan studi, atau menjadi wiraswasta dengan penghasilan yang layak (> 1,2x UMP) dalam waktu kurang dari 12 bulan setelah kelulusan.",
-    value: 58.2, // Target 80 (72.7%)
-    target: 80.0,
-    color: "#3b82f6", // Blue
-    trendData: [
-      { name: '2022', value: 48.0 }, { name: '2023', value: 52.5 }, { name: '2024', value: 58.2 }
-    ],
-    drilldownData: generateDrilldown(80),
-  },
-  {
-    id: 3,
-    code: "IKU 3",
-    title: "Mahasiswa Berkegiatan di Luar Program Studi",
-    definition: "Indikator yang mengukur persentase mahasiswa S1 dan D4/D3/D2 yang menghabiskan paling sedikit 20 (dua puluh) SKS beraktivitas di luar kampus atau meraih prestasi paling rendah tingkat nasional.",
-    value: 34.8, // Target 50 (69.6%)
-    target: 50.0,
-    color: "#f59e0b", // Amber
-    trendData: [
-      { name: '2022', value: 25 }, { name: '2023', value: 30 }, { name: '2024', value: 34.8 }
-    ],
-    drilldownData: generateDrilldown(50),
-  },
-  {
-    id: 4,
-    code: "IKU 4",
-    title: "Dosen dengan Rekognisi Internasional",
-    definition: "Indikator yang mengukur jumlah dosen tetap yang karya atau keahliannya diakui di tingkat internasional, seperti menjadi staf ahli, editor jurnal internasional, atau memiliki paten terekognisi global.",
-    value: 135, // Target 200 (67.5%)
-    target: 200,
-    color: "#8b5cf6", // Violet
-    trendData: [
-      { name: '2022', value: 100 }, { name: '2023', value: 120 }, { name: '2024', value: 135 }
-    ],
-    drilldownData: generateDrilldown(200),
-    description: "Satuan: Orang (Jumlah Dosen)"
-  },
-  {
-    id: 5,
-    code: "IKU 5",
-    title: "Rasio Luaran Hasil Kerjasama Mitra",
-    definition: "Indikator yang mengukur rasio jumlah luaran penelitian dan pengabdian kepada masyarakat yang berhasil mendapat rekognisi internasional atau diterapkan oleh masyarakat per jumlah dosen.",
-    value: 0.68, // Target 1.0 (68%)
-    target: 1.0,
-    color: "#ec4899", // Pink
-    trendData: [
-      { name: '2022', value: 0.4 }, { name: '2023', value: 0.55 }, { name: '2024', value: 0.68 }
-    ],
-    description: "Satuan: Rasio (Karya / Total Dosen)"
-  },
-  {
-    id: 6,
-    code: "IKU 6",
-    title: "Publikasi Bereputasi Internasional (Scopus/WoS)",
-    definition: "Indikator yang mengukur persentase publikasi ilmiah dosen tetap yang berhasil terindeks di pangkalan data internasional bereputasi (Scopus atau Web of Science).",
-    value: 32.5, // Target 50 (65%)
-    target: 50.0,
-    color: "#06b6d4", // Cyan
-    trendData: [
-      { name: '2022', value: 20 }, { name: '2023', value: 28 }, { name: '2024', value: 32.5 }
-    ],
-    drilldownData: generateDrilldown(50),
-  },
-  {
-    id: 7,
-    code: "IKU 7",
-    title: "Keterlibatan dalam SDGs",
-    definition: "Indikator yang mengukur persentase mata kuliah, pengabdian masyarakat, atau kegiatan kampus yang memiliki relevansi langsung dengan pencapaian 17 Tujuan Pembangunan Berkelanjutan (SDGs).",
-    value: 56.4, // Target 80 (70.5%)
-    target: 80.0,
-    color: "#f97316", // Orange
-    trendData: [
-      { name: '2022', value: 45 }, { name: '2023', value: 50 }, { name: '2024', value: 56.4 }
-    ],
-    drilldownData: generateDrilldown(80),
-  },
-  {
-    id: 8,
-    code: "IKU 8",
-    title: "SDM Terlibat dalam Kebijakan",
-    definition: "Indikator yang mengukur jumlah SDM (Dosen/Peneliti) yang terlibat sebagai pakar/ahli dalam perumusan kebijakan di tingkat Instansi Pemerintah atau Dunia Usaha Dunia Industri.",
-    value: 31, // Target 50 (62%)
-    target: 50,
-    color: "#ef4444", // Red
-    trendData: [
-      { name: '2022', value: 20 }, { name: '2023', value: 25 }, { name: '2024', value: 31 }
-    ],
-    drilldownData: generateDrilldown(50),
-    description: "Satuan: Orang"
-  },
-  {
-    id: 9,
-    code: "IKU 9",
-    title: "Pendapatan Non-Pendidikan/Non-UKT",
-    definition: "Indikator yang mengukur persentase penerimaan perguruan tinggi yang bersumber dari kegiatan usaha dan pemanfaatan aset (selain UKT dan APBN) terhadap total penerimaan.",
-    value: 27.8, // Target 40 (69.5%)
-    target: 40.0,
-    color: "#6366f1", // Indigo
-    trendData: [
-      { name: '2022', value: 15 }, { name: '2023', value: 22 }, { name: '2024', value: 27.8 }
-    ],
-    drilldownData: generateDrilldown(40),
-  },
-  {
-    id: 10,
-    code: "IKU 10",
-    title: "Usulan Zona Integritas (WBK/WBBM)",
-    definition: "Indikator yang mengukur jumlah unit kerja (Fakultas/Lembaga) yang telah ditetapkan sebagai Zona Integritas Wilayah Bebas dari Korupsi (WBK) dan Wilayah Birokrasi Bersih Melayani (WBBM).",
-    value: 4, // Target 6 (66%)
-    target: 6,
-    color: "#14b8a6", // Teal
-    trendData: [
-      { name: '2022', value: 1 }, { name: '2023', value: 2 }, { name: '2024', value: 4 }
-    ],
-    drilldownData: generateDrilldown(6),
-    description: "Satuan: Unit Kerja"
-  },
-  {
-    id: 11,
-    code: "IKU 11",
-    title: "Tata Kelola (WTP / SAKIP / Etik)",
-    definition: "Indikator yang mengukur capaian kualitas tata kelola institusi melalui perolehan Opini Wajar Tanpa Pengecualian (WTP), Nilai Akuntabilitas Kinerja (SAKIP), dan kepatuhan terhadap kode etik.",
-    value: 72.5, // Target 100 (72.5%)
-    target: 100.0,
-    color: "#84cc16", // Lime
-    trendData: [
-      { name: '2022', value: 65.0 }, { name: '2023', value: 70.0 }, { name: '2024', value: 72.5 }
-    ],
-    drilldownData: generateDrilldown(100),
-  }
-];
-
 export default function DashboardIkuPage() {
   useRequireAuth();
-  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
+  const [selectedTahun, setSelectedTahun] = useState<string>("");
   const [selectedIKU, setSelectedIKU] = useState<IKUDetailData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { semester, activeSemesters } = useDashboardReference();
+  // Tahun IKU options: 3 tahun terakhir
+  const tahunOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 3 }, (_, i) => {
+      const yr = currentYear - i;
+      return { key: String(yr), label: String(yr) };
+    });
+  }, []);
 
+  // Default: tahun berjalan
   useEffect(() => {
-    if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
-      setSelectedSemesters(new Set(activeSemesters));
+    if (!selectedTahun && tahunOptions.length > 0) {
+      setSelectedTahun(tahunOptions[0].key);
     }
-  }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tahunOptions]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch IKU data - kirim tahun, backend resolve semester dari config
+  const { data: ikuData, loading, error } = useDashboardData<IkuData>(
+    ENDPOINTS.DASHBOARD_PIMPINAN.IKU,
+    { tahun: selectedTahun }
+  );
+
+  // Set IKU wajib dari config backend (fallback ke default)
+  const ikuWajibSet = useMemo(
+    () => new Set(ikuData?.ikuWajib ?? [1, 2, 3, 5, 7, 9]),
+    [ikuData?.ikuWajib]
+  );
+
+  // Gabungkan IKU 1 & 2 real dari API dengan IKU 3-11 mock
+  const allIkuItems: IKUDetailData[] = useMemo(() => {
+    const iku1Real: IKUDetailData | null = ikuData?.iku1
+      ? {
+          id: ikuData.iku1.id,
+          code: ikuData.iku1.code,
+          title: ikuData.iku1.title,
+          definition: ikuData.iku1.definition,
+          value: ikuData.iku1.value,
+          target: ikuData.iku1.target,
+          color: ikuData.iku1.color,
+          description: ikuData.iku1.description,
+          trendData: ikuData.iku1.trendData || [],
+          drilldownData: ikuData.iku1.drilldownData,
+          perJenjang: ikuData.iku1.perJenjang,
+        }
+      : null;
+
+    const iku2Real: IKUDetailData | null = ikuData?.iku2
+      ? {
+          id: ikuData.iku2.id,
+          code: ikuData.iku2.code,
+          title: ikuData.iku2.title,
+          definition: ikuData.iku2.definition,
+          value: ikuData.iku2.value,
+          target: ikuData.iku2.target,
+          color: ikuData.iku2.color,
+          description: ikuData.iku2.description,
+          trendData: ikuData.iku2.trendData || [],
+          drilldownData: ikuData.iku2.drilldownData,
+          statusBreakdown: ikuData.iku2.statusBreakdown,
+          kategoriKerja: ikuData.iku2.kategoriKerja,
+          totalLulusan: ikuData.iku2.totalLulusan,
+          totalResponden: ikuData.iku2.totalResponden,
+          responseRate: ikuData.iku2.responseRate,
+        }
+      : null;
+
+    // Fallback IKU 1 mock jika API belum tersedia
+    const iku1Fallback: IKUDetailData = {
+      id: 1,
+      code: "IKU 1",
+      title: "Angka Efisiensi Edukasi Perguruan Tinggi (AEE)",
+      definition: "Indikator yang mengukur tingkat keberhasilan mahasiswa menyelesaikan studi tepat waktu sesuai masa studi standar, dibandingkan dengan total mahasiswa yang masuk pada periode tertentu.",
+      value: 0,
+      target: 80.0,
+      color: "#10b981",
+      trendData: [],
+      description: "Rumus: Rata-rata Tingkat Pencapaian AEE per Jenjang (D3, S1, S2, S3)"
+    };
+
+    const iku2Fallback: IKUDetailData = {
+      id: 2,
+      code: "IKU 2",
+      title: "Lulusan Langsung Bekerja/Studi Lanjut/Wiraswasta",
+      definition: "Persentase lulusan S1 dan program diploma yang langsung bekerja, melanjutkan studi, atau berwirausaha dalam 1 tahun setelah kelulusan.",
+      value: 0,
+      target: 80.0,
+      color: "#3b82f6",
+      trendData: [],
+    };
+
+    const iku3Real: IKUDetailData | null = ikuData?.iku3
+      ? {
+          id: ikuData.iku3.id,
+          code: ikuData.iku3.code,
+          title: ikuData.iku3.title,
+          definition: ikuData.iku3.definition,
+          value: ikuData.iku3.value,
+          target: ikuData.iku3.target,
+          color: ikuData.iku3.color,
+          description: ikuData.iku3.description,
+          trendData: ikuData.iku3.trendData || [],
+          drilldownData: ikuData.iku3.drilldownData,
+          kegiatanBreakdown: ikuData.iku3.kegiatanBreakdown,
+          mbkm: ikuData.iku3.mbkm,
+          prestasiNasional: ikuData.iku3.prestasiNasional,
+          totalAktif: ikuData.iku3.totalAktif,
+          totalBerkegiatan: ikuData.iku3.totalBerkegiatan,
+        }
+      : null;
+
+    const iku3Fallback: IKUDetailData = {
+      id: 3,
+      code: "IKU 3",
+      title: "Mahasiswa Berkegiatan di Luar Program Studi",
+      definition: "Persentase mahasiswa S1 dan D4/D3/D2/D1 yang berkegiatan di luar program studi atau meraih prestasi minimal tingkat nasional.",
+      value: 0,
+      target: 50.0,
+      color: "#f59e0b",
+      trendData: [],
+    };
+
+    const iku5Real: IKUDetailData | null = ikuData?.iku5
+      ? {
+          id: ikuData.iku5.id,
+          code: ikuData.iku5.code,
+          title: ikuData.iku5.title,
+          definition: ikuData.iku5.definition,
+          value: ikuData.iku5.value,
+          target: ikuData.iku5.target,
+          color: ikuData.iku5.color,
+          description: ikuData.iku5.description,
+          trendData: ikuData.iku5.trendData || [],
+          drilldownData: ikuData.iku5.drilldownData,
+          totalLuaran: ikuData.iku5.totalLuaran,
+          totalDosen: ikuData.iku5.totalDosen,
+          kerjasamaBreakdown: ikuData.iku5.kerjasamaBreakdown,
+        }
+      : null;
+
+    const iku5Fallback: IKUDetailData = {
+      id: 5,
+      code: "IKU 5",
+      title: "Rasio Luaran Hasil Kerjasama Mitra",
+      definition: "Rasio jumlah luaran hasil kerjasama PT dan start-up/industri/lembaga terhadap total dosen PT.",
+      value: 0,
+      target: 100.0,
+      color: "#ec4899",
+      trendData: [],
+      description: "Rumus: (Jumlah Luaran Kerjasama / Total Dosen) × 100",
+    };
+
+    const iku7Real: IKUDetailData | null = ikuData?.iku7
+      ? {
+          id: ikuData.iku7.id,
+          code: ikuData.iku7.code,
+          title: ikuData.iku7.title,
+          definition: ikuData.iku7.definition,
+          value: ikuData.iku7.value,
+          target: ikuData.iku7.target,
+          color: ikuData.iku7.color,
+          description: ikuData.iku7.description,
+          trendData: ikuData.iku7.trendData || [],
+          drilldownData: ikuData.iku7.drilldownData,
+          kegiatanSDG: ikuData.iku7.kegiatanSDG,
+          litabmasSDG: ikuData.iku7.litabmasSDG,
+          kerjasamaSDG: ikuData.iku7.kerjasamaSDG,
+          totalKegiatan: ikuData.iku7.totalKegiatan,
+          totalLitabmas: ikuData.iku7.totalLitabmas,
+          totalKerjasama: ikuData.iku7.totalKerjasama,
+          sdgBreakdown: ikuData.iku7.sdgBreakdown,
+          sdgWajib: ikuData.iku7.sdgWajib,
+          sdgPilihan: ikuData.iku7.sdgPilihan,
+        }
+      : null;
+
+    const iku7Fallback: IKUDetailData = {
+      id: 7,
+      code: "IKU 7",
+      title: "Keterlibatan PT dalam SDGs",
+      definition: "Persentase program/kegiatan Tri Dharma PT yang berkontribusi pada SDG 1, SDG 4, SDG 17, dan 2 SDGs lain sesuai keunggulan PT.",
+      value: 0,
+      target: 50.0,
+      color: "#f97316",
+      trendData: [],
+    };
+
+    const iku9Real: IKUDetailData | null = ikuData?.iku9
+      ? {
+          id: ikuData.iku9.id,
+          code: ikuData.iku9.code,
+          title: ikuData.iku9.title,
+          definition: ikuData.iku9.definition,
+          value: ikuData.iku9.value,
+          target: ikuData.iku9.target,
+          color: ikuData.iku9.color,
+          description: ikuData.iku9.description,
+          trendData: ikuData.iku9.trendData || [],
+          drilldownData: ikuData.iku9.drilldownData,
+          pendapatanMahasiswa: ikuData.iku9.pendapatanMahasiswa,
+          pendapatanNonMahasiswa: ikuData.iku9.pendapatanNonMahasiswa,
+          totalPendapatan: ikuData.iku9.totalPendapatan,
+          detailLitabmas: ikuData.iku9.detailLitabmas,
+          detailKerjasama: ikuData.iku9.detailKerjasama,
+          detailOperasional: ikuData.iku9.detailOperasional,
+          revenueBreakdown: ikuData.iku9.revenueBreakdown,
+        }
+      : null;
+
+    const iku9Fallback: IKUDetailData = {
+      id: 9,
+      code: "IKU 9",
+      title: "Pendapatan Non Pendidikan/Non-UKT",
+      definition: "Persentase pendapatan PT dari sumber selain biaya pendidikan mahasiswa (SPP/UKT).",
+      value: 0,
+      target: 40.0,
+      color: "#6366f1",
+      trendData: [],
+    };
+
+    // IKU opsional dari backend config (value 0, belum ada data)
+    const opsionalItems: IKUDetailData[] = (ikuData?.ikuOpsional ?? []).map((o) => ({
+      id: o.id,
+      code: o.code,
+      title: o.title,
+      definition: o.definition || '',
+      value: o.value,
+      target: o.target,
+      color: o.color,
+      trendData: o.trendData || [],
+      drilldownData: o.drilldownData,
+    }));
+
+    return [
+      iku1Real ?? iku1Fallback,
+      iku2Real ?? iku2Fallback,
+      iku3Real ?? iku3Fallback,
+      iku5Real ?? iku5Fallback,
+      iku7Real ?? iku7Fallback,
+      iku9Real ?? iku9Fallback,
+      ...opsionalItems,
+    ];
+  }, [ikuData]);
 
   const handleReset = () => {
-    setSelectedSemesters(new Set(activeSemesters));
+    setSelectedTahun(tahunOptions[0]?.key || String(new Date().getFullYear()));
   };
 
   const handleDetail = (iku: IKUDetailData) => {
@@ -236,53 +284,54 @@ export default function DashboardIkuPage() {
       appKey={APP_KEY}
       fallbackMenus={pimpinanMenuConfig}
     >
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 p-6 space-y-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 p-3 sm:p-6 space-y-6 sm:space-y-8">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <FiTarget className="w-8 h-8 text-blue-600" />
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <FiTarget className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 shrink-0" />
               Capaian IKU Institusi
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2 max-w-2xl">
               Monitoring realisasi 11 Indikator Kinerja Utama Perguruan Tinggi (IKU-PT) sesuai Kepmendikbudristek Tahun 2026.
             </p>
           </div>
-          <div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
-              <FiInfo className="text-blue-500" />
-              <span>Target: Renstra 2026</span>
-            </div>
-          </div>
         </div>
 
-        {/* Global Filter - Not Sticky */}
+        {/* Global Filter - Tahun IKU only */}
         <div className="mb-6">
           <FilterPanel
-            semester={semester}
-            selectedSemesters={selectedSemesters}
-            onSemesterChange={setSelectedSemesters}
+            tahun={tahunOptions}
+            selectedTahun={selectedTahun}
+            onTahunChange={setSelectedTahun}
             onReset={handleReset}
           />
         </div>
 
+        {/* Loading & Error */}
+        {loading && <DashboardSkeleton />}
+        {error && <ErrorAlert message={error} />}
+
         {/* Grid IKU 1-11 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {IKU_DATA_SOURCE.map((iku) => (
-            <IKUCard
-              key={iku.id}
-              id={iku.id}
-              code={iku.code}
-              title={iku.title}
-              value={iku.value}
-              target={iku.target}
-              color={iku.color}
-              unit={iku.code.includes("Rasio") ? "" : iku.code.includes("Jumlah") || iku.title.includes("Jumlah") ? "" : "%"}
-              onDetailClick={() => handleDetail(iku)}
-            />
-          ))}
-        </div>
+        {!loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+            {allIkuItems.map((iku) => (
+              <IKUCard
+                key={iku.id}
+                id={iku.id}
+                code={iku.code}
+                title={iku.title}
+                value={iku.value}
+                target={iku.target}
+                color={iku.color}
+                unit={iku.code.includes("Rasio") ? "" : iku.code.includes("Jumlah") || iku.title.includes("Jumlah") ? "" : "%"}
+                isWajib={ikuWajibSet.has(iku.id)}
+                onDetailClick={() => handleDetail(iku)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Modal Detail */}
         <IKUDetailModal
@@ -294,7 +343,7 @@ export default function DashboardIkuPage() {
         {/* Footer Notes */}
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 text-center">
           <p className="text-sm text-gray-400">
-            © Universitas Lampung - Sistem Informasi Eksekutif Terintegrasi
+            &copy; Universitas Lampung - Sistem Informasi Eksekutif Terintegrasi
           </p>
         </div>
 

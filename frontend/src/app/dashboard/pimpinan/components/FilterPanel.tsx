@@ -9,6 +9,9 @@ export interface FilterOption {
 }
 
 export interface FilterPanelProps {
+  tahun?: FilterOption[];
+  selectedTahun?: string;
+  onTahunChange?: (value: string) => void;
   semester?: FilterOption[];
   selectedSemesters?: Set<string>;
   onSemesterChange?: (value: Set<string>) => void;
@@ -24,6 +27,9 @@ export interface FilterPanelProps {
 }
 
 export default function FilterPanel({
+  tahun = [],
+  selectedTahun,
+  onTahunChange,
   semester = [],
   selectedSemesters,
   onSemesterChange,
@@ -37,7 +43,7 @@ export default function FilterPanel({
   onReset,
   onExport,
 }: FilterPanelProps) {
-  const hasFilter = (selectedSemesters && selectedSemesters.size > 0) || selectedFakultas || selectedProdi;
+  const hasFilter = selectedTahun || (selectedSemesters && selectedSemesters.size > 0) || selectedFakultas || selectedProdi;
 
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 backdrop-blur-sm">
@@ -45,6 +51,36 @@ export default function FilterPanel({
         <FiFilter className="w-4 h-4" />
         <span className="text-sm font-medium">Filter</span>
       </div>
+
+      {/* Tahun IKU (single-select) */}
+      {tahun.length > 0 && (
+        <Select
+          size="sm"
+          placeholder="Tahun IKU"
+          selectedKeys={selectedTahun ? [selectedTahun] : []}
+          onSelectionChange={(keys) => {
+            const value = Array.from(keys)[0] as string;
+            onTahunChange?.(value);
+          }}
+          className="w-48"
+          variant="bordered"
+          classNames={{
+            trigger: "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm h-9",
+            value: "text-gray-700 dark:text-gray-200 font-medium text-xs",
+          }}
+          popoverProps={{
+            classNames: {
+              content: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl",
+            },
+          }}
+        >
+          {tahun.map((item) => (
+            <SelectItem key={item.key} className="text-gray-700 dark:text-gray-200">
+              {item.label}
+            </SelectItem>
+          ))}
+        </Select>
+      )}
 
       {/* Semester (multi-select) */}
       {semester.length > 0 && (

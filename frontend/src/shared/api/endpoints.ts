@@ -96,6 +96,7 @@ export const ENDPOINTS = {
     KEUANGAN: '/dashboard/keuangan',
     PRESTASI: '/dashboard/prestasi',
     KERJASAMA: '/dashboard/kerjasama',
+    IKU: '/dashboard/iku',
   },
 
   // Reference data endpoints
