@@ -104,6 +104,66 @@
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
 
+# VM5 - Quick Restart (All Staging Services)
+- name: Quick Restart VM5 Staging Services
+  hosts: staging
+  become: yes
+  gather_facts: no
+
+  vars:
+    deployment_dir: "/var/www/my-unila/deployment/production/vm5-staging"
+
+  tasks:
+    - name: Restart Infrastructure
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/infrastructure/docker-compose.postgres.yml restart
+        docker compose --env-file .env -f services/infrastructure/docker-compose.redis.yml restart
+        docker compose --env-file .env -f services/infrastructure/docker-compose.meilisearch.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Kong Gateway
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/gateway/docker-compose.kong.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart PHP Services + Nginx
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml restart
+        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml restart
+        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml restart
+        docker compose --env-file .env -f services/backend-php/docker-compose.nginx.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Go Services
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.sister.yml restart
+        docker compose --env-file .env -f services/backend-go/docker-compose.feeder.yml restart
+        docker compose --env-file .env -f services/backend-go/docker-compose.myunila.yml restart
+        docker compose --env-file .env -f services/backend-go/docker-compose.api.yml restart
+        docker compose --env-file .env -f services/backend-go/docker-compose.keuangan.yml restart
+        docker compose --env-file .env -f services/backend-go/docker-compose.monitoring.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Frontend
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.frontend.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
 - name: Summary
   hosts: localhost
   gather_facts: no

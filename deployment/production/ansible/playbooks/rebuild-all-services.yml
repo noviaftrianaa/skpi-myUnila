@@ -495,6 +495,349 @@
         msg: "{{ vm3_cleanup.stdout_lines }}"
 
 # ============================================
+# VM5 - Staging (All Services in 1 VM)
+# ============================================
+- name: Rebuild VM5 - Staging All Services
+  hosts: staging
+  become: yes
+  gather_facts: no
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deployment_dir: "{{ app_dir }}/deployment/production/vm5-staging"
+
+  tasks:
+    # --- Infrastructure ---
+    - name: Restart Infrastructure (PostgreSQL, Redis, Meilisearch)
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/infrastructure/docker-compose.postgres.yml restart
+        docker compose --env-file .env -f services/infrastructure/docker-compose.redis.yml restart
+        docker compose --env-file .env -f services/infrastructure/docker-compose.meilisearch.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for infrastructure to be ready
+      pause:
+        seconds: 10
+
+    # --- Kong Gateway ---
+    - name: Restart Kong Gateway
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/gateway/docker-compose.kong.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Kong to be healthy
+      wait_for:
+        host: localhost
+        port: 9800
+        delay: 5
+        timeout: 60
+
+    - name: Setup Kong routes
+      shell: |
+        cd {{ deployment_dir }}/scripts
+        bash setup-kong-routes.sh
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: staging_kong_routes
+
+    - name: Display Kong routes result
+      debug:
+        msg: "{{ staging_kong_routes.stdout_lines[-10:] }}"
+      when: staging_kong_routes.stdout_lines is defined
+
+    # --- Backend PHP Services ---
+    - name: Rebuild Auth Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Dashboard Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Public Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart PHP Services
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml up -d
+        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml up -d
+        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Clear Laravel caches (Auth Service)
+      shell: |
+        docker exec myunila-auth-staging php artisan config:clear 2>/dev/null || true
+        docker exec myunila-auth-staging php artisan route:clear 2>/dev/null || true
+        docker exec myunila-auth-staging php artisan cache:clear 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Restart Nginx
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.nginx.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for PHP services via Nginx
+      wait_for:
+        host: localhost
+        port: 8081
+        delay: 5
+        timeout: 60
+
+    # --- Backend Go Services ---
+    - name: Clean Docker build cache
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Sister Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.sister.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Sister Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.sister.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Sister Service
+      wait_for:
+        host: localhost
+        port: 8083
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for Feeder
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Feeder Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.feeder.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Feeder Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.feeder.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Feeder Service
+      wait_for:
+        host: localhost
+        port: 8084
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for MyUnila
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild MyUnila Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.myunila.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart MyUnila Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.myunila.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for MyUnila Service
+      wait_for:
+        host: localhost
+        port: 8086
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for Keuangan
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Keuangan Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.keuangan.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Keuangan Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.keuangan.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Keuangan Service
+      wait_for:
+        host: localhost
+        port: 8088
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for API
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild API Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.api.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart API Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.api.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for API Service
+      wait_for:
+        host: localhost
+        port: 8085
+        delay: 5
+        timeout: 60
+
+    - name: Clean Docker build cache for Monitoring
+      shell: docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Rebuild Monitoring Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.monitoring.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Monitoring Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.monitoring.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Monitoring Service
+      wait_for:
+        host: localhost
+        port: 8089
+        delay: 5
+        timeout: 60
+
+    # --- Frontend ---
+    - name: Rebuild Frontend image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.frontend.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Frontend service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/frontend/docker-compose.frontend.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Frontend to be healthy
+      wait_for:
+        host: localhost
+        port: 3000
+        delay: 5
+        timeout: 60
+
+    # --- Verify & Cleanup ---
+    - name: Verify VM5 Staging services status
+      shell: docker ps --filter "name=staging" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
+      register: vm5_status
+      become_user: "{{ ansible_user }}"
+
+    - name: Display VM5 Staging services status
+      debug:
+        msg: "{{ vm5_status.stdout_lines }}"
+
+    - name: Clean up unused Docker resources on VM5
+      shell: |
+        echo "Cleaning up unused Docker resources..."
+        docker container prune -f
+        docker image prune -af --filter "until=24h"
+        docker volume prune -f
+        docker builder prune -af --filter "until=24h"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: vm5_cleanup
+
+    - name: Display VM5 cleanup result
+      debug:
+        msg: "{{ vm5_cleanup.stdout_lines }}"
+
+# ============================================
 # Final Summary
 # ============================================
 - name: Display Deployment Summary
@@ -522,12 +865,17 @@
           2. Check logs if needed: docker logs <container-name>
           3. Test endpoints via Kong Gateway
 
-          Access Points:
+          Access Points (Production):
           - Frontend:    http://192.168.120.41:3000
           - Kong Proxy:  http://192.168.120.41:9800
           - Kong Admin:  http://192.168.120.41:9801
 
-          Backend services (via Kong):
+          Access Points (Staging VM5):
+          - Frontend:    http://192.168.120.45:3000
+          - Kong Proxy:  http://192.168.120.45:9800
+          - Kong Admin:  http://192.168.120.45:9801
+
+          Backend services (via Kong - Production):
           - Public:      http://192.168.120.41:9800/public-service/api/health
           - Auth:        http://192.168.120.41:9800/auth-service/api/health
           - Sister:      http://192.168.120.41:9800/sister-service/health
@@ -536,3 +884,9 @@
           - Keuangan:    http://192.168.120.41:9800/keuangan-service/health
           - API:         http://192.168.120.41:9800/api-service/health
           - Monitoring:  http://192.168.120.41:9800/webmon-service/api/v1/health
+
+          Backend services (via Kong - Staging):
+          - Public:      http://192.168.120.45:9800/public-service/api/health
+          - Auth:        http://192.168.120.45:9800/auth-service/api/health
+          - Sister:      http://192.168.120.45:9800/sister-service/health
+          - Feeder:      http://192.168.120.45:9800/feeder-service/health
