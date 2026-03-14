@@ -556,19 +556,15 @@ docker compose --env-file $ENV_FILE -f services/frontend/docker-compose.frontend
 
 ## Phase 5: Install Claude Code + Remote Vibe Coding
 
-### 5.1 Jalankan Setup Script (Otomatis)
+Claude Code bisa diakses dari **semua device** — laptop, PC, HP, tablet — dengan berbagai cara.
+
+### 5.1 Install di VM5
+
+SSH ke VM5 lalu jalankan:
 
 ```bash
-cd /var/www/my-unila/deployment/production/vm5-staging
-chmod +x scripts/setup-claude-code.sh
-./scripts/setup-claude-code.sh
-```
+ssh mystagging@192.168.120.45
 
-Script ini akan install Node.js 20, Claude Code, tmux, setup API key, dan buat helper scripts.
-
-### 5.2 Manual Installation (jika script gagal)
-
-```bash
 # Install Node.js 20
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
@@ -576,57 +572,160 @@ sudo apt install -y nodejs
 # Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
-# Install tmux
+# Install tmux (persistent session, tidak mati saat SSH putus)
 sudo apt install -y tmux
 
-# Setup API Key
-# Dapatkan dari: https://console.anthropic.com/settings/keys
-echo 'export ANTHROPIC_API_KEY="sk-ant-xxxxx"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 5.3 Verify Installation
-
-```bash
+# Verify
 node --version     # v20.x.x
-claude --version   # Claude Code vX.X.X
+claude --version   # Claude Code vX.X.X (minimal v2.1.51)
 ```
 
-### 5.4 Cara Pakai - Interactive Mode (di VM langsung)
+### 5.2 Login dengan Akun Pro/Max (Pertama Kali)
 
 ```bash
 cd /var/www/my-unila
 claude
 ```
 
-### 5.5 Cara Pakai - Remote dari Device Lain via SSH
+Saat pertama kali jalankan:
+1. Pilih **"Use OAuth (claude.ai account)"**
+2. Akan muncul URL: `https://claude.ai/oauth/authorize?...`
+3. **Copy URL**, buka di browser (laptop/HP)
+4. Login dengan akun claude.ai **Pro/Max**
+5. Klik **"Allow"**
+6. Kembali ke terminal — otomatis terautentikasi
 
-Dari laptop/PC/HP manapun yang bisa SSH:
+> Token disimpan otomatis di `~/.claude/`. Tidak perlu login ulang kecuali expired.
+>
+> **Alternatif:** Jika pakai API Key (bayar per token):
+> ```bash
+> echo 'export ANTHROPIC_API_KEY="sk-ant-xxxxx"' >> ~/.bashrc
+> source ~/.bashrc
+> ```
+
+### 5.3 Cara Akses: Terminal SSH (Laptop/PC)
 
 ```bash
-# SSH ke staging server
+# SSH ke VM5
 ssh mystagging@192.168.120.45
 
-# Start Claude Code dalam tmux (persistent session)
-~/claude-start.sh
+# Mulai Claude dalam tmux (persistent)
+tmux new -s claude-code
+cd /var/www/my-unila
+claude
 ```
 
-**Keuntungan tmux:** session tetap berjalan walau koneksi SSH terputus.
-
+**Tmux cheatsheet:**
 ```bash
-# Detach dari session (tanpa mematikan Claude):
-#   Tekan Ctrl+B, lalu tekan D
-
-# Re-attach ke session yang sudah ada:
+# Detach (keluar tanpa mematikan Claude): Ctrl+B, lalu D
+# Re-attach ke session:
 tmux attach -t claude-code
-
-# List semua sessions:
+# List sessions:
 tmux ls
 ```
 
-### 5.6 Cara Pakai - VS Code Remote SSH (GUI)
+**SSH config** (supaya tinggal `ssh staging`):
+```
+# ~/.ssh/config di laptop/PC lokal
+Host staging
+    HostName 192.168.120.45
+    User mystagging
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+```
 
-Untuk pengalaman visual terbaik:
+### 5.4 Cara Akses: Remote Control dari HP/Tablet (Tanpa SSH!)
+
+Fitur **Remote Control** memungkinkan akses Claude Code dari HP, tablet, atau browser manapun tanpa perlu SSH. Cukup buka browser atau Claude App.
+
+**Syarat:** Claude Code v2.1.51+, akun Pro/Max (OAuth, bukan API key).
+
+#### Step 1: Start Remote Control di VM5
+
+```bash
+ssh mystagging@192.168.120.45
+
+# Start dalam tmux supaya persistent
+tmux new -s claude-remote
+cd /var/www/my-unila
+claude remote-control --name "MyUnila Staging"
+```
+
+Akan muncul info session dan QR code di terminal.
+
+#### Step 2: Setup VPN di HP/Tablet (jika akses dari luar jaringan Unila)
+
+VM5 berada di jaringan internal Unila (`192.168.120.x`), sehingga perlu VPN untuk akses dari luar.
+
+**iPhone/iPad:**
+1. Download **WireGuard** dari App Store
+2. Minta config file (`.conf`) atau QR code dari admin jaringan Unila
+3. Buka WireGuard > tap **"+"**:
+   - **"Create from QR code"** — jika admin kasih QR code
+   - **"Create from file or archive"** — jika file `.conf` (via AirDrop/email)
+4. Aktifkan toggle VPN — iPhone sekarang bisa akses `192.168.120.x`
+
+**Android:**
+1. Download **WireGuard** dari Play Store
+2. Minta config file (`.conf`) atau QR code dari admin jaringan Unila
+3. Buka WireGuard > tap **"+"**:
+   - **"Scan from QR code"** — jika admin kasih QR code
+   - **"Import from file or archive"** — jika file `.conf`
+4. Aktifkan toggle VPN — Android sekarang bisa akses `192.168.120.x`
+
+> **Note:** Jika sudah di jaringan WiFi Unila (kampus), VPN tidak diperlukan.
+
+#### Step 3: Connect dari HP/Tablet
+
+**Opsi A — Claude App (recommended untuk HP):**
+1. Download **Claude App** (iOS: App Store, Android: Play Store)
+2. Login dengan akun Pro/Max yang sama
+3. Tekan `Spasi` di terminal VM5 untuk tampilkan **QR code**
+4. Scan QR code dari Claude App
+5. Langsung coding dari HP!
+
+**Opsi B — Browser HP:**
+1. Buka **claude.ai/code** di browser HP (Safari/Chrome)
+2. Login dengan akun Pro/Max
+3. Session **"MyUnila Staging"** muncul di daftar (icon komputer + titik hijau)
+4. Klik untuk masuk
+
+**Opsi C — Copy URL:**
+1. Copy URL yang ditampilkan di terminal saat start remote-control
+2. Buka URL tersebut di browser device manapun
+
+**Opsi D — SSH dari HP (terminal):**
+1. Download **Termius** (iOS/Android) — SSH client terbaik untuk mobile
+2. Tambah host: `mystagging@192.168.120.45` (pastikan VPN aktif)
+3. Connect > `tmux attach -t claude-code` atau `claude`
+
+#### Cara kerja:
+- Claude Code tetap **berjalan di VM5** (akses penuh ke file & Docker)
+- HP/tablet hanya sebagai **remote interface** (kirim prompt, lihat hasil)
+- Semua traffic melalui **Anthropic API over TLS** (aman, tidak buka port)
+- Session tetap hidup walau HP disconnect sementara
+
+#### Flow lengkap dari HP:
+```
+HP (iPhone/Android)
+  → WireGuard VPN ON (jika di luar kampus)
+  → Claude App / claude.ai/code / Termius SSH
+  → Remote Control session di VM5
+  → Vibe coding dari mana saja!
+```
+
+#### Manage Remote Session:
+```bash
+# Re-attach ke remote control session
+tmux attach -t claude-remote
+
+# Stop remote control
+# Tekan Ctrl+C di terminal, atau tutup tmux session
+```
+
+### 5.5 Cara Akses: VS Code Remote SSH (GUI Desktop)
+
+Untuk pengalaman visual terbaik dari laptop/PC:
 
 1. **Di VS Code lokal**, install extension:
    - `Remote - SSH` (Microsoft)
@@ -642,68 +741,68 @@ Untuk pengalaman visual terbaik:
    - `Ctrl+Shift+P` > `Claude Code: Open`
    - Atau klik icon Claude di sidebar
 
-5. **Vibe coding!** Claude akan berjalan di VM staging dengan akses penuh ke semua file dan Docker containers.
+5. **Vibe coding!** Claude berjalan di VM5 dengan akses penuh ke semua file dan Docker containers.
 
-### 5.7 Cara Pakai - Headless Mode (Non-Interactive / Scripting)
+### 5.6 Cara Akses: Headless Mode (Scripting/Automation)
 
-Untuk automation atau one-shot commands:
+Untuk one-shot commands tanpa interactive session:
 
 ```bash
-# Jalankan prompt langsung, output ke terminal
+# Jalankan prompt langsung
 claude -p "find all API endpoints in the Go services"
 
 # Dengan izin tool otomatis
 claude -p "fix the login bug" --allowedTools "Read,Edit,Bash"
 
-# Output format JSON (untuk scripting)
+# Output JSON (untuk scripting)
 claude -p "list all docker containers" --output-format json
-
-# Helper script
-~/claude-run.sh "explain the auth flow in this project"
 ```
 
-### 5.8 Multiple Sessions (Kerja Paralel)
+### 5.7 Multiple Sessions (Kerja Paralel)
 
-Bisa jalankan beberapa Claude Code session sekaligus:
+Bisa jalankan beberapa session sekaligus:
 
 ```bash
-# Session 1: fix bug di auth
-~/claude-start.sh fix-auth
+# Session 1: fix bug
+tmux new -s fix-auth
+cd /var/www/my-unila && claude
 
-# Buka terminal baru (Ctrl+B, lalu C di tmux)
-# Session 2: tambah feature dashboard
-~/claude-start.sh feature-dashboard
+# Detach (Ctrl+B, D), buat session baru
+tmux new -s feature-dashboard
+cd /var/www/my-unila && claude
 
-# List semua sessions
+# List & switch sessions
 tmux ls
-
-# Switch antar session
 tmux attach -t fix-auth
 tmux attach -t feature-dashboard
 ```
 
-### 5.9 Tips Remote Vibe Coding
+Untuk Remote Control dengan multiple concurrent sessions:
+```bash
+claude remote-control --name "MyUnila Staging" --spawn worktree --capacity 4
+```
+Ini buat isolated git worktree per session, max 4 session paralel.
 
-1. **Koneksi SSH stabil:** Gunakan `ServerAliveInterval` di SSH config lokal:
-   ```
-   # ~/.ssh/config di laptop/PC lokal
-   Host staging
-       HostName 192.168.120.45
-       User mystagging
-       ServerAliveInterval 60
-       ServerAliveCountMax 3
-   ```
-   Setelah ini cukup: `ssh staging` lalu `~/claude-start.sh`
+### 5.8 Ringkasan Cara Akses
 
-2. **Persistent session:** Selalu pakai tmux agar session tidak hilang saat disconnect
+| Device | Cara | Perlu SSH? | Perlu Install? |
+|--------|------|------------|----------------|
+| Laptop/PC (terminal) | SSH + `claude` | Ya | Tidak (di lokal) |
+| Laptop/PC (VS Code) | Remote-SSH extension | Ya (otomatis) | VS Code + extensions |
+| HP/Tablet | Remote Control + Claude App | **Tidak** | Claude App |
+| HP/Tablet (browser) | Remote Control + claude.ai/code | **Tidak** | Tidak |
+| Any device (browser) | Remote Control + copy URL | **Tidak** | Tidak |
 
-3. **Monitor resources:** Claude Code + 15 containers butuh RAM. Monitor dengan:
+### 5.9 Tips
+
+1. **Selalu pakai tmux** — session tidak hilang saat SSH disconnect atau HP sleep
+2. **Monitor resources** — Claude + 15 containers butuh RAM:
    ```bash
    htop              # Live resource monitor
    docker stats      # Container resource usage
    ```
-
-4. **Auto-approve permissions:** Edit `~/.claude/settings.json` untuk tambah permission yang sering dipakai agar tidak perlu approve manual terus
+3. **Auto-approve permissions** — Edit `~/.claude/settings.json` untuk skip approval pada tool yang sering dipakai
+4. **Update Claude Code** — `npm update -g @anthropic-ai/claude-code`
 
 ---
 
