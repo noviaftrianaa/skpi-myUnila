@@ -79,6 +79,7 @@ services:
         labels: "service=public,vm=vm5-staging"
 
   # Public Scheduler (Supervisor)
+  # Only runs read-only Meilisearch sync (search:import), no DB writes
   public-scheduler:
     image: myunila/public-service:staging
     container_name: myunila-public-scheduler-staging
