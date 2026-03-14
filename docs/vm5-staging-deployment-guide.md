@@ -27,7 +27,7 @@ Server staging MyUnila yang menjalankan **semua service** (VM1 + VM2 + VM3) dala
 │                                                                  │
 │  ┌─────────────┐  ┌──────────────┐  ┌───────────────────────┐  │
 │  │  Redis       │  │  Meilisearch │  │  Nginx (PHP proxy)    │  │
-│  │  :6379       │  │  :7700       │  │  :8081/:8082/:8086    │  │
+│  │  :6379       │  │  :7700       │  │  :8081/:8082/:8087    │  │
 │  └─────────────┘  └──────────────┘  └───────────────────────┘  │
 │                                                                  │
 │  PHP Services:                                                   │
@@ -436,10 +436,31 @@ sops --decrypt .env.encrypted > .env
 Semua VM yang perlu decrypt harus punya key yang sama:
 
 ```bash
-# Dari VM5 ke VM1/VM2/VM3:
+# Buat folder di VM tujuan dulu
+ssh myfrontend@192.168.120.41 "mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age"
+ssh mybackend1@192.168.120.42 "mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age"
+ssh mybackend2@192.168.120.43 "mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age"
+
+# Copy key
 scp ~/.config/sops/age/keys.txt myfrontend@192.168.120.41:~/.config/sops/age/keys.txt
 scp ~/.config/sops/age/keys.txt mybackend1@192.168.120.42:~/.config/sops/age/keys.txt
 scp ~/.config/sops/age/keys.txt mybackend2@192.168.120.43:~/.config/sops/age/keys.txt
+
+# Fix permissions di semua VM (atau jalankan script)
+./scripts/fix-sops-permissions.sh
+```
+
+### 3.5.5 Fix Permissions SOPS Key
+
+Permission yang benar: folder `700`, file `600`.
+
+```bash
+# Otomatis semua VM:
+./scripts/fix-sops-permissions.sh
+
+# Atau manual per VM:
+chmod 700 ~/.config/sops ~/.config/sops/age
+chmod 600 ~/.config/sops/age/keys.txt
 ```
 
 > **PENTING:** Backup `keys.txt` di password manager. Jika hilang, tidak bisa decrypt!
@@ -721,8 +742,8 @@ curl -s http://192.168.120.45:8084/health
 # API Service
 curl -s http://192.168.120.45:8085/health
 
-# Dashboard Service (via Nginx port 8086)
-curl -s http://localhost:8086/health
+# Dashboard Service (via Nginx port 8087)
+curl -s http://localhost:8087/health
 
 # Keuangan Service
 curl -s http://192.168.120.45:8088/health
@@ -826,8 +847,32 @@ sudo swapon /swapfile2
 ```bash
 cd /var/www/my-unila/deployment/production/vm5-staging
 
-# Contoh rebuild sister service
+# Via script (recommended)
+./scripts/rebuild-service.sh sister
+
+# Rebuild beberapa service sekaligus
+./scripts/rebuild-service.sh auth dashboard nginx
+
+# Lihat daftar service yang tersedia
+./scripts/rebuild-service.sh --list
+
+# Via docker compose langsung
 docker compose --env-file .env -f services/backend-go/docker-compose.sister.yml up -d --build --force-recreate
+```
+
+### Rebuild via Ansible (dari VM manapun)
+
+```bash
+cd /var/www/my-unila/deployment/production/ansible
+
+# Rebuild 1 service di VM5
+./rebuild.sh --vm5 sister
+
+# Rebuild beberapa service
+./rebuild.sh --vm5 auth dashboard frontend
+
+# Rebuild semua service di VM5
+./rebuild.sh --vm5
 ```
 
 ### Rebuild semua setelah git pull
@@ -838,6 +883,9 @@ git pull origin master
 
 cd deployment/production/vm5-staging
 ./scripts/deploy.sh
+
+# Atau rebuild semua via script
+./scripts/rebuild-service.sh --all
 ```
 
 ---
@@ -852,6 +900,13 @@ cd deployment/production/vm5-staging
 | Check status | `docker ps --filter name=staging` |
 | Check logs | `docker logs -f myunila-<service>-staging` |
 | Resource usage | `docker stats --filter name=staging` |
-| Rebuild service | `docker compose --env-file .env -f <compose-file> up -d --build` |
+| Rebuild 1 service | `./scripts/rebuild-service.sh sister` |
+| Rebuild beberapa | `./scripts/rebuild-service.sh auth dashboard nginx` |
+| Rebuild semua | `./scripts/rebuild-service.sh --all` |
+| Rebuild via Ansible | `./rebuild.sh --vm5 sister` |
+| List services | `./scripts/rebuild-service.sh --list` |
 | Kong routes | `./scripts/setup-kong-routes.sh` |
+| Encrypt .env | `sops --encrypt .env > .env.encrypted` |
+| Decrypt .env | `sops --decrypt .env.encrypted > .env` |
+| Fix SOPS perms | `./scripts/fix-sops-permissions.sh` |
 | Clean all | `docker stop $(docker ps -q --filter name=staging) && docker system prune -f` |
