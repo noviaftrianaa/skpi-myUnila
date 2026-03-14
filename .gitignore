@@ -9,8 +9,10 @@ apps_pdpt/storage/api-docs/api-docs.json
 dashboard/.env-mp
 dashboard/.env
 
-# Claude Code settings (local only)
+# Claude Code settings & docs (local only)
 .claude/
+docs/claude/
+.mcp.json
 
 # VSCode workspace settings (local only)
 .vscode/
