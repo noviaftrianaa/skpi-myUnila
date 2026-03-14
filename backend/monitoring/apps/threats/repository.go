@@ -12,6 +12,7 @@ type Repository interface {
 	List(filter ThreatFilter) ([]*DetectedThreat, int, error)
 	GetByID(id int) (*DetectedThreat, error)
 	UpdateStatus(id int, req UpdateStatusRequest, updaterID string) error
+	SoftDelete(id int, updaterID string) error
 	Stats() (*ThreatStats, error)
 	StatsByFakultas(fakultasID string) ([]map[string]interface{}, error)
 	Insert(t *DetectedThreat) (int, error)
@@ -163,6 +164,15 @@ func (r *repository) UpdateStatus(id int, req UpdateStatusRequest, updaterID str
 			req.Status, req.Notes, now, updaterID, id)
 		return err
 	}
+}
+
+func (r *repository) SoftDelete(id int, updaterID string) error {
+	_, err := r.db.Exec(`
+		UPDATE monitoring.detected_threats
+		SET soft_delete = 1, last_update = @p1, id_updater = @p2
+		WHERE id = @p3 AND soft_delete = 0`,
+		time.Now(), updaterID, id)
+	return err
 }
 
 func (r *repository) Stats() (*ThreatStats, error) {

@@ -21,6 +21,7 @@ func Init(app *fiber.App, db *sqlx.DB) Service {
 	api.Get("/threats", ctrl.List)
 	api.Get("/threats/:id", ctrl.GetByID)
 	api.Put("/threats/:id/status", ctrl.UpdateStatus)
+	api.Delete("/threats/:id", ctrl.Delete)
 
 	return svc
 }

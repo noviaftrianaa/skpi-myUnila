@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure, Select, SelectItem } from "@heroui/react";
-import { FiTrash2, FiAlertCircle } from "react-icons/fi";
+import { FiSend, FiAlertCircle } from "react-icons/fi";
 import { gscService } from "@/lib/services/webmon/gscService";
+import { toast } from "react-hot-toast";
 
 interface GSCRemoveButtonProps {
     onSuccess?: () => void;
@@ -31,6 +32,7 @@ export default function GSCRemoveButton({ onSuccess }: GSCRemoveButtonProps) {
                 action,
             });
             setSuccess(true);
+            toast.success("URL removal berhasil disubmit ke Google");
             setTimeout(() => {
                 onClose();
                 setSuccess(false);
@@ -41,6 +43,7 @@ export default function GSCRemoveButton({ onSuccess }: GSCRemoveButtonProps) {
         } catch (e: unknown) {
             const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
             setError(msg || "Gagal submit URL removal ke Google");
+            toast.error(msg || "Gagal submit URL removal ke Google");
         } finally {
             setLoading(false);
         }
@@ -48,7 +51,7 @@ export default function GSCRemoveButton({ onSuccess }: GSCRemoveButtonProps) {
 
     return (
         <>
-            <Button color="danger" variant="flat" startContent={<FiTrash2 className="w-4 h-4" />} onPress={onOpen}>
+            <Button color="danger" variant="flat" startContent={<FiSend className="w-4 h-4" />} onPress={onOpen}>
                 Request URL Removal
             </Button>
 

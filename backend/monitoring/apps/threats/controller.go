@@ -75,6 +75,19 @@ func (c *Controller) UpdateStatus(ctx *fiber.Ctx) error {
 	return response.Success(ctx, "Status threat berhasil diupdate", t)
 }
 
+// DELETE /api/v1/threats/:id
+func (c *Controller) Delete(ctx *fiber.Ctx) error {
+	id, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil {
+		return response.BadRequest(ctx, "ID tidak valid", nil)
+	}
+	updaterID := middleware.GetUserID(ctx)
+	if err := c.svc.Delete(id, updaterID); err != nil {
+		return response.InternalServerError(ctx, "Gagal menghapus threat", err.Error())
+	}
+	return response.Success(ctx, "Threat berhasil dihapus", nil)
+}
+
 // GET /api/v1/threats/stats
 func (c *Controller) Stats(ctx *fiber.Ctx) error {
 	stats, err := c.svc.Stats()

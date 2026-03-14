@@ -8,6 +8,7 @@ type Service interface {
 	List(filter ThreatFilter) ([]*DetectedThreat, int, error)
 	GetByID(id int) (*DetectedThreat, error)
 	UpdateStatus(id int, req UpdateStatusRequest, updaterID string) (*DetectedThreat, error)
+	Delete(id int, updaterID string) error
 	Stats() (*ThreatStats, error)
 	StatsByFakultas(fakultasID string) ([]map[string]interface{}, error)
 	// Called by detector
@@ -35,6 +36,10 @@ func (s *service) UpdateStatus(id int, req UpdateStatusRequest, updaterID string
 		return nil, err
 	}
 	return s.repo.GetByID(id)
+}
+
+func (s *service) Delete(id int, updaterID string) error {
+	return s.repo.SoftDelete(id, updaterID)
 }
 
 func (s *service) Stats() (*ThreatStats, error) {

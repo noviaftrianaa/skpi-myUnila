@@ -3,7 +3,123 @@
 > **Service**: `webmon-service` (Go Fiber, port 8089)
 > **Schema**: `monitoring` (SQL Server)
 > **Status**: Phase 1–8 ✅ Complete — Backend + Frontend Production Ready
-> **Last Updated**: 2026-03-02
+> **Last Updated**: 2026-03-06
+
+---
+
+## Ringkasan Cara Kerja (Executive Summary)
+
+### Apa yang dilakukan sistem ini?
+
+Sistem **Web Monitoring** secara otomatis memantau situs-situs `*.unila.ac.id` untuk mendeteksi **injeksi konten judi online (judol)** seperti slot, togel, casino yang sering menyerang situs akademik.
+
+### Bagaimana cara kerjanya?
+
+```
+                         ALUR KERJA UTAMA
+ ┌─────────────────────────────────────────────────────────┐
+ │  1. REGISTRASI SITUS                                     │
+ │     Admin mendaftarkan situs di dashboard                │
+ │     (URL, platform, kontak admin unit)                   │
+ │                                                          │
+ │  2. CRAWLING OTOMATIS (Setiap hari jam 02:00)            │
+ │     ├─ Buka halaman utama situs                          │
+ │     ├─ Ikuti semua link internal (max 3 level deep)      │
+ │     ├─ Scan hingga 500 halaman per situs                 │
+ │     ├─ Max 3 situs di-crawl bersamaan                    │
+ │     └─ Rate limit: 1 request/detik per situs             │
+ │                                                          │
+ │  3. DETEKSI ANCAMAN (per halaman)                        │
+ │     ├─ Ekstrak teks dari title, H1, body                 │
+ │     ├─ Cocokkan dengan 400+ keyword judol                │
+ │     ├─ Hitung skor ancaman (weight keyword)              │
+ │     │   └─ Match di title/H1 = 1.5x bobot               │
+ │     ├─ Skor >= 5 = TERDETEKSI ANCAMAN                   │
+ │     └─ Simpan bukti (HTML snippet)                       │
+ │                                                          │
+ │  4. DEEP SCAN (opsional, per halaman)                    │
+ │     ├─ Cloaking: fetch ulang pakai Googlebot UA          │
+ │     │   └─ Bandingkan konten (Jaccard similarity)        │
+ │     │   └─ Beda >70% = CLOAKING terdeteksi              │
+ │     └─ AMP: cek versi AMP halaman                       │
+ │         └─ Scan keyword di halaman AMP                   │
+ │                                                          │
+ │  5. PELAPORAN & NOTIFIKASI                               │
+ │     ├─ Semua ancaman masuk ke dashboard                  │
+ │     ├─ Status: pending → confirmed → resolved            │
+ │     ├─ Daily summary jam 05:00                           │
+ │     └─ Integrasi Google Search Console (removal request) │
+ └─────────────────────────────────────────────────────────┘
+```
+
+### Apakah scan sampai subpage/subfolder?
+
+**YA.** Scanner menggunakan library **Colly** (Go) yang bekerja seperti web spider:
+- Mulai dari URL utama (misal `https://electrician.unila.ac.id/`)
+- Mengikuti semua link `<a href>` yang masih dalam domain yang sama
+- Kedalaman maksimal **3 level** (configurable via `CRAWLER_MAX_DEPTH`)
+- Maksimal **500 halaman** per situs (configurable via `CRAWLER_MAX_PAGES`)
+- Contoh halaman yang di-scan:
+  - `/` (root)
+  - `/index.php/ojs/article/view/123` (level 1)
+  - `/index.php/ojs/article/download/123/456` (level 2)
+  - dst.
+
+### Komponen Utama
+
+| Komponen | Fungsi | Teknologi |
+|----------|--------|-----------|
+| **Site Registry** | Daftar situs yang dipantau | SQL Server `monitoring.sites` |
+| **Crawler** | Web spider, fetch & follow links | Go + Colly v2 |
+| **Detector** | Keyword matching & scoring | Go regexp, word-boundary |
+| **Keywords DB** | 400+ keyword judol (brand + generic) | SQL Server `monitoring.threat_keywords` |
+| **Threat Store** | Rekam ancaman + bukti HTML | SQL Server `monitoring.detected_threats` |
+| **Scheduler** | Cron: crawl, health check, summary | robfig/cron v3 |
+| **Dashboard** | UI monitoring & manajemen | Next.js (React) |
+| **API Gateway** | Auth & routing | Kong Gateway |
+
+### Jadwal Otomatis
+
+| Jadwal | Tugas |
+|--------|-------|
+| Setiap 5 menit | Health check semua situs (HTTP status) |
+| Setiap 15 menit | Sync konten blog (Blogger API) |
+| Setiap hari 02:00 | Full crawl semua situs aktif |
+| Setiap hari 05:00 | Generate daily summary report |
+
+### Konfigurasi Crawler (Environment Variables)
+
+```env
+CRAWLER_MAX_DEPTH=3              # Kedalaman crawl (level link)
+CRAWLER_MAX_PAGES=500            # Max halaman per situs
+CRAWLER_RATE_LIMIT_MS=1000       # Delay antar request (ms)
+CRAWLER_CONCURRENT_SITES=3       # Max situs paralel
+CRAWLER_CLOAKING_ENABLED=true    # Deteksi cloaking (Googlebot)
+CRAWLER_CLOAKING_THRESHOLD=0.7   # Threshold perbedaan (70%)
+CRAWLER_AMP_SCAN_ENABLED=true    # Scan halaman AMP
+```
+
+### Batasan & Limit Akun `unila.ac.id`
+
+| Batasan | Limit | Keterangan |
+|---------|-------|------------|
+| **Removal request** | **1.000/hari** per property | Quota dari Google |
+| **Rate limit API** | **1.200 query/menit** | Berlaku untuk semua API call |
+| **Self-imposed limit** | **200 removal/hari** di sistem | Safety margin agar tidak mass-remove jika false positive |
+| **Durasi removal** | **~6 bulan** | Setelah itu Google recrawl ulang |
+| **Cakupan property** | Domain `unila.ac.id` | Covers **semua** `*.unila.ac.id` (1 property untuk semua subdomain) |
+| **Yang dihapus** | Hanya dari Google Search results | Konten di server **tetap ada**, perlu dibersihkan oleh admin unit |
+| **Biaya** | **Gratis** | Google Search Console API tidak berbayar |
+
+> **Catatan**: Limit sistem (200/hari) bisa dinaikkan ke 1.000 via config `GSC_DAILY_LIMIT` setelah yakin deteksi akurat dan false positive rendah.
+
+### Dashboard URL
+
+```
+https://my.unila.ac.id/dashboard/web-monitoring/scanner    → Jalankan & lihat scan
+https://my.unila.ac.id/dashboard/web-monitoring/keywords   → Kelola keyword
+https://my.unila.ac.id/dashboard/web-monitoring/threats     → Lihat ancaman
+```
 
 ---
 
@@ -1006,7 +1122,7 @@ CREATE TABLE monitoring.gsc_removal_logs (
     gsc_request_id  NVARCHAR(200)    NULL,
     status          NVARCHAR(20)     NOT NULL DEFAULT 'submitted',
         -- submitted / completed / failed
-    submitted_by    NVARCHAR(200)    NULL,           -- 'auto' atau user email
+    submitted_by    NVARCHAR(200)    NULL,           -- 'auto' atau E:\laragon\www\my-unila\docs\progress-report.htmluser email
     submitted_at    DATETIME2        NOT NULL DEFAULT GETDATE(),
     error_message   NVARCHAR(MAX)    NULL,
 

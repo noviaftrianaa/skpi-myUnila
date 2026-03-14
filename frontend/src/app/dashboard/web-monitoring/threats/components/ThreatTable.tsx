@@ -3,7 +3,7 @@
 import React from "react";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { Chip, Button, Tooltip } from "@heroui/react";
-import { FiCheck, FiX, FiExternalLink, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiCheck, FiX, FiExternalLink, FiEye, FiTrash2, FiSend } from "react-icons/fi";
 import { Threat } from "@/lib/services/webmon/threatService";
 import { gscService } from "@/lib/services/webmon/gscService";
 import { toast } from "react-hot-toast";
@@ -13,9 +13,10 @@ interface ThreatTableProps {
     isLoading?: boolean;
     onUpdateStatus?: (id: number, status: string) => void;
     onViewDetail?: (id: number) => void;
+    onDelete?: (id: number) => void;
 }
 
-export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDetail }: ThreatTableProps) {
+export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDetail, onDelete }: ThreatTableProps) {
     const [gscLoading, setGscLoading] = React.useState<number | null>(null);
 
     const handleGSCRemove = async (threatId: number) => {
@@ -135,6 +136,13 @@ export default function ThreatTable({ data, isLoading, onUpdateStatus, onViewDet
                             className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             isLoading={gscLoading === threat.id}
                             onPress={() => handleGSCRemove(threat.id)}>
+                            <FiSend className="w-4 h-4" />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip content="Hapus Ancaman">
+                        <Button isIconOnly size="sm" variant="light" color="danger" radius="full"
+                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onPress={() => onDelete?.(threat.id)}>
                             <FiTrash2 className="w-4 h-4" />
                         </Button>
                     </Tooltip>

@@ -87,4 +87,8 @@ async function getStatsByFakultas(fakultasId: string): Promise<{ id: string; nam
   return res.data.data || [];
 }
 
-export const threatService = { listThreats, getThreat, updateStatus, getStats, getStatsByFakultas };
+async function deleteThreat(id: number): Promise<void> {
+  await webmonClient.delete(`/api/v1/threats/${id}`);
+}
+
+export const threatService = { listThreats, getThreat, updateStatus, deleteThreat, getStats, getStatsByFakultas };

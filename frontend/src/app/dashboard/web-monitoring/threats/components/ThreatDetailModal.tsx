@@ -5,7 +5,7 @@ import {
     Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
     Button, Chip, Divider, Spinner, Textarea,
 } from "@heroui/react";
-import { FiExternalLink, FiCheck, FiX, FiTrash2, FiAlertCircle, FiMessageCircle } from "react-icons/fi";
+import { FiExternalLink, FiCheck, FiX, FiTrash2, FiSend, FiAlertCircle, FiMessageCircle } from "react-icons/fi";
 import { threatService, Threat } from "@/lib/services/webmon/threatService";
 import { gscService } from "@/lib/services/webmon/gscService";
 import { toast } from "react-hot-toast";
@@ -15,6 +15,7 @@ interface ThreatDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     onStatusUpdated?: () => void;
+    onDelete?: (id: number) => void;
 }
 
 const STATUS_COLOR: Record<string, "danger" | "warning" | "success" | "default"> = {
@@ -33,7 +34,7 @@ function ScoreBadge({ score }: { score: number }) {
     );
 }
 
-export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusUpdated }: ThreatDetailModalProps) {
+export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusUpdated, onDelete }: ThreatDetailModalProps) {
     const [threat, setThreat] = useState<Threat | null>(null);
     const [loading, setLoading] = useState(false);
     const [notes, setNotes] = useState("");
@@ -312,11 +313,21 @@ export default function ThreatDetailModal({ threatId, isOpen, onClose, onStatusU
                                 radius="md"
                                 variant="flat"
                                 color="primary"
-                                startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+                                startContent={<FiSend className="w-3.5 h-3.5" />}
                                 isLoading={actionLoading === "gsc"}
                                 onPress={handleGSCRemove}
                             >
                                 Request GSC Removal
+                            </Button>
+                            <Button
+                                size="sm"
+                                radius="md"
+                                variant="flat"
+                                color="danger"
+                                startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+                                onPress={() => { onDelete?.(threat.id); onClose(); }}
+                            >
+                                Hapus
                             </Button>
                             {threat.status === "pending" && (
                                 <>

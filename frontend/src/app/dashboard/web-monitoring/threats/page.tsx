@@ -66,6 +66,17 @@ export default function ThreatsPage() {
         }
     };
 
+    const handleDelete = async (id: number) => {
+        if (!window.confirm("Yakin ingin menghapus ancaman ini?")) return;
+        try {
+            await threatService.deleteThreat(id);
+            toast.success("Threat berhasil dihapus");
+            fetchData();
+        } catch {
+            toast.error("Gagal menghapus threat");
+        }
+    };
+
     const handleViewDetail = (id: number) => {
         setSelectedThreatId(id);
         setIsDetailOpen(true);
@@ -114,6 +125,7 @@ export default function ThreatsPage() {
                         isLoading={isLoading}
                         onUpdateStatus={handleUpdateStatus}
                         onViewDetail={handleViewDetail}
+                        onDelete={handleDelete}
                     />
                 </CardBody>
             </Card>
@@ -123,6 +135,7 @@ export default function ThreatsPage() {
                 isOpen={isDetailOpen}
                 onClose={() => setIsDetailOpen(false)}
                 onStatusUpdated={fetchData}
+                onDelete={handleDelete}
             />
         </div>
     );
