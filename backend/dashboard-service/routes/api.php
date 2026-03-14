@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Dashboard\PegawaiController;
 use App\Http\Controllers\Api\Dashboard\KeuanganController;
 use App\Http\Controllers\Api\Dashboard\PrestasiController;
 use App\Http\Controllers\Api\Dashboard\KerjasamaController;
+use App\Http\Controllers\Api\Dashboard\IkuController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/keuangan', [KeuanganController::class, 'index']);
         Route::get('/prestasi', [PrestasiController::class, 'index']);
         Route::get('/kerjasama', [KerjasamaController::class, 'index']);
+        Route::get('/iku', [IkuController::class, 'index']);
     });
 
     // Protected routes (JWT authentication required)
