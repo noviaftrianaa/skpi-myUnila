@@ -16,6 +16,7 @@ import {
   FiServer,
   FiAlertCircle,
   FiBookOpen,
+  FiFolder,
 } from "react-icons/fi";
 import { MdDashboard, MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
@@ -42,16 +43,6 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
       {
         title: "Dosen",
         href: "/dashboard/sister-integrator/pdrd/dosen",
-        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
-      },
-      {
-        title: "Foto Dosen",
-        href: "/dashboard/sister-integrator/pdrd/dosen-foto",
-        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
-      },
-      {
-        title: "Dokumen Dosen",
-        href: "/dashboard/sister-integrator/pdrd/dosen-dokumen",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
       {
@@ -107,6 +98,23 @@ export const sisterIntegratorMenuConfig: MenuItem[] = [
       {
         title: "Bidang Ilmu",
         href: "/dashboard/sister-integrator/pdrd/bidang-ilmu",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+    ],
+  },
+  {
+    title: "Dokumen",
+    icon: <FiFolder className="w-5 h-5" />,
+    roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+    children: [
+      {
+        title: "Foto Dosen",
+        href: "/dashboard/sister-integrator/pdrd/dosen-foto",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
+      {
+        title: "Dokumen Dosen",
+        href: "/dashboard/sister-integrator/pdrd/dosen-dokumen",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
     ],

@@ -63,8 +63,11 @@ func (ctrl *Controller) GetDosenPhoto(c *fiber.Ctx) error {
 		}
 		idSdm = decrypted
 	} else {
-		// Fallback: assume it's already a plain id_sdm (for backward compatibility)
-		idSdm = encryptedId
+		// SECURITY: Do not accept plain IDs — encryption service must be initialized
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Encryption service not initialized",
+		})
 	}
 
 	// Get photo from SISTER API
@@ -88,8 +91,10 @@ func (ctrl *Controller) GetDosenPhoto(c *fiber.Ctx) error {
 	// Set content type header
 	c.Set("Content-Type", contentType)
 
-	// Set cache headers (cache for 1 hour)
+	// Set cache and security headers
 	c.Set("Cache-Control", "public, max-age=3600")
+	c.Set("X-Content-Type-Options", "nosniff")
+	c.Set("Content-Security-Policy", "default-src 'none'")
 
 	// Return photo binary
 	return c.Send(photoBytes)
