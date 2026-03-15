@@ -53,7 +53,7 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
 		FROM keuangan.spp_mhs s
-		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
+		LEFT JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
 		%s
 	`, whereClause)
 
@@ -78,8 +78,8 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
-		INNER JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
-		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+		LEFT JOIN pdrd.reg_pd rp ON s.id_reg_pd = rp.id_reg_pd
+		LEFT JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
 		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
