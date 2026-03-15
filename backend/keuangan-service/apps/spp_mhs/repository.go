@@ -74,7 +74,7 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
@@ -82,6 +82,7 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 		LEFT JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
 		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
+		LEFT JOIN pdrd.sms fak ON sms.id_fak_unila = fak.id_sms AND fak.soft_delete = 0
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		%s
 		ORDER BY s.tgl_bayar DESC
@@ -143,7 +144,7 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
@@ -151,6 +152,7 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
 		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
+		LEFT JOIN pdrd.sms fak ON sms.id_fak_unila = fak.id_sms AND fak.soft_delete = 0
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		WHERE s.id_spp_mhs = @p1 AND s.soft_delete = 0
 	`
@@ -187,7 +189,7 @@ func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(didik.nm_jenj_didik + ' - ', '') + ISNULL(sms.nm_lemb, '') as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
@@ -195,6 +197,7 @@ func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDe
 		INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
 		LEFT JOIN pdrd.sms sms ON rp.id_sms = sms.id_sms
 		LEFT JOIN ref.jenjang_pendidikan didik ON sms.id_jenj_didik = didik.id_jenj_didik
+		LEFT JOIN pdrd.sms fak ON sms.id_fak_unila = fak.id_sms AND fak.soft_delete = 0
 		LEFT JOIN keuangan.kelas_ukt k ON s.id_kelas_ukt = k.id_kelas_ukt
 		WHERE rp.nipd = @p1 AND s.soft_delete = 0
 		ORDER BY s.id_smt DESC
