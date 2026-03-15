@@ -1,0 +1,188 @@
+services:
+  # ─── Prometheus ────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: myunila-prometheus-staging
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.external-url=http://192.168.120.45:9090'
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - myunila-staging-network
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Grafana ───────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: myunila-grafana-staging
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_SERVER_ROOT_URL: http://192.168.120.45:9800/grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SERVER_HTTP_PORT: 3000
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_FEATURE_TOGGLES_ENABLE: publicDashboards
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - myunila-staging-network
+      - monitoring-network
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Loki ──────────────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: myunila-loki-staging
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./config/loki/config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ─── Promtail ──────────────────────────────────────────────────────
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: myunila-promtail-staging
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./config/promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+    networks:
+      - monitoring-network
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  # ─── Node Exporter ─────────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: myunila-node-exporter-staging
+    restart: unless-stopped
+    pid: host
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth|br|docker|lo).*'
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring-network
+
+  # ─── cAdvisor ──────────────────────────────────────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: myunila-cadvisor-staging
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "18080:8080"
+    networks:
+      - myunila-staging-network
+      - monitoring-network
+
+  # ─── Redis Exporter ────────────────────────────────────────────────
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.61.0
+    container_name: myunila-redis-exporter-staging
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://myunila-redis-staging:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - myunila-staging-network
+      - monitoring-network
+
+  # ─── Nginx Prometheus Exporter ─────────────────────────────────────
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: myunila-nginx-exporter-staging
+    restart: unless-stopped
+    command:
+      - '--nginx.scrape-uri=http://myunila-nginx-staging:8090/stub_status'
+    ports:
+      - "9113:9113"
+    networks:
+      - myunila-staging-network
+      - monitoring-network
+    depends_on:
+      - nginx-stub-check
+
+  # ─── Helper: pastikan nginx stub reachable sebelum exporter start ──
+  nginx-stub-check:
+    image: busybox
+    container_name: myunila-nginx-stub-check
+    command: sh -c "until wget -qO- http://myunila-nginx-staging:8090/stub_status; do echo waiting for nginx stub_status...; sleep 3; done"
+    networks:
+      - myunila-staging-network
+    restart: "no"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network
+  monitoring-network:
+    driver: bridge
+    name: myunila-monitoring-network
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local

@@ -37,12 +37,17 @@ interface MonitoringTool {
   features: string[];
 }
 
+const GRAFANA_URL = process.env.NEXT_PUBLIC_GRAFANA_URL || "http://localhost:3001";
+const PROMETHEUS_URL = process.env.NEXT_PUBLIC_PROMETHEUS_URL || "http://localhost:9090";
+const LOKI_URL = process.env.NEXT_PUBLIC_LOKI_URL || "http://localhost:3100";
+const CADVISOR_URL = process.env.NEXT_PUBLIC_CADVISOR_URL || "http://localhost:18080";
+
 const monitoringTools: MonitoringTool[] = [
   {
     id: "grafana",
     name: "Grafana",
     description: "Visualization & Dashboards",
-    url: "http://localhost:3002",
+    url: GRAFANA_URL,
     icon: <SiGrafana className="w-8 h-8" />,
     color: "from-orange-500 to-orange-600",
     category: "visualization",
@@ -57,7 +62,7 @@ const monitoringTools: MonitoringTool[] = [
     id: "prometheus",
     name: "Prometheus",
     description: "Metrics Database & Time-Series",
-    url: "http://localhost:9090",
+    url: PROMETHEUS_URL,
     icon: <SiPrometheus className="w-8 h-8" />,
     color: "from-red-500 to-red-600",
     category: "metrics",
@@ -72,7 +77,7 @@ const monitoringTools: MonitoringTool[] = [
     id: "loki",
     name: "Loki",
     description: "Log Aggregation System",
-    url: "http://localhost:3100",
+    url: LOKI_URL,
     icon: <HiDocumentText className="w-8 h-8" />,
     color: "from-green-500 to-green-600",
     category: "logs",
@@ -102,7 +107,7 @@ const monitoringTools: MonitoringTool[] = [
     id: "cadvisor",
     name: "cAdvisor",
     description: "Container Metrics Exporter",
-    url: "http://localhost:8090",
+    url: CADVISOR_URL,
     icon: <FiServer className="w-8 h-8" />,
     color: "from-indigo-500 to-indigo-600",
     category: "container",
@@ -117,7 +122,7 @@ const monitoringTools: MonitoringTool[] = [
     id: "node-exporter",
     name: "Node Exporter",
     description: "System Metrics Exporter",
-    url: "http://localhost:9100/metrics",
+    url: `${PROMETHEUS_URL}/graph?g0.expr=node_uname_info`,
     icon: <MdSpeed className="w-8 h-8" />,
     color: "from-purple-500 to-purple-600",
     category: "metrics",
@@ -132,28 +137,34 @@ const monitoringTools: MonitoringTool[] = [
 
 const grafanaDashboards = [
   {
-    id: "myunila-logs",
-    name: "MyUnila - Application Logs",
-    description: "View all application logs in one dashboard",
-    url: "http://localhost:3002/d/myunila-logs",
+    id: "node-exporter",
+    name: "Node Exporter Full",
+    description: "CPU, Memory, Disk, Network — host system metrics",
+    url: `${GRAFANA_URL}/d/rYdddlPWk/node-exporter-full`,
   },
   {
-    id: "system-overview",
-    name: "System Overview",
-    description: "CPU, Memory, Disk, Network metrics",
-    url: "http://localhost:3002/dashboards",
+    id: "cadvisor",
+    name: "Container Metrics (cAdvisor)",
+    description: "Per-container resource usage & performance",
+    url: `${GRAFANA_URL}/dashboards`,
   },
   {
-    id: "container-metrics",
-    name: "Container Metrics",
-    description: "Docker container resource usage",
-    url: "http://localhost:3002/dashboards",
+    id: "kong",
+    name: "Kong API Gateway",
+    description: "Request rate, latency, error rate per service",
+    url: `${GRAFANA_URL}/dashboards`,
+  },
+  {
+    id: "myunila-overview",
+    name: "MyUnila Overview",
+    description: "Custom dashboard — all services at a glance",
+    url: `${GRAFANA_URL}/dashboards`,
   },
 ];
 
 export default function MonitoringPage() {
   const { user, isLoading: authLoading } = useRequireAuth({
-    requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"],
+    requireRole: ["Developer", "Administrator"],
   });
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("tools");

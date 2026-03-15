@@ -250,6 +250,21 @@ create_service_route "webmon-service" \
     "${WEBMON_SERVICE_URL:-http://myunila-monitoring-staging:8089}" \
     "webmon-service" 100
 
+# Monitoring Stack
+# Frontend
+create_service_route "frontend-service" \
+    "http://myunila-frontend-staging:3000" \
+    "" 1
+
+# Monitoring Stack
+create_service_route "grafana-service" \
+    "http://myunila-grafana-staging:3000" \
+    "grafana" 100
+
+create_service_route "prometheus-service" \
+    "http://myunila-prometheus-staging:9090" \
+    "prometheus" 100
+
 ###############################################################################
 # Summary
 ###############################################################################

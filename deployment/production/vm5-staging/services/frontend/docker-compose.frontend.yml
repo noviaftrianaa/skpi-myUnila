@@ -16,6 +16,10 @@ services:
         - NEXT_PUBLIC_DASHBOARD_API_URL=${NEXT_PUBLIC_DASHBOARD_API_URL}
         - NEXT_PUBLIC_ONEDATA_API_URL=${NEXT_PUBLIC_ONEDATA_API_URL}
         - NEXT_PUBLIC_WEBMON_API_URL=${NEXT_PUBLIC_WEBMON_API_URL}
+        - NEXT_PUBLIC_GRAFANA_URL=${NEXT_PUBLIC_GRAFANA_URL}
+        - NEXT_PUBLIC_PROMETHEUS_URL=${NEXT_PUBLIC_PROMETHEUS_URL}
+        - NEXT_PUBLIC_LOKI_URL=${NEXT_PUBLIC_LOKI_URL}
+        - NEXT_PUBLIC_CADVISOR_URL=${NEXT_PUBLIC_CADVISOR_URL}
     image: myunila/frontend:staging
     container_name: myunila-frontend-staging
     restart: unless-stopped
@@ -31,6 +35,10 @@ services:
       NEXT_PUBLIC_DASHBOARD_API_URL: "${NEXT_PUBLIC_DASHBOARD_API_URL}"
       NEXT_PUBLIC_ONEDATA_API_URL: "${NEXT_PUBLIC_ONEDATA_API_URL}"
       NEXT_PUBLIC_WEBMON_API_URL: "${NEXT_PUBLIC_WEBMON_API_URL}"
+      NEXT_PUBLIC_GRAFANA_URL: "${NEXT_PUBLIC_GRAFANA_URL}"
+      NEXT_PUBLIC_PROMETHEUS_URL: "${NEXT_PUBLIC_PROMETHEUS_URL}"
+      NEXT_PUBLIC_LOKI_URL: "${NEXT_PUBLIC_LOKI_URL}"
+      NEXT_PUBLIC_CADVISOR_URL: "${NEXT_PUBLIC_CADVISOR_URL}"
       # Performance tuning (reduced for staging)
       NODE_OPTIONS: "--max-old-space-size=1024"
       UV_THREADPOOL_SIZE: 4
@@ -51,7 +59,7 @@ services:
       - myunila-staging-network
 
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -61,3 +61,6 @@ deployment/local/secrets/
 
 # Root-level plan/temp docs
 MINIO_SETUP_PLAN.md
+
+# Monitoring & internal deployment plans (local only)
+deployment/docs/
