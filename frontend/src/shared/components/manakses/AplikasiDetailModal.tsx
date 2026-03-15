@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { authClient } from "@/lib/api/client";
+import toast from "react-hot-toast";
 import {
   Modal,
   ModalContent,
@@ -12,9 +14,12 @@ import {
   Tabs,
   Tab,
   Spinner,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { FiEdit2, FiInfo, FiList, FiUsers, FiDatabase, FiCalendar, FiSettings } from "react-icons/fi";
 import { type AplikasiDetail } from "@/lib/services/manakses/aplikasiService";
+import { FiTrash2, FiPlus } from "react-icons/fi";
 import { menuService, type Menu } from "@/lib/services/manakses/menuService";
 import MenuTreeView from "./MenuTreeView";
 
@@ -418,6 +423,21 @@ export default function AplikasiDetailModal({
                     )}
                   </div>
                 </Tab>
+
+                {/* Tab Organisasi Whitelist */}
+                {aplikasi?.a_filter_organisasi && (
+                  <Tab
+                    key="organisasi"
+                    title={
+                      <div className="flex items-center gap-1.5">
+                        <FiUsers className="w-3.5 h-3.5" />
+                        <span>Organisasi</span>
+                      </div>
+                    }
+                  >
+                    <OrganisasiWhitelist aplikasiId={aplikasi?.id_aplikasi || ""} />
+                  </Tab>
+                )}
               </Tabs>
             </div>
           ) : (
@@ -445,5 +465,143 @@ export default function AplikasiDetailModal({
         </ModalFooter>
       </ModalContent>
     </Modal>
+  );
+}
+
+// Organisasi Whitelist sub-component
+function OrganisasiWhitelist({ aplikasiId }: { aplikasiId: string }) {
+  const [orgs, setOrgs] = useState<any[]>([]);
+  const [allUnits, setAllUnits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrg, setSelectedOrg] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const loadOrgs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await authClient.get(`/manakses/aplikasi/${aplikasiId}/organisasi`);
+      setOrgs(res.data.data || []);
+    } catch (e) {
+      console.error("Error loading orgs:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [aplikasiId]);
+
+  const loadUnits = useCallback(async () => {
+    try {
+      const res = await authClient.get("/manakses/unit-organisasi?limit=200");
+      setAllUnits(res.data.data || []);
+    } catch (e) {
+      console.error("Error loading units:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOrgs();
+    loadUnits();
+  }, [loadOrgs, loadUnits]);
+
+  const handleAdd = async () => {
+    if (!selectedOrg) return;
+    setAdding(true);
+    try {
+      await authClient.post(`/manakses/aplikasi/${aplikasiId}/organisasi`, {
+        id_organisasi: selectedOrg,
+        a_include_children: true,
+      });
+      toast.success("Organisasi berhasil ditambahkan");
+      setSelectedOrg("");
+      loadOrgs();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Gagal menambah organisasi");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (orgId: string) => {
+    try {
+      await authClient.delete(`/manakses/aplikasi/${aplikasiId}/organisasi/${orgId}`);
+      toast.success("Organisasi dihapus dari whitelist");
+      loadOrgs();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Gagal menghapus");
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Spinner size="sm" /></div>;
+
+  const existingOrgIds = orgs.map((o: any) => o.id_organisasi);
+  const availableUnits = allUnits.filter((u: any) => !existingOrgIds.includes(u.id_organisasi));
+
+  return (
+    <div className="space-y-4">
+      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-700 dark:text-blue-300">
+          Hanya organisasi di bawah ini yang bisa mengakses aplikasi ini. Role universal (Mahasiswa, Dosen, Tendik, Rektor, dll) tetap bisa akses tanpa whitelist.
+        </p>
+      </div>
+
+      {/* Add new */}
+      <div className="flex gap-2">
+        <Select
+          aria-label="Pilih Organisasi"
+          placeholder="Pilih organisasi untuk ditambahkan..."
+          selectedKeys={selectedOrg ? [selectedOrg] : []}
+          onSelectionChange={(keys) => setSelectedOrg(Array.from(keys)[0] as string || "")}
+          size="sm"
+          variant="bordered"
+          classNames={{ base: "flex-1" }}
+        >
+          {availableUnits.map((u: any) => (
+            <SelectItem key={u.id_organisasi}>
+              {u.nm_lemb}
+            </SelectItem>
+          ))}
+        </Select>
+        <Button
+          size="sm"
+          color="primary"
+          startContent={<FiPlus className="w-3.5 h-3.5" />}
+          onPress={handleAdd}
+          isLoading={adding}
+          isDisabled={!selectedOrg}
+        >
+          Tambah
+        </Button>
+      </div>
+
+      {/* List */}
+      {orgs.length === 0 ? (
+        <div className="text-center py-6 text-gray-500 text-sm">
+          Belum ada organisasi yang di-whitelist
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {orgs.map((org: any) => (
+            <div key={org.id_organisasi} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <FiUsers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white">{org.nm_organisasi}</p>
+                  {org.a_include_children ? (
+                    <p className="text-xs text-gray-500">Termasuk sub-organisasi</p>
+                  ) : null}
+                </div>
+              </div>
+              <Button
+                isIconOnly size="sm" variant="flat" color="danger"
+                onPress={() => handleRemove(org.id_organisasi)}
+              >
+                <FiTrash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
