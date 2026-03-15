@@ -30,6 +30,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
   const [formData, setFormData] = useState<PeranCreateData>({
     nm_peran: "",
     a_perlu_sk: false,
+    a_universal: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -113,6 +114,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
     setFormData({
       nm_peran: "",
       a_perlu_sk: false,
+    a_universal: false,
     });
     onAddOpen();
   };
@@ -122,6 +124,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
     setFormData({
       nm_peran: item.nm_peran,
       a_perlu_sk: item.a_perlu_sk,
+      a_universal: item.a_universal || false,
     });
     onEditOpen();
   };
@@ -469,6 +472,28 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
                     <span className="text-sm font-medium text-gray-800 dark:text-white">Perlu SK Penugasan</span>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                       Peran ini memerlukan SK untuk aktivasi
+                    </p>
+                  </div>
+                </label>
+
+                {/* Universal Role */}
+                <label
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                    formData.a_universal
+                      ? "border-blue-400 bg-white dark:bg-blue-900/20 shadow-sm"
+                      : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.a_universal}
+                    onChange={(e) => setFormData({ ...formData, a_universal: e.target.checked })}
+                    className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-gray-800 dark:text-white">Role Universal</span>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                      Bypass filter organisasi — bisa akses semua aplikasi terlepas organisasi
                     </p>
                   </div>
                 </label>

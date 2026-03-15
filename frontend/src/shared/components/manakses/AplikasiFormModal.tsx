@@ -496,6 +496,7 @@ export default function AplikasiFormModal({
     a_coming_soon: false,
     a_terintegrasi: false,
     a_live: false,
+    a_filter_organisasi: false,
     status: 'Aktif',
   });
 
@@ -565,6 +566,7 @@ export default function AplikasiFormModal({
         a_coming_soon: aplikasi.a_coming_soon || false,
         a_terintegrasi: aplikasi.a_terintegrasi || false,
         a_live: aplikasi.a_live || false,
+        a_filter_organisasi: aplikasi.a_filter_organisasi || false,
         status: aplikasi.status || 'Aktif',
       });
       // Set selected unit for edit mode (to preserve in autocomplete list)
@@ -605,6 +607,7 @@ export default function AplikasiFormModal({
         a_coming_soon: false,
         a_terintegrasi: false,
         a_live: false,
+    a_filter_organisasi: false,
         status: 'Aktif',
       });
       setSelectedUnit(null);
@@ -1224,6 +1227,38 @@ export default function AplikasiFormModal({
                           className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
                         />
                         <span className="text-sm font-medium text-gray-800 dark:text-white">Terintegrasi myUnila</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Akses Organisasi Section */}
+                  <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      Pembatasan Akses Organisasi
+                    </h4>
+                    <div className="space-y-3">
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_filter_organisasi
+                            ? "border-blue-400 bg-white dark:bg-blue-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_filter_organisasi}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_filter_organisasi: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Filter Organisasi</span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Jika aktif, hanya organisasi yang di-whitelist yang bisa mengakses aplikasi ini. Role universal (Mahasiswa, Dosen, Tendik, Rektor, dll) tetap bisa akses.
+                          </p>
+                        </div>
                       </label>
                     </div>
                   </div>
