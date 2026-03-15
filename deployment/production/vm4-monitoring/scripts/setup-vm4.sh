@@ -19,7 +19,7 @@ echo -e "${GREEN}=========================================${NC}"
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MONITORING_DIR="$BASE_DIR/services/monitoring"
 ENV_FILE="$MONITORING_DIR/.env"
 
