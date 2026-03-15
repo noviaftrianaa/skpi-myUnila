@@ -153,7 +153,7 @@ services:
 
 networks:
   monitoring-network:
-    driver: bridge
+    external: true
     name: myunila-monitoring-network
 
 volumes:
