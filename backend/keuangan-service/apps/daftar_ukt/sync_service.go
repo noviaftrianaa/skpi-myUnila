@@ -167,7 +167,7 @@ func (s *service) SyncDaftarUKTWithID(ctx context.Context, syncID string, filter
 			KodeFakultas:    item.KodeFak,
 			NamaFakultas:    item.NamaFakultas,
 			KodeKelas:       item.KodeKelas,
-			NamaKelas:       item.NamaKelas,
+			NamaKelas:       deriveNamaKelas(item.KodeKelas, item.NamaKelas),
 			Nominal:         float64(item.Nominal),
 			KodeStrata:      int(item.KodeStrata),
 			IDSMS:           idSMS,
@@ -297,4 +297,32 @@ func GetJenjangName(kodeStrata int) string {
 // Helper to check if error is "no rows"
 func isNoRows(err error) bool {
 	return err == sql.ErrNoRows
+}
+
+// deriveNamaKelas generates nama_kelas from kode_kelas if API response is empty
+func deriveNamaKelas(kodeKelas, namaKelas string) string {
+	if namaKelas != "" {
+		return namaKelas
+	}
+	switch kodeKelas {
+	case "1":
+		return "KELOMPOK I"
+	case "2":
+		return "KELOMPOK II"
+	case "3":
+		return "KELOMPOK III"
+	case "4":
+		return "KELOMPOK IV"
+	case "5":
+		return "KELOMPOK V"
+	case "6":
+		return "KELOMPOK VI"
+	case "7":
+		return "KELOMPOK VII"
+	case "8":
+		return "KELOMPOK VIII"
+	default:
+		// Kode 86-95 etc = BIDIKMISI/KIP
+		return "BIDIKMISI/KIP"
+	}
 }
