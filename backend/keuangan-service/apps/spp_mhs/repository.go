@@ -74,7 +74,7 @@ func (r *repository) GetSppMhsList(ctx context.Context, page, limit int, idSmt *
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' - ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(sms.nm_lemb, ''), 'Program Studi S1 ', ''), 'Program Studi S2 ', ''), 'Program Studi S3 ', ''), 'Program Studi D3 ', ''), 'Program Studi D4 ', ''), 'Program Studi ', '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
@@ -144,7 +144,7 @@ func (r *repository) GetSppMhsByID(ctx context.Context, id uuid.UUID) (*SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' - ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(sms.nm_lemb, ''), 'Program Studi S1 ', ''), 'Program Studi S2 ', ''), 'Program Studi S3 ', ''), 'Program Studi D3 ', ''), 'Program Studi D4 ', ''), 'Program Studi ', '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
@@ -189,7 +189,7 @@ func (r *repository) GetSppMhsByNPM(ctx context.Context, npm string) ([]SppMhsDe
 			   s.soft_delete, s.last_sync,
 			   rp.nipd as npm,
 			   pd.nm_pd as nama_mahasiswa,
-			   ISNULL(NULLIF(fak.nm_lemb, '') + ' | ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + CASE WHEN sms.nm_lemb LIKE 'Program Studi %' THEN LTRIM(SUBSTRING(sms.nm_lemb, CHARINDEX(' ', sms.nm_lemb, 16) + 1, LEN(sms.nm_lemb))) ELSE ISNULL(sms.nm_lemb, '') END as nama_prodi,
+			   ISNULL(NULLIF(fak.nm_lemb, '') + ' - ', '') + ISNULL(didik.nm_jenj_didik + ' ', '') + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(sms.nm_lemb, ''), 'Program Studi S1 ', ''), 'Program Studi S2 ', ''), 'Program Studi S3 ', ''), 'Program Studi D3 ', ''), 'Program Studi D4 ', ''), 'Program Studi ', '') as nama_prodi,
 			   k.nm_kelas_ukt as nama_kelas_ukt,
 			   k.nominal_ukt as nominal_ukt
 		FROM keuangan.spp_mhs s
