@@ -132,7 +132,7 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
     ],
   },
   {
-    title: "Keuangan (SIMPEDAM)",
+    title: "Keuangan",
     icon: <FiDollarSign className="w-5 h-5" />,
     roles: defaultRoles,
     children: [

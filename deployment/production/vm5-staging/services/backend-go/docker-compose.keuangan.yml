@@ -31,6 +31,12 @@ services:
       # Go runtime (reduced for staging)
       GOMAXPROCS: 2
 
+      # SIMPEDAM API — credential loaded from DB (setting.api_configs), env sebagai trigger inisialisasi
+      SIMPEDAM_ENDPOINT: ${SIMPEDAM_ENDPOINT:-https://simpedam.unila.ac.id/ws/live2unila.php}
+      SIMPEDAM_USER: ${SIMPEDAM_USER:-system}
+      SIMPEDAM_PASSWORD: ${SIMPEDAM_PASSWORD:-}
+      SIMPEDAM_API_CODE: SIMPEDAM
+
       # Timezone
       TZ: ${TZ:-Asia/Jakarta}
 

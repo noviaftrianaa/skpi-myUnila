@@ -56,7 +56,7 @@
       ]
     },
     {
-      "nm_menu": "Keuangan (SIMPEDAM)",
+      "nm_menu": "Keuangan",
       "nm_file": "#keuangan",
       "icon": "heroicons:banknotes",
       "urutan": 6,
