@@ -83,7 +83,7 @@ groups:
           summary: "🔴 Redis DOWN di {{ $labels.instance }}"
 
       - alert: RedisHighMemory
-        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        expr: redis_memory_max_bytes > 0 and (redis_memory_used_bytes / redis_memory_max_bytes * 100) > 80
         for: 5m
         labels:
           severity: warning
