@@ -80,6 +80,17 @@ else
     echo -e "  ${YELLOW}⚠️  ufw tidak ditemukan, skip firewall setup${NC}"
 fi
 
+# ─── 4b. Generate alertmanager config dengan nilai dari .env ──
+echo -e "${YELLOW}[4b] Generating alertmanager config...${NC}"
+ALERTMANAGER_CONFIG="$MONITORING_DIR/config/alertmanager/config.yml"
+sed -i \
+    "s|\${TELEGRAM_BOT_TOKEN}|${TELEGRAM_BOT_TOKEN}|g" \
+    "$ALERTMANAGER_CONFIG"
+sed -i \
+    "s|\${TELEGRAM_CHAT_ID}|${TELEGRAM_CHAT_ID}|g" \
+    "$ALERTMANAGER_CONFIG"
+echo -e "  ${GREEN}✅ Alertmanager config generated${NC}"
+
 # ─── 5. Pull images ────────────────────────────────────────
 echo -e "${YELLOW}[5/6] Pulling Docker images...${NC}"
 cd "$MONITORING_DIR"
