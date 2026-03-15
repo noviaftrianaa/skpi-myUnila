@@ -171,3 +171,57 @@ SELECT id_peran, nm_peran FROM man_akses.peran WHERE a_universal = 1 AND expired
 PRINT '';
 PRINT '=== Migration completed successfully ===';
 GO
+
+-- ============================================================================
+-- STEP 7: Add id_peran to ws_authorization
+-- Agar bisa assign endpoint access per-role (bukan hanya per-user)
+-- ============================================================================
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'man_akses' AND TABLE_NAME = 'ws_authorization' AND COLUMN_NAME = 'id_peran')
+BEGIN
+    ALTER TABLE man_akses.ws_authorization ADD id_peran INT NULL;
+    PRINT 'Column id_peran added to ws_authorization';
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ws_auth_peran' AND object_id = OBJECT_ID('man_akses.ws_authorization'))
+BEGIN
+    CREATE INDEX IX_ws_auth_peran ON man_akses.ws_authorization(id_peran, id_ws_endpoint) WHERE soft_delete = 0;
+    PRINT 'Index IX_ws_auth_peran created';
+END
+GO
+
+-- ============================================================================
+-- STEP 8: Add a_maintenance and a_coming_soon to aplikasi (jika belum ada)
+-- ============================================================================
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'man_akses' AND TABLE_NAME = 'aplikasi' AND COLUMN_NAME = 'a_maintenance')
+BEGIN
+    ALTER TABLE man_akses.aplikasi ADD a_maintenance BIT DEFAULT 0;
+    PRINT 'Column a_maintenance added to aplikasi';
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'man_akses' AND TABLE_NAME = 'aplikasi' AND COLUMN_NAME = 'a_coming_soon')
+BEGIN
+    ALTER TABLE man_akses.aplikasi ADD a_coming_soon BIT DEFAULT 0;
+    PRINT 'Column a_coming_soon added to aplikasi';
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'man_akses' AND TABLE_NAME = 'aplikasi' AND COLUMN_NAME = 'a_terintegrasi')
+BEGIN
+    ALTER TABLE man_akses.aplikasi ADD a_terintegrasi BIT DEFAULT 0;
+    PRINT 'Column a_terintegrasi added to aplikasi';
+END
+GO
+
+PRINT '';
+PRINT '=== All Steps Completed ===';
+PRINT 'Tables altered: aplikasi, peran, ws_authorization';
+PRINT 'Tables created: aplikasi_organisasi';
+PRINT '';
+PRINT 'Next steps:';
+PRINT '1. Set a_filter_organisasi=1 pada apps yang perlu restrict';
+PRINT '2. INSERT whitelist organisasi ke aplikasi_organisasi';
+PRINT '3. Update checkAppAccess di auth-service';
+PRINT '4. Tambah RequireRole middleware di api-service endpoints';
+GO
