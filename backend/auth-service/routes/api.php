@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ManAkses\PeranController;
 use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
 use App\Http\Controllers\Api\ManAkses\EndpointController;
 use App\Http\Controllers\Api\ManAkses\KategoriAplikasiController;
+use App\Http\Controllers\Api\ManAkses\PjAplikasiController;
 use App\Http\Controllers\Api\ManAkses\MenuController;
 use App\Http\Controllers\Api\ManAkses\MenuRoleController;
 use App\Http\Controllers\Api\ManAkses\DashboardController;
@@ -188,6 +189,15 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [AplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{id}', [AplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
             Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey'])->middleware('permission:update,manajemen-akses');
+        });
+
+        // PJ Aplikasi (Penanggung Jawab)
+        Route::prefix('pj-aplikasi')->group(function () {
+            Route::get('/', [PjAplikasiController::class, 'index']);
+            Route::get('/{id}', [PjAplikasiController::class, 'show']);
+            Route::post('/', [PjAplikasiController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}', [PjAplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
+            Route::delete('/{id}', [PjAplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Unit Organisasi (Organization Unit Management)
