@@ -12,8 +12,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import { HiChartBar, HiDocumentText } from "react-icons/hi";
-import { SiGrafana, SiPrometheus, SiLoki } from "react-icons/si";
-import { MdSpeed, MdCheckCircle, MdError } from "react-icons/md";
+import { MdSpeed } from "react-icons/md";
 import { FaDocker } from "react-icons/fa";
 
 const GRAFANA_URL = process.env.NEXT_PUBLIC_GRAFANA_URL || "http://localhost:3001";
@@ -44,7 +43,7 @@ const tools: MonitoringTool[] = [
     description: "Visualization & Dashboards",
     url: `${GRAFANA_URL}/`,
     healthUrl: `${GRAFANA_URL}/api/health`,
-    icon: <SiGrafana className="w-7 h-7" />,
+    icon: <HiChartBar className="w-7 h-7" />,
     gradient: "from-orange-500 to-orange-600",
     isHero: true,
     features: ["Real-time dashboards", "Multi-datasource", "Alert management", "Custom panels"],
@@ -55,7 +54,7 @@ const tools: MonitoringTool[] = [
     description: "Metrics & Time-Series DB",
     url: `${PROMETHEUS_URL}/`,
     healthUrl: `${PROMETHEUS_URL}/-/healthy`,
-    icon: <SiPrometheus className="w-6 h-6" />,
+    icon: <FiActivity className="w-6 h-6" />,
     gradient: "from-red-500 to-red-600",
     features: ["PromQL queries", "6 active targets", "30-day retention", "Alert rules"],
   },
@@ -65,7 +64,7 @@ const tools: MonitoringTool[] = [
     description: "Log Aggregation",
     url: `${LOKI_URL}/`,
     healthUrl: `${LOKI_URL}/ready`,
-    icon: <SiLoki className="w-6 h-6" />,
+    icon: <HiDocumentText className="w-6 h-6" />,
     gradient: "from-green-500 to-emerald-600",
     features: ["Docker log collection", "LogQL queries", "31-day retention", "Label filtering"],
   },
@@ -340,7 +339,7 @@ export default function MonitoringPage() {
                 <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                   <div className="flex items-center gap-4 flex-1">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 flex-shrink-0">
-                      <SiGrafana className="w-6 h-6 sm:w-7 sm:h-7" />
+                      <HiChartBar className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
