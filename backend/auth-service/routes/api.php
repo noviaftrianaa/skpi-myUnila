@@ -175,18 +175,19 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [AplikasiController::class, 'index']);
             Route::get('/stats', [AplikasiController::class, 'stats']);
             Route::get('/categories', [AplikasiController::class, 'categories']);
+
+            // Organisasi whitelist per app (HARUS sebelum /{id} agar tidak conflict)
+            Route::get('/{id}/organisasi', [AplikasiController::class, 'getOrganisasi']);
+            Route::post('/{id}/organisasi', [AplikasiController::class, 'addOrganisasi'])->middleware('permission:insert,manajemen-akses');
+            Route::delete('/{id}/organisasi/{orgId}', [AplikasiController::class, 'removeOrganisasi'])->middleware('permission:delete,manajemen-akses');
+
             Route::get('/{id}', [AplikasiController::class, 'show']);
 
-            // Write operations - require permission check
+            // Write operations
             Route::post('/', [AplikasiController::class, 'store'])->middleware('permission:insert,manajemen-akses');
             Route::put('/{id}', [AplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{id}', [AplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
             Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey'])->middleware('permission:update,manajemen-akses');
-
-            // Organisasi whitelist per app
-            Route::get('/{id}/organisasi', [AplikasiController::class, 'getOrganisasi']);
-            Route::post('/{id}/organisasi', [AplikasiController::class, 'addOrganisasi'])->middleware('permission:insert,manajemen-akses');
-            Route::delete('/{id}/organisasi/{orgId}', [AplikasiController::class, 'removeOrganisasi'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Unit Organisasi (Organization Unit Management)
