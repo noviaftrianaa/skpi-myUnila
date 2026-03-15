@@ -170,7 +170,7 @@ export default function KeuanganDaftarUktTable() {
       render: (item) => (
         <div className="max-w-md">
           <div className="font-medium text-gray-900 dark:text-white line-clamp-1">
-            {item.nama_jenjang ? `${item.nama_jenjang} - ` : ""}{item.nama_prodi_sms}
+            {item.nama_prodi_sms || item.nama_prodi}
           </div>
         </div>
       ),
