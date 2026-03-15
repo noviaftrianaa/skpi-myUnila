@@ -64,3 +64,5 @@ MINIO_SETUP_PLAN.md
 
 # Monitoring & internal deployment plans (local only)
 deployment/docs/
+
+.env
