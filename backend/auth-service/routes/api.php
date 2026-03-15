@@ -182,6 +182,11 @@ Route::prefix('v1')->group(function () {
             Route::put('/{id}', [AplikasiController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{id}', [AplikasiController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
             Route::post('/{id}/regenerate-app-key', [AplikasiController::class, 'regenerateAppKey'])->middleware('permission:update,manajemen-akses');
+
+            // Organisasi whitelist per app
+            Route::get('/{id}/organisasi', [AplikasiController::class, 'getOrganisasi']);
+            Route::post('/{id}/organisasi', [AplikasiController::class, 'addOrganisasi'])->middleware('permission:insert,manajemen-akses');
+            Route::delete('/{id}/organisasi/{orgId}', [AplikasiController::class, 'removeOrganisasi'])->middleware('permission:delete,manajemen-akses');
         });
 
         // Unit Organisasi (Organization Unit Management)

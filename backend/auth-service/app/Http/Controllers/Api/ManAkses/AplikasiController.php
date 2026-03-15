@@ -178,6 +178,7 @@ class AplikasiController extends Controller
                 'a_coming_soon' => 'nullable|boolean',
                 'a_terintegrasi' => 'nullable|boolean',
                 'a_live' => 'nullable|boolean',
+                'a_filter_organisasi' => 'nullable|boolean',
                 'status' => 'nullable|string|in:Aktif,Tidak Aktif',
             ]);
 
@@ -186,7 +187,7 @@ class AplikasiController extends Controller
                 'url', 'port', 'teknologi', 'endpoint_ws',
                 'icon_name', 'icon_color', 'app_slug', 'urutan',
                 'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
-                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live',
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live', 'a_filter_organisasi',
                 'status'
             ]);
 
@@ -244,6 +245,7 @@ class AplikasiController extends Controller
                 'a_terintegrasi' => 'nullable|boolean',
                 'a_live' => 'nullable|boolean',
                 'status' => 'nullable|string|in:Aktif,Tidak Aktif',
+                'a_filter_organisasi' => 'nullable|boolean',
             ]);
 
             $data = $request->only([
@@ -251,7 +253,7 @@ class AplikasiController extends Controller
                 'url', 'port', 'teknologi', 'endpoint_ws',
                 'icon_name', 'icon_color', 'app_slug', 'urutan',
                 'a_generate_menu', 'a_integrasi_cas', 'a_sistem_internal_pt',
-                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live',
+                'a_tampil_portal', 'a_maintenance', 'a_coming_soon', 'a_terintegrasi', 'a_live', 'a_filter_organisasi',
                 'status'
             ]);
 
@@ -347,6 +349,110 @@ class AplikasiController extends Controller
                 'success' => false,
                 'message' => 'Gagal generate app key: ' . $e->getMessage(),
                 'data' => null
+            ], 500);
+        }
+    }
+}
+
+
+    /**
+     * Get whitelisted organisations for an application
+     */
+    public function getOrganisasi(string $id): JsonResponse
+    {
+        try {
+            $orgs = DB::select("
+                SELECT ao.id_app_org, CONVERT(VARCHAR(36), ao.id_organisasi) as id_organisasi, 
+                       ao.a_include_children, ao.ket,
+                       uo.nm_lemb as nm_organisasi
+                FROM man_akses.aplikasi_organisasi ao
+                LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = ao.id_organisasi
+                WHERE ao.id_aplikasi = ? AND ISNULL(ao.soft_delete, 0) = 0
+                ORDER BY uo.nm_lemb
+            ", [$id]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $orgs
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data organisasi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Add organisation to app whitelist
+     */
+    public function addOrganisasi(Request $request, string $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'id_organisasi' => 'required|string|max:36',
+                'a_include_children' => 'nullable|boolean',
+                'ket' => 'nullable|string|max:255',
+            ]);
+
+            // Cek duplicate
+            $exists = DB::selectOne("
+                SELECT COUNT(*) as cnt FROM man_akses.aplikasi_organisasi 
+                WHERE id_aplikasi = ? AND id_organisasi = ? AND ISNULL(soft_delete, 0) = 0
+            ", [$id, $request->id_organisasi]);
+
+            if ($exists && $exists->cnt > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Organisasi sudah terdaftar untuk aplikasi ini'
+                ], 409);
+            }
+
+            DB::insert("
+                INSERT INTO man_akses.aplikasi_organisasi 
+                (id_app_org, id_aplikasi, id_organisasi, a_include_children, ket, tgl_create, last_update, soft_delete, last_sync, id_updater)
+                VALUES (NEWID(), ?, ?, ?, ?, GETDATE(), GETDATE(), 0, GETDATE(), '00000000-0000-0000-0000-000000000000')
+            ", [$id, $request->id_organisasi, $request->a_include_children ?? 1, $request->ket]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Organisasi berhasil ditambahkan'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambah organisasi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove organisation from app whitelist
+     */
+    public function removeOrganisasi(string $id, string $orgId): JsonResponse
+    {
+        try {
+            $affected = DB::update("
+                UPDATE man_akses.aplikasi_organisasi 
+                SET soft_delete = 1, last_update = GETDATE()
+                WHERE id_aplikasi = ? AND id_organisasi = ? AND ISNULL(soft_delete, 0) = 0
+            ", [$id, $orgId]);
+
+            if ($affected === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Organisasi berhasil dihapus dari whitelist'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus organisasi: ' . $e->getMessage()
             ], 500);
         }
     }

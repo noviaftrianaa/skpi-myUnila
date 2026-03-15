@@ -148,10 +148,11 @@ class PeranController extends Controller
         try {
             $request->validate([
                 'nm_peran' => 'required|string|max:100',
+                'a_universal' => 'nullable|boolean',
                 'a_perlu_sk' => 'nullable|boolean',
             ]);
 
-            $data = $request->only(['nm_peran', 'a_perlu_sk']);
+            $data = $request->only(['nm_peran', 'a_perlu_sk', 'a_universal']);
             $result = $this->service->create($data);
 
             return response()->json([
@@ -186,10 +187,11 @@ class PeranController extends Controller
         try {
             $request->validate([
                 'nm_peran' => 'required|string|max:100',
+                'a_universal' => 'nullable|boolean',
                 'a_perlu_sk' => 'nullable|boolean',
             ]);
 
-            $data = $request->only(['nm_peran', 'a_perlu_sk']);
+            $data = $request->only(['nm_peran', 'a_perlu_sk', 'a_universal']);
             $result = $this->service->update($id, $data);
 
             if (!$result) {
