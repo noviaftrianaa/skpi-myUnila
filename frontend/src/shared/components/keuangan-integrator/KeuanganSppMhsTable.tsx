@@ -2,8 +2,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Select, SelectItem, Button, Input } from "@heroui/react";
+import {
+  Chip, Select, SelectItem, Button, Modal, ModalContent,
+  ModalHeader, ModalBody, ModalFooter,
+} from "@heroui/react";
 import { keuanganClient } from "@/lib/api/keuanganClient";
+import {
+  FiUser, FiCalendar, FiDollarSign, FiFileText, FiX,
+} from "react-icons/fi";
 
 interface SppMhsItem {
   id_spp_mhs: string;
@@ -18,6 +24,8 @@ interface SppMhsItem {
   jumlah_denda: number;
   jumlah_lainnya: number;
   sisa_tagihan: number;
+  a_cicil: number;
+  cicilan_ke: number;
   kode_pembayaran: string;
   nama_kelas_ukt?: string | null;
   nominal_ukt?: number | null;
@@ -41,36 +49,26 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
-  const [filterIdSmt, setFilterIdSmt] = useState<string>(""); // semester filter
-  const [semesters, setSemesters] = useState<SemesterOption[]>([]); // available semesters
+  const [filterIdSmt, setFilterIdSmt] = useState<string>("");
+  const [semesters, setSemesters] = useState<SemesterOption[]>([]);
   const [sortBy, setSortBy] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
+  // Detail modal
+  const [selectedItem, setSelectedItem] = useState<SppMhsItem | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
-  // Handle sort change
   const handleSortChange = (key: string, order: "asc" | "desc") => {
     setSortBy(key);
     setSortOrder(order);
     setCurrentPage(1);
   };
 
-  // Load available semesters on mount
   useEffect(() => {
     const loadSemesters = async () => {
       try {
         const response = await keuanganClient.get('/spp-mhs/semesters/all');
-        if (response.data.success) {
-          setSemesters(response.data.data || []);
-        }
+        if (response.data.success) setSemesters(response.data.data || []);
       } catch (error) {
         console.error('Error loading semesters:', error);
       }
@@ -78,7 +76,6 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
     loadSemesters();
   }, []);
 
-  // Load data when filters change
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -88,31 +85,17 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
           limit: rowsPerPage.toString(),
           _t: Date.now().toString(),
         });
-
-        if (searchQuery) {
-          params.append("search", searchQuery);
-        }
-
-        // Semester filter
-        if (filterIdSmt) {
-          params.append("id_smt", filterIdSmt);
-        }
-
+        if (searchQuery) params.append("search", searchQuery);
+        if (filterIdSmt) params.append("id_smt", filterIdSmt);
         if (sortBy) {
           params.append("sort_by", sortBy);
           params.append("sort_order", sortOrder);
         }
 
         const response = await keuanganClient.get(`/spp-mhs?${params.toString()}`);
-        console.log('[KeuanganSppMhsTable] API Response:', response.data);
-
         if (response.data.success) {
-          const items = response.data.data || [];
-          console.log('[KeuanganSppMhsTable] Setting data:', items.length, 'items, total:', response.data.total);
-          setData(items);
+          setData(response.data.data || []);
           setTotalRecords(response.data.total || 0);
-        } else {
-          console.warn('[KeuanganSppMhsTable] API returned success=false');
         }
       } catch (error) {
         console.error('Error loading spp mhs:', error);
@@ -121,31 +104,22 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
         setLoading(false);
       }
     };
-
     loadData();
   }, [currentPage, rowsPerPage, searchQuery, filterIdSmt, sortBy, sortOrder]);
 
-  const formatDate = (dateString?: string | null) => {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+  const formatDate = (dateString: string) => {
     if (!dateString) return "-";
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return "-";
-    }
+      return new Date(dateString).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+    } catch { return "-"; }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const handleRowClick = (item: SppMhsItem) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
   };
 
   const columns: Column<SppMhsItem>[] = [
@@ -154,7 +128,10 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
       label: "MAHASISWA",
       sortable: true,
       render: (item) => (
-        <div className="max-w-md">
+        <div
+          className="max-w-md cursor-pointer hover:text-blue-600 transition-colors"
+          onClick={() => handleRowClick(item)}
+        >
           <div className="font-medium text-gray-900 dark:text-white line-clamp-1">
             {item.nama_mahasiswa}
           </div>
@@ -180,37 +157,18 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
       key: "id_smt",
       label: "SEMESTER",
       sortable: true,
-      width: "110px",
+      width: "100px",
       render: (item) => (
         <div className="text-center">
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {item.id_smt}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "nama_kelas_ukt",
-      label: "KELAS UKT",
-      sortable: false,
-      width: "110px",
-      render: (item) => (
-        <div className="text-center">
-          {item.nama_kelas_ukt ? (
-            <Chip size="sm" variant="flat" color="primary" className="font-semibold">
-              {item.nama_kelas_ukt}
-            </Chip>
-          ) : (
-            <span className="text-gray-400">-</span>
-          )}
+          <span className="font-semibold text-gray-900 dark:text-white">{item.id_smt}</span>
         </div>
       ),
     },
     {
       key: "nominal",
-      label: "NOMINAL UKT",
+      label: "NOMINAL",
       sortable: true,
-      width: "150px",
+      width: "140px",
       render: (item) => (
         <div className="text-right">
           <div className="font-bold text-emerald-600 dark:text-emerald-400">
@@ -223,7 +181,7 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
       key: "total_tagihan",
       label: "TOTAL TAGIHAN",
       sortable: true,
-      width: "150px",
+      width: "140px",
       render: (item) => (
         <div className="text-right">
           <div className="font-semibold text-gray-900 dark:text-white">
@@ -234,58 +192,6 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
               Sisa: {formatCurrency(item.sisa_tagihan)}
             </div>
           )}
-        </div>
-      ),
-    },
-    {
-      key: "jumlah_spi",
-      label: "SPI",
-      sortable: true,
-      width: "120px",
-      render: (item) => (
-        <div className="text-right">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            {item.jumlah_spi ? formatCurrency(item.jumlah_spi) : "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "jumlah_denda",
-      label: "DENDA",
-      sortable: true,
-      width: "120px",
-      render: (item) => (
-        <div className="text-right">
-          <div className={`text-sm ${item.jumlah_denda > 0 ? "text-red-500 font-semibold" : "text-gray-700 dark:text-gray-300"}`}>
-            {item.jumlah_denda ? formatCurrency(item.jumlah_denda) : "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "jumlah_lainnya",
-      label: "LAINNYA",
-      sortable: true,
-      width: "120px",
-      render: (item) => (
-        <div className="text-right">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            {item.jumlah_lainnya ? formatCurrency(item.jumlah_lainnya) : "-"}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "sisa_tagihan",
-      label: "SISA",
-      sortable: true,
-      width: "130px",
-      render: (item) => (
-        <div className="text-right">
-          <div className={`font-semibold ${item.sisa_tagihan > 0 ? "text-red-500" : "text-green-600 dark:text-green-400"}`}>
-            {formatCurrency(item.sisa_tagihan || 0)}
-          </div>
         </div>
       ),
     },
@@ -309,9 +215,9 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
     },
     {
       key: "last_sync",
-      label: "LAST SYNC",
+      label: "SYNC",
       sortable: true,
-      width: "120px",
+      width: "100px",
       render: (item) => (
         <div className="text-xs text-gray-600 dark:text-gray-400">
           {formatDate(item.last_sync)}
@@ -321,80 +227,207 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
   ];
 
   return (
-    <motion.div
-      className="w-full"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div variants={itemVariants}>
-        <DataTable
-          columns={columns}
-          data={data}
-          loading={loading}
-          serverSide={true}
-          totalRecords={totalRecords}
-          onPageChange={setCurrentPage}
-          onRowsPerPageChange={setRowsPerPage}
-          onSearchChange={setSearchQuery}
-          onSortChange={handleSortChange}
-          searchPlaceholder="Cari nama/NPM mahasiswa..."
-          defaultRowsPerPage={10}
-          filterSlot={
-            <div className="flex flex-wrap gap-2 w-full">
-              {/* Filter Semester */}
-              <div className="flex-shrink-0 w-[200px]">
-                <Select
-                  aria-label="Filter Semester"
-                  placeholder="Pilih Semester"
-                  selectedKeys={filterIdSmt ? [filterIdSmt] : []}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string;
-                    setFilterIdSmt(selected || "");
-                    setCurrentPage(1);
-                    onSemesterChange?.(selected || "");
-                  }}
-                  classNames={{
-                    base: "w-full",
-                    trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-amber-400 focus:border-amber-500 transition-colors shadow-sm",
-                    value: "text-[10px] font-medium text-gray-700 dark:text-gray-300",
-                    innerWrapper: "!bg-white dark:!bg-gray-800 pr-8",
-                    popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[200px]",
-                    listbox: "!bg-white dark:!bg-gray-800",
-                    selectorIcon: "right-2",
-                  }}
-                  size="sm"
-                  variant="bordered"
-                >
-                  {semesters.map((sem) => (
-                    <SelectItem key={sem.id_smt}>
-                      {sem.nm_smt || sem.id_smt}
-                    </SelectItem>
-                  ))}
-                </Select>
+    <>
+      <motion.div
+        className="w-full"
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+          <DataTable
+            columns={columns}
+            data={data}
+            loading={loading}
+            serverSide={true}
+            totalRecords={totalRecords}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={setRowsPerPage}
+            onSearchChange={setSearchQuery}
+            onSortChange={handleSortChange}
+            searchPlaceholder="Cari nama/NPM mahasiswa..."
+            defaultRowsPerPage={10}
+            filterSlot={
+              <div className="flex flex-wrap gap-2 w-full">
+                <div className="flex-shrink-0 w-[200px]">
+                  <Select
+                    aria-label="Filter Semester"
+                    placeholder="Pilih Semester"
+                    selectedKeys={filterIdSmt ? [filterIdSmt] : []}
+                    onSelectionChange={(keys) => {
+                      const selected = Array.from(keys)[0] as string;
+                      setFilterIdSmt(selected || "");
+                      setCurrentPage(1);
+                      onSemesterChange?.(selected || "");
+                    }}
+                    classNames={{
+                      base: "w-full",
+                      trigger: "h-10 !bg-white dark:!bg-gray-800 border-gray-200 shadow-sm",
+                      value: "text-[10px] font-medium",
+                      popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[200px]",
+                    }}
+                    size="sm"
+                    variant="bordered"
+                  >
+                    {semesters.map((s) => (
+                      <SelectItem key={s.id_smt}>
+                        {s.nm_smt || s.id_smt}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                </div>
+                <div className="flex items-center flex-shrink-0">
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    onPress={() => { setFilterIdSmt(""); setCurrentPage(1); onSemesterChange?.(""); }}
+                    className="h-10 px-3 text-[10px]"
+                    isDisabled={!filterIdSmt}
+                  >
+                    Reset Filter
+                  </Button>
+                </div>
               </div>
-
-              {/* Reset filter button */}
-              <div className="flex items-center flex-shrink-0">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="default"
-                  onPress={() => {
-                    setFilterIdSmt("");
-                    setCurrentPage(1);
-                    onSemesterChange?.("");
-                  }}
-                  className="h-10 px-3 text-[10px] whitespace-nowrap bg-white hover:bg-gray-100 border border-gray-200"
-                  isDisabled={!filterIdSmt}
-                >
-                  Reset Filter
-                </Button>
-              </div>
-            </div>
-          }
-        />
+            }
+          />
+        </motion.div>
       </motion.div>
-    </motion.div>
+
+      {/* Detail Modal */}
+      <Modal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        size="2xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          {selectedItem && (
+            <>
+              <ModalHeader className="flex items-center gap-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                  <FiUser className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                    {selectedItem.nama_mahasiswa || "Detail Pembayaran"}
+                  </h3>
+                  <p className="text-sm text-gray-500 font-mono font-normal">{selectedItem.npm}</p>
+                </div>
+              </ModalHeader>
+
+              <ModalBody className="py-5">
+                <div className="space-y-6">
+
+                  {/* Info Mahasiswa */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InfoCard label="Program Studi" value={selectedItem.nama_prodi || "-"} icon={<FiFileText className="w-4 h-4" />} />
+                    <InfoCard label="Semester" value={selectedItem.id_smt} icon={<FiCalendar className="w-4 h-4" />} />
+                    <InfoCard
+                      label="Kelas UKT"
+                      value={selectedItem.nama_kelas_ukt || "-"}
+                    />
+                    <InfoCard
+                      label="Status Bayar"
+                      value={selectedItem.flag_by || "-"}
+                      valueColor={selectedItem.flag_by === "LUNAS" ? "text-green-600" : "text-amber-600"}
+                    />
+                  </div>
+
+                  {/* Rincian Biaya */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <FiDollarSign className="w-4 h-4" />
+                      Rincian Biaya
+                    </h4>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <tbody>
+                          <DetailRow label="Nominal UKT" value={formatCurrency(selectedItem.nominal)} bold />
+                          <DetailRow label="Total Tagihan" value={formatCurrency(selectedItem.total_tagihan)} />
+                          <DetailRow label="Jumlah SPI" value={formatCurrency(selectedItem.jumlah_spi || 0)} />
+                          <DetailRow
+                            label="Denda"
+                            value={formatCurrency(selectedItem.jumlah_denda || 0)}
+                            valueColor={selectedItem.jumlah_denda > 0 ? "text-red-500 font-semibold" : undefined}
+                          />
+                          <DetailRow label="Biaya Lainnya" value={formatCurrency(selectedItem.jumlah_lainnya || 0)} />
+                          <DetailRow
+                            label="Sisa Tagihan"
+                            value={formatCurrency(selectedItem.sisa_tagihan || 0)}
+                            valueColor={selectedItem.sisa_tagihan > 0 ? "text-red-500 font-bold" : "text-green-600 font-bold"}
+                            bold
+                          />
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Info Tambahan */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      Info Tambahan
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <InfoItem label="Cicilan" value={selectedItem.a_cicil ? `Ya (ke-${selectedItem.cicilan_ke})` : "Tidak"} />
+                      <InfoItem label="Kode Pembayaran" value={selectedItem.kode_pembayaran || "-"} />
+                      <InfoItem label="Tgl Bayar" value={formatDate(selectedItem.tgl_bayar)} />
+                      <InfoItem label="Last Sync" value={formatDate(selectedItem.last_sync)} />
+                    </div>
+                  </div>
+
+                </div>
+              </ModalBody>
+
+              <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+                <Button variant="flat" onPress={() => setShowDetailModal(false)}>
+                  Tutup
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}
+
+// Helper components
+function InfoCard({ label, value, icon, valueColor }: {
+  label: string; value: string; icon?: React.ReactNode; valueColor?: string;
+}) {
+  return (
+    <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 mb-1">
+        {icon && <span className="text-gray-400">{icon}</span>}
+        <span className="text-xs text-gray-500">{label}</span>
+      </div>
+      <p className={`text-sm font-semibold ${valueColor || "text-gray-900 dark:text-white"}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center py-1.5">
+      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{value}</span>
+    </div>
+  );
+}
+
+function DetailRow({ label, value, valueColor, bold }: {
+  label: string; value: string; valueColor?: string; bold?: boolean;
+}) {
+  return (
+    <tr className="border-b border-gray-200/50 dark:border-gray-700/50 last:border-0">
+      <td className={`px-4 py-2.5 text-gray-600 dark:text-gray-400 ${bold ? "font-semibold" : ""}`}>
+        {label}
+      </td>
+      <td className={`px-4 py-2.5 text-right ${valueColor || "text-gray-900 dark:text-white"} ${bold ? "font-bold text-base" : ""}`}>
+        {value}
+      </td>
+    </tr>
   );
 }
