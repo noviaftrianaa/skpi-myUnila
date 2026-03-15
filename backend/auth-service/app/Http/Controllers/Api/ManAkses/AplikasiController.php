@@ -8,6 +8,7 @@ use App\Repositories\ManAkses\AplikasiRepository;
 use App\Repositories\UserContext\UserContextRepository;
 use App\Services\UserContext\UserContextService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 /**
