@@ -1,0 +1,125 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'production'
+    monitor: 'myunila-vm4'
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['myunila-alertmanager-prod:9093']
+
+scrape_configs:
+  # Prometheus self
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          vm: 'vm4'
+          service: 'prometheus'
+
+  # ─── VM4 (Monitoring server sendiri) ──────────────────────────────
+  - job_name: 'node-vm4'
+    static_configs:
+      - targets: ['myunila-node-exporter-prod:9100']
+        labels:
+          vm: 'vm4'
+          role: 'monitoring'
+          hostname: 'mybalancer'
+
+  - job_name: 'cadvisor-vm4'
+    static_configs:
+      - targets: ['myunila-cadvisor-prod:8080']
+        labels:
+          vm: 'vm4'
+
+  # ─── VM1 — Frontend & Kong (192.168.120.41) ───────────────────────
+  - job_name: 'node-vm1'
+    static_configs:
+      - targets: ['192.168.120.41:9100']
+        labels:
+          vm: 'vm1'
+          role: 'frontend-kong'
+          hostname: 'myfrontend'
+
+  - job_name: 'cadvisor-vm1'
+    static_configs:
+      - targets: ['192.168.120.41:18080']
+        labels:
+          vm: 'vm1'
+          role: 'frontend-kong'
+
+  - job_name: 'kong'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['192.168.120.41:8001']
+        labels:
+          vm: 'vm1'
+          service: 'kong-gateway'
+    metrics_path: '/metrics'
+
+  - job_name: 'nginx-vm1'
+    static_configs:
+      - targets: ['192.168.120.41:9113']
+        labels:
+          vm: 'vm1'
+          service: 'nginx'
+
+  # ─── VM2 — Backend PHP (192.168.120.42) ───────────────────────────
+  - job_name: 'node-vm2'
+    static_configs:
+      - targets: ['192.168.120.42:9100']
+        labels:
+          vm: 'vm2'
+          role: 'backend-php'
+          hostname: 'mybackend1'
+
+  - job_name: 'cadvisor-vm2'
+    static_configs:
+      - targets: ['192.168.120.42:18080']
+        labels:
+          vm: 'vm2'
+          role: 'backend-php'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['192.168.120.42:9121']
+        labels:
+          vm: 'vm2'
+          service: 'redis'
+
+  # ─── VM3 — Backend Go (192.168.120.43) ────────────────────────────
+  - job_name: 'node-vm3'
+    static_configs:
+      - targets: ['192.168.120.43:9100']
+        labels:
+          vm: 'vm3'
+          role: 'backend-go'
+          hostname: 'mybackend2'
+
+  - job_name: 'cadvisor-vm3'
+    static_configs:
+      - targets: ['192.168.120.43:18080']
+        labels:
+          vm: 'vm3'
+          role: 'backend-go'
+
+  # ─── VM5 — Staging (192.168.120.45) ───────────────────────────────
+  - job_name: 'node-vm5'
+    static_configs:
+      - targets: ['192.168.120.45:9100']
+        labels:
+          vm: 'vm5'
+          role: 'staging'
+          hostname: 'mystagging'
+
+  - job_name: 'cadvisor-vm5'
+    static_configs:
+      - targets: ['192.168.120.45:18080']
+        labels:
+          vm: 'vm5'
+          role: 'staging'
