@@ -14,6 +14,9 @@ interface SppMhsItem {
   tgl_bayar: string;
   nominal: number;
   total_tagihan: number;
+  jumlah_spi: number;
+  jumlah_denda: number;
+  jumlah_lainnya: number;
   sisa_tagihan: number;
   kode_pembayaran: string;
   nama_kelas_ukt?: string | null;
@@ -231,6 +234,58 @@ export default function KeuanganSppMhsTable({ onSemesterChange }: KeuanganSppMhs
               Sisa: {formatCurrency(item.sisa_tagihan)}
             </div>
           )}
+        </div>
+      ),
+    },
+    {
+      key: "jumlah_spi",
+      label: "SPI",
+      sortable: true,
+      width: "120px",
+      render: (item) => (
+        <div className="text-right">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            {item.jumlah_spi ? formatCurrency(item.jumlah_spi) : "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "jumlah_denda",
+      label: "DENDA",
+      sortable: true,
+      width: "120px",
+      render: (item) => (
+        <div className="text-right">
+          <div className={`text-sm ${item.jumlah_denda > 0 ? "text-red-500 font-semibold" : "text-gray-700 dark:text-gray-300"}`}>
+            {item.jumlah_denda ? formatCurrency(item.jumlah_denda) : "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "jumlah_lainnya",
+      label: "LAINNYA",
+      sortable: true,
+      width: "120px",
+      render: (item) => (
+        <div className="text-right">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            {item.jumlah_lainnya ? formatCurrency(item.jumlah_lainnya) : "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "sisa_tagihan",
+      label: "SISA",
+      sortable: true,
+      width: "130px",
+      render: (item) => (
+        <div className="text-right">
+          <div className={`font-semibold ${item.sisa_tagihan > 0 ? "text-red-500" : "text-green-600 dark:text-green-400"}`}>
+            {formatCurrency(item.sisa_tagihan || 0)}
+          </div>
         </div>
       ),
     },
