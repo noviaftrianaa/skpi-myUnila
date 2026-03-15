@@ -352,8 +352,6 @@ class AplikasiController extends Controller
             ], 500);
         }
     }
-}
-
 
     /**
      * Get whitelisted organisations for an application
