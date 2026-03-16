@@ -694,8 +694,11 @@ export default function AplikasiFormModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
+        body: "px-0",
+        header: "px-3 sm:px-6",
+        footer: "px-3 sm:px-6",
       }}
     >
       <ModalContent>
@@ -716,11 +719,11 @@ export default function AplikasiFormModal({
               selectedKey={activeTab}
               onSelectionChange={(key) => setActiveTab(key as string)}
               classNames={{
-                tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-6 mt-4",
+                tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-3 sm:mx-6 mt-4 flex-wrap sm:flex-nowrap",
                 cursor: "bg-white dark:bg-slate-600 shadow-sm",
-                tab: "px-4 py-2 text-sm font-medium",
+                tab: "px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium",
                 tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
-                panel: "px-6 py-5",
+                panel: "px-3 sm:px-6 py-4 sm:py-5",
               }}
             >
               {/* Basic Info Tab */}
@@ -734,7 +737,7 @@ export default function AplikasiFormModal({
                     </h4>
                     <div className="space-y-4">
                       {/* Nama & Kategori */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             Nama Aplikasi <span className="text-red-500">*</span>
@@ -879,8 +882,8 @@ export default function AplikasiFormModal({
                     </h4>
                     <div className="space-y-4">
                       {/* URL and Port */}
-                      <div className="grid grid-cols-4 gap-3">
-                        <div className="col-span-3 space-y-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="sm:col-span-3 space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             URL Aplikasi
                           </label>
@@ -921,7 +924,7 @@ export default function AplikasiFormModal({
                       </div>
 
                       {/* Teknologi and Endpoint WS */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             Teknologi

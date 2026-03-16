@@ -95,7 +95,10 @@ export default function AplikasiDetailModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh]",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh] mx-2 sm:mx-4",
+        body: "px-3 sm:px-6",
+        header: "px-3 sm:px-6",
+        footer: "px-3 sm:px-6",
       }}
     >
       <ModalContent>
@@ -118,22 +121,22 @@ export default function AplikasiDetailModal({
           ) : aplikasi ? (
             <div className="space-y-4">
               {/* Statistics Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-3 rounded-xl text-center border border-indigo-200/50 dark:border-indigo-700/30">
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{aplikasi.jumlah_table || 0}</div>
-                  <div className="text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium">Tabel</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-indigo-200/50 dark:border-indigo-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">{aplikasi.jumlah_table || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium">Tabel</div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-3 rounded-xl text-center border border-green-200/50 dark:border-green-700/30">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{aplikasi.jumlah_pj || 0}</div>
-                  <div className="text-xs text-green-600/70 dark:text-green-400/70 font-medium">Penanggung Jawab</div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-green-200/50 dark:border-green-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{aplikasi.jumlah_pj || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-green-600/70 dark:text-green-400/70 font-medium">PJ</div>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-3 rounded-xl text-center border border-purple-200/50 dark:border-purple-700/30">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{menusLoaded ? menus.length : (aplikasi.menus?.length || 0)}</div>
-                  <div className="text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">Menu</div>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-purple-200/50 dark:border-purple-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">{menusLoaded ? menus.length : (aplikasi.menus?.length || 0)}</div>
+                  <div className="text-[10px] sm:text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">Menu</div>
                 </div>
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-3 rounded-xl text-center border border-orange-200/50 dark:border-orange-700/30">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{aplikasi.urutan || 0}</div>
-                  <div className="text-xs text-orange-600/70 dark:text-orange-400/70 font-medium">Urutan</div>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-orange-200/50 dark:border-orange-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">{aplikasi.urutan || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-orange-600/70 dark:text-orange-400/70 font-medium">Urutan</div>
                 </div>
               </div>
 
@@ -143,9 +146,9 @@ export default function AplikasiDetailModal({
                 selectedKey={activeTab}
                 onSelectionChange={(key) => setActiveTab(key as string)}
                 classNames={{
-                  tabList: "gap-2 w-full bg-gray-100 dark:bg-slate-700/50 p-1 rounded-xl",
+                  tabList: "gap-1 sm:gap-2 w-full bg-gray-100 dark:bg-slate-700/50 p-1 rounded-xl flex-wrap sm:flex-nowrap",
                   cursor: "bg-white dark:bg-slate-600 shadow-sm",
-                  tab: "max-w-fit px-3 h-8 text-xs font-medium",
+                  tab: "max-w-fit px-2 sm:px-3 h-8 text-[10px] sm:text-xs font-medium",
                   tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
                 }}
               >
@@ -160,9 +163,9 @@ export default function AplikasiDetailModal({
                 >
                   <div className="pt-4 space-y-4">
                     {/* Basic Info & Teknis */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                       {/* Informasi Dasar */}
-                      <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
+                      <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-3 sm:p-4 border border-gray-200/80 dark:border-slate-600/50">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                           Informasi Dasar
@@ -188,7 +191,7 @@ export default function AplikasiDetailModal({
                           </div>
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">Organisasi</span>
-                            <span className="text-gray-900 dark:text-white font-medium text-right max-w-[150px] truncate">{aplikasi.nm_organisasi || "-"}</span>
+                            <span className="text-gray-900 dark:text-white font-medium text-right max-w-[120px] sm:max-w-[150px] truncate" title={aplikasi.nm_organisasi || "-"}>{aplikasi.nm_organisasi || "-"}</span>
                           </div>
                           {aplikasi.ket_aplikasi && (
                             <div className="pt-1">
@@ -200,7 +203,7 @@ export default function AplikasiDetailModal({
                       </div>
 
                       {/* Teknis */}
-                      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-3 sm:p-4 border border-blue-200/50 dark:border-blue-800/30">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                           Informasi Teknis
@@ -208,7 +211,7 @@ export default function AplikasiDetailModal({
                         <div className="space-y-2.5 text-sm">
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">URL</span>
-                            <span className="text-right max-w-[180px] truncate">
+                            <span className="text-right max-w-[140px] sm:max-w-[180px] truncate">
                               {aplikasi.url ? (
                                 <a href={aplikasi.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs font-mono">
                                   {aplikasi.url}
@@ -230,7 +233,7 @@ export default function AplikasiDetailModal({
                           </div>
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">Endpoint WS</span>
-                            <span className="text-gray-900 dark:text-white font-mono text-xs max-w-[150px] truncate">{aplikasi.endpoint_ws || "-"}</span>
+                            <span className="text-gray-900 dark:text-white font-mono text-xs max-w-[120px] sm:max-w-[150px] truncate" title={aplikasi.endpoint_ws || "-"}>{aplikasi.endpoint_ws || "-"}</span>
                           </div>
                           {aplikasi.app_key && (
                             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
@@ -243,12 +246,12 @@ export default function AplikasiDetailModal({
                     </div>
 
                     {/* Pengaturan */}
-                    <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-slate-200/80 dark:border-slate-600/50">
+                    <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-600/50">
                       <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                         <FiSettings className="w-4 h-4 text-slate-500" />
                         Pengaturan
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         {[
                           { label: "Production", active: aplikasi.a_live, color: "green" },
                           { label: "Portal", active: aplikasi.a_tampil_portal, color: "blue" },
@@ -268,12 +271,12 @@ export default function AplikasiDetailModal({
                     </div>
 
                     {/* Tanggal */}
-                    <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-4 border border-amber-200/50 dark:border-amber-800/30">
+                    <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-3 sm:p-4 border border-amber-200/50 dark:border-amber-800/30">
                       <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                         <FiCalendar className="w-4 h-4 text-amber-500" />
                         Tanggal
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                         <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
                           <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Dibuat</span>
                           <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(aplikasi.tgl_create)}</span>
