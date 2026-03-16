@@ -3,14 +3,14 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Card, CardBody, Button, Select, SelectItem, Input, Chip,
-  Checkbox, Spinner, Accordion, AccordionItem, Modal, ModalContent,
+  Spinner, Accordion, AccordionItem, Modal, ModalContent,
   ModalHeader, ModalBody, ModalFooter, useDisclosure,
 } from "@heroui/react";
 import {
   FiSave, FiRefreshCw, FiSearch, FiShield, FiCheck, FiX,
   FiChevronDown, FiDownload, FiFilter,
 } from "react-icons/fi";
-import { authClient } from "@/lib/api/client";
+import { authClient } from "@/lib/api/authClient";
 import { wsAuthorizationService, type SystemRoute } from "@/lib/services/manakses/wsAuthorizationService";
 import toast from "react-hot-toast";
 
@@ -485,65 +485,98 @@ export default function WsAuthorizationManager() {
                       content: "px-4 pb-4",
                     }}
                     startContent={
-                      <Checkbox
-                        isSelected={allChecked}
-                        isIndeterminate={someChecked}
-                        onValueChange={(checked) => toggleGroup(group, checked)}
-                        classNames={{ wrapper: "mr-2" }}
-                        aria-label={`Select all ${group}`}
-                      />
+                      <div
+                        onClick={(e) => { e.stopPropagation(); toggleGroup(group, !allChecked); }}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all shrink-0 ${
+                          allChecked
+                            ? "bg-primary border-primary text-white"
+                            : someChecked
+                              ? "bg-primary/30 border-primary text-white"
+                              : "border-gray-300 dark:border-gray-600 hover:border-primary"
+                        }`}
+                      >
+                        {(allChecked || someChecked) && (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            {allChecked
+                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              : <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                            }
+                          </svg>
+                        )}
+                      </div>
                     }
                     title={
-                      <div className="flex items-center gap-2">
-                        <span className="capitalize">{group}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="capitalize font-semibold text-gray-800 dark:text-gray-200">{group}</span>
                         <Chip
                           size="sm"
                           variant="flat"
                           color={allChecked ? "success" : someChecked ? "warning" : "default"}
+                          className="font-mono text-xs"
                         >
                           {groupChecked}/{eps.length}
                         </Chip>
                       </div>
                     }
                   >
-                    <div className="space-y-1">
-                      {eps.map((ep) => (
-                        <div
-                          key={ep.id_ws_endpoint}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all
-                            ${
-                              checkedIds.has(ep.id_ws_endpoint)
-                                ? "bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
-                                : "bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
-                            }`}
-                          onClick={() => toggleEndpoint(ep.id_ws_endpoint)}
-                        >
-                          <Checkbox
-                            isSelected={checkedIds.has(ep.id_ws_endpoint)}
-                            onValueChange={() => toggleEndpoint(ep.id_ws_endpoint)}
-                            size="sm"
-                            aria-label={ep.path_url}
-                          />
-                          <Chip
-                            size="sm"
-                            variant="flat"
-                            color={(METHOD_COLORS[ep.nm_method] || "default") as any}
-                            className="font-mono font-semibold min-w-[60px] text-center"
+                    <div className="space-y-1.5">
+                      {eps.map((ep) => {
+                        const isChecked = checkedIds.has(ep.id_ws_endpoint);
+                        return (
+                          <div
+                            key={ep.id_ws_endpoint}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200
+                              ${
+                                isChecked
+                                  ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-sm"
+                                  : "bg-gray-50/80 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-gray-200 dark:hover:border-gray-600"
+                              }`}
+                            onClick={() => toggleEndpoint(ep.id_ws_endpoint)}
                           >
-                            {ep.nm_method}
-                          </Chip>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate block">
-                              {ep.path_url}
+                            {/* Custom Checkbox */}
+                            <div
+                              className={`w-4.5 h-4.5 min-w-[18px] min-h-[18px] rounded border-2 flex items-center justify-center transition-all ${
+                                isChecked
+                                  ? "bg-blue-500 border-blue-500 text-white"
+                                  : "border-gray-300 dark:border-gray-500"
+                              }`}
+                            >
+                              {isChecked && (
+                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            {/* Method Badge */}
+                            <span
+                              className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded min-w-[52px] text-center ${
+                                ep.nm_method === "GET"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                                  : ep.nm_method === "POST"
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+                                    : ep.nm_method === "PUT"
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                                      : ep.nm_method === "DELETE"
+                                        ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                              }`}
+                            >
+                              {ep.nm_method}
                             </span>
-                            {ep.nm_endpoint && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {ep.nm_endpoint}
+                            {/* Path + Name */}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate block leading-tight">
+                                {ep.path_url}
                               </span>
-                            )}
+                              {ep.nm_endpoint && (
+                                <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate block leading-tight mt-0.5">
+                                  {ep.nm_endpoint}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </AccordionItem>
                 );
