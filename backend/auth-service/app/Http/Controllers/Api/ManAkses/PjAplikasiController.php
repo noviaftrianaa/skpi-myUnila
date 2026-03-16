@@ -126,20 +126,36 @@ class PjAplikasiController extends Controller
             $id = Str::uuid()->toString();
             $now = now();
 
+            // Get user ID from JWT (fallback to request input)
+            $userId = $request->id_pengguna;
+            if (empty($userId)) {
+                $user = $request->user();
+                $userId = $user->id_pengguna ?? $user->id ?? $user->sub ?? null;
+            }
+            // Final fallback: get from JWT payload directly
+            if (empty($userId)) {
+                try {
+                    $token = \Tymon\JWTAuth\Facades\JWTAuth::parseToken();
+                    $userId = $token->getPayload()->get('sub');
+                } catch (\Exception $e) {
+                    // ignore
+                }
+            }
+
             DB::insert("
                 INSERT INTO man_akses.pj_aplikasi 
                 (id_pj_aplikasi, id_pengguna, id_aplikasi, nm_pj, jabatan_pj, no_hp, email, a_masih, tgl_create, last_update, soft_delete, last_sync, id_updater)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, '00000000-0000-0000-0000-000000000000')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
             ", [
                 $id,
-                $request->id_pengguna,
+                $userId,
                 $request->id_aplikasi,
                 $request->nm_pj,
                 $request->jabatan_pj,
                 $request->no_hp,
                 $request->email,
                 $request->a_masih ?? 1,
-                $now, $now, $now,
+                $now, $now, $now, $userId,
             ]);
 
             return response()->json([
