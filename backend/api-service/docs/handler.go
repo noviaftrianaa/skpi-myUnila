@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/myunila/api-service/docs/openapi"
-	"github.com/myunila/api-service/internal/middleware"
 	"gopkg.in/yaml.v3"
 )
 
@@ -64,16 +63,16 @@ func convertYAMLToJSON(i interface{}) interface{} {
 }
 
 // SetupSwagger mendaftarkan endpoint untuk API documentation
-// Main docs page requires authentication via KongAuth middleware
-// Spec files (openapi.json, openapi.yaml, favicon) are public for Scalar UI to load
+// Docs page adalah public — semua endpoint data tetap dilindungi JWTAuth per-group
+// Spec files (openapi.json, openapi.yaml, favicon) juga public
 func SetupSwagger(app *fiber.App) {
-	// Serve Scalar UI (main docs page) - protected with KongAuth
-	app.Get("/docs", middleware.KongAuth(), func(c *fiber.Ctx) error {
+	// Serve Scalar UI (main docs page) - public (no auth required)
+	// Endpoint data tetap dilindungi JWTAuth per-group
+	app.Get("/docs", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
 		return c.SendString(scalarHTML)
 	})
 
-	// middleware.KongAuth(),
 	// Serve OpenAPI JSON spec - public (no auth required)
 	// This allows Scalar UI to fetch spec without cookie/auth issues
 	app.Get("/docs/openapi.json", func(c *fiber.Ctx) error {
