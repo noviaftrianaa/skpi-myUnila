@@ -104,7 +104,7 @@ const serviceDisplayNames: Record<string, string> = {
   "sister-service": "Sister Service",
   "feeder-service": "Feeder Service",
   "myunila-service": "myUnila Integrator",
-  "api-service": "myUnila API Web Service",
+  "ws-service": "myUnila Web Service (API)",
   "dashboard-service": "Dashboard Service",
 };
 
@@ -115,7 +115,7 @@ const mainServices = [
   "sister-service",
   "feeder-service",
   "myunila-service",
-  "api-service",
+  "ws-service",
   "dashboard-service",
 ];
 
@@ -533,7 +533,7 @@ export default function KongAdminPage() {
               </p>
               <p className="text-xs text-blue-600">
                 <strong>Available Services:</strong> auth-service, public-service,
-                sister-service, feeder-service, myunila-service, api-service.
+                sister-service, feeder-service, myunila-service, ws-service.
               </p>
             </div>
           </div>

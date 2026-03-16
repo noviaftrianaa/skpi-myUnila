@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  api-service:
+  ws-service:
     build:
       context: ../../../../../backend/api-service
       dockerfile: Dockerfile
       args:
         - APP_ENV=staging
-    image: myunila/api-service:staging
-    container_name: myunila-api-staging
+    image: myunila/ws-service:staging
+    container_name: myunila-ws-staging
     ports:
       - "8085:8085"
     env_file:
