@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -44,6 +43,7 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
 
+// endpointPrefix kept for backward compat in deriveGroup; URL always /v1/
 var endpointPrefix string
 
 func main() {
@@ -58,11 +58,9 @@ func main() {
 	log.Printf("📝 App Name: %s", config.Cfg.App.Name)
 	log.Printf("🌍 Environment: %s", config.Cfg.App.Env)
 
-	if config.Cfg.App.Env == "production" {
-		endpointPrefix = "live"
-	} else {
-		endpointPrefix = "dev"
-	}
+	// APP_ENV for internal behavior only (logging, cache TTL)
+	// URL prefix always /v1 regardless of environment
+	endpointPrefix = "v1" // kept for deriveGroup compatibility
 
 	// Connect to database
 	db, err := database.ConnectSQLServer(database.DatabaseConfig{
@@ -150,16 +148,16 @@ func main() {
 			"endpoints": fiber.Map{
 				"health":        "/health",
 				"documentation": "/docs",
-				"api":           "/v1",
-				"auth_login":    "/v1/auth/login",
-				"auth_check":    "/v1/auth/check-token",
+				"api":        "/v1",
+				"auth_login": "/v1/auth/login",
+				"auth_check": "/v1/auth/check-token",
 			},
 		})
 	})
 
 	// API routes - menggunakan /v1 tanpa /api prefix
 	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
-	apiV1 := app.Group(fmt.Sprintf("/%s/v1", endpointPrefix))
+	apiV1 := app.Group("/v1")
 
 	// Initialize Auth module (public - tanpa auth)
 	auth.Init(apiV1, db)
@@ -243,16 +241,12 @@ func main() {
 }
 
 // deriveGroup extracts the module/group name from route path
-// e.g. /dev/v1/referensi/agama → "referensi"
-// e.g. /dev/v1/auth/login → "auth"
-// e.g. /dev/v1/pdrd/list_mahasiswa → "pdrd"
-func deriveGroup(path string, prefix string) string {
-	// Remove /{prefix}/v1/ from path
-	trimmed := strings.TrimPrefix(path, "/"+prefix+"/v1/")
-	if trimmed == path {
-		// Try without prefix (e.g. direct /v1/)
-		trimmed = strings.TrimPrefix(path, "/v1/")
-	}
+// e.g. /v1/referensi/agama → "referensi"
+// e.g. /v1/auth/login → "auth"
+// e.g. /v1/pdrd/list_mahasiswa → "pdrd"
+func deriveGroup(path string, _ string) string {
+	// Remove /v1/ prefix
+	trimmed := strings.TrimPrefix(path, "/v1/")
 
 	// Get first segment
 	parts := strings.SplitN(trimmed, "/", 2)
