@@ -232,6 +232,95 @@ class EndpointController extends Controller
      * @param string $id
      * @return JsonResponse
      */
+    /**
+     * Generate/upsert endpoints from external source (e.g. Go api-service routes)
+     * Match by path_url + nm_method → update if exists, insert if new
+     */
+    public function generate(Request $request): JsonResponse
+    {
+        try {
+            $idAplikasi = $request->input('id_aplikasi');
+            $endpoints = $request->input('endpoints', []);
+
+            if (!$idAplikasi || empty($endpoints)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'id_aplikasi dan endpoints wajib diisi',
+                ], 422);
+            }
+
+            $inserted = 0;
+            $updated = 0;
+            $unchanged = 0;
+
+            foreach ($endpoints as $ep) {
+                $pathUrl = $ep['path_url'] ?? '';
+                $method = strtoupper($ep['nm_method'] ?? 'GET');
+                $group = $ep['nm_group'] ?? 'uncategorized';
+                $name = $ep['nm_endpoint'] ?? $pathUrl;
+
+                if (empty($pathUrl)) continue;
+
+                // Check existing by path_url + method + aplikasi
+                $existing = \Illuminate\Support\Facades\DB::selectOne("
+                    SELECT id_ws_endpoint, nm_group, nm_endpoint, soft_delete
+                    FROM man_akses.ws_endpoint 
+                    WHERE path_url = ? AND nm_method = ? AND id_aplikasi = ?
+                ", [$pathUrl, $method, $idAplikasi]);
+
+                if ($existing) {
+                    if ($existing->soft_delete == 1) {
+                        // Reactivate
+                        \Illuminate\Support\Facades\DB::update("
+                            UPDATE man_akses.ws_endpoint 
+                            SET nm_group = ?, nm_endpoint = ?, a_active = 1, soft_delete = 0, 
+                                last_sync = GETDATE(), updated_at = GETDATE()
+                            WHERE id_ws_endpoint = ?
+                        ", [$group, $name, $existing->id_ws_endpoint]);
+                        $updated++;
+                    } elseif ($existing->nm_group !== $group || $existing->nm_endpoint !== $name) {
+                        // Update group/name
+                        \Illuminate\Support\Facades\DB::update("
+                            UPDATE man_akses.ws_endpoint 
+                            SET nm_group = ?, nm_endpoint = ?, last_sync = GETDATE(), updated_at = GETDATE()
+                            WHERE id_ws_endpoint = ?
+                        ", [$group, $name, $existing->id_ws_endpoint]);
+                        $updated++;
+                    } else {
+                        // Touch last_sync only
+                        \Illuminate\Support\Facades\DB::update("
+                            UPDATE man_akses.ws_endpoint SET last_sync = GETDATE() WHERE id_ws_endpoint = ?
+                        ", [$existing->id_ws_endpoint]);
+                        $unchanged++;
+                    }
+                } else {
+                    // Insert new
+                    \Illuminate\Support\Facades\DB::insert("
+                        INSERT INTO man_akses.ws_endpoint 
+                        (id_ws_endpoint, nm_group, nm_method, nm_endpoint, path_url, a_active, 
+                         id_aplikasi, created_at, updated_at, last_sync, soft_delete)
+                        VALUES (NEWID(), ?, ?, ?, ?, 1, ?, GETDATE(), GETDATE(), GETDATE(), 0)
+                    ", [$group, $method, $name, $pathUrl, $idAplikasi]);
+                    $inserted++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Generate selesai: {$inserted} baru, {$updated} diperbarui, {$unchanged} tidak berubah",
+                'inserted' => $inserted,
+                'updated' => $updated,
+                'unchanged' => $unchanged,
+                'total_processed' => count($endpoints),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function destroy(string $id): JsonResponse
     {
         try {

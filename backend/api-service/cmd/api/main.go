@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -175,6 +176,48 @@ func main() {
 	pdrd.RegisterRoutes(apiV1, db, redis.Client)
 	log.Println("✅ PDRD module initialized")
 
+	// System routes (for endpoint management - self-report all registered routes)
+	app.Get("/system/routes", func(c *fiber.Ctx) error {
+		routes := app.GetRoutes()
+		var result []fiber.Map
+		seen := make(map[string]bool)
+
+		for _, r := range routes {
+			// Skip internal/system/docs routes
+			if r.Path == "/" || r.Path == "/health" ||
+				strings.HasPrefix(r.Path, "/system") ||
+				strings.HasPrefix(r.Path, "/docs") {
+				continue
+			}
+			// Only include standard HTTP methods (nm_method column is varchar(6))
+			validMethods := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}
+			if !validMethods[r.Method] {
+				continue
+			}
+
+			key := r.Method + ":" + r.Path
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			// Derive group from path
+			group := deriveGroup(r.Path, endpointPrefix)
+
+			result = append(result, fiber.Map{
+				"method":   r.Method,
+				"path":     r.Path,
+				"nm_group": group,
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+			"routes":  result,
+			"total":   len(result),
+		})
+	})
+
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -197,6 +240,26 @@ func main() {
 	if err := app.Listen(config.Cfg.App.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
+}
+
+// deriveGroup extracts the module/group name from route path
+// e.g. /dev/v1/referensi/agama → "referensi"
+// e.g. /dev/v1/auth/login → "auth"
+// e.g. /dev/v1/pdrd/list_mahasiswa → "pdrd"
+func deriveGroup(path string, prefix string) string {
+	// Remove /{prefix}/v1/ from path
+	trimmed := strings.TrimPrefix(path, "/"+prefix+"/v1/")
+	if trimmed == path {
+		// Try without prefix (e.g. direct /v1/)
+		trimmed = strings.TrimPrefix(path, "/v1/")
+	}
+
+	// Get first segment
+	parts := strings.SplitN(trimmed, "/", 2)
+	if len(parts) > 0 && parts[0] != "" {
+		return parts[0]
+	}
+	return "uncategorized"
 }
 
 // customErrorHandler handles Fiber errors

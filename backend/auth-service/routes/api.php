@@ -251,8 +251,18 @@ Route::prefix('v1')->group(function () {
 
             // Write operations - require permission check
             Route::post('/', [EndpointController::class, 'store'])->middleware('permission:insert,manajemen-akses');
+            Route::post('/generate', [EndpointController::class, 'generate'])->middleware('permission:insert,manajemen-akses');
             Route::put('/{id}', [EndpointController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{id}', [EndpointController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
+        });
+
+        // WS Authorization (per-role endpoint access management)
+        Route::prefix('ws-authorization')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'index']);
+            Route::get('/by-role/{idPeran}', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'byRole']);
+            Route::post('/bulk-assign', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'bulkAssign'])->middleware('permission:insert,manajemen-akses');
+            Route::post('/bulk-revoke', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'bulkRevoke'])->middleware('permission:delete,manajemen-akses');
+            Route::post('/sync', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'sync'])->middleware('permission:update,manajemen-akses');
         });
 
         // Kategori Aplikasi (Application Category Management)
