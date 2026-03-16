@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Spinner } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { FiDollarSign, FiCheckCircle, FiClock, FiList } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
@@ -21,6 +21,26 @@ const fmtMilyar = (v: string) => {
   return fmtRp(n);
 };
 
+interface StatCardProps {
+  icon: React.ReactNode; label: string; value: string; color: string; raw?: boolean;
+}
+function StatCard({ icon, label, value, color, raw }: StatCardProps) {
+  return (
+    <Card className={`border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${color}`}>
+      <CardBody className="p-4 relative">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{icon}</div>
+          <div>
+            <p className="text-xs font-medium text-white/80 uppercase tracking-wide">{label}</p>
+            <h3 className="text-xl font-bold text-white">{raw ? value : parseInt(value || "0").toLocaleString("id-ID")}</h3>
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
 export default function SppPage() {
   useRequireAuth();
   const [data, setData] = useState<SppItem[]>([]);
@@ -30,13 +50,14 @@ export default function SppPage() {
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("tgl_bayar");
-  const [sortOrder, setSortOrder] = useState<"asc"|"desc">("desc");
-  const [stats, setStats] = useState<SppStats|null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [stats, setStats] = useState<SppStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [filterTahun, setFilterTahun] = useState("");
   const [tahunList, setTahunList] = useState<Array<{ tahun: string }>>([]);
 
   useEffect(() => {
-    keuanganDataService.getSppStats({}).then(setStats).catch(console.error);
+    keuanganDataService.getSppStats({}).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
     keuanganDataService.getSppFilters().then(r => setTahunList(r.tahun)).catch(console.error);
   }, []);
 
@@ -45,8 +66,7 @@ export default function SppPage() {
     keuanganDataService.getSppList({
       page, limit,
       search: search || undefined,
-      sort_by: sortBy,
-      sort_order: sortOrder,
+      sort_by: sortBy, sort_order: sortOrder,
       tahun: filterTahun || undefined,
     })
       .then(r => { setData(r.data); setTotal(r.total); })
@@ -54,13 +74,13 @@ export default function SppPage() {
       .finally(() => setLoading(false));
   }, [page, limit, search, sortBy, sortOrder, filterTahun]);
 
-  const handleSort = useCallback((k: string, o: "asc"|"desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
+  const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
   const columns: Column<SppItem>[] = [
     { key: "nm_pd", label: "MAHASISWA", sortable: true, render: (i) => (
       <div>
         <div className="font-medium text-gray-900 dark:text-white">{i.nm_pd || "-"}</div>
-        <div className="text-xs text-gray-500">{i.nipd || "-"} · {i.nm_prodi || "-"}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{i.nipd || "-"} · {i.nm_prodi || "-"}</div>
       </div>
     )},
     { key: "id_smt", label: "SEMESTER", width: "100px", sortable: true, align: "center" as const, render: (i) => (
@@ -78,11 +98,7 @@ export default function SppPage() {
       </span>
     )},
     { key: "flag_by", label: "STATUS", width: "90px", align: "center" as const, render: (i) => (
-      <Chip
-        size="sm"
-        variant="flat"
-        color={i.flag_by === "LUNAS" ? "success" : i.flag_by === "BELUM" ? "warning" : "default"}
-      >
+      <Chip size="sm" variant="flat" color={i.flag_by === "LUNAS" ? "success" : i.flag_by === "BELUM" ? "warning" : "default"}>
         {i.flag_by || "-"}
       </Chip>
     )},
@@ -91,15 +107,10 @@ export default function SppPage() {
     )},
   ];
 
-  const fmtNum = (v: string) => parseInt(v || "0").toLocaleString("id-ID");
-
   return (
     <DashboardLayoutWithDynamicMenu
-      appName="Data Unila"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      appKey={APP_KEY}
-      fallbackMenus={dataUnilaMenuConfig}
-      pageTitle="Data SPP"
+      appName="Data Unila" appIcon={<MdSchool className="w-6 h-6 text-white" />}
+      appKey={APP_KEY} fallbackMenus={dataUnilaMenuConfig} pageTitle="Data SPP"
     >
       <Toaster position="top-right" />
       <div className="space-y-6">
@@ -108,29 +119,14 @@ export default function SppPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Riwayat pembayaran SPP/UKT mahasiswa</p>
         </div>
 
-        {stats && (
+        {loadingStats ? (
+          <div className="flex justify-center py-4"><Spinner size="sm" color="primary" /></div>
+        ) : stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { l: "Total Transaksi", v: fmtNum(stats.total), c: "from-blue-500 to-indigo-600", ic: <FiList className="w-6 h-6"/> },
-              { l: "Total Terbayar", v: fmtMilyar(stats.total_terbayar), c: "from-green-500 to-emerald-600", ic: <FiDollarSign className="w-6 h-6"/>, raw: true },
-              { l: "Lunas", v: fmtNum(stats.lunas), c: "from-teal-500 to-cyan-600", ic: <FiCheckCircle className="w-6 h-6"/> },
-              { l: "Cicilan", v: fmtNum(stats.cicilan), c: "from-amber-500 to-orange-500", ic: <FiClock className="w-6 h-6"/> },
-            ].map(s => (
-              <motion.div key={s.l} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className={`border-none shadow-lg rounded-xl bg-gradient-to-br ${s.c}`}>
-                  <CardBody className="p-4 relative">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"/>
-                    <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{s.ic}</div>
-                      <div>
-                        <p className="text-xs text-white/80 uppercase">{s.l}</p>
-                        <h3 className="text-xl font-bold text-white">{s.v}</h3>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </motion.div>
-            ))}
+            <StatCard icon={<FiList className="w-6 h-6" />} label="Total Transaksi" value={stats.total} color="from-blue-500 to-indigo-600" />
+            <StatCard icon={<FiDollarSign className="w-6 h-6" />} label="Total Terbayar" value={fmtMilyar(stats.total_terbayar)} color="from-green-500 to-emerald-600" raw />
+            <StatCard icon={<FiCheckCircle className="w-6 h-6" />} label="Lunas" value={stats.lunas} color="from-teal-500 to-cyan-600" />
+            <StatCard icon={<FiClock className="w-6 h-6" />} label="Cicilan" value={stats.cicilan} color="from-amber-500 to-orange-500" />
           </div>
         )}
 
@@ -138,26 +134,15 @@ export default function SppPage() {
           <CardBody className="p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <DataTable
-                columns={columns}
-                data={data}
-                loading={loading}
-                serverSide
-                totalRecords={total}
-                onPageChange={setPage}
-                onRowsPerPageChange={n => { setLimit(n); setPage(1); }}
-                onSearchChange={q => { setSearch(q); setPage(1); }}
-                onSortChange={handleSort}
-                searchPlaceholder="Cari nama mahasiswa, NIM..."
-                defaultRowsPerPage={20}
+                columns={columns} data={data} loading={loading} serverSide totalRecords={total}
+                onPageChange={setPage} onRowsPerPageChange={n => { setLimit(n); setPage(1); }}
+                onSearchChange={q => { setSearch(q); setPage(1); }} onSortChange={handleSort}
+                searchPlaceholder="Cari nama mahasiswa, NIM..." defaultRowsPerPage={20}
                 filterSlot={
-                  <Select
-                    aria-label="Tahun"
-                    placeholder="Semua Tahun"
+                  <Select aria-label="Tahun" placeholder="Semua Tahun"
                     selectedKeys={filterTahun ? [filterTahun] : []}
                     onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
-                    size="sm" variant="bordered"
-                    classNames={{ base: "w-[140px]", trigger: "h-10" }}
-                  >
+                    size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
                     {tahunList.map(t => <SelectItem key={String(t.tahun)}>{String(t.tahun)}</SelectItem>)}
                   </Select>
                 }

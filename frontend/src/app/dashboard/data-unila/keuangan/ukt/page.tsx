@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Select, SelectItem } from "@heroui/react";
+import { Card, CardBody, Select, SelectItem, Spinner } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { FiList, FiCalendar, FiGrid, FiDollarSign } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
@@ -15,6 +15,26 @@ import { motion } from "framer-motion";
 const APP_KEY = "data-unila";
 const fmtRp = (v: number | string) => `Rp ${Number(v || 0).toLocaleString("id-ID")}`;
 
+interface StatCardProps {
+  icon: React.ReactNode; label: string; value: string; color: string; raw?: boolean;
+}
+function StatCard({ icon, label, value, color, raw }: StatCardProps) {
+  return (
+    <Card className={`border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${color}`}>
+      <CardBody className="p-4 relative">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{icon}</div>
+          <div>
+            <p className="text-xs font-medium text-white/80 uppercase tracking-wide">{label}</p>
+            <h3 className="text-xl font-bold text-white">{raw ? value : parseInt(value || "0").toLocaleString("id-ID")}</h3>
+          </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
 export default function UktPage() {
   useRequireAuth();
   const [data, setData] = useState<UktItem[]>([]);
@@ -24,13 +44,14 @@ export default function UktPage() {
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("tahun");
-  const [sortOrder, setSortOrder] = useState<"asc"|"desc">("desc");
-  const [stats, setStats] = useState<UktStats|null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [stats, setStats] = useState<UktStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [filterTahun, setFilterTahun] = useState("");
   const [tahunList, setTahunList] = useState<Array<{ tahun: string }>>([]);
 
   useEffect(() => {
-    keuanganDataService.getUktStats().then(setStats).catch(console.error);
+    keuanganDataService.getUktStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
     keuanganDataService.getUktFilters().then(r => setTahunList(r.tahun)).catch(console.error);
   }, []);
 
@@ -39,8 +60,7 @@ export default function UktPage() {
     keuanganDataService.getUktList({
       page, limit,
       search: search || undefined,
-      sort_by: sortBy,
-      sort_order: sortOrder,
+      sort_by: sortBy, sort_order: sortOrder,
       tahun: filterTahun || undefined,
     })
       .then(r => { setData(r.data); setTotal(r.total); })
@@ -48,7 +68,7 @@ export default function UktPage() {
       .finally(() => setLoading(false));
   }, [page, limit, search, sortBy, sortOrder, filterTahun]);
 
-  const handleSort = useCallback((k: string, o: "asc"|"desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
+  const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
   const columns: Column<UktItem>[] = [
     { key: "nama_prodi", label: "PROGRAM STUDI", sortable: true, render: (i) => (
@@ -68,15 +88,10 @@ export default function UktPage() {
     )},
   ];
 
-  const fmtNum = (v: string) => parseInt(v || "0").toLocaleString("id-ID");
-
   return (
     <DashboardLayoutWithDynamicMenu
-      appName="Data Unila"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      appKey={APP_KEY}
-      fallbackMenus={dataUnilaMenuConfig}
-      pageTitle="Data UKT"
+      appName="Data Unila" appIcon={<MdSchool className="w-6 h-6 text-white" />}
+      appKey={APP_KEY} fallbackMenus={dataUnilaMenuConfig} pageTitle="Data UKT"
     >
       <Toaster position="top-right" />
       <div className="space-y-6">
@@ -85,29 +100,14 @@ export default function UktPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Uang Kuliah Tunggal per program studi dan tahun</p>
         </div>
 
-        {stats && (
+        {loadingStats ? (
+          <div className="flex justify-center py-4"><Spinner size="sm" color="primary" /></div>
+        ) : stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { l: "Total Data", v: fmtNum(stats.total), c: "from-blue-500 to-indigo-600", ic: <FiList className="w-6 h-6"/> },
-              { l: "Rentang Tahun", v: `${stats.tahun_awal}–${stats.tahun_akhir}`, c: "from-green-500 to-emerald-600", ic: <FiCalendar className="w-6 h-6"/>, raw: true },
-              { l: "Total Prodi", v: fmtNum(stats.total_prodi), c: "from-violet-500 to-purple-600", ic: <FiGrid className="w-6 h-6"/> },
-              { l: "Rata-rata UKT", v: fmtRp(stats.avg_nominal || 0), c: "from-amber-500 to-orange-500", ic: <FiDollarSign className="w-6 h-6"/>, raw: true },
-            ].map(s => (
-              <motion.div key={s.l} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className={`border-none shadow-lg rounded-xl bg-gradient-to-br ${s.c}`}>
-                  <CardBody className="p-4 relative">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"/>
-                    <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{s.ic}</div>
-                      <div>
-                        <p className="text-xs text-white/80 uppercase">{s.l}</p>
-                        <h3 className="text-xl font-bold text-white">{s.v}</h3>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </motion.div>
-            ))}
+            <StatCard icon={<FiList className="w-6 h-6" />} label="Total Data" value={stats.total} color="from-blue-500 to-indigo-600" />
+            <StatCard icon={<FiCalendar className="w-6 h-6" />} label="Rentang Tahun" value={`${stats.tahun_awal}–${stats.tahun_akhir}`} color="from-green-500 to-emerald-600" raw />
+            <StatCard icon={<FiGrid className="w-6 h-6" />} label="Total Prodi" value={stats.total_prodi} color="from-violet-500 to-purple-600" />
+            <StatCard icon={<FiDollarSign className="w-6 h-6" />} label="Rata-rata UKT" value={fmtRp(stats.avg_nominal || 0)} color="from-amber-500 to-orange-500" raw />
           </div>
         )}
 
@@ -115,26 +115,15 @@ export default function UktPage() {
           <CardBody className="p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <DataTable
-                columns={columns}
-                data={data}
-                loading={loading}
-                serverSide
-                totalRecords={total}
-                onPageChange={setPage}
-                onRowsPerPageChange={n => { setLimit(n); setPage(1); }}
-                onSearchChange={q => { setSearch(q); setPage(1); }}
-                onSortChange={handleSort}
-                searchPlaceholder="Cari nama prodi, kelas UKT..."
-                defaultRowsPerPage={20}
+                columns={columns} data={data} loading={loading} serverSide totalRecords={total}
+                onPageChange={setPage} onRowsPerPageChange={n => { setLimit(n); setPage(1); }}
+                onSearchChange={q => { setSearch(q); setPage(1); }} onSortChange={handleSort}
+                searchPlaceholder="Cari nama prodi, kelas UKT..." defaultRowsPerPage={20}
                 filterSlot={
-                  <Select
-                    aria-label="Tahun"
-                    placeholder="Semua Tahun"
+                  <Select aria-label="Tahun" placeholder="Semua Tahun"
                     selectedKeys={filterTahun ? [filterTahun] : []}
                     onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
-                    size="sm" variant="bordered"
-                    classNames={{ base: "w-[140px]", trigger: "h-10" }}
-                  >
+                    size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
                     {tahunList.map(t => <SelectItem key={String(t.tahun)}>{String(t.tahun)}</SelectItem>)}
                   </Select>
                 }
