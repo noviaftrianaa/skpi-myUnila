@@ -63,5 +63,22 @@ Route::prefix('v1')->group(function () {
             Route::get('/export', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'export']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'show']);
         });
+
+        // Dosen & SDM
+        Route::prefix('dosen')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'stats']);
+            Route::get('/export', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'export']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'show']);
+        });
+
+        // Tridarma (Litabmas + Publikasi + Prestasi)
+        Route::prefix('tridarma')->group(function () {
+            Route::get('/litabmas', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'litabmas']);
+            Route::get('/litabmas/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'litabmasStats']);
+            Route::get('/publikasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasi']);
+            Route::get('/publikasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasiStats']);
+            Route::get('/prestasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasi']);
+        });
     });
 });
