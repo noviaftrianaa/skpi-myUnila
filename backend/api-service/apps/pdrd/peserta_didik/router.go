@@ -14,7 +14,8 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	handler := NewHandler(svc)
 
 	// Register routes
-	router.Get("/peserta_didik", handler.GetPesertaDidik)
-	router.Get("/peserta_didik_detail", handler.GetPesertaDidikDetail)
-	router.Get("/reg_pd", handler.GetRegPd)
+	router.Get("/list_mahasiswa", handler.GetPesertaDidik)
+	router.Get("/detail_biodata_mahasiswa", handler.GetPesertaDidikDetail)
+	router.Get("/riwayat_pendidikan_mahasiswa", handler.GetRegPd)
+	router.Get("/status_kuliah_mahasiswa", handler.GetStatusKuliahMahasiswa)
 }

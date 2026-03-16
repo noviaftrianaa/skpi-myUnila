@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -32,10 +33,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 // ============================================================================
 
 func (s *service) GetLembagaAkred(ctx context.Context, params types.LembagaAkredParams) ([]LembagaAkred, int64, error) {
-	cacheKeyData := fmt.Sprintf("lembaga_akred:data:page:%d:limit:%d:kode_pos:%v:kd_kl:%v:kd_satker:%v:target:%v:lintang:%v:bujur:%v:email:%s:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.KodePos, params.KdKl, params.KdSatker, params.TargetAkred, params.Lintang, params.Bujur, params.Email, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("lembaga_akred:total:kode_pos:%v:kd_kl:%v:kd_satker:%v:target:%v:lintang:%v:bujur:%v:email:%s:search:%s",
-		params.KodePos, params.KdKl, params.KdSatker, params.TargetAkred, params.Lintang, params.Bujur, params.Email, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("lembaga_akred:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("lembaga_akred:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -67,9 +67,9 @@ func (s *service) GetLembagaAkred(ctx context.Context, params types.LembagaAkred
 // ============================================================================
 
 func (s *service) GetLembagaPengangkat(ctx context.Context, params types.PaginationParams) ([]LembagaPengangkat, int64, error) {
-	cacheKeyData := fmt.Sprintf("lembaga_pengangkat:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("lembaga_pengangkat:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("lembaga_pengangkat:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("lembaga_pengangkat:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -101,9 +101,9 @@ func (s *service) GetLembagaPengangkat(ctx context.Context, params types.Paginat
 // ============================================================================
 
 func (s *service) GetLembagaSertifikasi(ctx context.Context, params types.PaginationParams) ([]LembagaSertifikasi, int64, error) {
-	cacheKeyData := fmt.Sprintf("lembaga_sertifikasi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("lembaga_sertifikasi:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("lembaga_sertifikasi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("lembaga_sertifikasi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -55,9 +56,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetSemesters mengambil daftar semester dengan pagination
 func (s *service) GetSemesters(ctx context.Context, params types.SemesterParams) ([]Semester, int64, error) {
-	cacheKeyData := fmt.Sprintf("semester:data:page:%d:limit:%d:tahun:%v:periode:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.TahunAjaran, params.PeriodeAktif, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("semester:total:tahun:%v:periode:%v:search:%s", params.TahunAjaran, params.PeriodeAktif, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("semester:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("semester:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -86,9 +87,9 @@ func (s *service) GetSemesters(ctx context.Context, params types.SemesterParams)
 
 // GetTahunAjarans mengambil daftar tahun ajaran dengan pagination
 func (s *service) GetTahunAjarans(ctx context.Context, params types.TahunAjaranParams) ([]TahunAjaran, int64, error) {
-	cacheKeyData := fmt.Sprintf("tahun_ajaran:data:page:%d:limit:%d:periode:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.PeriodeAktif, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tahun_ajaran:total:periode:%v:search:%s", params.PeriodeAktif, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tahun_ajaran:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tahun_ajaran:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -117,9 +118,9 @@ func (s *service) GetTahunAjarans(ctx context.Context, params types.TahunAjaranP
 
 // GetAgamas mengambil daftar agama dengan pagination
 func (s *service) GetAgamas(ctx context.Context, params types.PaginationParams) ([]Agama, int64, error) {
-	cacheKeyData := fmt.Sprintf("agama:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("agama:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("agama:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("agama:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -148,10 +149,9 @@ func (s *service) GetAgamas(ctx context.Context, params types.PaginationParams) 
 
 // GetWilayahs mengambil daftar wilayah dengan pagination
 func (s *service) GetWilayahs(ctx context.Context, params types.WilayahParams) ([]Wilayah, int64, error) {
-	cacheKeyData := fmt.Sprintf("wilayah:data:page:%d:limit:%d:negara:%v:level:%v:induk:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDNegara, params.Level, params.IDIndukWilayah, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("wilayah:total:negara:%v:level:%v:induk:%v:search:%s",
-		params.IDNegara, params.Level, params.IDIndukWilayah, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("wilayah:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("wilayah:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -180,9 +180,9 @@ func (s *service) GetWilayahs(ctx context.Context, params types.WilayahParams) (
 
 // GetAktifitasKerjasama mengambil daftar aktifitas kerjasama dengan pagination
 func (s *service) GetAktifitasKerjasama(ctx context.Context, params types.PaginationParams) ([]AktifitasKerjasama, int64, error) {
-	cacheKeyData := fmt.Sprintf("aktifitas_kerjasama:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("aktifitas_kerjasama:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("aktifitas_kerjasama:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("aktifitas_kerjasama:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -211,9 +211,9 @@ func (s *service) GetAktifitasKerjasama(ctx context.Context, params types.Pagina
 
 // GetBasisEvaluasi mengambil daftar basis evaluasi dengan pagination
 func (s *service) GetBasisEvaluasi(ctx context.Context, params types.PaginationParams) ([]BasisEvaluasi, int64, error) {
-	cacheKeyData := fmt.Sprintf("basis_evaluasi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("basis_evaluasi:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("basis_evaluasi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("basis_evaluasi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -242,9 +242,9 @@ func (s *service) GetBasisEvaluasi(ctx context.Context, params types.PaginationP
 
 // GetFungsiLab mengambil daftar fungsi lab dengan pagination
 func (s *service) GetFungsiLab(ctx context.Context, params types.PaginationParams) ([]FungsiLab, int64, error) {
-	cacheKeyData := fmt.Sprintf("fungsi_lab:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("fungsi_lab:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("fungsi_lab:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("fungsi_lab:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -273,9 +273,9 @@ func (s *service) GetFungsiLab(ctx context.Context, params types.PaginationParam
 
 // GetGelarAkademik mengambil daftar gelar akademik dengan pagination
 func (s *service) GetGelarAkademik(ctx context.Context, params types.GelarAkademikParams) ([]GelarAkademik, int64, error) {
-	cacheKeyData := fmt.Sprintf("gelar_akademik:data:page:%d:limit:%d:posisi:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.PosisiGelar, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("gelar_akademik:total:posisi:%v:search:%s", params.PosisiGelar, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("gelar_akademik:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("gelar_akademik:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -304,9 +304,9 @@ func (s *service) GetGelarAkademik(ctx context.Context, params types.GelarAkadem
 
 // GetIkatanKerjaSdm mengambil daftar ikatan kerja SDM dengan pagination
 func (s *service) GetIkatanKerjaSdm(ctx context.Context, params types.PaginationParams) ([]IkatanKerjaSdm, int64, error) {
-	cacheKeyData := fmt.Sprintf("ikatan_kerja_sdm:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("ikatan_kerja_sdm:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("ikatan_kerja_sdm:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("ikatan_kerja_sdm:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -335,9 +335,9 @@ func (s *service) GetIkatanKerjaSdm(ctx context.Context, params types.Pagination
 
 // GetIkatanKerjaSdm mengambil daftar ikatan kerja SDM dengan pagination
 func (s *service) GetJalurDaftar(ctx context.Context, params types.PaginationParams) ([]JalurDaftar, int64, error) {
-	cacheKeyData := fmt.Sprintf("jalur_daftar:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("jalur_daftar:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("jalur_daftar:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("jalur_daftar:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -366,9 +366,9 @@ func (s *service) GetJalurDaftar(ctx context.Context, params types.PaginationPar
 
 // GetJenjangPendidikan mengambil daftar jenjang pendidikan dengan pagination
 func (s *service) GetJenjangPendidikan(ctx context.Context, params types.JenjangPendidikanParams) ([]JenjangPendidikan, int64, error) {
-	cacheKeyData := fmt.Sprintf("jenjang_pendidikan:data:page:%d:limit:%d:u_jenj_lemb:%v:u_jenj_org:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.UJenjLemb, params.UJenjOrg, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("jenjang_pendidikan:total:u_jenj_lemb:%v:u_jenj_org:%v:search:%s", params.UJenjLemb, params.UJenjOrg, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("jenjang_pendidikan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("jenjang_pendidikan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -397,10 +397,9 @@ func (s *service) GetJenjangPendidikan(ctx context.Context, params types.Jenjang
 
 // GetJurusan mengambil daftar jurusan dengan pagination
 func (s *service) GetJurusan(ctx context.Context, params types.JurusanParams) ([]Jurusan, int64, error) {
-	cacheKeyData := fmt.Sprintf("jurusan:data:page:%d:limit:%d:id_jenj_didik:%v:id_kel_bidang:%v:kode_nomenklatur:%v:u_sma:%v:u_smk:%v:u_pt:%v:u_slb:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDJenjDidik, params.IDKelBidang, params.KodeNomenklatur, params.USma, params.USmk, params.UPt, params.USlb, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("jurusan:total:id_jenj_didik:%v:id_kel_bidang:%v:kode_nomenklatur:%v:u_sma:%v:u_smk:%v:u_pt:%v:u_slb:%v:search:%s",
-		params.IDJenjDidik, params.IDKelBidang, params.KodeNomenklatur, params.USma, params.USmk, params.UPt, params.USlb, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("jurusan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("jurusan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -432,10 +431,9 @@ func (s *service) GetJurusan(ctx context.Context, params types.JurusanParams) ([
 // ============================================================================
 
 func (s *service) GetKbli(ctx context.Context, params types.KbliParams) ([]Kbli, int64, error) {
-	cacheKeyData := fmt.Sprintf("kbli:data:page:%d:limit:%d:id_induk:%v:kategori:%v:kode:%v:lv:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDIndukKbli, params.Kategori, params.Kode, params.LvKbli, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kbli:total:id_induk:%v:kategori:%v:kode:%v:lv:%v:search:%s",
-		params.IDIndukKbli, params.Kategori, params.Kode, params.LvKbli, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kbli:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kbli:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -467,9 +465,9 @@ func (s *service) GetKbli(ctx context.Context, params types.KbliParams) ([]Kbli,
 // ============================================================================
 
 func (s *service) GetKeahlianLab(ctx context.Context, params types.PaginationParams) ([]KeahlianLab, int64, error) {
-	cacheKeyData := fmt.Sprintf("keahlian_lab:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("keahlian_lab:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("keahlian_lab:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("keahlian_lab:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -501,9 +499,9 @@ func (s *service) GetKeahlianLab(ctx context.Context, params types.PaginationPar
 // ============================================================================
 
 func (s *service) GetKebutuhanKhusus(ctx context.Context, params types.PaginationParams) ([]KebutuhanKhusus, int64, error) {
-	cacheKeyData := fmt.Sprintf("kebutuhan_khusus:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kebutuhan_khusus:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kebutuhan_khusus:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kebutuhan_khusus:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -535,9 +533,9 @@ func (s *service) GetKebutuhanKhusus(ctx context.Context, params types.Paginatio
 // ============================================================================
 
 func (s *service) GetKriteriaMitra(ctx context.Context, params types.PaginationParams) ([]KriteriaMitra, int64, error) {
-	cacheKeyData := fmt.Sprintf("kriteria_mitra:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kriteria_mitra:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kriteria_mitra:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kriteria_mitra:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -569,9 +567,9 @@ func (s *service) GetKriteriaMitra(ctx context.Context, params types.PaginationP
 // ============================================================================
 
 func (s *service) GetLevelWilayah(ctx context.Context, params types.PaginationParams) ([]LevelWilayah, int64, error) {
-	cacheKeyData := fmt.Sprintf("level_wilayah:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("level_wilayah:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("level_wilayah:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("level_wilayah:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -603,10 +601,9 @@ func (s *service) GetLevelWilayah(ctx context.Context, params types.PaginationPa
 // ============================================================================
 
 func (s *service) GetMediaPublikasi(ctx context.Context, params types.MediaPublikasiParams) ([]MediaPublikasi, int64, error) {
-	cacheKeyData := fmt.Sprintf("media_publikasi:data:page:%d:limit:%d:id_jns_media:%v:id_kel_bidang:%v:id_sp:%v:id_negara:%v:bentuk:%v:grade:%v:jns_penerbit:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDJnsMedia, params.IDKelBidang, params.IDSp, params.IDNegara, params.BentukMediaPub, params.GradeSinta, params.JnsPenerbit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("media_publikasi:total:id_jns_media:%v:id_kel_bidang:%v:id_sp:%v:id_negara:%v:bentuk:%v:grade:%v:jns_penerbit:%v:search:%s",
-		params.IDJnsMedia, params.IDKelBidang, params.IDSp, params.IDNegara, params.BentukMediaPub, params.GradeSinta, params.JnsPenerbit, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("media_publikasi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("media_publikasi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -638,9 +635,9 @@ func (s *service) GetMediaPublikasi(ctx context.Context, params types.MediaPubli
 // ============================================================================
 
 func (s *service) GetNegara(ctx context.Context, params types.NegaraParams) ([]Negara, int64, error) {
-	cacheKeyData := fmt.Sprintf("negara:data:page:%d:limit:%d:a_ln:%v:benua:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.ALn, params.Benua, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("negara:total:a_ln:%v:benua:%v:search:%s", params.ALn, params.Benua, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("negara:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("negara:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -672,9 +669,9 @@ func (s *service) GetNegara(ctx context.Context, params types.NegaraParams) ([]N
 // ============================================================================
 
 func (s *service) GetNilaiAkred(ctx context.Context, params types.PaginationParams) ([]NilaiAkred, int64, error) {
-	cacheKeyData := fmt.Sprintf("nilai_akred:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("nilai_akred:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("nilai_akred:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("nilai_akred:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -706,9 +703,9 @@ func (s *service) GetNilaiAkred(ctx context.Context, params types.PaginationPara
 // ============================================================================
 
 func (s *service) GetPangkatGolongan(ctx context.Context, params types.PangkatGolonganParams) ([]PangkatGolongan, int64, error) {
-	cacheKeyData := fmt.Sprintf("pangkat_golongan:data:page:%d:limit:%d:kode_gol:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.KodeGol, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("pangkat_golongan:total:kode_gol:%v:search:%s", params.KodeGol, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("pangkat_golongan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("pangkat_golongan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -740,9 +737,9 @@ func (s *service) GetPangkatGolongan(ctx context.Context, params types.PangkatGo
 // ============================================================================
 
 func (s *service) GetPembiayaan(ctx context.Context, params types.PaginationParams) ([]Pembiayaan, int64, error) {
-	cacheKeyData := fmt.Sprintf("pembiayaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("pembiayaan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("pembiayaan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("pembiayaan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -774,9 +771,9 @@ func (s *service) GetPembiayaan(ctx context.Context, params types.PaginationPara
 // ============================================================================
 
 func (s *service) GetPekerjaan(ctx context.Context, params types.PaginationParams) ([]Pekerjaan, int64, error) {
-	cacheKeyData := fmt.Sprintf("pekerjaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("pekerjaan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("pekerjaan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("pekerjaan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -808,9 +805,9 @@ func (s *service) GetPekerjaan(ctx context.Context, params types.PaginationParam
 // ============================================================================
 
 func (s *service) GetPenghasilan(ctx context.Context, params types.PaginationParams) ([]Penghasilan, int64, error) {
-	cacheKeyData := fmt.Sprintf("penghasilan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("penghasilan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("penghasilan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("penghasilan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -842,9 +839,9 @@ func (s *service) GetPenghasilan(ctx context.Context, params types.PaginationPar
 // ============================================================================
 
 func (s *service) GetSatuan(ctx context.Context, params types.PaginationParams) ([]Satuan, int64, error) {
-	cacheKeyData := fmt.Sprintf("satuan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("satuan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("satuan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("satuan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -876,9 +873,9 @@ func (s *service) GetSatuan(ctx context.Context, params types.PaginationParams) 
 // ============================================================================
 
 func (s *service) GetTahunAnggaran(ctx context.Context, params types.TahunAnggaranParams) ([]TahunAnggaran, int64, error) {
-	cacheKeyData := fmt.Sprintf("tahun_anggaran:data:page:%d:limit:%d:a_periode_aktif:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.APeriodeAktif, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tahun_anggaran:total:a_periode_aktif:%v:search:%s", params.APeriodeAktif, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tahun_anggaran:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tahun_anggaran:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -910,9 +907,9 @@ func (s *service) GetTahunAnggaran(ctx context.Context, params types.TahunAnggar
 // ============================================================================
 
 func (s *service) GetTse(ctx context.Context, params types.TseParams) ([]Tse, int64, error) {
-	cacheKeyData := fmt.Sprintf("tse:data:page:%d:limit:%d:kode_tse:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.KodeTse, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tse:total:kode_tse:%v:search:%s", params.KodeTse, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tse:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tse:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -944,9 +941,9 @@ func (s *service) GetTse(ctx context.Context, params types.TseParams) ([]Tse, in
 // ============================================================================
 
 func (s *service) GetSkimKegiatan(ctx context.Context, params types.SkimKegiatanParams) ([]SkimKegiatan, int64, error) {
-	cacheKeyData := fmt.Sprintf("skim_kegiatan:data:page:%d:limit:%d:id_jenj_didik:%v:kd_skim:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDJenjDidik, params.KdSkim, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("skim_kegiatan:total:id_jenj_didik:%v:kd_skim:%v:search:%s", params.IDJenjDidik, params.KdSkim, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("skim_kegiatan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("skim_kegiatan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

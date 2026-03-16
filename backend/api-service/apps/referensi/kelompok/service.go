@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -33,10 +34,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 // ============================================================================
 
 func (s *service) GetKelompokBidang(ctx context.Context, params types.KelompokBidangParams) ([]KelompokBidang, int64, error) {
-	cacheKeyData := fmt.Sprintf("kelompok_bidang:data:page:%d:limit:%d:kode:%v:nm:%v:induk:%v:sma:%v:smk:%v:pt:%v:iptek:%v:kepakaran:%v:leaf:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.KodeKelBidang, params.NmKelBidang, params.IDIndukBidang, params.USma, params.USmk, params.UPt, params.UIptek, params.UKepakaran, params.ALeafNode, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kelompok_bidang:total:kode:%v:nm:%v:induk:%v:sma:%v:smk:%v:pt:%v:iptek:%v:kepakaran:%v:leaf:%v:search:%s",
-		params.KodeKelBidang, params.NmKelBidang, params.IDIndukBidang, params.USma, params.USmk, params.UPt, params.UIptek, params.UKepakaran, params.ALeafNode, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kelompok_bidang:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kelompok_bidang:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -68,9 +68,9 @@ func (s *service) GetKelompokBidang(ctx context.Context, params types.KelompokBi
 // ============================================================================
 
 func (s *service) GetKelompokMk(ctx context.Context, params types.PaginationParams) ([]KelompokMk, int64, error) {
-	cacheKeyData := fmt.Sprintf("kelompok_mk:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kelompok_mk:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kelompok_mk:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kelompok_mk:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -102,9 +102,9 @@ func (s *service) GetKelompokMk(ctx context.Context, params types.PaginationPara
 // ============================================================================
 
 func (s *service) GetKelompokProfesi(ctx context.Context, params types.PaginationParams) ([]KelompokProfesi, int64, error) {
-	cacheKeyData := fmt.Sprintf("kelompok_profesi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kelompok_profesi:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kelompok_profesi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kelompok_profesi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -136,9 +136,9 @@ func (s *service) GetKelompokProfesi(ctx context.Context, params types.Paginatio
 // ============================================================================
 
 func (s *service) GetKelompokUsaha(ctx context.Context, params types.PaginationParams) ([]KelompokUsaha, int64, error) {
-	cacheKeyData := fmt.Sprintf("kelompok_usaha:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("kelompok_usaha:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("kelompok_usaha:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("kelompok_usaha:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
