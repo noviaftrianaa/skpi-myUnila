@@ -80,5 +80,24 @@ Route::prefix('v1')->group(function () {
             Route::get('/publikasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasiStats']);
             Route::get('/prestasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasi']);
         });
+
+        // Akademik (Prodi, Akreditasi, Matkul)
+        Route::prefix('akademik')->group(function () {
+            Route::get('/prodi', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'prodi']);
+            Route::get('/akreditasi', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'akreditasi']);
+            Route::get('/matkul', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkul']);
+        });
+
+        // Kerjasama
+        Route::prefix('kerjasama')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\KerjasamaDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\KerjasamaDataController::class, 'stats']);
+        });
+
+        // Tracer Study
+        Route::prefix('tracer')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'stats']);
+        });
     });
 });
