@@ -411,7 +411,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
         size="md"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         }}
       >
         <ModalContent>
@@ -523,7 +523,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
         size="md"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         }}
       >
         <ModalContent>
@@ -613,7 +613,7 @@ export default function PeranTable({ onStatsLoaded }: PeranTableProps) {
         size="md"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         }}
       >
         <ModalContent>

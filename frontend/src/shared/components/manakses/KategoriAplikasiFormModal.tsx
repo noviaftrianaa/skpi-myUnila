@@ -356,13 +356,13 @@ export default function KategoriAplikasiFormModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
       }}
     >
       <ModalContent>
         <form onSubmit={handleSubmit}>
-          <ModalHeader className="flex flex-col gap-1 px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+          <ModalHeader className="flex flex-col gap-1 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               {isEditMode ? "Edit Kategori" : "Tambah Kategori Baru"}
             </h3>
@@ -373,7 +373,7 @@ export default function KategoriAplikasiFormModal({
             </p>
           </ModalHeader>
 
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             <div className="space-y-5">
               {/* Data Kategori Section */}
               <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
@@ -404,7 +404,7 @@ export default function KategoriAplikasiFormModal({
                   </div>
 
                   {/* Icon and Color */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                         Icon Kategori
