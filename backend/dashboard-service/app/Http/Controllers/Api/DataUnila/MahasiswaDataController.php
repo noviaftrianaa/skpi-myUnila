@@ -83,6 +83,58 @@ class MahasiswaDataController extends Controller
     }
 
     /**
+     * GET /v1/data/mahasiswa/lulusan
+     */
+    public function lulusan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getLulusanList($this->extractParams($request));
+            return $this->success($data, 'Data lulusan berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * GET /v1/data/mahasiswa/lulusan/stats
+     */
+    public function lulusanStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getLulusanStats($this->extractParams($request));
+            return $this->success($data, 'Statistik lulusan');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * GET /v1/data/mahasiswa/aktivitas
+     */
+    public function aktivitas(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getAktivitasList($this->extractParams($request));
+            return $this->success($data, 'Data aktivitas mahasiswa berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * GET /v1/data/mahasiswa/aktivitas/stats
+     */
+    public function aktivitasStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getAktivitasStats($this->extractParams($request));
+            return $this->success($data, 'Statistik aktivitas mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * GET /v1/data/mahasiswa/export
      * CSV export (streaming)
      */

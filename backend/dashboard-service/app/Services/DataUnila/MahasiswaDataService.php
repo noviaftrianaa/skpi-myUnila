@@ -57,6 +57,34 @@ class MahasiswaDataService
         return $this->repository->getExport($params);
     }
 
+    // ---- Lulusan ----
+
+    public function getLulusanList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'lulusan-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getLulusanList($params));
+    }
+
+    public function getLulusanStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'lulusan-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getLulusanStats($params));
+    }
+
+    // ---- Aktivitas ----
+
+    public function getAktivitasList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'aktivitas-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getAktivitasList($params));
+    }
+
+    public function getAktivitasStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'aktivitas-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getAktivitasStats($params));
+    }
+
     /**
      * Get filter options (cached long)
      */

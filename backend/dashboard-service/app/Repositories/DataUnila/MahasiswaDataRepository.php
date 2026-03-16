@@ -213,4 +213,168 @@ class MahasiswaDataRepository extends BaseDataRepository
             ORDER BY s.nm_lemb
         ", $bindings);
     }
+
+    // ==========================================
+    // LULUSAN
+    // ==========================================
+
+    private const LULUSAN_SELECT = "
+        SELECT
+            CONVERT(VARCHAR(36), pd.id_pd) as id_pd,
+            pd.nm_pd,
+            pd.jk,
+            CONVERT(VARCHAR(36), rp.id_reg_pd) as id_reg_pd,
+            rp.nipd,
+            LEFT(rp.id_semester_masuk, 4) as angkatan,
+            CONVERT(VARCHAR(36), rp.id_sms) as id_sms,
+            s.nm_lemb as nm_prodi,
+            s.id_jenj_didik as jenjang,
+            fak.nm_lemb as nm_fakultas,
+            CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas,
+            CONVERT(VARCHAR(10), rp.tgl_keluar, 120) as tgl_lulus,
+            rp.ipk,
+            pd.email,
+            pd.tlpn_hp
+        FROM pdrd.peserta_didik pd
+        INNER JOIN pdrd.reg_pd rp ON rp.id_pd = pd.id_pd AND rp.soft_delete = 0
+        INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+        LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+        WHERE pd.soft_delete = 0
+          AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
+          AND CAST(rp.id_jns_keluar AS VARCHAR) = '1'
+          {WHERE_EXTRA}
+    ";
+
+    private const LULUSAN_COUNT = "
+        SELECT COUNT(*)
+        FROM pdrd.peserta_didik pd
+        INNER JOIN pdrd.reg_pd rp ON rp.id_pd = pd.id_pd AND rp.soft_delete = 0
+        INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+        WHERE pd.soft_delete = 0
+          AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
+          AND CAST(rp.id_jns_keluar AS VARCHAR) = '1'
+          {WHERE_EXTRA}
+    ";
+
+    public function getLulusanList(array $params): array
+    {
+        return $this->paginate(
+            self::LULUSAN_SELECT,
+            self::LULUSAN_COUNT,
+            $params,
+            ['pd.nm_pd', 'rp.nipd'],
+            ['nm_pd', 'nipd', 'nm_prodi', 'angkatan', 'tgl_lulus', 'ipk'],
+            'tgl_lulus',
+            'DESC'
+        );
+    }
+
+    public function getLulusanStats(array $params): array
+    {
+        $bindings = [];
+        $countBindings = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        return (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                AVG(CAST(rp.ipk AS DECIMAL(4,2))) as avg_ipk,
+                COUNT(DISTINCT rp.id_sms) as total_prodi,
+                COUNT(DISTINCT LEFT(rp.id_semester_masuk, 4)) as total_angkatan
+            FROM pdrd.reg_pd rp
+            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE rp.soft_delete = 0
+              AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
+              AND CAST(rp.id_jns_keluar AS VARCHAR) = '1'
+              {$orgFilter}
+        ", $bindings);
+    }
+
+    // ==========================================
+    // AKTIVITAS MAHASISWA
+    // ==========================================
+
+    public function getAktivitasList(array $params): array
+    {
+        $baseSql = "
+            SELECT
+                CONVERT(VARCHAR(36), am.id_akt_mhs) as id_akt_mhs,
+                am.judul_akt_mhs as judul,
+                am.id_jns_akt_mhs,
+                CASE am.id_jns_akt_mhs
+                    WHEN 1  THEN 'KKN'
+                    WHEN 2  THEN 'PKL/Magang'
+                    WHEN 3  THEN 'Pertukaran Mahasiswa'
+                    WHEN 4  THEN 'Penelitian'
+                    WHEN 5  THEN 'Pengabdian Masyarakat'
+                    WHEN 6  THEN 'Wirausaha'
+                    WHEN 7  THEN 'Proyek Kemanusiaan'
+                    WHEN 8  THEN 'Studi/Proyek Independen'
+                    WHEN 9  THEN 'Asistensi Mengajar'
+                    WHEN 10 THEN 'Kompetisi'
+                    WHEN 11 THEN 'Lomba'
+                    WHEN 12 THEN 'Beasiswa'
+                    WHEN 13 THEN 'Organisasi'
+                    WHEN 14 THEN 'Seminar/Konferensi'
+                    WHEN 15 THEN 'Workshop/Pelatihan'
+                    WHEN 16 THEN 'Proyek Sosial'
+                    WHEN 17 THEN 'Seni & Budaya'
+                    WHEN 18 THEN 'Olahraga'
+                    WHEN 19 THEN 'Keagamaan'
+                    WHEN 20 THEN 'Publikasi'
+                    WHEN 21 THEN 'Penghargaan'
+                    WHEN 22 THEN 'Sertifikasi'
+                    WHEN 23 THEN 'MBKM'
+                    ELSE 'Lainnya'
+                END as jenis_aktivitas,
+                am.lokasi_kegiatan,
+                CONVERT(VARCHAR(10), am.tgl_mulai, 120) as tgl_mulai,
+                CONVERT(VARCHAR(10), am.tgl_selesai, 120) as tgl_selesai,
+                CAST(am.id_smt AS VARCHAR(5)) as id_smt,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas,
+                am.a_komunal
+            FROM pdrd.akt_mhs am
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            WHERE am.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        $countSql = "
+            SELECT COUNT(*)
+            FROM pdrd.akt_mhs am
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            WHERE am.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        return $this->paginate(
+            $baseSql, $countSql, $params,
+            ['am.judul_akt_mhs', 'am.lokasi_kegiatan'],
+            ['judul', 'jenis_aktivitas', 'nm_prodi', 'id_smt', 'tgl_mulai'],
+            'id_smt', 'DESC'
+        );
+    }
+
+    public function getAktivitasStats(array $params): array
+    {
+        $bindings = [];
+        $countBindings = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        return (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                COUNT(DISTINCT am.id_sms) as total_prodi,
+                COUNT(DISTINCT am.id_smt) as total_semester,
+                SUM(CASE WHEN am.id_jns_akt_mhs IN (1,2,3,4,5,6,7,8,9,23) THEN 1 ELSE 0 END) as akademik,
+                SUM(CASE WHEN am.id_jns_akt_mhs IN (10,11,14,15,17,18) THEN 1 ELSE 0 END) as non_akademik
+            FROM pdrd.akt_mhs am
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            WHERE am.soft_delete = 0
+              {$orgFilter}
+        ", $bindings);
+    }
 }

@@ -144,17 +144,159 @@ class DosenDataRepository extends BaseDataRepository
     {
         return $this->select("
             SELECT
-                rs.nm_sert, rs.no_sert,
-                CONVERT(VARCHAR(10), rs.tgl_sert, 120) as tgl_sert,
-                rs.bidang_studi
+                rs.sk_sert as no_sert,
+                rs.thn_sert,
+                rs.nrg,
+                bs.nm_bid_studi as bidang_studi
             FROM pdrd.rwy_sertifikasi rs
+            LEFT JOIN ref.bidang_studi bs ON bs.id_bid_studi = rs.id_bid_studi
             WHERE rs.soft_delete = 0 AND rs.id_sdm = ?
-            ORDER BY rs.tgl_sert DESC
+            ORDER BY rs.thn_sert DESC
         ", [$idSdm]);
     }
 
     public function getExport(array $params): array
     {
         return $this->export(self::BASE_SELECT, $params, self::SEARCH_COLS);
+    }
+
+    // ==========================================
+    // JABFUNG LIST (dedicated)
+    // ==========================================
+
+    public function getJabfungList(array $params): array
+    {
+        $baseSql = "
+            SELECT
+                CONVERT(VARCHAR(36), rf.id_rwy_jabfung) as id_rwy_jabfung,
+                sdm.nm_sdm,
+                sdm.nidn,
+                sdm.nip,
+                j.nm_jabfung,
+                rf.sk_jabfung,
+                CONVERT(VARCHAR(10), rf.tmt_sk_jabfung, 120) as tmt_sk_jabfung,
+                rf.angka_kredit,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas
+            FROM pdrd.rwy_fungsional rf
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rf.id_sdm AND sdm.soft_delete = 0
+            JOIN ref.jabfung j ON j.id_jabfung = rf.id_jabfung
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            WHERE rf.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        $countSql = "
+            SELECT COUNT(*)
+            FROM pdrd.rwy_fungsional rf
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rf.id_sdm AND sdm.soft_delete = 0
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE rf.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        return $this->paginate(
+            $baseSql, $countSql, $params,
+            ['sdm.nm_sdm', 'sdm.nidn', 'j.nm_jabfung', 'rf.sk_jabfung'],
+            ['nm_sdm', 'nidn', 'nm_jabfung', 'tmt_sk_jabfung', 'nm_prodi'],
+            'tmt_sk_jabfung', 'DESC'
+        );
+    }
+
+    public function getJabfungStats(array $params): array
+    {
+        $bindings = [];
+        $countBindings = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        return (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                COUNT(DISTINCT rf.id_sdm) as total_dosen,
+                COUNT(DISTINCT j.nm_jabfung) as total_jenis,
+                SUM(CASE WHEN j.nm_jabfung LIKE '%Guru Besar%' OR j.nm_jabfung LIKE '%Professor%' THEN 1 ELSE 0 END) as guru_besar,
+                SUM(CASE WHEN j.nm_jabfung LIKE '%Lektor Kepala%' THEN 1 ELSE 0 END) as lektor_kepala,
+                SUM(CASE WHEN j.nm_jabfung LIKE 'Lektor' THEN 1 ELSE 0 END) as lektor,
+                SUM(CASE WHEN j.nm_jabfung LIKE '%Asisten%' OR j.nm_jabfung LIKE '%Tenaga%' THEN 1 ELSE 0 END) as asisten
+            FROM pdrd.rwy_fungsional rf
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rf.id_sdm AND sdm.soft_delete = 0
+            JOIN ref.jabfung j ON j.id_jabfung = rf.id_jabfung
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE rf.soft_delete = 0
+              {$orgFilter}
+        ", $bindings);
+    }
+
+    // ==========================================
+    // SERTIFIKASI LIST (dedicated)
+    // ==========================================
+
+    public function getSertifikasiList(array $params): array
+    {
+        $baseSql = "
+            SELECT
+                CONVERT(VARCHAR(36), rs.id_rwy_sert) as id_rwy_sert,
+                sdm.nm_sdm,
+                sdm.nidn,
+                sdm.nip,
+                rs.sk_sert as no_sert,
+                rs.thn_sert as tahun,
+                rs.nrg,
+                bs.nm_bid_studi as bidang_studi,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas
+            FROM pdrd.rwy_sertifikasi rs
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rs.id_sdm AND sdm.soft_delete = 0
+            LEFT JOIN ref.bidang_studi bs ON bs.id_bid_studi = rs.id_bid_studi
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            WHERE rs.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        $countSql = "
+            SELECT COUNT(*)
+            FROM pdrd.rwy_sertifikasi rs
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rs.id_sdm AND sdm.soft_delete = 0
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE rs.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        return $this->paginate(
+            $baseSql, $countSql, $params,
+            ['sdm.nm_sdm', 'sdm.nidn', 'rs.sk_sert', 'bs.nm_bid_studi'],
+            ['nm_sdm', 'no_sert', 'tahun', 'nm_prodi'],
+            'tahun', 'DESC'
+        );
+    }
+
+    public function getSertifikasiStats(array $params): array
+    {
+        $bindings = [];
+        $countBindings = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        return (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                COUNT(DISTINCT rs.id_sdm) as total_dosen,
+                COUNT(DISTINCT rs.id_jns_sert) as total_jenis,
+                COUNT(DISTINCT rs.thn_sert) as total_tahun
+            FROM pdrd.rwy_sertifikasi rs
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = rs.id_sdm AND sdm.soft_delete = 0
+            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE rs.soft_delete = 0
+              {$orgFilter}
+        ", $bindings);
     }
 }

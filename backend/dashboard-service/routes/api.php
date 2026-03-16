@@ -61,6 +61,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'stats']);
             Route::get('/filters', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'filters']);
             Route::get('/export', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'export']);
+            Route::get('/lulusan', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'lulusan']);
+            Route::get('/lulusan/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'lulusanStats']);
+            Route::get('/aktivitas', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitas']);
+            Route::get('/aktivitas/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitasStats']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'show']);
         });
 
@@ -69,6 +73,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'index']);
             Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'stats']);
             Route::get('/export', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'export']);
+            Route::get('/jabfung', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'jabfung']);
+            Route::get('/jabfung/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'jabfungStats']);
+            Route::get('/sertifikasi', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'sertifikasi']);
+            Route::get('/sertifikasi/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'sertifikasiStats']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'show']);
         });
 
@@ -98,6 +106,16 @@ Route::prefix('v1')->group(function () {
         Route::prefix('tracer')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'index']);
             Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'stats']);
+        });
+
+        // Keuangan (UKT + SPP)
+        Route::prefix('keuangan')->group(function () {
+            Route::get('/ukt', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'ukt']);
+            Route::get('/ukt/stats', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'uktStats']);
+            Route::get('/ukt/filters', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'uktFilters']);
+            Route::get('/spp', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'spp']);
+            Route::get('/spp/stats', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'sppStats']);
+            Route::get('/spp/filters', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'sppFilters']);
         });
     });
 });

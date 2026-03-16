@@ -78,6 +78,54 @@ export interface MahasiswaListParams {
   status?: string;
 }
 
+export interface LulusanItem {
+  id_pd: string;
+  id_reg_pd: string;
+  nipd: string;
+  nm_pd: string;
+  jk: string;
+  nm_prodi: string;
+  jenjang: string;
+  nm_fakultas: string;
+  id_fakultas: string;
+  id_sms: string;
+  angkatan: string;
+  tgl_lulus: string | null;
+  ipk: string | null;
+  email: string;
+  tlpn_hp: string;
+}
+
+export interface LulusanStats {
+  total: string;
+  avg_ipk: string;
+  total_prodi: string;
+  total_angkatan: string;
+}
+
+export interface AktivitasItem {
+  id_akt_mhs: string;
+  judul: string;
+  id_jns_akt_mhs: number;
+  jenis_aktivitas: string;
+  lokasi_kegiatan: string;
+  tgl_mulai: string | null;
+  tgl_selesai: string | null;
+  id_smt: string;
+  nm_prodi: string;
+  nm_fakultas: string;
+  id_fakultas: string;
+  a_komunal: number;
+}
+
+export interface AktivitasStats {
+  total: string;
+  total_prodi: string;
+  total_semester: string;
+  akademik: string;
+  non_akademik: string;
+}
+
 export const mahasiswaDataService = {
   async getList(params: MahasiswaListParams): Promise<MahasiswaListResult> {
     const response = await dashboardClient.get('/data/mahasiswa', { params });
@@ -106,6 +154,24 @@ export const mahasiswaDataService = {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => { if (v) q.set(k, String(v)); });
     return `${base}/data/mahasiswa/export?${q.toString()}`;
+  },
+
+  async getLulusan(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/mahasiswa/lulusan', { params });
+    return r.data.data;
+  },
+  async getLulusanStats(params: Record<string, any> = {}): Promise<LulusanStats> {
+    const r = await dashboardClient.get('/data/mahasiswa/lulusan/stats', { params });
+    return r.data.data;
+  },
+
+  async getAktivitas(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/mahasiswa/aktivitas', { params });
+    return r.data.data;
+  },
+  async getAktivitasStats(params: Record<string, any> = {}): Promise<AktivitasStats> {
+    const r = await dashboardClient.get('/data/mahasiswa/aktivitas/stats', { params });
+    return r.data.data;
   },
 };
 

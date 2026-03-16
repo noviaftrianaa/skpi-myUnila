@@ -51,4 +51,28 @@ class DosenDataService
     {
         return $this->repository->getExport($params);
     }
+
+    public function getJabfungList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'jabfung-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getJabfungList($params));
+    }
+
+    public function getJabfungStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'jabfung-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getJabfungStats($params));
+    }
+
+    public function getSertifikasiList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'sertifikasi-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getSertifikasiList($params));
+    }
+
+    public function getSertifikasiStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'sertifikasi-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getSertifikasiStats($params));
+    }
 }

@@ -50,6 +50,46 @@ class DosenDataController extends Controller
         }
     }
 
+    public function jabfung(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getJabfungList($this->extractParams($request));
+            return $this->success($data, 'Data jabfung berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function jabfungStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getJabfungStats($this->extractParams($request));
+            return $this->success($data, 'Statistik jabfung');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function sertifikasi(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getSertifikasiList($this->extractParams($request));
+            return $this->success($data, 'Data sertifikasi berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function sertifikasiStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getSertifikasiStats($this->extractParams($request));
+            return $this->success($data, 'Statistik sertifikasi');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $params = $this->extractParams($request);
