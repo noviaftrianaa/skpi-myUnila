@@ -1,0 +1,79 @@
+{
+  "app_slug": "data-unila",
+  "roles": [1, 107, 42, 43, 46, 33, 38, 34, 35, 36, 37],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/data-unila",
+      "icon": "heroicons:chart-bar-square",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Data Mahasiswa",
+      "nm_file": "#data-mahasiswa",
+      "icon": "heroicons:academic-cap",
+      "urutan": 2,
+      "children": [
+        {"nm_menu": "Daftar Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa", "urutan": 1},
+        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "urutan": 2},
+        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 3}
+      ]
+    },
+    {
+      "nm_menu": "Data Dosen & SDM",
+      "nm_file": "#data-dosen",
+      "icon": "heroicons:user-group",
+      "urutan": 3,
+      "children": [
+        {"nm_menu": "Daftar Dosen", "nm_file": "/dashboard/data-unila/dosen", "urutan": 1},
+        {"nm_menu": "Jabatan Fungsional", "nm_file": "/dashboard/data-unila/dosen/jabfung", "urutan": 2},
+        {"nm_menu": "Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 3}
+      ]
+    },
+    {
+      "nm_menu": "Data Tridarma",
+      "nm_file": "#data-tridarma",
+      "icon": "heroicons:beaker",
+      "urutan": 4,
+      "children": [
+        {"nm_menu": "Penelitian", "nm_file": "/dashboard/data-unila/tridarma/penelitian", "urutan": 1},
+        {"nm_menu": "Pengabdian", "nm_file": "/dashboard/data-unila/tridarma/pengabdian", "urutan": 2},
+        {"nm_menu": "Publikasi", "nm_file": "/dashboard/data-unila/tridarma/publikasi", "urutan": 3},
+        {"nm_menu": "Prestasi", "nm_file": "/dashboard/data-unila/tridarma/prestasi", "urutan": 4}
+      ]
+    },
+    {
+      "nm_menu": "Data Akademik",
+      "nm_file": "#data-akademik",
+      "icon": "heroicons:building-library",
+      "urutan": 5,
+      "children": [
+        {"nm_menu": "Program Studi", "nm_file": "/dashboard/data-unila/akademik/prodi", "urutan": 1},
+        {"nm_menu": "Akreditasi", "nm_file": "/dashboard/data-unila/akademik/akreditasi", "urutan": 2},
+        {"nm_menu": "Mata Kuliah", "nm_file": "/dashboard/data-unila/akademik/matkul", "urutan": 3}
+      ]
+    },
+    {
+      "nm_menu": "Data Kerjasama",
+      "nm_file": "/dashboard/data-unila/kerjasama",
+      "icon": "heroicons:globe-alt",
+      "urutan": 6
+    },
+    {
+      "nm_menu": "Data Keuangan",
+      "nm_file": "#data-keuangan",
+      "icon": "heroicons:currency-dollar",
+      "urutan": 7,
+      "children": [
+        {"nm_menu": "UKT", "nm_file": "/dashboard/data-unila/keuangan/ukt", "urutan": 1},
+        {"nm_menu": "SPP", "nm_file": "/dashboard/data-unila/keuangan/spp", "urutan": 2}
+      ]
+    },
+    {
+      "nm_menu": "Tracer Study",
+      "nm_file": "/dashboard/data-unila/tracer",
+      "icon": "heroicons:arrow-trending-up",
+      "urutan": 8
+    }
+  ]
+}

@@ -51,8 +51,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/iku', [IkuController::class, 'index']);
     });
 
-    // Protected routes (JWT authentication required)
-    // Route::middleware(['jwt.auth'])->group(function () {
-    //     // Add your protected routes here
-    // });
+    // ================================================================
+    // DATA UNILA — Raw Data Portal
+    // ================================================================
+    Route::prefix('data')->group(function () {
+        // Mahasiswa
+        Route::prefix('mahasiswa')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'stats']);
+            Route::get('/filters', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'filters']);
+            Route::get('/export', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'export']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'show']);
+        });
+    });
 });
