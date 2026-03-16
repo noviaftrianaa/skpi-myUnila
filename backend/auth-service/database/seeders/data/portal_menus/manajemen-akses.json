@@ -22,7 +22,8 @@
         {"nm_menu": "Daftar Unit", "nm_file": "/dashboard/manajemen-akses/manajemen/unit", "urutan": 6},
         {"nm_menu": "Peran", "nm_file": "/dashboard/manajemen-akses/manajemen/peran", "urutan": 7},
         {"nm_menu": "WS Endpoint", "nm_file": "/dashboard/manajemen-akses/manajemen/ws-endpoint", "urutan": 8},
-        {"nm_menu": "PJ Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/pj-aplikasi", "urutan": 9, "a_boleh_insert": 1, "a_boleh_update": 1, "a_boleh_delete": 1}
+        {"nm_menu": "PJ Aplikasi", "nm_file": "/dashboard/manajemen-akses/manajemen/pj-aplikasi", "urutan": 9, "a_boleh_insert": 1, "a_boleh_update": 1, "a_boleh_delete": 1},
+        {"nm_menu": "WS Authorization", "nm_file": "/dashboard/manajemen-akses/manajemen/ws-authorization", "urutan": 10, "a_boleh_insert": 1, "a_boleh_update": 1, "a_boleh_delete": 1}
       ]
     },
     {
