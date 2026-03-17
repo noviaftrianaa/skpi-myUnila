@@ -69,6 +69,28 @@ export const wsAuthorizationService = {
   },
 
   /**
+   * Get authorized endpoint IDs for a pengguna (user)
+   */
+  async getByPengguna(idPengguna: string, idAplikasi?: string): Promise<WsAuthByRoleResult> {
+    const params: Record<string, string> = {};
+    if (idAplikasi) params.id_aplikasi = idAplikasi;
+    const response = await authClient.get(`/manakses/ws-authorization/by-pengguna/${idPengguna}`, { params });
+    return response.data;
+  },
+
+  /**
+   * Sync: set exact desired endpoint IDs for a pengguna (auto assign/revoke diff)
+   */
+  async syncByPengguna(idPengguna: string, idAplikasi: string, endpointIds: string[]): Promise<BulkResult> {
+    const response = await authClient.post('/manakses/ws-authorization/sync-by-pengguna', {
+      id_pengguna: idPengguna,
+      id_aplikasi: idAplikasi,
+      endpoint_ids: endpointIds,
+    });
+    return response.data;
+  },
+
+  /**
    * Generate/upsert endpoints from external routes
    */
   async generateEndpoints(idAplikasi: string, endpoints: Array<{

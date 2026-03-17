@@ -8,6 +8,7 @@ import { authClient } from '@/lib/api/authClient';
 // Types
 export interface Endpoint {
   id_endpoint: string;
+  id_aplikasi?: string;
   nm_endpoint: string;
   path_url: string;
   nm_group: string | null;
@@ -44,6 +45,7 @@ export interface EndpointListParams {
   nm_group?: string;
   nm_method?: string;
   a_active?: boolean;
+  id_aplikasi?: string;
 }
 
 export interface EndpointCreateData {

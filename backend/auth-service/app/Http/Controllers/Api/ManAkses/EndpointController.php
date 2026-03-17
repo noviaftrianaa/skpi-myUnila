@@ -38,6 +38,7 @@ class EndpointController extends Controller
                 'nm_group' => $request->get('nm_group'),
                 'nm_method' => $request->get('nm_method'),
                 'a_active' => $request->has('a_active') ? filter_var($request->get('a_active'), FILTER_VALIDATE_BOOLEAN) : null,
+                'id_aplikasi' => $request->get('id_aplikasi'),
             ];
 
             $result = $this->service->getList($params);

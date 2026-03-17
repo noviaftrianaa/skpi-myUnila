@@ -5,6 +5,7 @@ import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Switch, useDisclosure, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
 import { FiPlus, FiEdit2, FiTrash2, FiMoreVertical, FiServer } from "react-icons/fi";
 import { endpointService, type Endpoint, type EndpointStats, type EndpointCreateData, type EndpointGroup } from "@/lib/services/manakses/endpointService";
+import { authClient } from "@/lib/api/authClient";
 import { toast } from "react-hot-toast";
 
 interface EndpointTableProps {
@@ -36,6 +37,8 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
   const [totalRecords, setTotalRecords] = useState(0);
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterMethod, setFilterMethod] = useState<string>("all");
+  const [filterApp, setFilterApp] = useState<string>("all");
+  const [apps, setApps] = useState<Array<{id_aplikasi: string; nm_aplikasi: string}>>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
@@ -66,6 +69,21 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
   }, [reloadKey]);
 
   useEffect(() => {
+    const loadApps = async () => {
+      try {
+        const res = await authClient.get('/manakses/aplikasi?limit=100');
+        const data = res.data?.data?.data || res.data?.data || [];
+        const list = (Array.isArray(data) ? data : []).map((a: any) => ({
+          id_aplikasi: a.id_aplikasi,
+          nm_aplikasi: a.nm_aplikasi,
+        }));
+        setApps(list);
+      } catch (e) { console.error('Error loading apps:', e); }
+    };
+    loadApps();
+  }, []);
+
+  useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
@@ -74,6 +92,7 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
           search: searchQuery || undefined,
           nm_group: filterGroup !== "all" ? filterGroup : undefined,
           nm_method: filterMethod !== "all" ? filterMethod : undefined,
+          id_aplikasi: filterApp !== "all" ? filterApp : undefined,
         });
         setData(response.data);
         setTotalRecords(response.total);
@@ -81,7 +100,7 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
       finally { setLoading(false); }
     };
     loadData();
-  }, [currentPage, rowsPerPage, searchQuery, filterGroup, filterMethod, reloadKey]);
+  }, [currentPage, rowsPerPage, searchQuery, filterGroup, filterMethod, filterApp, reloadKey]);
 
   const reload = () => setReloadKey((k) => k + 1);
 
@@ -218,6 +237,12 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
 
   const filterSlot = (
     <div className="flex flex-wrap gap-2 w-full">
+      <Select aria-label="Filter Aplikasi" placeholder="Semua Aplikasi" selectedKeys={[filterApp]}
+        onChange={(e) => { setFilterApp(e.target.value || "all"); setCurrentPage(1); }}
+        size="sm" variant="bordered" classNames={{ base: "w-[200px]", trigger: "h-10" }}>
+        <SelectItem key="all">Semua Aplikasi</SelectItem>
+        {apps.map((a) => <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>)}
+      </Select>
       <Select aria-label="Filter Group" placeholder="Semua Group" selectedKeys={[filterGroup]}
         onChange={(e) => { setFilterGroup(e.target.value || "all"); setCurrentPage(1); }}
         size="sm" variant="bordered" classNames={{ base: "w-[180px]", trigger: "h-10" }}>

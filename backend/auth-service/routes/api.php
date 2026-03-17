@@ -263,6 +263,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/bulk-assign', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'bulkAssign'])->middleware('permission:insert,manajemen-akses');
             Route::post('/bulk-revoke', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'bulkRevoke'])->middleware('permission:delete,manajemen-akses');
             Route::post('/sync', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'sync'])->middleware('permission:update,manajemen-akses');
+            Route::get('/by-pengguna/{idPengguna}', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'byPengguna']);
+            Route::post('/sync-by-pengguna', [\App\Http\Controllers\Api\ManAkses\WsAuthorizationController::class, 'syncByPengguna'])->middleware('permission:update,manajemen-akses');
         });
 
         // Kategori Aplikasi (Application Category Management)

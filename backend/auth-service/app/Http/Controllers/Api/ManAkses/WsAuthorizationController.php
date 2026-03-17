@@ -255,6 +255,136 @@ class WsAuthorizationController extends Controller
     }
 
     /**
+     * Get all authorized endpoint IDs for a specific pengguna + app
+     */
+    public function byPengguna(Request $request, $idPengguna): JsonResponse
+    {
+        try {
+            $appId = $request->query('id_aplikasi');
+
+            $where = "WHERE wa.soft_delete = 0 AND wa.id_pengguna = ? AND wa.a_active = 1";
+            $params = [$idPengguna];
+
+            if ($appId) {
+                $where .= " AND wa.id_aplikasi = ?";
+                $params[] = $appId;
+            }
+
+            $data = DB::select("
+                SELECT 
+                    CONVERT(VARCHAR(36), wa.id_ws_endpoint) as id_ws_endpoint,
+                    CONVERT(VARCHAR(36), wa.id_aplikasi) as id_aplikasi,
+                    e.nm_group,
+                    e.nm_method,
+                    e.path_url,
+                    e.nm_endpoint
+                FROM man_akses.ws_authorization wa
+                LEFT JOIN man_akses.ws_endpoint e ON e.id_ws_endpoint = wa.id_ws_endpoint
+                {$where}
+                ORDER BY e.nm_group, e.path_url
+            ", $params);
+
+            $endpointIds = array_map(fn($row) => $row->id_ws_endpoint, $data);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'endpoint_ids' => $endpointIds,
+                'total' => count($data),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Sync endpoint access for a specific pengguna
+     * Expects: { id_pengguna, id_aplikasi, endpoint_ids: [...] }
+     */
+    public function syncByPengguna(Request $request): JsonResponse
+    {
+        try {
+            $idPengguna = $request->input('id_pengguna');
+            $idAplikasi = $request->input('id_aplikasi');
+            $desiredIds = $request->input('endpoint_ids', []);
+
+            if (!$idPengguna || !$idAplikasi) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'id_pengguna dan id_aplikasi wajib diisi',
+                ], 422);
+            }
+
+            // Get current authorized endpoints for this user+app
+            $current = DB::select("
+                SELECT CONVERT(VARCHAR(36), id_ws_endpoint) as id_ws_endpoint
+                FROM man_akses.ws_authorization 
+                WHERE id_pengguna = ? AND id_aplikasi = ? AND soft_delete = 0 AND a_active = 1
+            ", [$idPengguna, $idAplikasi]);
+
+            $currentIds = array_map(fn($r) => $r->id_ws_endpoint, $current);
+
+            $toAssign = array_values(array_diff($desiredIds, $currentIds));
+            $toRevoke = array_values(array_diff($currentIds, $desiredIds));
+
+            $assigned = 0;
+            $revoked = 0;
+
+            // Assign new
+            foreach ($toAssign as $epId) {
+                $existing = DB::selectOne("
+                    SELECT id_ws_authorization, soft_delete 
+                    FROM man_akses.ws_authorization 
+                    WHERE id_pengguna = ? AND id_ws_endpoint = ? AND id_aplikasi = ?
+                ", [$idPengguna, $epId, $idAplikasi]);
+
+                if ($existing && $existing->soft_delete == 0) continue;
+
+                if ($existing && $existing->soft_delete == 1) {
+                    DB::update("
+                        UPDATE man_akses.ws_authorization 
+                        SET soft_delete = 0, a_active = 1, updated_at = GETDATE()
+                        WHERE id_ws_authorization = ?
+                    ", [$existing->id_ws_authorization]);
+                } else {
+                    DB::insert("
+                        INSERT INTO man_akses.ws_authorization 
+                        (id_ws_authorization, id_pengguna, id_aplikasi, id_ws_endpoint, a_active, created_at, updated_at, soft_delete)
+                        VALUES (?, ?, ?, ?, 1, GETDATE(), GETDATE(), 0)
+                    ", [Str::uuid()->toString(), $idPengguna, $idAplikasi, $epId]);
+                }
+                $assigned++;
+            }
+
+            // Revoke removed
+            foreach ($toRevoke as $epId) {
+                $affected = DB::update("
+                    UPDATE man_akses.ws_authorization 
+                    SET soft_delete = 1, updated_at = GETDATE()
+                    WHERE id_pengguna = ? AND id_ws_endpoint = ? AND id_aplikasi = ? AND soft_delete = 0
+                ", [$idPengguna, $epId, $idAplikasi]);
+                $revoked += $affected;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Sync selesai: +{$assigned} assigned, -{$revoked} revoked",
+                'assigned' => $assigned,
+                'revoked' => $revoked,
+                'unchanged' => count($desiredIds) - $assigned,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal sync: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Sync: compare current vs desired, auto assign/revoke diff
      * Expects: { id_peran, id_aplikasi, endpoint_ids: [...] (desired state) }
      */
