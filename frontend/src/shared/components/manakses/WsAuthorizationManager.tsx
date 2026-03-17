@@ -11,11 +11,11 @@ const toArray = (data: any): any[] => {
 import {
   Card, CardBody, Button, Select, SelectItem, Input, Chip,
   Spinner, Accordion, AccordionItem, Modal, ModalContent,
-  ModalHeader, ModalBody, ModalFooter, useDisclosure,
+  ModalHeader, ModalBody, ModalFooter, useDisclosure, Autocomplete, AutocompleteItem,
 } from "@heroui/react";
 import {
   FiSave, FiRefreshCw, FiSearch, FiShield, FiCheck, FiX, FiServer,
-  FiChevronDown, FiDownload,
+  FiChevronDown, FiDownload, FiPrinter, FiUser,
 } from "react-icons/fi";
 import { authClient } from "@/lib/api/authClient";
 import { wsAuthorizationService, type SystemRoute } from "@/lib/services/manakses/wsAuthorizationService";
@@ -81,6 +81,14 @@ export default function WsAuthorizationManager() {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedApp, setSelectedApp] = useState<string>(WS_APP_ID);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Pengguna search state (for print report)
+  const [penggunaSearch, setPenggunaSearch] = useState("");
+  const [penggunaList, setPenggunaList] = useState<Array<{id_pengguna: string; username: string; nm_pengguna: string}>>([]);
+  const [selectedPengguna, setSelectedPengguna] = useState<{id_pengguna: string; username: string; nm_pengguna: string} | null>(null);
+  const [penggunaRoles, setPenggunaRoles] = useState<Array<{id_peran: number; nm_peran: string; authorized_endpoints: EndpointItem[]}>>([]);
+  const [loadingPengguna, setLoadingPengguna] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false);
 
   // UI state
   const [loadingRoles, setLoadingRoles] = useState(true);
@@ -155,6 +163,142 @@ export default function WsAuthorizationManager() {
     };
     load();
   }, [selectedRole, selectedApp]);
+
+  // Search pengguna for report
+  useEffect(() => {
+    if (penggunaSearch.length < 2) { setPenggunaList([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await authClient.get(`/manakses/pengguna?search=${penggunaSearch}&limit=20`);
+        const list = toArray(res.data.data).map((p: any) => ({
+          id_pengguna: p.id_pengguna, username: p.username, nm_pengguna: p.nm_pengguna || p.nama || p.nm_pd || "",
+        }));
+        setPenggunaList(list);
+      } catch (e) { console.error(e); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [penggunaSearch]);
+
+  // Load pengguna report (all roles + their authorized endpoints)
+  const loadPenggunaReport = async (pengguna: {id_pengguna: string; username: string; nm_pengguna: string}) => {
+    setSelectedPengguna(pengguna);
+    setLoadingReport(true);
+    try {
+      // Get user's roles
+      const rolesRes = await authClient.get(`/manakses/role-pengguna/by-pengguna/${pengguna.id_pengguna}`);
+      const userRoles = toArray(rolesRes.data.data);
+      
+      // For each role, get authorized endpoints
+      const roleEndpoints = await Promise.all(
+        userRoles.map(async (rp: any) => {
+          try {
+            const authRes = await wsAuthorizationService.getByRole(rp.id_peran, WS_APP_ID);
+            // Get endpoint details
+            const epIds = authRes.endpoint_ids || [];
+            if (epIds.length === 0) return { id_peran: rp.id_peran, nm_peran: rp.nm_peran, authorized_endpoints: [] };
+            
+            const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${WS_APP_ID}`);
+            const allEps = toArray(epsRes.data.data);
+            const authorized = allEps.filter((e: any) => epIds.includes(e.id_ws_endpoint));
+            return { id_peran: rp.id_peran, nm_peran: rp.nm_peran, authorized_endpoints: authorized };
+          } catch { return { id_peran: rp.id_peran, nm_peran: rp.nm_peran, authorized_endpoints: [] }; }
+        })
+      );
+      setPenggunaRoles(roleEndpoints);
+    } catch (e) {
+      console.error(e);
+      toastError("Gagal memuat data pengguna");
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+
+  // Print PDF report
+  const handlePrintPDF = () => {
+    if (!selectedPengguna || penggunaRoles.length === 0) return;
+    
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    
+    const totalEndpoints = penggunaRoles.reduce((sum, r) => sum + r.authorized_endpoints.length, 0);
+    const now = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Laporan Akses WS - ${selectedPengguna.username}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 30px; color: #1a1a1a; font-size: 12px; }
+          .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+          .header h1 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+          .header h2 { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 8px; }
+          .header p { font-size: 11px; color: #666; }
+          .info { margin-bottom: 20px; }
+          .info table { width: 100%; }
+          .info td { padding: 3px 8px; vertical-align: top; }
+          .info td:first-child { font-weight: 600; width: 140px; color: #444; }
+          .role-section { margin-bottom: 18px; page-break-inside: avoid; }
+          .role-title { font-size: 13px; font-weight: 700; padding: 6px 10px; background: #f0f0f0; border-left: 3px solid #4f46e5; margin-bottom: 6px; }
+          table.endpoints { width: 100%; border-collapse: collapse; font-size: 11px; }
+          table.endpoints th { background: #f8f8f8; padding: 5px 8px; text-align: left; border: 1px solid #ddd; font-weight: 600; }
+          table.endpoints td { padding: 4px 8px; border: 1px solid #ddd; }
+          table.endpoints tr:nth-child(even) { background: #fafafa; }
+          .method { font-family: monospace; font-weight: 700; font-size: 10px; padding: 1px 6px; border-radius: 3px; }
+          .method-GET { background: #dcfce7; color: #166534; }
+          .method-POST { background: #dbeafe; color: #1e40af; }
+          .method-PUT { background: #fef3c7; color: #92400e; }
+          .method-DELETE { background: #fce4ec; color: #b71c1c; }
+          .method-PATCH { background: #e8eaf6; color: #283593; }
+          .footer { margin-top: 25px; text-align: center; font-size: 10px; color: #888; border-top: 1px solid #ddd; padding-top: 8px; }
+          .no-data { text-align: center; color: #888; padding: 10px; font-style: italic; }
+          @media print { body { padding: 15px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>UNIVERSITAS LAMPUNG</h1>
+          <h2>Laporan Hak Akses Web Service</h2>
+          <p>Dicetak: ${now}</p>
+        </div>
+        <div class="info">
+          <table>
+            <tr><td>Nama</td><td>: ${selectedPengguna.nm_pengguna}</td></tr>
+            <tr><td>Username</td><td>: ${selectedPengguna.username}</td></tr>
+            <tr><td>Aplikasi</td><td>: ${WS_APP_NAME}</td></tr>
+            <tr><td>Total Role</td><td>: ${penggunaRoles.length}</td></tr>
+            <tr><td>Total Endpoint</td><td>: ${totalEndpoints}</td></tr>
+          </table>
+        </div>
+        ${penggunaRoles.map(role => `
+          <div class="role-section">
+            <div class="role-title">${role.nm_peran} (${role.authorized_endpoints.length} endpoint)</div>
+            ${role.authorized_endpoints.length > 0 ? `
+              <table class="endpoints">
+                <thead><tr><th style="width:70px">Method</th><th>Path URL</th><th style="width:100px">Group</th></tr></thead>
+                <tbody>
+                  ${role.authorized_endpoints.map((ep: any) => `
+                    <tr>
+                      <td><span class="method method-${ep.nm_method}">${ep.nm_method || '-'}</span></td>
+                      <td style="font-family:monospace;font-size:11px">${ep.path_url}</td>
+                      <td>${ep.nm_group || '-'}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            ` : '<p class="no-data">Tidak ada endpoint yang diotorisasi untuk role ini</p>'}
+          </div>
+        `).join("")}
+        <div class="footer">
+          MyUnila — UPT TIK Universitas Lampung · Dokumen ini digenerate otomatis
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  };
 
   // Group + filter endpoints
   const groupedEndpoints = useMemo(() => {
@@ -335,10 +479,35 @@ export default function WsAuthorizationManager() {
               ))}
             </Select>
 
-            <div className="flex items-center gap-2 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
-              <FiServer className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{WS_APP_NAME}</span>
-            </div>
+            <Autocomplete
+              aria-label="Cari Pengguna"
+              placeholder="Cari pengguna untuk cetak..."
+              variant="bordered"
+              startContent={<FiUser className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+              classNames={{ base: "w-full sm:w-[250px]" }}
+              inputProps={{ classNames: { inputWrapper: "h-11 border-gray-200 dark:border-gray-600" } }}
+              listboxProps={{ emptyContent: penggunaSearch.length < 2 ? "Ketik min 2 karakter..." : "Tidak ditemukan" }}
+              onInputChange={(v) => setPenggunaSearch(v)}
+              onSelectionChange={(key) => {
+                const p = penggunaList.find(u => u.id_pengguna === key);
+                if (p) loadPenggunaReport(p);
+              }}
+              isLoading={loadingPengguna}
+            >
+              {penggunaList.map((p) => (
+                <AutocompleteItem key={p.id_pengguna} textValue={`${p.nm_pengguna} (${p.username})`}>
+                  <div><span className="text-sm font-medium">{p.nm_pengguna}</span>
+                    <span className="text-xs text-gray-500 ml-2">{p.username}</span></div>
+                </AutocompleteItem>
+              ))}
+            </Autocomplete>
+
+            {selectedPengguna && !loadingReport && penggunaRoles.length > 0 && (
+              <Button size="md" startContent={<FiPrinter className="w-4 h-4" />} onPress={handlePrintPDF}
+                className="h-11 font-medium bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg">
+                Cetak PDF
+              </Button>
+            )}
 
             <Input
               aria-label="Search"
@@ -365,6 +534,52 @@ export default function WsAuthorizationManager() {
           </div>
         </CardBody>
       </Card>
+
+      {/* Pengguna Report Preview */}
+      {loadingReport && (
+        <Card className="border-none shadow-lg rounded-xl"><CardBody className="p-8 text-center">
+          <Spinner size="lg" color="primary" /><p className="text-sm text-gray-500 mt-3">Memuat data akses pengguna...</p>
+        </CardBody></Card>
+      )}
+      {selectedPengguna && !loadingReport && penggunaRoles.length > 0 && (
+        <Card className="border-none shadow-lg rounded-xl">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg"><FiUser className="w-5 h-5" /></div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">{selectedPengguna.nm_pengguna}</h3>
+                  <p className="text-xs text-gray-500">@{selectedPengguna.username} · {penggunaRoles.length} role · {penggunaRoles.reduce((s, r) => s + r.authorized_endpoints.length, 0)} endpoint</p>
+                </div>
+              </div>
+              <Button size="sm" startContent={<FiPrinter className="w-3.5 h-3.5" />} onPress={handlePrintPDF}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg">
+                Cetak PDF
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {penggunaRoles.map((role) => (
+                <div key={role.id_peran} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{role.nm_peran}</span>
+                    <Chip size="sm" variant="flat" color={role.authorized_endpoints.length > 0 ? "success" : "default"}>{role.authorized_endpoints.length} endpoint</Chip>
+                  </div>
+                  {role.authorized_endpoints.length > 0 && (
+                    <div className="max-h-[200px] overflow-y-auto">
+                      {role.authorized_endpoints.map((ep: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 px-3 py-1.5 border-t border-gray-100 dark:border-gray-700/50 text-xs">
+                          <Chip size="sm" variant="flat" color={(METHOD_COLORS[ep.nm_method] || "default") as any} className="font-mono font-semibold min-w-[50px] text-center text-[10px]">{ep.nm_method}</Chip>
+                          <span className="font-mono text-gray-700 dark:text-gray-300 truncate">{ep.path_url}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {/* No selection state */}
       {(!selectedRole || !selectedApp) && (
