@@ -1638,3 +1638,11 @@ INSERT INTO man_akses.menu_role (id_menu, id_peran, akses_menu, a_boleh_show, a_
 VALUES ('01C8256A-6555-4D15-9BB3-57FF5B27F74C', 34, 'full', 1, 0, 0, 0, 0, 1, 0, GETDATE(), GETDATE());
 GO
 
+
+-- =============================================
+-- Fix: Menu Order (PJ Aplikasi=8, WS Endpoint=9, WS Authorization=10)
+-- =============================================
+UPDATE man_akses.menu SET urutan_menu = 8 WHERE nm_file = '/dashboard/manajemen-akses/manajemen/pj-aplikasi' AND id_aplikasi = '5A658A40-FD39-4280-8B3C-FAF52A059D8E';
+UPDATE man_akses.menu SET urutan_menu = 9 WHERE nm_file = '/dashboard/manajemen-akses/manajemen/ws-endpoint' AND id_aplikasi = '5A658A40-FD39-4280-8B3C-FAF52A059D8E';
+UPDATE man_akses.menu SET urutan_menu = 10 WHERE nm_file = '/dashboard/manajemen-akses/manajemen/ws-authorization' AND id_aplikasi = '5A658A40-FD39-4280-8B3C-FAF52A059D8E';
+GO

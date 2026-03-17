@@ -348,70 +348,105 @@ export default function PjAplikasiTable() {
   // Form fields (reusable for Add & Edit)
   const renderFormFields = (isEdit: boolean) => (
     <div className="space-y-5">
-      <Select
-        label="Aplikasi"
-        placeholder="Pilih aplikasi"
-        selectedKeys={formData.id_aplikasi ? [formData.id_aplikasi] : []}
-        onSelectionChange={(keys) =>
-          setFormData({ ...formData, id_aplikasi: Array.from(keys)[0] as string || "" })
-        }
-        isRequired
-        isDisabled={isEdit}
-        variant="bordered"
-        classNames={{
-          trigger: "h-12",
-          label: "text-sm font-medium",
-        }}
-      >
-        {apps.map((a) => (
-          <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
-        ))}
-      </Select>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Nama PJ"
-          placeholder="Nama penanggung jawab"
-          value={formData.nm_pj}
-          onValueChange={(v) => setFormData({ ...formData, nm_pj: v })}
-          isRequired
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+          Aplikasi <span className="text-red-500">*</span>
+        </label>
+        <Select
+          aria-label="Pilih Aplikasi"
+          placeholder="Pilih aplikasi"
+          selectedKeys={formData.id_aplikasi ? [formData.id_aplikasi] : []}
+          onSelectionChange={(keys) =>
+            setFormData({ ...formData, id_aplikasi: Array.from(keys)[0] as string || "" })
+          }
+          isDisabled={isEdit}
           variant="bordered"
-          startContent={<FiUser className="w-4 h-4 text-gray-400 shrink-0" />}
-          classNames={{ inputWrapper: "h-12" }}
-        />
-        <Input
-          label="Jabatan"
-          placeholder="Jabatan PJ"
-          value={formData.jabatan_pj}
-          onValueChange={(v) => setFormData({ ...formData, jabatan_pj: v })}
-          isRequired
-          variant="bordered"
-          startContent={<FiBriefcase className="w-4 h-4 text-gray-400 shrink-0" />}
-          classNames={{ inputWrapper: "h-12" }}
-        />
+          size="sm"
+          classNames={{
+            trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            value: "text-gray-900 dark:text-white",
+            popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+          }}
+        >
+          {apps.map((a) => (
+            <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
+          ))}
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Email"
-          placeholder="email@unila.ac.id"
-          type="email"
-          value={formData.email}
-          onValueChange={(v) => setFormData({ ...formData, email: v })}
-          isRequired
-          variant="bordered"
-          startContent={<FiMail className="w-4 h-4 text-gray-400 shrink-0" />}
-          classNames={{ inputWrapper: "h-12" }}
-        />
-        <Input
-          label="No HP"
-          placeholder="08xxxxxxxxxx"
-          value={formData.no_hp}
-          onValueChange={(v) => setFormData({ ...formData, no_hp: v })}
-          variant="bordered"
-          startContent={<FiPhone className="w-4 h-4 text-gray-400 shrink-0" />}
-          classNames={{ inputWrapper: "h-12" }}
-        />
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            Nama PJ <span className="text-red-500">*</span>
+          </label>
+          <Input
+            aria-label="Nama PJ"
+            placeholder="Nama penanggung jawab"
+            value={formData.nm_pj}
+            onValueChange={(v) => setFormData({ ...formData, nm_pj: v })}
+            variant="bordered"
+            size="sm"
+            classNames={{
+              input: "text-gray-900 dark:text-white",
+              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            Jabatan PJ <span className="text-red-500">*</span>
+          </label>
+          <Input
+            aria-label="Jabatan PJ"
+            placeholder="Jabatan PJ"
+            value={formData.jabatan_pj}
+            onValueChange={(v) => setFormData({ ...formData, jabatan_pj: v })}
+            variant="bordered"
+            size="sm"
+            classNames={{
+              input: "text-gray-900 dark:text-white",
+              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <Input
+            aria-label="Email"
+            placeholder="email@unila.ac.id"
+            type="email"
+            value={formData.email}
+            onValueChange={(v) => setFormData({ ...formData, email: v })}
+            variant="bordered"
+            size="sm"
+            classNames={{
+              input: "text-gray-900 dark:text-white",
+              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+            No HP
+          </label>
+          <Input
+            aria-label="No HP"
+            placeholder="08xxxxxxxxxx"
+            value={formData.no_hp}
+            onValueChange={(v) => setFormData({ ...formData, no_hp: v })}
+            variant="bordered"
+            size="sm"
+            classNames={{
+              input: "text-gray-900 dark:text-white",
+              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            }}
+          />
+        </div>
       </div>
 
       <div
