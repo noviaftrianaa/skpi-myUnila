@@ -10,11 +10,19 @@ import (
 	"github.com/myunila/api-service/internal/middleware"
 )
 
-// RegisterRoutes mendaftarkan semua routes untuk modul PDRD
+// RegisterRoutes mendaftarkan semua routes untuk modul PDRD (backward compat)
 func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
-	// Group route untuk mahasiswa
+	RegisterRoutesWithMiddleware(router, db, redis, nil)
+}
 
-	pdrd := router.Group("/pdrd", middleware.JWTAuth())
+// RegisterRoutesWithMiddleware mendaftarkan routes dengan custom middleware chain
+func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redis *redis.Client, middlewares []fiber.Handler) {
+	var pdrd fiber.Router
+	if len(middlewares) > 0 {
+		pdrd = router.Group("/pdrd", middlewares...)
+	} else {
+		pdrd = router.Group("/pdrd", middleware.KongAuth())
+	}
 	pdrd.Use(middleware.RateLimiterMiddleware(redis, middleware.DefaultRateLimiterConfig()))
 
 	pesertadidik.RegisterRoutes(pdrd, db, redis)

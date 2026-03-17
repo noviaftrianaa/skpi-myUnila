@@ -21,6 +21,7 @@ import (
 	"github.com/myunila/api-service/external/database"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
+	"github.com/myunila/api-service/internal/middleware"
 )
 
 // @title MyUnila API Service
@@ -159,19 +160,40 @@ func main() {
 	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
 	apiV1 := app.Group("/v1")
 
+	// WS Authorization config
+	// WS_AUTH_APP_ID: aplikasi ID di man_akses untuk endpoint authorization
+	// WS_AUTH_ENABLED: enable/disable ws_authorization enforcement (default: false for backward compat)
+	wsAuthEnabled := os.Getenv("WS_AUTH_ENABLED") == "true"
+	wsAuthAppID := os.Getenv("WS_AUTH_APP_ID")
+
+	// Build middleware chain for protected routes: KongAuth → WsAuth → Handler
+	var protectedMiddlewares []fiber.Handler
+	protectedMiddlewares = append(protectedMiddlewares, middleware.KongAuth())
+
+	if wsAuthEnabled && wsAuthAppID != "" {
+		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthorization(middleware.WsAuthConfig{
+			DB:       db,
+			AppID:    wsAuthAppID,
+			CacheTTL: 5 * time.Minute,
+		}))
+		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthLog(db, wsAuthAppID))
+		log.Printf("✅ WS Authorization ENABLED (app_id: %s)", wsAuthAppID[:8]+"...")
+	} else {
+		log.Println("⚠️  WS Authorization DISABLED (set WS_AUTH_ENABLED=true and WS_AUTH_APP_ID to enable)")
+	}
+
 	// Initialize Auth module (public - tanpa auth)
 	auth.Init(apiV1, db)
 	log.Println("✅ Auth module initialized")
 
-	// Initialize Referensi module (protected - dengan JWT auth middleware)
-	referensi.RegisterRoutes(apiV1, db, redis.Client)
+	// Initialize protected modules with KongAuth + WsAuth middleware chain
+	referensi.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Referensi module initialized")
 
-	// Initialize Diklat module (protected - dengan JWT auth middleware)
-	diklat.RegisterRoutes(apiV1, db, redis.Client)
+	diklat.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Diklat module initialized")
 
-	pdrd.RegisterRoutes(apiV1, db, redis.Client)
+	pdrd.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ PDRD module initialized")
 
 	// System routes (for endpoint management - self-report all registered routes)

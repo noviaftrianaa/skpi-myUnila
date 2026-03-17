@@ -7,14 +7,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RegisterRoutes mendaftarkan routes untuk referensi
+// RegisterRoutes mendaftarkan routes (backward compat)
 func RegisterRoutes(router fiber.Router, db *sqlx.DB, redisConn *redis.Client) {
+	RegisterRoutesWithMiddleware(router, db, redisConn, nil)
+}
+
+// RegisterRoutesWithMiddleware mendaftarkan routes dengan custom middleware chain
+func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisConn *redis.Client, middlewares []fiber.Handler) {
 	repo := NewRepository(db)
 	svc := NewService(repo, redisConn)
 	handler := NewHandler(svc)
 
-	// Group referensi dengan JWT auth middleware
-	ref := router.Group("/diklat", middleware.JWTAuth())
+	var ref fiber.Router
+	if len(middlewares) > 0 {
+		ref = router.Group("/diklat", middlewares...)
+	} else {
+		ref = router.Group("/diklat", middleware.KongAuth())
+	}
 
 	// Endpoints
 	ref.Get("/list", handler.GetDiklat)

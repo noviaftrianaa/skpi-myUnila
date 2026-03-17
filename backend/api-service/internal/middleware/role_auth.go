@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +28,7 @@ type ActiveContext struct {
 func getCachePrefix() string {
 	prefix := os.Getenv("AUTH_CACHE_PREFIX")
 	if prefix == "" {
-		prefix = "auth_" // Default Laravel auth-service cache prefix
+		prefix = "myunila_database_myunila_cache_" // Laravel auth-service cache prefix
 	}
 	return prefix
 }
@@ -94,16 +95,95 @@ func getActiveContext(userID string) (*ActiveContext, error) {
 		return nil, nil
 	}
 
-	// Laravel Cache stores data with serialization wrapper
-	// Try to parse directly first (if stored as JSON)
+	// Laravel Cache stores data as PHP serialize format
+	// e.g. a:7:{s:16:"id_role_pengguna";s:36:"uuid";s:8:"id_peran";s:3:"107";...}
+	// Try JSON first, then PHP serialize
 	var activeContext ActiveContext
 	if err := json.Unmarshal([]byte(data), &activeContext); err != nil {
-		// Try to parse Laravel serialized format
-		// Laravel uses PHP serialize format, but with Redis driver it often uses JSON
-		return nil, fmt.Errorf("failed to parse active context: %w", err)
+		// Parse PHP serialized format
+		parsed := parsePhpSerializedContext(data)
+		if parsed == nil {
+			return nil, fmt.Errorf("failed to parse active context from Redis")
+		}
+		activeContext = *parsed
 	}
 
 	return &activeContext, nil
+}
+
+// parsePhpSerializedContext parses PHP serialized array into ActiveContext
+// Handles format: a:7:{s:16:"key";s:5:"value";s:8:"id_peran";s:3:"107";...}
+func parsePhpSerializedContext(data string) *ActiveContext {
+	ctx := &ActiveContext{}
+
+	// Extract values using simple string parsing
+	ctx.IDRolePengguna = phpSerialExtract(data, "id_role_pengguna")
+	ctx.NmPeran = phpSerialExtract(data, "nm_peran")
+	ctx.IDOrganisasi = phpSerialExtract(data, "id_organisasi")
+	ctx.NmOrganisasi = phpSerialExtract(data, "nm_organisasi")
+	ctx.SelectedAt = phpSerialExtract(data, "selected_at")
+
+	// id_peran is integer
+	peranStr := phpSerialExtract(data, "id_peran")
+	if peranStr != "" {
+		fmt.Sscanf(peranStr, "%d", &ctx.IDPeran)
+	}
+
+	// level_organisasi (may be N for null)
+	levelStr := phpSerialExtract(data, "level_organisasi")
+	if levelStr != "" && levelStr != "N" {
+		fmt.Sscanf(levelStr, "%d", &ctx.LevelOrganisasi)
+	}
+
+	if ctx.NmPeran == "" {
+		return nil
+	}
+	return ctx
+}
+
+// phpSerialExtract extracts a string value from PHP serialized data by key
+// Handles: s:KEY_LEN:"key";s:VAL_LEN:"value"; or s:KEY_LEN:"key";N; (null) or s:KEY_LEN:"key";i:INT;
+func phpSerialExtract(data, key string) string {
+	keyToken := fmt.Sprintf(`s:%d:"%s"`, len(key), key)
+	idx := strings.Index(data, keyToken)
+	if idx == -1 {
+		return ""
+	}
+
+	// Move past the key token and semicolon
+	rest := data[idx+len(keyToken)+1:] // +1 for ;
+
+	if len(rest) == 0 {
+		return ""
+	}
+
+	// Parse value: s:LEN:"VALUE"; or i:INT; or N;
+	if strings.HasPrefix(rest, "N;") {
+		return ""
+	}
+	if strings.HasPrefix(rest, "i:") {
+		end := strings.Index(rest, ";")
+		if end > 2 {
+			return rest[2:end]
+		}
+		return ""
+	}
+	if strings.HasPrefix(rest, "s:") {
+		// Find the length
+		colonIdx := strings.Index(rest[2:], ":")
+		if colonIdx == -1 {
+			return ""
+		}
+		var length int
+		fmt.Sscanf(rest[2:2+colonIdx], "%d", &length)
+		startIdx := 2 + colonIdx + 2 // skip s:LEN:"
+		if startIdx+length > len(rest) {
+			return ""
+		}
+		return rest[startIdx : startIdx+length]
+	}
+
+	return ""
 }
 
 // RequireDeveloper is a convenience middleware for Developer-only endpoints
