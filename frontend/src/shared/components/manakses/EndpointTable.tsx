@@ -236,7 +236,7 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
   );
 
   const filterSlot = (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Select aria-label="Filter Aplikasi" placeholder="Semua Aplikasi" selectedKeys={[filterApp]}
         onChange={(e) => { setFilterApp(e.target.value || "all"); setCurrentPage(1); }}
         size="sm" variant="bordered"
@@ -271,7 +271,7 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
           return items[0].textValue || "Semua Group";
         }}>
         <SelectItem key="all" textValue="Semua Group">Semua Group</SelectItem>
-        {groups.map((g) => <SelectItem key={g.nm_group} textValue={g.nm_group}>{g.nm_group} ({g.total})</SelectItem>)}
+        {groups.map((g) => <SelectItem key={g.nm_group} textValue={g.nm_group}>{g.nm_group}</SelectItem>)}
       </Select>
       <Select aria-label="Filter Method" placeholder="Semua Method" selectedKeys={[filterMethod]}
         onChange={(e) => { setFilterMethod(e.target.value || "all"); setCurrentPage(1); }}
