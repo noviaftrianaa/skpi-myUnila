@@ -259,7 +259,7 @@ export default function WsAuthorizationManager() {
       <body>
         <div class="header">
           <h1>UNIVERSITAS LAMPUNG</h1>
-          <h2>Laporan Hak Akses Web Service</h2>
+          <h2>Laporan Otorisasi Endpoint WS API Service</h2>
           <p>Dicetak: ${now}</p>
         </div>
         <div class="info">
@@ -466,13 +466,13 @@ export default function WsAuthorizationManager() {
         <CardBody className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <Select
-              aria-label="Pilih Role"
-              placeholder="Pilih Role"
+              aria-label="Pilih Role PJ Aplikasi"
+              placeholder="Pilih Role PJ Aplikasi"
               selectedKeys={selectedRole ? [selectedRole] : []}
               onSelectionChange={(keys) => setSelectedRole(Array.from(keys)[0] as string || "")}
               variant="bordered"
               startContent={<FiShield className="w-4 h-4 text-gray-400" />}
-              classNames={{ base: "w-full sm:w-[220px]", trigger: "h-11" }}
+              classNames={{ base: "w-full sm:w-[250px]", trigger: "h-11" }}
             >
               {roles.map((r) => (
                 <SelectItem key={String(r.id_peran)}>{r.nm_peran}</SelectItem>
@@ -481,7 +481,7 @@ export default function WsAuthorizationManager() {
 
             <Autocomplete
               aria-label="Cari Pengguna"
-              placeholder="Cari pengguna untuk cetak..."
+              placeholder="Cari PJ Aplikasi untuk cetak laporan..."
               variant="bordered"
               startContent={<FiUser className="w-4 h-4 text-gray-400 flex-shrink-0" />}
               classNames={{ base: "w-full sm:w-[250px]" }}
@@ -585,12 +585,12 @@ export default function WsAuthorizationManager() {
       {(!selectedRole || !selectedApp) && (
         <Card className="border-none shadow-lg rounded-xl">
           <CardBody className="p-12 text-center">
-            <FiShield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <FiServer className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Pilih Role
+              Pilih Role PJ Aplikasi
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Pilih role untuk mengelola hak akses endpoint WS Service
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              Pilih role penanggung jawab aplikasi untuk mengatur endpoint WS API mana saja yang boleh diakses oleh aplikasi eksternal
             </p>
           </CardBody>
         </Card>
@@ -664,7 +664,7 @@ export default function WsAuthorizationManager() {
                 <p className="text-gray-500">
                   {searchQuery
                     ? "Tidak ada endpoint yang cocok dengan pencarian"
-                    : "Belum ada endpoint terdaftar untuk aplikasi ini. Klik Generate untuk menambahkan."}
+                    : "Belum ada endpoint WS API terdaftar. Klik Generate untuk mengimpor daftar endpoint dari ws-service."}
                 </p>
               </CardBody>
             </Card>

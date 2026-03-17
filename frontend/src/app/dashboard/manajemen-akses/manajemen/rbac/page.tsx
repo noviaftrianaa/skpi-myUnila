@@ -60,10 +60,10 @@ export default function RBACPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Role Base Access Control
+              RBAC Portal Internal
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Kelola assignment peran ke pengguna dan akses menu di sistem
+              Kelola akses menu dan peran pengguna untuk aplikasi internal MyUnila Portal
             </p>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function RBACPage() {
             `}
           >
             <FiLock className={`w-4 h-4 ${activeTab === "menu-role" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
-            <span>Menu Role</span>
+            <span>Akses Menu per Role</span>
           </button>
           <button
             onClick={() => setActiveTab("role-pengguna")}
@@ -206,7 +206,7 @@ export default function RBACPage() {
             `}
           >
             <FiUsers className={`w-4 h-4 ${activeTab === "role-pengguna" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
-            <span>Role Pengguna</span>
+            <span>Pengguna & Role</span>
           </button>
         </div>
 

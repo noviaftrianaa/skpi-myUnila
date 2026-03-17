@@ -24,10 +24,10 @@ export default function WsAuthorizationPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            WS Authorization
+            Otorisasi Web Service API
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Kelola hak akses endpoint web service per role
+            Kelola hak akses endpoint WS API Service untuk PJ Aplikasi eksternal yang ingin menggunakan API MyUnila
           </p>
         </div>
         <WsAuthorizationManager />
