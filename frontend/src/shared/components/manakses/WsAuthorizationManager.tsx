@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+
+// Helper: safely extract array from paginated or direct response
+const toArray = (data: any): any[] => {
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+};
 import {
   Card, CardBody, Button, Select, SelectItem, Input, Chip,
   Spinner, Accordion, AccordionItem, Modal, ModalContent,
@@ -92,13 +99,13 @@ export default function WsAuthorizationManager() {
           authClient.get("/manakses/aplikasi?limit=200"),
         ]);
         setRoles(
-          (rolesRes.data.data?.data || rolesRes.data.data || []).map((r: any) => ({
+          toArray(rolesRes.data.data).map((r: any) => ({
             id_peran: r.id_peran,
             nm_peran: r.nm_peran,
           }))
         );
         setApps(
-          (appsRes.data.data || []).map((a: any) => ({
+          toArray(appsRes.data.data).map((a: any) => ({
             id_aplikasi: a.id_aplikasi,
             nm_aplikasi: a.nm_aplikasi,
           }))
@@ -127,7 +134,7 @@ export default function WsAuthorizationManager() {
       try {
         // Get all endpoints for this app
         const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
-        const epList: EndpointItem[] = (epsRes.data.data?.data || epsRes.data.data || []).map((e: any) => ({
+        const epList: EndpointItem[] = toArray(epsRes.data.data).map((e: any) => ({
           id_ws_endpoint: e.id_ws_endpoint,
           nm_group: e.nm_group || "uncategorized",
           nm_method: e.nm_method || "GET",
@@ -285,7 +292,7 @@ export default function WsAuthorizationManager() {
 
       // Reload endpoints
       const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
-      const epList = (epsRes.data.data?.data || epsRes.data.data || []).map((e: any) => ({
+      const epList = toArray(epsRes.data.data).map((e: any) => ({
         id_ws_endpoint: e.id_ws_endpoint,
         nm_group: e.nm_group || "uncategorized",
         nm_method: e.nm_method || "GET",
