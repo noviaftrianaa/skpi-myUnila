@@ -236,27 +236,63 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
   );
 
   const filterSlot = (
-    <div className="flex flex-wrap gap-2 w-full">
+    <div className="flex items-center gap-2">
       <Select aria-label="Filter Aplikasi" placeholder="Semua Aplikasi" selectedKeys={[filterApp]}
         onChange={(e) => { setFilterApp(e.target.value || "all"); setCurrentPage(1); }}
-        size="sm" variant="bordered" classNames={{ base: "w-[200px]", trigger: "h-10" }}>
-        <SelectItem key="all">Semua Aplikasi</SelectItem>
-        {apps.map((a) => <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>)}
+        size="sm" variant="bordered"
+        classNames={{
+          base: "w-44",
+          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
+          innerWrapper: "!bg-white dark:!bg-gray-800",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[250px]",
+          listbox: "!bg-white dark:!bg-gray-800",
+        }}
+        renderValue={(items) => {
+          if (!items || items.length === 0 || items[0].key === "all") return "Semua Aplikasi";
+          return items[0].textValue || "Semua Aplikasi";
+        }}>
+        <SelectItem key="all" textValue="Semua Aplikasi">Semua Aplikasi</SelectItem>
+        {apps.map((a) => <SelectItem key={a.id_aplikasi} textValue={a.nm_aplikasi}>{a.nm_aplikasi}</SelectItem>)}
       </Select>
       <Select aria-label="Filter Group" placeholder="Semua Group" selectedKeys={[filterGroup]}
         onChange={(e) => { setFilterGroup(e.target.value || "all"); setCurrentPage(1); }}
-        size="sm" variant="bordered" classNames={{ base: "w-[180px]", trigger: "h-10" }}>
-        <SelectItem key="all">Semua Group</SelectItem>
-        {groups.map((g) => <SelectItem key={g.nm_group}>{g.nm_group} ({g.total})</SelectItem>)}
+        size="sm" variant="bordered"
+        classNames={{
+          base: "w-40",
+          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
+          innerWrapper: "!bg-white dark:!bg-gray-800",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[220px]",
+          listbox: "!bg-white dark:!bg-gray-800",
+        }}
+        renderValue={(items) => {
+          if (!items || items.length === 0 || items[0].key === "all") return "Semua Group";
+          return items[0].textValue || "Semua Group";
+        }}>
+        <SelectItem key="all" textValue="Semua Group">Semua Group</SelectItem>
+        {groups.map((g) => <SelectItem key={g.nm_group} textValue={g.nm_group}>{g.nm_group} ({g.total})</SelectItem>)}
       </Select>
       <Select aria-label="Filter Method" placeholder="Semua Method" selectedKeys={[filterMethod]}
         onChange={(e) => { setFilterMethod(e.target.value || "all"); setCurrentPage(1); }}
-        size="sm" variant="bordered" classNames={{ base: "w-[150px]", trigger: "h-10" }}>
-        <SelectItem key="all">Semua Method</SelectItem>
-        <SelectItem key="GET">GET ({stats?.total_get || 0})</SelectItem>
-        <SelectItem key="POST">POST ({stats?.total_post || 0})</SelectItem>
-        <SelectItem key="PUT">PUT ({stats?.total_put || 0})</SelectItem>
-        <SelectItem key="DELETE">DELETE ({stats?.total_delete || 0})</SelectItem>
+        size="sm" variant="bordered"
+        classNames={{
+          base: "w-36",
+          trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+          value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
+          innerWrapper: "!bg-white dark:!bg-gray-800",
+          popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[180px]",
+          listbox: "!bg-white dark:!bg-gray-800",
+        }}
+        renderValue={(items) => {
+          if (!items || items.length === 0 || items[0].key === "all") return "Semua Method";
+          return items[0].textValue || "Semua Method";
+        }}>
+        <SelectItem key="all" textValue="Semua Method">Semua Method</SelectItem>
+        <SelectItem key="GET" textValue="GET">GET ({stats?.total_get || 0})</SelectItem>
+        <SelectItem key="POST" textValue="POST">POST ({stats?.total_post || 0})</SelectItem>
+        <SelectItem key="PUT" textValue="PUT">PUT ({stats?.total_put || 0})</SelectItem>
+        <SelectItem key="DELETE" textValue="DELETE">DELETE ({stats?.total_delete || 0})</SelectItem>
       </Select>
     </div>
   );
