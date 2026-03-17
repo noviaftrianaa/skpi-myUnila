@@ -104,8 +104,11 @@ export default function PjAplikasiTable() {
     const loadApps = async () => {
       try {
         const res = await authClient.get("/manakses/aplikasi?limit=200");
+        // Handle nested pagination: res.data.data.data or res.data.data (array)
+        const rawData = res.data?.data;
+        const list = Array.isArray(rawData) ? rawData : (rawData?.data || []);
         setApps(
-          (res.data.data || []).map((a: any) => ({
+          list.map((a: any) => ({
             id_aplikasi: a.id_aplikasi,
             nm_aplikasi: a.nm_aplikasi,
           }))
