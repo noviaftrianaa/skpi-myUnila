@@ -115,6 +115,31 @@ class EndpointController extends Controller
     }
 
     /**
+     * Get applications that have endpoints registered
+     *
+     * @return JsonResponse
+     */
+    public function appsWithEndpoints(): JsonResponse
+    {
+        try {
+            $repository = new \App\Repositories\ManAkses\EndpointRepository();
+            $result = $repository->getAppsWithEndpoints();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data aplikasi berhasil diambil',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data aplikasi: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
      * Get endpoint statistics
      *
      * @return JsonResponse

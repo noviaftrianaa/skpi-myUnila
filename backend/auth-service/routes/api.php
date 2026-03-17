@@ -246,6 +246,7 @@ Route::prefix('v1')->group(function () {
             // Read operations
             Route::get('/', [EndpointController::class, 'index']);
             Route::get('/groups', [EndpointController::class, 'groups']);
+            Route::get('/apps', [EndpointController::class, 'appsWithEndpoints']);
             Route::get('/stats', [EndpointController::class, 'stats']);
             Route::get('/{id}', [EndpointController::class, 'show']);
 

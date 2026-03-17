@@ -158,6 +158,28 @@ class EndpointRepository
     }
 
     /**
+     * Get distinct applications that have endpoints registered
+     *
+     * @return array
+     */
+    public function getAppsWithEndpoints(): array
+    {
+        $sql = "
+            SELECT DISTINCT
+                CONVERT(VARCHAR(36), e.id_aplikasi) as id_aplikasi,
+                a.nm_aplikasi,
+                COUNT(*) as total_endpoint
+            FROM man_akses.ws_endpoint e
+            JOIN man_akses.aplikasi a ON a.id_aplikasi = e.id_aplikasi
+            WHERE e.soft_delete = 0
+            GROUP BY e.id_aplikasi, a.nm_aplikasi
+            ORDER BY a.nm_aplikasi ASC
+        ";
+
+        return DB::select($sql);
+    }
+
+    /**
      * Get statistics for endpoints
      *
      * @return object

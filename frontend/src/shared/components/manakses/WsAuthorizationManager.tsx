@@ -100,16 +100,16 @@ export default function WsAuthorizationManager() {
   const selectedPjData = useMemo(() => pjList.find((p) => p.id_pengguna === selectedPj), [pjList, selectedPj]);
   const selectedAppData = useMemo(() => apps.find((a) => a.id_aplikasi === selectedApp), [apps, selectedApp]);
 
-  // Load apps that have endpoints
+  // Load only apps that have endpoints registered
   useEffect(() => {
     const loadApps = async () => {
       try {
-        const res = await authClient.get("/manakses/aplikasi?limit=100");
-        const allApps = toArray(res.data.data).map((a: any) => ({
+        const res = await authClient.get("/manakses/endpoint/apps");
+        const list = toArray(res.data.data).map((a: any) => ({
           id_aplikasi: a.id_aplikasi,
           nm_aplikasi: a.nm_aplikasi,
         }));
-        setApps(allApps);
+        setApps(list);
       } catch (e) {
         console.error(e);
         toastError("Gagal memuat data aplikasi");
@@ -477,17 +477,21 @@ export default function WsAuthorizationManager() {
       {/* Filter Bar */}
       <Card className="border-none shadow-lg rounded-xl">
         <CardBody className="p-4">
-          <div className="flex flex-col gap-3">
-            {/* Row 1: App + PJ */}
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Select
                 aria-label="Pilih Aplikasi"
                 placeholder="Pilih Aplikasi"
                 selectedKeys={selectedApp ? [selectedApp] : []}
                 onSelectionChange={(keys) => setSelectedApp(Array.from(keys)[0] as string || "")}
                 variant="bordered"
+                isLoading={loadingApps}
                 startContent={<FiBox className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-                classNames={{ base: "w-full sm:w-[280px]", trigger: "h-11" }}
+                classNames={{
+                  base: "w-full",
+                  trigger: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                  value: "text-sm font-medium text-gray-700 dark:text-gray-300",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[280px]",
+                }}
               >
                 {apps.map((a) => (
                   <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
@@ -496,14 +500,19 @@ export default function WsAuthorizationManager() {
 
               <Select
                 aria-label="Pilih PJ Aplikasi"
-                placeholder={loadingPj ? "Memuat PJ..." : (selectedApp ? "Pilih PJ Aplikasi" : "Pilih aplikasi terlebih dahulu")}
+                placeholder={loadingPj ? "Memuat PJ..." : (selectedApp ? "Pilih PJ Aplikasi" : "Pilih aplikasi dulu")}
                 selectedKeys={selectedPj ? [selectedPj] : []}
                 onSelectionChange={(keys) => setSelectedPj(Array.from(keys)[0] as string || "")}
                 variant="bordered"
                 isDisabled={!selectedApp || loadingPj}
                 isLoading={loadingPj}
                 startContent={<FiUser className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-                classNames={{ base: "w-full sm:w-[280px]", trigger: "h-11" }}
+                classNames={{
+                  base: "w-full",
+                  trigger: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                  value: "text-sm font-medium text-gray-700 dark:text-gray-300",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[300px]",
+                }}
               >
                 {pjList.map((p) => (
                   <SelectItem key={p.id_pengguna} textValue={`${p.nm_pengguna} (${p.username})`}>
@@ -514,10 +523,6 @@ export default function WsAuthorizationManager() {
                   </SelectItem>
                 ))}
               </Select>
-            </div>
-
-            {/* Row 2: Search + Actions */}
-            <div className="flex flex-col sm:flex-row gap-3">
               <Input
                 aria-label="Search"
                 placeholder="Cari endpoint..."
@@ -525,19 +530,22 @@ export default function WsAuthorizationManager() {
                 onValueChange={setSearchQuery}
                 variant="bordered"
                 startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-                classNames={{ base: "w-full sm:flex-1", inputWrapper: "h-11" }}
+                classNames={{
+                  base: "w-full",
+                  inputWrapper: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                }}
                 isClearable
                 onClear={() => setSearchQuery("")}
                 isDisabled={!selectedPj}
               />
 
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
                 {selectedApp && (
                   <Button
                     size="md"
                     startContent={<FiDownload className="w-4 h-4" />}
                     onPress={handleOpenGenerate}
-                    className="h-11 font-medium bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+                    className="h-11 font-medium bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
                   >
                     Generate
                   </Button>
@@ -548,13 +556,12 @@ export default function WsAuthorizationManager() {
                     size="md"
                     startContent={<FiPrinter className="w-4 h-4" />}
                     onPress={handlePrintPDF}
-                    className="h-11 font-medium bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+                    className="h-11 font-medium bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
                   >
                     Cetak PDF
                   </Button>
                 )}
               </div>
-            </div>
           </div>
         </CardBody>
       </Card>

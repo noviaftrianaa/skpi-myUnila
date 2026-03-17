@@ -470,7 +470,7 @@ export default function PjAplikasiTable() {
           searchPlaceholder="Cari nama, jabatan, atau email..."
           defaultRowsPerPage={10}
           filterSlot={
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2">
               <Select
                 aria-label="Filter Aplikasi"
                 placeholder="Semua Aplikasi"
@@ -482,23 +482,33 @@ export default function PjAplikasiTable() {
                 size="sm"
                 variant="bordered"
                 classNames={{
-                  base: "w-full sm:w-[220px]",
-                  trigger: "h-10",
+                  base: "w-48",
+                  trigger: "h-9 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 focus:border-indigo-500 transition-colors shadow-sm",
+                  value: "text-sm font-medium text-gray-700 dark:text-gray-300 pr-6",
+                  innerWrapper: "!bg-white dark:!bg-gray-800",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[280px]",
+                  listbox: "!bg-white dark:!bg-gray-800",
+                }}
+                renderValue={(items) => {
+                  if (!items || items.length === 0) return "Semua Aplikasi";
+                  return items[0].textValue || "Semua Aplikasi";
                 }}
               >
                 {apps.map((a) => (
-                  <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
+                  <SelectItem key={a.id_aplikasi} textValue={a.nm_aplikasi}>{a.nm_aplikasi}</SelectItem>
                 ))}
               </Select>
+            </div>
+          }
+          actionSlot={
               <Button
                 size="sm"
                 startContent={<FiPlus className="w-4 h-4" />}
                 onPress={handleAdd}
-                className="h-10 font-medium w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium shadow-md hover:shadow-lg transition-all rounded-lg"
               >
                 Tambah PJ
               </Button>
-            </div>
           }
         />
       </motion.div>

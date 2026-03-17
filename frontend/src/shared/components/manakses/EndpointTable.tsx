@@ -71,8 +71,8 @@ export default function EndpointTable({ onStatsLoaded }: EndpointTableProps) {
   useEffect(() => {
     const loadApps = async () => {
       try {
-        const res = await authClient.get('/manakses/aplikasi?limit=100');
-        const data = res.data?.data?.data || res.data?.data || [];
+        const res = await authClient.get('/manakses/endpoint/apps');
+        const data = res.data?.data || [];
         const list = (Array.isArray(data) ? data : []).map((a: any) => ({
           id_aplikasi: a.id_aplikasi,
           nm_aplikasi: a.nm_aplikasi,
