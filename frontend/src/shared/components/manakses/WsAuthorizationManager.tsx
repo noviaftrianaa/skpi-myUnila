@@ -14,8 +14,8 @@ import {
   ModalHeader, ModalBody, ModalFooter, useDisclosure,
 } from "@heroui/react";
 import {
-  FiSave, FiRefreshCw, FiSearch, FiShield, FiCheck, FiX,
-  FiChevronDown, FiDownload, FiFilter,
+  FiSave, FiRefreshCw, FiSearch, FiShield, FiCheck, FiX, FiServer,
+  FiChevronDown, FiDownload,
 } from "react-icons/fi";
 import { authClient } from "@/lib/api/authClient";
 import { wsAuthorizationService, type SystemRoute } from "@/lib/services/manakses/wsAuthorizationService";
@@ -69,6 +69,9 @@ const METHOD_COLORS: Record<string, string> = {
 export default function WsAuthorizationManager() {
   // Data state
   const [roles, setRoles] = useState<Peran[]>([]);
+  // WS Authorization is specifically for ws-service (api-service) only
+  const WS_APP_ID = "E3C5A6DF-3543-4C84-8E8E-221B59A53D72";
+  const WS_APP_NAME = "WS Service (API)";
   const [apps, setApps] = useState<AppOption[]>([]);
   const [endpoints, setEndpoints] = useState<EndpointItem[]>([]);
   const [authorizedIds, setAuthorizedIds] = useState<Set<string>>(new Set());
@@ -76,7 +79,7 @@ export default function WsAuthorizationManager() {
 
   // Filter state
   const [selectedRole, setSelectedRole] = useState<string>("");
-  const [selectedApp, setSelectedApp] = useState<string>("");
+  const [selectedApp, setSelectedApp] = useState<string>(WS_APP_ID);
   const [searchQuery, setSearchQuery] = useState("");
 
   // UI state
@@ -94,20 +97,11 @@ export default function WsAuthorizationManager() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [rolesRes, appsRes] = await Promise.all([
-          authClient.get("/manakses/peran?limit=100"),
-          authClient.get("/manakses/aplikasi?limit=200"),
-        ]);
+        const rolesRes = await authClient.get("/manakses/peran?limit=100");
         setRoles(
           toArray(rolesRes.data.data).map((r: any) => ({
             id_peran: r.id_peran,
             nm_peran: r.nm_peran,
-          }))
-        );
-        setApps(
-          toArray(appsRes.data.data).map((a: any) => ({
-            id_aplikasi: a.id_aplikasi,
-            nm_aplikasi: a.nm_aplikasi,
           }))
         );
       } catch (e) {
@@ -341,19 +335,10 @@ export default function WsAuthorizationManager() {
               ))}
             </Select>
 
-            <Select
-              aria-label="Pilih Aplikasi"
-              placeholder="Pilih Aplikasi"
-              selectedKeys={selectedApp ? [selectedApp] : []}
-              onSelectionChange={(keys) => setSelectedApp(Array.from(keys)[0] as string || "")}
-              variant="bordered"
-              startContent={<FiFilter className="w-4 h-4 text-gray-400" />}
-              classNames={{ base: "w-full sm:w-[250px]", trigger: "h-11" }}
-            >
-              {apps.map((a) => (
-                <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
-              ))}
-            </Select>
+            <div className="flex items-center gap-2 px-3 h-11 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+              <FiServer className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{WS_APP_NAME}</span>
+            </div>
 
             <Input
               aria-label="Search"
@@ -387,10 +372,10 @@ export default function WsAuthorizationManager() {
           <CardBody className="p-12 text-center">
             <FiShield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Pilih Role & Aplikasi
+              Pilih Role
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Pilih role dan aplikasi untuk mengelola hak akses endpoint
+              Pilih role untuk mengelola hak akses endpoint WS Service
             </p>
           </CardBody>
         </Card>
