@@ -370,11 +370,9 @@ export default function WsAuthorizationManager() {
             {selectedApp && (
               <Button
                 size="md"
-                variant="flat"
-                color="secondary"
                 startContent={<FiDownload className="w-4 h-4" />}
                 onPress={handleOpenGenerate}
-                className="h-11 font-medium"
+                className="h-11 font-medium bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
               >
                 Generate
               </Button>
@@ -426,30 +424,31 @@ export default function WsAuthorizationManager() {
                   )}
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Button size="sm" variant="flat" onPress={selectAll} className="font-medium">
-                    <FiCheck className="w-3.5 h-3.5" /> Pilih Semua
+                  <Button size="sm" variant="bordered" onPress={selectAll} className="font-medium rounded-lg border-gray-300 dark:border-gray-600" startContent={<FiCheck className="w-3.5 h-3.5" />}>
+                    Pilih Semua
                   </Button>
-                  <Button size="sm" variant="flat" onPress={deselectAll} className="font-medium">
-                    <FiX className="w-3.5 h-3.5" /> Hapus Semua
+                  <Button size="sm" variant="bordered" onPress={deselectAll} className="font-medium rounded-lg border-gray-300 dark:border-gray-600" startContent={<FiX className="w-3.5 h-3.5" />}>
+                    Hapus Semua
                   </Button>
                   {hasChanges && (
                     <>
                       <Button
                         size="sm"
-                        variant="flat"
+                        variant="bordered"
                         onPress={resetChanges}
-                        className="font-medium"
+                        className="font-medium rounded-lg border-gray-300 dark:border-gray-600"
+                        startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
                       >
-                        <FiRefreshCw className="w-3.5 h-3.5" /> Reset
+                        Reset
                       </Button>
                       <Button
                         size="sm"
-                        color="primary"
                         onPress={handleSave}
                         isLoading={isSaving}
-                        className="font-medium"
+                        className="font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+                        startContent={<FiSave className="w-3.5 h-3.5" />}
                       >
-                        <FiSave className="w-3.5 h-3.5" /> Simpan
+                        Simpan
                       </Button>
                     </>
                   )}
@@ -614,9 +613,13 @@ export default function WsAuthorizationManager() {
       )}
 
       {/* Generate Modal */}
-      <Modal isOpen={isGenOpen} onClose={onGenClose} size="2xl" scrollBehavior="inside">
+      <Modal isOpen={isGenOpen} onClose={onGenClose} size="2xl" scrollBehavior="inside"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
+        }}>
         <ModalContent>
-          <ModalHeader className="border-b border-gray-200 dark:border-gray-700">
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-lg">
                 <FiDownload className="w-5 h-5" />
@@ -673,11 +676,10 @@ export default function WsAuthorizationManager() {
               Batal
             </Button>
             <Button
-              color="primary"
               onPress={handleConfirmGenerate}
               isLoading={isGenerating}
               isDisabled={genRoutes.length === 0}
-              className="font-medium"
+              className="font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
             >
               Generate {genRoutes.length} Endpoints
             </Button>
