@@ -50,6 +50,7 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | id_project | UNIQUEIDENTIFIER (PK) | UUID |
 | nm_project | NVARCHAR(200) | Nama project |
 | kode_project | VARCHAR(20) | Kode singkat, misal "MYUNILA", "SIAKAD" |
+| id_project_category | UNIQUEIDENTIFIER (FK) | Ref kategori project |
 | deskripsi | NVARCHAR(MAX) | Deskripsi project |
 | status | VARCHAR(20) | active, archived, completed |
 | id_owner | UNIQUEIDENTIFIER (FK) | PJ project (ref pengguna) |
@@ -79,7 +80,45 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | updated_at | DATETIME2 | |
 | soft_delete | BIT | Default 0 |
 
-### 3.3 `project.tasks`
+### 3.3 `project.project_categories`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id_project_category | UNIQUEIDENTIFIER (PK) | UUID |
+| nm_kategori | NVARCHAR(100) | Nama kategori project |
+| kode_kategori | VARCHAR(20) | Kode singkat |
+| icon | VARCHAR(50) | Icon untuk UI |
+| deskripsi | NVARCHAR(500) | Penjelasan kategori |
+| default_task_types | NVARCHAR(MAX) | JSON array task types default untuk kategori ini |
+| urutan | INT | Urutan tampil |
+| created_at | DATETIME2 | |
+
+### 3.4 `project.task_types`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id_task_type | UNIQUEIDENTIFIER (PK) | UUID |
+| id_project | UNIQUEIDENTIFIER (FK, nullable) | NULL = global, ada = per project |
+| kode_type | VARCHAR(30) | Kode: feature, bugfix, pengadaan, rapat, dll |
+| nm_type | NVARCHAR(100) | Label tampil |
+| icon | VARCHAR(10) | Emoji icon |
+| warna | VARCHAR(7) | Hex color |
+| urutan | INT | |
+| created_at | DATETIME2 | |
+
+### 3.5 `project.templates`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id_template | UNIQUEIDENTIFIER (PK) | UUID |
+| id_project_category | UNIQUEIDENTIFIER (FK, nullable) | Link ke kategori (nullable = universal) |
+| nm_template | NVARCHAR(200) | Nama template |
+| deskripsi | NVARCHAR(500) | |
+| template_data | NVARCHAR(MAX) | JSON: modules + tasks blueprint |
+| created_at | DATETIME2 | |
+| updated_at | DATETIME2 | |
+
+### 3.6 `project.tasks`
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -90,7 +129,7 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | nomor_task | INT | Auto-increment per project |
 | judul | NVARCHAR(500) | Judul task |
 | deskripsi | NVARCHAR(MAX) | Markdown support |
-| tipe | VARCHAR(20) | feature, bugfix, improvement, chore |
+| id_task_type | UNIQUEIDENTIFIER (FK) | Ref task_types (flexible) |
 | prioritas | VARCHAR(20) | urgent, high, medium, low |
 | status | VARCHAR(20) | backlog, todo, in_progress, review, done, cancelled |
 | id_assignee | UNIQUEIDENTIFIER (FK) | Assignee (ref pengguna) |
@@ -249,15 +288,49 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | **Done** | Selesai, sudah verified | `#22C55E` (green) |
 | **Cancelled** | Dibatalkan/tidak jadi | `#EF4444` (red) |
 
-### 4.3 Task Type
+### 4.3 Task Type (Flexible per Kategori Project)
 
+Task type **tidak hardcoded** — bisa dikustomisasi per project atau pakai default dari kategori. Berikut contoh default per kategori:
+
+**🖥️ Pengembangan Sistem:**
 | Type | Icon | Keterangan |
 |------|------|------------|
-| **Feature** | ✨ | Fitur baru |
-| **Bugfix** | 🐛 | Perbaikan bug |
-| **Improvement** | 🔧 | Enhancement fitur existing |
-| **Chore** | 📦 | Maintenance, cleanup, infra |
-| **Documentation** | 📝 | Dokumentasi |
+| Feature | ✨ | Fitur baru |
+| Bugfix | 🐛 | Perbaikan bug |
+| Improvement | 🔧 | Enhancement existing |
+| Chore | 📦 | Maintenance, cleanup, infra |
+| Documentation | 📝 | Dokumentasi teknis |
+
+**📋 Kegiatan Umum / Operasional:**
+| Type | Icon | Keterangan |
+|------|------|------------|
+| Rapat | 🗓️ | Meeting, koordinasi |
+| Pengadaan | 🛒 | Procurement, belanja |
+| Surat Menyurat | ✉️ | Drafting surat, disposisi |
+| Laporan | 📊 | Penyusunan laporan |
+| Koordinasi | 🤝 | Follow-up pihak lain |
+| Administrasi | 📋 | Tugas admin umum |
+
+**🎓 Penelitian / Akademik:**
+| Type | Icon | Keterangan |
+|------|------|------------|
+| Riset | 🔬 | Research, literature review |
+| Pengumpulan Data | 📊 | Survei, wawancara, observasi |
+| Analisis | 📈 | Olah data, statistik |
+| Penulisan | ✍️ | Drafting paper/laporan |
+| Presentasi | 🎤 | Seminar, sidang, presentasi |
+| Revisi | 🔄 | Revisi dari reviewer |
+
+**🏗️ Infrastruktur / Sarana:**
+| Type | Icon | Keterangan |
+|------|------|------------|
+| Instalasi | ⚙️ | Setup, install hardware/software |
+| Pemeliharaan | 🔧 | Maintenance rutin |
+| Perbaikan | 🛠️ | Fix kerusakan |
+| Pengadaan | 🛒 | Procurement barang |
+| Inventarisasi | 📦 | Stock opname, pencatatan aset |
+
+> **User bisa custom:** Tambah/edit/hapus task type per project sesuai kebutuhan. Template hanya default awal.
 
 ### 4.4 Filter & Sort di UI
 
@@ -310,6 +383,119 @@ Setiap card menampilkan:
 - Due date (merah kalau overdue)
 - Type icon (✨🐛🔧📦)
 - Progress bar (jika ada)
+
+### 4.6 Project Categories (Default Seed)
+
+| Kode | Kategori | Icon | Contoh Project |
+|------|----------|------|---------------|
+| DEV | Pengembangan Sistem | 🖥️ | MyUnila Portal, SIAKAD, SIAM |
+| OPS | Operasional / Kegiatan | 📋 | Akreditasi, ISO Audit, Dies Natalis |
+| RISET | Penelitian / Akademik | 🎓 | Hibah Penelitian, Pengabdian |
+| INFRA | Infrastruktur / Sarana | 🏗️ | Upgrade Server, Instalasi Jaringan |
+| PROC | Pengadaan | 🛒 | Pengadaan Hardware, Software License |
+| EVENT | Event / Acara | 🎪 | Workshop, Seminar, Wisuda |
+| ADMIN | Administrasi Umum | 📁 | Restrukturisasi, SOP Baru |
+
+> **Bisa ditambah sendiri** — kategori fleksibel, user bisa buat custom.
+
+### 4.7 Template System
+
+Template = blueprint yang bisa dipakai saat buat project baru. Auto-generate modules + tasks.
+
+**Contoh template "Pengembangan Sistem Informasi":**
+```json
+{
+  "nm_template": "Pengembangan Sistem Informasi",
+  "modules": [
+    {
+      "nm_module": "Perencanaan",
+      "tasks": [
+        "Penyusunan Proposal",
+        "Penyusunan TOR/KAK",
+        "Penyusunan RAB",
+        "Pengajuan SK Tim"
+      ]
+    },
+    {
+      "nm_module": "Analisis & Desain",
+      "tasks": [
+        "Requirement Gathering",
+        "Analisis Kebutuhan",
+        "Desain Database",
+        "Desain UI/UX",
+        "Review Desain"
+      ]
+    },
+    {
+      "nm_module": "Pengembangan",
+      "tasks": [
+        "Setup Environment",
+        "Development Backend",
+        "Development Frontend",
+        "Integrasi API",
+        "Unit Testing"
+      ]
+    },
+    {
+      "nm_module": "Testing & Deployment",
+      "tasks": [
+        "UAT (User Acceptance Test)",
+        "Perbaikan Hasil UAT",
+        "Deployment Staging",
+        "Deployment Production",
+        "Monitoring Pasca-Deploy"
+      ]
+    },
+    {
+      "nm_module": "Serah Terima",
+      "tasks": [
+        "Penyusunan User Manual",
+        "Training User",
+        "Berita Acara Serah Terima",
+        "Dokumentasi Teknis"
+      ]
+    }
+  ]
+}
+```
+
+**Contoh template "Pengadaan Barang/Jasa":**
+```json
+{
+  "nm_template": "Pengadaan Barang/Jasa",
+  "modules": [
+    {
+      "nm_module": "Perencanaan",
+      "tasks": [
+        "Identifikasi Kebutuhan",
+        "Penyusunan Spesifikasi",
+        "Penyusunan HPS",
+        "Penyusunan RAB"
+      ]
+    },
+    {
+      "nm_module": "Proses Pengadaan",
+      "tasks": [
+        "Pengumuman Tender",
+        "Evaluasi Penawaran",
+        "Penetapan Pemenang",
+        "Kontrak / SPK"
+      ]
+    },
+    {
+      "nm_module": "Pelaksanaan",
+      "tasks": [
+        "Monitoring Delivery",
+        "Pemeriksaan Barang",
+        "Berita Acara Serah Terima",
+        "Pembayaran"
+      ]
+    }
+  ]
+}
+```
+
+> **Flow:** Buat project baru → Pilih kategori → Pilih template (opsional) → Auto-generate modules & tasks → Customize sesuai kebutuhan.
 
 ---
 
@@ -387,6 +573,27 @@ GET    /project/projects/:id/labels       # List labels
 POST   /project/labels                    # Create label
 PUT    /project/labels/:id                # Update
 DELETE /project/labels/:id                # Delete
+```
+
+### Project Categories & Templates
+```
+GET    /project/categories                # List project categories
+POST   /project/categories                # Create category
+PUT    /project/categories/:id            # Update
+GET    /project/templates                  # List templates (filter by category)
+POST   /project/templates                 # Create template
+PUT    /project/templates/:id             # Update template
+DELETE /project/templates/:id             # Delete
+POST   /project/projects/:id/apply-template  # Apply template ke project existing
+```
+
+### Task Types
+```
+GET    /project/task-types                # List global task types
+GET    /project/projects/:id/task-types   # List task types per project (global + custom)
+POST   /project/task-types                # Create (global or per project)
+PUT    /project/task-types/:id            # Update
+DELETE /project/task-types/:id            # Delete
 ```
 
 ### Documents
