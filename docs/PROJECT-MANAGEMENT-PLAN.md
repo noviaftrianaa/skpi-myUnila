@@ -91,7 +91,7 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | judul | NVARCHAR(500) | Judul task |
 | deskripsi | NVARCHAR(MAX) | Markdown support |
 | tipe | VARCHAR(20) | feature, bugfix, improvement, chore |
-| prioritas | VARCHAR(20) | critical, high, medium, low |
+| prioritas | VARCHAR(20) | urgent, high, medium, low |
 | status | VARCHAR(20) | backlog, todo, in_progress, review, done, cancelled |
 | id_assignee | UNIQUEIDENTIFIER (FK) | Assignee (ref pengguna) |
 | id_reporter | UNIQUEIDENTIFIER (FK) | Reporter/creator |
@@ -180,7 +180,105 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 
 ---
 
-## 4. API Endpoints
+## 4. Priority & Status System
+
+### 4.1 Priority Levels
+
+| Priority | Label | Warna | Icon | SLA / Guideline |
+|----------|-------|-------|------|-----------------|
+| 🔴 **Urgent** | Urgent | `#EF4444` (red) | 🔴 | Harus selesai hari ini. Production down, security issue, blocker |
+| 🟠 **High** | High | `#F97316` (orange) | 🟠 | Selesai dalam 1-2 hari. Fitur penting, bug yang berdampak user |
+| 🟡 **Medium** | Medium | `#EAB308` (yellow) | 🟡 | Selesai dalam 1 minggu. Improvement, fitur non-critical |
+| 🟢 **Low** | Low | `#22C55E` (green) | 🟢 | Bisa kapan saja. Nice-to-have, refactor, dokumentasi |
+
+### 4.2 Task Status Flow
+
+```
+┌──────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────┐     ┌──────────┐
+│ Backlog  │────▶│   Todo   │────▶│ In Progress │────▶│  Review  │────▶│   Done   │
+└──────────┘     └──────────┘     └─────────────┘     └──────────┘     └──────────┘
+                                         │                                   ▲
+                                         │         ┌─────────────┐           │
+                                         └────────▶│ Cancelled   │           │
+                                                   └─────────────┘           │
+                                                                             │
+                                   (auto via commit "fixes #TASK-xx") ───────┘
+```
+
+| Status | Keterangan | Warna di Kanban |
+|--------|------------|-----------------|
+| **Backlog** | Ide/rencana, belum dijadwalkan | `#94A3B8` (gray) |
+| **Todo** | Sudah dijadwalkan, siap dikerjakan | `#3B82F6` (blue) |
+| **In Progress** | Sedang dikerjakan | `#F59E0B` (amber) |
+| **Review** | Selesai coding, perlu review/testing | `#8B5CF6` (purple) |
+| **Done** | Selesai, sudah verified | `#22C55E` (green) |
+| **Cancelled** | Dibatalkan/tidak jadi | `#EF4444` (red) |
+
+### 4.3 Task Type
+
+| Type | Icon | Keterangan |
+|------|------|------------|
+| **Feature** | ✨ | Fitur baru |
+| **Bugfix** | 🐛 | Perbaikan bug |
+| **Improvement** | 🔧 | Enhancement fitur existing |
+| **Chore** | 📦 | Maintenance, cleanup, infra |
+| **Documentation** | 📝 | Dokumentasi |
+
+### 4.4 Filter & Sort di UI
+
+**Filter bar** (kombinasi):
+- Priority: Urgent / High / Medium / Low / All
+- Status: Backlog / Todo / In Progress / Review / Done / All
+- Type: Feature / Bugfix / Improvement / Chore / All
+- Module: dropdown per module
+- Assignee: dropdown per user
+
+**Sort options:**
+- Priority (urgent first)
+- Due date (soonest first)
+- Created date (newest first)
+- Last updated
+- Progress (%)
+
+**Quick filters** (shortcut button):
+- 🔥 "My Urgent" — assignee = me + priority urgent/high
+- 📋 "In Progress" — status = in_progress
+- ⏰ "Overdue" — due_date < today + status != done
+- 📊 "This Week" — due_date within current week
+
+### 4.5 Kanban Board Columns
+
+Board bisa di-customize, tapi default:
+
+```
+┌─────────────┬─────────────┬─────────────┬─────────────┬─────────────┐
+│   Backlog   │    Todo     │ In Progress │   Review    │    Done     │
+│  (gray bg)  │ (blue bg)   │ (amber bg)  │(purple bg)  │ (green bg)  │
+├─────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
+│ 🟢 Low      │ 🔴 Urgent   │ 🟠 High     │ 🟡 Medium   │ ✅ Done     │
+│ Task name   │ Task name   │ Task name   │ Task name   │ Task name   │
+│ #MYUNILA-55 │ #MYUNILA-42 │ #MYUNILA-38 │ #MYUNILA-30 │ #MYUNILA-25 │
+│             │             │             │             │             │
+│ 🟡 Medium   │ 🟠 High     │             │             │ ✅ Done     │
+│ Task name   │ Task name   │             │             │ Task name   │
+│ #MYUNILA-60 │ #MYUNILA-45 │             │             │ #MYUNILA-20 │
+└─────────────┴─────────────┴─────────────┴─────────────┴─────────────┘
+
+Cards sorted by priority within each column (urgent on top)
+```
+
+Setiap card menampilkan:
+- Priority badge (colored dot)
+- Task code (#MYUNILA-42)
+- Judul task
+- Assignee avatar
+- Due date (merah kalau overdue)
+- Type icon (✨🐛🔧📦)
+- Progress bar (jika ada)
+
+---
+
+## 5. API Endpoints
 
 ### Projects
 ```
@@ -258,7 +356,7 @@ DELETE /project/labels/:id                # Delete
 
 ---
 
-## 5. Frontend Pages
+## 6. Frontend Pages
 
 ### Route Structure
 
@@ -297,7 +395,7 @@ DELETE /project/labels/:id                # Delete
 
 ---
 
-## 6. Bitbucket Integration Detail
+## 7. Bitbucket Integration Detail
 
 ### 6.1 Webhook Setup
 
@@ -348,7 +446,7 @@ GET /repositories/mahendraunila/my-unila/refs/branches
 
 ---
 
-## 7. RBAC Integration
+## 8. RBAC Integration
 
 Pakai RBAC yang sudah ada di ManAkses:
 
@@ -368,7 +466,7 @@ Menu baru di ManAkses:
 
 ---
 
-## 8. Vibe Bot Integration
+## 9. Vibe Bot Integration
 
 ### Yang Gue (Vibe Bot) Bisa Lakukan
 
@@ -396,7 +494,7 @@ Mizar: "kerjain #MYUNILA-42"
 
 ---
 
-## 9. Implementation Phases
+## 10. Implementation Phases
 
 ### Phase 1 — Core (2-3 hari)
 - [ ] DB schema creation (SQL scripts)
@@ -433,7 +531,7 @@ Mizar: "kerjain #MYUNILA-42"
 
 ---
 
-## 10. Data Seed — Project MyUnila
+## 11. Data Seed — Project MyUnila
 
 Initial project setup setelah implementasi:
 
@@ -453,7 +551,7 @@ Modules:
 
 ---
 
-## 11. File Structure (Backend)
+## 12. File Structure (Backend)
 
 ```
 backend/project-service/          # atau numpang di myunila-service
