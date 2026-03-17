@@ -6,7 +6,7 @@ import {
   Chip, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
   Input, Select, SelectItem, useDisclosure, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem,
 } from "@heroui/react";
-import { authClient } from "@/lib/api/client";
+import { authClient } from "@/lib/api/authClient";
 import { FiPlus, FiEdit2, FiTrash2, FiUser, FiPhone, FiMail, FiMoreVertical, FiBriefcase } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -492,10 +492,9 @@ export default function PjAplikasiTable() {
               </Select>
               <Button
                 size="sm"
-                color="primary"
                 startContent={<FiPlus className="w-4 h-4" />}
                 onPress={handleAdd}
-                className="h-10 font-medium w-full sm:w-auto"
+                className="h-10 font-medium w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
               >
                 Tambah PJ
               </Button>
@@ -505,9 +504,13 @@ export default function PjAplikasiTable() {
       </motion.div>
 
       {/* ============ ADD MODAL ============ */}
-      <Modal isOpen={isAddOpen} onClose={onAddClose} size="lg" scrollBehavior="inside">
+      <Modal isOpen={isAddOpen} onClose={onAddClose} size="lg" scrollBehavior="inside"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
+        }}>
         <ModalContent>
-          <ModalHeader className="border-b border-gray-200 dark:border-gray-700">
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg">
                 <FiUser className="w-5 h-5" />
@@ -538,9 +541,13 @@ export default function PjAplikasiTable() {
       </Modal>
 
       {/* ============ EDIT MODAL ============ */}
-      <Modal isOpen={isEditOpen} onClose={onEditClose} size="lg" scrollBehavior="inside">
+      <Modal isOpen={isEditOpen} onClose={onEditClose} size="lg" scrollBehavior="inside"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
+        }}>
         <ModalContent>
-          <ModalHeader className="border-b border-gray-200 dark:border-gray-700">
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg">
                 <FiEdit2 className="w-5 h-5" />
@@ -571,9 +578,13 @@ export default function PjAplikasiTable() {
       </Modal>
 
       {/* ============ DELETE CONFIRMATION MODAL ============ */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} size="sm">
+      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} size="sm"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
+        }}>
         <ModalContent>
-          <ModalHeader className="border-b border-gray-200 dark:border-gray-700">
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
                 <FiTrash2 className="w-5 h-5" />

@@ -75,6 +75,7 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
       {
         title: "PJ Aplikasi",
         href: "/dashboard/manajemen-akses/manajemen/pj-aplikasi",
+        roles: allowedRoles,
       },
       {
         title: "WS Authorization",
