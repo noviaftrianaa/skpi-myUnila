@@ -66,3 +66,5 @@ MINIO_SETUP_PLAN.md
 deployment/docs/
 
 .env
+*.bak-*
+*.env.bak*
