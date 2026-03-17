@@ -166,7 +166,42 @@ Tidak perlu deploy app terpisah — numpang di infrastruktur MyUnila yang sudah 
 | id_task | UNIQUEIDENTIFIER (FK) | Composite PK |
 | id_label | UNIQUEIDENTIFIER (FK) | Composite PK |
 
-### 3.9 `project.webhook_config`
+### 3.9 `project.document_categories`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id_doc_category | UNIQUEIDENTIFIER (PK) | UUID |
+| nm_kategori | NVARCHAR(100) | Nama kategori: SK, SOP, Proposal, MoU, dll |
+| kode_kategori | VARCHAR(20) | Kode singkat: SK, SOP, PROP, MOU |
+| icon | VARCHAR(50) | Icon name untuk UI |
+| urutan | INT | Urutan tampil |
+| created_at | DATETIME2 | |
+
+### 3.10 `project.documents`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id_document | UNIQUEIDENTIFIER (PK) | UUID |
+| id_project | UNIQUEIDENTIFIER (FK) | Ref project |
+| id_doc_category | UNIQUEIDENTIFIER (FK) | Ref kategori dokumen |
+| id_task | UNIQUEIDENTIFIER (FK, nullable) | Opsional link ke task tertentu |
+| nm_dokumen | NVARCHAR(300) | Nama/judul dokumen |
+| nomor_dokumen | VARCHAR(100) | Nomor surat/SK, misal "SK/123/UN26/2026" |
+| tgl_dokumen | DATE | Tanggal surat/dokumen |
+| tgl_berlaku | DATE | Tanggal mulai berlaku (nullable) |
+| tgl_berakhir | DATE | Tanggal expired (nullable) |
+| deskripsi | NVARCHAR(MAX) | Keterangan dokumen |
+| file_path | VARCHAR(500) | Path file di MinIO/storage |
+| file_name | VARCHAR(300) | Nama file asli |
+| file_size | BIGINT | Ukuran file (bytes) |
+| mime_type | VARCHAR(100) | application/pdf, image/png, dll |
+| status | VARCHAR(20) | draft, active, expired, archived |
+| id_uploader | UNIQUEIDENTIFIER (FK) | Siapa yang upload |
+| created_at | DATETIME2 | |
+| updated_at | DATETIME2 | |
+| soft_delete | BIT | Default 0 |
+
+### 3.11 `project.webhook_config`
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -354,6 +389,18 @@ PUT    /project/labels/:id                # Update
 DELETE /project/labels/:id                # Delete
 ```
 
+### Documents
+```
+GET    /project/projects/:id/documents    # List dokumen per project (filter by kategori, status)
+POST   /project/documents                 # Upload dokumen baru (multipart/form-data)
+GET    /project/documents/:id             # Detail dokumen
+PUT    /project/documents/:id             # Update metadata dokumen
+DELETE /project/documents/:id             # Soft delete
+GET    /project/documents/:id/download    # Download file
+GET    /project/document-categories       # List kategori dokumen
+POST   /project/document-categories       # Create kategori baru
+```
+
 ---
 
 ## 6. Frontend Pages
@@ -369,6 +416,7 @@ DELETE /project/labels/:id                # Delete
 │   ├── list/page.tsx                 # List view (table)
 │   ├── timeline/page.tsx             # Gantt chart / timeline view
 │   ├── modules/page.tsx              # Module management
+│   ├── documents/page.tsx            # Dokumen pendukung project
 │   ├── activity/page.tsx             # Activity log
 │   └── settings/page.tsx             # Project settings + webhook config
 └── task/
@@ -446,7 +494,70 @@ GET /repositories/mahendraunila/my-unila/refs/branches
 
 ---
 
-## 8. RBAC Integration
+## 8. Document Management
+
+### 8.1 Kategori Dokumen (Default Seed)
+
+| Kode | Kategori | Keterangan | Icon |
+|------|----------|------------|------|
+| SK | Surat Keputusan | SK Rektor, SK Tim, SK Penugasan | 📜 |
+| SOP | Standar Operasional | SOP pengembangan, SOP deployment, SOP akses | 📋 |
+| PROP | Proposal | Proposal pengajuan SI baru, proposal pengembangan | 📄 |
+| MOU | MoU / Perjanjian | MoU kerjasama, perjanjian vendor | 🤝 |
+| TOR | Kerangka Acuan Kerja | TOR/KAK pengadaan, pengembangan | 📑 |
+| RAB | Rencana Anggaran | RAB project, estimasi biaya | 💰 |
+| BA | Berita Acara | BA serah terima, BA testing, BA deployment | 📝 |
+| MANUAL | Manual / Panduan | User manual, technical docs, API docs | 📖 |
+| SURAT | Surat Umum | Surat permohonan, surat keterangan | ✉️ |
+| LAIN | Lainnya | Dokumen yang belum terkategori | 📎 |
+
+### 8.2 Status Dokumen
+
+| Status | Keterangan | Warna |
+|--------|------------|-------|
+| **Draft** | Belum final, masih proses | `#94A3B8` gray |
+| **Active** | Berlaku/aktif | `#22C55E` green |
+| **Expired** | Sudah lewat masa berlaku | `#EF4444` red |
+| **Archived** | Diarsipkan | `#6B7280` dark gray |
+
+### 8.3 Use Cases
+
+**Project baru diajukan:**
+```
+1. Upload Proposal Pengajuan SI → kategori PROP
+2. Upload TOR/KAK → kategori TOR
+3. Upload RAB → kategori RAB
+4. Setelah disetujui → Upload SK Penugasan Tim → kategori SK
+5. Mulai development → Upload SOP Development → kategori SOP
+6. Selesai → Upload BA Serah Terima → kategori BA
+7. Upload User Manual → kategori MANUAL
+```
+
+**Lifecycle dokumen per project:**
+```
+Proposal → SK → SOP → [Development] → BA Serah Terima → Manual
+```
+
+### 8.4 Fitur UI
+
+- **Document Library** per project — grid/list view, filter by kategori
+- **Preview** — PDF viewer in-browser (tanpa download)
+- **Masa berlaku** — warning badge kalau dokumen mendekati expired
+- **Link ke task** — opsional attach dokumen ke task tertentu
+- **Version** — bisa upload ulang file (replace), history tetap tercatat
+- **Bulk upload** — drag & drop multiple files sekaligus
+
+### 8.5 Storage
+
+File disimpan di **MinIO** (VM7 - 192.168.120.47):
+```
+Bucket: myunila-projects
+Path:   /projects/{project_id}/documents/{doc_id}/{filename}
+```
+
+---
+
+## 9. RBAC Integration
 
 Pakai RBAC yang sudah ada di ManAkses:
 
@@ -466,7 +577,7 @@ Menu baru di ManAkses:
 
 ---
 
-## 9. Vibe Bot Integration
+## 10. Vibe Bot Integration
 
 ### Yang Gue (Vibe Bot) Bisa Lakukan
 
@@ -494,7 +605,7 @@ Mizar: "kerjain #MYUNILA-42"
 
 ---
 
-## 10. Implementation Phases
+## 11. Implementation Phases
 
 ### Phase 1 — Core (2-3 hari)
 - [ ] DB schema creation (SQL scripts)
@@ -521,17 +632,26 @@ Mizar: "kerjain #MYUNILA-42"
 - [ ] Labels system
 - [ ] Search across projects
 
-### Phase 5 — Advanced (Future)
+### Phase 5 — Document Management (1 hari)
+- [ ] DB: document_categories + documents tables
+- [ ] Backend: CRUD documents, upload ke MinIO
+- [ ] Frontend: Document library page, upload, preview PDF
+- [ ] Seed default kategori (SK, SOP, Proposal, dll)
+- [ ] Link dokumen ke task (opsional)
+
+### Phase 6 — Advanced (Future)
 - [ ] Bitbucket PR integration
 - [ ] Notifications (webhook ke Telegram)
 - [ ] Sprint/cycle management
 - [ ] Time tracking
 - [ ] Export report (PDF)
+- [ ] Document version history
+- [ ] Document expiry notifications
 - [ ] Mobile responsive optimizations
 
 ---
 
-## 11. Data Seed — Project MyUnila
+## 12. Data Seed — Project MyUnila
 
 Initial project setup setelah implementasi:
 
@@ -551,7 +671,7 @@ Modules:
 
 ---
 
-## 12. File Structure (Backend)
+## 13. File Structure (Backend)
 
 ```
 backend/project-service/          # atau numpang di myunila-service
