@@ -5,13 +5,14 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import RolePenggunaTable from "@/shared/components/manakses/RolePenggunaTable";
 import MenuRoleTable from "@/shared/components/manakses/MenuRoleTable";
+import RBACMatrixEditor from "@/shared/components/manakses/RBACMatrixEditor";
 import {
   Spinner,
   Card,
   CardBody,
 } from "@heroui/react";
 import { MdSecurity } from "react-icons/md";
-import { FiUsers, FiLock, FiShield } from "react-icons/fi";
+import { FiUsers, FiLock, FiShield, FiGrid } from "react-icons/fi";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type MenuRoleStats } from "@/lib/services/manakses/menuRoleService";
 
@@ -208,12 +209,27 @@ export default function RBACPage() {
             <FiUsers className={`w-4 h-4 ${activeTab === "role-pengguna" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
             <span>Pengguna & Role</span>
           </button>
+          <button
+            onClick={() => setActiveTab("matrix")}
+            className={`
+              relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+              transition-all duration-200 ease-out
+              ${activeTab === "matrix"
+                ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-700/50"
+              }
+            `}
+          >
+            <FiGrid className={`w-4 h-4 ${activeTab === "matrix" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
+            <span>Permission Matrix</span>
+          </button>
         </div>
 
         {/* Tab Content */}
         <div className="mt-2">
           {activeTab === "menu-role" && <MenuRoleTable onStatsLoaded={setMenuRoleStats} />}
           {activeTab === "role-pengguna" && <RolePenggunaTable />}
+          {activeTab === "matrix" && <RBACMatrixEditor />}
         </div>
       </div>
     </DashboardLayoutWithDynamicMenu>
