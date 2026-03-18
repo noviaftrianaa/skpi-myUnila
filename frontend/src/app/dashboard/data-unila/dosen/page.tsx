@@ -5,6 +5,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { Card, CardBody, Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Divider, Spinner } from "@heroui/react";
 import { FiUsers, FiDownload, FiUser, FiMail, FiPhone, FiCalendar, FiAward, FiBookOpen } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { MdSchool } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
@@ -121,6 +122,20 @@ export default function DosenDataPage() {
                     <Button size="sm" variant="flat" color="success" startContent={<FiDownload className="w-4 h-4" />}
                       onPress={() => window.open(dosenDataService.getExportUrl({ search, id_fakultas: filterFak, id_prodi: filterProdi }), "_blank")}
                       className="h-10 font-medium ml-auto">Export CSV</Button>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `dosen-${filterFak || 'semua'}-${filterProdi || 'semua'}`,
+                        'Dosen',
+                        {
+                          nidn: 'NIDN', nip: 'NIP', nm_sdm: 'Nama',
+                          jk: 'Jenis Kelamin', jenis_sdm: 'Jenis SDM',
+                          nm_prodi: 'Program Studi', nm_fakultas: 'Fakultas',
+                          jabatan_fungsional: 'Jabatan Fungsional', status: 'Status',
+                          email: 'Email', no_hp: 'No HP',
+                        }
+                      )}
+                      className="h-10 font-medium">Export Excel</Button>
                   </div>
                 }
               />

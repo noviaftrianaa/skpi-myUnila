@@ -3,14 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Spinner , Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiBookOpen, FiUsers, FiDollarSign } from "react-icons/fi";
+import { FiBookOpen, FiUsers, FiDollarSign , FiDownload } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type LitabmasItem, type LitabmasStats } from "@/lib/services/data-unila/tridarmaDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 
 const APP_KEY = "data-unila";
 
@@ -123,12 +124,22 @@ export default function PengabdianPage() {
                 onSearchChange={q => { setSearch(q); setPage(1); }} onSortChange={handleSort}
                 searchPlaceholder="Cari judul pengabdian, skim..." defaultRowsPerPage={20}
                 filterSlot={
-                  <Select aria-label="Tahun" placeholder="Semua Tahun"
-                    selectedKeys={filterTahun ? [filterTahun] : []}
-                    onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
-                    size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
-                    {tahunList.map(y => <SelectItem key={String(y)}>{String(y)}</SelectItem>)}
-                  </Select>
+                  <div className="flex flex-wrap gap-2 w-full">
+                    <Select aria-label="Tahun" placeholder="Semua Tahun"
+                      selectedKeys={filterTahun ? [filterTahun] : []}
+                      onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
+                      size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
+                      {tahunList.map(y => <SelectItem key={String(y)}>{String(y)}</SelectItem>)}
+                    </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `pengabdian`,
+                        'Pengabdian',
+                        { judul: 'Judul Pengabdian', tahun: 'Tahun', total_dana: 'Total Dana', lokasi_kegiatan: 'Lokasi' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
+                  </div>
                 }
               />
             </motion.div>

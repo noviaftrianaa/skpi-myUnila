@@ -3,14 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Spinner } from "@heroui/react";
+import { Card, CardBody, Chip, Spinner , Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import akademikDataService from "@/lib/services/data-unila/akademikDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { FiBook } from "react-icons/fi";
+import { FiBook , FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 
 const APP_KEY = "data-unila";
 
@@ -61,7 +62,20 @@ export default function MatkulPage() {
   return (
     <DashboardLayoutWithDynamicMenu
       appName="Data Unila"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
+      appIcon={<MdSchool className="w-6 h-6 text-white"
+                filterSlot={
+                  <div className="flex flex-wrap gap-2 w-full">
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `mata-kuliah`,
+                        'Matkul',
+                        { kode_mk: 'Kode', nm_mk: 'Mata Kuliah', sks_mk: 'SKS', jenis_mk: 'Jenis', sks_prak: 'Praktikum' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
+                  </div>
+                }
+               />}
       appKey={APP_KEY}
       fallbackMenus={dataUnilaMenuConfig}
       pageTitle="Mata Kuliah"

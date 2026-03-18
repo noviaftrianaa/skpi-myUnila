@@ -3,13 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip } from "@heroui/react";
+import { Card, CardBody, Chip , Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import akademikDataService from "@/lib/services/data-unila/akademikDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { FiDownload } from "react-icons/fi";
 const APP_KEY = "data-unila";
 
 export default function AkreditasiPage() {
@@ -54,7 +56,20 @@ export default function AkreditasiPage() {
             <DataTable columns={columns} data={data} loading={loading} serverSide totalRecords={total}
               onPageChange={setPage} onRowsPerPageChange={n=>{setLimit(n);setPage(1);}}
               onSearchChange={q=>{setSearch(q);setPage(1);}} onSortChange={handleSort}
-              searchPlaceholder="Cari prodi, SK akreditasi..." defaultRowsPerPage={20} />
+              searchPlaceholder="Cari prodi, SK akreditasi..." defaultRowsPerPage={20} 
+                filterSlot={
+                  <div className="flex flex-wrap gap-2 w-full">
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `akreditasi`,
+                        'Akreditasi',
+                        { nm_prodi: 'Program Studi', peringkat: 'Peringkat', lembaga: 'Lembaga', tgl_sk: 'Tanggal SK', tgl_expired: 'Expired', a_aktif: 'Status' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
+                  </div>
+                }
+              />
           </motion.div>
         </CardBody></Card>
       </div>

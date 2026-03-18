@@ -3,13 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip } from "@heroui/react";
+import { Card, CardBody, Chip , Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import akademikDataService from "@/lib/services/data-unila/akademikDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { FiDownload } from "react-icons/fi";
 
 const APP_KEY = "data-unila";
 const AK_COLORS: Record<string,"success"|"primary"|"warning"|"danger"|"default"> = { "Unggul":"success", "Baik Sekali":"primary", "A":"success", "B":"primary", "C":"warning" };
@@ -56,7 +58,20 @@ export default function ProdiPage() {
             <DataTable columns={columns} data={data} loading={loading} serverSide totalRecords={total}
               onPageChange={setPage} onRowsPerPageChange={n=>{setLimit(n);setPage(1);}}
               onSearchChange={q=>{setSearch(q);setPage(1);}} onSortChange={handleSort}
-              searchPlaceholder="Cari program studi..." defaultRowsPerPage={20} />
+              searchPlaceholder="Cari program studi..." defaultRowsPerPage={20} 
+                filterSlot={
+                  <div className="flex flex-wrap gap-2 w-full">
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `program-studi`,
+                        'Prodi',
+                        { nm_prodi: 'Program Studi', akreditasi: 'Akreditasi', mhs_aktif: 'Mahasiswa Aktif', jml_dosen: 'Jumlah Dosen' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
+                  </div>
+                }
+              />
           </motion.div>
         </CardBody></Card>
       </div>

@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Select, SelectItem, Spinner, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiUsers, FiAward, FiTrendingUp, FiGrid } from "react-icons/fi";
+import { FiUsers, FiAward, FiTrendingUp, FiGrid, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import mahasiswaDataService, { type LulusanItem, type LulusanStats, type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
@@ -181,6 +182,14 @@ export default function LulusanPage() {
                     >
                       {(filters?.prodi || []).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
                     </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `mahasiswa-lulusan`,
+                        'Lulusan',
+                        { nm_pd: 'Nama Lulusan', nipd: 'NIM', nm_prodi: 'Program Studi', nm_fakultas: 'Fakultas', angkatan: 'Angkatan', tgl_lulus: 'Tanggal Lulus', ipk: 'IPK' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
                   </div>
                 }
               />

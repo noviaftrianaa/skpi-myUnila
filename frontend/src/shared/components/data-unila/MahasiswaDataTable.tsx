@@ -9,6 +9,7 @@ import {
 import {
   FiDownload, FiUser, FiMapPin, FiPhone, FiMail, FiCalendar, FiBookOpen,
 } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { MdSchool } from "react-icons/md";
 import mahasiswaDataService, {
   type MahasiswaItem, type MahasiswaDetail, type MahasiswaFilters,
@@ -256,6 +257,24 @@ export default function MahasiswaDataTable({ orgFilter }: MahasiswaDataTableProp
         className="h-10 font-medium ml-auto"
       >
         Export CSV
+      </Button>
+      <Button
+        size="sm" variant="flat" color="primary"
+        startContent={<FiDownload className="w-4 h-4" />}
+        onPress={() => exportToExcel(
+          data as unknown as Record<string, unknown>[],
+          `mahasiswa-${filterFakultas || 'semua'}-${filterAngkatan || 'semua'}`,
+          'Mahasiswa',
+          {
+            nipd: 'NIM', nm_pd: 'Nama', jk: 'Jenis Kelamin',
+            nm_prodi: 'Program Studi', jenjang: 'Jenjang',
+            nm_fakultas: 'Fakultas', angkatan: 'Angkatan', status: 'Status',
+            email: 'Email', tlpn_hp: 'No HP',
+          }
+        )}
+        className="h-10 font-medium"
+      >
+        Export Excel
       </Button>
     </div>
   );

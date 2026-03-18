@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Button } from "@heroui/react";
 import { MdSchool, MdScience } from "react-icons/md";
-import { FiBookOpen, FiDollarSign } from "react-icons/fi";
+import { FiBookOpen, FiDollarSign, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type LitabmasItem, type LitabmasStats } from "@/lib/services/data-unila/tridarmaDataService";
@@ -89,7 +90,7 @@ export default function PenelitianPage() {
               onSearchChange={q => { setSearch(q); setPage(1); }} onSortChange={handleSort}
               searchPlaceholder="Cari judul penelitian..." defaultRowsPerPage={20}
               filterSlot={
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 w-full">
                   <Select aria-label="Jenis" selectedKeys={[filterJenis]} onSelectionChange={k => { setFilterJenis(Array.from(k)[0] as string||""); setPage(1); }}
                     size="sm" variant="bordered" classNames={{ base: "w-[150px]", trigger: "h-10" }}>
                     <SelectItem key="penelitian">Penelitian</SelectItem>
@@ -101,6 +102,14 @@ export default function PenelitianPage() {
                     size="sm" variant="bordered" classNames={{ base: "w-[120px]", trigger: "h-10" }}>
                     {Array.from({length: 15}, (_, i) => String(new Date().getFullYear() - i)).map(y => <SelectItem key={y}>{y}</SelectItem>)}
                   </Select>
+                  <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                    onPress={() => exportToExcel(
+                      data as unknown as Record<string, unknown>[],
+                      `tridarma-penelitian`,
+                      'Penelitian',
+                      { judul: 'Judul', jenis: 'Jenis', tahun: 'Tahun', total_dana: 'Total Dana' }
+                    )}
+                    className="h-10 font-medium ml-auto">Export Excel</Button>
                 </div>
               }
             />

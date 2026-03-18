@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Select, SelectItem, Spinner, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiList, FiCalendar, FiGrid, FiDollarSign } from "react-icons/fi";
+import { FiList, FiCalendar, FiGrid, FiDollarSign, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import keuanganDataService, { type UktItem, type UktStats } from "@/lib/services/data-unila/keuanganDataService";
@@ -120,12 +121,22 @@ export default function UktPage() {
                 onSearchChange={q => { setSearch(q); setPage(1); }} onSortChange={handleSort}
                 searchPlaceholder="Cari nama prodi, kelas UKT..." defaultRowsPerPage={20}
                 filterSlot={
-                  <Select aria-label="Tahun" placeholder="Semua Tahun"
-                    selectedKeys={filterTahun ? [filterTahun] : []}
-                    onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
-                    size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
-                    {tahunList.map(t => <SelectItem key={String(t.tahun)}>{String(t.tahun)}</SelectItem>)}
-                  </Select>
+                  <div className="flex flex-wrap gap-2 w-full">
+                    <Select aria-label="Tahun" placeholder="Semua Tahun"
+                      selectedKeys={filterTahun ? [filterTahun] : []}
+                      onSelectionChange={k => { setFilterTahun(Array.from(k)[0] as string || ""); setPage(1); }}
+                      size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
+                      {tahunList.map(t => <SelectItem key={String(t.tahun)}>{String(t.tahun)}</SelectItem>)}
+                    </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `keuangan-ukt`,
+                        'UKT',
+                        { nama_prodi: 'Program Studi', nm_fakultas: 'Fakultas', tahun: 'Tahun', nama_kelas: 'Kelas UKT', nominal: 'Nominal' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
+                  </div>
                 }
               />
             </motion.div>

@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Spinner, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiActivity, FiUsers, FiBook, FiStar } from "react-icons/fi";
+import { FiActivity, FiUsers, FiBook, FiStar, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import mahasiswaDataService, { type AktivitasItem, type AktivitasStats, type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
@@ -143,6 +144,14 @@ export default function AktivitasPage() {
                       size="sm" variant="bordered" classNames={{ base: "w-[220px]", trigger: "h-10" }}>
                       {(filters?.prodi || []).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
                     </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `mahasiswa-aktivitas`,
+                        'Aktivitas',
+                        { judul: 'Judul Aktivitas', jenis_aktivitas: 'Jenis', id_smt: 'Semester', tgl_mulai: 'Tanggal Mulai', lokasi_kegiatan: 'Lokasi' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
                   </div>
                 }
               />

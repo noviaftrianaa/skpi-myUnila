@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiTrendingUp, FiUsers, FiDollarSign, FiBriefcase } from "react-icons/fi";
+import { FiTrendingUp, FiUsers, FiDollarSign, FiBriefcase, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
 import tracerDataService from "@/lib/services/data-unila/tracerDataService";
@@ -82,7 +83,7 @@ export default function TracerPage() {
               onSearchChange={q=>{setSearch(q);setPage(1);}} onSortChange={handleSort}
               searchPlaceholder="Cari nama lulusan, NIM, tempat kerja..." defaultRowsPerPage={20}
               filterSlot={
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 w-full">
                   <Select aria-label="Fakultas" placeholder="Semua Fakultas" selectedKeys={filterFak?[filterFak]:[]}
                     onSelectionChange={k=>{setFilterFak(Array.from(k)[0] as string||""); setFilterProdi(""); setPage(1);}}
                     size="sm" variant="bordered" classNames={{base:"w-[200px]",trigger:"h-10"}}>
@@ -93,6 +94,14 @@ export default function TracerPage() {
                     size="sm" variant="bordered" classNames={{base:"w-[220px]",trigger:"h-10"}}>
                     {(filters?.prodi||[]).map(p=><SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
                   </Select>
+                  <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                    onPress={() => exportToExcel(
+                      data as unknown as Record<string, unknown>[],
+                      `tracer-study`,
+                      'Tracer',
+                      { nama_lulusan: 'Nama Lulusan', status_lulusan: 'Status', tempat_kerja: 'Tempat Kerja', masa_tunggu_bulan: 'Masa Tunggu (bulan)', income_per_bln: 'Income/Bulan' }
+                    )}
+                    className="h-10 font-medium ml-auto">Export Excel</Button>
                 </div>
               }
             />

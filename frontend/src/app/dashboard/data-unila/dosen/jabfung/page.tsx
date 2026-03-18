@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Chip, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Chip, Select, SelectItem, Spinner, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiAward, FiUsers, FiStar, FiTrendingUp } from "react-icons/fi";
+import { FiAward, FiUsers, FiStar, FiTrendingUp, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import dosenDataService, { type JabfungItem, type JabfungStats } from "@/lib/services/data-unila/dosenDataService";
@@ -151,6 +152,14 @@ export default function JabfungPage() {
                       size="sm" variant="bordered" classNames={{ base: "w-[220px]", trigger: "h-10" }}>
                       {(filters?.prodi || []).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
                     </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `dosen-jabfung`,
+                        'Jabfung',
+                        { nm_sdm: 'Nama Dosen', nidn: 'NIDN', nm_jabfung: 'Jabatan Fungsional', nm_prodi: 'Program Studi', nm_fakultas: 'Fakultas', sk_jabfung: 'SK Jabfung', tmt_sk_jabfung: 'TMT SK', angka_kredit: 'Angka Kredit' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
                   </div>
                 }
               />

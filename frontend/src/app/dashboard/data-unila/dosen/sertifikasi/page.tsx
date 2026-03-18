@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import { Card, CardBody, Select, SelectItem, Spinner } from "@heroui/react";
+import { Card, CardBody, Select, SelectItem, Spinner, Button } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
-import { FiFileText, FiUsers, FiCalendar, FiGrid } from "react-icons/fi";
+import { FiFileText, FiUsers, FiCalendar, FiGrid, FiDownload } from "react-icons/fi";
+import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import dosenDataService, { type SertifikasiItem, type SertifikasiStats } from "@/lib/services/data-unila/dosenDataService";
@@ -138,6 +139,14 @@ export default function SertifikasiPage() {
                       size="sm" variant="bordered" classNames={{ base: "w-[220px]", trigger: "h-10" }}>
                       {(filters?.prodi || []).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
                     </Select>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
+                      onPress={() => exportToExcel(
+                        data as unknown as Record<string, unknown>[],
+                        `dosen-sertifikasi`,
+                        'Sertifikasi',
+                        { nm_sdm: 'Nama Dosen', nidn: 'NIDN', bidang_studi: 'Bidang Studi', no_sert: 'SK Sertifikasi', thn_sert: 'Tahun', nrg: 'NRG' }
+                      )}
+                      className="h-10 font-medium ml-auto">Export Excel</Button>
                   </div>
                 }
               />
