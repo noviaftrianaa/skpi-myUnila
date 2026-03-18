@@ -36,6 +36,7 @@
       api: "services/backend-go/docker-compose.api.yml"
       keuangan: "services/backend-go/docker-compose.keuangan.yml"
       monitoring: "services/backend-go/docker-compose.monitoring.yml"
+      project: "services/backend-go/docker-compose.project.yml"
 
     # Container name mapping
     service_container_map:
@@ -54,6 +55,7 @@
       api: "myunila-api-staging"
       keuangan: "myunila-keuangan-staging"
       monitoring: "myunila-monitoring-staging"
+      project: "myunila-project-staging"
 
   tasks:
     - name: Validate services parameter

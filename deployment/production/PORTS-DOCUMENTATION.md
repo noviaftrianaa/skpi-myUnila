@@ -302,3 +302,33 @@ nc -zv 192.168.123.119 1433
 **Generated for:** MyUnila Production Deployment
 **Last Updated:** 2025-11-12
 **Maintained by:** Development Team
+
+---
+
+## 🖥️ VM5 Staging (192.168.120.45)
+
+| Service | Port | Protocol | Notes |
+|---------|------|----------|-------|
+| Frontend (Next.js) | 3000 | HTTP | Staging portal |
+| Kong Proxy | 9800 | HTTP | API Gateway |
+| Kong Admin | 9801 | HTTP | Admin API |
+| Auth Service | 8081 | HTTP | Via Nginx |
+| Public Service | 8082 | HTTP | Via Nginx |
+| Dashboard Service | 8087 | HTTP | Via Nginx |
+| Sister Service | 8083 | HTTP | Go |
+| Feeder Service | 8084 | HTTP | Go |
+| WS Service | 8085 | HTTP | Go (api-service) |
+| MyUnila Service | 8086 | HTTP | Go |
+| Keuangan Service | 8088 | HTTP | Go |
+| Monitoring Service | 8089 | HTTP | Go (webmon) |
+| **Project Service** | **8095** | **HTTP** | **Go (project-management) ⭐ NEW** |
+| Redis | 6379 | TCP | Cache |
+| MeiliSearch | 7700 | HTTP | Search engine |
+| PostgreSQL | 5432 | TCP | **Project Management DB (native, not Docker)** |
+| Grafana | 3001 | HTTP | Monitoring dashboard |
+| Loki | 3100 | HTTP | Log aggregation |
+| Prometheus | 9090 | HTTP | Metrics |
+| Node Exporter | 9100 | HTTP | Host metrics |
+| Nginx Exporter | 9113 | HTTP | Nginx metrics |
+| Redis Exporter | 9121 | HTTP | Redis metrics |
+| cAdvisor | 18080 | HTTP | Container metrics |
