@@ -163,6 +163,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}/mfa-status', [PenggunaController::class, 'mfaStatus']);
 
             // Write operations - require permission check
+            Route::post('/', [PenggunaController::class, 'store'])->middleware('permission:insert,manajemen-akses');
             Route::post('/clear-radius-cache', [PenggunaController::class, 'clearRadiusCache'])->middleware('permission:update,manajemen-akses');
             Route::post('/{id}/reset-mfa', [PenggunaController::class, 'resetMfa'])->middleware('permission:update,manajemen-akses');
             Route::post('/{id}/reset-password', [PenggunaController::class, 'resetPassword'])->middleware('permission:update,manajemen-akses');
