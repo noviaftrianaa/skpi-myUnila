@@ -68,3 +68,4 @@ deployment/docs/
 .env
 *.bak-*
 *.env.bak*
+backend/project-service/.env
