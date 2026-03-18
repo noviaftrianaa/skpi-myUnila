@@ -73,6 +73,14 @@ const MODULES = [
     count: "420K+",
     soon: true,
   },
+  {
+    title: "Dashboard IKU",
+    desc: "Indikator Kinerja Utama — 6 IKU wajib, tren, dan drilldown fakultas",
+    icon: <FiTrendingUp className="w-8 h-8" />,
+    href: "/dashboard/data-unila/iku",
+    color: "from-teal-500 to-cyan-600",
+    count: "6 IKU",
+  },
 ];
 
 export default function DataUnilaPage() {

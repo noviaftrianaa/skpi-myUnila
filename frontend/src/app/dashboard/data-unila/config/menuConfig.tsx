@@ -64,4 +64,9 @@ export const dataUnilaMenuConfig = [
     href: "/dashboard/data-unila/tracer",
     icon: <FiTrendingUp className="w-4 h-4" />,
   },
+  {
+    title: "Dashboard IKU",
+    href: "/dashboard/data-unila/iku",
+    icon: <FiTrendingUp className="w-4 h-4" />,
+  },
 ];
