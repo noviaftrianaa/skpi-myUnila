@@ -117,6 +117,16 @@ type Repository interface {
 	DeleteOrgNode(ctx context.Context, nodeID string) error
 	CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error)
 	DeleteOrgEdge(ctx context.Context, edgeID string) error
+
+	// Analytics / Contributions
+	LogActivity(ctx context.Context, projectID string, taskID, userID *string, aksi, detail string) error
+	GetContributions(ctx context.Context, userID string, year int) (*ContributionData, error)
+	GetProjectContributions(ctx context.Context, projectID string, year int) (*ContributionData, error)
+	GetActivityTimeline(ctx context.Context, projectID string, period string, months int) ([]ActivityPoint, error)
+	GetBurndown(ctx context.Context, sprintID string) ([]BurndownPoint, error)
+	GetTaskDistribution(ctx context.Context, projectID string) ([]TaskDistribution, error)
+	GetTeamContribution(ctx context.Context, projectID string, months int) ([]TeamContribution, error)
+	GetUserProfile(ctx context.Context, userID string) (*UserProfile, error)
 }
 
 type repository struct {
@@ -1376,4 +1386,454 @@ func (r *repository) DeleteOrgEdge(ctx context.Context, edgeID string) error {
 		return fmt.Errorf("failed to delete org edge: %w", err)
 	}
 	return nil
+}
+
+// ===== ANALYTICS / CONTRIBUTIONS =====
+
+func (r *repository) LogActivity(ctx context.Context, projectID string, taskID, userID *string, aksi, detail string) error {
+	id := uuid.New().String()
+	query := `INSERT INTO activity_log (id_activity, id_project, id_task, id_pengguna, aksi, detail) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := r.db.ExecContext(ctx, query, id, projectID, taskID, userID, aksi, detail)
+	return err
+}
+
+func (r *repository) GetContributions(ctx context.Context, userID string, year int) (*ContributionData, error) {
+	startDate := fmt.Sprintf("%d-01-01", year)
+	endDate := fmt.Sprintf("%d-01-01", year+1)
+
+	// Get daily counts
+	var days []ContributionDay
+	q := `SELECT TO_CHAR(DATE(created_at), 'YYYY-MM-DD') AS tanggal, COUNT(*) AS total
+		FROM activity_log
+		WHERE id_pengguna = $1 AND created_at >= $2 AND created_at < $3
+		GROUP BY DATE(created_at)
+		ORDER BY DATE(created_at)`
+	if err := r.db.SelectContext(ctx, &days, q, userID, startDate, endDate); err != nil {
+		return nil, fmt.Errorf("failed to get contributions: %w", err)
+	}
+
+	data := make(map[string]int)
+	total := 0
+	for _, d := range days {
+		data[d.Date] = d.Count
+		total += d.Count
+	}
+
+	// Get by type
+	type TypeRow struct {
+		Aksi  string `db:"aksi"`
+		Total int    `db:"total"`
+	}
+	var typeRows []TypeRow
+	qType := `SELECT aksi, COUNT(*) AS total FROM activity_log
+		WHERE id_pengguna = $1 AND created_at >= $2 AND created_at < $3
+		GROUP BY aksi`
+	if err := r.db.SelectContext(ctx, &typeRows, qType, userID, startDate, endDate); err != nil {
+		return nil, fmt.Errorf("failed to get contribution types: %w", err)
+	}
+	byType := make(map[string]int)
+	for _, t := range typeRows {
+		byType[t.Aksi] = t.Total
+	}
+
+	// Calculate streaks
+	longestStreak, currentStreak := calcStreaks(data, year)
+
+	return &ContributionData{
+		Year:          year,
+		Total:         total,
+		LongestStreak: longestStreak,
+		CurrentStreak: currentStreak,
+		Data:          data,
+		ByType:        byType,
+	}, nil
+}
+
+func calcStreaks(data map[string]int, year int) (longest, current int) {
+	curStreak := 0
+	maxStreak := 0
+	daysInMonth := []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+	if year%4 == 0 && (year%100 != 0 || year%400 == 0) {
+		daysInMonth[1] = 29
+	}
+	for month := 1; month <= 12; month++ {
+		for day := 1; day <= daysInMonth[month-1]; day++ {
+			dateStr := fmt.Sprintf("%d-%02d-%02d", year, month, day)
+			if data[dateStr] > 0 {
+				curStreak++
+				if curStreak > maxStreak {
+					maxStreak = curStreak
+				}
+			} else {
+				curStreak = 0
+			}
+		}
+	}
+	return maxStreak, curStreak
+}
+
+func (r *repository) GetActivityTimeline(ctx context.Context, projectID string, period string, months int) ([]ActivityPoint, error) {
+	if months <= 0 {
+		months = 3
+	}
+
+	var rows []struct {
+		Period      string `db:"period"`
+		TaskCreated int    `db:"task_created"`
+		TaskDone    int    `db:"task_done"`
+		Comments    int    `db:"comments"`
+		Documents   int    `db:"documents"`
+		Total       int    `db:"total"`
+	}
+
+	var q string
+	if period == "monthly" {
+		q = fmt.Sprintf(`
+			SELECT 
+				TO_CHAR(created_at, 'YYYY-MM') AS period,
+				SUM(CASE WHEN aksi LIKE '%%created%%' THEN 1 ELSE 0 END) AS task_created,
+				SUM(CASE WHEN aksi IN ('task_completed','task_status_changed') THEN 1 ELSE 0 END) AS task_done,
+				SUM(CASE WHEN aksi LIKE '%%comment%%' THEN 1 ELSE 0 END) AS comments,
+				SUM(CASE WHEN aksi LIKE '%%document%%' THEN 1 ELSE 0 END) AS documents,
+				COUNT(*) AS total
+			FROM activity_log
+			WHERE id_project = $1 AND created_at >= NOW() - INTERVAL '%d months'
+			GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+			ORDER BY period`, months)
+	} else {
+		q = fmt.Sprintf(`
+			SELECT 
+				TO_CHAR(created_at, 'IYYY-"W"IW') AS period,
+				SUM(CASE WHEN aksi LIKE '%%created%%' THEN 1 ELSE 0 END) AS task_created,
+				SUM(CASE WHEN aksi IN ('task_completed','task_status_changed') THEN 1 ELSE 0 END) AS task_done,
+				SUM(CASE WHEN aksi LIKE '%%comment%%' THEN 1 ELSE 0 END) AS comments,
+				SUM(CASE WHEN aksi LIKE '%%document%%' THEN 1 ELSE 0 END) AS documents,
+				COUNT(*) AS total
+			FROM activity_log
+			WHERE id_project = $1 AND created_at >= NOW() - INTERVAL '%d months'
+			GROUP BY TO_CHAR(created_at, 'IYYY-"W"IW')
+			ORDER BY period`, months)
+	}
+
+	if err := r.db.SelectContext(ctx, &rows, q, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get activity timeline: %w", err)
+	}
+
+	result := make([]ActivityPoint, len(rows))
+	for i, row := range rows {
+		result[i] = ActivityPoint{
+			Period:      row.Period,
+			TaskCreated: row.TaskCreated,
+			TaskDone:    row.TaskDone,
+			Comments:    row.Comments,
+			Documents:   row.Documents,
+			Total:       row.Total,
+		}
+	}
+	return result, nil
+}
+
+func (r *repository) GetBurndown(ctx context.Context, sprintID string) ([]BurndownPoint, error) {
+	// Get sprint info
+	var sprint struct {
+		TglMulai   *string `db:"tgl_mulai"`
+		TglSelesai *string `db:"tgl_selesai"`
+	}
+	qSprint := `SELECT TO_CHAR(tgl_mulai, 'YYYY-MM-DD') AS tgl_mulai, TO_CHAR(tgl_selesai, 'YYYY-MM-DD') AS tgl_selesai FROM sprints WHERE id_sprint = $1`
+	if err := r.db.GetContext(ctx, &sprint, qSprint, sprintID); err != nil {
+		return nil, fmt.Errorf("sprint not found: %w", err)
+	}
+
+	if sprint.TglMulai == nil || sprint.TglSelesai == nil {
+		return []BurndownPoint{}, nil
+	}
+
+	// Get total tasks
+	var totalTasks int
+	qTotal := `SELECT COUNT(*) FROM tasks WHERE id_sprint = $1 AND soft_delete = FALSE`
+	if err := r.db.GetContext(ctx, &totalTasks, qTotal, sprintID); err != nil {
+		return nil, fmt.Errorf("failed to count sprint tasks: %w", err)
+	}
+
+	// Get completions per day
+	type CompletionRow struct {
+		Tanggal string `db:"tanggal"`
+		Done    int    `db:"done"`
+	}
+	var completions []CompletionRow
+	qComp := `SELECT TO_CHAR(DATE(tgl_selesai), 'YYYY-MM-DD') AS tanggal, COUNT(*) AS done
+		FROM tasks 
+		WHERE id_sprint = $1 AND status = 'done' AND tgl_selesai IS NOT NULL AND soft_delete = FALSE
+		GROUP BY DATE(tgl_selesai)
+		ORDER BY tanggal`
+	if err := r.db.SelectContext(ctx, &completions, qComp, sprintID); err != nil {
+		return nil, fmt.Errorf("failed to get completions: %w", err)
+	}
+
+	// Build completion map
+	compMap := make(map[string]int)
+	for _, c := range completions {
+		compMap[c.Tanggal] = c.Done
+	}
+
+	// Generate burndown from start to end date (or today)
+	startDate := *sprint.TglMulai
+	endDate := *sprint.TglSelesai
+
+	// Parse dates manually
+	var startYear, startMonth, startDay int
+	fmt.Sscanf(startDate, "%d-%d-%d", &startYear, &startMonth, &startDay)
+	var endYear, endMonth, endDay int
+	fmt.Sscanf(endDate, "%d-%d-%d", &endYear, &endMonth, &endDay)
+
+	// Calculate total days
+	daysInMonth := func(y, m int) int {
+		months := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+		if m == 2 && (y%4 == 0 && (y%100 != 0 || y%400 == 0)) {
+			return 29
+		}
+		return months[m]
+	}
+
+	// Simple day iteration
+	type dateIter struct {
+		year, month, day int
+	}
+	nextDay := func(d dateIter) dateIter {
+		d.day++
+		if d.day > daysInMonth(d.year, d.month) {
+			d.day = 1
+			d.month++
+			if d.month > 12 {
+				d.month = 1
+				d.year++
+			}
+		}
+		return d
+	}
+	beforeOrEq := func(a, b dateIter) bool {
+		if a.year != b.year {
+			return a.year < b.year
+		}
+		if a.month != b.month {
+			return a.month < b.month
+		}
+		return a.day <= b.day
+	}
+
+	start := dateIter{startYear, startMonth, startDay}
+	end := dateIter{endYear, endMonth, endDay}
+
+	// Count total sprint days
+	totalDays := 0
+	for d := start; beforeOrEq(d, end); d = nextDay(d) {
+		totalDays++
+	}
+	if totalDays == 0 {
+		totalDays = 1
+	}
+
+	var points []BurndownPoint
+	remaining := totalTasks
+	dayIdx := 0
+	for d := start; beforeOrEq(d, end); d = nextDay(d) {
+		dateStr := fmt.Sprintf("%d-%02d-%02d", d.year, d.month, d.day)
+		if done, ok := compMap[dateStr]; ok {
+			remaining -= done
+			if remaining < 0 {
+				remaining = 0
+			}
+		}
+		ideal := totalTasks - int(float64(totalTasks)*float64(dayIdx)/float64(totalDays-1))
+		if dayIdx == totalDays-1 {
+			ideal = 0
+		}
+		points = append(points, BurndownPoint{
+			Date:      dateStr,
+			Remaining: remaining,
+			Ideal:     ideal,
+		})
+		dayIdx++
+	}
+
+	return points, nil
+}
+
+func (r *repository) GetTaskDistribution(ctx context.Context, projectID string) ([]TaskDistribution, error) {
+	var rows []TaskDistribution
+	q := `SELECT status, COUNT(*) AS count FROM tasks WHERE id_project = $1 AND soft_delete = FALSE GROUP BY status ORDER BY status`
+	if err := r.db.SelectContext(ctx, &rows, q, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get task distribution: %w", err)
+	}
+	return rows, nil
+}
+
+func (r *repository) GetTeamContribution(ctx context.Context, projectID string, months int) ([]TeamContribution, error) {
+	if months <= 0 {
+		months = 1
+	}
+	q := fmt.Sprintf(`
+		SELECT 
+			COALESCE(a.id_pengguna::text, 'unknown') AS id_pengguna,
+			COALESCE(m.nm_pengguna, 'Unknown') AS nm_pengguna,
+			COUNT(*) AS total,
+			SUM(CASE WHEN a.aksi IN ('task_completed') THEN 1 ELSE 0 END) AS task_done,
+			SUM(CASE WHEN a.aksi LIKE '%%comment%%' THEN 1 ELSE 0 END) AS comments,
+			SUM(CASE WHEN a.aksi LIKE '%%document%%' THEN 1 ELSE 0 END) AS documents
+		FROM activity_log a
+		LEFT JOIN project_members m ON a.id_pengguna = m.id_pengguna AND m.id_project = a.id_project
+		WHERE a.id_project = $1 AND a.created_at >= NOW() - INTERVAL '%d months'
+		GROUP BY a.id_pengguna, m.nm_pengguna
+		ORDER BY total DESC`, months)
+
+	var rows []TeamContribution
+	if err := r.db.SelectContext(ctx, &rows, q, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get team contributions: %w", err)
+	}
+	return rows, nil
+}
+
+func (r *repository) GetUserProfile(ctx context.Context, userID string) (*UserProfile, error) {
+	// Get current year contributions
+	currentYear := 2026
+	contributions, err := r.GetContributions(ctx, userID, currentYear)
+	if err != nil {
+		contributions = &ContributionData{
+			Year:   currentYear,
+			Data:   make(map[string]int),
+			ByType: make(map[string]int),
+		}
+	}
+
+	// Get user stats
+	type StatsRow struct {
+		TaskCompleted int `db:"task_completed"`
+		TaskCreated   int `db:"task_created"`
+		Comments      int `db:"comments"`
+		Documents     int `db:"documents"`
+		TotalActivity int `db:"total_activity"`
+	}
+	var stats StatsRow
+	qStats := `
+		SELECT 
+			SUM(CASE WHEN aksi = 'task_completed' THEN 1 ELSE 0 END) AS task_completed,
+			SUM(CASE WHEN aksi LIKE '%%created%%' THEN 1 ELSE 0 END) AS task_created,
+			SUM(CASE WHEN aksi LIKE '%%comment%%' THEN 1 ELSE 0 END) AS comments,
+			SUM(CASE WHEN aksi LIKE '%%document%%' THEN 1 ELSE 0 END) AS documents,
+			COUNT(*) AS total_activity
+		FROM activity_log
+		WHERE id_pengguna = $1`
+	if err := r.db.GetContext(ctx, &stats, qStats, userID); err != nil {
+		stats = StatsRow{}
+	}
+
+	// Get projects for this user
+	type ProjectRow struct {
+		IDProject  string `db:"id_project"`
+		NmProject  string `db:"nm_project"`
+		Role       string `db:"role"`
+		TaskDone   int    `db:"task_done"`
+		TotalTasks int    `db:"total_tasks"`
+	}
+	var projectRows []ProjectRow
+	qProjects := `
+		SELECT 
+			m.id_project,
+			p.nm_project,
+			m.role,
+			COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = m.id_project AND t.status = 'done' AND t.id_assignee = m.id_pengguna AND t.soft_delete = FALSE), 0) AS task_done,
+			COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = m.id_project AND t.soft_delete = FALSE), 0) AS total_tasks
+		FROM project_members m
+		JOIN projects p ON m.id_project = p.id_project
+		WHERE m.id_pengguna = $1 AND p.soft_delete = FALSE
+		ORDER BY p.nm_project`
+	if err := r.db.SelectContext(ctx, &projectRows, qProjects, userID); err != nil {
+		projectRows = []ProjectRow{}
+	}
+
+	projects := make([]ProjectSummary, len(projectRows))
+	for i, pr := range projectRows {
+		progress := 0
+		if pr.TotalTasks > 0 {
+			progress = int(float64(pr.TaskDone) / float64(pr.TotalTasks) * 100)
+		}
+		projects[i] = ProjectSummary{
+			IDProject:  pr.IDProject,
+			NmProject:  pr.NmProject,
+			Role:       pr.Role,
+			TaskDone:   pr.TaskDone,
+			TotalTasks: pr.TotalTasks,
+			Progress:   progress,
+		}
+	}
+
+	// Get nm_pengguna from project_members
+	nmPengguna := userID
+	var nm string
+	qNm := `SELECT nm_pengguna FROM project_members WHERE id_pengguna = $1 LIMIT 1`
+	if err := r.db.GetContext(ctx, &nm, qNm, userID); err == nil {
+		nmPengguna = nm
+	}
+
+	return &UserProfile{
+		IDPengguna:    userID,
+		NmPengguna:    nmPengguna,
+		Contributions: *contributions,
+		Stats: UserStats{
+			TaskCompleted: stats.TaskCompleted,
+			TaskCreated:   stats.TaskCreated,
+			Comments:      stats.Comments,
+			Documents:     stats.Documents,
+			TotalActivity: stats.TotalActivity,
+		},
+		Projects: projects,
+	}, nil
+}
+
+func (r *repository) GetProjectContributions(ctx context.Context, projectID string, year int) (*ContributionData, error) {
+	startDate := fmt.Sprintf("%d-01-01", year)
+	endDate := fmt.Sprintf("%d-01-01", year+1)
+
+	var days []ContributionDay
+	q := `SELECT TO_CHAR(DATE(created_at), 'YYYY-MM-DD') AS tanggal, COUNT(*) AS total
+		FROM activity_log
+		WHERE id_project = $1 AND created_at >= $2 AND created_at < $3
+		GROUP BY DATE(created_at)
+		ORDER BY DATE(created_at)`
+	if err := r.db.SelectContext(ctx, &days, q, projectID, startDate, endDate); err != nil {
+		return nil, fmt.Errorf("failed to get project contributions: %w", err)
+	}
+
+	data := make(map[string]int)
+	total := 0
+	for _, d := range days {
+		data[d.Date] = d.Count
+		total += d.Count
+	}
+
+	type TypeRow struct {
+		Aksi  string `db:"aksi"`
+		Total int    `db:"total"`
+	}
+	var typeRows []TypeRow
+	qType := `SELECT aksi, COUNT(*) AS total FROM activity_log
+		WHERE id_project = $1 AND created_at >= $2 AND created_at < $3
+		GROUP BY aksi`
+	if err := r.db.SelectContext(ctx, &typeRows, qType, projectID, startDate, endDate); err != nil {
+		return nil, fmt.Errorf("failed to get project contribution types: %w", err)
+	}
+	byType := make(map[string]int)
+	for _, t := range typeRows {
+		byType[t.Aksi] = t.Total
+	}
+
+	longestStreak, currentStreak := calcStreaks(data, year)
+	return &ContributionData{
+		Year:          year,
+		Total:         total,
+		LongestStreak: longestStreak,
+		CurrentStreak: currentStreak,
+		Data:          data,
+		ByType:        byType,
+	}, nil
 }

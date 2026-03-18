@@ -91,8 +91,10 @@ func InitWithMinIOAndNotifier(router fiber.Router, pgDB *sqlx.DB, msDB *sqlx.DB,
 func initRoutes(router fiber.Router, h *Handler) {
 	// Project routes
 	pg := router.Group("/project")
-	pg.Get("/stats", h.GetGlobalStats) // Global stats (all projects)
-	pg.Get("/my", h.GetMyProjects)     // User-filtered project list
+	pg.Get("/stats", h.GetGlobalStats)         // Global stats (all projects)
+	pg.Get("/my", h.GetMyProjects)             // User-filtered project list
+	pg.Get("/contributions", h.GetContributions) // User contribution heatmap
+	pg.Get("/profile/:userId", h.GetUserProfile) // User profile
 	pg.Get("/", h.GetProjectList)
 	pg.Post("/", h.CreateProject)
 	pg.Get("/:id", h.GetProjectByID)
@@ -121,6 +123,13 @@ func initRoutes(router fiber.Router, h *Handler) {
 	pg.Delete("/:id/org/nodes/:nid", h.DeleteOrgNode)
 	pg.Post("/:id/org/edges", h.CreateOrgEdge)
 	pg.Delete("/:id/org/edges/:eid", h.DeleteOrgEdge)
+
+	// Analytics routes
+	pg.Get("/:id/contributions", h.GetProjectContributions)
+	pg.Get("/:id/charts/activity", h.GetActivityTimeline)
+	pg.Get("/:id/charts/burndown", h.GetBurndown)
+	pg.Get("/:id/charts/distribution", h.GetTaskDistribution)
+	pg.Get("/:id/charts/team", h.GetTeamContribution)
 
 	pg.Get("/:id/webhooks", h.GetWebhooksByProject)
 	pg.Post("/:id/webhooks", h.CreateWebhookConfig)

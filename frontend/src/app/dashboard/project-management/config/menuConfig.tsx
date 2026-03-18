@@ -5,7 +5,7 @@
  * Untuk role: Developer, Admin
  */
 
-import { FiFolder, FiGrid, FiSettings } from "react-icons/fi";
+import { FiFolder, FiGrid, FiSettings, FiBarChart2 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
@@ -29,5 +29,11 @@ export const projectManagementMenuConfig: MenuItem[] = [
         roles: allowedRoles,
       },
     ],
+  },
+  {
+    title: "Analytics",
+    icon: <FiBarChart2 className="w-5 h-5" />,
+    href: "/dashboard/project-management",
+    roles: allowedRoles,
   },
 ];

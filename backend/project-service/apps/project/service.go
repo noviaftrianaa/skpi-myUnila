@@ -116,6 +116,16 @@ type Service interface {
 	DeleteOrgNode(ctx context.Context, nodeID string) error
 	CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error)
 	DeleteOrgEdge(ctx context.Context, edgeID string) error
+
+	// Analytics
+	LogActivity(ctx context.Context, projectID string, taskID, userID *string, aksi, detail string)
+	GetContributions(ctx context.Context, userID string, year int) (*ContributionData, error)
+	GetProjectContributions(ctx context.Context, projectID string, year int) (*ContributionData, error)
+	GetActivityTimeline(ctx context.Context, projectID string, period string, months int) ([]ActivityPoint, error)
+	GetBurndown(ctx context.Context, projectID, sprintID string) ([]BurndownPoint, error)
+	GetTaskDistribution(ctx context.Context, projectID string) ([]TaskDistribution, error)
+	GetTeamContribution(ctx context.Context, projectID string, months int) ([]TeamContribution, error)
+	GetUserProfile(ctx context.Context, userID string) (*UserProfile, error)
 }
 
 type service struct {
@@ -1271,4 +1281,38 @@ func (s *service) CreateOrgEdge(ctx context.Context, projectID string, req *Crea
 
 func (s *service) DeleteOrgEdge(ctx context.Context, edgeID string) error {
 	return s.repo.DeleteOrgEdge(ctx, edgeID)
+}
+
+// ===== ANALYTICS =====
+
+func (s *service) LogActivity(ctx context.Context, projectID string, taskID, userID *string, aksi, detail string) {
+	_ = s.repo.LogActivity(ctx, projectID, taskID, userID, aksi, detail)
+}
+
+func (s *service) GetContributions(ctx context.Context, userID string, year int) (*ContributionData, error) {
+	return s.repo.GetContributions(ctx, userID, year)
+}
+
+func (s *service) GetProjectContributions(ctx context.Context, projectID string, year int) (*ContributionData, error) {
+	return s.repo.GetProjectContributions(ctx, projectID, year)
+}
+
+func (s *service) GetActivityTimeline(ctx context.Context, projectID string, period string, months int) ([]ActivityPoint, error) {
+	return s.repo.GetActivityTimeline(ctx, projectID, period, months)
+}
+
+func (s *service) GetBurndown(ctx context.Context, projectID, sprintID string) ([]BurndownPoint, error) {
+	return s.repo.GetBurndown(ctx, sprintID)
+}
+
+func (s *service) GetTaskDistribution(ctx context.Context, projectID string) ([]TaskDistribution, error) {
+	return s.repo.GetTaskDistribution(ctx, projectID)
+}
+
+func (s *service) GetTeamContribution(ctx context.Context, projectID string, months int) ([]TeamContribution, error) {
+	return s.repo.GetTeamContribution(ctx, projectID, months)
+}
+
+func (s *service) GetUserProfile(ctx context.Context, userID string) (*UserProfile, error) {
+	return s.repo.GetUserProfile(ctx, userID)
 }

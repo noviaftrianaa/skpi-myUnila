@@ -2169,3 +2169,106 @@ func (h *Handler) DeleteOrgEdge(c *fiber.Ctx) error {
 		"message": "Org edge deleted",
 	})
 }
+
+// ===== ANALYTICS HANDLERS =====
+
+// GetContributions GET /project/contributions?user_id=xxx&year=2026
+func (h *Handler) GetContributions(c *fiber.Ctx) error {
+	ctx := c.Context()
+	userID := c.Query("user_id", "")
+	year, _ := strconv.Atoi(c.Query("year", "2026"))
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "message": "user_id is required"})
+	}
+	data, err := h.svc.GetContributions(ctx, userID, year)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetProjectContributions GET /project/:id/contributions?year=2026
+func (h *Handler) GetProjectContributions(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	year, _ := strconv.Atoi(c.Query("year", "2026"))
+	data, err := h.svc.GetProjectContributions(ctx, projectID, year)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetActivityTimeline GET /project/:id/charts/activity?period=weekly&months=3
+func (h *Handler) GetActivityTimeline(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	period := c.Query("period", "weekly")
+	months, _ := strconv.Atoi(c.Query("months", "3"))
+	data, err := h.svc.GetActivityTimeline(ctx, projectID, period, months)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	if data == nil {
+		data = []ActivityPoint{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetBurndown GET /project/:id/charts/burndown?sprint_id=xxx
+func (h *Handler) GetBurndown(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	sprintID := c.Query("sprint_id", "")
+	if sprintID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "message": "sprint_id is required"})
+	}
+	data, err := h.svc.GetBurndown(ctx, projectID, sprintID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	if data == nil {
+		data = []BurndownPoint{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetTaskDistribution GET /project/:id/charts/distribution
+func (h *Handler) GetTaskDistribution(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	data, err := h.svc.GetTaskDistribution(ctx, projectID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	if data == nil {
+		data = []TaskDistribution{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetTeamContribution GET /project/:id/charts/team?months=1
+func (h *Handler) GetTeamContribution(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	months, _ := strconv.Atoi(c.Query("months", "1"))
+	data, err := h.svc.GetTeamContribution(ctx, projectID, months)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	if data == nil {
+		data = []TeamContribution{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}
+
+// GetUserProfile GET /project/profile/:userId
+func (h *Handler) GetUserProfile(c *fiber.Ctx) error {
+	ctx := c.Context()
+	userID := c.Params("userId")
+	data, err := h.svc.GetUserProfile(ctx, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"success": true, "data": data})
+}

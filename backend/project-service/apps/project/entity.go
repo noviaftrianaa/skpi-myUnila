@@ -645,3 +645,74 @@ type OrgStructure struct {
 	Nodes []OrgNode `json:"nodes"`
 	Edges []OrgEdge `json:"edges"`
 }
+
+// ===== ANALYTICS / CONTRIBUTION =====
+
+type ContributionDay struct {
+	Date  string `db:"tanggal" json:"date"`
+	Count int    `db:"total" json:"count"`
+}
+
+type ContributionData struct {
+	Year          int            `json:"year"`
+	Total         int            `json:"total"`
+	LongestStreak int            `json:"longest_streak"`
+	CurrentStreak int            `json:"current_streak"`
+	Data          map[string]int `json:"data"`
+	ByType        map[string]int `json:"by_type"`
+}
+
+type ActivityPoint struct {
+	Period      string `json:"period"` // "2026-W12" or "2026-03"
+	TaskCreated int    `json:"task_created"`
+	TaskDone    int    `json:"task_done"`
+	Comments    int    `json:"comments"`
+	Documents   int    `json:"documents"`
+	Total       int    `json:"total"`
+}
+
+type TeamContribution struct {
+	IDPengguna string `db:"id_pengguna" json:"id_pengguna"`
+	NmPengguna string `db:"nm_pengguna" json:"nm_pengguna"`
+	Total      int    `db:"total" json:"total"`
+	TaskDone   int    `db:"task_done" json:"task_done"`
+	Comments   int    `db:"comments" json:"comments"`
+	Documents  int    `db:"documents" json:"documents"`
+}
+
+type BurndownPoint struct {
+	Date      string `json:"date"`
+	Remaining int    `json:"remaining"`
+	Ideal     int    `json:"ideal"`
+}
+
+type TaskDistribution struct {
+	Status   string `db:"status" json:"status"`
+	Count    int    `db:"count" json:"count"`
+	Priority string `db:"priority" json:"priority,omitempty"`
+}
+
+type UserProfile struct {
+	IDPengguna    string           `json:"id_pengguna"`
+	NmPengguna    string           `json:"nm_pengguna"`
+	Contributions ContributionData `json:"contributions"`
+	Stats         UserStats        `json:"stats"`
+	Projects      []ProjectSummary `json:"projects"`
+}
+
+type UserStats struct {
+	TaskCompleted int `json:"task_completed"`
+	TaskCreated   int `json:"task_created"`
+	Comments      int `json:"comments"`
+	Documents     int `json:"documents"`
+	TotalActivity int `json:"total_activity"`
+}
+
+type ProjectSummary struct {
+	IDProject  string `json:"id_project"`
+	NmProject  string `json:"nm_project"`
+	Role       string `json:"role"`
+	TaskDone   int    `json:"task_done"`
+	TotalTasks int    `json:"total_tasks"`
+	Progress   int    `json:"progress"` // percentage
+}

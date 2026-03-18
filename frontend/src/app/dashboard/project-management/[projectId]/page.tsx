@@ -56,6 +56,7 @@ const NAV_TABS = [
   { label: "Modul", icon: <FiLayers className="w-3.5 h-3.5" />, href: "/modules" },
   { label: "Dokumen", icon: <FiFileText className="w-3.5 h-3.5" />, href: "/documents" },
   { label: "Aktivitas", icon: <FiActivity className="w-3.5 h-3.5" />, href: "/activity" },
+  { label: "Analytics", icon: <FiActivity className="w-3.5 h-3.5" />, href: "/analytics" },
   { label: "Pengaturan", icon: <FiSettings className="w-3.5 h-3.5" />, href: "/settings" },
 ];
 

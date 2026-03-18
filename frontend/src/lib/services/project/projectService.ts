@@ -302,6 +302,67 @@ export interface WebhookConfig {
   created_at: string;
 }
 
+// ===== ANALYTICS TYPES =====
+
+export interface ContributionData {
+  year: number;
+  total: number;
+  longest_streak: number;
+  current_streak: number;
+  data: Record<string, number>;
+  by_type: Record<string, number>;
+}
+
+export interface ActivityPoint {
+  period: string;
+  task_created: number;
+  task_done: number;
+  comments: number;
+  documents: number;
+  total: number;
+}
+
+export interface TeamContribution {
+  id_pengguna: string;
+  nm_pengguna: string;
+  total: number;
+  task_done: number;
+  comments: number;
+  documents: number;
+}
+
+export interface BurndownPoint {
+  date: string;
+  remaining: number;
+  ideal: number;
+}
+
+export interface TaskDistribution {
+  status: string;
+  count: number;
+}
+
+export interface UserProfile {
+  id_pengguna: string;
+  nm_pengguna: string;
+  contributions: ContributionData;
+  stats: {
+    task_completed: number;
+    task_created: number;
+    comments: number;
+    documents: number;
+    total_activity: number;
+  };
+  projects: Array<{
+    id_project: string;
+    nm_project: string;
+    role: string;
+    task_done: number;
+    total_tasks: number;
+    progress: number;
+  }>;
+}
+
 export interface ProjectStats {
   total_project: number;
   project_aktif: number;
@@ -732,6 +793,59 @@ export const projectService = {
 
   async deleteOrgEdge(projectId: string, edgeId: string): Promise<void> {
     await projectClient.delete(`/project/${projectId}/org/edges/${edgeId}`);
+  },
+
+  // ===== ANALYTICS / CONTRIBUTIONS =====
+
+  async getContributions(userId: string, year?: number): Promise<ContributionData> {
+    const params: Record<string, string | number> = { user_id: userId };
+    if (year) params.year = year;
+    const response = await projectClient.get<SingleResponse<ContributionData>>('/project/contributions', { params });
+    if (!response.data.success) throw new Error('Failed to fetch contributions');
+    return response.data.data;
+  },
+
+  async getProjectContributions(projectId: string, year?: number): Promise<ContributionData> {
+    const params: Record<string, number> = {};
+    if (year) params.year = year;
+    const response = await projectClient.get<SingleResponse<ContributionData>>(`/project/${projectId}/contributions`, { params });
+    if (!response.data.success) throw new Error('Failed to fetch project contributions');
+    return response.data.data;
+  },
+
+  async getActivityTimeline(projectId: string, period?: string, months?: number): Promise<ActivityPoint[]> {
+    const params: Record<string, string | number> = {};
+    if (period) params.period = period;
+    if (months) params.months = months;
+    const response = await projectClient.get<SingleResponse<ActivityPoint[]>>(`/project/${projectId}/charts/activity`, { params });
+    if (!response.data.success) throw new Error('Failed to fetch activity timeline');
+    return response.data.data ?? [];
+  },
+
+  async getBurndown(projectId: string, sprintId: string): Promise<BurndownPoint[]> {
+    const response = await projectClient.get<SingleResponse<BurndownPoint[]>>(`/project/${projectId}/charts/burndown`, { params: { sprint_id: sprintId } });
+    if (!response.data.success) throw new Error('Failed to fetch burndown');
+    return response.data.data ?? [];
+  },
+
+  async getTaskDistribution(projectId: string): Promise<TaskDistribution[]> {
+    const response = await projectClient.get<SingleResponse<TaskDistribution[]>>(`/project/${projectId}/charts/distribution`);
+    if (!response.data.success) throw new Error('Failed to fetch task distribution');
+    return response.data.data ?? [];
+  },
+
+  async getTeamContribution(projectId: string, months?: number): Promise<TeamContribution[]> {
+    const params: Record<string, number> = {};
+    if (months) params.months = months;
+    const response = await projectClient.get<SingleResponse<TeamContribution[]>>(`/project/${projectId}/charts/team`, { params });
+    if (!response.data.success) throw new Error('Failed to fetch team contribution');
+    return response.data.data ?? [];
+  },
+
+  async getUserProfile(userId: string): Promise<UserProfile> {
+    const response = await projectClient.get<SingleResponse<UserProfile>>(`/project/profile/${userId}`);
+    if (!response.data.success) throw new Error('Failed to fetch user profile');
+    return response.data.data;
   },
 };
 
