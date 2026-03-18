@@ -21,6 +21,7 @@ services:
         - NEXT_PUBLIC_LOKI_URL=${NEXT_PUBLIC_LOKI_URL}
         - NEXT_PUBLIC_CADVISOR_URL=${NEXT_PUBLIC_CADVISOR_URL}
         - NEXT_PUBLIC_KEUANGAN_API_URL=${NEXT_PUBLIC_KEUANGAN_API_URL}
+        - NEXT_PUBLIC_PROJECT_API_URL=${NEXT_PUBLIC_PROJECT_API_URL}
     image: myunila/frontend:staging
     container_name: myunila-frontend-staging
     restart: unless-stopped
@@ -41,6 +42,7 @@ services:
       NEXT_PUBLIC_LOKI_URL: "${NEXT_PUBLIC_LOKI_URL}"
       NEXT_PUBLIC_CADVISOR_URL: "${NEXT_PUBLIC_CADVISOR_URL}"
       NEXT_PUBLIC_KEUANGAN_API_URL: "${NEXT_PUBLIC_KEUANGAN_API_URL}"
+      NEXT_PUBLIC_PROJECT_API_URL: "${NEXT_PUBLIC_PROJECT_API_URL}"
       # Performance tuning (reduced for staging)
       NODE_OPTIONS: "--max-old-space-size=1024"
       UV_THREADPOOL_SIZE: 4
