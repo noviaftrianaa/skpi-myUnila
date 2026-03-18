@@ -14,6 +14,14 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+// getTaskID extracts task ID from either :taskId (nested route) or :id (standalone route)
+func getTaskID(c *fiber.Ctx) string {
+	if taskID := c.Params("taskId"); taskID != "" {
+		return taskID
+	}
+	return c.Params("id")
+}
+
 // HandlerMinIO holds MinIO client for file upload/download
 type HandlerMinIO struct {
 	client *minio.Client
@@ -391,7 +399,7 @@ func (h *Handler) GetTaskList(c *fiber.Ctx) error {
 // GetTaskByID GET /api/v1/tasks/:id
 func (h *Handler) GetTaskByID(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
+	id := getTaskID(c)
 
 	task, err := h.svc.GetTaskByID(ctx, id)
 	if err != nil {
@@ -456,7 +464,7 @@ func (h *Handler) CreateTask(c *fiber.Ctx) error {
 // UpdateTask PUT /api/v1/tasks/:id
 func (h *Handler) UpdateTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
+	id := getTaskID(c)
 
 	var req TaskUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -493,7 +501,7 @@ func (h *Handler) UpdateTask(c *fiber.Ctx) error {
 // UpdateTaskStatus PATCH /api/v1/tasks/:id/status
 func (h *Handler) UpdateTaskStatus(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
+	id := getTaskID(c)
 
 	var req TaskStatusUpdate
 	if err := c.BodyParser(&req); err != nil {
@@ -537,7 +545,7 @@ func (h *Handler) UpdateTaskStatus(c *fiber.Ctx) error {
 // DeleteTask DELETE /api/v1/tasks/:id
 func (h *Handler) DeleteTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
+	id := getTaskID(c)
 
 	penggunaID := c.Get("X-User-ID")
 	var deletedBy *string
@@ -613,7 +621,7 @@ func (h *Handler) GetBoardView(c *fiber.Ctx) error {
 // GetCommentsByTask GET /api/v1/tasks/:id/comments
 func (h *Handler) GetCommentsByTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 
 	comments, err := h.svc.GetCommentsByTask(ctx, taskID)
 	if err != nil {
@@ -634,7 +642,7 @@ func (h *Handler) GetCommentsByTask(c *fiber.Ctx) error {
 // CreateComment POST /api/v1/tasks/:id/comments
 func (h *Handler) CreateComment(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 
 	var req CommentCreateRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -731,7 +739,7 @@ func (h *Handler) DeleteComment(c *fiber.Ctx) error {
 // GetCommitsByTask GET /api/v1/tasks/:id/commits
 func (h *Handler) GetCommitsByTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 
 	commits, err := h.svc.GetCommitsByTask(ctx, taskID)
 	if err != nil {
@@ -919,7 +927,7 @@ func (h *Handler) DeleteLabel(c *fiber.Ctx) error {
 // GetLabelsByTask GET /api/v1/tasks/:id/labels
 func (h *Handler) GetLabelsByTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 
 	labels, err := h.svc.GetLabelsByTask(ctx, taskID)
 	if err != nil {
@@ -943,7 +951,7 @@ func (h *Handler) GetLabelsByTask(c *fiber.Ctx) error {
 // AddLabelToTask POST /api/v1/tasks/:id/labels
 func (h *Handler) AddLabelToTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 
 	var req AddTaskLabelRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -978,7 +986,7 @@ func (h *Handler) AddLabelToTask(c *fiber.Ctx) error {
 // RemoveLabelFromTask DELETE /api/v1/tasks/:id/labels/:labelId
 func (h *Handler) RemoveLabelFromTask(c *fiber.Ctx) error {
 	ctx := c.Context()
-	taskID := c.Params("id")
+	taskID := getTaskID(c)
 	labelID := c.Params("labelId")
 
 	if err := h.svc.RemoveLabelFromTask(ctx, taskID, labelID); err != nil {
@@ -1797,4 +1805,24 @@ func detectMimeType(filename string) string {
 		return mt
 	}
 	return "application/octet-stream"
+}
+
+// GetGlobalStats GET /api/v1/project/stats — global stats across all projects
+func (h *Handler) GetGlobalStats(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	stats, err := h.svc.GetGlobalStats(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get global stats",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Global stats retrieved",
+		"data":    stats,
+	})
 }

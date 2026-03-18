@@ -91,6 +91,7 @@ func InitWithMinIOAndNotifier(router fiber.Router, pgDB *sqlx.DB, msDB *sqlx.DB,
 func initRoutes(router fiber.Router, h *Handler) {
 	// Project routes
 	pg := router.Group("/project")
+	pg.Get("/stats", h.GetGlobalStats) // Global stats (all projects)
 	pg.Get("/", h.GetProjectList)
 	pg.Post("/", h.CreateProject)
 	pg.Get("/:id", h.GetProjectByID)
@@ -108,25 +109,36 @@ func initRoutes(router fiber.Router, h *Handler) {
 	pg.Put("/:id/webhooks/:webhookId", h.UpdateWebhookConfig)
 	pg.Delete("/:id/webhooks/:webhookId", h.DeleteWebhookConfig)
 
-	// Module routes
+	// Tasks nested under project (frontend expects /project/:id/tasks/...)
+	pg.Get("/:id/tasks", h.GetTaskList)
+	pg.Get("/:id/tasks/board", h.GetBoardView)
+	pg.Post("/:id/tasks", h.CreateTask)
+	pg.Post("/:id/tasks/reorder", h.ReorderTasks)
+	pg.Get("/:id/tasks/:taskId", h.GetTaskByID)
+	pg.Put("/:id/tasks/:taskId", h.UpdateTask)
+	pg.Patch("/:id/tasks/:taskId/status", h.UpdateTaskStatus)
+	pg.Delete("/:id/tasks/:taskId", h.DeleteTask)
+	pg.Get("/:id/tasks/:taskId/comments", h.GetCommentsByTask)
+	pg.Post("/:id/tasks/:taskId/comments", h.CreateComment)
+	pg.Get("/:id/tasks/:taskId/commits", h.GetCommitsByTask)
+
+	// Sprints nested under project
+	pg.Get("/:id/sprints", h.GetSprintsByProject)
+	pg.Post("/:id/sprints", h.CreateSprint)
+
+	// Documents nested under project
+	pg.Get("/:id/documents", h.GetDocumentsByProject)
+	pg.Post("/:id/documents", h.UploadDocument)
+
+	// Module routes (standalone — frontend uses /project/:id/modules for list, /modules/:id for single)
 	modules := router.Group("/modules")
 	modules.Post("/", h.CreateModule)
 	modules.Get("/:id", h.GetModuleByID)
 	modules.Put("/:id", h.UpdateModule)
 	modules.Delete("/:id", h.DeleteModule)
 
-	// Task routes
+	// Task routes (standalone — for operations that don't need project context)
 	tasks := router.Group("/tasks")
-	tasks.Get("/", h.GetTaskList)
-	tasks.Post("/", h.CreateTask)
-	tasks.Post("/reorder", h.ReorderTasks)
-	tasks.Get("/:id", h.GetTaskByID)
-	tasks.Put("/:id", h.UpdateTask)
-	tasks.Patch("/:id/status", h.UpdateTaskStatus)
-	tasks.Delete("/:id", h.DeleteTask)
-	tasks.Get("/:id/comments", h.GetCommentsByTask)
-	tasks.Post("/:id/comments", h.CreateComment)
-	tasks.Get("/:id/commits", h.GetCommitsByTask)
 	tasks.Get("/:id/labels", h.GetLabelsByTask)
 	tasks.Post("/:id/labels", h.AddLabelToTask)
 	tasks.Delete("/:id/labels/:labelId", h.RemoveLabelFromTask)
@@ -144,14 +156,7 @@ func initRoutes(router fiber.Router, h *Handler) {
 	users := router.Group("/users")
 	users.Get("/search", h.SearchUsers)
 
-	// Document routes
-	// Sprint routes
-	pg.Get("/:id/sprints", h.GetSprintsByProject)
-	pg.Post("/:id/sprints", h.CreateSprint)
-
-	pg.Get("/:id/documents", h.GetDocumentsByProject)
-	pg.Post("/:id/documents", h.UploadDocument)
-
+	// Document routes (standalone)
 	docs := router.Group("/documents")
 	docs.Get("/:id", h.GetDocumentByID)
 	docs.Put("/:id", h.UpdateDocument)
@@ -160,7 +165,7 @@ func initRoutes(router fiber.Router, h *Handler) {
 	docs.Get("/:id/versions", h.GetDocumentVersions)
 	docs.Post("/:id/replace", h.ReplaceDocumentFile)
 
-	// Sprint routes (individual)
+	// Sprint routes (standalone)
 	sprints := router.Group("/sprints")
 	sprints.Get("/:id", h.GetSprintByID)
 	sprints.Put("/:id", h.UpdateSprint)

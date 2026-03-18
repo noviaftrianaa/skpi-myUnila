@@ -20,6 +20,7 @@ type Service interface {
 	UpdateProject(ctx context.Context, id string, req *ProjectUpdateRequest, updatedBy *string) (*Project, error)
 	DeleteProject(ctx context.Context, id string, deletedBy *string) error
 	GetProjectStats(ctx context.Context, id string) (*ProjectStats, error)
+	GetGlobalStats(ctx context.Context) (*GlobalStats, error)
 
 	// Modules
 	GetModulesByProject(ctx context.Context, projectID string) ([]ModuleWithCounts, error)
@@ -256,6 +257,10 @@ func (s *service) DeleteProject(ctx context.Context, id string, deletedBy *strin
 
 func (s *service) GetProjectStats(ctx context.Context, id string) (*ProjectStats, error) {
 	return s.repo.GetProjectStats(ctx, id)
+}
+
+func (s *service) GetGlobalStats(ctx context.Context) (*GlobalStats, error) {
+	return s.repo.GetGlobalStats(ctx)
 }
 
 // ===== MODULE =====

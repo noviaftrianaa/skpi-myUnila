@@ -526,3 +526,11 @@ type UserRef struct {
 	Email      *string `db:"email" json:"email"`
 	Avatar     *string `db:"avatar" json:"avatar"`
 }
+
+// GlobalStats represents global stats across all projects
+type GlobalStats struct {
+	TotalProject int `db:"total_project" json:"total_project"`
+	ProjectAktif int `db:"project_aktif" json:"project_aktif"`
+	TaskDone     int `db:"task_done" json:"task_done"`
+	TaskOverdue  int `db:"task_overdue" json:"task_overdue"`
+}

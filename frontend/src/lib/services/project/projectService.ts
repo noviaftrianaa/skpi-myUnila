@@ -239,60 +239,60 @@ export interface SingleResponse<T> {
 export const projectService = {
   // --- Stats ---
   async getStats(): Promise<ProjectStats> {
-    const response = await projectClient.get<SingleResponse<ProjectStats>>('/projects/stats');
+    const response = await projectClient.get<SingleResponse<ProjectStats>>('/project/stats');
     if (!response.data.success) throw new Error('Failed to fetch project stats');
     return response.data.data;
   },
 
   // --- Projects ---
   async getProjects(params?: { page?: number; per_page?: number; search?: string; status?: string }): Promise<PaginatedResponse<Project>> {
-    const response = await projectClient.get<PaginatedResponse<Project>>('/projects', { params });
+    const response = await projectClient.get<PaginatedResponse<Project>>('/project', { params });
     return response.data;
   },
 
   async getProject(id: string): Promise<Project> {
-    const response = await projectClient.get<SingleResponse<Project>>(`/projects/${id}`);
+    const response = await projectClient.get<SingleResponse<Project>>(`/project/${id}`);
     if (!response.data.success) throw new Error('Failed to fetch project');
     return response.data.data;
   },
 
   async createProject(data: Partial<Project>): Promise<Project> {
-    const response = await projectClient.post<SingleResponse<Project>>('/projects', data);
+    const response = await projectClient.post<SingleResponse<Project>>('/project', data);
     if (!response.data.success) throw new Error('Failed to create project');
     return response.data.data;
   },
 
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    const response = await projectClient.put<SingleResponse<Project>>(`/projects/${id}`, data);
+    const response = await projectClient.put<SingleResponse<Project>>(`/project/${id}`, data);
     if (!response.data.success) throw new Error('Failed to update project');
     return response.data.data;
   },
 
   async deleteProject(id: string): Promise<void> {
-    await projectClient.delete(`/projects/${id}`);
+    await projectClient.delete(`/project/${id}`);
   },
 
   // --- Modules ---
   async getModules(projectId: string): Promise<ProjectModule[]> {
-    const response = await projectClient.get<SingleResponse<ProjectModule[]>>(`/projects/${projectId}/modules`);
+    const response = await projectClient.get<SingleResponse<ProjectModule[]>>(`/project/${projectId}/modules`);
     if (!response.data.success) throw new Error('Failed to fetch modules');
     return response.data.data;
   },
 
   async createModule(projectId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
-    const response = await projectClient.post<SingleResponse<ProjectModule>>(`/projects/${projectId}/modules`, data);
+    const response = await projectClient.post<SingleResponse<ProjectModule>>(`/project/${projectId}/modules`, data);
     if (!response.data.success) throw new Error('Failed to create module');
     return response.data.data;
   },
 
   async updateModule(projectId: string, moduleId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
-    const response = await projectClient.put<SingleResponse<ProjectModule>>(`/projects/${projectId}/modules/${moduleId}`, data);
+    const response = await projectClient.put<SingleResponse<ProjectModule>>(`/project/${projectId}/modules/${moduleId}`, data);
     if (!response.data.success) throw new Error('Failed to update module');
     return response.data.data;
   },
 
   async deleteModule(projectId: string, moduleId: string): Promise<void> {
-    await projectClient.delete(`/projects/${projectId}/modules/${moduleId}`);
+    await projectClient.delete(`/project/${projectId}/modules/${moduleId}`);
   },
 
   // --- Tasks ---
@@ -304,7 +304,7 @@ export const projectService = {
     status?: string;
     prioritas?: string;
   }): Promise<PaginatedResponse<Task>> {
-    const response = await projectClient.get<PaginatedResponse<Task>>(`/projects/${projectId}/tasks`, { params });
+    const response = await projectClient.get<PaginatedResponse<Task>>(`/project/${projectId}/tasks`, { params });
     return response.data;
   },
 
@@ -314,7 +314,7 @@ export const projectService = {
     search?: string;
   }): Promise<Record<string, Task[]>> {
     const response = await projectClient.get<SingleResponse<Record<string, Task[]>>>(
-      `/projects/${projectId}/tasks/board`,
+      `/project/${projectId}/tasks/board`,
       { params }
     );
     if (!response.data.success) throw new Error('Failed to fetch board tasks');
@@ -322,35 +322,35 @@ export const projectService = {
   },
 
   async getTask(projectId: string, taskId: string): Promise<Task> {
-    const response = await projectClient.get<SingleResponse<Task>>(`/projects/${projectId}/tasks/${taskId}`);
+    const response = await projectClient.get<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`);
     if (!response.data.success) throw new Error('Failed to fetch task');
     return response.data.data;
   },
 
   async createTask(projectId: string, data: Partial<Task>): Promise<Task> {
-    const response = await projectClient.post<SingleResponse<Task>>(`/projects/${projectId}/tasks`, data);
+    const response = await projectClient.post<SingleResponse<Task>>(`/project/${projectId}/tasks`, data);
     if (!response.data.success) throw new Error('Failed to create task');
     return response.data.data;
   },
 
   async updateTask(projectId: string, taskId: string, data: Partial<Task>): Promise<Task> {
-    const response = await projectClient.put<SingleResponse<Task>>(`/projects/${projectId}/tasks/${taskId}`, data);
+    const response = await projectClient.put<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`, data);
     if (!response.data.success) throw new Error('Failed to update task');
     return response.data.data;
   },
 
   async deleteTask(projectId: string, taskId: string): Promise<void> {
-    await projectClient.delete(`/projects/${projectId}/tasks/${taskId}`);
+    await projectClient.delete(`/project/${projectId}/tasks/${taskId}`);
   },
 
   async reorderTasks(projectId: string, items: TaskReorderPayload[]): Promise<void> {
-    await projectClient.post(`/projects/${projectId}/tasks/reorder`, { items });
+    await projectClient.post(`/project/${projectId}/tasks/reorder`, { items });
   },
 
   // --- Comments ---
   async getComments(projectId: string, taskId: string): Promise<Comment[]> {
     const response = await projectClient.get<SingleResponse<Comment[]>>(
-      `/projects/${projectId}/tasks/${taskId}/comments`
+      `/project/${projectId}/tasks/${taskId}/comments`
     );
     if (!response.data.success) throw new Error('Failed to fetch comments');
     return response.data.data;
@@ -358,7 +358,7 @@ export const projectService = {
 
   async createComment(projectId: string, taskId: string, isi: string): Promise<Comment> {
     const response = await projectClient.post<SingleResponse<Comment>>(
-      `/projects/${projectId}/tasks/${taskId}/comments`,
+      `/project/${projectId}/tasks/${taskId}/comments`,
       { isi }
     );
     if (!response.data.success) throw new Error('Failed to create comment');
@@ -368,7 +368,7 @@ export const projectService = {
   // --- Commits ---
   async getCommits(projectId: string, taskId: string): Promise<Commit[]> {
     const response = await projectClient.get<SingleResponse<Commit[]>>(
-      `/projects/${projectId}/tasks/${taskId}/commits`
+      `/project/${projectId}/tasks/${taskId}/commits`
     );
     if (!response.data.success) throw new Error('Failed to fetch commits');
     return response.data.data;
@@ -377,7 +377,7 @@ export const projectService = {
   // --- Activity ---
   async getActivity(projectId: string, params?: { page?: number; per_page?: number }): Promise<PaginatedResponse<Activity>> {
     const response = await projectClient.get<PaginatedResponse<Activity>>(
-      `/projects/${projectId}/activity`,
+      `/project/${projectId}/activity`,
       { params }
     );
     return response.data;

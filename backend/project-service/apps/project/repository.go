@@ -18,6 +18,7 @@ type Repository interface {
 	UpdateProject(ctx context.Context, id string, fields map[string]interface{}) error
 	SoftDeleteProject(ctx context.Context, id string) error
 	GetProjectStats(ctx context.Context, id string) (*ProjectStats, error)
+	GetGlobalStats(ctx context.Context) (*GlobalStats, error)
 
 	// Modules
 	GetModulesByProject(ctx context.Context, projectID string) ([]ModuleWithCounts, error)
@@ -223,6 +224,21 @@ func (r *repository) GetProjectStats(ctx context.Context, id string) (*ProjectSt
 	`
 	if err := r.db.GetContext(ctx, &stats, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get project stats: %w", err)
+	}
+	return &stats, nil
+}
+
+func (r *repository) GetGlobalStats(ctx context.Context) (*GlobalStats, error) {
+	var stats GlobalStats
+	query := `
+		SELECT
+			(SELECT COUNT(*) FROM projects WHERE soft_delete = FALSE) AS total_project,
+			(SELECT COUNT(*) FROM projects WHERE soft_delete = FALSE AND status = 'active') AS project_aktif,
+			(SELECT COUNT(*) FROM tasks WHERE soft_delete = FALSE AND status = 'done') AS task_done,
+			(SELECT COUNT(*) FROM tasks WHERE soft_delete = FALSE AND status != 'done' AND status != 'cancelled' AND tgl_target < NOW() AND tgl_target IS NOT NULL) AS task_overdue
+	`
+	if err := r.db.GetContext(ctx, &stats, query); err != nil {
+		return nil, fmt.Errorf("failed to get global stats: %w", err)
 	}
 	return &stats, nil
 }
