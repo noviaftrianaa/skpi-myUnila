@@ -636,22 +636,36 @@ func (s *service) CreateComment(ctx context.Context, req *CommentCreateRequest) 
 	if err := s.repo.CreateComment(ctx, c); err != nil {
 		return nil, err
 	}
+	// Log activity
+	if task, err := s.repo.GetTaskByID(ctx, req.IDTask); err == nil {
+		s.logActivity(ctx, task.IDProject, &req.IDTask, req.IDPengguna, "comment_added", "Komentar ditambahkan")
+	}
 	return s.repo.GetCommentByID(ctx, c.IDComment)
 }
 
 func (s *service) UpdateComment(ctx context.Context, id string, req *CommentUpdateRequest) (*TaskComment, error) {
-	if _, err := s.repo.GetCommentByID(ctx, id); err != nil {
+	existing, err := s.repo.GetCommentByID(ctx, id)
+	if err != nil {
 		return nil, fmt.Errorf("comment not found: %w", err)
 	}
 	if err := s.repo.UpdateComment(ctx, id, req.Konten); err != nil {
 		return nil, err
 	}
+	// Log activity
+	if task, err := s.repo.GetTaskByID(ctx, existing.IDTask); err == nil {
+		s.logActivity(ctx, task.IDProject, &existing.IDTask, existing.IDPengguna, "comment_updated", "Komentar diupdate")
+	}
 	return s.repo.GetCommentByID(ctx, id)
 }
 
 func (s *service) DeleteComment(ctx context.Context, id string) error {
-	if _, err := s.repo.GetCommentByID(ctx, id); err != nil {
+	existing, err := s.repo.GetCommentByID(ctx, id)
+	if err != nil {
 		return fmt.Errorf("comment not found: %w", err)
+	}
+	// Log activity
+	if task, err := s.repo.GetTaskByID(ctx, existing.IDTask); err == nil {
+		s.logActivity(ctx, task.IDProject, &existing.IDTask, existing.IDPengguna, "comment_deleted", "Komentar dihapus")
 	}
 	return s.repo.SoftDeleteComment(ctx, id)
 }
@@ -1224,10 +1238,18 @@ func (s *service) AddMember(ctx context.Context, projectID string, req *AddMembe
 	if req.Role == "" {
 		req.Role = "member"
 	}
-	return s.repo.AddMember(ctx, projectID, req, addedBy)
+	member, err := s.repo.AddMember(ctx, projectID, req, addedBy)
+	if err != nil {
+		return nil, err
+	}
+	s.logActivity(ctx, projectID, nil, addedBy, "member_added",
+		fmt.Sprintf("Member '%s' ditambahkan sebagai %s", req.NmPengguna, req.Role))
+	return member, nil
 }
 
 func (s *service) RemoveMember(ctx context.Context, projectID, memberID string) error {
+	s.logActivity(ctx, projectID, nil, nil, "member_removed",
+		fmt.Sprintf("Member (id: %s) dihapus", memberID))
 	return s.repo.RemoveMember(ctx, projectID, memberID)
 }
 

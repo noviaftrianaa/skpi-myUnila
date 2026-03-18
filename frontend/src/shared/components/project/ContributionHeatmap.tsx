@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface ContributionHeatmapProps {
   data: Record<string, number>;
@@ -8,258 +9,274 @@ interface ContributionHeatmapProps {
   total: number;
   streak: number;
   longestStreak?: number;
-  compact?: boolean; // for mini version (last 3 months)
+  compact?: boolean;
 }
 
-const CELL_SIZE = 13;
-const CELL_GAP = 3;
-const CELL_STEP = CELL_SIZE + CELL_GAP;
-const DAY_LABEL_WIDTH = 28;
-const MONTH_LABEL_HEIGHT = 18;
+const CELL_SIZE   = 13;
+const CELL_GAP    = 3;
+const CELL_STEP   = CELL_SIZE + CELL_GAP;
+const DAY_LBL_W   = 30;
+const MONTH_LBL_H = 18;
 
-function getColor(count: number): string {
-  if (count === 0) return "#ebedf0";
-  if (count <= 3) return "#c6e0f5";
-  if (count <= 7) return "#6ba3d6";
-  return "#2563eb";
+// Brand color scale: 0 → light → medium → bold → vivid blue
+const LIGHT_SCALE  = ["#ebedf0", "#dbeafe", "#93c5fd", "#3b82f6", "#1d4ed8"];
+const DARK_SCALE   = ["#2d333b", "#1e3a5f", "#1e40af", "#2563eb", "#60a5fa"];
+
+function getColor(count: number, dark: boolean): string {
+  const s = dark ? DARK_SCALE : LIGHT_SCALE;
+  if (count === 0)  return s[0];
+  if (count <= 2)   return s[1];
+  if (count <= 5)   return s[2];
+  if (count <= 9)   return s[3];
+  return s[4];
 }
 
-function getDarkColor(count: number): string {
-  if (count === 0) return "#2d333b";
-  if (count <= 3) return "#1e3a5f";
-  if (count <= 7) return "#1d4ed8";
-  return "#3b82f6";
+interface Cell {
+  date:  string;
+  count: number; // -1 = out of year
+  col:   number;
+  row:   number;
 }
 
-interface DayCell {
-  date: string;
-  count: number;
-  col: number;
-  row: number;
-}
-
-function buildGrid(data: Record<string, number>, year: number, weeksToShow?: number): {
-  cells: DayCell[];
-  months: { label: string; col: number }[];
-  totalWeeks: number;
-} {
-  const cells: DayCell[] = [];
+function buildGrid(
+  data: Record<string, number>,
+  year: number,
+  weeksToShow?: number
+): { cells: Cell[]; months: { label: string; col: number }[]; totalWeeks: number } {
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  const cells:  Cell[]                         = [];
   const months: { label: string; col: number }[] = [];
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
+  const yearStart   = new Date(year, 0, 1);
+  const yearEnd     = new Date(year, 11, 31);
+  const startDow    = yearStart.getDay(); // 0=Sun
+  const gridStart   = new Date(yearStart);
+  gridStart.setDate(gridStart.getDate() - startDow);
 
-  // Adjust start to nearest Sunday
-  const startDayOfWeek = startDate.getDay(); // 0=Sun
-  const gridStart = new Date(startDate);
-  gridStart.setDate(gridStart.getDate() - startDayOfWeek);
+  let col = 0, lastMonth = -1;
+  const cur = new Date(gridStart);
 
-  let col = 0;
-  let lastMonth = -1;
-  let current = new Date(gridStart);
-
-  while (current <= endDate || col === 0) {
+  while (cur <= yearEnd || col === 0) {
     for (let row = 0; row < 7; row++) {
-      const d = new Date(current);
+      const d       = new Date(cur);
       d.setDate(d.getDate() + row);
+      const inYear  = d.getFullYear() === year;
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const inYear = d.getFullYear() === year;
-      cells.push({
-        date: dateStr,
-        count: inYear ? (data[dateStr] ?? 0) : -1,
-        col,
-        row,
-      });
-      // Month label
+      cells.push({ date: dateStr, count: inYear ? (data[dateStr] ?? 0) : -1, col, row });
       if (inYear && d.getMonth() !== lastMonth && row === 0) {
-        months.push({ label: monthNames[d.getMonth()], col });
+        months.push({ label: MONTH_NAMES[d.getMonth()], col });
         lastMonth = d.getMonth();
       }
     }
-    current.setDate(current.getDate() + 7);
+    cur.setDate(cur.getDate() + 7);
     col++;
     if (col > 54) break;
   }
 
   const totalWeeks = col;
-
   if (weeksToShow && weeksToShow < totalWeeks) {
-    const cutoffCol = totalWeeks - weeksToShow;
+    const cut = totalWeeks - weeksToShow;
     return {
-      cells: cells.filter((c) => c.col >= cutoffCol).map((c) => ({ ...c, col: c.col - cutoffCol })),
-      months: months.filter((m) => m.col >= cutoffCol).map((m) => ({ ...m, col: m.col - cutoffCol })),
+      cells:  cells.filter((c) => c.col >= cut).map((c) => ({ ...c, col: c.col - cut })),
+      months: months.filter((m) => m.col >= cut).map((m) => ({ ...m, col: m.col - cut })),
       totalWeeks: weeksToShow,
     };
   }
-
   return { cells, months, totalWeeks };
 }
 
+// ─── Tooltip state ────────────────────────────────────────────────────────────
+
+interface TooltipState {
+  date:  string;
+  count: number;
+  x:     number;
+  y:     number;
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export function ContributionHeatmap({
-  data,
-  year,
-  total,
-  streak,
-  longestStreak = 0,
-  compact = false,
+  data, year, total, streak, longestStreak = 0, compact = false,
 }: ContributionHeatmapProps) {
-  const [tooltip, setTooltip] = useState<{ date: string; count: number; x: number; y: number } | null>(null);
-  const [isDark, setIsDark] = useState(false);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [isDark,  setIsDark]  = useState(false);
+  const [mounted, setMounted] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     const check = () => setIsDark(document.documentElement.classList.contains("dark"));
     check();
-    const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
   }, []);
 
-  const weeksToShow = compact ? 13 : undefined;
+  const weeksToShow             = compact ? 13 : undefined;
   const { cells, months, totalWeeks } = buildGrid(data, year, weeksToShow);
+  const svgW = DAY_LBL_W + totalWeeks * CELL_STEP + CELL_GAP;
+  const svgH = MONTH_LBL_H + 7 * CELL_STEP + CELL_GAP;
 
-  const svgWidth = DAY_LABEL_WIDTH + totalWeeks * CELL_STEP + CELL_GAP;
-  const svgHeight = MONTH_LABEL_HEIGHT + 7 * CELL_STEP + CELL_GAP;
+  // Format date nicely
+  function fmtDate(d: string): string {
+    try {
+      return new Date(d + "T00:00:00").toLocaleDateString("id-ID", {
+        weekday: "short", day: "numeric", month: "short", year: "numeric",
+      });
+    } catch { return d; }
+  }
+
+  if (!mounted) return <div style={{ height: svgH + (compact ? 28 : 60) }} className="animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />;
 
   return (
-    <div className="w-full">
+    <div className="w-full select-none">
+      {/* Top info row */}
       {!compact && (
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>
-              <span className="font-semibold text-gray-800 dark:text-gray-200">{total}</span> kontribusi di tahun {year}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <span className="text-gray-500 dark:text-gray-400">
+              <span className="font-bold text-gray-800 dark:text-gray-100 text-base">{total}</span>
+              {" "}kontribusi di {year}
             </span>
-            <span>
-              Streak terpanjang:{" "}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">{longestStreak} hari</span>
-            </span>
-            <span>
-              Streak saat ini:{" "}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">{streak} hari</span>
-            </span>
+            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+              <span>🏆</span>
+              <span>Terpanjang: <span className="font-bold">{longestStreak} hari</span></span>
+            </div>
+            <div className="flex items-center gap-1.5 text-orange-500 dark:text-orange-400">
+              <span>🔥</span>
+              <span>Saat ini: <span className="font-bold">{streak} hari</span></span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <span>Less</span>
-            {["#ebedf0", "#c6e0f5", "#6ba3d6", "#2563eb"].map((c, i) => (
+
+          {/* Legend */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+            <span>Sedikit</span>
+            {(isDark ? DARK_SCALE : LIGHT_SCALE).map((c, i) => (
               <div
                 key={i}
-                className="rounded-sm"
-                style={{ width: 11, height: 11, background: isDark ? getDarkColor(i === 0 ? 0 : i * 3) : c }}
+                className="rounded-sm transition-transform hover:scale-110"
+                style={{ width: 11, height: 11, background: c, border: "1px solid rgba(0,0,0,0.06)" }}
               />
             ))}
-            <span>More</span>
+            <span>Banyak</span>
           </div>
         </div>
       )}
 
+      {/* SVG grid */}
       <div className="overflow-x-auto">
         <svg
           ref={svgRef}
-          width={svgWidth}
-          height={svgHeight}
+          width={svgW}
+          height={svgH}
           className="block"
-          style={{ minWidth: compact ? undefined : 520 }}
+          style={{ minWidth: compact ? undefined : 480 }}
         >
           {/* Month labels */}
           {months.map((m, i) => (
             <text
               key={i}
-              x={DAY_LABEL_WIDTH + m.col * CELL_STEP}
-              y={12}
+              x={DAY_LBL_W + m.col * CELL_STEP}
+              y={13}
               fontSize={10}
-              fill={isDark ? "#9ca3af" : "#6b7280"}
+              fill={isDark ? "#6b7280" : "#9ca3af"}
+              fontFamily="inherit"
             >
               {m.label}
             </text>
           ))}
 
           {/* Day labels */}
-          {[1, 3, 5].map((row, i) => (
+          {([1, 3, 5] as const).map((row, i) => (
             <text
               key={i}
-              x={DAY_LABEL_WIDTH - 4}
-              y={MONTH_LABEL_HEIGHT + row * CELL_STEP + CELL_SIZE - 2}
+              x={DAY_LBL_W - 5}
+              y={MONTH_LBL_H + row * CELL_STEP + CELL_SIZE - 1}
               fontSize={9}
-              fill={isDark ? "#9ca3af" : "#6b7280"}
+              fill={isDark ? "#6b7280" : "#9ca3af"}
               textAnchor="end"
+              fontFamily="inherit"
             >
-              {["Mon", "Wed", "Fri"][i]}
+              {["Sen", "Rab", "Jum"][i]}
             </text>
           ))}
 
           {/* Cells */}
           {cells.map((cell, i) => {
             if (cell.count === -1) return null;
-            const x = DAY_LABEL_WIDTH + cell.col * CELL_STEP;
-            const y = MONTH_LABEL_HEIGHT + cell.row * CELL_STEP;
-            const color = isDark ? getDarkColor(cell.count) : getColor(cell.count);
+            const x     = DAY_LBL_W + cell.col * CELL_STEP;
+            const y     = MONTH_LBL_H + cell.row * CELL_STEP;
+            const color = getColor(cell.count, isDark);
             return (
               <rect
                 key={i}
-                x={x}
-                y={y}
+                x={x} y={y}
                 width={CELL_SIZE}
                 height={CELL_SIZE}
-                rx={2}
-                ry={2}
+                rx={3} ry={3}
                 fill={color}
-                onMouseEnter={(e) => {
-                  const rect = svgRef.current?.getBoundingClientRect();
-                  if (rect) {
-                    setTooltip({
-                      date: cell.date,
-                      count: cell.count,
-                      x: x + CELL_SIZE / 2,
-                      y: y,
-                    });
-                  }
+                style={{
+                  cursor: "pointer",
+                  transition: "opacity 0.15s, transform 0.1s",
+                  transformOrigin: `${x + CELL_SIZE / 2}px ${y + CELL_SIZE / 2}px`,
+                }}
+                onMouseEnter={() => {
+                  setTooltip({ date: cell.date, count: cell.count, x, y });
                 }}
                 onMouseLeave={() => setTooltip(null)}
-                className="cursor-pointer transition-opacity hover:opacity-80"
+                className="hover:opacity-80"
               />
             );
           })}
 
           {/* Tooltip */}
-          {tooltip && (
-            <g>
-              <rect
-                x={Math.min(tooltip.x - 60, svgWidth - 130)}
-                y={Math.max(tooltip.y - 38, 0)}
-                width={120}
-                height={28}
-                rx={4}
-                fill={isDark ? "#374151" : "#1f2937"}
-                opacity={0.92}
-              />
-              <text
-                x={Math.min(tooltip.x - 60, svgWidth - 130) + 60}
-                y={Math.max(tooltip.y - 38, 0) + 11}
-                fontSize={10}
-                fill="white"
-                textAnchor="middle"
-              >
-                {tooltip.date}
-              </text>
-              <text
-                x={Math.min(tooltip.x - 60, svgWidth - 130) + 60}
-                y={Math.max(tooltip.y - 38, 0) + 23}
-                fontSize={10}
-                fill="white"
-                textAnchor="middle"
-              >
-                {tooltip.count} kontribusi
-              </text>
-            </g>
-          )}
+          {tooltip && (() => {
+            const TW = 160, TH = 40;
+            const tx = Math.max(0, Math.min(tooltip.x - TW / 2, svgW - TW));
+            const ty = Math.max(0, tooltip.y - TH - 6);
+            return (
+              <g>
+                <rect
+                  x={tx} y={ty}
+                  width={TW} height={TH}
+                  rx={8}
+                  fill={isDark ? "#1f2937" : "#111827"}
+                  opacity={0.93}
+                />
+                {/* Arrow */}
+                <polygon
+                  points={`${tooltip.x - 5},${ty + TH} ${tooltip.x + 5},${ty + TH} ${tooltip.x},${ty + TH + 6}`}
+                  fill={isDark ? "#1f2937" : "#111827"}
+                  opacity={0.93}
+                />
+                <text
+                  x={tx + TW / 2} y={ty + 15}
+                  fontSize={10} fill="#e5e7eb"
+                  textAnchor="middle" fontFamily="inherit"
+                >
+                  {fmtDate(tooltip.date)}
+                </text>
+                <text
+                  x={tx + TW / 2} y={ty + 30}
+                  fontSize={11} fill="white"
+                  textAnchor="middle" fontFamily="inherit" fontWeight={700}
+                >
+                  {tooltip.count === 0 ? "Tidak ada aktivitas" : `${tooltip.count} kontribusi`}
+                </text>
+              </g>
+            );
+          })()}
         </svg>
       </div>
 
+      {/* Compact footer */}
       {compact && (
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
-          <span>{total} kontribusi</span>
-          <span>Streak: {streak} hari</span>
+        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <span className="font-semibold text-gray-800 dark:text-gray-200">{total}</span>
+          <span>kontribusi</span>
+          <span>·</span>
+          <span>🔥 {streak} hari</span>
         </div>
       )}
     </div>
