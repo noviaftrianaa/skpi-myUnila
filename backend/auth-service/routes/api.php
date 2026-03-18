@@ -306,12 +306,14 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [MenuRoleController::class, 'stats']);
             Route::get('/by-menu/{idMenu}', [MenuRoleController::class, 'byMenu']);
             Route::get('/by-role/{idPeran}', [MenuRoleController::class, 'byRole']);
+            Route::get('/matrix', [MenuRoleController::class, 'matrix']);
             Route::get('/{idMenu}/{idPeran}', [MenuRoleController::class, 'show']);
 
             // Write operations - require permission check
             Route::post('/', [MenuRoleController::class, 'store'])->middleware('permission:insert,manajemen-akses');
             Route::post('/bulk-assign-roles', [MenuRoleController::class, 'bulkAssignRoles'])->middleware('permission:insert,manajemen-akses');
             Route::post('/bulk-assign-menus', [MenuRoleController::class, 'bulkAssignMenus'])->middleware('permission:insert,manajemen-akses');
+            Route::post('/matrix/bulk', [MenuRoleController::class, 'bulkUpdateMatrix'])->middleware('permission:update,manajemen-akses');
             Route::put('/{idMenu}/{idPeran}', [MenuRoleController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{idMenu}/{idPeran}', [MenuRoleController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
         });

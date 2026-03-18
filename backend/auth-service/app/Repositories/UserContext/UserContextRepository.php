@@ -435,6 +435,33 @@ class UserContextRepository
     }
 
     /**
+     * Get all menu permissions for a role across all applications
+     * Used to build a full permissions map cached per user
+     *
+     * @param int $idPeran Role ID
+     * @return array
+     */
+    public function getAllMenuPermissions(int $idPeran): array
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), m.id_aplikasi) AS app_id,
+                m.nm_file AS url_menu,
+                ISNULL(mr.a_boleh_show, 0) AS can_show,
+                ISNULL(mr.a_boleh_insert, 0) AS can_insert,
+                ISNULL(mr.a_boleh_update, 0) AS can_update,
+                ISNULL(mr.a_boleh_delete, 0) AS can_delete
+            FROM man_akses.menu_role mr
+            INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+            WHERE mr.id_peran = ?
+              AND ISNULL(mr.soft_delete, 0) = 0
+              AND m.a_aktif = 1
+            ORDER BY m.id_aplikasi, m.urutan_menu
+        ";
+        return DB::select($sql, [$idPeran]);
+    }
+
+    /**
      * Check if a role is universal (bypass organisasi filter)
      */
     public function isUniversalRole(int $idPeran): bool
