@@ -1,0 +1,285 @@
+version: '3.8'
+
+# VM6 Replica — Active-Active mirror of VM3
+# All services identical to VM3, stateless (connect to same DB + Redis)
+# Kong load balances between VM3 and VM6
+
+services:
+  # ============================================
+  # Sister Service (port 8091)
+  # ============================================
+  sister-service:
+    build:
+      context: ../../../backend/sister-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/sister-service:production
+    container_name: myunila-sister-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "Sister Service (VM6)"
+      APP_PORT: ":8091"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${SISTER_DB_HOST}"
+      DB_PORT: "${SISTER_DB_PORT:-1433}"
+      DB_DATABASE: "${SISTER_DB_DATABASE}"
+      DB_USERNAME: "${SISTER_DB_USERNAME}"
+      DB_PASSWORD: "${SISTER_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8091/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Feeder Service (port 8092)
+  # ============================================
+  feeder-service:
+    build:
+      context: ../../../backend/feeder-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/feeder-service:production
+    container_name: myunila-feeder-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "Feeder Service (VM6)"
+      APP_PORT: ":8092"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${FEEDER_DB_HOST:-192.168.123.119}"
+      DB_PORT: "${FEEDER_DB_PORT:-1433}"
+      DB_DATABASE: "${FEEDER_DB_DATABASE}"
+      DB_USERNAME: "${FEEDER_DB_USERNAME}"
+      DB_PASSWORD: "${FEEDER_DB_PASSWORD}"
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8092/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # MyUnila Service (port 8093)
+  # ============================================
+  myunila-service:
+    build:
+      context: ../../../backend/myunila-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/myunila-service:production
+    container_name: myunila-myunila-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "MyUnila Service (VM6)"
+      APP_PORT: ":8093"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${MYUNILA_DB_HOST:-192.168.123.119}"
+      DB_PORT: "${MYUNILA_DB_PORT:-1433}"
+      DB_DATABASE: "${MYUNILA_DB_DATABASE}"
+      DB_USERNAME: "${MYUNILA_DB_USERNAME}"
+      DB_PASSWORD: "${MYUNILA_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8093/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # API / WS Service (port 8094)
+  # ============================================
+  api-service:
+    build:
+      context: ../../../backend/api-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/api-service:production
+    container_name: myunila-api-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "API Service (VM6)"
+      APP_PORT: ":8094"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${API_DB_HOST:-192.168.123.119}"
+      DB_PORT: "${API_DB_PORT:-1433}"
+      DB_DATABASE: "${API_DB_DATABASE}"
+      DB_USERNAME: "${API_DB_USERNAME}"
+      DB_PASSWORD: "${API_DB_PASSWORD}"
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_DB: "${API_REDIS_DB:-1}"
+      AUTH_CACHE_PREFIX: "${AUTH_CACHE_PREFIX:-myunila_database_myunila_cache_}"
+      WS_AUTH_ENABLED: "${WS_AUTH_ENABLED:-true}"
+      WS_AUTH_APP_ID: "${WS_AUTH_APP_ID}"
+      JWT_SECRET: "${JWT_SECRET}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8094/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Project Service (port 8095)
+  # ============================================
+  project-service:
+    build:
+      context: ../../../backend/project-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/project-service:production
+    container_name: myunila-project-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "Project Service (VM6)"
+      APP_PORT: ":8095"
+      APP_ENV: production
+      # PostgreSQL on VM3 (remote)
+      PG_HOST: "${PROJECT_PG_HOST:-192.168.120.43}"
+      PG_PORT: "5432"
+      PG_DATABASE: "${PROJECT_PG_DATABASE:-myunila_project}"
+      PG_USERNAME: "${PROJECT_PG_USERNAME:-myunila_pm}"
+      PG_PASSWORD: "${PROJECT_PG_PASSWORD}"
+      PG_SSLMODE: "disable"
+      # SQL Server (reference)
+      MSSQL_HOST: "${API_DB_HOST:-192.168.123.119}"
+      MSSQL_PORT: "1433"
+      MSSQL_DATABASE: "${API_DB_DATABASE:-pdut}"
+      MSSQL_USERNAME: "${API_DB_USERNAME}"
+      MSSQL_PASSWORD: "${API_DB_PASSWORD}"
+      # MinIO
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_USE_SSL: "${MINIO_USE_SSL:-false}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Keuangan Service (port 8096)
+  # ============================================
+  keuangan-service:
+    build:
+      context: ../../../backend/keuangan-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/keuangan-service:production
+    container_name: myunila-keuangan-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "Keuangan Service (VM6)"
+      APP_PORT: ":8096"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${KEUANGAN_DB_HOST:-192.168.123.119}"
+      DB_PORT: "${KEUANGAN_DB_PORT:-1433}"
+      DB_DATABASE: "${KEUANGAN_DB_DATABASE}"
+      DB_USERNAME: "${KEUANGAN_DB_USERNAME}"
+      DB_PASSWORD: "${KEUANGAN_DB_PASSWORD}"
+      SIMPEDAM_ENDPOINT: "${SIMPEDAM_ENDPOINT}"
+      SIMPEDAM_USER: "${SIMPEDAM_USER}"
+      SIMPEDAM_PASSWORD: "${SIMPEDAM_PASSWORD}"
+      SIMPEDAM_API_CODE: "${SIMPEDAM_API_CODE:-SIMPEDAM}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Monitoring Service (port 8097)
+  # ============================================
+  monitoring-service:
+    build:
+      context: ../../../backend/monitoring-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/monitoring-service:production
+    container_name: myunila-monitoring-vm6
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    environment:
+      APP_NAME: "Monitoring Service (VM6)"
+      APP_PORT: ":8097"
+      APP_ENV: production
+      DB_DRIVER: sqlserver
+      DB_HOST: "${MONITORING_DB_HOST:-192.168.123.119}"
+      DB_PORT: "${MONITORING_DB_PORT:-1433}"
+      DB_DATABASE: "${MONITORING_DB_DATABASE}"
+      DB_USERNAME: "${MONITORING_DB_USERNAME}"
+      DB_PASSWORD: "${MONITORING_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8097/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

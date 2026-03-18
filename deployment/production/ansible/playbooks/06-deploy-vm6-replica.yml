@@ -1,0 +1,177 @@
+---
+# Playbook 6: Deploy VM6 Replica (Active-Active mirror of VM3)
+# Run: ansible-playbook -i inventory/hosts.yml playbooks/06-deploy-vm6-replica.yml
+#
+# Prerequisites:
+#   - VM6 has Docker installed (run 01-setup-docker.yml first)
+#   - SSH key from VM1/VM5 authorized on VM6
+#   - .env configured on VM6
+
+- name: Deploy Replica Services to VM6
+  hosts: replica
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_dir: "/var/www/my-unila"
+    deploy_dir: "{{ app_dir }}/deployment/production/vm6-replica"
+    repo_url: "git@bitbucket.org:mahendraunila/my-unila.git"
+    branch: "master"
+
+  tasks:
+    # ============================================
+    # 1. Repository Setup
+    # ============================================
+    - name: Create app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Clone or update repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ branch }}"
+        force: yes
+        accept_hostkey: yes
+      become_user: "{{ ansible_user }}"
+
+    # ============================================
+    # 2. Environment Configuration
+    # ============================================
+    - name: Check if .env file exists
+      stat:
+        path: "{{ deploy_dir }}/.env"
+      register: env_file
+
+    - name: Copy .env.example to .env if not exists
+      copy:
+        src: "{{ deploy_dir }}/.env.example"
+        dest: "{{ deploy_dir }}/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+        remote_src: yes
+      when: not env_file.stat.exists
+
+    - name: Pause for manual .env configuration
+      pause:
+        prompt: |
+
+          ⚠️  IMPORTANT: Configure .env on VM6 before continuing!
+
+          SSH to VM6: ssh {{ ansible_user }}@{{ ansible_host }}
+          Edit file: nano {{ deploy_dir }}/.env
+
+          CRITICAL: Copy credential values from VM3's .env
+          All values must match VM3 (same DB, same Redis, same JWT)
+
+          Differences from VM3:
+          - PROJECT_PG_HOST=192.168.120.43 (remote to VM3, not localhost)
+          - Container names have -vm6 suffix
+
+          Press ENTER when ready to continue...
+      when: not env_file.stat.exists
+
+    # ============================================
+    # 3. Docker Setup
+    # ============================================
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # ============================================
+    # 4. Build & Deploy Services
+    # ============================================
+    - name: Build and start all services
+      command: >
+        docker compose --env-file .env up -d --build
+      args:
+        chdir: "{{ deploy_dir }}"
+      register: compose_output
+
+    - name: Show compose output
+      debug:
+        msg: "{{ compose_output.stdout_lines | default([]) }}"
+
+    # ============================================
+    # 5. Health Verification
+    # ============================================
+    - name: Wait for services to start
+      pause:
+        seconds: 15
+
+    - name: Check container health
+      command: docker ps --format "table {{'{{'}}.Names{{'}}'}}\t{{'{{'}}.Status{{'}}'}}"
+      register: docker_status
+
+    - name: Show container status
+      debug:
+        msg: "{{ docker_status.stdout_lines }}"
+
+    - name: Verify service endpoints
+      uri:
+        url: "http://localhost:{{ item.port }}/health"
+        method: GET
+        status_code: 200
+        timeout: 10
+      loop:
+        - { name: "sister", port: 8091 }
+        - { name: "feeder", port: 8092 }
+        - { name: "myunila", port: 8093 }
+        - { name: "api", port: 8094 }
+        - { name: "project", port: 8095 }
+        - { name: "keuangan", port: 8096 }
+        - { name: "monitoring", port: 8097 }
+      register: health_results
+      ignore_errors: yes
+
+    - name: Show health check results
+      debug:
+        msg: "{{ item.item.name }}: {{ 'HEALTHY ✅' if item.status == 200 else 'UNHEALTHY ❌' }}"
+      loop: "{{ health_results.results }}"
+
+    # ============================================
+    # 6. Docker Cleanup Cron
+    # ============================================
+    - name: Setup weekly Docker cleanup
+      cron:
+        name: "docker-prune-weekly"
+        minute: "0"
+        hour: "3"
+        weekday: "0"
+        job: "docker system prune -f && docker builder prune -f >> /var/log/docker-prune.log 2>&1"
+
+    # ============================================
+    # Summary
+    # ============================================
+    - name: Deployment summary
+      debug:
+        msg: |
+          ================================================
+          ✅ VM6 Replica Deployment Complete!
+          ================================================
+          Services deployed:
+            - Sister Service    → :8091
+            - Feeder Service    → :8092
+            - MyUnila Service   → :8093
+            - API Service       → :8094
+            - Project Service   → :8095
+            - Keuangan Service  → :8096
+            - Monitoring Service→ :8097
+
+          Next steps:
+            1. Run Kong LB setup on VM1:
+               bash /var/www/my-unila/deployment/production/kong-lb/setup-upstreams.sh
+            2. Check Kong health:
+               bash /var/www/my-unila/deployment/production/kong-lb/check-health.sh
+            3. Test failover:
+               - Stop VM6: docker compose down
+               - Verify traffic goes to VM3 only
+               - Start VM6: docker compose up -d
+          ================================================
