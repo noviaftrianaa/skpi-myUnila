@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  project-service:
+    build:
+      context: ../../../../../backend/project-service
+      dockerfile: Dockerfile
+    image: myunila/project-service:staging
+    container_name: myunila-project-staging
+    restart: unless-stopped
+
+    network_mode: host
+
+    environment:
+      - APP_NAME=Project Service
+      - APP_PORT=:8095
+      - APP_ENV=staging
+      # PostgreSQL (primary - installed on host)
+      - PG_HOST=127.0.0.1
+      - PG_PORT=5432
+      - PG_DATABASE=myunila_project
+      - PG_USERNAME=${PROJECT_PG_USERNAME:-myunila_pm}
+      - PG_PASSWORD=${PROJECT_PG_PASSWORD:-MyUnila2026PM!}
+      - PG_SSLMODE=disable
+      # SQL Server (reference - read only)
+      - MSSQL_HOST=${DB_MSSQL_HOST:-192.168.123.119}
+      - MSSQL_PORT=${DB_MSSQL_PORT:-1433}
+      - MSSQL_DATABASE=${MYUNILA_DB_DATABASE:-pdut_staging}
+      - MSSQL_USERNAME=${DB_MSSQL_USERNAME:-mizarzulmi}
+      - MSSQL_PASSWORD=${DB_MSSQL_PASSWORD}
+      # MinIO Object Storage
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-192.168.120.47:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-myunila-api-access}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-MyUnilaAPISecret2026Key}
+      - MINIO_BUCKET=${MINIO_BUCKET:-myunila-storage}
+      - MINIO_USE_SSL=${MINIO_USE_SSL:-false}
+      # Telegram Notifications
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_NOTIFY_ENABLED=${TELEGRAM_NOTIFY_ENABLED:-false}
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
