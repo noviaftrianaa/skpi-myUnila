@@ -1826,3 +1826,346 @@ func (h *Handler) GetGlobalStats(c *fiber.Ctx) error {
 		"data":    stats,
 	})
 }
+
+// ===== MEMBER HANDLERS =====
+
+// GetMembersByProject GET /api/v1/project/:id/members
+func (h *Handler) GetMembersByProject(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	members, err := h.svc.GetMembersByProject(ctx, projectID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get members",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Members retrieved",
+		"data":    members,
+	})
+}
+
+// AddMember POST /api/v1/project/:id/members
+func (h *Handler) AddMember(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	var req AddMemberRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	addedBy := c.Query("added_by")
+	var addedByPtr *string
+	if addedBy != "" {
+		addedByPtr = &addedBy
+	}
+
+	member, err := h.svc.AddMember(ctx, projectID, &req, addedByPtr)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to add member",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"message": "Member added",
+		"data":    member,
+	})
+}
+
+// RemoveMember DELETE /api/v1/project/:id/members/:mid
+func (h *Handler) RemoveMember(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	memberID := c.Params("mid")
+
+	if err := h.svc.RemoveMember(ctx, projectID, memberID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to remove member",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Member removed",
+	})
+}
+
+// ===== WATCHER HANDLERS =====
+
+// GetWatchersByProject GET /api/v1/project/:id/watchers
+func (h *Handler) GetWatchersByProject(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	watchers, err := h.svc.GetWatchersByProject(ctx, projectID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get watchers",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Watchers retrieved",
+		"data":    watchers,
+	})
+}
+
+// AddWatcher POST /api/v1/project/:id/watchers
+func (h *Handler) AddWatcher(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	var req AddWatcherRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	watcher, err := h.svc.AddWatcher(ctx, projectID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to add watcher",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"message": "Watcher added",
+		"data":    watcher,
+	})
+}
+
+// RemoveWatcher DELETE /api/v1/project/:id/watchers/:wid
+func (h *Handler) RemoveWatcher(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+	watcherID := c.Params("wid")
+
+	if err := h.svc.RemoveWatcher(ctx, projectID, watcherID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to remove watcher",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Watcher removed",
+	})
+}
+
+// ===== MY PROJECTS HANDLER =====
+
+// GetMyProjects GET /api/v1/project/my
+func (h *Handler) GetMyProjects(c *fiber.Ctx) error {
+	ctx := c.Context()
+	userID := c.Query("user_id", "")
+	isPimpinanStr := c.Query("is_pimpinan", "false")
+	isPimpinan := isPimpinanStr == "true" || isPimpinanStr == "1"
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "user_id is required",
+		})
+	}
+
+	result, err := h.svc.GetMyProjects(ctx, userID, isPimpinan, page, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get projects",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Projects retrieved",
+		"data":    result.Data,
+		"meta": fiber.Map{
+			"total":       result.Total,
+			"page":        result.Page,
+			"limit":       result.Limit,
+			"total_pages": result.TotalPages,
+		},
+	})
+}
+
+// ===== ORG STRUCTURE HANDLERS =====
+
+// GetOrgStructure GET /api/v1/project/:id/org
+func (h *Handler) GetOrgStructure(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	org, err := h.svc.GetOrgStructure(ctx, projectID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get org structure",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Org structure retrieved",
+		"data":    org,
+	})
+}
+
+// CreateOrgNode POST /api/v1/project/:id/org/nodes
+func (h *Handler) CreateOrgNode(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	var req CreateOrgNodeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	node, err := h.svc.CreateOrgNode(ctx, projectID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to create org node",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"message": "Org node created",
+		"data":    node,
+	})
+}
+
+// UpdateOrgNode PUT /api/v1/project/:id/org/nodes/:nid
+func (h *Handler) UpdateOrgNode(c *fiber.Ctx) error {
+	ctx := c.Context()
+	nodeID := c.Params("nid")
+
+	var req UpdateOrgNodeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	node, err := h.svc.UpdateOrgNode(ctx, nodeID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to update org node",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Org node updated",
+		"data":    node,
+	})
+}
+
+// DeleteOrgNode DELETE /api/v1/project/:id/org/nodes/:nid
+func (h *Handler) DeleteOrgNode(c *fiber.Ctx) error {
+	ctx := c.Context()
+	nodeID := c.Params("nid")
+
+	if err := h.svc.DeleteOrgNode(ctx, nodeID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to delete org node",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Org node deleted",
+	})
+}
+
+// CreateOrgEdge POST /api/v1/project/:id/org/edges
+func (h *Handler) CreateOrgEdge(c *fiber.Ctx) error {
+	ctx := c.Context()
+	projectID := c.Params("id")
+
+	var req CreateOrgEdgeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	edge, err := h.svc.CreateOrgEdge(ctx, projectID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to create org edge",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"message": "Org edge created",
+		"data":    edge,
+	})
+}
+
+// DeleteOrgEdge DELETE /api/v1/project/:id/org/edges/:eid
+func (h *Handler) DeleteOrgEdge(c *fiber.Ctx) error {
+	ctx := c.Context()
+	edgeID := c.Params("eid")
+
+	if err := h.svc.DeleteOrgEdge(ctx, edgeID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to delete org edge",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Org edge deleted",
+	})
+}

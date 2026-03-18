@@ -10,6 +10,7 @@ import {
   Button,
   Spinner,
   Input,
+  Chip,
 } from "@heroui/react";
 import {
   FiFolder,
@@ -18,6 +19,7 @@ import {
   FiActivity,
   FiPlus,
   FiSearch,
+  FiEye,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { motion } from "framer-motion";
@@ -28,14 +30,35 @@ import { projectService, type Project, type ProjectStats } from "@/lib/services/
 
 const APP_KEY = "project-management";
 
+// Pimpinan role names that can see public projects
+const PIMPINAN_ROLES = [
+  "rektor",
+  "wakil rektor",
+  "wr1", "wr2", "wr3", "wr4",
+  "dekan",
+  "kaprodi",
+  "kepala program studi",
+  "lp3m",
+];
+
+function isPimpinanRole(role: string | null): boolean {
+  if (!role) return false;
+  const roleLower = role.toLowerCase();
+  return PIMPINAN_ROLES.some(r => roleLower.includes(r));
+}
+
 export default function ProjectManagementDashboardPage() {
   useRequireAuth();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<ProjectStats | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [watchedProjects, setWatchedProjects] = useState<Project[]>([]);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const isPimpinan = isPimpinanRole(user?.role ?? null);
+  const userId = user?.id ?? "";
 
   useEffect(() => {
     let isMounted = true;
@@ -44,11 +67,37 @@ export default function ProjectManagementDashboardPage() {
       try {
         const [statsData, projectsData] = await Promise.all([
           projectService.getStats().catch(() => null),
-          projectService.getProjects({ per_page: 50 }).catch(() => ({ data: [], meta: { total: 0, page: 1, per_page: 50, total_pages: 0 } })),
+          userId
+            ? projectService.getMyProjects({
+                user_id: userId,
+                is_pimpinan: isPimpinan,
+                limit: 50,
+              }).catch(() => projectService.getProjects({ per_page: 50 }).catch(() => ({
+                data: [],
+                meta: { total: 0, page: 1, per_page: 50, total_pages: 0 },
+              })))
+            : projectService.getProjects({ per_page: 50 }).catch(() => ({
+                data: [],
+                meta: { total: 0, page: 1, per_page: 50, total_pages: 0 },
+              })),
         ]);
         if (isMounted) {
           setStats(statsData);
-          setProjects(projectsData.data);
+          const allProjects = projectsData.data ?? [];
+
+          if (isPimpinan) {
+            // Separate watched (watcher) vs member projects
+            // For now show all — backend already filters correctly
+            setProjects(allProjects);
+            // Watched projects = projects with visibility=public that user is not a member of
+            // We can't distinguish easily here without extra API call, so just show all public ones separately
+            const publicProjects = allProjects.filter(
+              (p: Project) => (p.visibility ?? (p as Record<string, unknown>)['visibility']) === 'public'
+            );
+            setWatchedProjects(publicProjects);
+          } else {
+            setProjects(allProjects);
+          }
         }
       } catch (error) {
         console.error("Error loading project data:", error);
@@ -58,7 +107,7 @@ export default function ProjectManagementDashboardPage() {
     };
     loadData();
     return () => { isMounted = false; };
-  }, []);
+  }, [userId, isPimpinan]);
 
   const statsCards = [
     {
@@ -91,9 +140,11 @@ export default function ProjectManagementDashboardPage() {
     },
   ];
 
-  const filteredProjects = projects.filter(p =>
-    !search || p.nama.toLowerCase().includes(search.toLowerCase()) || p.kode.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProjects = projects.filter(p => {
+    const nama = (p.nama ?? (p as unknown as Record<string, string>).nm_project ?? "").toLowerCase();
+    const kode = (p.kode ?? (p as unknown as Record<string, string>).kode_project ?? "").toLowerCase();
+    return !search || nama.includes(search.toLowerCase()) || kode.includes(search.toLowerCase());
+  });
 
   const handleProjectCreated = (project: Project) => {
     setProjects(prev => [project, ...prev]);
@@ -135,12 +186,22 @@ export default function ProjectManagementDashboardPage() {
               <div className="flex items-center gap-2 mb-2">
                 <FiFolder className="w-5 h-5" />
                 <span className="text-sm font-medium opacity-90">Project Management System</span>
+                {isPimpinan && (
+                  <Chip
+                    size="sm"
+                    className="bg-yellow-400 text-yellow-900 font-semibold text-[10px]"
+                  >
+                    👑 Pimpinan View
+                  </Chip>
+                )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold mb-2">
                 🎯 Selamat Datang, {user?.name?.split(" ")[0] ?? "Developer"}!
               </h1>
               <p className="text-blue-100 text-sm sm:text-base">
-                Kelola dan pantau progress semua project development secara terpusat.
+                {isPimpinan
+                  ? "Pantau progress semua project development di unit Anda."
+                  : "Kelola dan pantau progress semua project development secara terpusat."}
               </p>
             </div>
             <Button
@@ -189,12 +250,40 @@ export default function ProjectManagementDashboardPage() {
           ))}
         </div>
 
+        {/* Pimpinan: Watched projects section */}
+        {isPimpinan && watchedProjects.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <FiEye className="w-5 h-5 text-yellow-600" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Project yang Anda Pantau
+              </h2>
+              <span className="text-sm font-normal text-gray-400">({watchedProjects.length})</span>
+              <Chip size="sm" className="bg-yellow-100 text-yellow-800 text-[10px]">
+                🌐 Public
+              </Chip>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {watchedProjects.slice(0, 6).map((project, i) => (
+                <motion.div
+                  key={project.id ?? project.id_project}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                >
+                  <ProjectCard project={project} showVisibility />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Projects section */}
         <div>
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <FiFolder className="w-5 h-5 text-[#0B5EA8]" />
-              Semua Project
+              {isPimpinan ? "Semua Project Tersedia" : "Semua Project"}
               <span className="text-sm font-normal text-gray-400">({filteredProjects.length})</span>
             </h2>
             <div className="flex items-center gap-2">
@@ -246,12 +335,12 @@ export default function ProjectManagementDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProjects.map((project, i) => (
                 <motion.div
-                  key={project.id}
+                  key={project.id ?? project.id_project}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
                 >
-                  <ProjectCard project={project} />
+                  <ProjectCard project={project} showVisibility />
                 </motion.div>
               ))}
             </div>

@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -95,6 +96,27 @@ type Repository interface {
 	GetDocumentVersions(ctx context.Context, documentID string) ([]DocumentVersion, error)
 	CreateDocumentVersion(ctx context.Context, v *DocumentVersion) error
 	GetLatestVersionNumber(ctx context.Context, documentID string) (int, error)
+
+	// Members
+	GetMembersByProject(ctx context.Context, projectID string) ([]ProjectMember, error)
+	AddMember(ctx context.Context, projectID string, req *AddMemberRequest, addedBy *string) (*ProjectMember, error)
+	RemoveMember(ctx context.Context, projectID, memberID string) error
+
+	// Watchers
+	GetWatchersByProject(ctx context.Context, projectID string) ([]ProjectWatcher, error)
+	AddWatcher(ctx context.Context, projectID string, req *AddWatcherRequest) (*ProjectWatcher, error)
+	RemoveWatcher(ctx context.Context, projectID, watcherID string) error
+
+	// User-filtered project list
+	GetProjectsForUser(ctx context.Context, userID string, isPimpinan bool, page, limit int) (*PaginatedResult, error)
+
+	// Org Structure
+	GetOrgStructure(ctx context.Context, projectID string) (*OrgStructure, error)
+	CreateOrgNode(ctx context.Context, projectID string, req *CreateOrgNodeRequest) (*OrgNode, error)
+	UpdateOrgNode(ctx context.Context, nodeID string, req *UpdateOrgNodeRequest) (*OrgNode, error)
+	DeleteOrgNode(ctx context.Context, nodeID string) error
+	CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error)
+	DeleteOrgEdge(ctx context.Context, edgeID string) error
 }
 
 type repository struct {
@@ -135,7 +157,7 @@ func (r *repository) GetProjectList(ctx context.Context, page, limit int, search
 	offsetIdx := argIdx + 1
 	dataQuery := fmt.Sprintf(`
 		SELECT id_project, kode_project, nm_project, deskripsi, status, warna,
-		       tgl_mulai, tgl_target, repo_url, created_at, updated_at
+		       tgl_mulai, tgl_target, repo_url, id_unit, nm_unit, visibility, created_at, updated_at
 		FROM projects %s
 		ORDER BY created_at DESC
 		LIMIT $%d OFFSET $%d
@@ -167,12 +189,13 @@ func (r *repository) GetProjectByID(ctx context.Context, id string) (*Project, e
 
 func (r *repository) CreateProject(ctx context.Context, p *Project) error {
 	query := `
-		INSERT INTO projects (id_project, kode_project, nm_project, deskripsi, status, repo_url, repo_provider, warna, tgl_mulai, tgl_target, id_owner)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO projects (id_project, kode_project, nm_project, deskripsi, status, repo_url, repo_provider, warna, tgl_mulai, tgl_target, id_owner, id_unit, nm_unit, visibility)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		p.IDProject, p.KodeProject, p.NmProject, p.Deskripsi, p.Status,
 		p.RepoURL, p.RepoProvider, p.Warna, p.TglMulai, p.TglTarget, p.IDOwner,
+		p.IDUnit, p.NmUnit, p.Visibility,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create project: %w", err)
@@ -1054,6 +1077,303 @@ func (r *repository) SoftDeleteSprint(ctx context.Context, id string) error {
 	_, err := r.db.ExecContext(ctx, "UPDATE sprints SET soft_delete = TRUE WHERE id_sprint = $1", id)
 	if err != nil {
 		return fmt.Errorf("failed to soft delete sprint: %w", err)
+	}
+	return nil
+}
+
+// ===== MEMBERS =====
+
+func (r *repository) GetMembersByProject(ctx context.Context, projectID string) ([]ProjectMember, error) {
+	var members []ProjectMember
+	query := `
+		SELECT id_member, id_project, id_pengguna, nm_pengguna, role, added_by,
+		       created_at::text AS created_at
+		FROM project_members
+		WHERE id_project = $1 AND soft_delete = FALSE
+		ORDER BY created_at ASC
+	`
+	if err := r.db.SelectContext(ctx, &members, query, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get members: %w", err)
+	}
+	return members, nil
+}
+
+func (r *repository) AddMember(ctx context.Context, projectID string, req *AddMemberRequest, addedBy *string) (*ProjectMember, error) {
+	id := uuid.New().String()
+	query := `
+		INSERT INTO project_members (id_member, id_project, id_pengguna, nm_pengguna, role, added_by)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err := r.db.ExecContext(ctx, query, id, projectID, req.IDPengguna, req.NmPengguna, req.Role, addedBy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add member: %w", err)
+	}
+	return r.getMemberByID(ctx, id)
+}
+
+func (r *repository) getMemberByID(ctx context.Context, id string) (*ProjectMember, error) {
+	var m ProjectMember
+	query := `SELECT id_member, id_project, id_pengguna, nm_pengguna, role, added_by, created_at::text AS created_at FROM project_members WHERE id_member = $1`
+	if err := r.db.GetContext(ctx, &m, query, id); err != nil {
+		return nil, fmt.Errorf("failed to get member: %w", err)
+	}
+	return &m, nil
+}
+
+func (r *repository) RemoveMember(ctx context.Context, projectID, memberID string) error {
+	_, err := r.db.ExecContext(ctx,
+		"UPDATE project_members SET soft_delete = TRUE WHERE id_member = $1 AND id_project = $2",
+		memberID, projectID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to remove member: %w", err)
+	}
+	return nil
+}
+
+// ===== WATCHERS =====
+
+func (r *repository) GetWatchersByProject(ctx context.Context, projectID string) ([]ProjectWatcher, error) {
+	var watchers []ProjectWatcher
+	query := `
+		SELECT id_watcher, id_project, id_pengguna, id_sdm, nm_pengguna, jabatan, nm_unit, tipe_akses,
+		       created_at::text AS created_at
+		FROM project_watchers
+		WHERE id_project = $1 AND soft_delete = FALSE
+		ORDER BY created_at ASC
+	`
+	if err := r.db.SelectContext(ctx, &watchers, query, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get watchers: %w", err)
+	}
+	return watchers, nil
+}
+
+func (r *repository) AddWatcher(ctx context.Context, projectID string, req *AddWatcherRequest) (*ProjectWatcher, error) {
+	id := uuid.New().String()
+	idSdm := &req.IDSdm
+	if req.IDSdm == "" {
+		idSdm = nil
+	}
+	query := `
+		INSERT INTO project_watchers (id_watcher, id_project, id_pengguna, id_sdm, nm_pengguna, jabatan, nm_unit)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+	_, err := r.db.ExecContext(ctx, query, id, projectID, req.IDPengguna, idSdm, req.NmPengguna, req.Jabatan, req.NmUnit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add watcher: %w", err)
+	}
+	return r.getWatcherByID(ctx, id)
+}
+
+func (r *repository) getWatcherByID(ctx context.Context, id string) (*ProjectWatcher, error) {
+	var w ProjectWatcher
+	query := `SELECT id_watcher, id_project, id_pengguna, id_sdm, nm_pengguna, jabatan, nm_unit, tipe_akses, created_at::text AS created_at FROM project_watchers WHERE id_watcher = $1`
+	if err := r.db.GetContext(ctx, &w, query, id); err != nil {
+		return nil, fmt.Errorf("failed to get watcher: %w", err)
+	}
+	return &w, nil
+}
+
+func (r *repository) RemoveWatcher(ctx context.Context, projectID, watcherID string) error {
+	_, err := r.db.ExecContext(ctx,
+		"UPDATE project_watchers SET soft_delete = TRUE WHERE id_watcher = $1 AND id_project = $2",
+		watcherID, projectID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to remove watcher: %w", err)
+	}
+	return nil
+}
+
+// ===== USER-FILTERED PROJECT LIST =====
+
+func (r *repository) GetProjectsForUser(ctx context.Context, userID string, isPimpinan bool, page, limit int) (*PaginatedResult, error) {
+	offset := (page - 1) * limit
+
+	countQuery := `
+		SELECT COUNT(*) FROM projects p
+		WHERE p.soft_delete = FALSE
+		AND (
+			EXISTS (SELECT 1 FROM project_members pm WHERE pm.id_project = p.id_project AND pm.id_pengguna = $1 AND pm.soft_delete = FALSE)
+			OR EXISTS (SELECT 1 FROM project_watchers pw WHERE pw.id_project = p.id_project AND pw.id_pengguna = $1 AND pw.soft_delete = FALSE)
+			OR ($2 = true AND p.visibility = 'public')
+		)
+	`
+
+	var total int
+	if err := r.db.GetContext(ctx, &total, countQuery, userID, isPimpinan); err != nil {
+		return nil, fmt.Errorf("failed to count user projects: %w", err)
+	}
+
+	dataQuery := `
+		SELECT id_project, kode_project, nm_project, deskripsi, status, warna,
+		       tgl_mulai, tgl_target, repo_url, id_unit, nm_unit, visibility, created_at, updated_at
+		FROM projects p
+		WHERE p.soft_delete = FALSE
+		AND (
+			EXISTS (SELECT 1 FROM project_members pm WHERE pm.id_project = p.id_project AND pm.id_pengguna = $1 AND pm.soft_delete = FALSE)
+			OR EXISTS (SELECT 1 FROM project_watchers pw WHERE pw.id_project = p.id_project AND pw.id_pengguna = $1 AND pw.soft_delete = FALSE)
+			OR ($2 = true AND p.visibility = 'public')
+		)
+		ORDER BY p.updated_at DESC
+		LIMIT $3 OFFSET $4
+	`
+
+	var items []ProjectListItem
+	if err := r.db.SelectContext(ctx, &items, dataQuery, userID, isPimpinan, limit, offset); err != nil {
+		return nil, fmt.Errorf("failed to get user projects: %w", err)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	return &PaginatedResult{
+		Data:       items,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// ===== ORG STRUCTURE =====
+
+func (r *repository) GetOrgStructure(ctx context.Context, projectID string) (*OrgStructure, error) {
+	var nodes []OrgNode
+	nodesQuery := `
+		SELECT id_node, id_project, id_pengguna, id_sdm, nm_display, jabatan, foto_url, urutan, warna, pos_x, pos_y
+		FROM project_org_nodes
+		WHERE id_project = $1 AND soft_delete = FALSE
+		ORDER BY urutan ASC
+	`
+	if err := r.db.SelectContext(ctx, &nodes, nodesQuery, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get org nodes: %w", err)
+	}
+	if nodes == nil {
+		nodes = []OrgNode{}
+	}
+
+	var edges []OrgEdge
+	edgesQuery := `
+		SELECT id_edge, id_project, id_node_from, id_node_to, label
+		FROM project_org_edges
+		WHERE id_project = $1
+	`
+	if err := r.db.SelectContext(ctx, &edges, edgesQuery, projectID); err != nil {
+		return nil, fmt.Errorf("failed to get org edges: %w", err)
+	}
+	if edges == nil {
+		edges = []OrgEdge{}
+	}
+
+	return &OrgStructure{Nodes: nodes, Edges: edges}, nil
+}
+
+func (r *repository) CreateOrgNode(ctx context.Context, projectID string, req *CreateOrgNodeRequest) (*OrgNode, error) {
+	id := uuid.New().String()
+
+	// get next urutan
+	var maxUrutan int
+	_ = r.db.GetContext(ctx, &maxUrutan,
+		"SELECT COALESCE(MAX(urutan), 0) + 1 FROM project_org_nodes WHERE id_project = $1 AND soft_delete = FALSE",
+		projectID,
+	)
+
+	query := `
+		INSERT INTO project_org_nodes (id_node, id_project, id_pengguna, id_sdm, nm_display, jabatan, foto_url, urutan, warna, pos_x, pos_y)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
+	_, err := r.db.ExecContext(ctx, query,
+		id, projectID, req.IDPengguna, req.IDSdm, req.NmDisplay, req.Jabatan, req.FotoURL, maxUrutan, req.Warna, req.PosX, req.PosY,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create org node: %w", err)
+	}
+
+	return r.getOrgNodeByID(ctx, id)
+}
+
+func (r *repository) getOrgNodeByID(ctx context.Context, id string) (*OrgNode, error) {
+	var n OrgNode
+	query := `SELECT id_node, id_project, id_pengguna, id_sdm, nm_display, jabatan, foto_url, urutan, warna, pos_x, pos_y FROM project_org_nodes WHERE id_node = $1`
+	if err := r.db.GetContext(ctx, &n, query, id); err != nil {
+		return nil, fmt.Errorf("failed to get org node: %w", err)
+	}
+	return &n, nil
+}
+
+func (r *repository) UpdateOrgNode(ctx context.Context, nodeID string, req *UpdateOrgNodeRequest) (*OrgNode, error) {
+	fields := map[string]interface{}{}
+	if req.NmDisplay != nil {
+		fields["nm_display"] = *req.NmDisplay
+	}
+	if req.Jabatan != nil {
+		fields["jabatan"] = *req.Jabatan
+	}
+	if req.PosX != nil {
+		fields["pos_x"] = *req.PosX
+	}
+	if req.PosY != nil {
+		fields["pos_y"] = *req.PosY
+	}
+	if req.Warna != nil {
+		fields["warna"] = *req.Warna
+	}
+
+	if len(fields) > 0 {
+		setClauses := []string{}
+		args := []interface{}{}
+		idx := 1
+		for col, val := range fields {
+			setClauses = append(setClauses, fmt.Sprintf("%s = $%d", col, idx))
+			args = append(args, val)
+			idx++
+		}
+		args = append(args, nodeID)
+		query := fmt.Sprintf("UPDATE project_org_nodes SET %s WHERE id_node = $%d", strings.Join(setClauses, ", "), idx)
+		if _, err := r.db.ExecContext(ctx, query, args...); err != nil {
+			return nil, fmt.Errorf("failed to update org node: %w", err)
+		}
+	}
+
+	return r.getOrgNodeByID(ctx, nodeID)
+}
+
+func (r *repository) DeleteOrgNode(ctx context.Context, nodeID string) error {
+	_, err := r.db.ExecContext(ctx,
+		"UPDATE project_org_nodes SET soft_delete = TRUE WHERE id_node = $1",
+		nodeID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete org node: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error) {
+	id := uuid.New().String()
+	query := `
+		INSERT INTO project_org_edges (id_edge, id_project, id_node_from, id_node_to, label)
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err := r.db.ExecContext(ctx, query, id, projectID, req.IDNodeFrom, req.IDNodeTo, req.Label)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create org edge: %w", err)
+	}
+
+	var e OrgEdge
+	qGet := `SELECT id_edge, id_project, id_node_from, id_node_to, label FROM project_org_edges WHERE id_edge = $1`
+	if err := r.db.GetContext(ctx, &e, qGet, id); err != nil {
+		return nil, fmt.Errorf("failed to get org edge: %w", err)
+	}
+	return &e, nil
+}
+
+func (r *repository) DeleteOrgEdge(ctx context.Context, edgeID string) error {
+	_, err := r.db.ExecContext(ctx,
+		"DELETE FROM project_org_edges WHERE id_edge = $1",
+		edgeID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete org edge: %w", err)
 	}
 	return nil
 }

@@ -8,9 +8,18 @@ import type { Project } from "@/lib/services/project/projectService";
 interface ProjectCardProps {
   project: Project;
   onEdit?: (project: Project) => void;
+  showVisibility?: boolean;
 }
 
-export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
+function VisibilityBadge({ visibility }: { visibility?: string }) {
+  if (!visibility) return null;
+  if (visibility === 'private') return <span className="text-[10px] text-gray-400">🔒 Private</span>;
+  if (visibility === 'unit') return <span className="text-[10px] text-blue-500">🏢 Unit</span>;
+  if (visibility === 'public') return <span className="text-[10px] text-green-500">🌐 Public</span>;
+  return null;
+}
+
+export default function ProjectCard({ project, onEdit, showVisibility }: ProjectCardProps) {
   const progress = project.progress ?? (project.task_count && project.task_count > 0
     ? Math.round(((project.task_done ?? 0) / project.task_count) * 100)
     : 0);
@@ -50,7 +59,10 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
                 {project.nama}
               </h3>
-              <span className="text-xs font-mono text-gray-400">{project.kode}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-gray-400">{project.kode}</span>
+                {showVisibility && <VisibilityBadge visibility={project.visibility} />}
+              </div>
             </div>
           </div>
           <Chip size="sm" color={statusColor} variant="flat" className="text-[10px]">

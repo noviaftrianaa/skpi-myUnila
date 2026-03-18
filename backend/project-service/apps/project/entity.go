@@ -18,6 +18,9 @@ type Project struct {
 	TglMulai     *time.Time `db:"tgl_mulai" json:"tgl_mulai"`
 	TglTarget    *time.Time `db:"tgl_target" json:"tgl_target"`
 	IDOwner      *string    `db:"id_owner" json:"id_owner"`
+	IDUnit       *string    `db:"id_unit" json:"id_unit"`
+	NmUnit       *string    `db:"nm_unit" json:"nm_unit"`
+	Visibility   string     `db:"visibility" json:"visibility"`
 	CreatedAt    time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt    time.Time  `db:"updated_at" json:"updated_at"`
 	SoftDelete   bool       `db:"soft_delete" json:"-"`
@@ -33,6 +36,9 @@ type ProjectListItem struct {
 	TglMulai    *time.Time `db:"tgl_mulai" json:"tgl_mulai"`
 	TglTarget   *time.Time `db:"tgl_target" json:"tgl_target"`
 	RepoURL     *string    `db:"repo_url" json:"repo_url"`
+	IDUnit      *string    `db:"id_unit" json:"id_unit"`
+	NmUnit      *string    `db:"nm_unit" json:"nm_unit"`
+	Visibility  string     `db:"visibility" json:"visibility"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
 }
@@ -47,6 +53,9 @@ type ProjectCreateRequest struct {
 	TglMulai     *string `json:"tgl_mulai"`
 	TglTarget    *string `json:"tgl_target"`
 	IDOwner      *string `json:"id_owner"`
+	IDUnit       *string `json:"id_unit"`
+	NmUnit       *string `json:"nm_unit"`
+	Visibility   string  `json:"visibility"`
 }
 
 type ProjectUpdateRequest struct {
@@ -59,6 +68,9 @@ type ProjectUpdateRequest struct {
 	TglMulai     *string `json:"tgl_mulai"`
 	TglTarget    *string `json:"tgl_target"`
 	IDOwner      *string `json:"id_owner"`
+	IDUnit       *string `json:"id_unit"`
+	NmUnit       *string `json:"nm_unit"`
+	Visibility   *string `json:"visibility"`
 }
 
 type ProjectStats struct {
@@ -533,4 +545,103 @@ type GlobalStats struct {
 	ProjectAktif int `db:"project_aktif" json:"project_aktif"`
 	TaskDone     int `db:"task_done" json:"task_done"`
 	TaskOverdue  int `db:"task_overdue" json:"task_overdue"`
+}
+
+// ===== PROJECT MEMBERS =====
+
+// ProjectMember represents a project team member
+type ProjectMember struct {
+	IDMember   string  `db:"id_member" json:"id_member"`
+	IDProject  string  `db:"id_project" json:"id_project"`
+	IDPengguna string  `db:"id_pengguna" json:"id_pengguna"`
+	NmPengguna string  `db:"nm_pengguna" json:"nm_pengguna"`
+	Role       string  `db:"role" json:"role"` // owner, admin, member, viewer
+	AddedBy    *string `db:"added_by" json:"added_by"`
+	CreatedAt  string  `db:"created_at" json:"created_at"`
+}
+
+// ProjectWatcher represents a pimpinan watching a project
+type ProjectWatcher struct {
+	IDWatcher  string  `db:"id_watcher" json:"id_watcher"`
+	IDProject  string  `db:"id_project" json:"id_project"`
+	IDPengguna string  `db:"id_pengguna" json:"id_pengguna"`
+	IDSdm      *string `db:"id_sdm" json:"id_sdm"`
+	NmPengguna string  `db:"nm_pengguna" json:"nm_pengguna"`
+	Jabatan    string  `db:"jabatan" json:"jabatan"`
+	NmUnit     string  `db:"nm_unit" json:"nm_unit"`
+	TipeAkses  string  `db:"tipe_akses" json:"tipe_akses"` // viewer, commenter
+	CreatedAt  string  `db:"created_at" json:"created_at"`
+}
+
+// ===== ORG STRUCTURE =====
+
+// OrgNode represents a node in project org structure
+type OrgNode struct {
+	IDNode     string  `db:"id_node" json:"id_node"`
+	IDProject  string  `db:"id_project" json:"id_project"`
+	IDPengguna *string `db:"id_pengguna" json:"id_pengguna"`
+	IDSdm      *string `db:"id_sdm" json:"id_sdm"`
+	NmDisplay  string  `db:"nm_display" json:"nm_display"`
+	Jabatan    string  `db:"jabatan" json:"jabatan"`
+	FotoURL    *string `db:"foto_url" json:"foto_url"`
+	Urutan     int     `db:"urutan" json:"urutan"`
+	Warna      *string `db:"warna" json:"warna"`
+	PosX       float64 `db:"pos_x" json:"pos_x"`
+	PosY       float64 `db:"pos_y" json:"pos_y"`
+}
+
+// OrgEdge represents a connection between org nodes
+type OrgEdge struct {
+	IDEdge     string  `db:"id_edge" json:"id_edge"`
+	IDProject  string  `db:"id_project" json:"id_project"`
+	IDNodeFrom string  `db:"id_node_from" json:"id_node_from"`
+	IDNodeTo   string  `db:"id_node_to" json:"id_node_to"`
+	Label      *string `db:"label" json:"label"`
+}
+
+// ===== REQUEST TYPES =====
+
+type AddMemberRequest struct {
+	IDPengguna string `json:"id_pengguna"`
+	NmPengguna string `json:"nm_pengguna"`
+	Role       string `json:"role"`
+}
+
+type AddWatcherRequest struct {
+	IDPengguna string `json:"id_pengguna"`
+	IDSdm      string `json:"id_sdm"`
+	NmPengguna string `json:"nm_pengguna"`
+	Jabatan    string `json:"jabatan"`
+	NmUnit     string `json:"nm_unit"`
+}
+
+type CreateOrgNodeRequest struct {
+	IDPengguna *string `json:"id_pengguna"`
+	IDSdm      *string `json:"id_sdm"`
+	NmDisplay  string  `json:"nm_display"`
+	Jabatan    string  `json:"jabatan"`
+	FotoURL    *string `json:"foto_url"`
+	Warna      *string `json:"warna"`
+	PosX       float64 `json:"pos_x"`
+	PosY       float64 `json:"pos_y"`
+}
+
+type CreateOrgEdgeRequest struct {
+	IDNodeFrom string  `json:"id_node_from"`
+	IDNodeTo   string  `json:"id_node_to"`
+	Label      *string `json:"label"`
+}
+
+type UpdateOrgNodeRequest struct {
+	NmDisplay *string  `json:"nm_display"`
+	Jabatan   *string  `json:"jabatan"`
+	PosX      *float64 `json:"pos_x"`
+	PosY      *float64 `json:"pos_y"`
+	Warna     *string  `json:"warna"`
+}
+
+// OrgStructure holds org nodes and edges for a project
+type OrgStructure struct {
+	Nodes []OrgNode `json:"nodes"`
+	Edges []OrgEdge `json:"edges"`
 }

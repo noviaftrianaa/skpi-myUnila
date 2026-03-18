@@ -92,6 +92,7 @@ func initRoutes(router fiber.Router, h *Handler) {
 	// Project routes
 	pg := router.Group("/project")
 	pg.Get("/stats", h.GetGlobalStats) // Global stats (all projects)
+	pg.Get("/my", h.GetMyProjects)     // User-filtered project list
 	pg.Get("/", h.GetProjectList)
 	pg.Post("/", h.CreateProject)
 	pg.Get("/:id", h.GetProjectByID)
@@ -104,6 +105,23 @@ func initRoutes(router fiber.Router, h *Handler) {
 	pg.Get("/:id/commits", h.GetCommitsByProject)
 	pg.Get("/:id/labels", h.GetLabelsByProject)
 	pg.Post("/:id/labels", h.CreateLabel)
+
+	// Members & Watchers
+	pg.Get("/:id/members", h.GetMembersByProject)
+	pg.Post("/:id/members", h.AddMember)
+	pg.Delete("/:id/members/:mid", h.RemoveMember)
+	pg.Get("/:id/watchers", h.GetWatchersByProject)
+	pg.Post("/:id/watchers", h.AddWatcher)
+	pg.Delete("/:id/watchers/:wid", h.RemoveWatcher)
+
+	// Org Structure
+	pg.Get("/:id/org", h.GetOrgStructure)
+	pg.Post("/:id/org/nodes", h.CreateOrgNode)
+	pg.Put("/:id/org/nodes/:nid", h.UpdateOrgNode)
+	pg.Delete("/:id/org/nodes/:nid", h.DeleteOrgNode)
+	pg.Post("/:id/org/edges", h.CreateOrgEdge)
+	pg.Delete("/:id/org/edges/:eid", h.DeleteOrgEdge)
+
 	pg.Get("/:id/webhooks", h.GetWebhooksByProject)
 	pg.Post("/:id/webhooks", h.CreateWebhookConfig)
 	pg.Put("/:id/webhooks/:webhookId", h.UpdateWebhookConfig)

@@ -23,6 +23,14 @@ export interface Project {
   task_done?: number;
   module_count?: number;
   progress?: number;
+  // New visibility fields
+  id_unit?: string;
+  nm_unit?: string;
+  visibility?: 'private' | 'unit' | 'public';
+  // Backend field names (direct mapping)
+  id_project?: string;
+  kode_project?: string;
+  nm_project?: string;
 }
 
 export interface ProjectModule {
@@ -192,6 +200,96 @@ export interface DocumentVersion {
   catatan?: string;
   id_uploader?: string;
   created_at: string;
+}
+
+// ===== MEMBER / WATCHER / ORG INTERFACES =====
+
+export interface ProjectMember {
+  id_member: string;
+  id_project: string;
+  id_pengguna: string;
+  nm_pengguna: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  added_by?: string;
+  created_at: string;
+}
+
+export interface ProjectWatcher {
+  id_watcher: string;
+  id_project: string;
+  id_pengguna: string;
+  id_sdm?: string;
+  nm_pengguna: string;
+  jabatan: string;
+  nm_unit: string;
+  tipe_akses: 'viewer' | 'commenter';
+  created_at: string;
+}
+
+export interface OrgNode {
+  id_node: string;
+  id_project: string;
+  id_pengguna?: string;
+  id_sdm?: string;
+  nm_display: string;
+  jabatan: string;
+  foto_url?: string;
+  urutan: number;
+  warna?: string;
+  pos_x: number;
+  pos_y: number;
+}
+
+export interface OrgEdge {
+  id_edge: string;
+  id_project: string;
+  id_node_from: string;
+  id_node_to: string;
+  label?: string;
+}
+
+export interface AddMemberRequest {
+  id_pengguna: string;
+  nm_pengguna: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+}
+
+export interface AddWatcherRequest {
+  id_pengguna: string;
+  id_sdm?: string;
+  nm_pengguna: string;
+  jabatan: string;
+  nm_unit: string;
+}
+
+export interface CreateOrgNodeRequest {
+  id_pengguna?: string;
+  id_sdm?: string;
+  nm_display: string;
+  jabatan: string;
+  foto_url?: string;
+  warna?: string;
+  pos_x: number;
+  pos_y: number;
+}
+
+export interface CreateOrgEdgeRequest {
+  id_node_from: string;
+  id_node_to: string;
+  label?: string;
+}
+
+export interface UpdateOrgNodeRequest {
+  nm_display?: string;
+  jabatan?: string;
+  pos_x?: number;
+  pos_y?: number;
+  warna?: string;
+}
+
+export interface OrgStructure {
+  nodes: OrgNode[];
+  edges: OrgEdge[];
 }
 
 export interface WebhookConfig {
@@ -550,6 +648,90 @@ export const projectService = {
 
   async deleteSprint(sprintId: string): Promise<void> {
     await projectClient.delete(`/sprints/${sprintId}`);
+  },
+
+  // --- My Projects (user-filtered) ---
+  async getMyProjects(params: {
+    user_id: string;
+    is_pimpinan?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<Project>> {
+    const response = await projectClient.get<PaginatedResponse<Project>>('/project/my', { params });
+    return response.data;
+  },
+
+  // --- Members ---
+  async getMembers(projectId: string): Promise<ProjectMember[]> {
+    const response = await projectClient.get<SingleResponse<ProjectMember[]>>(`/project/${projectId}/members`);
+    if (!response.data.success) throw new Error('Failed to fetch members');
+    return response.data.data;
+  },
+
+  async addMember(projectId: string, data: AddMemberRequest, addedBy?: string): Promise<ProjectMember> {
+    const response = await projectClient.post<SingleResponse<ProjectMember>>(
+      `/project/${projectId}/members${addedBy ? `?added_by=${addedBy}` : ''}`,
+      data
+    );
+    if (!response.data.success) throw new Error('Failed to add member');
+    return response.data.data;
+  },
+
+  async removeMember(projectId: string, memberId: string): Promise<void> {
+    await projectClient.delete(`/project/${projectId}/members/${memberId}`);
+  },
+
+  // --- Watchers ---
+  async getWatchers(projectId: string): Promise<ProjectWatcher[]> {
+    const response = await projectClient.get<SingleResponse<ProjectWatcher[]>>(`/project/${projectId}/watchers`);
+    if (!response.data.success) throw new Error('Failed to fetch watchers');
+    return response.data.data;
+  },
+
+  async addWatcher(projectId: string, data: AddWatcherRequest): Promise<ProjectWatcher> {
+    const response = await projectClient.post<SingleResponse<ProjectWatcher>>(
+      `/project/${projectId}/watchers`,
+      data
+    );
+    if (!response.data.success) throw new Error('Failed to add watcher');
+    return response.data.data;
+  },
+
+  async removeWatcher(projectId: string, watcherId: string): Promise<void> {
+    await projectClient.delete(`/project/${projectId}/watchers/${watcherId}`);
+  },
+
+  // --- Org Structure ---
+  async getOrgStructure(projectId: string): Promise<OrgStructure> {
+    const response = await projectClient.get<SingleResponse<OrgStructure>>(`/project/${projectId}/org`);
+    if (!response.data.success) throw new Error('Failed to fetch org structure');
+    return response.data.data;
+  },
+
+  async createOrgNode(projectId: string, data: CreateOrgNodeRequest): Promise<OrgNode> {
+    const response = await projectClient.post<SingleResponse<OrgNode>>(`/project/${projectId}/org/nodes`, data);
+    if (!response.data.success) throw new Error('Failed to create org node');
+    return response.data.data;
+  },
+
+  async updateOrgNode(projectId: string, nodeId: string, data: UpdateOrgNodeRequest): Promise<OrgNode> {
+    const response = await projectClient.put<SingleResponse<OrgNode>>(`/project/${projectId}/org/nodes/${nodeId}`, data);
+    if (!response.data.success) throw new Error('Failed to update org node');
+    return response.data.data;
+  },
+
+  async deleteOrgNode(projectId: string, nodeId: string): Promise<void> {
+    await projectClient.delete(`/project/${projectId}/org/nodes/${nodeId}`);
+  },
+
+  async createOrgEdge(projectId: string, data: CreateOrgEdgeRequest): Promise<OrgEdge> {
+    const response = await projectClient.post<SingleResponse<OrgEdge>>(`/project/${projectId}/org/edges`, data);
+    if (!response.data.success) throw new Error('Failed to create org edge');
+    return response.data.data;
+  },
+
+  async deleteOrgEdge(projectId: string, edgeId: string): Promise<void> {
+    await projectClient.delete(`/project/${projectId}/org/edges/${edgeId}`);
   },
 };
 

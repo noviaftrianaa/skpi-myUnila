@@ -95,6 +95,27 @@ type Service interface {
 	// Document Versions
 	GetDocumentVersions(ctx context.Context, documentID string) ([]DocumentVersion, error)
 	ReplaceDocumentFile(ctx context.Context, documentID, filePath, fileName string, fileSize int64, mimeType string, catatan *string, uploaderID *string) (*Document, error)
+
+	// Members
+	GetMembersByProject(ctx context.Context, projectID string) ([]ProjectMember, error)
+	AddMember(ctx context.Context, projectID string, req *AddMemberRequest, addedBy *string) (*ProjectMember, error)
+	RemoveMember(ctx context.Context, projectID, memberID string) error
+
+	// Watchers
+	GetWatchersByProject(ctx context.Context, projectID string) ([]ProjectWatcher, error)
+	AddWatcher(ctx context.Context, projectID string, req *AddWatcherRequest) (*ProjectWatcher, error)
+	RemoveWatcher(ctx context.Context, projectID, watcherID string) error
+
+	// User-filtered project list
+	GetMyProjects(ctx context.Context, userID string, isPimpinan bool, page, limit int) (*PaginatedResult, error)
+
+	// Org Structure
+	GetOrgStructure(ctx context.Context, projectID string) (*OrgStructure, error)
+	CreateOrgNode(ctx context.Context, projectID string, req *CreateOrgNodeRequest) (*OrgNode, error)
+	UpdateOrgNode(ctx context.Context, nodeID string, req *UpdateOrgNodeRequest) (*OrgNode, error)
+	DeleteOrgNode(ctx context.Context, nodeID string) error
+	CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error)
+	DeleteOrgEdge(ctx context.Context, edgeID string) error
 }
 
 type service struct {
@@ -184,6 +205,11 @@ func (s *service) CreateProject(ctx context.Context, req *ProjectCreateRequest) 
 		provider = &p
 	}
 
+	visibility := req.Visibility
+	if visibility == "" {
+		visibility = "private"
+	}
+
 	p := &Project{
 		IDProject:    uuid.New().String(),
 		KodeProject:  kode,
@@ -194,6 +220,9 @@ func (s *service) CreateProject(ctx context.Context, req *ProjectCreateRequest) 
 		RepoProvider: provider,
 		Warna:        req.Warna,
 		IDOwner:      req.IDOwner,
+		IDUnit:       req.IDUnit,
+		NmUnit:       req.NmUnit,
+		Visibility:   visibility,
 	}
 
 	if err := s.repo.CreateProject(ctx, p); err != nil {
@@ -232,6 +261,15 @@ func (s *service) UpdateProject(ctx context.Context, id string, req *ProjectUpda
 	}
 	if req.IDOwner != nil {
 		fields["id_owner"] = *req.IDOwner
+	}
+	if req.IDUnit != nil {
+		fields["id_unit"] = *req.IDUnit
+	}
+	if req.NmUnit != nil {
+		fields["nm_unit"] = *req.NmUnit
+	}
+	if req.Visibility != nil {
+		fields["visibility"] = *req.Visibility
 	}
 
 	if err := s.repo.UpdateProject(ctx, id, fields); err != nil {
@@ -1164,4 +1202,73 @@ func (s *service) ReplaceDocumentFile(ctx context.Context, documentID, filePath,
 		fmt.Sprintf("File dokumen '%s' diganti (v%d → v%d)", doc.NmDokumen, currentVersion, newVersion))
 
 	return s.repo.GetDocumentByID(ctx, documentID)
+}
+
+// ===== MEMBERS =====
+
+func (s *service) GetMembersByProject(ctx context.Context, projectID string) ([]ProjectMember, error) {
+	return s.repo.GetMembersByProject(ctx, projectID)
+}
+
+func (s *service) AddMember(ctx context.Context, projectID string, req *AddMemberRequest, addedBy *string) (*ProjectMember, error) {
+	if req.Role == "" {
+		req.Role = "member"
+	}
+	return s.repo.AddMember(ctx, projectID, req, addedBy)
+}
+
+func (s *service) RemoveMember(ctx context.Context, projectID, memberID string) error {
+	return s.repo.RemoveMember(ctx, projectID, memberID)
+}
+
+// ===== WATCHERS =====
+
+func (s *service) GetWatchersByProject(ctx context.Context, projectID string) ([]ProjectWatcher, error) {
+	return s.repo.GetWatchersByProject(ctx, projectID)
+}
+
+func (s *service) AddWatcher(ctx context.Context, projectID string, req *AddWatcherRequest) (*ProjectWatcher, error) {
+	return s.repo.AddWatcher(ctx, projectID, req)
+}
+
+func (s *service) RemoveWatcher(ctx context.Context, projectID, watcherID string) error {
+	return s.repo.RemoveWatcher(ctx, projectID, watcherID)
+}
+
+// ===== USER-FILTERED PROJECT LIST =====
+
+func (s *service) GetMyProjects(ctx context.Context, userID string, isPimpinan bool, page, limit int) (*PaginatedResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	return s.repo.GetProjectsForUser(ctx, userID, isPimpinan, page, limit)
+}
+
+// ===== ORG STRUCTURE =====
+
+func (s *service) GetOrgStructure(ctx context.Context, projectID string) (*OrgStructure, error) {
+	return s.repo.GetOrgStructure(ctx, projectID)
+}
+
+func (s *service) CreateOrgNode(ctx context.Context, projectID string, req *CreateOrgNodeRequest) (*OrgNode, error) {
+	return s.repo.CreateOrgNode(ctx, projectID, req)
+}
+
+func (s *service) UpdateOrgNode(ctx context.Context, nodeID string, req *UpdateOrgNodeRequest) (*OrgNode, error) {
+	return s.repo.UpdateOrgNode(ctx, nodeID, req)
+}
+
+func (s *service) DeleteOrgNode(ctx context.Context, nodeID string) error {
+	return s.repo.DeleteOrgNode(ctx, nodeID)
+}
+
+func (s *service) CreateOrgEdge(ctx context.Context, projectID string, req *CreateOrgEdgeRequest) (*OrgEdge, error) {
+	return s.repo.CreateOrgEdge(ctx, projectID, req)
+}
+
+func (s *service) DeleteOrgEdge(ctx context.Context, edgeID string) error {
+	return s.repo.DeleteOrgEdge(ctx, edgeID)
 }
