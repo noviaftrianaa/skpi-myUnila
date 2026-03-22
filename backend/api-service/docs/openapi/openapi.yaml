@@ -2,23 +2,23 @@ openapi: 3.0.3
 info:
   title: myUnila API Web Service
   description: |
-    Layanan API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
+    Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
-    **Path Prefix:**
-    - Development: `/dev/v1/...`
-    - Production: `/live/v1/...`
+    **Base URL:** `/v1/...` (sama untuk staging dan production)
+    
+    **Environment:**
+    - Staging: `http://192.168.120.45:9800/ws-service/v1`
+    - Production: `https://my.unila.ac.id/ws-service/v1`
 
-    Untuk permintaan penambahan endpoint atau kustomisasi API, silakan hubungi tim pengembang melalui email tertera.
+    Untuk permintaan penambahan endpoint atau akses API, hubungi PJ Aplikasi terkait atau tim pengembang.
   version: 1.0.0
   contact:
-    name: Tim MyUnila
+    name: Tim MyUnila - UPT TIK
     email: dev@unila.ac.id
 
 servers:
-  - url: http://localhost:8085/dev
-    description: Local Development
-  - url: https://my.unila.ac.id/gateway/api-service/live
-    description: Production Server
+  - url: /
+    description: Relative (auto-detect environment)
 
 tags:
   - name: Auth
@@ -280,12 +280,18 @@ paths:
   # ==========================================================================
   # PDRD ENDPOINTS
   # ==========================================================================
-  /v1/pdrd/peserta_didik:
-    $ref: './paths/pdrd.yaml#/peserta-didik'
-  /v1/pdrd/peserta_didik_detail:
-    $ref: './paths/pdrd.yaml#/peserta-didik-detail'
-  /v1/pdrd/reg_pd:
-    $ref: './paths/pdrd.yaml#/reg-pd'
+  /v1/pdrd/list_mahasiswa:
+    $ref: './paths/pdrd.yaml#/list-mahasiswa'
+  /v1/pdrd/detail_biodata_mahasiswa:
+    $ref: './paths/pdrd.yaml#/detail-biodata-mahasiswa'
+  /v1/pdrd/riwayat_pendidikan_mahasiswa:
+    $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
+  /v1/pdrd/status_kuliah_mahasiswa:
+    $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
+  /v1/pdrd/publikasi:
+    $ref: './paths/pdrd.yaml#/publikasi'
+  /v1/pdrd/litabmas:
+    $ref: './paths/pdrd.yaml#/litabmas'
 
 components:
   schemas:

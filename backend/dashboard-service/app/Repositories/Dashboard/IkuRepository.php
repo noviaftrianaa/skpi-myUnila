@@ -2243,8 +2243,8 @@ class IkuRepository extends BaseRepository
 
         // Litabmas revenue per fakultas
         $bindings2 = [];
-        $yearInLit = $this->buildInClause($years, $bindings2);
         $bindings2[] = self::UNILA_ID_SP;
+        $yearInLit = $this->buildInClause($years, $bindings2);
 
         $sqlLit = "
             SELECT
@@ -2355,8 +2355,8 @@ class IkuRepository extends BaseRepository
 
         // Litabmas per prodi
         $bindings2 = [];
-        $yearInLit = $this->buildInClause($years, $bindings2);
         $bindings2[] = self::UNILA_ID_SP;
+        $yearInLit = $this->buildInClause($years, $bindings2);
         $bindings2[] = $idFakultas;
 
         $sqlLit = "

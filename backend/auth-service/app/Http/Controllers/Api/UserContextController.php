@@ -7,6 +7,7 @@ use App\Services\UserContext\UserContextService;
 use App\Repositories\UserContext\UserContextRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * User Context Controller
@@ -196,6 +197,7 @@ class UserContextController extends Controller
                 'data' => [
                     'active_context' => $context,
                     'has_context' => $context !== null,
+                    'permissions' => Cache::get("user_permissions:{$userId}"),
                 ]
             ]);
         } catch (\Exception $e) {

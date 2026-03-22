@@ -24,7 +24,7 @@ import {
 import {
   MdCheckCircle,
 } from "react-icons/md";
-import { SiKong, SiSwagger } from "react-icons/si";
+import { FiZap, FiFileText } from "react-icons/fi";
 
 interface KongService {
   id: string;
@@ -62,20 +62,16 @@ interface KongInfo {
 
 // Get base URL for Kong gateway (from env or default to production)
 const getKongBaseUrl = () => {
-  // In production: https://my.unila.ac.id
-  // In local/dev: http://localhost:9800
+  // In production: https://my.unila.ac.id (Kong behind reverse proxy on port 443)
+  // In staging/dev: http://{host}:9800 (Kong exposed on port 9800)
   if (typeof window !== "undefined") {
-    // Client-side: detect from current host
     const host = window.location.hostname;
     if (host === "my.unila.ac.id") {
       return "https://my.unila.ac.id";
-    } else if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:9800";
     }
-    // Fallback to protocol + host (for other environments)
-    return `${window.location.protocol}//${host}`;
+    // Staging / local: Kong is at port 9800
+    return `${window.location.protocol}//${host}:9800`;
   }
-  // Server-side: default to production
   return "https://my.unila.ac.id";
 };
 
@@ -84,20 +80,20 @@ const getKongAdminUrl = () => {
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
     if (host === "my.unila.ac.id") {
-      // Production: Kong Admin via internal IP (only accessible from allowed networks)
+      // Production: Kong Admin via internal IP
       return "http://192.168.120.41:9801";
-    } else if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:9801";
     }
+    // Staging / local: Kong Admin at port 9801
+    return `http://${host}:9801`;
   }
   return "http://localhost:9801";
 };
 
 // Mapping service to documentation URL (via Kong gateway)
-// Access is controlled via JWT at Kong level + role check at portal level
+// Route pattern: /{serviceName}/docs (strip_path=true di Kong)
 const getServiceDocsUrl = (serviceName: string): string => {
   const baseUrl = getKongBaseUrl();
-  return `${baseUrl}/gateway/${serviceName}/docs`;
+  return `${baseUrl}/${serviceName}/docs`;
 };
 
 
@@ -108,7 +104,7 @@ const serviceDisplayNames: Record<string, string> = {
   "sister-service": "Sister Service",
   "feeder-service": "Feeder Service",
   "myunila-service": "myUnila Integrator",
-  "api-service": "myUnila API Web Service",
+  "ws-service": "myUnila Web Service (API)",
   "dashboard-service": "Dashboard Service",
 };
 
@@ -119,7 +115,7 @@ const mainServices = [
   "sister-service",
   "feeder-service",
   "myunila-service",
-  "api-service",
+  "ws-service",
   "dashboard-service",
 ];
 
@@ -305,7 +301,7 @@ export default function KongAdminPage() {
               <div className="h-8 w-px bg-white/20"></div>
               <div className="flex items-center gap-3">
                 <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
-                  <SiKong className="w-8 h-8" />
+                  <FiZap className="w-8 h-8" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold">Kong API Gateway</h1>
@@ -498,7 +494,7 @@ export default function KongAdminPage() {
                             className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 shadow-md hover:shadow-lg hover:shadow-emerald-500/30 font-semibold transition-all duration-300"
                             size="sm"
                           >
-                            <SiSwagger className="w-3.5 h-3.5" />
+                            <FiFileText className="w-3.5 h-3.5" />
                             <span className="text-xs">View API Documentation</span>
                             <FiExternalLink className="w-3.5 h-3.5" />
                           </Button>
@@ -537,7 +533,7 @@ export default function KongAdminPage() {
               </p>
               <p className="text-xs text-blue-600">
                 <strong>Available Services:</strong> auth-service, public-service,
-                sister-service, feeder-service, myunila-service, api-service.
+                sister-service, feeder-service, myunila-service, ws-service.
               </p>
             </div>
           </div>

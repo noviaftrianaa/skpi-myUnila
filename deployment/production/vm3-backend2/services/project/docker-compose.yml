@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  project-service:
+    build:
+      context: ../../../../../backend/project-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/project-service:production
+    container_name: myunila-project-service
+    restart: unless-stopped
+
+    network_mode: host
+
+    environment:
+      APP_NAME: "Project Service"
+      APP_PORT: ":8095"
+      APP_ENV: production
+
+      # PostgreSQL (primary - installed native on VM3)
+      PG_HOST: "127.0.0.1"
+      PG_PORT: "5432"
+      PG_DATABASE: "${PROJECT_PG_DATABASE:-myunila_project}"
+      PG_USERNAME: "${PROJECT_PG_USERNAME:-myunila_pm}"
+      PG_PASSWORD: "${PROJECT_PG_PASSWORD}"
+      PG_SSLMODE: "disable"
+
+      # SQL Server (reference - read only)
+      MSSQL_HOST: "${API_DB_HOST:-192.168.123.119}"
+      MSSQL_PORT: "${API_DB_PORT:-1433}"
+      MSSQL_DATABASE: "${API_DB_DATABASE:-pdut}"
+      MSSQL_USERNAME: "${API_DB_USERNAME}"
+      MSSQL_PASSWORD: "${API_DB_PASSWORD}"
+
+      # MinIO Object Storage (VM7)
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT:-192.168.120.47:9000}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_USE_SSL: "${MINIO_USE_SSL:-false}"
+
+      # Telegram Notifications
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-}"
+      TELEGRAM_CHAT_ID: "${PROJECT_TELEGRAM_CHAT_ID:-}"
+      TELEGRAM_NOTIFY_ENABLED: "${PROJECT_TELEGRAM_NOTIFY_ENABLED:-false}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=project,vm=vm3"

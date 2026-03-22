@@ -1,0 +1,920 @@
+"use client";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
+
+// Helper: safely extract array from paginated or direct response
+const toArray = (data: any): any[] => {
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+};
+
+import {
+  Card, CardBody, Button, Select, SelectItem, Input, Chip,
+  Spinner, Accordion, AccordionItem, Modal, ModalContent,
+  ModalHeader, ModalBody, ModalFooter, useDisclosure,
+} from "@heroui/react";
+import {
+  FiSave, FiRefreshCw, FiSearch, FiShield, FiCheck, FiX, FiServer,
+  FiDownload, FiPrinter, FiUser, FiBox,
+} from "react-icons/fi";
+import { authClient } from "@/lib/api/authClient";
+import { wsAuthorizationService, type SystemRoute } from "@/lib/services/manakses/wsAuthorizationService";
+import toast from "react-hot-toast";
+
+interface AppOption {
+  id_aplikasi: string;
+  nm_aplikasi: string;
+}
+
+interface PjAplikasi {
+  id_pj_aplikasi: string;
+  id_pengguna: string;
+  id_aplikasi: string;
+  nm_pengguna: string;
+  username: string;
+  nm_aplikasi?: string;
+}
+
+interface EndpointItem {
+  id_ws_endpoint: string;
+  nm_group: string;
+  nm_method: string;
+  nm_endpoint: string | null;
+  path_url: string;
+  a_active: boolean;
+}
+
+interface GroupedEndpoints {
+  [group: string]: EndpointItem[];
+}
+
+const toastSuccess = (msg: string) =>
+  toast.success(msg, {
+    duration: 3000,
+    style: { borderRadius: "12px", background: "#10B981", color: "#fff", fontWeight: "500" },
+    iconTheme: { primary: "#fff", secondary: "#10B981" },
+  });
+
+const toastError = (msg: string) =>
+  toast.error(msg, {
+    duration: 4000,
+    style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+    iconTheme: { primary: "#fff", secondary: "#EF4444" },
+  });
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: "success",
+  POST: "primary",
+  PUT: "warning",
+  DELETE: "danger",
+  PATCH: "secondary",
+};
+
+export default function WsAuthorizationManager() {
+  // Data state
+  const [apps, setApps] = useState<AppOption[]>([]);
+  const [pjList, setPjList] = useState<PjAplikasi[]>([]);
+  const [endpoints, setEndpoints] = useState<EndpointItem[]>([]);
+  const [authorizedIds, setAuthorizedIds] = useState<Set<string>>(new Set());
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+
+  // Filter state
+  const [selectedApp, setSelectedApp] = useState<string>("");
+  const [selectedPj, setSelectedPj] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // UI state
+  const [loadingApps, setLoadingApps] = useState(true);
+  const [loadingPj, setLoadingPj] = useState(false);
+  const [loadingEndpoints, setLoadingEndpoints] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Generate modal
+  const { isOpen: isGenOpen, onOpen: onGenOpen, onClose: onGenClose } = useDisclosure();
+  const [genRoutes, setGenRoutes] = useState<SystemRoute[]>([]);
+  const [genLoading, setGenLoading] = useState(false);
+
+  // Get selected PJ data
+  const selectedPjData = useMemo(() => pjList.find((p) => p.id_pengguna === selectedPj), [pjList, selectedPj]);
+  const selectedAppData = useMemo(() => apps.find((a) => a.id_aplikasi === selectedApp), [apps, selectedApp]);
+
+  // Load only apps that have endpoints registered
+  useEffect(() => {
+    const loadApps = async () => {
+      try {
+        const res = await authClient.get("/manakses/endpoint/apps");
+        const list = toArray(res.data.data).map((a: any) => ({
+          id_aplikasi: a.id_aplikasi,
+          nm_aplikasi: a.nm_aplikasi,
+        }));
+        setApps(list);
+      } catch (e) {
+        console.error(e);
+        toastError("Gagal memuat data aplikasi");
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+    loadApps();
+  }, []);
+
+  // Load PJ Aplikasi when app selected
+  useEffect(() => {
+    if (!selectedApp) {
+      setPjList([]);
+      setSelectedPj("");
+      setEndpoints([]);
+      setAuthorizedIds(new Set());
+      setCheckedIds(new Set());
+      return;
+    }
+
+    const loadPj = async () => {
+      setLoadingPj(true);
+      setSelectedPj("");
+      setEndpoints([]);
+      setAuthorizedIds(new Set());
+      setCheckedIds(new Set());
+      try {
+        const res = await authClient.get(`/manakses/pj-aplikasi?id_aplikasi=${selectedApp}&limit=100`);
+        const data = toArray(res.data.data);
+        const list: PjAplikasi[] = data.map((p: any) => ({
+          id_pj_aplikasi: p.id_pj_aplikasi,
+          id_pengguna: p.id_pengguna,
+          id_aplikasi: p.id_aplikasi,
+          nm_pengguna: p.nm_pengguna || p.nama || p.nm_pd || "",
+          username: p.username || "",
+          nm_aplikasi: p.nm_aplikasi,
+        }));
+        setPjList(list);
+      } catch (e) {
+        console.error(e);
+        toastError("Gagal memuat data PJ Aplikasi");
+      } finally {
+        setLoadingPj(false);
+      }
+    };
+    loadPj();
+  }, [selectedApp]);
+
+  // Load endpoints + authorization when PJ selected
+  useEffect(() => {
+    if (!selectedApp || !selectedPj) {
+      setEndpoints([]);
+      setAuthorizedIds(new Set());
+      setCheckedIds(new Set());
+      return;
+    }
+
+    const load = async () => {
+      setLoadingEndpoints(true);
+      try {
+        // Get all endpoints for this app
+        const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
+        const epList: EndpointItem[] = toArray(epsRes.data.data).map((e: any) => ({
+          id_ws_endpoint: e.id_ws_endpoint,
+          nm_group: e.nm_group || "uncategorized",
+          nm_method: e.nm_method || "GET",
+          nm_endpoint: e.nm_endpoint,
+          path_url: e.path_url,
+          a_active: e.a_active,
+        }));
+        setEndpoints(epList);
+
+        // Get authorized endpoint IDs for this pengguna + app
+        const authRes = await wsAuthorizationService.getByPengguna(selectedPj, selectedApp);
+        const authSet = new Set(authRes.endpoint_ids || []);
+        setAuthorizedIds(authSet);
+        setCheckedIds(new Set(authSet));
+      } catch (e) {
+        console.error(e);
+        toastError("Gagal memuat endpoints");
+      } finally {
+        setLoadingEndpoints(false);
+      }
+    };
+    load();
+  }, [selectedApp, selectedPj]);
+
+  // Group + filter endpoints
+  const groupedEndpoints = useMemo(() => {
+    const filtered = endpoints.filter((ep) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        ep.path_url.toLowerCase().includes(q) ||
+        (ep.nm_endpoint || "").toLowerCase().includes(q) ||
+        ep.nm_group.toLowerCase().includes(q)
+      );
+    });
+
+    const groups: GroupedEndpoints = {};
+    for (const ep of filtered) {
+      const g = ep.nm_group || "uncategorized";
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(ep);
+    }
+
+    const sorted: GroupedEndpoints = {};
+    Object.keys(groups)
+      .sort()
+      .forEach((k) => {
+        sorted[k] = groups[k].sort((a, b) => a.path_url.localeCompare(b.path_url));
+      });
+    return sorted;
+  }, [endpoints, searchQuery]);
+
+  // Has changes?
+  const hasChanges = useMemo(() => {
+    if (authorizedIds.size !== checkedIds.size) return true;
+    for (const id of authorizedIds) {
+      if (!checkedIds.has(id)) return true;
+    }
+    return false;
+  }, [authorizedIds, checkedIds]);
+
+  // Stats
+  const totalEndpoints = endpoints.length;
+  const totalChecked = checkedIds.size;
+  const totalGroups = Object.keys(groupedEndpoints).length;
+
+  // Handlers
+  const toggleEndpoint = useCallback((id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleGroup = useCallback(
+    (group: string, checked: boolean) => {
+      const groupEps = groupedEndpoints[group] || [];
+      setCheckedIds((prev) => {
+        const next = new Set(prev);
+        for (const ep of groupEps) {
+          if (checked) next.add(ep.id_ws_endpoint);
+          else next.delete(ep.id_ws_endpoint);
+        }
+        return next;
+      });
+    },
+    [groupedEndpoints]
+  );
+
+  const selectAll = useCallback(() => {
+    setCheckedIds(new Set(endpoints.map((ep) => ep.id_ws_endpoint)));
+  }, [endpoints]);
+
+  const deselectAll = useCallback(() => {
+    setCheckedIds(new Set());
+  }, []);
+
+  const resetChanges = useCallback(() => {
+    setCheckedIds(new Set(authorizedIds));
+  }, [authorizedIds]);
+
+  // Save (sync by pengguna)
+  const handleSave = async () => {
+    if (!selectedPj || !selectedApp) return;
+    setIsSaving(true);
+    try {
+      const result = await wsAuthorizationService.syncByPengguna(
+        selectedPj,
+        selectedApp,
+        Array.from(checkedIds)
+      );
+      toastSuccess(result.message);
+      setAuthorizedIds(new Set(checkedIds));
+    } catch (e: any) {
+      toastError(e.response?.data?.message || "Gagal menyimpan");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Print PDF
+  const handlePrintPDF = () => {
+    if (!selectedPjData || !selectedAppData) return;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const now = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    const checkedEndpoints = endpoints.filter((ep) => checkedIds.has(ep.id_ws_endpoint));
+
+    // Group checked endpoints
+    const grouped: Record<string, EndpointItem[]> = {};
+    for (const ep of checkedEndpoints) {
+      const g = ep.nm_group || "uncategorized";
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(ep);
+    }
+    // Sort
+    const sortedGroups = Object.keys(grouped).sort();
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Laporan Otorisasi WS API - ${selectedPjData.nm_pengguna}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px 30px; color: #1a1a1a; font-size: 11px; line-height: 1.4; }
+          .header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px double #333; }
+          .header-flex { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px; }
+          .header img { width: 60px; height: 60px; object-fit: contain; }
+          .header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+          .header h2 { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 2px; }
+          .header h3 { font-size: 12px; font-weight: 500; color: #555; }
+          .header .subtitle { font-size: 11px; color: #666; margin-top: 6px; }
+          .info { margin-bottom: 18px; background: #f8f9fa; border-radius: 6px; padding: 12px 15px; border: 1px solid #e9ecef; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+          .info-item { display: flex; gap: 8px; }
+          .info-label { font-weight: 600; color: #555; min-width: 100px; }
+          .info-value { color: #1a1a1a; }
+          .group-section { margin-bottom: 14px; page-break-inside: avoid; }
+          .group-title { font-size: 12px; font-weight: 700; padding: 5px 10px; background: #e8edf3; border-left: 3px solid #4f46e5; margin-bottom: 4px; border-radius: 0 4px 4px 0; }
+          table.endpoints { width: 100%; border-collapse: collapse; font-size: 10px; }
+          table.endpoints th { background: #f1f3f5; padding: 4px 8px; text-align: left; border: 1px solid #dee2e6; font-weight: 600; font-size: 10px; }
+          table.endpoints td { padding: 3px 8px; border: 1px solid #dee2e6; word-wrap: break-word; overflow-wrap: break-word; }
+          table.endpoints td.path { font-family: 'Consolas', 'Courier New', monospace; font-size: 10px; max-width: 350px; word-break: break-all; }
+          table.endpoints tr:nth-child(even) { background: #f8f9fa; }
+          .method { font-family: monospace; font-weight: 700; font-size: 9px; padding: 1px 5px; border-radius: 3px; display: inline-block; min-width: 40px; text-align: center; }
+          .method-GET { background: #d4edda; color: #155724; }
+          .method-POST { background: #cce5ff; color: #004085; }
+          .method-PUT { background: #fff3cd; color: #856404; }
+          .method-DELETE { background: #f8d7da; color: #721c24; }
+          .method-PATCH { background: #e2e3f1; color: #383d6e; }
+          .footer { margin-top: 20px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #dee2e6; padding-top: 8px; }
+          .summary { display: flex; justify-content: space-between; margin-bottom: 12px; }
+          .summary-item { text-align: center; flex: 1; }
+          .summary-number { font-size: 18px; font-weight: 700; color: #4f46e5; }
+          .summary-label { font-size: 9px; color: #666; text-transform: uppercase; }
+          @media print { 
+            body { padding: 15px; } 
+            .group-section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-flex">
+            <img src="/assets/images/logo-unila.png" alt="Logo Unila" onerror="this.style.display='none'" />
+            <div>
+              <h1>Universitas Lampung</h1>
+              <h2>UPT Teknologi Informasi dan Komunikasi</h2>
+              <h3>Laporan Otorisasi Endpoint Web Service API</h3>
+            </div>
+          </div>
+          <div class="subtitle">Dicetak pada: ${now}</div>
+        </div>
+
+        <div class="info">
+          <div class="info-grid">
+            <div class="info-item"><span class="info-label">Aplikasi</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-value">: ${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
+            <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-value">: ${selectedPjData.nm_pengguna}</span></div>
+            <div class="info-item"><span class="info-label">Total Group</span><span class="info-value">: ${sortedGroups.length}</span></div>
+            <div class="info-item"><span class="info-label">Username</span><span class="info-value">: ${selectedPjData.username}</span></div>
+          </div>
+        </div>
+
+        ${sortedGroups.map((group) => `
+          <div class="group-section">
+            <div class="group-title">${group} (${grouped[group].length} endpoint)</div>
+            <table class="endpoints">
+              <thead><tr><th style="width:55px">No</th><th style="width:60px">Method</th><th>Path URL</th><th style="width:140px">Nama</th></tr></thead>
+              <tbody>
+                ${grouped[group].sort((a, b) => a.path_url.localeCompare(b.path_url)).map((ep, i) => `
+                  <tr>
+                    <td style="text-align:center">${i + 1}</td>
+                    <td><span class="method method-${ep.nm_method}">${ep.nm_method || "-"}</span></td>
+                    <td class="path">${ep.path_url}</td>
+                    <td>${ep.nm_endpoint || "-"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `).join("")}
+
+        <div class="footer">
+          MyUnila — UPT TIK Universitas Lampung · Dokumen ini digenerate secara otomatis dari sistem Manajemen Akses
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  };
+
+  // Generate endpoints
+  const handleOpenGenerate = async () => {
+    setGenLoading(true);
+    onGenOpen();
+    try {
+      const data = await wsAuthorizationService.fetchWsRoutes();
+      setGenRoutes(data.routes || []);
+    } catch (e) {
+      toastError("Gagal mengambil routes dari ws-service");
+      onGenClose();
+    } finally {
+      setGenLoading(false);
+    }
+  };
+
+  const handleConfirmGenerate = async () => {
+    if (!selectedApp || genRoutes.length === 0) return;
+    setIsGenerating(true);
+    try {
+      const formatted = genRoutes.map((r) => ({
+        nm_group: r.nm_group,
+        nm_method: r.method,
+        path_url: r.path,
+        nm_endpoint: r.path.split("/").pop()?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || r.path,
+      }));
+      const result = await wsAuthorizationService.generateEndpoints(selectedApp, formatted);
+      toastSuccess(result.message);
+      onGenClose();
+
+      // Reload endpoints
+      const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
+      const epList = toArray(epsRes.data.data).map((e: any) => ({
+        id_ws_endpoint: e.id_ws_endpoint,
+        nm_group: e.nm_group || "uncategorized",
+        nm_method: e.nm_method || "GET",
+        nm_endpoint: e.nm_endpoint,
+        path_url: e.path_url,
+        a_active: e.a_active,
+      }));
+      setEndpoints(epList);
+    } catch (e: any) {
+      toastError(e.response?.data?.message || "Gagal generate");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (loadingApps) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Filter Bar */}
+      <Card className="border-none shadow-lg rounded-xl">
+        <CardBody className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <Select
+                aria-label="Pilih Aplikasi"
+                placeholder="Pilih Aplikasi"
+                selectedKeys={selectedApp ? [selectedApp] : []}
+                onSelectionChange={(keys) => setSelectedApp(Array.from(keys)[0] as string || "")}
+                variant="bordered"
+                isLoading={loadingApps}
+                startContent={<FiBox className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                classNames={{
+                  base: "w-full",
+                  trigger: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                  value: "text-sm font-medium text-gray-700 dark:text-gray-300",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[280px]",
+                }}
+              >
+                {apps.map((a) => (
+                  <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
+                ))}
+              </Select>
+
+              <Select
+                aria-label="Pilih PJ Aplikasi"
+                placeholder={loadingPj ? "Memuat PJ..." : (selectedApp ? "Pilih PJ Aplikasi" : "Pilih aplikasi dulu")}
+                selectedKeys={selectedPj ? [selectedPj] : []}
+                onSelectionChange={(keys) => setSelectedPj(Array.from(keys)[0] as string || "")}
+                variant="bordered"
+                isDisabled={!selectedApp || loadingPj}
+                isLoading={loadingPj}
+                startContent={<FiUser className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                classNames={{
+                  base: "w-full",
+                  trigger: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                  value: "text-sm font-medium text-gray-700 dark:text-gray-300",
+                  popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[300px]",
+                }}
+              >
+                {pjList.map((p) => (
+                  <SelectItem key={p.id_pengguna} textValue={`${p.nm_pengguna} (${p.username})`}>
+                    <div>
+                      <span className="text-sm font-medium">{p.nm_pengguna}</span>
+                      <span className="text-xs text-gray-500 ml-2">@{p.username}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </Select>
+              <Input
+                aria-label="Search"
+                placeholder="Cari endpoint..."
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                variant="bordered"
+                startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
+                classNames={{
+                  base: "w-full",
+                  inputWrapper: "h-11 !bg-white dark:!bg-gray-800 border-gray-200 hover:border-indigo-400 transition-colors shadow-sm",
+                }}
+                isClearable
+                onClear={() => setSearchQuery("")}
+                isDisabled={!selectedPj}
+              />
+
+              <div className="flex items-center gap-2">
+                {selectedApp && (
+                  <Button
+                    size="md"
+                    startContent={<FiDownload className="w-4 h-4" />}
+                    onPress={handleOpenGenerate}
+                    className="h-11 font-medium bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
+                  >
+                    Generate
+                  </Button>
+                )}
+
+                {selectedPjData && selectedAppData && checkedIds.size > 0 && (
+                  <Button
+                    size="md"
+                    startContent={<FiPrinter className="w-4 h-4" />}
+                    onPress={handlePrintPDF}
+                    className="h-11 font-medium bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
+                  >
+                    Cetak PDF
+                  </Button>
+                )}
+              </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* No selection states */}
+      {!selectedApp && (
+        <Card className="border-none shadow-lg rounded-xl">
+          <CardBody className="p-12 text-center">
+            <FiBox className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Pilih Aplikasi
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              Pilih aplikasi terlebih dahulu untuk melihat dan mengatur otorisasi endpoint WS API
+            </p>
+          </CardBody>
+        </Card>
+      )}
+
+      {selectedApp && !selectedPj && !loadingPj && (
+        <Card className="border-none shadow-lg rounded-xl">
+          <CardBody className="p-12 text-center">
+            <FiUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Pilih PJ Aplikasi
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              {pjList.length === 0
+                ? "Belum ada PJ Aplikasi terdaftar untuk aplikasi ini. Tambahkan PJ di menu Penanggung Jawab Aplikasi."
+                : "Pilih Penanggung Jawab Aplikasi untuk mengatur endpoint WS API mana saja yang boleh diakses"}
+            </p>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Loading PJ */}
+      {loadingPj && (
+        <div className="flex justify-center py-8">
+          <Spinner size="lg" color="primary" />
+        </div>
+      )}
+
+      {/* Loading Endpoints */}
+      {loadingEndpoints && (
+        <div className="flex justify-center py-12">
+          <Spinner size="lg" color="primary" />
+        </div>
+      )}
+
+      {/* Endpoint Groups */}
+      {selectedApp && selectedPj && !loadingEndpoints && (
+        <>
+          {/* PJ Info + Summary Bar */}
+          <Card className="border-none shadow-md rounded-xl">
+            <CardBody className="p-4">
+              <div className="flex flex-col gap-3">
+                {/* PJ Info */}
+                {selectedPjData && (
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-700">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg flex-shrink-0">
+                      <FiUser className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                        {selectedPjData.nm_pengguna}
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">
+                        @{selectedPjData.username} · {selectedAppData?.nm_aplikasi}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stats + Actions */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Chip size="sm" variant="flat" color="primary">
+                      {totalGroups} grup
+                    </Chip>
+                    <Chip size="sm" variant="flat" color="success">
+                      {totalChecked}/{totalEndpoints} endpoint dipilih
+                    </Chip>
+                    {hasChanges && (
+                      <Chip size="sm" variant="flat" color="warning" className="animate-pulse">
+                        Belum disimpan
+                      </Chip>
+                    )}
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button size="sm" variant="bordered" onPress={selectAll} className="font-medium rounded-lg border-gray-300 dark:border-gray-600" startContent={<FiCheck className="w-3.5 h-3.5" />}>
+                      Pilih Semua
+                    </Button>
+                    <Button size="sm" variant="bordered" onPress={deselectAll} className="font-medium rounded-lg border-gray-300 dark:border-gray-600" startContent={<FiX className="w-3.5 h-3.5" />}>
+                      Hapus Semua
+                    </Button>
+                    {hasChanges && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="bordered"
+                          onPress={resetChanges}
+                          className="font-medium rounded-lg border-gray-300 dark:border-gray-600"
+                          startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
+                        >
+                          Reset
+                        </Button>
+                        <Button
+                          size="sm"
+                          onPress={handleSave}
+                          isLoading={isSaving}
+                          className="font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+                          startContent={<FiSave className="w-3.5 h-3.5" />}
+                        >
+                          Simpan
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Grouped Endpoints */}
+          {Object.keys(groupedEndpoints).length === 0 ? (
+            <Card className="border-none shadow-lg rounded-xl">
+              <CardBody className="p-12 text-center">
+                <FiServer className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-gray-500">
+                  {searchQuery
+                    ? "Tidak ada endpoint yang cocok dengan pencarian"
+                    : "Belum ada endpoint WS API terdaftar untuk aplikasi ini. Klik Generate untuk mengimpor daftar endpoint."}
+                </p>
+              </CardBody>
+            </Card>
+          ) : (
+            <Accordion
+              selectionMode="multiple"
+              defaultExpandedKeys={Object.keys(groupedEndpoints)}
+              variant="splitted"
+              className="gap-3"
+            >
+              {Object.entries(groupedEndpoints).map(([group, eps]) => {
+                const groupChecked = eps.filter((ep) => checkedIds.has(ep.id_ws_endpoint)).length;
+                const allChecked = groupChecked === eps.length;
+                const someChecked = groupChecked > 0 && !allChecked;
+
+                return (
+                  <AccordionItem
+                    key={group}
+                    aria-label={group}
+                    classNames={{
+                      base: "shadow-md rounded-xl border-none",
+                      title: "text-base font-semibold",
+                      trigger: "px-4 py-3",
+                      content: "px-4 pb-4",
+                    }}
+                    startContent={
+                      <div
+                        onClick={(e) => { e.stopPropagation(); toggleGroup(group, !allChecked); }}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all shrink-0 ${
+                          allChecked
+                            ? "bg-primary border-primary text-white"
+                            : someChecked
+                              ? "bg-primary/30 border-primary text-white"
+                              : "border-gray-300 dark:border-gray-600 hover:border-primary"
+                        }`}
+                      >
+                        {(allChecked || someChecked) && (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            {allChecked
+                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              : <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                            }
+                          </svg>
+                        )}
+                      </div>
+                    }
+                    title={
+                      <div className="flex items-center gap-2.5">
+                        <span className="capitalize font-semibold text-gray-800 dark:text-gray-200">{group}</span>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={allChecked ? "success" : someChecked ? "warning" : "default"}
+                          className="font-mono text-xs"
+                        >
+                          {groupChecked}/{eps.length}
+                        </Chip>
+                      </div>
+                    }
+                  >
+                    <div className="space-y-1.5">
+                      {eps.map((ep) => {
+                        const isChecked = checkedIds.has(ep.id_ws_endpoint);
+                        return (
+                          <div
+                            key={ep.id_ws_endpoint}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200
+                              ${
+                                isChecked
+                                  ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-sm"
+                                  : "bg-gray-50/80 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:border-gray-200 dark:hover:border-gray-600"
+                              }`}
+                            onClick={() => toggleEndpoint(ep.id_ws_endpoint)}
+                          >
+                            {/* Custom Checkbox */}
+                            <div
+                              className={`w-4.5 h-4.5 min-w-[18px] min-h-[18px] rounded border-2 flex items-center justify-center transition-all ${
+                                isChecked
+                                  ? "bg-blue-500 border-blue-500 text-white"
+                                  : "border-gray-300 dark:border-gray-500"
+                              }`}
+                            >
+                              {isChecked && (
+                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            {/* Method Badge */}
+                            <span
+                              className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded min-w-[52px] text-center flex-shrink-0 ${
+                                ep.nm_method === "GET"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                                  : ep.nm_method === "POST"
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+                                    : ep.nm_method === "PUT"
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                                      : ep.nm_method === "DELETE"
+                                        ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                              }`}
+                            >
+                              {ep.nm_method}
+                            </span>
+                            {/* Path + Name */}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-mono text-gray-800 dark:text-gray-200 truncate block leading-tight">
+                                {ep.path_url}
+                              </span>
+                              {ep.nm_endpoint && (
+                                <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate block leading-tight mt-0.5">
+                                  {ep.nm_endpoint}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+
+          {/* Floating Save Button */}
+          {hasChanges && (
+            <motion.div
+              className="fixed bottom-6 right-6 z-50"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+            >
+              <Button
+                color="primary"
+                size="lg"
+                onPress={handleSave}
+                isLoading={isSaving}
+                className="shadow-2xl font-semibold px-6"
+                startContent={<FiSave className="w-5 h-5" />}
+              >
+                Simpan Perubahan
+              </Button>
+            </motion.div>
+          )}
+        </>
+      )}
+
+      {/* Generate Modal */}
+      <Modal isOpen={isGenOpen} onClose={onGenClose} size="2xl" scrollBehavior="inside"
+        classNames={{
+          backdrop: "bg-black/50 backdrop-blur-sm",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
+        }}>
+        <ModalContent>
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-lg">
+                <FiDownload className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Generate Endpoints
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">
+                  Import routes dari ws-service ke database
+                </p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-6">
+            {genLoading ? (
+              <div className="flex justify-center py-12">
+                <Spinner size="lg" color="primary" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Ditemukan <strong>{genRoutes.length}</strong> routes dari ws-service.
+                  Endpoint yang sudah ada akan diperbarui, yang baru akan ditambahkan.
+                </p>
+                <div className="max-h-[400px] overflow-y-auto space-y-1 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                  {genRoutes.map((r, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-800"
+                    >
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={(METHOD_COLORS[r.method] || "default") as any}
+                        className="font-mono font-semibold min-w-[60px] text-center"
+                      >
+                        {r.method}
+                      </Chip>
+                      <span className="font-mono text-gray-700 dark:text-gray-300 truncate">
+                        {r.path}
+                      </span>
+                      <Chip size="sm" variant="flat" className="ml-auto shrink-0">
+                        {r.nm_group}
+                      </Chip>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
+            <Button variant="flat" onPress={onGenClose} className="font-medium">
+              Batal
+            </Button>
+            <Button
+              onPress={handleConfirmGenerate}
+              isLoading={isGenerating}
+              isDisabled={genRoutes.length === 0}
+              className="font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg"
+            >
+              Generate {genRoutes.length} Endpoints
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </motion.div>
+  );
+}

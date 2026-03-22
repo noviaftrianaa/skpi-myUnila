@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -32,9 +33,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 // ============================================================================
 
 func (s *service) GetTingkatKerjasama(ctx context.Context, params types.PaginationParams) ([]TingkatKerjasama, int64, error) {
-	cacheKeyData := fmt.Sprintf("tingkat_kerjasama:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tingkat_kerjasama:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tingkat_kerjasama:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tingkat_kerjasama:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -66,9 +67,9 @@ func (s *service) GetTingkatKerjasama(ctx context.Context, params types.Paginati
 // ============================================================================
 
 func (s *service) GetTingkatPenghargaan(ctx context.Context, params types.PaginationParams) ([]TingkatPenghargaan, int64, error) {
-	cacheKeyData := fmt.Sprintf("tingkat_penghargaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tingkat_penghargaan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tingkat_penghargaan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tingkat_penghargaan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -100,9 +101,9 @@ func (s *service) GetTingkatPenghargaan(ctx context.Context, params types.Pagina
 // ============================================================================
 
 func (s *service) GetTingkatPrestasi(ctx context.Context, params types.PaginationParams) ([]TingkatPrestasi, int64, error) {
-	cacheKeyData := fmt.Sprintf("tingkat_prestasi:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("tingkat_prestasi:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("tingkat_prestasi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("tingkat_prestasi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

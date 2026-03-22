@@ -578,7 +578,7 @@ export default function RolePenggunaTable() {
             columns={columns}
             searchable={true}
             searchKeys={["nm_pengguna", "username", "nm_peran"]}
-            searchPlaceholder="Cari nama pengguna atau peran..."
+            searchPlaceholder="Cari pengguna internal portal..."
             defaultRowsPerPage={10}
             rowsPerPageOptions={[5, 10, 25, 50, 100]}
             loading={loading}

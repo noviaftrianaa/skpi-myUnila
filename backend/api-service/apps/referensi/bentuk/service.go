@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,21 +29,19 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetBentukKegiatanKerjasama mengambil daftar bentuk kegiatan kerjasama dengan pagination
 func (s *service) GetBentukKegiatanKerjasama(ctx context.Context, params types.PaginationParams) ([]BentukKegiatanKerjasama, int64, error) {
-	cacheKeyData := fmt.Sprintf("bentuk_kegiatan_kerjasama:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bentuk_kegiatan_kerjasama:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bentuk_kegiatan_kerjasama:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bentuk_kegiatan_kerjasama:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+	if err1 == nil && err2 == nil {
 		var data []BentukKegiatanKerjasama
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bentuk kegiatan kerjasama data and total")
-				return data, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bentuk kegiatan kerjasama data and total")
+			return data, total, nil
 		}
 	}
 
@@ -51,39 +50,29 @@ func (s *service) GetBentukKegiatanKerjasama(ctx context.Context, params types.P
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bentuk kegiatan kerjasama data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bentuk kegiatan kerjasama total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }
 
 // GetBentukPendidikan mengambil daftar bentuk pendidikan dengan pagination dan filter
 func (s *service) GetBentukPendidikan(ctx context.Context, params types.BentukPendidikanParams) ([]BentukPendidikan, int64, error) {
-	cacheKeyData := fmt.Sprintf("bentuk_pendidikan:data:page:%d:limit:%d:paud:%v:tk:%v:sd:%v:smp:%v:sma:%v:tinggi:%v:aktif:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.JenjangPaud, params.JenjangTk, params.JenjangSd, params.JenjangSmp, params.JenjangSma, params.JenjangTinggi, params.Aktif, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bentuk_pendidikan:total:paud:%v:tk:%v:sd:%v:smp:%v:sma:%v:tinggi:%v:aktif:%v:search:%s",
-		params.JenjangPaud, params.JenjangTk, params.JenjangSd, params.JenjangSmp, params.JenjangSma, params.JenjangTinggi, params.Aktif, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bentuk_pendidikan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bentuk_pendidikan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+	if err1 == nil && err2 == nil {
 		var data []BentukPendidikan
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bentuk pendidikan data and total")
-				return data, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bentuk pendidikan data and total")
+			return data, total, nil
 		}
 	}
 
@@ -92,17 +81,10 @@ func (s *service) GetBentukPendidikan(ctx context.Context, params types.BentukPe
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bentuk pendidikan data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bentuk pendidikan total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }

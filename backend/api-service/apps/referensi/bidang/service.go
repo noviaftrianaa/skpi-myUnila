@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -30,21 +31,19 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetBidangKerjasama mengambil daftar bidang kerjasama dengan pagination
 func (s *service) GetBidangKerjasama(ctx context.Context, params types.PaginationParams) ([]BidangKerjasama, int64, error) {
-	cacheKeyData := fmt.Sprintf("bidang_kerjasama:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bidang_kerjasama:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bidang_kerjasama:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bidang_kerjasama:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+	if err1 == nil && err2 == nil {
 		var data []BidangKerjasama
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bidang kerjasama data and total")
-				return data, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bidang kerjasama data and total")
+			return data, total, nil
 		}
 	}
 
@@ -53,38 +52,29 @@ func (s *service) GetBidangKerjasama(ctx context.Context, params types.Paginatio
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang kerjasama data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang kerjasama total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }
 
 // GetBidangPekerjaan mengambil daftar bidang pekerjaan dengan pagination
 func (s *service) GetBidangPekerjaan(ctx context.Context, params types.PaginationParams) ([]BidangPekerjaan, int64, error) {
-	cacheKeyData := fmt.Sprintf("bidang_pekerjaan:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bidang_pekerjaan:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bidang_pekerjaan:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bidang_pekerjaan:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+	if err1 == nil && err2 == nil {
 		var data []BidangPekerjaan
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bidang pekerjaan data and total")
-				return data, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bidang pekerjaan data and total")
+			return data, total, nil
 		}
 	}
 
@@ -93,39 +83,29 @@ func (s *service) GetBidangPekerjaan(ctx context.Context, params types.Paginatio
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang pekerjaan data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang pekerjaan total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }
 
 // GetBidangStudi mengambil daftar bidang studi dengan pagination dan filter
 func (s *service) GetBidangStudi(ctx context.Context, params types.BidangStudiParams) ([]BidangStudi, int64, error) {
-	cacheKeyData := fmt.Sprintf("bidang_studi:data:page:%d:limit:%d:induk:%v:kel:%v:paud:%v:tk:%v:sd:%v:smp:%v:sma:%v:tinggi:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDIndukBidangStudi, params.Kelompok, params.JenjangPaud, params.JenjangTk, params.JenjangSd, params.JenjangSmp, params.JenjangSma, params.JenjangTinggi, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bidang_studi:total:induk:%v:kel:%v:paud:%v:tk:%v:sd:%v:smp:%v:sma:%v:tinggi:%v:search:%s",
-		params.IDIndukBidangStudi, params.Kelompok, params.JenjangPaud, params.JenjangTk, params.JenjangSd, params.JenjangSmp, params.JenjangSma, params.JenjangTinggi, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bidang_studi:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bidang_studi:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
+	if err1 == nil && err2 == nil {
 		var data []BidangStudi
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &data); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bidang studi data and total")
-				return data, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bidang studi data and total")
+			return data, total, nil
 		}
 	}
 
@@ -134,38 +114,29 @@ func (s *service) GetBidangStudi(ctx context.Context, params types.BidangStudiPa
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang studi data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang studi total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }
 
 // GetBidangUsaha mengambil daftar bidang usaha dengan pagination
 func (s *service) GetBidangUsaha(ctx context.Context, params types.PaginationParams) ([]BidangUsaha, int64, error) {
-	cacheKeyData := fmt.Sprintf("bidang_usaha:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("bidang_usaha:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("bidang_usaha:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("bidang_usaha:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
 
-	if err1 == nil && err2 == nil && cachedData != "" && cachedTotal != "" {
-		var bidangUsaha []BidangUsaha
+	if err1 == nil && err2 == nil {
+		var data []BidangUsaha
 		var total int64
-		if err := json.Unmarshal([]byte(cachedData), &bidangUsaha); err == nil {
-			if err := json.Unmarshal([]byte(cachedTotal), &total); err == nil {
-				log.Printf("Cache hit for bidang usaha data and total")
-				return bidangUsaha, total, nil
-			}
+		if json.Unmarshal([]byte(cachedData), &data) == nil && json.Unmarshal([]byte(cachedTotal), &total) == nil {
+			log.Printf("Cache hit for bidang usaha data and total")
+			return data, total, nil
 		}
 	}
 
@@ -174,17 +145,10 @@ func (s *service) GetBidangUsaha(ctx context.Context, params types.PaginationPar
 		return nil, 0, err
 	}
 
-	if bytes, err := json.Marshal(data); err == nil {
-		if err := cache.Set(ctx, cacheKeyData, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang usaha data: %v", err)
-		}
-	}
-
-	if bytes, err := json.Marshal(total); err == nil {
-		if err := cache.Set(ctx, cacheKeyTotal, bytes, 10*time.Minute); err != nil {
-			log.Printf("Failed to cache bidang usaha total: %v", err)
-		}
-	}
+	dataJSON, _ := json.Marshal(data)
+	totalJSON, _ := json.Marshal(total)
+	cache.Set(ctx, cacheKeyData, string(dataJSON), 10*time.Minute)
+	cache.Set(ctx, cacheKeyTotal, string(totalJSON), 10*time.Minute)
 
 	return data, total, nil
 }

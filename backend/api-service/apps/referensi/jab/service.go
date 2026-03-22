@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,8 +29,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 
 // GetJabTgss mengambil daftar semester dengan pagination
 func (s *service) GetJabTgss(ctx context.Context, params types.JabTgsParams) ([]JabTgs, int64, error) {
-	cacheKeyData := fmt.Sprintf("jab_tgs:data:page:%d:limit:%d:id_kel_prof:%v:jabatansek:%v:jabatanpt:%v:jabatanpt:%v:jabatanlpnk:%v:jabatanlpk:%v:search:%s:sort:%s:%s", params.Page, params.Limit, params.IDKelProf, params.JabatanUtamaSek, params.JabatanUtamaPt, params.JabatanUtamaLpnk, params.JabatanUtamaLpk, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("jab_tgs:total:id_kel_prof:%v:jabatansek:%v:jabatanpt:%v:jabatanpt:%v:jabatanlpnk:%v:jabatanlpk:%v:search:%s", params.IDKelProf, params.JabatanUtamaSek, params.JabatanUtamaPt, params.JabatanUtamaLpnk, params.JabatanUtamaLpk, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("jab_tgs:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("jab_tgs:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -58,9 +60,9 @@ func (s *service) GetJabTgss(ctx context.Context, params types.JabTgsParams) ([]
 
 // GetTahunAjarans mengambil daftar tahun ajaran dengan pagination
 func (s *service) GetJabFungs(ctx context.Context, params types.JabFungParams) ([]JabFung, int64, error) {
-	cacheKeyData := fmt.Sprintf("jab_fung:data:page:%d:limit:%d:id_kel_prof:%v:angka_kredit:%v:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDKelProf, params.AngkaKredit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("jab_fung:total:id_kel_prof:%v:angka_kredit:%v:search:%s", params.IDKelProf, params.AngkaKredit, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("jab_fung:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("jab_fung:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

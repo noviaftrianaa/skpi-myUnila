@@ -24,11 +24,13 @@ class EndpointRepository
         $nmGroup = $params['nm_group'] ?? null;
         $nmMethod = $params['nm_method'] ?? null;
         $aActive = $params['a_active'] ?? null;
+        $idAplikasi = $params['id_aplikasi'] ?? null;
         $offset = ($page - 1) * $limit;
 
         $dataSql = "
             SELECT
                 CONVERT(VARCHAR(36), e.id_ws_endpoint) as id_ws_endpoint,
+                CONVERT(VARCHAR(36), e.id_aplikasi) as id_aplikasi,
                 e.nm_group as nm_group,
                 e.nm_method,
                 e.nm_endpoint,
@@ -84,6 +86,14 @@ class EndpointRepository
             $dataSql .= $condition;
             $bindings[] = $aActive ? 1 : 0;
             $countBindings[] = $aActive ? 1 : 0;
+        }
+
+        if ($idAplikasi) {
+            $condition = " AND e.id_aplikasi = ?";
+            $countSql .= $condition;
+            $dataSql .= $condition;
+            $bindings[] = $idAplikasi;
+            $countBindings[] = $idAplikasi;
         }
 
         $countResult = DB::selectOne($countSql, $countBindings);
@@ -142,6 +152,28 @@ class EndpointRepository
             FROM man_akses.ws_endpoint
             WHERE soft_delete = 0 AND nm_group IS NOT NULL
             ORDER BY nm_group ASC
+        ";
+
+        return DB::select($sql);
+    }
+
+    /**
+     * Get distinct applications that have endpoints registered
+     *
+     * @return array
+     */
+    public function getAppsWithEndpoints(): array
+    {
+        $sql = "
+            SELECT DISTINCT
+                CONVERT(VARCHAR(36), e.id_aplikasi) as id_aplikasi,
+                a.nm_aplikasi,
+                COUNT(*) as total_endpoint
+            FROM man_akses.ws_endpoint e
+            JOIN man_akses.aplikasi a ON a.id_aplikasi = e.id_aplikasi
+            WHERE e.soft_delete = 0
+            GROUP BY e.id_aplikasi, a.nm_aplikasi
+            ORDER BY a.nm_aplikasi ASC
         ";
 
         return DB::select($sql);

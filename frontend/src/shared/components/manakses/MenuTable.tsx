@@ -1343,12 +1343,12 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         scrollBehavior="inside"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
+          <ModalHeader className="flex flex-col gap-2 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Tambah Menu Baru
             </h3>
@@ -1356,10 +1356,10 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Isi form untuk menambah menu baru ke aplikasi
             </p>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             {renderFormContent()}
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsAddModalOpen(false)}>
               Batal
             </Button>
@@ -1378,12 +1378,12 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         scrollBehavior="inside"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
+          <ModalHeader className="flex flex-col gap-2 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Edit Menu
             </h3>
@@ -1391,10 +1391,10 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Perbarui informasi menu
             </p>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             {renderFormContent()}
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsEditModalOpen(false)}>
               Batal
             </Button>
@@ -1411,7 +1411,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         onClose={() => setIsDeleteModalOpen(false)}
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
@@ -1419,7 +1419,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
           <ModalHeader className="px-6 py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">Konfirmasi Hapus</h3>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             <p className="text-gray-700 dark:text-gray-300">
               Apakah Anda yakin ingin menghapus menu <strong>{selectedItem?.nm_menu}</strong>?
             </p>
@@ -1427,7 +1427,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Perhatian: Menghapus menu parent akan menghapus semua sub-menu di bawahnya.
             </p>
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsDeleteModalOpen(false)}>
               Batal
             </Button>

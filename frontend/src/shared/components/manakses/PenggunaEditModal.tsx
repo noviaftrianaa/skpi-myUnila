@@ -269,12 +269,12 @@ export default function PenggunaEditModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh]",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4 max-h-[90vh]",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
       }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
+        <ModalHeader className="flex flex-col gap-2 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-slate-700">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             Edit Pengguna
           </h3>
@@ -302,11 +302,11 @@ export default function PenggunaEditModal({
                 selectedKey={activeTab}
                 onSelectionChange={(key) => setActiveTab(key as string)}
                 classNames={{
-                  tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-6 mt-4",
+                  tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-3 sm:mx-6 mt-4 flex-wrap sm:flex-nowrap",
                   cursor: "bg-white dark:bg-slate-600 shadow-sm",
-                  tab: "px-4 py-2 text-sm font-medium",
+                  tab: "px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium",
                   tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
-                  panel: "px-6 py-5",
+                  panel: "px-3 sm:px-6 py-4 sm:py-5",
                 }}
               >
                 {/* Tab: Informasi Pribadi */}
@@ -802,7 +802,7 @@ export default function PenggunaEditModal({
           ) : null}
         </ModalBody>
 
-        <ModalFooter className="gap-3 px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+        <ModalFooter className="gap-3 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
           <Button
             variant="flat"
             onPress={onClose}

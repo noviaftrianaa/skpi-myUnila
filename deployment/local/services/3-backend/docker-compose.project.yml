@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  project-service:
+    container_name: myunila-project-service
+    build:
+      context: ../../../../backend/project-service
+      dockerfile: Dockerfile
+    ports:
+      - "8095:8095"
+    env_file:
+      - ../../.env
+    environment:
+      - APP_NAME=Project Service
+      - APP_PORT=:8095
+      - APP_ENV=development
+      # PostgreSQL
+      - PG_HOST=${PROJECT_PG_HOST:-localhost}
+      - PG_PORT=${PROJECT_PG_PORT:-5432}
+      - PG_DATABASE=${PROJECT_PG_DATABASE:-myunila_project}
+      - PG_USERNAME=${PROJECT_PG_USERNAME:-myunila_pm}
+      - PG_PASSWORD=${PROJECT_PG_PASSWORD}
+      - PG_SSLMODE=${PROJECT_PG_SSLMODE:-disable}
+      # SQL Server (reference)
+      - MSSQL_HOST=${DB_MSSQL_HOST}
+      - MSSQL_PORT=${DB_MSSQL_PORT:-1433}
+      - MSSQL_DATABASE=${DB_MSSQL_DATABASE}
+      - MSSQL_USERNAME=${DB_MSSQL_USERNAME}
+      - MSSQL_PASSWORD=${DB_MSSQL_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - myunila-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  myunila-network:
+    external: true

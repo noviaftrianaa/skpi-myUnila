@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { authClient } from "@/lib/api/client";
+import toast from "react-hot-toast";
 import {
   Modal,
   ModalContent,
@@ -12,9 +14,12 @@ import {
   Tabs,
   Tab,
   Spinner,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { FiEdit2, FiInfo, FiList, FiUsers, FiDatabase, FiCalendar, FiSettings } from "react-icons/fi";
 import { type AplikasiDetail } from "@/lib/services/manakses/aplikasiService";
+import { FiTrash2, FiPlus } from "react-icons/fi";
 import { menuService, type Menu } from "@/lib/services/manakses/menuService";
 import MenuTreeView from "./MenuTreeView";
 
@@ -90,7 +95,10 @@ export default function AplikasiDetailModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh]",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh] mx-2 sm:mx-4",
+        body: "px-3 sm:px-6",
+        header: "px-3 sm:px-6",
+        footer: "px-3 sm:px-6",
       }}
     >
       <ModalContent>
@@ -113,22 +121,22 @@ export default function AplikasiDetailModal({
           ) : aplikasi ? (
             <div className="space-y-4">
               {/* Statistics Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-3 rounded-xl text-center border border-indigo-200/50 dark:border-indigo-700/30">
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{aplikasi.jumlah_table || 0}</div>
-                  <div className="text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium">Tabel</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-indigo-200/50 dark:border-indigo-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">{aplikasi.jumlah_table || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium">Tabel</div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-3 rounded-xl text-center border border-green-200/50 dark:border-green-700/30">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{aplikasi.jumlah_pj || 0}</div>
-                  <div className="text-xs text-green-600/70 dark:text-green-400/70 font-medium">Penanggung Jawab</div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-green-200/50 dark:border-green-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{aplikasi.jumlah_pj || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-green-600/70 dark:text-green-400/70 font-medium">PJ</div>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-3 rounded-xl text-center border border-purple-200/50 dark:border-purple-700/30">
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{menusLoaded ? menus.length : (aplikasi.menus?.length || 0)}</div>
-                  <div className="text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">Menu</div>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-purple-200/50 dark:border-purple-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">{menusLoaded ? menus.length : (aplikasi.menus?.length || 0)}</div>
+                  <div className="text-[10px] sm:text-xs text-purple-600/70 dark:text-purple-400/70 font-medium">Menu</div>
                 </div>
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-3 rounded-xl text-center border border-orange-200/50 dark:border-orange-700/30">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{aplikasi.urutan || 0}</div>
-                  <div className="text-xs text-orange-600/70 dark:text-orange-400/70 font-medium">Urutan</div>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-2.5 sm:p-3 rounded-xl text-center border border-orange-200/50 dark:border-orange-700/30">
+                  <div className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">{aplikasi.urutan || 0}</div>
+                  <div className="text-[10px] sm:text-xs text-orange-600/70 dark:text-orange-400/70 font-medium">Urutan</div>
                 </div>
               </div>
 
@@ -138,9 +146,9 @@ export default function AplikasiDetailModal({
                 selectedKey={activeTab}
                 onSelectionChange={(key) => setActiveTab(key as string)}
                 classNames={{
-                  tabList: "gap-2 w-full bg-gray-100 dark:bg-slate-700/50 p-1 rounded-xl",
+                  tabList: "gap-1 sm:gap-2 w-full bg-gray-100 dark:bg-slate-700/50 p-1 rounded-xl flex-wrap sm:flex-nowrap",
                   cursor: "bg-white dark:bg-slate-600 shadow-sm",
-                  tab: "max-w-fit px-3 h-8 text-xs font-medium",
+                  tab: "max-w-fit px-2 sm:px-3 h-8 text-[10px] sm:text-xs font-medium",
                   tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
                 }}
               >
@@ -155,9 +163,9 @@ export default function AplikasiDetailModal({
                 >
                   <div className="pt-4 space-y-4">
                     {/* Basic Info & Teknis */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                       {/* Informasi Dasar */}
-                      <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
+                      <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-3 sm:p-4 border border-gray-200/80 dark:border-slate-600/50">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                           Informasi Dasar
@@ -183,7 +191,7 @@ export default function AplikasiDetailModal({
                           </div>
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">Organisasi</span>
-                            <span className="text-gray-900 dark:text-white font-medium text-right max-w-[150px] truncate">{aplikasi.nm_organisasi || "-"}</span>
+                            <span className="text-gray-900 dark:text-white font-medium text-right max-w-[120px] sm:max-w-[150px] truncate" title={aplikasi.nm_organisasi || "-"}>{aplikasi.nm_organisasi || "-"}</span>
                           </div>
                           {aplikasi.ket_aplikasi && (
                             <div className="pt-1">
@@ -195,7 +203,7 @@ export default function AplikasiDetailModal({
                       </div>
 
                       {/* Teknis */}
-                      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-3 sm:p-4 border border-blue-200/50 dark:border-blue-800/30">
                         <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                           Informasi Teknis
@@ -203,7 +211,7 @@ export default function AplikasiDetailModal({
                         <div className="space-y-2.5 text-sm">
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">URL</span>
-                            <span className="text-right max-w-[180px] truncate">
+                            <span className="text-right max-w-[140px] sm:max-w-[180px] truncate">
                               {aplikasi.url ? (
                                 <a href={aplikasi.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs font-mono">
                                   {aplikasi.url}
@@ -225,7 +233,7 @@ export default function AplikasiDetailModal({
                           </div>
                           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
                             <span className="text-gray-500 dark:text-gray-400">Endpoint WS</span>
-                            <span className="text-gray-900 dark:text-white font-mono text-xs max-w-[150px] truncate">{aplikasi.endpoint_ws || "-"}</span>
+                            <span className="text-gray-900 dark:text-white font-mono text-xs max-w-[120px] sm:max-w-[150px] truncate" title={aplikasi.endpoint_ws || "-"}>{aplikasi.endpoint_ws || "-"}</span>
                           </div>
                           {aplikasi.app_key && (
                             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/60 dark:bg-slate-700/40">
@@ -238,12 +246,12 @@ export default function AplikasiDetailModal({
                     </div>
 
                     {/* Pengaturan */}
-                    <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-slate-200/80 dark:border-slate-600/50">
+                    <div className="bg-slate-50/80 dark:bg-slate-700/20 rounded-xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-600/50">
                       <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                         <FiSettings className="w-4 h-4 text-slate-500" />
                         Pengaturan
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         {[
                           { label: "Production", active: aplikasi.a_live, color: "green" },
                           { label: "Portal", active: aplikasi.a_tampil_portal, color: "blue" },
@@ -263,12 +271,12 @@ export default function AplikasiDetailModal({
                     </div>
 
                     {/* Tanggal */}
-                    <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-4 border border-amber-200/50 dark:border-amber-800/30">
+                    <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-xl p-3 sm:p-4 border border-amber-200/50 dark:border-amber-800/30">
                       <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                         <FiCalendar className="w-4 h-4 text-amber-500" />
                         Tanggal
                       </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                         <div className="bg-white/60 dark:bg-slate-700/40 p-2.5 rounded-lg">
                           <span className="text-gray-500 dark:text-gray-400 block text-xs mb-1">Dibuat</span>
                           <span className="text-gray-900 dark:text-white text-sm font-medium">{formatDate(aplikasi.tgl_create)}</span>
@@ -418,6 +426,21 @@ export default function AplikasiDetailModal({
                     )}
                   </div>
                 </Tab>
+
+                {/* Tab Organisasi Whitelist */}
+                {aplikasi?.a_filter_organisasi && (
+                  <Tab
+                    key="organisasi"
+                    title={
+                      <div className="flex items-center gap-1.5">
+                        <FiUsers className="w-3.5 h-3.5" />
+                        <span>Organisasi</span>
+                      </div>
+                    }
+                  >
+                    <OrganisasiWhitelist aplikasiId={aplikasi?.id_aplikasi || ""} />
+                  </Tab>
+                )}
               </Tabs>
             </div>
           ) : (
@@ -445,5 +468,143 @@ export default function AplikasiDetailModal({
         </ModalFooter>
       </ModalContent>
     </Modal>
+  );
+}
+
+// Organisasi Whitelist sub-component
+function OrganisasiWhitelist({ aplikasiId }: { aplikasiId: string }) {
+  const [orgs, setOrgs] = useState<any[]>([]);
+  const [allUnits, setAllUnits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrg, setSelectedOrg] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const loadOrgs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await authClient.get(`/manakses/aplikasi/${aplikasiId}/organisasi`);
+      setOrgs(res.data.data || []);
+    } catch (e) {
+      console.error("Error loading orgs:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [aplikasiId]);
+
+  const loadUnits = useCallback(async () => {
+    try {
+      const res = await authClient.get("/manakses/unit-organisasi?limit=200");
+      setAllUnits(res.data.data || []);
+    } catch (e) {
+      console.error("Error loading units:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOrgs();
+    loadUnits();
+  }, [loadOrgs, loadUnits]);
+
+  const handleAdd = async () => {
+    if (!selectedOrg) return;
+    setAdding(true);
+    try {
+      await authClient.post(`/manakses/aplikasi/${aplikasiId}/organisasi`, {
+        id_organisasi: selectedOrg,
+        a_include_children: true,
+      });
+      toast.success("Organisasi berhasil ditambahkan");
+      setSelectedOrg("");
+      loadOrgs();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Gagal menambah organisasi");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (orgId: string) => {
+    try {
+      await authClient.delete(`/manakses/aplikasi/${aplikasiId}/organisasi/${orgId}`);
+      toast.success("Organisasi dihapus dari whitelist");
+      loadOrgs();
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Gagal menghapus");
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Spinner size="sm" /></div>;
+
+  const existingOrgIds = orgs.map((o: any) => o.id_organisasi);
+  const availableUnits = allUnits.filter((u: any) => !existingOrgIds.includes(u.id_organisasi));
+
+  return (
+    <div className="space-y-4">
+      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-700 dark:text-blue-300">
+          Hanya organisasi di bawah ini yang bisa mengakses aplikasi ini. Role universal (Mahasiswa, Dosen, Tendik, Rektor, dll) tetap bisa akses tanpa whitelist.
+        </p>
+      </div>
+
+      {/* Add new */}
+      <div className="flex gap-2">
+        <Select
+          aria-label="Pilih Organisasi"
+          placeholder="Pilih organisasi untuk ditambahkan..."
+          selectedKeys={selectedOrg ? [selectedOrg] : []}
+          onSelectionChange={(keys) => setSelectedOrg(Array.from(keys)[0] as string || "")}
+          size="sm"
+          variant="bordered"
+          classNames={{ base: "flex-1" }}
+        >
+          {availableUnits.map((u: any) => (
+            <SelectItem key={u.id_organisasi}>
+              {u.nm_lemb}
+            </SelectItem>
+          ))}
+        </Select>
+        <Button
+          size="sm"
+          color="primary"
+          startContent={<FiPlus className="w-3.5 h-3.5" />}
+          onPress={handleAdd}
+          isLoading={adding}
+          isDisabled={!selectedOrg}
+        >
+          Tambah
+        </Button>
+      </div>
+
+      {/* List */}
+      {orgs.length === 0 ? (
+        <div className="text-center py-6 text-gray-500 text-sm">
+          Belum ada organisasi yang di-whitelist
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {orgs.map((org: any) => (
+            <div key={org.id_organisasi} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <FiUsers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white">{org.nm_organisasi}</p>
+                  {org.a_include_children ? (
+                    <p className="text-xs text-gray-500">Termasuk sub-organisasi</p>
+                  ) : null}
+                </div>
+              </div>
+              <Button
+                isIconOnly size="sm" variant="flat" color="danger"
+                onPress={() => handleRemove(org.id_organisasi)}
+              >
+                <FiTrash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

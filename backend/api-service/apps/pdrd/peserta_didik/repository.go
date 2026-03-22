@@ -15,6 +15,7 @@ type Repository interface {
 	GetPesertaDidik(ctx context.Context, params types.PaginationParams) ([]PesertaDidik, int64, error)
 	GetPesertaDidikDetail(ctx context.Context, params types.PesertaDidikDetailParams) ([]PesertaDidikDetail, int64, error)
 	GetRegPd(ctx context.Context, params types.RegPdParams) ([]RegPd, int64, error)
+	GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error)
 }
 
 type repository struct {
@@ -363,6 +364,76 @@ func (r *repository) GetRegPd(
 	}
 
 	return result, total, nil
+}
+
+func (r *repository) GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error) {
+	params.NormalizePagination()
+
+	cb := helper.NewCondBuilder()
+	cb.AppendUUID("km.id_reg_pd", strPtr(params.IDRegPd))
+	cb.AppendInt("km.id_smt", params.IDSmt)
+	cb.AppendString("km.id_stat_mhs", params.IDStatMhs)
+
+	conds, args := cb.Build()
+	conds = append(conds, "km.soft_delete = 0")
+	whereClause := strings.Join(conds, " AND ")
+
+	// COUNT
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM pdrd.kuliah_mhs km WHERE %s`, whereClause)
+	var total int64
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	sortBy := "km.id_smt"
+	if params.SortBy != "" {
+		sortBy = params.SortBy
+	}
+	order := params.Order
+	if order == "" {
+		order = "ASC"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT
+			km.id_reg_pd,
+			km.id_smt,
+			km.id_pembiayaan,
+			km.id_stat_mhs,
+			km.ips,
+			km.sks_semester,
+			km.ipk,
+			km.total_sks,
+			km.biaya_smt,
+			km.create_date,
+			km.id_creator,
+			km.last_update,
+			km.id_updater,
+			km.soft_delete,
+			km.last_sync
+		FROM pdrd.kuliah_mhs km
+		WHERE %s
+		ORDER BY %s %s
+		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		whereClause, sortBy, order, len(args)+1, len(args)+2,
+	)
+	args = append(args, params.Offset(), params.Limit)
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []StatusKuliahMahasiswa
+	for rows.Next() {
+		var m StatusKuliahMahasiswa
+		if err := rows.StructScan(&m); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, m)
+	}
+	return result, total, rows.Err()
 }
 
 // strPtr mengkonversi string kosong menjadi nil untuk filter UUID

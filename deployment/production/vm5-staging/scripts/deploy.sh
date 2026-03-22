@@ -158,7 +158,7 @@ echo -e "${YELLOW}  Waiting for Go services to be ready...${NC}"
 wait_for_healthy "myunila-sister-staging" 60
 wait_for_healthy "myunila-feeder-staging" 60
 wait_for_healthy "myunila-myunila-staging" 60
-wait_for_healthy "myunila-api-staging" 30
+wait_for_healthy "myunila-ws-staging" 30
 wait_for_healthy "myunila-keuangan-staging" 60
 wait_for_healthy "myunila-monitoring-staging" 60
 echo ""

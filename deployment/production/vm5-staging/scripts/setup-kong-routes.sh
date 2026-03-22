@@ -231,9 +231,9 @@ create_service_route "feeder-service" \
     "feeder-service" 100
 
 # API Service / OneData (Go - direct)
-create_service_route "api-service" \
-    "${API_SERVICE_URL:-http://myunila-api-staging:8085}" \
-    "api-service" 100
+create_service_route "ws-service" \
+    "${API_SERVICE_URL:-http://myunila-ws-staging:8085}" \
+    "ws-service" 100
 
 # MyUnila Service (Go - direct)
 create_service_route "myunila-service" \

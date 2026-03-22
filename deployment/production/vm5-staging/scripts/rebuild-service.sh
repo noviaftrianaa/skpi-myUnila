@@ -99,7 +99,7 @@ rebuild_service() {
         sister)     container="myunila-sister-staging" ;;
         feeder)     container="myunila-feeder-staging" ;;
         myunila)    container="myunila-myunila-staging" ;;
-        api)        container="myunila-api-staging" ;;
+        api|ws)   container="myunila-ws-staging" ;;
         keuangan)   container="myunila-keuangan-staging" ;;
         monitoring) container="myunila-monitoring-staging" ;;
         kong)       container="myunila-kong-staging" ;;

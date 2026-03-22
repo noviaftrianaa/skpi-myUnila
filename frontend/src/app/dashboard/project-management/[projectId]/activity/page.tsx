@@ -1,0 +1,106 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { Card, CardBody, Spinner } from "@heroui/react";
+import { FiActivity, FiFolder } from "react-icons/fi";
+import Link from "next/link";
+import { projectManagementMenuConfig } from "../../config/menuConfig";
+import ActivityFeed from "../../components/ActivityFeed";
+import {
+  projectService,
+  type Project,
+  type Activity,
+} from "@/lib/services/project/projectService";
+
+export default function ActivityPage() {
+  useRequireAuth();
+  const params = useParams();
+  const projectId = params.projectId as string;
+
+  const [project, setProject] = useState<Project | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const [proj, acts] = await Promise.all([
+          projectService.getProject(projectId),
+          projectService.getActivity(projectId, { per_page: 50 }),
+        ]);
+        setProject(proj);
+        setActivities(acts.data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [projectId]);
+
+  if (isLoading) {
+    return (
+      <DashboardLayoutWithDynamicMenu
+        appName="Project Management"
+        appIcon={<FiFolder className="w-6 h-6 text-white" />}
+        appKey="project-management"
+        fallbackMenus={projectManagementMenuConfig}
+        pageTitle="Aktivitas"
+      >
+        <div className="flex justify-center items-center h-96">
+          <Spinner size="lg" color="primary" />
+        </div>
+      </DashboardLayoutWithDynamicMenu>
+    );
+  }
+
+  return (
+    <DashboardLayoutWithDynamicMenu
+      appName="Project Management"
+      appIcon={<FiFolder className="w-6 h-6 text-white" />}
+      appKey="project-management"
+      fallbackMenus={projectManagementMenuConfig}
+      pageTitle={project ? `${project.nama} — Aktivitas` : "Aktivitas"}
+    >
+      <div className="space-y-4 max-w-2xl">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/project-management"
+            className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
+          >
+            Project Management
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Link
+            href={`/dashboard/project-management/${projectId}/board`}
+            className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
+          >
+            {project?.nama ?? "..."}
+          </Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
+            <FiActivity className="w-3.5 h-3.5" />
+            Aktivitas
+          </span>
+        </div>
+
+        <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
+          <CardBody className="p-5">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2 mb-4">
+              <FiActivity className="w-4 h-4 text-[#0B5EA8]" />
+              Riwayat Aktivitas
+            </h2>
+            <ActivityFeed activities={activities} loading={isLoading} />
+          </CardBody>
+        </Card>
+      </div>
+    </DashboardLayoutWithDynamicMenu>
+  );
+}

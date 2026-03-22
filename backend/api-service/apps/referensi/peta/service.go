@@ -9,6 +9,7 @@ import (
 
 	"github.com/myunila/api-service/apps/referensi/types"
 	cache "github.com/myunila/api-service/external/redis"
+	"github.com/myunila/api-service/pkg/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -32,9 +33,9 @@ func NewService(repo Repository, rConn *redis.Client) Service {
 // ============================================================================
 
 func (s *service) GetPetaKatgiatJabfung(ctx context.Context, params types.PaginationParams) ([]PetaKatgiatJabfung, int64, error) {
-	cacheKeyData := fmt.Sprintf("peta_katgiat_jabfung:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jabfung:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("peta_katgiat_jabfung:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jabfung:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -66,10 +67,9 @@ func (s *service) GetPetaKatgiatJabfung(ctx context.Context, params types.Pagina
 // ============================================================================
 
 func (s *service) GetPetaKatgiatJnsdok(ctx context.Context, params types.PetaKatgiatJnsdokParams) ([]PetaKatgiatJnsdok, int64, error) {
-	cacheKeyData := fmt.Sprintf("peta_katgiat_jnsdok:data:page:%d:limit:%d:jnsdok:%d:wajib:%d:urut:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.IDJnsDok, params.AWajib, params.NoUrut, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jnsdok:total:jnsdok:%d:wajib:%d:urut:%d:search:%s",
-		params.IDJnsDok, params.AWajib, params.NoUrut, params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("peta_katgiat_jnsdok:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jnsdok:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)
@@ -101,9 +101,9 @@ func (s *service) GetPetaKatgiatJnsdok(ctx context.Context, params types.PetaKat
 // ============================================================================
 
 func (s *service) GetPetaKatgiatJnspub(ctx context.Context, params types.PaginationParams) ([]PetaKatgiatJnspub, int64, error) {
-	cacheKeyData := fmt.Sprintf("peta_katgiat_jnspub:data:page:%d:limit:%d:search:%s:sort:%s:%s",
-		params.Page, params.Limit, params.Search, params.SortBy, params.Order)
-	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jnspub:total:search:%s", params.Search)
+	h := utils.HashParams(params)
+	cacheKeyData := fmt.Sprintf("peta_katgiat_jnspub:data:%s", h)
+	cacheKeyTotal := fmt.Sprintf("peta_katgiat_jnspub:total:%s", h)
 
 	cachedData, err1 := cache.Get(ctx, cacheKeyData)
 	cachedTotal, err2 := cache.Get(ctx, cacheKeyTotal)

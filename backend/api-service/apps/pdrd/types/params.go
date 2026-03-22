@@ -63,45 +63,34 @@ type PesertaDidikDetailParams struct {
 	IDWil             *string `query:"id_wil"`             // Filter by ID wilayah
 }
 
-// ListRegisMahasiswaParams untuk endpoint /mahasiswa/list_regis
-type ListRegisMahasiswaParams struct {
+type StatusKuliahMahasiswaParams struct {
 	PaginationParams
-	IDJnsDaftar *int    `query:"id_jns_daftar"` // Filter by jenis pendaftaran
-	IDProdi     *string `query:"id_prodi"`      // Filter by prodi
-	TahunMasuk  *int    `query:"tahun_masuk"`   // Filter by tahun masuk
+	IDRegPd   string  `query:"id_reg_pd"`   // Filter by ID registrasi mahasiswa
+	IDSmt     *int    `query:"id_smt"`      // Filter by semester
+	IDStatMhs *string `query:"id_stat_mhs"` // Filter by ID status mahasiswa
 }
 
-// ListStatusMahasiswaParams untuk endpoint /mahasiswa/list_status
-type ListStatusMahasiswaParams struct {
+type PublikasiParams struct {
 	PaginationParams
-	IDStatMhs *string `query:"id_stat_mhs"` // Filter by status mahasiswa
-	IDProdi   *string `query:"id_prodi"`    // Filter by prodi
-	IDSmt     *string `query:"id_smt"`      // Filter by semester
+	IDJnsPub     *int    `query:"id_jns_pub"`     // Filter by ID jenis publikasi
+	NamaJurnal   *string `query:"nama_jurnal"`    // Filter by nama jurnal
+	Edisi        *string `query:"edisi"`          // Filter by edisi
+	Penerbit     *string `query:"penerbit"`       // Filter by penerbit
+	IDKatCapaian *int    `query:"id_kat_capaian"` // Filter by ID kategori capaian
+	IDMediaPub   *string `query:"id_media_pub"`   // Filter by ID media publikasi
+	IDLitabmas   *string `query:"id_litabmas"`    // Filter by ID litabmas
 }
 
-// SemesterKeaktifanParams untuk endpoint /mahasiswa/smt_keaktifan
-type SemesterKeaktifanParams struct {
-	IDRegPd string `query:"id_reg_pd"` // Required: ID registrasi mahasiswa
-}
-
-// DetailMahasiswaParams untuk endpoint /mahasiswa/detail
-type DetailMahasiswaParams struct {
-	IDPd    *string `query:"id_pd"`     // Filter by ID peserta didik
-	IDRegPd *string `query:"id_reg_pd"` // Filter by ID registrasi
-	NIPD    *string `query:"nipd"`      // Filter by NIPD
-}
-
-// ListAlumniParams untuk endpoint /mahasiswa/list_alumni
-type ListAlumniParams struct {
+type LitabmasParams struct {
 	PaginationParams
-	TahunLulus *int    `query:"tahun_lulus"` // Filter by tahun lulus
-	IDProdi    *string `query:"id_prodi"`    // Filter by prodi
-	Bulan      *int    `query:"bulan"`       // Filter by bulan lulus (1-12)
-}
-
-// LuarPTParams untuk endpoint /mahasiswa/luar_pt
-type LuarPTParams struct {
-	PaginationParams
-	IDProdi       *string `query:"id_prodi"`        // Filter by prodi
-	IDPeriodeMbkm *string `query:"id_periode_mbkm"` // Filter by periode MBKM
+	IDLitabmas    string  `query:"id_litabmas"`     // Filter by ID litabmas
+	IDSdm         *string `query:"id_sdm"`          // Filter by ID SDM (wajib)
+	JnsLitabmas   *string `query:"jns_litabmas"`    // Filter by jenis litabmas (L=Penelitian, M=Pengabdian)
+	IDLembIptek   *string `query:"id_lemb_iptek"`   // Filter by ID lembaga iptek
+	IDSkim        *string `query:"id_skim"`         // Filter by ID skim kegiatan
+	IDThnKegiatan *int    `query:"id_thn_kegiatan"` // Filter by tahun kegiatan
+	IDKelBidang   *string `query:"id_kel_bidang"`   // Filter by ID kelompok bidang
+	IDTse         *int    `query:"id_tse"`          // Filter by ID tse
+	IDSmi         *string `query:"id_smi"`          // Filter by ID smi
+	IDJnsLit      *int    `query:"id_jns_lit"`      // Filter by ID jenis penelitian
 }

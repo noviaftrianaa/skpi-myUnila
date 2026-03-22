@@ -40,13 +40,22 @@ func RateLimiterMiddleware(redisClient *redis.Client, config *RateLimiterConfig)
 	}
 
 	return func(c *fiber.Ctx) error {
-		// Get user ID from JWT context
+		// Get user ID from context (supports both KongAuth and JWTAuth)
+		var userID string
 		user := GetCurrentUser(c)
-		if user == nil {
+		if user != nil {
+			userID = user.ID
+		} else {
+			// KongAuth sets user_id directly
+			if uid, ok := c.Locals("user_id").(string); ok && uid != "" {
+				userID = uid
+			}
+		}
+		if userID == "" {
 			return response.Unauthorized(c, "Token tidak valid")
 		}
 
-		key := UserRateLimiterKey(user.ID)
+		key := UserRateLimiterKey(userID)
 		now := time.Now().Unix()
 		result, err := redisClient.EvalSha(ctx, scriptSHA, []string{key},
 			config.Capacity,
