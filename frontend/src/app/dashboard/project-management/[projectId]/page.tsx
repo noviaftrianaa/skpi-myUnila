@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  Card,
-  CardBody,
-  Button,
-  Chip,
-  Spinner,
-  Progress,
-} from "@heroui/react";
+import { Card, CardBody, Btn, Chip, Spinner, Progress } from "../components/ui";
 import {
   FiFolder,
   FiLayout,
@@ -199,7 +192,7 @@ export default function ProjectOverviewPage() {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -319,7 +312,7 @@ export default function ProjectOverviewPage() {
                   <Progress
                     value={progress}
                     className="w-32"
-                    color="primary"
+                   
                     size="sm"
                     aria-label="progress"
                   />
@@ -453,7 +446,7 @@ export default function ProjectOverviewPage() {
                         .filter((s) => s.status === "planned")
                         .slice(0, 3)
                         .map((s) => (
-                          <Chip key={s.id_sprint} size="sm" variant="bordered" className="text-xs border-amber-300 text-amber-700 dark:text-amber-400">
+                          <Chip key={s.id_sprint} size="sm" variant="secondary" className="text-xs border-amber-300 text-amber-700 dark:text-amber-400">
                             {s.nm_sprint}
                           </Chip>
                         ))}
@@ -470,40 +463,40 @@ export default function ProjectOverviewPage() {
           {/* ── Quick Actions ───────────────────────────────────────────────────── */}
           <div className="flex flex-wrap items-center gap-2 print:hidden">
             <Link href={`${base}/board`}>
-              <Button
+              <Btn
                 size="sm"
-                color="primary"
+               
                 className="bg-[#0B5EA8] text-white"
                 startContent={<FiLayout className="w-3.5 h-3.5" />}
               >
                 Kanban Board
-              </Button>
+              </Btn>
             </Link>
-            <Button
+            <Btn
               size="sm"
-              variant="bordered"
+              variant="secondary"
               startContent={<FiPrinter className="w-3.5 h-3.5" />}
-              onPress={() => window.print()}
+              onClick={() => window.print()}
             >
               Cetak Laporan
-            </Button>
+            </Btn>
             <Link href={`${base}/documents`}>
-              <Button
+              <Btn
                 size="sm"
-                variant="bordered"
+                variant="secondary"
                 startContent={<FiFileText className="w-3.5 h-3.5" />}
               >
                 Dokumen
-              </Button>
+              </Btn>
             </Link>
-            <Button
+            <Btn
               size="sm"
-              variant="bordered"
+              variant="secondary"
               startContent={<FiPlus className="w-3.5 h-3.5" />}
-              onPress={() => setIsCreateOpen(true)}
+              onClick={() => setIsCreateOpen(true)}
             >
               Tambah Task
-            </Button>
+            </Btn>
           </div>
 
           {/* ── Content Grid ────────────────────────────────────────────────────── */}
@@ -565,7 +558,7 @@ export default function ProjectOverviewPage() {
                             className="flex items-center justify-between gap-2 py-1.5 border-b border-red-100 dark:border-red-900 last:border-0"
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <Chip size="sm" variant="flat" color="danger" className="font-mono text-xs flex-shrink-0">
+                              <Chip size="sm" variant="flat" variant="danger" className="font-mono text-xs flex-shrink-0">
                                 {t.kode}
                               </Chip>
                               <span className="text-sm text-gray-700 dark:text-gray-300 truncate">

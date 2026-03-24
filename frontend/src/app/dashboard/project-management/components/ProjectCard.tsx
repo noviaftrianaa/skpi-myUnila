@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, Button, Chip } from "@heroui/react";
+import { Card, CardBody, Btn, Chip } from "./ui";
 import { FiLayout, FiList, FiFolder } from "react-icons/fi";
 import Link from "next/link";
 import type { Project } from "@/lib/services/project/projectService";
@@ -109,25 +109,25 @@ export default function ProjectCard({ project, onEdit, showVisibility }: Project
         {/* Action buttons */}
         <div className="flex gap-2">
           <Link href={`/dashboard/project-management/${project.id}/board`} className="flex-1">
-            <Button
+            <Btn
               size="sm"
               variant="flat"
-              color="primary"
+             
               className="w-full text-xs"
               startContent={<FiLayout className="w-3 h-3" />}
             >
               Board
-            </Button>
+            </Btn>
           </Link>
           <Link href={`/dashboard/project-management/${project.id}/list`} className="flex-1">
-            <Button
+            <Btn
               size="sm"
-              variant="bordered"
+              variant="secondary"
               className="w-full text-xs"
               startContent={<FiList className="w-3 h-3" />}
             >
               List
-            </Button>
+            </Btn>
           </Link>
         </div>
       </CardBody>

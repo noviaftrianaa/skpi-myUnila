@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "../../components/ui";
 import { FiLayers, FiFolder } from "react-icons/fi";
 import Link from "next/link";
 import ModuleList from "../../components/ModuleList";
@@ -44,7 +44,7 @@ export default function ModulesPage() {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );

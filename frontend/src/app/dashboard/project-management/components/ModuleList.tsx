@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardBody, Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Chip } from "@heroui/react";
+import { Card, CardBody, Btn, TwInput, Modal, ModalHeader, ModalBody, ModalFooter, Chip } from "./ui";
 import { FiPlus, FiEdit2, FiTrash2, FiLayers } from "react-icons/fi";
 import type { ProjectModule } from "@/lib/services/project/projectService";
 import { projectService } from "@/lib/services/project/projectService";
@@ -63,7 +63,6 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
 
   const ModuleFormModal = ({ isOpen, onClose, title }: { isOpen: boolean; onClose: () => void; title: string }) => (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <ModalContent>
         <ModalHeader className="border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold">{title}</h2>
         </ModalHeader>
@@ -72,38 +71,37 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nama Modul <span className="text-red-500">*</span>
             </label>
-            <Input
+            <TwInput
               value={nama}
               onValueChange={setNama}
               placeholder="cth. Manajemen Akses"
-              variant="bordered"
+              variant="secondary"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Deskripsi
             </label>
-            <Input
+            <TwInput
               value={deskripsi}
               onValueChange={setDeskripsi}
               placeholder="Deskripsi modul (opsional)"
-              variant="bordered"
+              variant="secondary"
             />
           </div>
         </ModalBody>
         <ModalFooter className="border-t border-gray-200 dark:border-gray-700">
-          <Button variant="light" onPress={onClose} isDisabled={loading}>Batal</Button>
-          <Button
-            color="primary"
+          <Btn variant="ghost" onClick={onClose} disabled={loading}>Batal</Btn>
+          <Btn
+           
             className="bg-[#0B5EA8]"
-            onPress={handleSave}
+            onClick={handleSave}
             isLoading={loading}
-            isDisabled={!nama.trim()}
+            disabled={!nama.trim()}
           >
             Simpan
-          </Button>
+          </Btn>
         </ModalFooter>
-      </ModalContent>
     </Modal>
   );
 
@@ -115,15 +113,15 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
           <FiLayers className="w-4 h-4 text-[#0B5EA8]" />
           Daftar Modul
         </h3>
-        <Button
+        <Btn
           size="sm"
-          color="primary"
+         
           className="bg-[#0B5EA8] text-white"
           startContent={<FiPlus className="w-3.5 h-3.5" />}
-          onPress={openAdd}
+          onClick={openAdd}
         >
           Tambah Modul
-        </Button>
+        </Btn>
       </div>
 
       {/* Module list */}
@@ -152,24 +150,24 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button
+                    <Btn
                       isIconOnly
                       size="sm"
-                      variant="light"
-                      onPress={() => openEdit(m)}
+                      variant="ghost"
+                      onClick={() => openEdit(m)}
                       className="text-gray-500"
                     >
                       <FiEdit2 className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
+                    </Btn>
+                    <Btn
                       isIconOnly
                       size="sm"
-                      variant="light"
-                      color="danger"
-                      onPress={() => handleDelete(m)}
+                      variant="ghost"
+                      variant="danger"
+                      onClick={() => handleDelete(m)}
                     >
                       <FiTrash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    </Btn>
                   </div>
                 </div>
               </CardBody>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip } from "@heroui/react";
+import { Btn, Chip } from "./ui";
 import {
   FiActivity,
   FiClock,
@@ -284,14 +284,14 @@ export default function ActivityFeed({ activities, loading, onLoadMore, hasMore 
       {/* Load more */}
       {hasMore && onLoadMore && (
         <div className="flex justify-center pt-2">
-          <Button
+          <Btn
             size="sm"
             variant="flat"
             className="text-xs text-gray-500"
-            onPress={onLoadMore}
+            onClick={onLoadMore}
           >
             Muat lebih banyak
-          </Button>
+          </Btn>
         </div>
       )}
     </div>

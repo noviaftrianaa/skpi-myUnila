@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Card,
-  CardBody,
-  Button,
-  Spinner,
-  Input,
-  Chip,
-} from "@heroui/react";
+import { Card, CardBody, Btn, Spinner, TwInput, Chip } from "./components/ui";
 import {
   FiFolder,
   FiCheckCircle,
@@ -147,7 +140,7 @@ export default function ProjectManagementDashboardPage() {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -185,14 +178,14 @@ export default function ProjectManagementDashboardPage() {
                     : "Kelola dan pantau progress semua project development secara terpusat."}
                 </p>
               </div>
-              <Button
+              <Btn
                 size="md"
                 className="bg-white text-[#0B5EA8] font-semibold shrink-0 hover:bg-blue-50 transition-colors"
                 startContent={<FiPlus className="w-4 h-4" />}
-                onPress={() => setIsCreateOpen(true)}
+                onClick={() => setIsCreateOpen(true)}
               >
                 + Project
-              </Button>
+              </Btn>
             </div>
           </div>
 
@@ -268,24 +261,24 @@ export default function ProjectManagementDashboardPage() {
                 <span className="text-sm font-normal text-gray-400">({filteredProjects.length})</span>
               </h2>
               <div className="flex items-center gap-2">
-                <Input
+                <TwInput
                   value={search}
                   onValueChange={setSearch}
                   placeholder="Cari project..."
                   startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-                  variant="bordered"
+                  variant="secondary"
                   size="sm"
                   className="w-64"
                 />
-                <Button
-                  color="primary"
+                <Btn
+                 
                   className="bg-[#0B5EA8] text-white"
                   size="sm"
                   startContent={<FiPlus className="w-4 h-4" />}
-                  onPress={() => setIsCreateOpen(true)}
+                  onClick={() => setIsCreateOpen(true)}
                 >
                   Buat Project
-                </Button>
+                </Btn>
               </div>
             </div>
 
@@ -300,15 +293,15 @@ export default function ProjectManagementDashboardPage() {
                     {search ? "Coba kata kunci lain" : "Mulai dengan membuat project pertama Anda!"}
                   </p>
                   {!search && (
-                    <Button
-                      color="primary"
+                    <Btn
+                     
                       className="bg-[#0B5EA8]"
                       size="sm"
                       startContent={<FiPlus className="w-4 h-4" />}
-                      onPress={() => setIsCreateOpen(true)}
+                      onClick={() => setIsCreateOpen(true)}
                     >
                       Buat Project Pertama
-                    </Button>
+                    </Btn>
                   )}
                 </CardBody>
               </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip } from "@heroui/react";
+import { Chip } from "./ui";
 import { FiStar, FiAlertCircle, FiTool, FiPackage, FiFileText, FiCalendar } from "react-icons/fi";
 import type { Task } from "@/lib/services/project/projectService";
 

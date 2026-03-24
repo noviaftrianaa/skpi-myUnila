@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Card, CardBody, Spinner } from "@heroui/react";
+import { Card, CardBody, Spinner } from "../../components/ui";
 import { FiActivity, FiFolder } from "react-icons/fi";
 import Link from "next/link";
 import ActivityFeed from "../../components/ActivityFeed";
@@ -44,7 +44,7 @@ export default function ActivityPage() {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
