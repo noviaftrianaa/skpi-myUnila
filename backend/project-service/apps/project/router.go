@@ -89,6 +89,16 @@ func InitWithMinIOAndNotifier(router fiber.Router, pgDB *sqlx.DB, msDB *sqlx.DB,
 }
 
 func initRoutes(router fiber.Router, h *Handler) {
+	// Public routes (no auth required) — only for visibility=public projects
+	pub := router.Group("/public/project")
+	pub.Get("/:id", h.GetPublicProject)
+	pub.Get("/:id/modules", h.GetPublicModules)
+	pub.Get("/:id/tasks", h.GetPublicTasks)
+	pub.Get("/:id/activity", h.GetPublicActivity)
+	pub.Get("/:id/sprints", h.GetPublicSprints)
+	pub.Get("/:id/charts/activity", h.GetPublicActivityTimeline)
+	pub.Get("/:id/charts/distribution", h.GetPublicTaskDistribution)
+
 	// Project routes
 	pg := router.Group("/project")
 	pg.Get("/stats", h.GetGlobalStats)         // Global stats (all projects)

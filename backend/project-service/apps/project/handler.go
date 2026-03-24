@@ -2272,3 +2272,80 @@ func (h *Handler) GetUserProfile(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"success": true, "data": data})
 }
+
+// ==================== PUBLIC HANDLERS (no auth) ====================
+
+// publicGuard checks if project exists and has visibility=public
+func (h *Handler) publicGuard(c *fiber.Ctx) (*Project, error) {
+	id := c.Params("id")
+	ctx := c.Context()
+	project, err := h.svc.GetProjectByID(ctx, id)
+	if err != nil {
+		return nil, c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false, "message": "Project not found",
+		})
+	}
+	if project.Visibility != "public" {
+		return nil, c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"success": false, "message": "Project is not public",
+		})
+	}
+	return project, nil
+}
+
+// GetPublicProject GET /api/v1/public/project/:id
+func (h *Handler) GetPublicProject(c *fiber.Ctx) error {
+	project, err := h.publicGuard(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"success": true, "data": project})
+}
+
+// GetPublicModules GET /api/v1/public/project/:id/modules
+func (h *Handler) GetPublicModules(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetModulesByProject(c)
+}
+
+// GetPublicTasks GET /api/v1/public/project/:id/tasks
+func (h *Handler) GetPublicTasks(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetTaskList(c)
+}
+
+// GetPublicActivity GET /api/v1/public/project/:id/activity
+func (h *Handler) GetPublicActivity(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetActivityByProject(c)
+}
+
+// GetPublicSprints GET /api/v1/public/project/:id/sprints
+func (h *Handler) GetPublicSprints(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetSprintsByProject(c)
+}
+
+// GetPublicActivityTimeline GET /api/v1/public/project/:id/charts/activity
+func (h *Handler) GetPublicActivityTimeline(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetActivityTimeline(c)
+}
+
+// GetPublicTaskDistribution GET /api/v1/public/project/:id/charts/distribution
+func (h *Handler) GetPublicTaskDistribution(c *fiber.Ctx) error {
+	if _, err := h.publicGuard(c); err != nil {
+		return err
+	}
+	return h.GetTaskDistribution(c)
+}

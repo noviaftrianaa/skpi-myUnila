@@ -551,6 +551,35 @@ export default function SettingsPage() {
                 >
                   Simpan Visibilitas
                 </Btn>
+
+                {/* Public Share Link */}
+                {visibility === "public" && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                      🔗 Public Share Link
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Siapa saja dengan link ini dapat melihat progress project tanpa login.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/project/${projectId}`}
+                        className="flex-1 h-9 px-3 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-400 font-mono"
+                      />
+                      <Btn
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/project/${projectId}`);
+                          toast("Link publik disalin!", "success");
+                        }}
+                      >
+                        Salin
+                      </Btn>
+                    </div>
+                  </div>
+                )}
               </CardBody>
             </Card>
           )}
