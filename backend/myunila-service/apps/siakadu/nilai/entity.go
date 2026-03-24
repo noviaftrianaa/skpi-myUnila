@@ -1,75 +1,48 @@
 package nilai
 
-import (
-	"time"
-)
+import "time"
 
-// ========================================
-// KHS Entities
-// ========================================
-
-// KHSListItem - KHS for list view
+// KHSListItem
 type KHSListItem struct {
-	IdKelas        *int       `db:"id_kelas" json:"id_kelas"`
+	NIM            string     `db:"nim" json:"nim"`
+	NamaMahasiswa  string     `db:"nama_mahasiswa" json:"nama_mahasiswa"`
 	IdSemester     *string    `db:"id_semester" json:"id_semester"`
-	NIM            *string    `db:"nim" json:"nim"`
-	NamaMahasiswa  *string    `db:"nama_mahasiswa" json:"nama_mahasiswa"`
-	IdMataKuliah   *string    `db:"id_mata_kuliah" json:"id_mata_kuliah"`
-	NamaMataKuliah *string    `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
-	SKS            *int       `db:"sks" json:"sks"`
+	KodeMK         string     `db:"kode_mk" json:"kode_mk"`
+	NamaMK         string     `db:"nama_mk" json:"nama_mk"`
+	SKSMK          *float64   `db:"sks_mk" json:"sks_mk"`
 	NilaiHuruf     *string    `db:"nilai_huruf" json:"nilai_huruf"`
-	NilaiIndex     *float64   `db:"nilai_index" json:"nilai_index"`
 	NilaiAngka     *float64   `db:"nilai_angka" json:"nilai_angka"`
-	StatusLulus    *string    `db:"status_lulus" json:"status_lulus"`
-	IdUnit         *string    `db:"id_unit" json:"id_unit"`
+	NilaiIndex     *float64   `db:"nilai_index" json:"nilai_index"`
 	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
 }
 
-// ========================================
-// Transkrip Entities
-// ========================================
-
-// TranskripListItem - Transkrip for list view
+// TranskripListItem
 type TranskripListItem struct {
-	IdSemester      *string    `db:"id_semester" json:"id_semester"`
-	NamaSemester    *string    `db:"nama_semester" json:"nama_semester"`
-	NIM             *string    `db:"nim" json:"nim"`
-	NamaMahasiswa   *string    `db:"nama_mahasiswa" json:"nama_mahasiswa"`
-	IdMataKuliah    *string    `db:"id_mata_kuliah" json:"id_mata_kuliah"`
-	NamaMataKuliah  *string    `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
-	SKS             *int       `db:"sks" json:"sks"`
-	NilaiHuruf      *string    `db:"nilai_huruf" json:"nilai_huruf"`
-	NilaiIndex      *float64   `db:"nilai_index" json:"nilai_index"`
-	NilaiBobot      *float64   `db:"nilai_bobot" json:"nilai_bobot"`
-	StatusLulus     *string    `db:"status_lulus" json:"status_lulus"`
-	LastSync        *time.Time `db:"last_sync" json:"last_sync"`
+	NIM           string     `db:"nim" json:"nim"`
+	NamaMahasiswa string     `db:"nama_mahasiswa" json:"nama_mahasiswa"`
+	KodeMK        string     `db:"kode_mk" json:"kode_mk"`
+	NamaMK        string     `db:"nama_mk" json:"nama_mk"`
+	SKSMK         *float64   `db:"sks_mk" json:"sks_mk"`
+	NilaiHuruf    *string    `db:"nilai_huruf" json:"nilai_huruf"`
+	NilaiIndex    *float64   `db:"nilai_index" json:"nilai_index"`
+	SmtKe         *int       `db:"smt_ke" json:"smt_ke"`
+	LastSync      *time.Time `db:"last_sync" json:"last_sync"`
 }
 
-// ========================================
-// Kuliah Entities
-// ========================================
-
-// KuliahListItem - Status kuliah for list view
+// KuliahListItem
 type KuliahListItem struct {
-	NIM            *string    `db:"nim" json:"nim"`
-	IdSemester     *string    `db:"id_semester" json:"id_semester"`
-	NamaPeriode    *string    `db:"nama_periode" json:"nama_periode"`
-	SemesterKuliah *string    `db:"semester_kuliah" json:"semester_kuliah"`
-	StatusKuliah   *string    `db:"status_kuliah" json:"status_kuliah"`
-	SKSSemester    *int       `db:"sks_semester" json:"sks_semester"`
-	IPS            *float64   `db:"ips" json:"ips"`
-	TotalSKS       *int       `db:"total_sks" json:"total_sks"`
-	IPK            *float64   `db:"ipk" json:"ipk"`
-	SKSLulus       *int       `db:"sks_lulus" json:"sks_lulus"`
-	DosenWali      *string    `db:"dosen_wali" json:"dosen_wali"`
-	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
+	NIM           string     `db:"nim" json:"nim"`
+	NamaMahasiswa string     `db:"nama_mahasiswa" json:"nama_mahasiswa"`
+	IdSemester    string     `db:"id_semester" json:"id_semester"`
+	StatusKuliah  *string    `db:"status_kuliah" json:"status_kuliah"`
+	IPS           *float64   `db:"ips" json:"ips"`
+	SKSSMT        *float64   `db:"sks_smt" json:"sks_smt"`
+	IPK           *float64   `db:"ipk" json:"ipk"`
+	TotalSKS      *float64   `db:"total_sks" json:"total_sks"`
+	LastSync      *time.Time `db:"last_sync" json:"last_sync"`
 }
 
-// ========================================
-// Common Entities
-// ========================================
-
-// PaginatedResult - Generic paginated list result
+// PaginatedResult
 type PaginatedResult struct {
 	Data       interface{} `json:"data"`
 	Total      int         `json:"total"`
@@ -78,10 +51,10 @@ type PaginatedResult struct {
 	TotalPages int         `json:"total_pages"`
 }
 
-// SyncFilter - Filter for sync operations
+// SyncFilter
 type SyncFilter struct {
 	IdSemester string `json:"id_semester"`
-	NIM        string `json:"nim"`
+	NPM        string `json:"npm"`
 	IdUnit     string `json:"id_unit"`
 	Page       int    `json:"page"`
 	PageSize   int    `json:"page_size"`
@@ -89,7 +62,7 @@ type SyncFilter struct {
 	SyncType   string `json:"sync_type,omitempty"`
 }
 
-// SyncResult - Result for sync
+// SyncResult
 type SyncResult struct {
 	TotalFetched  int    `json:"total_fetched"`
 	TotalInserted int    `json:"total_inserted"`

@@ -205,11 +205,16 @@ func (s *service) genericSync(
 }
 
 func (s *service) SyncKHS(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error) {
+	// Ensure schema is correct before sync
+	if err := s.repo.EnsureNilaiSchema(ctx); err != nil {
+		log.Printf("⚠️  [KHS Sync] EnsureNilaiSchema failed: %v", err)
+	}
+
 	idSemester := ""
 	npm := ""
 	if filter != nil {
 		idSemester = filter.IdSemester
-		npm = filter.NIM
+		npm = filter.NPM
 	}
 
 	return s.genericSync(ctx, "KHS", "siakadu_khs", filter, syncedBy,
@@ -221,9 +226,14 @@ func (s *service) SyncKHS(ctx context.Context, filter *SyncFilter, syncedBy stri
 }
 
 func (s *service) SyncTranskrip(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error) {
+	// Ensure schema is correct before sync (critical: fixes PK on nilai_transkrip)
+	if err := s.repo.EnsureNilaiSchema(ctx); err != nil {
+		log.Printf("⚠️  [Transkrip Sync] EnsureNilaiSchema failed: %v", err)
+	}
+
 	npm := ""
 	if filter != nil {
-		npm = filter.NIM
+		npm = filter.NPM
 	}
 
 	return s.genericSync(ctx, "Transkrip", "siakadu_transkrip", filter, syncedBy,
@@ -235,11 +245,16 @@ func (s *service) SyncTranskrip(ctx context.Context, filter *SyncFilter, syncedB
 }
 
 func (s *service) SyncKuliah(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error) {
+	// Ensure schema is correct before sync (seeds status_mahasiswa refs)
+	if err := s.repo.EnsureNilaiSchema(ctx); err != nil {
+		log.Printf("⚠️  [Kuliah Sync] EnsureNilaiSchema failed: %v", err)
+	}
+
 	idSemester := ""
 	npm := ""
 	if filter != nil {
 		idSemester = filter.IdSemester
-		npm = filter.NIM
+		npm = filter.NPM
 	}
 
 	return s.genericSync(ctx, "Kuliah", "siakadu_kuliah", filter, syncedBy,
