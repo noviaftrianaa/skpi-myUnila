@@ -459,16 +459,13 @@ export default function DocumentsPage() {
           {/* Header handled by layout tabs */}
 
           {/* Header + Actions */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Dokumen Pendukung
-              </h1>
-              <p className="text-sm text-gray-500">
-                {total} dokumen
-              </p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FiFileText className="w-5 h-5 text-[#0B5EA8]" />
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Dokumen</h1>
+              <span className="text-sm text-gray-400">{total}</span>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
