@@ -236,21 +236,21 @@ export default function TaskListPage() {
               onValueChange={(v) => { setModuleFilter(v || "all"); setCurrentPage(1); }}
               options={moduleOptions}
               selectSize="sm"
-              className="w-36"
+              className="w-36 shrink-0"
             />
             <TwSelect
               value={statusFilter}
               onValueChange={(v) => { setStatusFilter(v || "all"); setCurrentPage(1); }}
               options={statusOptions}
               selectSize="sm"
-              className="w-36"
+              className="w-36 shrink-0"
             />
             <TwSelect
               value={priorityFilter}
               onValueChange={(v) => { setPriorityFilter(v || "all"); setCurrentPage(1); }}
               options={priorityOptions}
               selectSize="sm"
-              className="w-36"
+              className="w-36 shrink-0"
             />
             {(moduleFilter !== "all" || statusFilter !== "all" || priorityFilter !== "all") && (
               <button

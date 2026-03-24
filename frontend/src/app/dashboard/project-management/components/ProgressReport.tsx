@@ -56,38 +56,28 @@ export default function ProgressReport({ project, modules, tasks }: ProgressRepo
   return (
     <div>
       {/* Filter controls (hidden on print) */}
-      <div className="print:hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-          <FiFilter className="w-4 h-4" />
-          Filter Laporan
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Dari Tanggal</label>
-            <TwInput type="date" value={periodeAwal} onValueChange={setPeriodeAwal} inputSize="sm" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sampai Tanggal</label>
-            <TwInput type="date" value={periodeAkhir} onValueChange={setPeriodeAkhir} inputSize="sm" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Modul</label>
-            <TwSelect
-              value={selectedModule}
-              onValueChange={(v) => setSelectedModule(v)}
-              options={moduleOptions}
-              selectSize="sm"
-            />
-          </div>
+      <div className="print:hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-3 mb-4">
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <FiFilter className="w-4 h-4 text-gray-400 shrink-0" />
+          <TwInput type="date" value={periodeAwal} onValueChange={setPeriodeAwal} inputSize="sm" className="w-40 shrink-0" />
+          <span className="text-xs text-gray-400 shrink-0">—</span>
+          <TwInput type="date" value={periodeAkhir} onValueChange={setPeriodeAkhir} inputSize="sm" className="w-40 shrink-0" />
+          <TwSelect
+            value={selectedModule}
+            onValueChange={(v) => setSelectedModule(v)}
+            options={moduleOptions}
+            selectSize="sm"
+            className="w-44 shrink-0"
+          />
+          <Btn
+            size="sm"
+            startContent={<FiPrinter className="w-3.5 h-3.5" />}
+            onClick={handlePrint}
+            className="shrink-0"
+          >
+            Cetak
+          </Btn>
         </div>
-        <Btn
-          variant="primary"
-          className="w-full sm:w-auto"
-          startContent={<FiPrinter className="w-4 h-4" />}
-          onClick={handlePrint}
-        >
-          Cetak / Simpan PDF
-        </Btn>
       </div>
 
       {/* Printable report */}

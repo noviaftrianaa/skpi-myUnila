@@ -5,26 +5,18 @@ import { useParams } from "next/navigation";
 import { Card, CardBody, Btn, Chip, Spinner, Progress } from "../components/ui";
 import {
   FiFolder,
-  FiLayout,
-  FiList,
   FiLayers,
-  FiFileText,
   FiActivity,
-  FiSettings,
-  FiPlus,
-  FiPrinter,
   FiExternalLink,
   FiAlertTriangle,
   FiCheckCircle,
   FiLoader,
   FiCalendar,
-  FiAlertCircle,
   FiFlag,
-  FiBarChart2,
 } from "react-icons/fi";
 import Link from "next/link";
 import ProgressReport from "../components/ProgressReport";
-import TaskCreateModal from "../components/TaskCreateModal";
+// TaskCreateModal available in Board/List tabs
 import {
   projectService,
   type Project,
@@ -287,36 +279,6 @@ export default function ProjectOverviewPage() {
         ) : null;
       })()}
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Link href={`${base}/board`}>
-          <Btn size="sm" startContent={<FiLayout className="w-3.5 h-3.5" />}>
-            Kanban Board
-          </Btn>
-        </Link>
-        <Btn
-          size="sm"
-          variant="secondary"
-          startContent={<FiPlus className="w-3.5 h-3.5" />}
-          onClick={() => setIsCreateOpen(true)}
-        >
-          Tambah Task
-        </Btn>
-        <Link href={`${base}/documents`}>
-          <Btn size="sm" variant="secondary" startContent={<FiFileText className="w-3.5 h-3.5" />}>
-            Dokumen
-          </Btn>
-        </Link>
-        <Btn
-          size="sm"
-          variant="ghost"
-          startContent={<FiPrinter className="w-3.5 h-3.5" />}
-          onClick={() => window.print()}
-        >
-          Cetak
-        </Btn>
-      </div>
-
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left 2/3 */}
@@ -398,7 +360,7 @@ export default function ProjectOverviewPage() {
                   <p>Belum ada aktivitas</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                   {activities.map((a) => (
                     <div key={a.id ?? (a as Record<string, unknown>).id_activity as string} className="flex items-start gap-2.5">
                       <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
@@ -429,13 +391,6 @@ export default function ProjectOverviewPage() {
         </div>
       )}
 
-      <TaskCreateModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        projectId={projectId}
-        modules={modules}
-        onCreated={handleTaskCreated}
-      />
     </div>
   );
 }
