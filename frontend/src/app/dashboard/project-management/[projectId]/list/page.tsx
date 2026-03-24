@@ -215,79 +215,65 @@ export default function TaskListPage() {
     { value: "low", label: "Low" },
   ];
 
-  const filterSlot = (
-    <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
-      <TwSelect
-        value={moduleFilter}
-        onValueChange={(v) => { setModuleFilter(v || "all"); setCurrentPage(1); }}
-        options={moduleOptions}
-        placeholder="Semua Modul"
-        selectSize="sm"
-        className="w-full sm:w-40"
-      />
-      <TwSelect
-        value={statusFilter}
-        onValueChange={(v) => { setStatusFilter(v || "all"); setCurrentPage(1); }}
-        options={statusOptions}
-        placeholder="Semua Status"
-        selectSize="sm"
-        className="w-full sm:w-40"
-      />
-      <TwSelect
-        value={priorityFilter}
-        onValueChange={(v) => { setPriorityFilter(v || "all"); setCurrentPage(1); }}
-        options={priorityOptions}
-        placeholder="Semua Prioritas"
-        selectSize="sm"
-        className="w-full sm:w-40"
-      />
-    </div>
-  );
-
-  const actionSlot = (
-    <div className="flex flex-wrap items-center gap-2">
-      <Link href={`/dashboard/project-management/${projectId}/board`}>
-        <Btn variant="secondary" size="sm" className="text-xs">
-          Tampilan Board
-        </Btn>
-      </Link>
-      <Link href={`/dashboard/project-management/${projectId}/timeline`}>
-        <Btn variant="secondary" size="sm" startContent={<FiBarChart2 className="w-3.5 h-3.5" />} className="text-xs">
-          Timeline
-        </Btn>
-      </Link>
-      <Btn
-        size="sm"
-        variant="primary"
-        startContent={<FiPlus className="w-3.5 h-3.5" />}
-        onClick={() => setIsCreateOpen(true)}
-      >
-        Buat Task
-      </Btn>
-    </div>
-  );
-
   return (
       <>
         <div className="space-y-4">
           {/* Breadcrumb + Header */}
-          <div>
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <Link
-                href="/dashboard/project-management"
-                className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-              >
-                Project Management
-              </Link>
-              <span className="text-gray-300">/</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {project?.nama ?? "..."}
-              </span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1 text-sm">
+                <Link href="/dashboard/project-management" className="text-gray-400 hover:text-gray-600 transition-colors">
+                  Project
+                </Link>
+                <span className="text-gray-300">/</span>
+                <Link href={`/dashboard/project-management/${projectId}`} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  {project?.nama ?? "..."}
+                </Link>
+                <span className="text-gray-300">/</span>
+                <span className="font-medium text-gray-900 dark:text-white">List</span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <FiList className="w-5 h-5 text-[#0B5EA8]" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Daftar Task</h1>
+              <Link href={`/dashboard/project-management/${projectId}/board`}>
+                <Btn variant="secondary" size="sm" className="text-xs">Board</Btn>
+              </Link>
+              <Btn size="sm" startContent={<FiPlus className="w-3.5 h-3.5" />} onClick={() => setIsCreateOpen(true)}>
+                Buat Task
+              </Btn>
             </div>
+          </div>
+
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <TwSelect
+              value={moduleFilter}
+              onValueChange={(v) => { setModuleFilter(v || "all"); setCurrentPage(1); }}
+              options={moduleOptions}
+              selectSize="sm"
+              className="w-36"
+            />
+            <TwSelect
+              value={statusFilter}
+              onValueChange={(v) => { setStatusFilter(v || "all"); setCurrentPage(1); }}
+              options={statusOptions}
+              selectSize="sm"
+              className="w-36"
+            />
+            <TwSelect
+              value={priorityFilter}
+              onValueChange={(v) => { setPriorityFilter(v || "all"); setCurrentPage(1); }}
+              options={priorityOptions}
+              selectSize="sm"
+              className="w-36"
+            />
+            {(moduleFilter !== "all" || statusFilter !== "all" || priorityFilter !== "all") && (
+              <button
+                onClick={() => { setModuleFilter("all"); setStatusFilter("all"); setPriorityFilter("all"); setCurrentPage(1); }}
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Reset filter
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -300,8 +286,6 @@ export default function TaskListPage() {
               currentPage={currentPage}
               onPageChange={setCurrentPage}
               searchable={false}
-              filterSlot={filterSlot}
-              actionSlot={actionSlot}
               emptyMessage={
                 <div className="flex flex-col items-center py-12 text-gray-400">
                   <FiList className="w-10 h-10 mb-2" />

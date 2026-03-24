@@ -56,8 +56,28 @@ export interface ProjectModule {
   project_id: string;
   nama: string;
   deskripsi?: string;
+  status?: string;
   urutan?: number;
+  warna?: string;
+  total_tasks?: number;
+  task_done?: number;
   created_at: string;
+  // Backend field names
+  id_module?: string;
+  nm_module?: string;
+}
+
+function mapModule(raw: Record<string, unknown>): ProjectModule {
+  return {
+    ...raw,
+    id: (raw.id_module ?? raw.id) as string,
+    project_id: (raw.id_project ?? raw.project_id) as string,
+    nama: (raw.nm_module ?? raw.nama) as string,
+  } as ProjectModule;
+}
+
+function mapModules(raw: Record<string, unknown>[]): ProjectModule[] {
+  return (raw ?? []).map(mapModule);
 }
 
 export interface Task {
@@ -86,6 +106,34 @@ export interface Task {
   posisi?: number;
   created_at: string;
   updated_at: string;
+  // Backend field names
+  id_task?: string;
+  id_module?: string;
+  id_sprint?: string;
+  id_assignee?: string;
+  kode_task?: string;
+}
+
+function mapTask(raw: Record<string, unknown>): Task {
+  const mapped = {
+    ...raw,
+    id: (raw.id_task ?? raw.id) as string,
+    project_id: (raw.id_project ?? raw.project_id) as string,
+    module_id: (raw.id_module ?? raw.module_id) as string | undefined,
+    sprint_id: (raw.id_sprint ?? raw.sprint_id) as string | undefined,
+    assignee_id: (raw.id_assignee ?? raw.assignee_id) as string | undefined,
+    kode: (raw.kode_task ?? raw.kode) as string,
+    due_date: (raw.tgl_target ?? raw.due_date) as string | undefined,
+  } as Task;
+  // Map nested module if present
+  if (raw.module && typeof raw.module === 'object') {
+    mapped.module = mapModule(raw.module as Record<string, unknown>);
+  }
+  return mapped;
+}
+
+function mapTasks(raw: Record<string, unknown>[]): Task[] {
+  return (raw ?? []).map(mapTask);
 }
 
 export interface Comment {
@@ -116,6 +164,21 @@ export interface Activity {
   aksi: string;
   detail?: string;
   created_at: string;
+  // Backend field names
+  id_activity?: string;
+}
+
+function mapActivity(raw: Record<string, unknown>): Activity {
+  return {
+    ...raw,
+    id: (raw.id_activity ?? raw.id) as string,
+    project_id: (raw.id_project ?? raw.project_id) as string,
+    task_id: (raw.id_task ?? raw.task_id) as string | undefined,
+  } as Activity;
+}
+
+function mapActivities(raw: Record<string, unknown>[]): Activity[] {
+  return (raw ?? []).map(mapActivity);
 }
 
 export interface Sprint {
@@ -455,19 +518,19 @@ export const projectService = {
   async getModules(projectId: string): Promise<ProjectModule[]> {
     const response = await projectClient.get<SingleResponse<ProjectModule[]>>(`/project/${projectId}/modules`);
     if (!response.data.success) throw new Error('Failed to fetch modules');
-    return response.data.data;
+    return mapModules(response.data.data as unknown as Record<string, unknown>[]);
   },
 
   async createModule(projectId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
     const response = await projectClient.post<SingleResponse<ProjectModule>>(`/project/${projectId}/modules`, data);
     if (!response.data.success) throw new Error('Failed to create module');
-    return response.data.data;
+    return mapModule(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateModule(projectId: string, moduleId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
     const response = await projectClient.put<SingleResponse<ProjectModule>>(`/project/${projectId}/modules/${moduleId}`, data);
     if (!response.data.success) throw new Error('Failed to update module');
-    return response.data.data;
+    return mapModule(response.data.data as unknown as Record<string, unknown>);
   },
 
   async deleteModule(projectId: string, moduleId: string): Promise<void> {
@@ -484,7 +547,9 @@ export const projectService = {
     prioritas?: string;
   }): Promise<PaginatedResponse<Task>> {
     const response = await projectClient.get<PaginatedResponse<Task>>(`/project/${projectId}/tasks`, { params });
-    return response.data;
+    const result = response.data;
+    if (result.data) result.data = mapTasks(result.data as unknown as Record<string, unknown>[]);
+    return result;
   },
 
   async getTasksByStatus(projectId: string, params?: {
@@ -497,25 +562,31 @@ export const projectService = {
       { params }
     );
     if (!response.data.success) throw new Error('Failed to fetch board tasks');
-    return response.data.data;
+    // Map tasks in each status column
+    const data = response.data.data;
+    const mapped: Record<string, Task[]> = {};
+    for (const [status, tasks] of Object.entries(data)) {
+      mapped[status] = mapTasks(tasks as unknown as Record<string, unknown>[]);
+    }
+    return mapped;
   },
 
   async getTask(projectId: string, taskId: string): Promise<Task> {
     const response = await projectClient.get<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`);
     if (!response.data.success) throw new Error('Failed to fetch task');
-    return response.data.data;
+    return mapTask(response.data.data as unknown as Record<string, unknown>);
   },
 
   async createTask(projectId: string, data: Partial<Task>): Promise<Task> {
     const response = await projectClient.post<SingleResponse<Task>>(`/project/${projectId}/tasks`, data);
     if (!response.data.success) throw new Error('Failed to create task');
-    return response.data.data;
+    return mapTask(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateTask(projectId: string, taskId: string, data: Partial<Task>): Promise<Task> {
     const response = await projectClient.put<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`, data);
     if (!response.data.success) throw new Error('Failed to update task');
-    return response.data.data;
+    return mapTask(response.data.data as unknown as Record<string, unknown>);
   },
 
   async deleteTask(projectId: string, taskId: string): Promise<void> {
@@ -559,7 +630,9 @@ export const projectService = {
       `/project/${projectId}/activity`,
       { params }
     );
-    return response.data;
+    const result = response.data;
+    if (result.data) result.data = mapActivities(result.data as unknown as Record<string, unknown>[]);
+    return result;
   },
 
   // --- Webhooks ---
