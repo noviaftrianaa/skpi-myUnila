@@ -1,0 +1,97 @@
+{
+  "_comment": "SIM-BAK menus. Roles: admin=[1,107], mahasiswa=[39], admin_fakultas=[106], dekan=[43], pimpinan=[38,37,36,35,34], tendik=[111]",
+  "app_slug": "sim-bak",
+  "roles": [1, 107, 39, 106, 43, 111],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/sim-bak",
+      "icon": "heroicons:squares-2x2",
+      "urutan": 1,
+      "roles": [1, 107, 39, 106, 43, 111]
+    },
+    {
+      "nm_menu": "Surat Mandiri",
+      "nm_file": "/dashboard/sim-bak/surat-mandiri",
+      "icon": "heroicons:document-text",
+      "urutan": 2,
+      "roles": [1, 107, 39]
+    },
+    {
+      "nm_menu": "Permohonan Akademik",
+      "nm_file": "/dashboard/sim-bak/permohonan",
+      "icon": "heroicons:clipboard-document-list",
+      "urutan": 3,
+      "roles": [1, 107, 39]
+    },
+    {
+      "nm_menu": "Riwayat Pengajuan",
+      "nm_file": "/dashboard/sim-bak/riwayat",
+      "icon": "heroicons:clock",
+      "urutan": 4,
+      "roles": [39]
+    },
+    {
+      "nm_menu": "Administrasi",
+      "nm_file": "#administrasi",
+      "icon": "heroicons:check-circle",
+      "urutan": 5,
+      "roles": [1, 107, 106, 111],
+      "children": [
+        {
+          "nm_menu": "Verifikasi Pengajuan",
+          "nm_file": "/dashboard/sim-bak/admin/verifikasi",
+          "urutan": 1,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "Persetujuan",
+          "nm_file": "/dashboard/sim-bak/admin/persetujuan",
+          "urutan": 2,
+          "roles": [1, 107, 106, 43]
+        }
+      ]
+    },
+    {
+      "nm_menu": "Batch Administrasi",
+      "nm_file": "#batch",
+      "icon": "heroicons:users",
+      "urutan": 6,
+      "roles": [1, 107, 111, 106],
+      "children": [
+        {
+          "nm_menu": "Daftar Batch",
+          "nm_file": "/dashboard/sim-bak/batch",
+          "urutan": 1,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "Buat Batch Baru",
+          "nm_file": "/dashboard/sim-bak/batch/create",
+          "urutan": 2,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "Verifikasi Fakultas",
+          "nm_file": "/dashboard/sim-bak/batch/verifikasi",
+          "urutan": 3,
+          "roles": [1, 107, 106]
+        }
+      ]
+    },
+    {
+      "nm_menu": "Monitoring",
+      "nm_file": "/dashboard/sim-bak/monitoring",
+      "icon": "heroicons:chart-bar",
+      "urutan": 7,
+      "roles": [1, 107, 111]
+    },
+    {
+      "nm_menu": "Master Data",
+      "nm_file": "/dashboard/sim-bak/master-data",
+      "icon": "heroicons:cog-6-tooth",
+      "urutan": 8,
+      "roles": [1, 107]
+    }
+  ]
+}
