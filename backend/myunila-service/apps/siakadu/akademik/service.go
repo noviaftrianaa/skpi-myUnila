@@ -27,6 +27,9 @@ type Service interface {
 	// Jadwal
 	GetJadwalList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error)
 	SyncJadwal(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
+
+	// Batch
+	SyncAllAkademik(ctx context.Context, idSemester, syncedBy string) ([]*ProdiAkademikSyncResult, error)
 }
 
 // SiakaduAPIClient interface
@@ -294,6 +297,59 @@ func (s *service) SyncJadwal(ctx context.Context, filter *SyncFilter, syncedBy s
 }
 
 // joinErrors joins error messages with newline
+// SyncAllAkademik syncs matakuliah + kurikulum + kelas for all prodi
+func (s *service) SyncAllAkademik(ctx context.Context, idSemester, syncedBy string) ([]*ProdiAkademikSyncResult, error) {
+	prodis, err := s.repo.GetAllProdiIDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get prodi list: %v", err)
+	}
+	if len(prodis) == 0 {
+		return nil, fmt.Errorf("no prodi found — sync units first")
+	}
+
+	log.Printf("🔄 [SyncAllAkademik] Starting for %d prodi, semester=%s", len(prodis), idSemester)
+
+	results := make([]*ProdiAkademikSyncResult, 0, len(prodis))
+
+	for i, prodi := range prodis {
+		nmUnit := "Unknown"
+		if prodi.NmUnit != nil {
+			nmUnit = *prodi.NmUnit
+		}
+		log.Printf("📊 [SyncAllAkademik] [%d/%d] %s (%s)", i+1, len(prodis), nmUnit, prodi.IdUnit)
+
+		pr := &ProdiAkademikSyncResult{IdUnit: prodi.IdUnit, NmUnit: nmUnit}
+
+		// Matakuliah
+		mkResult, err := s.SyncMatakuliah(ctx, &SyncFilter{IdUnit: prodi.IdUnit, PageSize: 500, SyncType: "auto-all"}, syncedBy)
+		if err != nil {
+			log.Printf("⚠️  [SyncAllAkademik] Matkul %s: %v", prodi.IdUnit, err)
+		}
+		pr.Matakuliah = mkResult
+
+		// Kurikulum
+		kurResult, err := s.SyncKurikulum(ctx, &SyncFilter{IdUnit: prodi.IdUnit, PageSize: 500, SyncType: "auto-all"}, syncedBy)
+		if err != nil {
+			log.Printf("⚠️  [SyncAllAkademik] Kurikulum %s: %v", prodi.IdUnit, err)
+		}
+		pr.Kurikulum = kurResult
+
+		// Kelas (needs semester)
+		if idSemester != "" {
+			klsResult, err := s.SyncKelas(ctx, &SyncFilter{IdUnit: prodi.IdUnit, IdSemester: idSemester, PageSize: 500, SyncType: "auto-all"}, syncedBy)
+			if err != nil {
+				log.Printf("⚠️  [SyncAllAkademik] Kelas %s: %v", prodi.IdUnit, err)
+			}
+			pr.Kelas = klsResult
+		}
+
+		results = append(results, pr)
+	}
+
+	log.Printf("✅ [SyncAllAkademik] Done — %d prodi", len(results))
+	return results, nil
+}
+
 func joinErrors(errors []string) string {
 	result := ""
 	for i, e := range errors {

@@ -77,6 +77,21 @@ type PaginatedResult struct {
 	TotalPages int         `json:"total_pages"`
 }
 
+// ProdiInfo for batch operations
+type ProdiInfo struct {
+	IdUnit string  `db:"id_unit" json:"id_unit"`
+	NmUnit *string `db:"nm_unit" json:"nm_unit"`
+}
+
+// ProdiAkademikSyncResult per-prodi result
+type ProdiAkademikSyncResult struct {
+	IdUnit    string      `json:"id_unit"`
+	NmUnit    string      `json:"nm_unit"`
+	Matakuliah *SyncResult `json:"matakuliah,omitempty"`
+	Kurikulum  *SyncResult `json:"kurikulum,omitempty"`
+	Kelas      *SyncResult `json:"kelas,omitempty"`
+}
+
 // SyncFilter - Filter for sync operations
 type SyncFilter struct {
 	IdSemester   string `json:"id_semester"`

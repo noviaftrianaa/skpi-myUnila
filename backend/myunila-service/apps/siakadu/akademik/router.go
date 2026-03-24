@@ -22,6 +22,7 @@ func Init(router fiber.Router, db *sqlx.DB, siakaduAPI *siakadu_api.SiakaduClien
 		group.Post("/matakuliah/sync", handler.SyncMatakuliah)
 		group.Get("/jadwal", handler.GetJadwalList)
 		group.Post("/jadwal/sync", handler.SyncJadwal)
+		group.Post("/sync-all", handler.SyncAll)
 	}
 
 	return svc

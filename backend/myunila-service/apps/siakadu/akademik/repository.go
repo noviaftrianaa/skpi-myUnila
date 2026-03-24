@@ -30,6 +30,9 @@ type Repository interface {
 	// Jadwal
 	UpsertJadwalKelas(ctx context.Context, data map[string]interface{}) (bool, error)
 	GetJadwalList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error)
+
+	// Batch helpers
+	GetAllProdiIDs(ctx context.Context) ([]ProdiInfo, error)
 }
 
 type repository struct {
@@ -804,4 +807,17 @@ func (r *repository) GetJadwalList(ctx context.Context, page, limit int, search,
 		Data: list, Total: total, Page: page, Limit: limit,
 		TotalPages: (total + limit - 1) / limit,
 	}, nil
+}
+
+// GetAllProdiIDs returns all active prodi from ref_unit
+func (r *repository) GetAllProdiIDs(ctx context.Context) ([]ProdiInfo, error) {
+	var result []ProdiInfo
+	err := r.db.SelectContext(ctx, &result,
+		`SELECT id_unit, nm_unit FROM siakadu.ref_unit
+		WHERE jns_unit = 'P' AND (is_aktif = '1' OR is_aktif IS NULL)
+		ORDER BY id_unit`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get prodi IDs: %w", err)
+	}
+	return result, nil
 }

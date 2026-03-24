@@ -229,3 +229,41 @@ func (h *Handler) SyncJadwal(c *fiber.Ctx) error {
 		"data":    result,
 	})
 }
+
+func (h *Handler) SyncAll(c *fiber.Ctx) error {
+	idSemester := c.Query("id_semester", "20241")
+	syncedBy := c.Get("X-User-ID", "system")
+
+	results, err := h.service.SyncAllAkademik(c.Context(), idSemester, syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	totalMK, totalKur, totalKls := 0, 0, 0
+	for _, r := range results {
+		if r.Matakuliah != nil {
+			totalMK += r.Matakuliah.TotalInserted + r.Matakuliah.TotalUpdated
+		}
+		if r.Kurikulum != nil {
+			totalKur += r.Kurikulum.TotalInserted + r.Kurikulum.TotalUpdated
+		}
+		if r.Kelas != nil {
+			totalKls += r.Kelas.TotalInserted + r.Kelas.TotalUpdated
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "SyncAll akademik completed",
+		"summary": fiber.Map{
+			"total_prodi":     len(results),
+			"total_matakuliah": totalMK,
+			"total_kurikulum":  totalKur,
+			"total_kelas":      totalKls,
+		},
+		"data": results,
+	})
+}
