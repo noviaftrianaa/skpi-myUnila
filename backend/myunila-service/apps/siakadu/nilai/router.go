@@ -18,6 +18,7 @@ func Init(router fiber.Router, db *sqlx.DB, siakaduAPI *siakadu_api.SiakaduClien
 		group.Post("/khs/sync", handler.SyncKHS)
 		group.Get("/transkrip", handler.GetTranskripList)
 		group.Post("/transkrip/sync", handler.SyncTranskrip)
+		group.Post("/transkrip/sync-batch", handler.SyncTranskripBatch)
 		group.Get("/kuliah", handler.GetKuliahList)
 		group.Post("/kuliah/sync", handler.SyncKuliah)
 	}

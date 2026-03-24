@@ -125,6 +125,24 @@ func (h *Handler) SyncTranskrip(c *fiber.Ctx) error {
 	})
 }
 
+func (h *Handler) SyncTranskripBatch(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", c.Get("X-User-ID", "system"))
+
+	result, err := h.service.SyncTranskripBatch(c.Context(), syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Transkrip batch sync completed",
+		"data":    result,
+	})
+}
+
 // ========================================
 // Kuliah Handlers
 // ========================================

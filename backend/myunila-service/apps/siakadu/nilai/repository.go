@@ -15,6 +15,9 @@ type Repository interface {
 	// Schema management
 	EnsureNilaiSchema(ctx context.Context) error
 
+	// Batch helpers
+	GetAllNPMs(ctx context.Context) ([]string, error)
+
 	// KHS (nilai_smt_mhs)
 	UpsertKHS(ctx context.Context, data map[string]interface{}) (bool, error)
 	GetKHSList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error)
@@ -222,6 +225,21 @@ func (r *repository) EnsureNilaiSchema(ctx context.Context) error {
 
 	log.Printf("✅ [EnsureNilaiSchema] Schema checks complete")
 	return nil
+}
+
+// ========================================
+// Batch Helpers
+// ========================================
+
+// GetAllNPMs returns all NPMs from reg_pd for batch sync
+func (r *repository) GetAllNPMs(ctx context.Context) ([]string, error) {
+	var npms []string
+	err := r.db.SelectContext(ctx, &npms,
+		"SELECT nipd FROM siakadu.reg_pd WHERE nipd IS NOT NULL AND nipd != '' ORDER BY nipd")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get NPMs: %w", err)
+	}
+	return npms, nil
 }
 
 // ========================================

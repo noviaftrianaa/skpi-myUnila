@@ -19,6 +19,7 @@ type Service interface {
 	// Transkrip
 	GetTranskripList(ctx context.Context, page, limit int, search, nim string) (*PaginatedResult, error)
 	SyncTranskrip(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
+	SyncTranskripBatch(ctx context.Context, syncedBy string) (*SyncResult, error)
 
 	// Kuliah
 	GetKuliahList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error)
@@ -263,6 +264,124 @@ func (s *service) SyncKuliah(ctx context.Context, filter *SyncFilter, syncedBy s
 		},
 		s.repo.UpsertKuliah,
 	)
+}
+
+// SyncTranskripBatch syncs transkrip per-NPM from all mahasiswa in reg_pd
+// This avoids fetching 6.4M records from the API at once
+func (s *service) SyncTranskripBatch(ctx context.Context, syncedBy string) (*SyncResult, error) {
+	startTime := time.Now()
+
+	// Ensure schema
+	if err := s.repo.EnsureNilaiSchema(ctx); err != nil {
+		log.Printf("⚠️  [Transkrip Batch] EnsureNilaiSchema failed: %v", err)
+	}
+
+	// Get all NPMs from reg_pd
+	npms, err := s.repo.GetAllNPMs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get NPMs: %v", err)
+	}
+
+	log.Printf("🔄 [Transkrip Batch] Starting batch sync for %d mahasiswa", len(npms))
+
+	syncID := ""
+	if s.monitorSvc != nil {
+		syncID = s.monitorSvc.StartSync("Transkrip Batch SIAKADU", "siakadu_transkrip_batch", "batch", syncedBy, len(npms))
+	}
+
+	totalFetched := 0
+	totalInserted := 0
+	totalUpdated := 0
+	totalErrors := 0
+	totalSkipped := 0
+	allErrors := make([]string, 0)
+
+	for i, npm := range npms {
+		// Fetch transkrip for this NPM (usually 1 page is enough per student)
+		data, _, fetchErr := s.siakaduAPI.GetTranskrip(npm, 1, 500)
+		if fetchErr != nil {
+			totalSkipped++
+			continue
+		}
+
+		if len(data) == 0 {
+			totalSkipped++
+			continue
+		}
+
+		totalFetched += len(data)
+
+		// Upsert each record
+		for _, item := range data {
+			isNew, upsertErr := s.repo.UpsertTranskrip(ctx, item)
+			if upsertErr != nil {
+				totalErrors++
+				if len(allErrors) < 50 {
+					allErrors = append(allErrors, upsertErr.Error())
+				}
+				continue
+			}
+			if isNew {
+				totalInserted++
+			} else {
+				totalUpdated++
+			}
+		}
+
+		// Progress log every 500 mahasiswa
+		if (i+1)%500 == 0 {
+			log.Printf("📊 [Transkrip Batch] Progress: %d/%d mahasiswa, %d records fetched, %d inserted, %d updated, %d errors",
+				i+1, len(npms), totalFetched, totalInserted, totalUpdated, totalErrors)
+			if s.monitorSvc != nil && syncID != "" {
+				s.monitorSvc.UpdateProgress(syncID, i+1, fmt.Sprintf("Processing %d/%d mahasiswa", i+1, len(npms)))
+			}
+		}
+	}
+
+	duration := time.Since(startTime)
+
+	status := "success"
+	if totalErrors > 0 && (totalInserted+totalUpdated) > 0 {
+		status = "partial"
+	} else if totalErrors > 0 && (totalInserted+totalUpdated) == 0 {
+		status = "failed"
+	}
+
+	var errDetails *string
+	if len(allErrors) > 0 {
+		maxErrors := 10
+		if len(allErrors) > maxErrors {
+			summary := fmt.Sprintf("First %d of %d errors:\n%s", maxErrors, len(allErrors), joinErrors(allErrors[:maxErrors]))
+			errDetails = &summary
+		} else {
+			summary := joinErrors(allErrors)
+			errDetails = &summary
+		}
+	}
+
+	s.logSyncResult(ctx, "Transkrip Batch", "siakadu_transkrip_batch", "batch", status, syncedBy,
+		totalFetched, totalInserted, totalUpdated, totalErrors, totalSkipped,
+		int(duration.Milliseconds()), nil, errDetails)
+
+	if s.monitorSvc != nil && syncID != "" {
+		s.monitorSvc.CompleteSync(syncID, fmt.Sprintf("Batch sync completed: %d mhs, %d records, %d inserted, %d updated",
+			len(npms), totalFetched, totalInserted, totalUpdated))
+	}
+
+	result := &SyncResult{
+		TotalFetched:  totalFetched,
+		TotalInserted: totalInserted,
+		TotalUpdated:  totalUpdated,
+		TotalSkipped:  totalSkipped,
+		TotalErrors:   totalErrors,
+		Duration:      duration.String(),
+		SyncedBy:      syncedBy,
+	}
+
+	log.Printf("✅ [Transkrip Batch] Complete - %d mhs processed, %d records fetched, %d inserted, %d updated, %d errors, %d skipped, duration: %s",
+		len(npms), totalFetched, totalInserted, totalUpdated, totalErrors, totalSkipped, duration)
+
+	return result, nil
 }
 
 // joinErrors joins error messages with newline
