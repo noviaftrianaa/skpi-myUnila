@@ -12,32 +12,13 @@ interface KanbanBoardProps {
   onTaskClick?: (task: Task) => void;
 }
 
-const COLUMNS: { id: Task['status']; title: string; colorClass: string }[] = [
-  {
-    id: "backlog",
-    title: "Backlog",
-    colorClass: "bg-slate-50 dark:bg-slate-900/40 border-l-4 border-slate-400",
-  },
-  {
-    id: "todo",
-    title: "To Do",
-    colorClass: "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400",
-  },
-  {
-    id: "in_progress",
-    title: "In Progress",
-    colorClass: "bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400",
-  },
-  {
-    id: "review",
-    title: "Review",
-    colorClass: "bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-400",
-  },
-  {
-    id: "done",
-    title: "Done",
-    colorClass: "bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-400",
-  },
+const COLUMNS: { id: string; title: string }[] = [
+  { id: "backlog",     title: "Backlog" },
+  { id: "todo",        title: "To Do" },
+  { id: "in_progress", title: "In Progress" },
+  { id: "review",      title: "Review" },
+  { id: "done",        title: "Done" },
+  { id: "cancelled",   title: "Cancelled" },
 ];
 
 export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: KanbanBoardProps) {
@@ -52,26 +33,34 @@ export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: Ka
     const { source, destination, draggableId } = result;
 
     if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    )
+      return;
 
     // Save previous state for rollback
     const previousColumns = { ...columns };
 
     // Optimistic update
     const sourceCol = [...(columns[source.droppableId] ?? [])];
-    const destCol = source.droppableId === destination.droppableId
-      ? sourceCol
-      : [...(columns[destination.droppableId] ?? [])];
+    const destCol =
+      source.droppableId === destination.droppableId
+        ? sourceCol
+        : [...(columns[destination.droppableId] ?? [])];
 
     const [movedTask] = sourceCol.splice(source.index, 1);
-    const updatedTask: Task = { ...movedTask, status: destination.droppableId as Task['status'] };
+    const updatedTask: Task = {
+      ...movedTask,
+      status: destination.droppableId as Task["status"],
+    };
 
     if (source.droppableId === destination.droppableId) {
       sourceCol.splice(destination.index, 0, updatedTask);
-      setColumns(prev => ({ ...prev, [source.droppableId]: sourceCol }));
+      setColumns((prev) => ({ ...prev, [source.droppableId]: sourceCol }));
     } else {
       destCol.splice(destination.index, 0, updatedTask);
-      setColumns(prev => ({
+      setColumns((prev) => ({
         ...prev,
         [source.droppableId]: sourceCol,
         [destination.droppableId]: destCol,
@@ -81,7 +70,7 @@ export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: Ka
     // Build reorder payload
     const reorderItems = destCol.map((t, i) => ({
       task_id: t.id,
-      status: destination.droppableId as Task['status'],
+      status: destination.droppableId as Task["status"],
       posisi: i,
     }));
 
@@ -96,14 +85,28 @@ export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: Ka
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[400px]">
+      {/* Horizontal scroll board — single col on mobile, row on desktop */}
+      <div
+        className={[
+          "flex flex-col lg:flex-row",
+          "gap-4 pb-4",
+          "overflow-x-auto",
+          "scroll-smooth",
+          "[scrollbar-width:thin]",
+          "[&::-webkit-scrollbar]:h-1.5",
+          "[&::-webkit-scrollbar-track]:bg-transparent",
+          "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+          "dark:[&::-webkit-scrollbar-thumb]:bg-slate-600",
+          "[&::-webkit-scrollbar-thumb]:rounded-full",
+          "min-h-[500px]",
+        ].join(" ")}
+      >
         {COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}
             id={col.id}
             title={col.title}
             tasks={columns[col.id] ?? []}
-            colorClass={col.colorClass}
             onTaskClick={onTaskClick}
           />
         ))}
