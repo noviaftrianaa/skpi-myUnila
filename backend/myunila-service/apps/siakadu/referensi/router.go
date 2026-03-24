@@ -15,6 +15,7 @@ func Init(router fiber.Router, db *sqlx.DB, siakaduAPI *siakadu_api.SiakaduClien
 	{
 		group.Post("/unit/sync", handler.SyncUnits)
 		group.Get("/prodi", handler.GetProdiList)
+		group.Get("/pimpinan/:id_unit", handler.GetPimpinan)
 	}
 
 	return svc
