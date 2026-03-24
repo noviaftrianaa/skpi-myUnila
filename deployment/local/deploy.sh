@@ -90,9 +90,14 @@ show_menu() {
     echo -e "  ${CYAN}--- Quick Rebuild (Monitoring) ---${NC}"
     echo -e "  ${GREEN}43)${NC} Quick Rebuild - Monitoring Only"
     echo ""
+    echo -e "  ${CYAN}--- SIMBAK Service ---${NC}"
+    echo -e "  ${GREEN}44)${NC} Quick Rebuild - SIMBAK Only"
+    echo -e "  ${BLUE}45)${NC} Restart SIMBAK Only"
+    echo -e "  ${CYAN}46)${NC} Quick Dev Rebuild - SIMBAK Only"
+    echo ""
     echo -e "  ${RED}0)${NC}  Exit"
     echo ""
-    echo -n "Pilihan [0-43]: "
+    echo -n "Pilihan [0-46]: "
 }
 
 # Function to show container status
@@ -122,8 +127,9 @@ show_logs() {
     echo "  11) MeiliSearch"
     echo "  12) Kong"
     echo "  13) Monitoring"
+    echo "  14) SIMBAK"
     echo ""
-    read -p "Pilihan [1-13]: " log_choice
+    read -p "Pilihan [1-14]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
@@ -139,6 +145,7 @@ show_logs() {
         11) docker logs myunila-meilisearch --tail 100 -f ;;
         12) docker logs myunila-kong --tail 100 -f ;;
         13) docker logs myunila-monitoring-service --tail 100 -f ;;
+        14) docker logs myunila-simbak-service --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -221,6 +228,14 @@ test_endpoints() {
         echo -e "${RED}✗ $MONITORING_STATUS${NC}"
     fi
 
+    echo -n "SIMBAK:           "
+    SIMBAK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/api/health 2>/dev/null || echo "000")
+    if [ "$SIMBAK_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $SIMBAK_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $SIMBAK_STATUS${NC}"
+    fi
+
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
     echo "  Public:      http://localhost:8082"
@@ -231,6 +246,7 @@ test_endpoints() {
     echo "  Keuangan:    http://localhost:8088"
     echo "  Dashboard:   http://localhost:8087"
     echo "  Monitoring:  http://localhost:8089"
+    echo "  SIMBAK:      http://localhost:8090"
     echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
@@ -402,6 +418,8 @@ while true; do
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
             echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
             docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
+            echo -e "${BLUE}Clearing Laravel cache on SIMBAK Service...${NC}"
+            docker exec myunila-simbak-service php artisan optimize:clear 2>/dev/null || echo "SIMBAK service not running"
             echo ""
             echo -e "${GREEN}✓ All cache cleared!${NC}"
             read -p "Press Enter to continue..."
@@ -423,6 +441,8 @@ while true; do
             docker exec myunila-auth-service php artisan optimize:clear 2>/dev/null || echo "Auth service not running"
             echo -e "${BLUE}Clearing Laravel cache on Public Service...${NC}"
             docker exec myunila-public-service php artisan optimize:clear 2>/dev/null || echo "Public service not running"
+            echo -e "${BLUE}Clearing Laravel cache on SIMBAK Service...${NC}"
+            docker exec myunila-simbak-service php artisan optimize:clear 2>/dev/null || echo "SIMBAK service not running"
             echo ""
             echo -e "${GREEN}✓ Laravel cache cleared!${NC}"
             read -p "Press Enter to continue..."
@@ -546,6 +566,24 @@ while true; do
         # === Quick Rebuild (Monitoring) ===
         43)
             bash "$SCRIPT_DIR/quick-rebuild.sh" monitoring
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === SIMBAK Service ===
+        44)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" simbak
+            read -p "Press Enter to continue..."
+            ;;
+        45)
+            bash "$SCRIPT_DIR/restart-services.sh" simbak
+            read -p "Press Enter to continue..."
+            ;;
+        46)
+            echo ""
+            echo -e "${CYAN}Quick Dev Rebuild - SIMBAK Only (dengan cache)${NC}"
+            echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
+            echo ""
+            bash "$SCRIPT_DIR/quick-dev-rebuild.sh" simbak
             read -p "Press Enter to continue..."
             ;;
 
