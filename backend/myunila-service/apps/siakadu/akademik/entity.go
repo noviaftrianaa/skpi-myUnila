@@ -10,16 +10,13 @@ import (
 
 // KelasListItem - Kelas for list view
 type KelasListItem struct {
-	IDKelas        int        `db:"id_kelas" json:"id_kelas"`
-	IdSemester     *string    `db:"id_semester" json:"id_semester"`
-	NamaKelas      *string    `db:"nama_kelas" json:"nama_kelas"`
-	NamaMataKuliah *string    `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
-	SKS            *int       `db:"sks" json:"sks"`
-	DayaTampung    *int       `db:"daya_tampung" json:"daya_tampung"`
-	JumlahPeserta  *int       `db:"jumlah_peserta" json:"jumlah_peserta"`
-	IdUnit         *string    `db:"id_unit" json:"id_unit"`
-	Prodi          *string    `db:"nm_prodi" json:"nm_prodi"`
-	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
+	IDKelas    string     `db:"id_kelas" json:"id_kelas"`
+	IdSemester *string    `db:"id_semester" json:"id_semester"`
+	NamaKelas  *string    `db:"nama_kelas" json:"nama_kelas"`
+	IdMK       *string    `db:"id_mk" json:"id_mk"`
+	NamaMK     *string    `db:"nama_mk" json:"nama_mk"`
+	SKSMK      *float64   `db:"sks_mk" json:"sks_mk"`
+	LastSync   *time.Time `db:"last_sync" json:"last_sync"`
 }
 
 // ========================================
@@ -28,14 +25,12 @@ type KelasListItem struct {
 
 // KurikulumListItem - Kurikulum for list view
 type KurikulumListItem struct {
-	IDKurikulum    int        `db:"id_kurikulum" json:"id_kurikulum"`
+	IDKurikulum    *string    `db:"id_kurikulum" json:"id_kurikulum"`
 	Semester       *int       `db:"semester" json:"semester"`
 	IdMataKuliah   *string    `db:"id_mata_kuliah" json:"id_mata_kuliah"`
 	NamaMataKuliah *string    `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
-	SKS            *int       `db:"sks" json:"sks"`
-	JenisMK        *string    `db:"jenis_mk" json:"jenis_mk"`
-	IdUnit         *string    `db:"id_unit" json:"id_unit"`
-	Prodi          *string    `db:"nm_prodi" json:"nm_prodi"`
+	KodeMK         *string    `db:"kode_mk" json:"kode_mk"`
+	SKS            *float64   `db:"sks" json:"sks"`
 	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
 }
 
@@ -47,11 +42,8 @@ type KurikulumListItem struct {
 type MatakuliahListItem struct {
 	IdMataKuliah   string     `db:"id_mata_kuliah" json:"id_mata_kuliah"`
 	NamaMataKuliah string     `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
-	SKS            *int       `db:"sks" json:"sks"`
-	IdKurikulum    *int       `db:"id_kurikulum" json:"id_kurikulum"`
-	IdJenisMK      *string    `db:"id_jenis_mk" json:"id_jenis_mk"`
-	IdUnit         *string    `db:"id_unit" json:"id_unit"`
-	Prodi          *string    `db:"nm_prodi" json:"nm_prodi"`
+	KodeMK         string     `db:"kode_mk" json:"kode_mk"`
+	SKS            *float64   `db:"sks" json:"sks"`
 	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
 }
 
@@ -61,16 +53,15 @@ type MatakuliahListItem struct {
 
 // JadwalListItem - Jadwal for list view
 type JadwalListItem struct {
-	IDJadwal       int        `db:"id_jadwal" json:"id_jadwal"`
-	IDKelas        *int       `db:"id_kelas" json:"id_kelas"`
-	PertemuanKe    *int       `db:"pertemuan_ke" json:"pertemuan_ke"`
-	JenisPertemuan *string    `db:"jenis_pertemuan" json:"jenis_pertemuan"`
-	TglJadwal      *string    `db:"tgl_jadwal" json:"tgl_jadwal"`
-	WaktuMulai     *string    `db:"waktu_mulai" json:"waktu_mulai"`
-	WaktuSelesai   *string    `db:"waktu_selesai" json:"waktu_selesai"`
-	IdUnit         *string    `db:"id_unit" json:"id_unit"`
-	Prodi          *string    `db:"nm_prodi" json:"nm_prodi"`
-	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
+	IDJadwal     string     `db:"id_jadwal" json:"id_jadwal"`
+	IDKelas      *string    `db:"id_kelas" json:"id_kelas"`
+	IdSemester   *string    `db:"id_semester" json:"id_semester"`
+	PertemuanKe  *int       `db:"pertemuan_ke" json:"pertemuan_ke"`
+	TglJadwal    *time.Time `db:"tgl_jadwal" json:"tgl_jadwal"`
+	WaktuMulai   *string    `db:"waktu_mulai" json:"waktu_mulai"`
+	WaktuSelesai *string    `db:"waktu_selesai" json:"waktu_selesai"`
+	Lokasi       *string    `db:"lokasi" json:"lokasi"`
+	LastSync     *time.Time `db:"last_sync" json:"last_sync"`
 }
 
 // ========================================
@@ -88,13 +79,13 @@ type PaginatedResult struct {
 
 // SyncFilter - Filter for sync operations
 type SyncFilter struct {
-	IdSemester    string `json:"id_semester"`
-	IdUnit        string `json:"id_unit"`
-	ThnKurikulum  int    `json:"thn_kurikulum"`
-	Page          int    `json:"page"`
-	PageSize      int    `json:"page_size"`
-	ForceSync     bool   `json:"force_sync,omitempty"`
-	SyncType      string `json:"sync_type,omitempty"`
+	IdSemester   string `json:"id_semester"`
+	IdUnit       string `json:"id_unit"`
+	ThnKurikulum int    `json:"thn_kurikulum"`
+	Page         int    `json:"page"`
+	PageSize     int    `json:"page_size"`
+	ForceSync    bool   `json:"force_sync,omitempty"`
+	SyncType     string `json:"sync_type,omitempty"`
 }
 
 // SyncResult - Result for sync

@@ -101,6 +101,11 @@ func (s *service) genericSync(
 
 	log.Printf("🔄 [%s Sync] Starting %s sync from SIAKADU API", name, syncType)
 
+	// Ensure mapping tables exist
+	if err := s.repo.EnsureAkademikSchema(ctx); err != nil {
+		log.Printf("⚠️  [%s Sync] EnsureAkademikSchema warning: %v", name, err)
+	}
+
 	syncID := ""
 	if s.monitorSvc != nil {
 		syncID = s.monitorSvc.StartSync(name+" SIAKADU", endpointKey, syncType, syncedBy, 0)
@@ -141,6 +146,14 @@ func (s *service) genericSync(
 
 	log.Printf("📊 [%s Sync] Total fetched: %d records", name, len(allData))
 
+	// Debug: dump first record fields
+	if len(allData) > 0 {
+		log.Printf("🔍 [%s Sync] Sample record fields:", name)
+		for k, v := range allData[0] {
+			log.Printf("   %s = %v (type: %T)", k, v, v)
+		}
+	}
+
 	if s.monitorSvc != nil && syncID != "" {
 		s.monitorSvc.UpdateTotalRecords(syncID, len(allData))
 	}
@@ -156,6 +169,9 @@ func (s *service) genericSync(
 		if err != nil {
 			totalErrors++
 			allErrors = append(allErrors, err.Error())
+			if totalErrors <= 3 {
+				log.Printf("⚠️  [%s Sync] Error #%d: %v | data: %v", name, totalErrors, err, item)
+			}
 			continue
 		}
 		if isNew {

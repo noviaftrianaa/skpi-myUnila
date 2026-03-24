@@ -483,6 +483,11 @@ create table siakadu.reg_pd (
    sert_prof                           varchar(80)               null,
    a_pindah_mhs_asing                  numeric(1,0)              null default ((0)),
    biaya_masuk_kuliah                  numeric(16,2)             null,
+   angkatan                            varchar(4)                null,
+   sks_total                           int                       null,
+   sks_lulus                           int                       null,
+   semester                            varchar(10)               null,
+   id_status_mahasiswa                 varchar(10)               null,
    create_date                         datetime                  not null,
    id_creator                          uniqueidentifier          not null,
    last_update                         datetime                  not null,
@@ -505,7 +510,7 @@ create table siakadu.matkul (
    id_mk                               uniqueidentifier          not null,
    id_kel_mk                           char(1)                   null,
    id_sms                              uniqueidentifier          null,
-   id_jns_mk                           char(1)                   null,
+   id_jns_mk                           varchar(5)                null,
    id_jenj_didik                       numeric(2,0)              not null,
    sks_mk                              numeric(5,2)              null,
    sks_tm                              numeric(5,2)              null,
@@ -1516,7 +1521,38 @@ create table siakadu.mapping_unit (
    jenjang                  varchar(10)          null,
    create_date              datetime             not null default getdate(),
    last_update              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
    constraint pk_mapping_unit primary key (kode_siakad)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_matkul                                        */
+/* Description: Mapping kode_mk SIAKADU (string) → id_mk UUID  */
+/*==============================================================*/
+create table siakadu.mapping_matkul (
+   kode_mk_siakadu          varchar(20)          not null,
+   id_unit_siakadu          varchar(20)          null,
+   id_mk                    uniqueidentifier     not null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_matkul primary key (kode_mk_siakadu, id_unit_siakadu)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_kurikulum                                     */
+/* Description: Mapping kode_mk+thn SIAKADU → id_kurikulum_sp  */
+/*==============================================================*/
+create table siakadu.mapping_kurikulum (
+   kode_mk_siakadu          varchar(20)          not null,
+   thn_kurikulum            int                  not null,
+   id_unit_siakadu          varchar(20)          null,
+   id_kurikulum_sp          uniqueidentifier     not null,
+   id_mk                    uniqueidentifier     not null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_kurikulum primary key (kode_mk_siakadu, thn_kurikulum)
 )
 go
 
@@ -1529,6 +1565,7 @@ create table siakadu.mapping_kelas (
    id_kls                   uniqueidentifier     not null,
    id_smt                   char(5)              null,
    create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
    constraint pk_mapping_kelas primary key (id_kelas_siakadu)
 )
 go
@@ -1541,6 +1578,7 @@ create table siakadu.mapping_jadwal (
    id_jadwal_siakadu        int                  not null,
    id_jdwl_kls              uniqueidentifier     not null,
    create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
    constraint pk_mapping_jadwal primary key (id_jadwal_siakadu)
 )
 go
@@ -1554,6 +1592,7 @@ create table siakadu.mapping_pegawai (
    id_sdm                   uniqueidentifier     not null,
    nip                      varchar(30)          null,
    create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
    constraint pk_mapping_pegawai primary key (id_pegawai_siakadu)
 )
 go

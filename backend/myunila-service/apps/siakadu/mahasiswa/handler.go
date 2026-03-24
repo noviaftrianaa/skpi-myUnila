@@ -79,6 +79,41 @@ func (h *Handler) GetStats(c *fiber.Ctx) error {
 	})
 }
 
+// SyncAll handles POST /api/v1/siakadu/mahasiswa/sync-all
+func (h *Handler) SyncAll(c *fiber.Ctx) error {
+	syncedBy := c.Get("X-User-ID", "system")
+
+	results, err := h.service.SyncAllProdi(c.Context(), syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	// Aggregate totals
+	totalInserted, totalUpdated, totalErrors := 0, 0, 0
+	for _, r := range results {
+		if r.SyncResult != nil {
+			totalInserted += r.TotalInserted
+			totalUpdated += r.TotalUpdated
+			totalErrors += r.TotalErrors
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "SyncAll completed",
+		"summary": fiber.Map{
+			"total_prodi":    len(results),
+			"total_inserted": totalInserted,
+			"total_updated":  totalUpdated,
+			"total_errors":   totalErrors,
+		},
+		"data": results,
+	})
+}
+
 // Sync handles POST /api/v1/siakadu/mahasiswa/sync
 func (h *Handler) Sync(c *fiber.Ctx) error {
 	var filter SyncFilter

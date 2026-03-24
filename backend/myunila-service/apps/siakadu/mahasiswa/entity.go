@@ -83,6 +83,13 @@ type SyncResult struct {
 	SyncedBy       string `json:"synced_by"`
 }
 
+// ProdiSyncResult - Result per prodi for SyncAllProdi
+type ProdiSyncResult struct {
+	IdUnit   string `json:"id_unit"`
+	NmUnit   string `json:"nm_unit"`
+	*SyncResult
+}
+
 // SyncLogEntry - Entry for sync log
 type SyncLogEntry struct {
 	EndpointName  string

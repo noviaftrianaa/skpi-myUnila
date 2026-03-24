@@ -16,6 +16,7 @@ type Service interface {
 	GetMahasiswaByNIM(ctx context.Context, nim string) (*MahasiswaDetail, error)
 	GetStats(ctx context.Context) (*SyncStats, error)
 	SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
+	SyncAllProdi(ctx context.Context, syncedBy string) ([]*ProdiSyncResult, error)
 }
 
 // SiakaduAPIClient interface for SIAKADU API operations
@@ -81,6 +82,11 @@ func (s *service) SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedB
 	log.Printf("🔄 [Mahasiswa Sync] Starting %s sync from SIAKADU API - batchSize: %d, idUnit: %s",
 		syncType, batchSize, idUnit)
 
+	// Ensure reference data and schema columns exist
+	if err := s.repo.EnsureReferenceData(ctx); err != nil {
+		log.Printf("⚠️  [Mahasiswa Sync] EnsureReferenceData warning: %v", err)
+	}
+
 	// Start monitoring
 	syncID := ""
 	if s.monitorSvc != nil {
@@ -122,6 +128,14 @@ func (s *service) SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedB
 	}
 
 	log.Printf("📊 [Mahasiswa Sync] Total fetched from SIAKADU API: %d records", len(allData))
+
+	// Debug: dump first record fields
+	if len(allData) > 0 {
+		log.Printf("🔍 [Mahasiswa Sync] Sample record fields:")
+		for k, v := range allData[0] {
+			log.Printf("   %s = %v (type: %T)", k, v, v)
+		}
+	}
 
 	if s.monitorSvc != nil && syncID != "" {
 		s.monitorSvc.UpdateTotalRecords(syncID, len(allData))
@@ -226,6 +240,52 @@ func (s *service) SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedB
 }
 
 // joinErrors joins error messages with newline
+// SyncAllProdi syncs mahasiswa for all active prodi in ref_unit sequentially
+func (s *service) SyncAllProdi(ctx context.Context, syncedBy string) ([]*ProdiSyncResult, error) {
+	// Get all prodi from ref_unit
+	prodis, err := s.repo.GetAllProdiIDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get prodi list: %v", err)
+	}
+
+	if len(prodis) == 0 {
+		return nil, fmt.Errorf("no prodi found in ref_unit — sync unit first via POST /siakadu/referensi/unit/sync")
+	}
+
+	log.Printf("🔄 [SyncAllProdi] Starting sync for %d prodi", len(prodis))
+
+	results := make([]*ProdiSyncResult, 0, len(prodis))
+
+	for i, prodi := range prodis {
+		nmUnit := "Unknown"
+		if prodi.NmUnit != nil {
+			nmUnit = *prodi.NmUnit
+		}
+		log.Printf("📊 [SyncAllProdi] [%d/%d] Syncing %s (%s)", i+1, len(prodis), nmUnit, prodi.IdUnit)
+
+		result, err := s.SyncMahasiswa(ctx, &SyncFilter{
+			IdUnit:   prodi.IdUnit,
+			PageSize: 500,
+			SyncType: "auto-all",
+		}, syncedBy)
+
+		pr := &ProdiSyncResult{
+			IdUnit:  prodi.IdUnit,
+			NmUnit:  nmUnit,
+		}
+		if err != nil {
+			pr.SyncResult = &SyncResult{TotalErrors: 1, Duration: "0s", SyncedBy: syncedBy}
+			log.Printf("❌ [SyncAllProdi] %s failed: %v", prodi.IdUnit, err)
+		} else {
+			pr.SyncResult = result
+		}
+		results = append(results, pr)
+	}
+
+	log.Printf("✅ [SyncAllProdi] Done — %d prodi synced", len(results))
+	return results, nil
+}
+
 func joinErrors(errors []string) string {
 	result := ""
 	for i, e := range errors {

@@ -20,6 +20,7 @@ import (
 	"github.com/myunila/myunila-service/apps/siakadu/akademik"
 	siakadu_mahasiswa "github.com/myunila/myunila-service/apps/siakadu/mahasiswa"
 	siakadu_nilai "github.com/myunila/myunila-service/apps/siakadu/nilai"
+	siakadu_referensi "github.com/myunila/myunila-service/apps/siakadu/referensi"
 	"github.com/myunila/myunila-service/apps/sikep/pegawai"
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
 	"github.com/myunila/myunila-service/docs"
@@ -177,6 +178,7 @@ func main() {
 
 	// Initialize SIAKADU Nilai module (khs, transkrip, kuliah)
 	siakadu_nilai.Init(apiV1, db.DB, siakaduAPI)
+	siakadu_referensi.Init(apiV1, db.DB, siakaduAPI)
 	log.Println("✅ SIAKADU Nilai module initialized")
 
 	// Initialize ManAkses Unit Organisasi module
@@ -231,6 +233,7 @@ func main() {
 				"siakadu_mahasiswa":   "/api/v1/siakadu/mahasiswa",
 				"siakadu_akademik":    "/api/v1/siakadu/akademik",
 				"siakadu_nilai":       "/api/v1/siakadu/nilai",
+				"siakadu_referensi":   "/api/v1/siakadu/referensi",
 				"radius_pengguna":     "/api/v1/radius/pengguna",
 				"radius_stats":        "/api/v1/radius/stats",
 				"radius_sync":         "/api/v1/radius/sync",
