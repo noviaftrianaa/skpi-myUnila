@@ -21,11 +21,11 @@ export default function ProjectManagementLayout({
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
               <Link
-                href="/dashboard"
+                href="/portal"
                 className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors text-sm"
               >
                 <FiArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">Portal</span>
               </Link>
               <div className="w-px h-5 bg-gray-300 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
