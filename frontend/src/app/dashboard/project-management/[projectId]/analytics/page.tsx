@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
     : [];
 
   const currentYear = new Date().getFullYear();
-  const projectName = project?.nm_project ?? project?.nama ?? "";
+  const projectName = project?.nama ?? "";
 
   return (
       <>

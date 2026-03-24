@@ -522,13 +522,20 @@ export const projectService = {
   },
 
   async createModule(projectId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
-    const response = await projectClient.post<SingleResponse<ProjectModule>>(`/project/${projectId}/modules`, data);
+    const payload = {
+      ...data,
+      nm_module: data.nama ?? (data as Record<string, unknown>).nm_module,
+      id_project: projectId,
+    };
+    const response = await projectClient.post<SingleResponse<ProjectModule>>(`/project/${projectId}/modules`, payload);
     if (!response.data.success) throw new Error('Failed to create module');
     return mapModule(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateModule(projectId: string, moduleId: string, data: Partial<ProjectModule>): Promise<ProjectModule> {
-    const response = await projectClient.put<SingleResponse<ProjectModule>>(`/project/${projectId}/modules/${moduleId}`, data);
+    const payload = { ...data };
+    if (data.nama !== undefined) (payload as Record<string, unknown>).nm_module = data.nama;
+    const response = await projectClient.put<SingleResponse<ProjectModule>>(`/project/${projectId}/modules/${moduleId}`, payload);
     if (!response.data.success) throw new Error('Failed to update module');
     return mapModule(response.data.data as unknown as Record<string, unknown>);
   },
@@ -578,13 +585,26 @@ export const projectService = {
   },
 
   async createTask(projectId: string, data: Partial<Task>): Promise<Task> {
-    const response = await projectClient.post<SingleResponse<Task>>(`/project/${projectId}/tasks`, data);
+    // Map frontend field names to backend field names
+    const payload = {
+      ...data,
+      id_module: data.module_id ?? data.id_module,
+      id_sprint: data.sprint_id ?? data.id_sprint,
+      id_assignee: data.assignee_id ?? data.id_assignee,
+      id_project: projectId,
+    };
+    const response = await projectClient.post<SingleResponse<Task>>(`/project/${projectId}/tasks`, payload);
     if (!response.data.success) throw new Error('Failed to create task');
     return mapTask(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateTask(projectId: string, taskId: string, data: Partial<Task>): Promise<Task> {
-    const response = await projectClient.put<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`, data);
+    // Map frontend field names to backend field names
+    const payload = { ...data };
+    if (data.module_id !== undefined) (payload as Record<string, unknown>).id_module = data.module_id;
+    if (data.sprint_id !== undefined) (payload as Record<string, unknown>).id_sprint = data.sprint_id;
+    if (data.assignee_id !== undefined) (payload as Record<string, unknown>).id_assignee = data.assignee_id;
+    const response = await projectClient.put<SingleResponse<Task>>(`/project/${projectId}/tasks/${taskId}`, payload);
     if (!response.data.success) throw new Error('Failed to update task');
     return mapTask(response.data.data as unknown as Record<string, unknown>);
   },

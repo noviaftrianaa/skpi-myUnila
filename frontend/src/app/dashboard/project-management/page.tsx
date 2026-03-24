@@ -262,7 +262,7 @@ export default function ProjectManagementDashboardPage() {
           >
             {filteredProjects.map((project, i) => (
               <motion.div
-                key={project.id ?? project.id_project}
+                key={project.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
