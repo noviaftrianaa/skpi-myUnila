@@ -3,15 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
-import {
-  Button,
-  Chip,
-  Spinner,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+import { Btn, Chip, Spinner, TwSelect } from "../../components/ui";
 import { FiPlus, FiList, FiBarChart2 } from "react-icons/fi";
-import { FiFolder } from "react-icons/fi";
 import Link from "next/link";
 import TaskDetailModal from "../../components/TaskDetailModal";
 import TaskCreateModal from "../../components/TaskCreateModal";
@@ -156,7 +149,7 @@ export default function TaskListPage() {
       width: "100px",
       render: (item) => {
         const cfg = PRIORITAS_CHIP[item.prioritas] ?? { label: item.prioritas, color: "default" as const };
-        return <Chip size="sm" color={cfg.color} variant="flat" className="text-[11px]">{cfg.label}</Chip>;
+        return <Chip size="sm" color={cfg.color} className="text-[11px]">{cfg.label}</Chip>;
       },
     },
     {
@@ -165,7 +158,7 @@ export default function TaskListPage() {
       width: "120px",
       render: (item) => {
         const cfg = STATUS_CHIP[item.status] ?? { label: item.status, color: "default" as const };
-        return <Chip size="sm" color={cfg.color} variant="flat" className="text-[11px]">{cfg.label}</Chip>;
+        return <Chip size="sm" color={cfg.color} className="text-[11px]">{cfg.label}</Chip>;
       },
     },
     {
@@ -200,72 +193,77 @@ export default function TaskListPage() {
     },
   ];
 
+  const moduleOptions = [
+    { value: "all", label: "Semua Modul" },
+    ...modules.map(m => ({ value: String(m.id), label: m.nama })),
+  ];
+
+  const statusOptions = [
+    { value: "all", label: "Semua Status" },
+    { value: "backlog", label: "Backlog" },
+    { value: "todo", label: "To Do" },
+    { value: "in_progress", label: "In Progress" },
+    { value: "review", label: "Review" },
+    { value: "done", label: "Done" },
+  ];
+
+  const priorityOptions = [
+    { value: "all", label: "Semua Prioritas" },
+    { value: "urgent", label: "Urgent" },
+    { value: "high", label: "High" },
+    { value: "medium", label: "Medium" },
+    { value: "low", label: "Low" },
+  ];
+
   const filterSlot = (
-    <div className="flex flex-wrap items-center gap-2">
-      <Select
-        selectedKeys={new Set([moduleFilter])}
-        onSelectionChange={(keys) => { setModuleFilter(Array.from(keys)[0] as string ?? "all"); setCurrentPage(1); }}
-        variant="bordered"
-        size="sm"
+    <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
+      <TwSelect
+        value={moduleFilter}
+        onValueChange={(v) => { setModuleFilter(v || "all"); setCurrentPage(1); }}
+        options={moduleOptions}
         placeholder="Semua Modul"
-        className="w-40"
-        items={[{ id: "all", nama: "Semua Modul" }, ...modules]}
-      >
-        {(m) => <SelectItem key={m.id}>{m.nama}</SelectItem>}
-      </Select>
-      <Select
-        selectedKeys={new Set([statusFilter])}
-        onSelectionChange={(keys) => { setStatusFilter(Array.from(keys)[0] as string ?? "all"); setCurrentPage(1); }}
-        variant="bordered"
-        size="sm"
+        selectSize="sm"
+        className="w-full sm:w-40"
+      />
+      <TwSelect
+        value={statusFilter}
+        onValueChange={(v) => { setStatusFilter(v || "all"); setCurrentPage(1); }}
+        options={statusOptions}
         placeholder="Semua Status"
-        className="w-40"
-      >
-        <SelectItem key="all">Semua Status</SelectItem>
-        <SelectItem key="backlog">Backlog</SelectItem>
-        <SelectItem key="todo">To Do</SelectItem>
-        <SelectItem key="in_progress">In Progress</SelectItem>
-        <SelectItem key="review">Review</SelectItem>
-        <SelectItem key="done">Done</SelectItem>
-      </Select>
-      <Select
-        selectedKeys={new Set([priorityFilter])}
-        onSelectionChange={(keys) => { setPriorityFilter(Array.from(keys)[0] as string ?? "all"); setCurrentPage(1); }}
-        variant="bordered"
-        size="sm"
+        selectSize="sm"
+        className="w-full sm:w-40"
+      />
+      <TwSelect
+        value={priorityFilter}
+        onValueChange={(v) => { setPriorityFilter(v || "all"); setCurrentPage(1); }}
+        options={priorityOptions}
         placeholder="Semua Prioritas"
-        className="w-40"
-      >
-        <SelectItem key="all">Semua Prioritas</SelectItem>
-        <SelectItem key="urgent">Urgent</SelectItem>
-        <SelectItem key="high">High</SelectItem>
-        <SelectItem key="medium">Medium</SelectItem>
-        <SelectItem key="low">Low</SelectItem>
-      </Select>
+        selectSize="sm"
+        className="w-full sm:w-40"
+      />
     </div>
   );
 
   const actionSlot = (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Link href={`/dashboard/project-management/${projectId}/board`}>
-        <Button size="sm" variant="bordered" className="text-xs">
+        <Btn variant="secondary" size="sm" className="text-xs">
           Tampilan Board
-        </Button>
+        </Btn>
       </Link>
       <Link href={`/dashboard/project-management/${projectId}/timeline`}>
-        <Button size="sm" variant="bordered" className="text-xs" startContent={<FiBarChart2 className="w-3.5 h-3.5" />}>
+        <Btn variant="secondary" size="sm" startContent={<FiBarChart2 className="w-3.5 h-3.5" />} className="text-xs">
           Timeline
-        </Button>
+        </Btn>
       </Link>
-      <Button
+      <Btn
         size="sm"
-        color="primary"
-        className="bg-[#0B5EA8] text-white"
+        variant="primary"
         startContent={<FiPlus className="w-3.5 h-3.5" />}
-        onPress={() => setIsCreateOpen(true)}
+        onClick={() => setIsCreateOpen(true)}
       >
         Buat Task
-      </Button>
+      </Btn>
     </div>
   );
 
@@ -274,7 +272,7 @@ export default function TaskListPage() {
         <div className="space-y-4">
           {/* Breadcrumb + Header */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Link
                 href="/dashboard/project-management"
                 className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
@@ -292,24 +290,26 @@ export default function TaskListPage() {
             </div>
           </div>
 
-          <DataTable
-            data={tasks}
-            columns={columns}
-            loading={isLoading}
-            serverSide
-            totalRecords={totalRecords}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            searchable={false}
-            filterSlot={filterSlot}
-            actionSlot={actionSlot}
-            emptyMessage={
-              <div className="flex flex-col items-center py-12 text-gray-400">
-                <FiList className="w-10 h-10 mb-2" />
-                <p className="text-sm">Belum ada task</p>
-              </div>
-            }
-          />
+          <div className="overflow-x-auto">
+            <DataTable
+              data={tasks}
+              columns={columns}
+              loading={isLoading}
+              serverSide
+              totalRecords={totalRecords}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              searchable={false}
+              filterSlot={filterSlot}
+              actionSlot={actionSlot}
+              emptyMessage={
+                <div className="flex flex-col items-center py-12 text-gray-400">
+                  <FiList className="w-10 h-10 mb-2" />
+                  <p className="text-sm">Belum ada task</p>
+                </div>
+              }
+            />
+          </div>
         </div>
 
         <TaskDetailModal

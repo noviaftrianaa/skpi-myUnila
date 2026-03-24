@@ -3,15 +3,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
-  Button,
+  Btn,
   Spinner,
   Chip,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+  TwSelect,
+} from "../../components/ui";
 import {
   FiBarChart2,
-  FiFolder,
   FiCalendar,
 } from "react-icons/fi";
 import Link from "next/link";
@@ -283,11 +281,16 @@ export default function TimelinePage() {
     return result;
   }, [moduleOrder, tasksByModule]);
 
+  const moduleOptions = [
+    { value: "all", label: "Semua Modul" },
+    ...modules.map(m => ({ value: m.id, label: m.nama })),
+  ];
+
   if (isLoading) {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -297,9 +300,9 @@ export default function TimelinePage() {
       <>
         <div className="space-y-4">
           {/* Page Header */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                 <Link
                   href="/dashboard/project-management"
                   className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
@@ -319,23 +322,19 @@ export default function TimelinePage() {
               <div className="flex items-center gap-2">
                 <FiBarChart2 className="w-5 h-5 text-[#0B5EA8]" />
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">Timeline</h1>
-                <Chip size="sm" variant="flat" className="text-xs">{filteredTasks.length} task</Chip>
+                <Chip size="sm" color="default" className="text-xs">{filteredTasks.length} task</Chip>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Module filter */}
-              <Select
-                selectedKeys={new Set([moduleFilter])}
-                onSelectionChange={(keys) => setModuleFilter(Array.from(keys)[0] as string ?? "all")}
-                variant="bordered"
-                size="sm"
-                className="w-44"
-                placeholder="Semua Modul"
-                items={[{ id: "all", nama: "Semua Modul" }, ...modules]}
-              >
-                {(m) => <SelectItem key={m.id}>{m.nama}</SelectItem>}
-              </Select>
+              <TwSelect
+                value={moduleFilter}
+                onValueChange={(v) => setModuleFilter(v)}
+                options={moduleOptions}
+                selectSize="sm"
+                className="w-full sm:w-44"
+              />
 
               {/* Zoom controls */}
               <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -355,14 +354,14 @@ export default function TimelinePage() {
               </div>
 
               <Link href={`/dashboard/project-management/${projectId}/board`}>
-                <Button size="sm" variant="bordered" className="text-xs">
+                <Btn size="sm" variant="secondary" className="text-xs">
                   Board
-                </Button>
+                </Btn>
               </Link>
               <Link href={`/dashboard/project-management/${projectId}/list`}>
-                <Button size="sm" variant="bordered" className="text-xs">
+                <Btn size="sm" variant="secondary" className="text-xs">
                   List
-                </Button>
+                </Btn>
               </Link>
             </div>
           </div>
@@ -386,7 +385,7 @@ export default function TimelinePage() {
                 </div>
 
                 {/* Row labels */}
-                {rows.map((row, idx) => {
+                {rows.map((row) => {
                   if (row.kind === "module") {
                     return (
                       <div
@@ -566,7 +565,7 @@ export default function TimelinePage() {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 flex-wrap">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-4 py-2.5 border-t border-gray-100 dark:border-gray-700">
               {Object.entries(STATUS_LABELS).map(([status, label]) => (
                 <div key={status} className="flex items-center gap-1.5">
                   <span
@@ -576,7 +575,7 @@ export default function TimelinePage() {
                   <span className="text-xs text-gray-500">{label}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-1.5 sm:ml-auto">
                 <span
                   className="w-6 border-t-2 border-dashed border-red-400"
                   style={{ display: "inline-block" }}

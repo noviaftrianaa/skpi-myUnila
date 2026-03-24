@@ -6,26 +6,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
   CardBody,
-  Button,
-  Input,
-  Switch,
+  Btn,
+  TwInput,
+  TwSelect,
   Spinner,
   Modal,
-  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure,
   Chip,
-  RadioGroup,
-  Radio,
-  Select,
-  SelectItem,
-  Tabs,
-  Tab,
-} from "@heroui/react";
+} from "../../components/ui";
 import {
-  FiFolder,
   FiGitBranch,
   FiPlus,
   FiTrash2,
@@ -48,7 +39,6 @@ import {
   type ProjectMember,
   type ProjectWatcher,
   type AddMemberRequest,
-  type AddWatcherRequest,
 } from "@/lib/services/project/projectService";
 
 const WEBHOOK_URL = "http://192.168.120.45:8095/webhooks/bitbucket";
@@ -67,6 +57,13 @@ const MEMBER_ROLES = [
   { value: "admin", label: "Admin", color: "warning" as const },
   { value: "member", label: "Member", color: "primary" as const },
   { value: "viewer", label: "Viewer", color: "default" as const },
+];
+
+const TABS = [
+  { key: "members", label: "Tim Anggota", icon: <FiUsers className="w-4 h-4" /> },
+  { key: "watchers", label: "Pengawas Pimpinan", icon: <FiEye className="w-4 h-4" /> },
+  { key: "visibility", label: "Visibilitas", icon: <FiLock className="w-4 h-4" /> },
+  { key: "git", label: "Integrasi Git", icon: <FiGitBranch className="w-4 h-4" /> },
 ];
 
 export default function SettingsPage() {
@@ -89,7 +86,7 @@ export default function SettingsPage() {
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
 
   // Add webhook form
-  const webhookModal = useDisclosure();
+  const [webhookModalOpen, setWebhookModalOpen] = useState(false);
   const [formProvider, setFormProvider] = useState("bitbucket");
   const [formRepo, setFormRepo] = useState("");
   const [formSecret, setFormSecret] = useState("");
@@ -97,7 +94,7 @@ export default function SettingsPage() {
   const [formError, setFormError] = useState("");
 
   // Add member form
-  const memberModal = useDisclosure();
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [memberSearch, setMemberSearch] = useState("");
   const [memberSearchResults, setMemberSearchResults] = useState<Array<{ id_pengguna: string; nama: string; username: string; email?: string }>>([]);
   const [memberSearching, setMemberSearching] = useState(false);
@@ -106,7 +103,7 @@ export default function SettingsPage() {
   const [addingMember, setAddingMember] = useState(false);
 
   // Add watcher form
-  const watcherModal = useDisclosure();
+  const [watcherModalOpen, setWatcherModalOpen] = useState(false);
   const [watcherSearch, setWatcherSearch] = useState("");
   const [watcherSearchResults, setWatcherSearchResults] = useState<Array<{ id_pengguna: string; nama: string; username: string; email?: string }>>([]);
   const [watcherSearching, setWatcherSearching] = useState(false);
@@ -129,7 +126,7 @@ export default function SettingsPage() {
       setWebhooks(whs ?? []);
       setMembers(mems ?? []);
       setWatchers(wats ?? []);
-      setVisibility((proj as Record<string, unknown>).visibility as string ?? "private");
+      setVisibility(((proj as unknown) as Record<string, unknown>).visibility as string ?? "private");
     } catch (e) {
       console.error(e);
     } finally {
@@ -215,7 +212,7 @@ export default function SettingsPage() {
         repo_full_name: formRepo.trim(),
         webhook_secret: formSecret.trim(),
       });
-      webhookModal.onClose();
+      setWebhookModalOpen(false);
       setFormRepo("");
       setFormSecret("");
       await loadData();
@@ -234,7 +231,7 @@ export default function SettingsPage() {
         nm_pengguna: selectedMemberUser.nama,
         role: memberRole as AddMemberRequest["role"],
       }, user?.id);
-      memberModal.onClose();
+      setMemberModalOpen(false);
       setSelectedMemberUser(null);
       setMemberSearch("");
       setMemberRole("member");
@@ -262,7 +259,7 @@ export default function SettingsPage() {
         jabatan: watcherJabatan,
         nm_unit: watcherUnit,
       });
-      watcherModal.onClose();
+      setWatcherModalOpen(false);
       setSelectedWatcherUser(null);
       setWatcherSearch("");
       setWatcherJabatan("");
@@ -293,7 +290,7 @@ export default function SettingsPage() {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -303,7 +300,7 @@ export default function SettingsPage() {
       <>
         <div className="space-y-6 max-w-3xl">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Link href="/dashboard/project-management" className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors">
               Project Management
             </Link>
@@ -318,75 +315,47 @@ export default function SettingsPage() {
             </span>
           </div>
 
-          {/* Tabs */}
-          <Tabs
-            selectedKey={activeTab}
-            onSelectionChange={(key) => setActiveTab(key as string)}
-            variant="underlined"
-            color="primary"
-            classNames={{
-              tabList: "gap-4",
-              tab: "text-sm",
-            }}
-          >
-            <Tab
-              key="members"
-              title={
-                <div className="flex items-center gap-1.5">
-                  <FiUsers className="w-4 h-4" />
-                  <span>Tim Anggota</span>
-                  <Chip size="sm" variant="flat" className="text-[10px]">{members.length}</Chip>
-                </div>
-              }
-            />
-            <Tab
-              key="watchers"
-              title={
-                <div className="flex items-center gap-1.5">
-                  <FiEye className="w-4 h-4" />
-                  <span>Pengawas Pimpinan</span>
-                  <Chip size="sm" variant="flat" className="text-[10px]">{watchers.length}</Chip>
-                </div>
-              }
-            />
-            <Tab
-              key="visibility"
-              title={
-                <div className="flex items-center gap-1.5">
-                  <FiLock className="w-4 h-4" />
-                  <span>Visibilitas</span>
-                </div>
-              }
-            />
-            <Tab
-              key="git"
-              title={
-                <div className="flex items-center gap-1.5">
-                  <FiGitBranch className="w-4 h-4" />
-                  <span>Integrasi Git</span>
-                </div>
-              }
-            />
-          </Tabs>
+          {/* Custom Tabs */}
+          <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap
+                  ${activeTab === tab.key
+                    ? "border-[#0B5EA8] text-[#0B5EA8]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {tab.key === "members" && (
+                  <Chip size="sm" className="text-[10px]">{members.length}</Chip>
+                )}
+                {tab.key === "watchers" && (
+                  <Chip size="sm" className="text-[10px]">{watchers.length}</Chip>
+                )}
+              </button>
+            ))}
+          </div>
 
           {/* === TAB: Tim Anggota === */}
           {activeTab === "members" && (
             <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
               <CardBody className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <h2 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                     <FiUsers className="w-4 h-4 text-[#0B5EA8]" />
                     Tim Anggota
                   </h2>
-                  <Button
+                  <Btn
                     size="sm"
-                    color="primary"
+                    variant="primary"
                     startContent={<FiUserPlus className="w-3.5 h-3.5" />}
-                    onPress={memberModal.onOpen}
-                    style={{ backgroundColor: "#0B5EA8" }}
+                    onClick={() => setMemberModalOpen(true)}
                   >
                     Tambah Anggota
-                  </Button>
+                  </Btn>
                 </div>
 
                 {members.length === 0 ? (
@@ -403,32 +372,32 @@ export default function SettingsPage() {
                           key={m.id_member}
                           className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                               {m.nm_pengguna?.charAt(0)?.toUpperCase() ?? "?"}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-800 dark:text-white">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
                                 {m.nm_pengguna}
                               </p>
-                              <p className="text-xs text-gray-400">{m.id_pengguna}</p>
+                              <p className="text-xs text-gray-400 truncate">{m.id_pengguna}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Chip size="sm" variant="flat" color={roleInfo.color} className="text-[10px]">
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                            <Chip size="sm" color={roleInfo.color} className="text-[10px]">
                               {roleInfo.label}
                             </Chip>
                             {m.role !== "owner" && (
-                              <Button
+                              <Btn
                                 isIconOnly
                                 size="sm"
-                                variant="light"
-                                color="danger"
-                                onPress={() => handleRemoveMember(m.id_member)}
+                                variant="ghost"
+                                onClick={() => handleRemoveMember(m.id_member)}
                                 title="Hapus"
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
                               >
                                 <FiTrash2 className="w-3.5 h-3.5" />
-                              </Button>
+                              </Btn>
                             )}
                           </div>
                         </div>
@@ -444,20 +413,19 @@ export default function SettingsPage() {
           {activeTab === "watchers" && (
             <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
               <CardBody className="p-5 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <h2 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                     <FiEye className="w-4 h-4 text-[#0B5EA8]" />
                     Pengawas Pimpinan
                   </h2>
-                  <Button
+                  <Btn
                     size="sm"
-                    color="primary"
+                    variant="primary"
                     startContent={<FiUserPlus className="w-3.5 h-3.5" />}
-                    onPress={watcherModal.onOpen}
-                    style={{ backgroundColor: "#0B5EA8" }}
+                    onClick={() => setWatcherModalOpen(true)}
                   >
                     Tambah Pengawas
-                  </Button>
+                  </Btn>
                 </div>
 
                 <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
@@ -480,15 +448,15 @@ export default function SettingsPage() {
                         key={w.id_watcher}
                         className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                             {w.nm_pengguna?.charAt(0)?.toUpperCase() ?? "?"}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800 dark:text-white">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
                               {w.nm_pengguna}
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <div className="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
                               {w.jabatan && <span>{w.jabatan}</span>}
                               {w.nm_unit && (
                                 <>
@@ -499,20 +467,20 @@ export default function SettingsPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Chip size="sm" variant="flat" color="warning" className="text-[10px]">
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <Chip size="sm" color="warning" className="text-[10px]">
                             {w.tipe_akses === "commenter" ? "Commenter" : "Viewer"}
                           </Chip>
-                          <Button
+                          <Btn
                             isIconOnly
                             size="sm"
-                            variant="light"
-                            color="danger"
-                            onPress={() => handleRemoveWatcher(w.id_watcher)}
+                            variant="ghost"
+                            onClick={() => handleRemoveWatcher(w.id_watcher)}
                             title="Hapus"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          </Btn>
                         </div>
                       </div>
                     ))}
@@ -535,40 +503,47 @@ export default function SettingsPage() {
                   Atur siapa saja yang dapat melihat project ini.
                 </p>
 
-                <RadioGroup
-                  value={visibility}
-                  onValueChange={setVisibility}
-                  className="gap-4"
-                >
-                  <Radio value="private" description="Hanya anggota tim yang dapat melihat project ini.">
-                    <div className="flex items-center gap-2">
-                      <span>🔒</span>
-                      <span className="font-medium">Private</span>
-                    </div>
-                  </Radio>
-                  <Radio value="unit" description="Semua pimpinan di unit yang sama dapat melihat project ini.">
-                    <div className="flex items-center gap-2">
-                      <span>🏢</span>
-                      <span className="font-medium">Unit</span>
-                    </div>
-                  </Radio>
-                  <Radio value="public" description="Semua pimpinan (Rektor, Dekan, Kaprodi, dll.) dapat melihat project ini.">
-                    <div className="flex items-center gap-2">
-                      <span>🌐</span>
-                      <span className="font-medium">Public</span>
-                    </div>
-                  </Radio>
-                </RadioGroup>
+                <div className="space-y-3">
+                  {[
+                    { value: "private", icon: "🔒", label: "Private", desc: "Hanya anggota tim yang dapat melihat project ini." },
+                    { value: "unit", icon: "🏢", label: "Unit", desc: "Semua pimpinan di unit yang sama dapat melihat project ini." },
+                    { value: "public", icon: "🌐", label: "Public", desc: "Semua pimpinan (Rektor, Dekan, Kaprodi, dll.) dapat melihat project ini." },
+                  ].map((opt) => (
+                    <label
+                      key={opt.value}
+                      className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        visibility === opt.value
+                          ? "border-[#0B5EA8] bg-blue-50 dark:bg-blue-950/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value={opt.value}
+                        checked={visibility === opt.value}
+                        onChange={() => setVisibility(opt.value)}
+                        className="mt-0.5 accent-[#0B5EA8]"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span>{opt.icon}</span>
+                          <span className="font-medium text-sm text-gray-800 dark:text-white">{opt.label}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
 
-                <Button
-                  color="primary"
+                <Btn
+                  variant="primary"
                   size="sm"
                   isLoading={isSavingVisibility}
-                  onPress={handleSaveVisibility}
-                  style={{ backgroundColor: "#0B5EA8" }}
+                  onClick={handleSaveVisibility}
                 >
                   Simpan Visibilitas
-                </Button>
+                </Btn>
               </CardBody>
             </Card>
           )}
@@ -577,20 +552,19 @@ export default function SettingsPage() {
           {activeTab === "git" && (
             <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
               <CardBody className="p-5 space-y-5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <h2 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                     <FiGitBranch className="w-4 h-4 text-[#0B5EA8]" />
                     Integrasi Git
                   </h2>
-                  <Button
+                  <Btn
                     size="sm"
-                    color="primary"
+                    variant="primary"
                     startContent={<FiPlus className="w-3.5 h-3.5" />}
-                    onPress={webhookModal.onOpen}
-                    style={{ backgroundColor: "#0B5EA8" }}
+                    onClick={() => setWebhookModalOpen(true)}
                   >
                     Tambah Webhook
-                  </Button>
+                  </Btn>
                 </div>
 
                 {/* Webhook URL */}
@@ -599,12 +573,12 @@ export default function SettingsPage() {
                     Webhook URL
                   </p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-3 py-2 text-gray-800 dark:text-gray-200 break-all">
+                    <code className="flex-1 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-3 py-2 text-gray-800 dark:text-gray-200 break-all">
                       {WEBHOOK_URL}
                     </code>
-                    <Button isIconOnly size="sm" variant="flat" onPress={handleCopyUrl} title="Salin URL">
+                    <Btn isIconOnly size="sm" variant="flat" onClick={handleCopyUrl} title="Salin URL">
                       {copiedUrl ? <FiCheck className="w-4 h-4 text-green-500" /> : <FiCopy className="w-4 h-4 text-gray-500" />}
-                    </Button>
+                    </Btn>
                   </div>
                 </div>
 
@@ -640,43 +614,49 @@ export default function SettingsPage() {
                     webhooks.map((wh) => (
                       <div
                         key={wh.id_webhook}
-                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900"
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 gap-2"
                       >
                         <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <FiGitBranch className="w-3.5 h-3.5 text-[#0B5EA8] flex-shrink-0" />
                             <span className="text-sm font-medium text-gray-800 dark:text-white truncate">
                               {wh.repo_full_name}
                             </span>
-                            <Chip size="sm" variant="flat" color={wh.a_active ? "success" : "default"} className="text-xs">
+                            <Chip size="sm" color={wh.a_active ? "success" : "default"} className="text-xs">
                               {wh.a_active ? "Aktif" : "Nonaktif"}
                             </Chip>
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
                             <span className="capitalize">{wh.provider}</span>
                             {wh.webhook_secret && <span>Secret: ••••••••</span>}
                             <span>{new Date(wh.created_at).toLocaleDateString("id-ID")}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 ml-3">
-                          <Switch
-                            size="sm"
-                            isSelected={wh.a_active}
-                            isDisabled={togglingId === wh.id_webhook}
-                            onValueChange={() => handleToggleActive(wh)}
-                            color="success"
-                          />
-                          <Button
+                        <div className="flex items-center gap-2 ml-1 flex-shrink-0">
+                          {/* Toggle button instead of Switch */}
+                          <button
+                            onClick={() => handleToggleActive(wh)}
+                            disabled={togglingId === wh.id_webhook}
+                            title={wh.a_active ? "Nonaktifkan" : "Aktifkan"}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
+                              wh.a_active ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                            }`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                              wh.a_active ? "translate-x-4" : "translate-x-1"
+                            }`} />
+                          </button>
+                          <Btn
                             isIconOnly
                             size="sm"
-                            variant="light"
-                            color="danger"
+                            variant="ghost"
                             isLoading={deletingId === wh.id_webhook}
-                            onPress={() => handleDeleteWebhook(wh.id_webhook)}
+                            onClick={() => handleDeleteWebhook(wh.id_webhook)}
                             title="Hapus"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          </Btn>
                         </div>
                       </div>
                     ))
@@ -688,198 +668,186 @@ export default function SettingsPage() {
         </div>
 
         {/* === Add Webhook Modal === */}
-        <Modal isOpen={webhookModal.isOpen} onClose={webhookModal.onClose} size="md">
-          <ModalContent>
-            <ModalHeader className="flex items-center gap-2">
-              <FiGitBranch className="w-4 h-4 text-[#0B5EA8]" />
-              Tambah Webhook
-            </ModalHeader>
-            <ModalBody className="space-y-4">
-              {formError && (
-                <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2">
-                  {formError}
-                </div>
-              )}
-              <Input label="Provider" value={formProvider} onValueChange={setFormProvider} placeholder="bitbucket" description="Provider repositori" size="sm" />
-              <Input label="Repo Full Name" value={formRepo} onValueChange={setFormRepo} placeholder="workspace/repository-name" isRequired size="sm" />
-              <Input
-                label="Webhook Secret"
-                value={formSecret}
-                onValueChange={setFormSecret}
-                placeholder="Opsional"
-                size="sm"
-                endContent={
-                  <Button size="sm" variant="flat" isIconOnly onPress={() => setFormSecret(generateSecret())} title="Generate secret">
-                    <FiRefreshCw className="w-3.5 h-3.5" />
-                  </Button>
-                }
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={webhookModal.onClose} size="sm">Batal</Button>
-              <Button color="primary" onPress={handleSubmitWebhook} isLoading={isSubmitting} size="sm" style={{ backgroundColor: "#0B5EA8" }}>Simpan</Button>
-            </ModalFooter>
-          </ModalContent>
+        <Modal isOpen={webhookModalOpen} onClose={() => setWebhookModalOpen(false)} size="md">
+          <ModalHeader className="flex items-center gap-2">
+            <FiGitBranch className="w-4 h-4 text-[#0B5EA8]" />
+            Tambah Webhook
+          </ModalHeader>
+          <ModalBody className="space-y-4">
+            {formError && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-2">
+                {formError}
+              </div>
+            )}
+            <TwInput label="Provider" value={formProvider} onValueChange={setFormProvider} placeholder="bitbucket" inputSize="sm" />
+            <TwInput label="Repo Full Name" value={formRepo} onValueChange={setFormRepo} placeholder="workspace/repository-name" required inputSize="sm" />
+            <TwInput
+              label="Webhook Secret"
+              value={formSecret}
+              onValueChange={setFormSecret}
+              placeholder="Opsional"
+              inputSize="sm"
+              endContent={
+                <Btn size="xs" variant="flat" isIconOnly onClick={() => setFormSecret(generateSecret())} title="Generate secret">
+                  <FiRefreshCw className="w-3.5 h-3.5" />
+                </Btn>
+              }
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Btn variant="ghost" onClick={() => setWebhookModalOpen(false)} size="sm">Batal</Btn>
+            <Btn variant="primary" onClick={handleSubmitWebhook} isLoading={isSubmitting} size="sm">Simpan</Btn>
+          </ModalFooter>
         </Modal>
 
         {/* === Add Member Modal === */}
-        <Modal isOpen={memberModal.isOpen} onClose={memberModal.onClose} size="md">
-          <ModalContent>
-            <ModalHeader className="flex items-center gap-2">
-              <FiUserPlus className="w-4 h-4 text-[#0B5EA8]" />
-              Tambah Anggota
-            </ModalHeader>
-            <ModalBody className="space-y-4">
-              <Input
-                label="Cari Pengguna"
-                value={memberSearch}
-                onValueChange={(v) => { setMemberSearch(v); setSelectedMemberUser(null); }}
-                placeholder="Ketik nama atau username..."
-                startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-                size="sm"
-              />
+        <Modal isOpen={memberModalOpen} onClose={() => setMemberModalOpen(false)} size="md">
+          <ModalHeader className="flex items-center gap-2">
+            <FiUserPlus className="w-4 h-4 text-[#0B5EA8]" />
+            Tambah Anggota
+          </ModalHeader>
+          <ModalBody className="space-y-4">
+            <TwInput
+              label="Cari Pengguna"
+              value={memberSearch}
+              onValueChange={(v) => { setMemberSearch(v); setSelectedMemberUser(null); }}
+              placeholder="Ketik nama atau username..."
+              startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
+              inputSize="sm"
+            />
 
-              {/* Search results */}
-              {memberSearch.length >= 2 && !selectedMemberUser && (
-                <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                  {memberSearching ? (
-                    <div className="p-3 text-center text-sm text-gray-400">Mencari...</div>
-                  ) : memberSearchResults.length === 0 ? (
-                    <div className="p-3 text-center text-sm text-gray-400">Tidak ditemukan</div>
-                  ) : (
-                    memberSearchResults.map((u) => (
-                      <button
-                        key={u.id_pengguna}
-                        className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
-                        onClick={() => {
-                          setSelectedMemberUser({ id_pengguna: u.id_pengguna, nama: u.nama });
-                          setMemberSearch(u.nama);
-                        }}
-                      >
-                        <p className="text-sm font-medium text-gray-800 dark:text-white">{u.nama}</p>
-                        <p className="text-xs text-gray-400">{u.username}{u.email ? ` • ${u.email}` : ""}</p>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+            {/* Search results */}
+            {memberSearch.length >= 2 && !selectedMemberUser && (
+              <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                {memberSearching ? (
+                  <div className="p-3 text-center text-sm text-gray-400">Mencari...</div>
+                ) : memberSearchResults.length === 0 ? (
+                  <div className="p-3 text-center text-sm text-gray-400">Tidak ditemukan</div>
+                ) : (
+                  memberSearchResults.map((u) => (
+                    <button
+                      key={u.id_pengguna}
+                      className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
+                      onClick={() => {
+                        setSelectedMemberUser({ id_pengguna: u.id_pengguna, nama: u.nama });
+                        setMemberSearch(u.nama);
+                      }}
+                    >
+                      <p className="text-sm font-medium text-gray-800 dark:text-white">{u.nama}</p>
+                      <p className="text-xs text-gray-400">{u.username}{u.email ? ` • ${u.email}` : ""}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
 
-              {selectedMemberUser && (
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    ✓ {selectedMemberUser.nama}
-                  </p>
-                </div>
-              )}
+            {selectedMemberUser && (
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  ✓ {selectedMemberUser.nama}
+                </p>
+              </div>
+            )}
 
-              <Select
-                label="Role"
-                selectedKeys={[memberRole]}
-                onSelectionChange={(keys) => {
-                  const v = Array.from(keys)[0] as string;
-                  if (v) setMemberRole(v);
-                }}
-                size="sm"
-              >
-                {MEMBER_ROLES.map((r) => (
-                  <SelectItem key={r.value}>{r.label}</SelectItem>
-                ))}
-              </Select>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={memberModal.onClose} size="sm">Batal</Button>
-              <Button
-                color="primary"
-                onPress={handleAddMember}
-                isLoading={addingMember}
-                isDisabled={!selectedMemberUser}
-                size="sm"
-                style={{ backgroundColor: "#0B5EA8" }}
-              >
-                Tambah
-              </Button>
-            </ModalFooter>
-          </ModalContent>
+            <TwSelect
+              label="Role"
+              value={memberRole}
+              onValueChange={(v) => { if (v) setMemberRole(v); }}
+              options={MEMBER_ROLES.map(r => ({ value: r.value, label: r.label }))}
+              selectSize="sm"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Btn variant="ghost" onClick={() => setMemberModalOpen(false)} size="sm">Batal</Btn>
+            <Btn
+              variant="primary"
+              onClick={handleAddMember}
+              isLoading={addingMember}
+              disabled={!selectedMemberUser}
+              size="sm"
+            >
+              Tambah
+            </Btn>
+          </ModalFooter>
         </Modal>
 
         {/* === Add Watcher Modal === */}
-        <Modal isOpen={watcherModal.isOpen} onClose={watcherModal.onClose} size="md">
-          <ModalContent>
-            <ModalHeader className="flex items-center gap-2">
-              <FiEye className="w-4 h-4 text-[#0B5EA8]" />
-              Tambah Pengawas Pimpinan
-            </ModalHeader>
-            <ModalBody className="space-y-4">
-              <Input
-                label="Cari Pimpinan"
-                value={watcherSearch}
-                onValueChange={(v) => { setWatcherSearch(v); setSelectedWatcherUser(null); }}
-                placeholder="Ketik nama pimpinan..."
-                startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-                size="sm"
-              />
+        <Modal isOpen={watcherModalOpen} onClose={() => setWatcherModalOpen(false)} size="md">
+          <ModalHeader className="flex items-center gap-2">
+            <FiEye className="w-4 h-4 text-[#0B5EA8]" />
+            Tambah Pengawas Pimpinan
+          </ModalHeader>
+          <ModalBody className="space-y-4">
+            <TwInput
+              label="Cari Pimpinan"
+              value={watcherSearch}
+              onValueChange={(v) => { setWatcherSearch(v); setSelectedWatcherUser(null); }}
+              placeholder="Ketik nama pimpinan..."
+              startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
+              inputSize="sm"
+            />
 
-              {watcherSearch.length >= 2 && !selectedWatcherUser && (
-                <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                  {watcherSearching ? (
-                    <div className="p-3 text-center text-sm text-gray-400">Mencari...</div>
-                  ) : watcherSearchResults.length === 0 ? (
-                    <div className="p-3 text-center text-sm text-gray-400">Tidak ditemukan</div>
-                  ) : (
-                    watcherSearchResults.map((u) => (
-                      <button
-                        key={u.id_pengguna}
-                        className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
-                        onClick={() => {
-                          setSelectedWatcherUser({ id_pengguna: u.id_pengguna, nama: u.nama });
-                          setWatcherSearch(u.nama);
-                        }}
-                      >
-                        <p className="text-sm font-medium text-gray-800 dark:text-white">{u.nama}</p>
-                        <p className="text-xs text-gray-400">{u.username}{u.email ? ` • ${u.email}` : ""}</p>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+            {watcherSearch.length >= 2 && !selectedWatcherUser && (
+              <div className="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                {watcherSearching ? (
+                  <div className="p-3 text-center text-sm text-gray-400">Mencari...</div>
+                ) : watcherSearchResults.length === 0 ? (
+                  <div className="p-3 text-center text-sm text-gray-400">Tidak ditemukan</div>
+                ) : (
+                  watcherSearchResults.map((u) => (
+                    <button
+                      key={u.id_pengguna}
+                      className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
+                      onClick={() => {
+                        setSelectedWatcherUser({ id_pengguna: u.id_pengguna, nama: u.nama });
+                        setWatcherSearch(u.nama);
+                      }}
+                    >
+                      <p className="text-sm font-medium text-gray-800 dark:text-white">{u.nama}</p>
+                      <p className="text-xs text-gray-400">{u.username}{u.email ? ` • ${u.email}` : ""}</p>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
 
-              {selectedWatcherUser && (
-                <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                  <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
-                    ✓ {selectedWatcherUser.nama}
-                  </p>
-                </div>
-              )}
+            {selectedWatcherUser && (
+              <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                  ✓ {selectedWatcherUser.nama}
+                </p>
+              </div>
+            )}
 
-              <Input
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <TwInput
                 label="Jabatan"
                 value={watcherJabatan}
                 onValueChange={setWatcherJabatan}
                 placeholder="Contoh: Dekan FMIPA"
-                size="sm"
+                inputSize="sm"
               />
-              <Input
+              <TwInput
                 label="Unit"
                 value={watcherUnit}
                 onValueChange={setWatcherUnit}
                 placeholder="Contoh: FMIPA"
-                size="sm"
+                inputSize="sm"
               />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={watcherModal.onClose} size="sm">Batal</Button>
-              <Button
-                color="primary"
-                onPress={handleAddWatcher}
-                isLoading={addingWatcher}
-                isDisabled={!selectedWatcherUser}
-                size="sm"
-                style={{ backgroundColor: "#0B5EA8" }}
-              >
-                Tambah
-              </Button>
-            </ModalFooter>
-          </ModalContent>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Btn variant="ghost" onClick={() => setWatcherModalOpen(false)} size="sm">Batal</Btn>
+            <Btn
+              variant="primary"
+              onClick={handleAddWatcher}
+              isLoading={addingWatcher}
+              disabled={!selectedWatcherUser}
+              size="sm"
+            >
+              Tambah
+            </Btn>
+          </ModalFooter>
         </Modal>
       </>
 );

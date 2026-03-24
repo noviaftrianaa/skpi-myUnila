@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {
-  Button,
+  Btn,
   Spinner,
-  Input,
-  Select,
-  SelectItem,
+  TwInput,
+  TwSelect,
   Chip,
-} from "@heroui/react";
+} from "../../components/ui";
 import { FiPlus, FiSearch, FiFilter, FiLayout, FiSettings, FiBarChart2 } from "react-icons/fi";
 import { FiFolder } from "react-icons/fi";
 import Link from "next/link";
@@ -101,11 +100,24 @@ export default function BoardPage() {
     }));
   };
 
+  const moduleOptions = [
+    { value: "all", label: "Semua Modul" },
+    ...modules.map(m => ({ value: m.id, label: m.nama })),
+  ];
+
+  const priorityOptions = [
+    { value: "all", label: "Semua Prioritas" },
+    { value: "urgent", label: "🔴 Urgent" },
+    { value: "high", label: "🟠 High" },
+    { value: "medium", label: "🟡 Medium" },
+    { value: "low", label: "🟢 Low" },
+  ];
+
   if (isLoading) {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -118,9 +130,9 @@ export default function BoardPage() {
       <>
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                 <Link
                   href="/dashboard/project-management"
                   className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
@@ -135,93 +147,79 @@ export default function BoardPage() {
               <div className="flex items-center gap-2">
                 <FiLayout className="w-5 h-5 text-[#0B5EA8]" />
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">Kanban Board</h1>
-                <Chip size="sm" variant="flat" className="text-xs">{totalTasks} task</Chip>
+                <Chip size="sm" color="default" className="text-xs">{totalTasks} task</Chip>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link href={`/dashboard/project-management/${projectId}/list`}>
-                <Button size="sm" variant="bordered" className="text-xs">
+                <Btn size="sm" variant="secondary" className="text-xs">
                   Tampilan List
-                </Button>
+                </Btn>
               </Link>
               <Link href={`/dashboard/project-management/${projectId}/timeline`}>
-                <Button size="sm" variant="bordered" className="text-xs" startContent={<FiBarChart2 className="w-3.5 h-3.5" />}>
+                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiBarChart2 className="w-3.5 h-3.5" />}>
                   Timeline
-                </Button>
+                </Btn>
               </Link>
               <Link href={`/dashboard/project-management/${projectId}/documents`}>
-                <Button size="sm" variant="bordered" className="text-xs" startContent={<FiFolder className="w-3.5 h-3.5" />}>
+                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiFolder className="w-3.5 h-3.5" />}>
                   Dokumen
-                </Button>
+                </Btn>
               </Link>
               <Link href={`/dashboard/project-management/${projectId}/settings`}>
-                <Button size="sm" variant="bordered" className="text-xs" startContent={<FiSettings className="w-3.5 h-3.5" />}>
+                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiSettings className="w-3.5 h-3.5" />}>
                   Pengaturan
-                </Button>
+                </Btn>
               </Link>
-              <Button
+              <Btn
                 size="sm"
-                color="primary"
-                className="bg-[#0B5EA8] text-white text-xs"
+                variant="primary"
+                className="text-xs"
                 startContent={<FiPlus className="w-3.5 h-3.5" />}
-                onPress={() => setIsCreateOpen(true)}
+                onClick={() => setIsCreateOpen(true)}
               >
                 Buat Task
-              </Button>
+              </Btn>
             </div>
           </div>
 
           {/* Filter bar */}
-          <div className="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-            <FiFilter className="w-4 h-4 text-gray-400 shrink-0" />
-            <Input
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+            <FiFilter className="w-4 h-4 text-gray-400 shrink-0 hidden sm:block" />
+            <TwInput
               value={searchQuery}
               onValueChange={setSearchQuery}
               placeholder="Cari task..."
-              startContent={<FiSearch className="w-3.5 h-3.5 text-gray-400" />}
-              variant="bordered"
-              size="sm"
-              className="w-48"
+              inputSize="sm"
+              className="w-full sm:w-48"
             />
-            <Select
-              selectedKeys={new Set([moduleFilter])}
-              onSelectionChange={(keys) => setModuleFilter(Array.from(keys)[0] as string ?? "all")}
-              variant="bordered"
-              size="sm"
-              placeholder="Semua Modul"
-              className="w-40"
-              items={[{ id: "all", nama: "Semua Modul" }, ...modules]}
-            >
-              {(m) => <SelectItem key={m.id}>{m.nama}</SelectItem>}
-            </Select>
-            <Select
-              selectedKeys={new Set([priorityFilter])}
-              onSelectionChange={(keys) => setPriorityFilter(Array.from(keys)[0] as string ?? "all")}
-              variant="bordered"
-              size="sm"
-              placeholder="Semua Prioritas"
-              className="w-40"
-            >
-              <SelectItem key="all">Semua Prioritas</SelectItem>
-              <SelectItem key="urgent">🔴 Urgent</SelectItem>
-              <SelectItem key="high">🟠 High</SelectItem>
-              <SelectItem key="medium">🟡 Medium</SelectItem>
-              <SelectItem key="low">🟢 Low</SelectItem>
-            </Select>
+            <TwSelect
+              value={moduleFilter}
+              onValueChange={(v) => setModuleFilter(v)}
+              options={moduleOptions}
+              selectSize="sm"
+              className="w-full sm:w-40"
+            />
+            <TwSelect
+              value={priorityFilter}
+              onValueChange={(v) => setPriorityFilter(v)}
+              options={priorityOptions}
+              selectSize="sm"
+              className="w-full sm:w-40"
+            />
             {(searchQuery || moduleFilter !== "all" || priorityFilter !== "all") && (
-              <Button
+              <Btn
                 size="sm"
-                variant="light"
-                color="danger"
+                variant="danger"
                 className="text-xs"
-                onPress={() => {
+                onClick={() => {
                   setSearchQuery("");
                   setModuleFilter("all");
                   setPriorityFilter("all");
                 }}
               >
                 Reset
-              </Button>
+              </Btn>
             )}
           </div>
 

@@ -5,23 +5,18 @@ import { useParams } from "next/navigation";
 import {
   Card,
   CardBody,
-  Button,
-  Input,
-  Select,
-  SelectItem,
+  Btn,
+  TwInput,
+  TwSelect,
+  TwTextarea,
   Spinner,
   Chip,
   Modal,
-  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure,
-  Textarea,
-  Pagination,
-} from "@heroui/react";
+} from "../../components/ui";
 import {
-  FiFolder,
   FiPlus,
   FiSearch,
   FiFile,
@@ -59,6 +54,8 @@ const STATUS_OPTIONS = [
   { key: "archived", label: "Arsip", color: "warning" as const },
 ];
 
+const STATUS_SELECT_OPTIONS = STATUS_OPTIONS.map(s => ({ value: s.key, label: s.label }));
+
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B";
   const k = 1024;
@@ -79,16 +76,35 @@ function formatDate(dateStr?: string): string {
 function getStatusChip(status: string) {
   const opt = STATUS_OPTIONS.find((s) => s.key === status);
   return (
-      <>
-      <Chip size="sm" variant="flat" color={opt?.color ?? "default"}>
-        {opt?.label ?? status}
-      </Chip>
-      </>
+    <Chip size="sm" color={opt?.color ?? "default"}>
+      {opt?.label ?? status}
+    </Chip>
   );
 }
 
 function getCategoryIcon(icon?: string): string {
   return icon ?? "📄";
+}
+
+// Simple pagination component
+function SimplePagination({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
+  if (total <= 1) return null;
+  return (
+    <div className="flex items-center gap-1 justify-center flex-wrap">
+      <Btn size="sm" variant="ghost" onClick={() => onChange(page - 1)} disabled={page <= 1}>‹</Btn>
+      {Array.from({ length: total }, (_, i) => i + 1).map(p => (
+        <Btn
+          key={p}
+          size="sm"
+          variant={p === page ? "primary" : "ghost"}
+          onClick={() => onChange(p)}
+        >
+          {p}
+        </Btn>
+      ))}
+      <Btn size="sm" variant="ghost" onClick={() => onChange(page + 1)} disabled={page >= total}>›</Btn>
+    </div>
+  );
 }
 
 export default function DocumentsPage() {
@@ -113,7 +129,7 @@ export default function DocumentsPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   // Upload modal
-  const uploadModal = useDisclosure();
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadDrag, setUploadDrag] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +147,7 @@ export default function DocumentsPage() {
   const [uploadError, setUploadError] = useState("");
 
   // Detail / Preview modal
-  const detailModal = useDisclosure();
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<Document_ | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
@@ -141,7 +157,7 @@ export default function DocumentsPage() {
   const [detailTab, setDetailTab] = useState<"info" | "versions">("info");
 
   // Replace file modal
-  const replaceModal = useDisclosure();
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [replaceFile, setReplaceFile] = useState<File | null>(null);
   const [replaceCatatan, setReplaceCatatan] = useState("");
@@ -149,7 +165,7 @@ export default function DocumentsPage() {
   const [replaceError, setReplaceError] = useState("");
 
   // Edit modal
-  const editModal = useDisclosure();
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<DocumentUpdatePayload>({});
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState("");
@@ -280,7 +296,7 @@ export default function DocumentsPage() {
       if (uploadForm.deskripsi) formData.append("deskripsi", uploadForm.deskripsi);
 
       await projectService.uploadDocument(projectId, formData);
-      uploadModal.onClose();
+      setUploadModalOpen(false);
       resetUploadForm();
       await loadDocuments();
     } catch (e) {
@@ -295,7 +311,7 @@ export default function DocumentsPage() {
     setIsLoadingDetail(true);
     setDetailTab("info");
     setDocVersions([]);
-    detailModal.onOpen();
+    setDetailModalOpen(true);
     try {
       const doc = await projectService.getDocument(docId);
       setSelectedDoc(doc);
@@ -322,7 +338,7 @@ export default function DocumentsPage() {
     setReplaceFile(null);
     setReplaceCatatan("");
     setReplaceError("");
-    replaceModal.onOpen();
+    setReplaceModalOpen(true);
   };
 
   const handleReplace = async () => {
@@ -338,7 +354,7 @@ export default function DocumentsPage() {
       if (replaceCatatan) formData.append("catatan", replaceCatatan);
       const updated = await projectService.replaceDocumentFile(selectedDoc.id_document, formData);
       setSelectedDoc(updated);
-      replaceModal.onClose();
+      setReplaceModalOpen(false);
       setReplaceFile(null);
       setReplaceCatatan("");
       // Refresh versions list if on versions tab
@@ -356,7 +372,7 @@ export default function DocumentsPage() {
   // Edit handler
   const handleOpenEdit = async (docId: string) => {
     setIsLoadingDetail(true);
-    editModal.onOpen();
+    setEditModalOpen(true);
     try {
       const doc = await projectService.getDocument(docId);
       setSelectedDoc(doc);
@@ -383,7 +399,7 @@ export default function DocumentsPage() {
     setEditError("");
     try {
       await projectService.updateDocument(selectedDoc.id_document, editForm);
-      editModal.onClose();
+      setEditModalOpen(false);
       await loadDocuments();
     } catch (e) {
       setEditError(e instanceof Error ? e.message : "Gagal update dokumen");
@@ -409,11 +425,29 @@ export default function DocumentsPage() {
     window.open(url, "_blank");
   };
 
+  const categorySelectOptions = [
+    { value: "", label: "Semua Kategori" },
+    ...categories.map(cat => ({
+      value: cat.id_doc_category,
+      label: cat.icon ? `${cat.icon} ${cat.nm_kategori}` : cat.nm_kategori,
+    })),
+  ];
+
+  const categoryFormOptions = categories.map(cat => ({
+    value: cat.id_doc_category,
+    label: cat.icon ? `${cat.icon} ${cat.nm_kategori}` : cat.nm_kategori,
+  }));
+
+  const statusSelectOptions = [
+    { value: "", label: "Semua Status" },
+    ...STATUS_SELECT_OPTIONS,
+  ];
+
   if (isLoading) {
     return (
         <>
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" color="primary" />
+            <Spinner size="lg" />
           </div>
         </>
 );
@@ -454,7 +488,7 @@ export default function DocumentsPage() {
                 {total} dokumen
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -469,18 +503,17 @@ export default function DocumentsPage() {
                   <FiList className="w-4 h-4" />
                 </button>
               </div>
-              <Button
+              <Btn
                 size="sm"
-                color="primary"
+                variant="primary"
                 startContent={<FiPlus className="w-3.5 h-3.5" />}
-                onPress={() => {
+                onClick={() => {
                   resetUploadForm();
-                  uploadModal.onOpen();
+                  setUploadModalOpen(true);
                 }}
-                style={{ backgroundColor: "#0B5EA8" }}
               >
                 Upload Dokumen
-              </Button>
+              </Btn>
             </div>
           </div>
 
@@ -544,59 +577,43 @@ export default function DocumentsPage() {
           })()}
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Input
-              size="sm"
+          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+            <TwInput
+              inputSize="sm"
               placeholder="Cari dokumen..."
               value={searchQuery}
               onValueChange={setSearchQuery}
               startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-              className="w-full sm:w-64"
-              isClearable
-              onClear={() => setSearchQuery("")}
+              className="w-full sm:max-w-xs"
             />
-            <Select
-              size="sm"
+            <TwSelect
+              selectSize="sm"
               placeholder="Semua Kategori"
-              selectedKeys={categoryFilter ? [categoryFilter] : []}
-              onSelectionChange={(keys) => {
-                const val = Array.from(keys)[0] as string;
-                setCategoryFilter(val ?? "");
-              }}
+              value={categoryFilter}
+              onValueChange={(v) => setCategoryFilter(v ?? "")}
+              options={categorySelectOptions}
               className="w-full sm:w-48"
-            >
-              {categories.map((cat) => (
-                <SelectItem key={cat.id_doc_category}>
-                  {cat.icon ? `${cat.icon} ${cat.nm_kategori}` : cat.nm_kategori}
-                </SelectItem>
-              ))}
-            </Select>
-            <Select
-              size="sm"
+            />
+            <TwSelect
+              selectSize="sm"
               placeholder="Semua Status"
-              selectedKeys={statusFilter ? [statusFilter] : []}
-              onSelectionChange={(keys) => {
-                const val = Array.from(keys)[0] as string;
-                setStatusFilter(val ?? "");
-              }}
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v ?? "")}
+              options={statusSelectOptions}
               className="w-full sm:w-40"
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.key}>{s.label}</SelectItem>
-              ))}
-            </Select>
+            />
             {(categoryFilter || statusFilter || searchQuery) && (
-              <Button
+              <Btn
                 size="sm"
                 variant="flat"
-                onPress={() => {
+                onClick={() => {
                   setCategoryFilter("");
                   setStatusFilter("");
                   setSearchQuery("");
                 }}
               >
                 Reset Filter
-              </Button>
+              </Btn>
             )}
           </div>
 
@@ -616,9 +633,8 @@ export default function DocumentsPage() {
               {documents.map((doc) => (
                 <Card
                   key={doc.id_document}
-                  isPressable
-                  onPress={() => handleViewDetail(doc.id_document)}
-                  className="border border-gray-200 dark:border-gray-700 hover:border-[#0B5EA8]/50 transition-colors"
+                  className="border border-gray-200 dark:border-gray-700 hover:border-[#0B5EA8]/50 transition-colors cursor-pointer"
+                  onClick={() => handleViewDetail(doc.id_document)}
                 >
                   <CardBody className="p-4 space-y-3">
                     {/* Icon + Category */}
@@ -626,7 +642,7 @@ export default function DocumentsPage() {
                       <span className="text-2xl">
                         {getCategoryIcon(doc.kategori_icon)}
                       </span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-wrap justify-end">
                         {doc.version_number && doc.version_number > 1 && (
                           <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
                             v{doc.version_number}
@@ -651,43 +667,43 @@ export default function DocumentsPage() {
                     </div>
                     {/* Actions */}
                     <div className="flex items-center gap-1 pt-1 border-t border-gray-100 dark:border-gray-800">
-                      <Button
+                      <Btn
                         size="sm"
-                        variant="light"
+                        variant="ghost"
                         isIconOnly
-                        onPress={(e) => {
-                          e.stopPropagation?.();
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleDownload(doc.id_document);
                         }}
                         title="Download"
                       >
                         <FiDownload className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
+                      </Btn>
+                      <Btn
                         size="sm"
-                        variant="light"
+                        variant="ghost"
                         isIconOnly
-                        onPress={(e) => {
-                          e.stopPropagation?.();
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleOpenEdit(doc.id_document);
                         }}
                         title="Edit"
                       >
                         <FiEdit className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
+                      </Btn>
+                      <Btn
                         size="sm"
-                        variant="light"
-                        color="danger"
+                        variant="ghost"
                         isIconOnly
-                        onPress={(e) => {
-                          e.stopPropagation?.();
+                        onClick={(e) => {
+                          e.stopPropagation();
                           handleDelete(doc.id_document, doc.nm_dokumen);
                         }}
                         title="Hapus"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
                       >
                         <FiTrash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      </Btn>
                     </div>
                   </CardBody>
                 </Card>
@@ -697,11 +713,11 @@ export default function DocumentsPage() {
             /* List View */
             <Card className="border border-gray-200 dark:border-gray-700">
               <CardBody className="p-0">
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                <div className="divide-y divide-gray-100 dark:divide-gray-800 overflow-x-auto">
                   {documents.map((doc) => (
                     <div
                       key={doc.id_document}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors min-w-0"
                       onClick={() => handleViewDetail(doc.id_document)}
                     >
                       <span className="text-xl flex-shrink-0">
@@ -711,39 +727,39 @@ export default function DocumentsPage() {
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {doc.nm_dokumen}
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 flex-wrap">
                           {doc.nomor_dokumen && <span>{doc.nomor_dokumen}</span>}
                           <span>{formatFileSize(doc.file_size)}</span>
                           <span>{formatDate(doc.tgl_dokumen || doc.created_at)}</span>
                         </div>
                       </div>
-                      {getStatusChip(doc.status)}
+                      <div className="flex-shrink-0">{getStatusChip(doc.status)}</div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button
+                        <Btn
                           size="sm"
-                          variant="light"
+                          variant="ghost"
                           isIconOnly
-                          onPress={() => handleDownload(doc.id_document)}
+                          onClick={(e) => { e.stopPropagation(); handleDownload(doc.id_document); }}
                         >
                           <FiDownload className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
+                        </Btn>
+                        <Btn
                           size="sm"
-                          variant="light"
+                          variant="ghost"
                           isIconOnly
-                          onPress={() => handleOpenEdit(doc.id_document)}
+                          onClick={(e) => { e.stopPropagation(); handleOpenEdit(doc.id_document); }}
                         >
                           <FiEdit className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
+                        </Btn>
+                        <Btn
                           size="sm"
-                          variant="light"
-                          color="danger"
+                          variant="ghost"
                           isIconOnly
-                          onPress={() => handleDelete(doc.id_document, doc.nm_dokumen)}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(doc.id_document, doc.nm_dokumen); }}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
                         >
                           <FiTrash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        </Btn>
                       </div>
                     </div>
                   ))}
@@ -755,621 +771,569 @@ export default function DocumentsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center pt-2">
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={setPage}
-                color="primary"
-                size="sm"
-              />
+              <SimplePagination total={totalPages} page={page} onChange={setPage} />
             </div>
           )}
         </div>
 
         {/* ===== UPLOAD MODAL ===== */}
         <Modal
-          isOpen={uploadModal.isOpen}
-          onClose={uploadModal.onClose}
+          isOpen={uploadModalOpen}
+          onClose={() => { setUploadModalOpen(false); resetUploadForm(); }}
           size="2xl"
-          scrollBehavior="inside"
         >
-          <ModalContent>
-            <ModalHeader className="flex items-center gap-2">
-              <FiUploadCloud className="w-5 h-5 text-[#0B5EA8]" />
-              Upload Dokumen
-            </ModalHeader>
-            <ModalBody className="space-y-4">
-              {uploadError && (
-                <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  {uploadError}
+          <ModalHeader className="flex items-center gap-2">
+            <FiUploadCloud className="w-5 h-5 text-[#0B5EA8]" />
+            Upload Dokumen
+          </ModalHeader>
+          <ModalBody className="space-y-4">
+            {uploadError && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                {uploadError}
+              </div>
+            )}
+
+            {/* Drop Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center cursor-pointer transition-colors ${
+                uploadDrag
+                  ? "border-[#0B5EA8] bg-blue-50 dark:bg-blue-950/20"
+                  : uploadFile
+                  ? "border-green-400 bg-green-50 dark:bg-green-950/20"
+                  : "border-gray-300 dark:border-gray-600 hover:border-[#0B5EA8]/50"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.csv"
+              />
+              {uploadFile ? (
+                <div className="space-y-2">
+                  <FiFile className="w-8 h-8 mx-auto text-green-500" />
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {uploadFile.name}
+                  </p>
+                  <p className="text-xs text-gray-500">{formatFileSize(uploadFile.size)}</p>
+                  <Btn
+                    size="sm"
+                    variant="flat"
+                    startContent={<FiX className="w-3 h-3" />}
+                    onClick={(e) => { e.stopPropagation(); setUploadFile(null); }}
+                  >
+                    Ganti File
+                  </Btn>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <FiUploadCloud className="w-10 h-10 mx-auto text-gray-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium text-[#0B5EA8]">Klik untuk memilih</span>{" "}
+                    atau drag & drop file
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    PDF, DOC, XLS, PPT, gambar, ZIP (maks 50MB)
+                  </p>
                 </div>
               )}
+            </div>
 
-              {/* Drop Zone */}
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                  uploadDrag
-                    ? "border-[#0B5EA8] bg-blue-50 dark:bg-blue-950/20"
-                    : uploadFile
-                    ? "border-green-400 bg-green-50 dark:bg-green-950/20"
-                    : "border-gray-300 dark:border-gray-600 hover:border-[#0B5EA8]/50"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.csv"
-                />
-                {uploadFile ? (
-                  <div className="space-y-2">
-                    <FiFile className="w-8 h-8 mx-auto text-green-500" />
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {uploadFile.name}
-                    </p>
-                    <p className="text-xs text-gray-500">{formatFileSize(uploadFile.size)}</p>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      color="danger"
-                      startContent={<FiX className="w-3 h-3" />}
-                      onPress={() => setUploadFile(null)}
-                    >
-                      Ganti File
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <FiUploadCloud className="w-10 h-10 mx-auto text-gray-400" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium text-[#0B5EA8]">Klik untuk memilih</span>{" "}
-                      atau drag & drop file
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      PDF, DOC, XLS, PPT, gambar, ZIP (maks 50MB)
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Input
-                  size="sm"
-                  label="Nama Dokumen"
-                  isRequired
-                  value={uploadForm.nm_dokumen}
-                  onValueChange={(v) => setUploadForm((p) => ({ ...p, nm_dokumen: v }))}
-                  className="sm:col-span-2"
-                />
-                <Input
-                  size="sm"
-                  label="Nomor Dokumen"
-                  placeholder="SK/123/UN26/2026"
-                  value={uploadForm.nomor_dokumen}
-                  onValueChange={(v) => setUploadForm((p) => ({ ...p, nomor_dokumen: v }))}
-                />
-                <Select
-                  size="sm"
-                  label="Kategori"
-                  isRequired
-                  selectedKeys={uploadForm.id_doc_category ? [uploadForm.id_doc_category] : []}
-                  onSelectionChange={(keys) => {
-                    const val = Array.from(keys)[0] as string;
-                    setUploadForm((p) => ({ ...p, id_doc_category: val ?? "" }));
-                  }}
-                >
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id_doc_category}>
-                      {cat.icon ? `${cat.icon} ${cat.nm_kategori}` : cat.nm_kategori}
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Input
-                  size="sm"
-                  label="Tanggal Dokumen"
-                  type="date"
-                  value={uploadForm.tgl_dokumen}
-                  onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_dokumen: v }))}
-                />
-                <Select
-                  size="sm"
-                  label="Status"
-                  selectedKeys={[uploadForm.status]}
-                  onSelectionChange={(keys) => {
-                    const val = Array.from(keys)[0] as string;
-                    setUploadForm((p) => ({ ...p, status: val ?? "active" }));
-                  }}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s.key}>{s.label}</SelectItem>
-                  ))}
-                </Select>
-                <Input
-                  size="sm"
-                  label="Berlaku Sejak"
-                  type="date"
-                  value={uploadForm.tgl_berlaku}
-                  onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_berlaku: v }))}
-                />
-                <Input
-                  size="sm"
-                  label="Berakhir"
-                  type="date"
-                  value={uploadForm.tgl_berakhir}
-                  onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_berakhir: v }))}
-                />
-              </div>
-              <Textarea
-                size="sm"
-                label="Deskripsi"
-                placeholder="Keterangan dokumen (opsional)"
-                value={uploadForm.deskripsi}
-                onValueChange={(v) => setUploadForm((p) => ({ ...p, deskripsi: v }))}
-                minRows={2}
+            {/* Form Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <TwInput
+                inputSize="sm"
+                label="Nama Dokumen"
+                required
+                value={uploadForm.nm_dokumen}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, nm_dokumen: v }))}
+                className="sm:col-span-2"
               />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={uploadModal.onClose} size="sm">
-                Batal
-              </Button>
-              <Button
-                color="primary"
-                onPress={handleUpload}
-                isLoading={isUploading}
-                isDisabled={!uploadFile}
-                size="sm"
-                style={{ backgroundColor: "#0B5EA8" }}
-              >
-                Upload
-              </Button>
-            </ModalFooter>
-          </ModalContent>
+              <TwInput
+                inputSize="sm"
+                label="Nomor Dokumen"
+                placeholder="SK/123/UN26/2026"
+                value={uploadForm.nomor_dokumen}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, nomor_dokumen: v }))}
+              />
+              <TwSelect
+                selectSize="sm"
+                label="Kategori"
+                value={uploadForm.id_doc_category}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, id_doc_category: v ?? "" }))}
+                options={categoryFormOptions}
+                placeholder="Pilih Kategori"
+              />
+              <TwInput
+                inputSize="sm"
+                label="Tanggal Dokumen"
+                type="date"
+                value={uploadForm.tgl_dokumen}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_dokumen: v }))}
+              />
+              <TwSelect
+                selectSize="sm"
+                label="Status"
+                value={uploadForm.status}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, status: v ?? "active" }))}
+                options={STATUS_SELECT_OPTIONS}
+              />
+              <TwInput
+                inputSize="sm"
+                label="Berlaku Sejak"
+                type="date"
+                value={uploadForm.tgl_berlaku}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_berlaku: v }))}
+              />
+              <TwInput
+                inputSize="sm"
+                label="Berakhir"
+                type="date"
+                value={uploadForm.tgl_berakhir}
+                onValueChange={(v) => setUploadForm((p) => ({ ...p, tgl_berakhir: v }))}
+              />
+            </div>
+            <TwTextarea
+              label="Deskripsi"
+              placeholder="Keterangan dokumen (opsional)"
+              value={uploadForm.deskripsi}
+              onValueChange={(v) => setUploadForm((p) => ({ ...p, deskripsi: v }))}
+              rows={2}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Btn variant="ghost" onClick={() => { setUploadModalOpen(false); resetUploadForm(); }} size="sm">
+              Batal
+            </Btn>
+            <Btn
+              variant="primary"
+              onClick={handleUpload}
+              isLoading={isUploading}
+              disabled={!uploadFile}
+              size="sm"
+            >
+              Upload
+            </Btn>
+          </ModalFooter>
         </Modal>
 
         {/* ===== DETAIL / PREVIEW MODAL ===== */}
         <Modal
-          isOpen={detailModal.isOpen}
+          isOpen={detailModalOpen}
           onClose={() => {
-            detailModal.onClose();
+            setDetailModalOpen(false);
             setSelectedDoc(null);
             setDocVersions([]);
             setDetailTab("info");
           }}
           size="3xl"
-          scrollBehavior="inside"
         >
-          <ModalContent>
-            {isLoadingDetail || !selectedDoc ? (
-              <ModalBody className="py-16 flex justify-center">
-                <Spinner size="lg" />
-              </ModalBody>
-            ) : (
-              <>
-                <ModalHeader className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <FiEye className="w-4 h-4 text-[#0B5EA8]" />
-                    <span>Detail Dokumen</span>
-                    {selectedDoc.version_number && selectedDoc.version_number > 1 && (
-                      <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-medium">
-                        v{selectedDoc.version_number}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    color="warning"
-                    variant="flat"
-                    startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
-                    onPress={handleOpenReplace}
-                  >
-                    Ganti File
-                  </Button>
-                </ModalHeader>
-
-                {/* Tabs */}
-                <div className="px-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setDetailTab("info")}
-                      className={`text-sm pb-2 border-b-2 transition-colors ${
-                        detailTab === "info"
-                          ? "border-[#0B5EA8] text-[#0B5EA8] font-medium"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      Info
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDetailTab("versions");
-                        if (docVersions.length === 0) {
-                          handleLoadVersions(selectedDoc.id_document);
-                        }
-                      }}
-                      className={`text-sm pb-2 border-b-2 transition-colors flex items-center gap-1.5 ${
-                        detailTab === "versions"
-                          ? "border-[#0B5EA8] text-[#0B5EA8] font-medium"
-                          : "border-transparent text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      <FiGitBranch className="w-3.5 h-3.5" />
-                      Riwayat Versi
-                    </button>
-                  </div>
+          {isLoadingDetail || !selectedDoc ? (
+            <ModalBody className="py-16 flex justify-center">
+              <Spinner size="lg" />
+            </ModalBody>
+          ) : (
+            <>
+              <ModalHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FiEye className="w-4 h-4 text-[#0B5EA8]" />
+                  <span>Detail Dokumen</span>
+                  {selectedDoc.version_number && selectedDoc.version_number > 1 && (
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-medium">
+                      v{selectedDoc.version_number}
+                    </span>
+                  )}
                 </div>
+                <Btn
+                  size="sm"
+                  variant="flat"
+                  startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
+                  onClick={handleOpenReplace}
+                  className="text-amber-600"
+                >
+                  Ganti File
+                </Btn>
+              </ModalHeader>
 
-                <ModalBody className="space-y-4">
-                  {detailTab === "info" ? (
-                    <>
-                      {/* Info */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-0.5">Nama Dokumen</p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {selectedDoc.nm_dokumen}
-                          </p>
-                        </div>
-                        {selectedDoc.nomor_dokumen && (
-                          <div>
-                            <p className="text-xs text-gray-400 mb-0.5">Nomor</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              {selectedDoc.nomor_dokumen}
-                            </p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-xs text-gray-400 mb-0.5">Status</p>
-                          {getStatusChip(selectedDoc.status)}
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-400 mb-0.5">File</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {selectedDoc.file_name} ({formatFileSize(selectedDoc.file_size)})
-                          </p>
-                        </div>
-                        {selectedDoc.tgl_dokumen && (
-                          <div>
-                            <p className="text-xs text-gray-400 mb-0.5">Tanggal Dokumen</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                              <FiCalendar className="w-3 h-3" />
-                              {formatDate(selectedDoc.tgl_dokumen)}
-                            </p>
-                          </div>
-                        )}
-                        {selectedDoc.tgl_berakhir && (
-                          <div>
-                            <p className="text-xs text-gray-400 mb-0.5">Berlaku s/d</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                              <FiCalendar className="w-3 h-3" />
-                              {formatDate(selectedDoc.tgl_berakhir)}
-                            </p>
-                          </div>
-                        )}
+              {/* Tabs */}
+              <div className="px-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex gap-4 overflow-x-auto">
+                  <button
+                    onClick={() => setDetailTab("info")}
+                    className={`text-sm pb-2 border-b-2 transition-colors whitespace-nowrap ${
+                      detailTab === "info"
+                        ? "border-[#0B5EA8] text-[#0B5EA8] font-medium"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Info
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDetailTab("versions");
+                      if (docVersions.length === 0) {
+                        handleLoadVersions(selectedDoc.id_document);
+                      }
+                    }}
+                    className={`text-sm pb-2 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                      detailTab === "versions"
+                        ? "border-[#0B5EA8] text-[#0B5EA8] font-medium"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <FiGitBranch className="w-3.5 h-3.5" />
+                    Riwayat Versi
+                  </button>
+                </div>
+              </div>
+
+              <ModalBody className="space-y-4">
+                {detailTab === "info" ? (
+                  <>
+                    {/* Info */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Nama Dokumen</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {selectedDoc.nm_dokumen}
+                        </p>
                       </div>
-
-                      {selectedDoc.deskripsi && (
+                      {selectedDoc.nomor_dokumen && (
                         <div>
-                          <p className="text-xs text-gray-400 mb-0.5">Deskripsi</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                            {selectedDoc.deskripsi}
+                          <p className="text-xs text-gray-400 mb-0.5">Nomor</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            {selectedDoc.nomor_dokumen}
                           </p>
                         </div>
                       )}
-
-                      {/* PDF Preview */}
-                      {selectedDoc.mime_type === "application/pdf" && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                          <iframe
-                            src={projectService.getDocumentDownloadUrl(selectedDoc.id_document)}
-                            className="w-full h-[500px]"
-                            title="PDF Preview"
-                          />
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Status</p>
+                        {getStatusChip(selectedDoc.status)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">File</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {selectedDoc.file_name} ({formatFileSize(selectedDoc.file_size)})
+                        </p>
+                      </div>
+                      {selectedDoc.tgl_dokumen && (
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Tanggal Dokumen</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                            <FiCalendar className="w-3 h-3" />
+                            {formatDate(selectedDoc.tgl_dokumen)}
+                          </p>
                         </div>
                       )}
-                    </>
-                  ) : (
-                    /* Version History Tab */
-                    <div className="space-y-2">
-                      {isLoadingVersions ? (
-                        <div className="flex justify-center py-8">
-                          <Spinner size="md" />
-                        </div>
-                      ) : docVersions.length === 0 ? (
-                        <div className="text-center py-10">
-                          <FiGitBranch className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                          <p className="text-sm text-gray-500">Belum ada riwayat versi</p>
-                          <p className="text-xs text-gray-400 mt-1">Versi lama akan muncul di sini setelah file diganti</p>
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                          {docVersions.map((v) => (
-                            <div key={v.id_version} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-                                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">v{v.version_number}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.file_name}</p>
-                                <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 flex-wrap">
-                                  <span>{formatFileSize(v.file_size)}</span>
-                                  <span>·</span>
-                                  <span>{formatDate(v.created_at)}</span>
-                                  {v.catatan && (
-                                    <>
-                                      <span>·</span>
-                                      <span className="italic text-gray-500">{v.catatan}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="flat"
-                                isIconOnly
-                                as="a"
-                                href={projectService.getDocumentDownloadUrl(selectedDoc.id_document) + `?version=${v.version_number}`}
-                                title="Download versi ini"
-                              >
-                                <FiDownload className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          ))}
+                      {selectedDoc.tgl_berakhir && (
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Berlaku s/d</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                            <FiCalendar className="w-3 h-3" />
+                            {formatDate(selectedDoc.tgl_berakhir)}
+                          </p>
                         </div>
                       )}
                     </div>
-                  )}
-                </ModalBody>
-                <ModalFooter>
-                  <Button
-                    variant="flat"
-                    startContent={<FiDownload className="w-4 h-4" />}
-                    onPress={() => handleDownload(selectedDoc.id_document)}
-                    size="sm"
-                  >
-                    Download
-                  </Button>
-                  <Button
-                    variant="light"
-                    onPress={() => {
-                      detailModal.onClose();
-                      setSelectedDoc(null);
-                      setDocVersions([]);
-                      setDetailTab("info");
-                    }}
-                    size="sm"
-                  >
-                    Tutup
-                  </Button>
-                </ModalFooter>
-              </>
-            )}
-          </ModalContent>
+
+                    {selectedDoc.deskripsi && (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Deskripsi</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                          {selectedDoc.deskripsi}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* PDF Preview */}
+                    {selectedDoc.mime_type === "application/pdf" && (
+                      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <iframe
+                          src={projectService.getDocumentDownloadUrl(selectedDoc.id_document)}
+                          className="w-full h-[400px] sm:h-[500px]"
+                          title="PDF Preview"
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Version History Tab */
+                  <div className="space-y-2">
+                    {isLoadingVersions ? (
+                      <div className="flex justify-center py-8">
+                        <Spinner size="md" />
+                      </div>
+                    ) : docVersions.length === 0 ? (
+                      <div className="text-center py-10">
+                        <FiGitBranch className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm text-gray-500">Belum ada riwayat versi</p>
+                        <p className="text-xs text-gray-400 mt-1">Versi lama akan muncul di sini setelah file diganti</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        {docVersions.map((v) => (
+                          <div key={v.id_version} className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                              <span className="text-xs font-bold text-blue-700 dark:text-blue-300">v{v.version_number}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.file_name}</p>
+                              <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 flex-wrap">
+                                <span>{formatFileSize(v.file_size)}</span>
+                                <span>·</span>
+                                <span>{formatDate(v.created_at)}</span>
+                                {v.catatan && (
+                                  <>
+                                    <span>·</span>
+                                    <span className="italic text-gray-500">{v.catatan}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <a
+                              href={projectService.getDocumentDownloadUrl(selectedDoc.id_document) + `?version=${v.version_number}`}
+                              title="Download versi ini"
+                              className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <FiDownload className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Btn
+                  variant="flat"
+                  startContent={<FiDownload className="w-4 h-4" />}
+                  onClick={() => handleDownload(selectedDoc.id_document)}
+                  size="sm"
+                >
+                  Download
+                </Btn>
+                <Btn
+                  variant="ghost"
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    setSelectedDoc(null);
+                    setDocVersions([]);
+                    setDetailTab("info");
+                  }}
+                  size="sm"
+                >
+                  Tutup
+                </Btn>
+              </ModalFooter>
+            </>
+          )}
         </Modal>
 
         {/* ===== REPLACE FILE MODAL ===== */}
         <Modal
-          isOpen={replaceModal.isOpen}
+          isOpen={replaceModalOpen}
           onClose={() => {
-            replaceModal.onClose();
+            setReplaceModalOpen(false);
             setReplaceFile(null);
             setReplaceCatatan("");
             setReplaceError("");
           }}
           size="md"
         >
-          <ModalContent>
-            <ModalHeader className="flex items-center gap-2">
-              <FiRefreshCw className="w-4 h-4 text-amber-500" />
-              Ganti File Dokumen
-            </ModalHeader>
-            <ModalBody className="space-y-3">
-              {replaceError && (
-                <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  {replaceError}
-                </div>
-              )}
-              {selectedDoc && (
-                <div className="text-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                  <p className="font-medium text-amber-700 dark:text-amber-400">File saat ini:</p>
-                  <p className="text-amber-600 dark:text-amber-500 mt-0.5">{selectedDoc.file_name} ({formatFileSize(selectedDoc.file_size)})</p>
-                  <p className="text-xs text-amber-500 mt-1">File lama akan disimpan sebagai versi sebelumnya.</p>
-                </div>
-              )}
-              <div
-                onClick={() => replaceFileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  replaceFile
-                    ? "border-green-400 bg-green-50 dark:bg-green-950/20"
-                    : "border-gray-300 dark:border-gray-600 hover:border-[#0B5EA8]/50"
-                }`}
-              >
-                <input
-                  ref={replaceFileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setReplaceFile(file);
-                  }}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.csv"
-                />
-                {replaceFile ? (
-                  <div className="space-y-1">
-                    <FiFile className="w-7 h-7 mx-auto text-green-500" />
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{replaceFile.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(replaceFile.size)}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <FiUploadCloud className="w-8 h-8 mx-auto text-gray-400" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium text-[#0B5EA8]">Klik</span> untuk memilih file baru
-                    </p>
-                  </div>
-                )}
+          <ModalHeader className="flex items-center gap-2">
+            <FiRefreshCw className="w-4 h-4 text-amber-500" />
+            Ganti File Dokumen
+          </ModalHeader>
+          <ModalBody className="space-y-3">
+            {replaceError && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                {replaceError}
               </div>
-              <Textarea
-                size="sm"
-                label="Catatan perubahan (opsional)"
-                placeholder="Contoh: Update sesuai revisi rapat 18 Maret 2026"
-                value={replaceCatatan}
-                onValueChange={setReplaceCatatan}
-                minRows={2}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                variant="light"
-                size="sm"
-                onPress={() => {
-                  replaceModal.onClose();
-                  setReplaceFile(null);
-                  setReplaceCatatan("");
+            )}
+            {selectedDoc && (
+              <div className="text-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="font-medium text-amber-700 dark:text-amber-400">File saat ini:</p>
+                <p className="text-amber-600 dark:text-amber-500 mt-0.5">{selectedDoc.file_name} ({formatFileSize(selectedDoc.file_size)})</p>
+                <p className="text-xs text-amber-500 mt-1">File lama akan disimpan sebagai versi sebelumnya.</p>
+              </div>
+            )}
+            <div
+              onClick={() => replaceFileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                replaceFile
+                  ? "border-green-400 bg-green-50 dark:bg-green-950/20"
+                  : "border-gray-300 dark:border-gray-600 hover:border-[#0B5EA8]/50"
+              }`}
+            >
+              <input
+                ref={replaceFileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setReplaceFile(file);
                 }}
-              >
-                Batal
-              </Button>
-              <Button
-                color="warning"
-                size="sm"
-                isLoading={isReplacing}
-                isDisabled={!replaceFile}
-                onPress={handleReplace}
-              >
-                Ganti File
-              </Button>
-            </ModalFooter>
-          </ModalContent>
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.csv"
+              />
+              {replaceFile ? (
+                <div className="space-y-1">
+                  <FiFile className="w-7 h-7 mx-auto text-green-500" />
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{replaceFile.name}</p>
+                  <p className="text-xs text-gray-500">{formatFileSize(replaceFile.size)}</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <FiUploadCloud className="w-8 h-8 mx-auto text-gray-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium text-[#0B5EA8]">Klik</span> untuk memilih file baru
+                  </p>
+                </div>
+              )}
+            </div>
+            <TwTextarea
+              label="Catatan perubahan (opsional)"
+              placeholder="Contoh: Update sesuai revisi rapat 18 Maret 2026"
+              value={replaceCatatan}
+              onValueChange={setReplaceCatatan}
+              rows={2}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Btn
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setReplaceModalOpen(false);
+                setReplaceFile(null);
+                setReplaceCatatan("");
+              }}
+            >
+              Batal
+            </Btn>
+            <Btn
+              variant="flat"
+              size="sm"
+              isLoading={isReplacing}
+              disabled={!replaceFile}
+              onClick={handleReplace}
+              className="bg-amber-100 text-amber-700 hover:bg-amber-200"
+            >
+              Ganti File
+            </Btn>
+          </ModalFooter>
         </Modal>
 
         {/* ===== EDIT MODAL ===== */}
         <Modal
-          isOpen={editModal.isOpen}
+          isOpen={editModalOpen}
           onClose={() => {
-            editModal.onClose();
+            setEditModalOpen(false);
             setSelectedDoc(null);
             setEditError("");
           }}
           size="lg"
-          scrollBehavior="inside"
         >
-          <ModalContent>
-            {isLoadingDetail || !selectedDoc ? (
-              <ModalBody className="py-16 flex justify-center">
-                <Spinner size="lg" />
-              </ModalBody>
-            ) : (
-              <>
-                <ModalHeader className="flex items-center gap-2">
-                  <FiEdit className="w-4 h-4 text-[#0B5EA8]" />
-                  Edit Dokumen
-                </ModalHeader>
-                <ModalBody className="space-y-3">
-                  {editError && (
-                    <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                      {editError}
-                    </div>
-                  )}
-                  <Input
-                    size="sm"
-                    label="Nama Dokumen"
-                    value={editForm.nm_dokumen ?? ""}
-                    onValueChange={(v) => setEditForm((p) => ({ ...p, nm_dokumen: v }))}
-                  />
-                  <Input
-                    size="sm"
-                    label="Nomor Dokumen"
-                    value={editForm.nomor_dokumen ?? ""}
-                    onValueChange={(v) => setEditForm((p) => ({ ...p, nomor_dokumen: v }))}
-                  />
-                  <Select
-                    size="sm"
-                    label="Kategori"
-                    selectedKeys={editForm.id_doc_category ? [editForm.id_doc_category] : []}
-                    onSelectionChange={(keys) => {
-                      const val = Array.from(keys)[0] as string;
-                      setEditForm((p) => ({ ...p, id_doc_category: val }));
-                    }}
-                  >
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id_doc_category}>
-                        {cat.icon ? `${cat.icon} ${cat.nm_kategori}` : cat.nm_kategori}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <Select
-                    size="sm"
-                    label="Status"
-                    selectedKeys={editForm.status ? [editForm.status] : []}
-                    onSelectionChange={(keys) => {
-                      const val = Array.from(keys)[0] as string;
-                      setEditForm((p) => ({ ...p, status: val }));
-                    }}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <SelectItem key={s.key}>{s.label}</SelectItem>
-                    ))}
-                  </Select>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Input
-                      size="sm"
-                      label="Tanggal Dokumen"
-                      type="date"
-                      value={editForm.tgl_dokumen ?? ""}
-                      onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_dokumen: v }))}
-                    />
-                    <Input
-                      size="sm"
-                      label="Berlaku Sejak"
-                      type="date"
-                      value={editForm.tgl_berlaku ?? ""}
-                      onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_berlaku: v }))}
-                    />
-                    <Input
-                      size="sm"
-                      label="Berakhir"
-                      type="date"
-                      value={editForm.tgl_berakhir ?? ""}
-                      onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_berakhir: v }))}
-                    />
+          {isLoadingDetail || !selectedDoc ? (
+            <ModalBody className="py-16 flex justify-center">
+              <Spinner size="lg" />
+            </ModalBody>
+          ) : (
+            <>
+              <ModalHeader className="flex items-center gap-2">
+                <FiEdit className="w-4 h-4 text-[#0B5EA8]" />
+                Edit Dokumen
+              </ModalHeader>
+              <ModalBody className="space-y-3">
+                {editError && (
+                  <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                    {editError}
                   </div>
-                  <Textarea
-                    size="sm"
-                    label="Deskripsi"
-                    value={editForm.deskripsi ?? ""}
-                    onValueChange={(v) => setEditForm((p) => ({ ...p, deskripsi: v }))}
-                    minRows={2}
+                )}
+                <TwInput
+                  inputSize="sm"
+                  label="Nama Dokumen"
+                  value={editForm.nm_dokumen ?? ""}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, nm_dokumen: v }))}
+                />
+                <TwInput
+                  inputSize="sm"
+                  label="Nomor Dokumen"
+                  value={editForm.nomor_dokumen ?? ""}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, nomor_dokumen: v }))}
+                />
+                <TwSelect
+                  selectSize="sm"
+                  label="Kategori"
+                  value={editForm.id_doc_category ?? ""}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, id_doc_category: v }))}
+                  options={categoryFormOptions}
+                  placeholder="Pilih Kategori"
+                />
+                <TwSelect
+                  selectSize="sm"
+                  label="Status"
+                  value={editForm.status ?? ""}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, status: v }))}
+                  options={STATUS_SELECT_OPTIONS}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <TwInput
+                    inputSize="sm"
+                    label="Tanggal Dokumen"
+                    type="date"
+                    value={editForm.tgl_dokumen ?? ""}
+                    onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_dokumen: v }))}
                   />
-                </ModalBody>
-                <ModalFooter>
-                  <Button
-                    variant="light"
-                    onPress={() => {
-                      editModal.onClose();
-                      setSelectedDoc(null);
-                    }}
-                    size="sm"
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    color="primary"
-                    onPress={handleUpdate}
-                    isLoading={isEditing}
-                    size="sm"
-                    style={{ backgroundColor: "#0B5EA8" }}
-                  >
-                    Simpan
-                  </Button>
-                </ModalFooter>
-              </>
-            )}
-          </ModalContent>
+                  <TwInput
+                    inputSize="sm"
+                    label="Berlaku Sejak"
+                    type="date"
+                    value={editForm.tgl_berlaku ?? ""}
+                    onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_berlaku: v }))}
+                  />
+                  <TwInput
+                    inputSize="sm"
+                    label="Berakhir"
+                    type="date"
+                    value={editForm.tgl_berakhir ?? ""}
+                    onValueChange={(v) => setEditForm((p) => ({ ...p, tgl_berakhir: v }))}
+                  />
+                </div>
+                <TwTextarea
+                  label="Deskripsi"
+                  value={editForm.deskripsi ?? ""}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, deskripsi: v }))}
+                  rows={2}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Btn
+                  variant="ghost"
+                  onClick={() => {
+                    setEditModalOpen(false);
+                    setSelectedDoc(null);
+                  }}
+                  size="sm"
+                >
+                  Batal
+                </Btn>
+                <Btn
+                  variant="primary"
+                  onClick={handleUpdate}
+                  isLoading={isEditing}
+                  size="sm"
+                >
+                  Simpan
+                </Btn>
+              </ModalFooter>
+            </>
+          )}
         </Modal>
       </>
 );

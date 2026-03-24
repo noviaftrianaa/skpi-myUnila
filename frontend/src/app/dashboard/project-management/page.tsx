@@ -53,19 +53,20 @@ export default function ProjectManagementDashboardPage() {
       try {
         const [statsData, projectsData] = await Promise.all([
           projectService.getStats().catch(() => null),
-          userId
-            ? projectService.getMyProjects({
-                user_id: userId,
-                is_pimpinan: isPimpinan,
-                limit: 50,
-              }).catch(() => projectService.getProjects({ per_page: 50 }).catch(() => ({
-                data: [],
-                meta: { total: 0, page: 1, per_page: 50, total_pages: 0 },
-              })))
-            : projectService.getProjects({ per_page: 50 }).catch(() => ({
-                data: [],
-                meta: { total: 0, page: 1, per_page: 50, total_pages: 0 },
-              })),
+          (async () => {
+            const fallback = { data: [], meta: { total: 0, page: 1, per_page: 50, total_pages: 0 } };
+            try {
+              // Try user-specific projects first
+              if (userId) {
+                const myRes = await projectService.getMyProjects({ user_id: userId, is_pimpinan: isPimpinan, limit: 50 });
+                if (myRes.data && myRes.data.length > 0) return myRes;
+              }
+              // Fallback: get all projects (public visibility)
+              return await projectService.getProjects({ per_page: 50 });
+            } catch {
+              try { return await projectService.getProjects({ per_page: 50 }); } catch { return fallback; }
+            }
+          })(),
         ]);
         if (isMounted) {
           setStats(statsData);
