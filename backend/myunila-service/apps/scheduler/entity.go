@@ -23,7 +23,7 @@ type ScheduledSync struct {
 type CreateScheduledSyncRequest struct {
 	Name         string  `json:"name" validate:"required"`
 	Description  string  `json:"description"`
-	SyncType     string  `json:"sync_type" validate:"required,oneof=pegawai unit_organisasi siakadu_mahasiswa siakadu_kelas siakadu_kurikulum siakadu_matakuliah siakadu_khs siakadu_kuliah"`
+	SyncType     string  `json:"sync_type" validate:"required,oneof=pegawai radius unit_organisasi siakadu_referensi siakadu_mahasiswa siakadu_akademik siakadu_kelas siakadu_kurikulum siakadu_matakuliah siakadu_khs siakadu_kuliah siakadu_transkrip"`
 	EndpointKey  *string `json:"endpoint_key"`
 	ScheduleDate string  `json:"schedule_date" validate:"required"` // Format: YYYY-MM-DD
 	ScheduleTime string  `json:"schedule_time" validate:"required"` // Format: HH:mm
