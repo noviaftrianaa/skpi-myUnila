@@ -31,6 +31,24 @@ export interface Project {
   id_project?: string;
   kode_project?: string;
   nm_project?: string;
+  tgl_mulai?: string;
+  tgl_target?: string;
+}
+
+/** Map backend snake_case fields to frontend interface */
+function mapProject(raw: Record<string, unknown>): Project {
+  return {
+    ...raw,
+    id: (raw.id_project ?? raw.id) as string,
+    kode: (raw.kode_project ?? raw.kode) as string,
+    nama: (raw.nm_project ?? raw.nama) as string,
+    tanggal_mulai: (raw.tgl_mulai ?? raw.tanggal_mulai) as string | undefined,
+    tanggal_target: (raw.tgl_target ?? raw.tanggal_target) as string | undefined,
+  } as Project;
+}
+
+function mapProjects(raw: Record<string, unknown>[]): Project[] {
+  return (raw ?? []).map(mapProject);
 }
 
 export interface ProjectModule {
@@ -406,25 +424,27 @@ export const projectService = {
   // --- Projects ---
   async getProjects(params?: { page?: number; per_page?: number; search?: string; status?: string }): Promise<PaginatedResponse<Project>> {
     const response = await projectClient.get<PaginatedResponse<Project>>('/project', { params });
-    return response.data;
+    const result = response.data;
+    if (result.data) result.data = mapProjects(result.data as unknown as Record<string, unknown>[]);
+    return result;
   },
 
   async getProject(id: string): Promise<Project> {
     const response = await projectClient.get<SingleResponse<Project>>(`/project/${id}`);
     if (!response.data.success) throw new Error('Failed to fetch project');
-    return response.data.data;
+    return mapProject(response.data.data as unknown as Record<string, unknown>);
   },
 
   async createProject(data: Partial<Project>): Promise<Project> {
     const response = await projectClient.post<SingleResponse<Project>>('/project', data);
     if (!response.data.success) throw new Error('Failed to create project');
-    return response.data.data;
+    return mapProject(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
     const response = await projectClient.put<SingleResponse<Project>>(`/project/${id}`, data);
     if (!response.data.success) throw new Error('Failed to update project');
-    return response.data.data;
+    return mapProject(response.data.data as unknown as Record<string, unknown>);
   },
 
   async deleteProject(id: string): Promise<void> {
@@ -719,7 +739,9 @@ export const projectService = {
     limit?: number;
   }): Promise<PaginatedResponse<Project>> {
     const response = await projectClient.get<PaginatedResponse<Project>>('/project/my', { params });
-    return response.data;
+    const result = response.data;
+    if (result.data) result.data = mapProjects(result.data as unknown as Record<string, unknown>[]);
+    return result;
   },
 
   // --- Members ---
