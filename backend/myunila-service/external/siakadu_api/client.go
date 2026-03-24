@@ -74,12 +74,12 @@ func NewSiakaduClient() (*SiakaduClient, error) {
 
 		// Try to load from database (api_configs) first - priority over env
 		if svc := api_config.GetService(); svc != nil {
-			dbConfig, err := svc.GetByAPICode("SIAKADU")
+			dbConfig, err := svc.GetByAPICode("WS-SIAKADU")
 			if err == nil && dbConfig != nil {
 				baseURL = dbConfig.BaseURL
 				fmt.Printf("📁 Using SIAKADU base URL from database: %s\n", baseURL)
 
-				creds, err := svc.GetCredentials("SIAKADU")
+				creds, err := svc.GetCredentials("WS-SIAKADU")
 				if err == nil && creds != nil {
 					if user, ok := creds["username"].(string); ok && user != "" {
 						username = user
@@ -144,7 +144,7 @@ func (c *SiakaduClient) Login() error {
 		return fmt.Errorf("failed to marshal login payload: %w", err)
 	}
 
-	authURL := c.BaseURL + "/auth/login"
+	authURL := c.BaseURL + "/api/v1/auth/login"
 	req, err := http.NewRequest("POST", authURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -191,7 +191,7 @@ func (c *SiakaduClient) doGet(endpoint string, params url.Values, retry bool) ([
 		}
 	}
 
-	reqURL := c.BaseURL + "/" + endpoint
+	reqURL := c.BaseURL + "/api/v1/" + endpoint
 	if len(params) > 0 {
 		reqURL += "?" + params.Encode()
 	}
