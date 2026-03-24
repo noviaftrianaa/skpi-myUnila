@@ -122,32 +122,39 @@ export default function ProjectOverviewPage() {
 
   useEffect(() => {
     if (!projectId) return;
-    loadData();
-  }, [projectId]);
+    let cancelled = false;
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [proj, mods, tasksResp, actResp, docsResp, sprintsResp] = await Promise.all([
-        projectService.getProject(projectId),
-        projectService.getModules(projectId),
-        projectService.getTasks(projectId, { per_page: 100 }),
-        projectService.getActivity(projectId, { per_page: 10 }),
-        projectService.getDocuments(projectId, { limit: 200 }),
-        projectService.getSprints(projectId).catch(() => []),
-      ]);
-      setProject(proj);
-      setModules(mods);
-      setTasks(tasksResp.data);
-      setActivities(actResp.data);
-      setDocuments(docsResp.data ?? []);
-      setSprints(sprintsResp ?? []);
-    } catch (error) {
-      console.error("Error loading project overview:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [proj, mods, tasksResp, actResp, docsResp, sprintsResp] = await Promise.all([
+          projectService.getProject(projectId),
+          projectService.getModules(projectId),
+          projectService.getTasks(projectId, { per_page: 100 }),
+          projectService.getActivity(projectId, { per_page: 10 }),
+          projectService.getDocuments(projectId, { limit: 200 }),
+          projectService.getSprints(projectId).catch(() => []),
+        ]);
+        if (cancelled) return;
+        setProject(proj);
+        setModules(mods);
+        setTasks(tasksResp.data);
+        setActivities(actResp.data);
+        setDocuments(docsResp.data ?? []);
+        setSprints(sprintsResp ?? []);
+      } catch (error: unknown) {
+        if (cancelled) return;
+        const axiosErr = error as { code?: string };
+        if (axiosErr?.code === "ECONNABORTED" || axiosErr?.code === "ERR_CANCELED") return;
+        console.error("Error loading project overview:", error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    loadData();
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   const handleTaskCreated = (task: Task) => {
     setTasks((prev) => [task, ...prev]);
