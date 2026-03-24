@@ -1,103 +1,117 @@
-# Deploy Production Plan — Updated 19 Maret 2026
+# Deploy Production Plan — Updated 24 Maret 2026
 
 ## Overview
 Deploy semua fitur baru dari staging (VM5) ke production (VM1-VM4) + setup VM6 replica + Kong LB.
 
-## Status: PLAN ONLY — Tunggu Mizar testing staging + SSH access
+## Status: PLAN ONLY — Mizar belum deploy, perlu testing staging dulu
 
-## What Changed Since Last Plan
-Banyak fitur baru ditambah di sesi 17-18 Maret 2026:
-- RBAC Enforcement (Redis permissions, matrix UI, Go middleware)
-- Project Management (backend, frontend, members, watchers, org structure, pimpinan visibility)
-- Data Unila Export Excel (17 page)
-- IKU 9 bug fix
-- Dashboard Pimpinan + Data Unila portal fix
-- Kong project-service registration
+## What Changed (17-24 Maret 2026)
 
-## Detailed Guides (files sudah ada)
+### Fitur Baru
+1. **RBAC Enforcement** — Redis permissions cache, matrix UI, Go + PHP middleware
+2. **Project Management** — Full module (kanban, tasks, docs, sprints, charts, heatmap, org structure, pimpinan visibility)
+3. **Data Unila Export Excel** — 17 halaman
+4. **IKU 9 bug fix** — binding order drilldown per fakultas
+5. **Dashboard Pimpinan + Data Unila** — portal fix (URL, a_terintegrasi)
+6. **SIAKADU Integration** — Backend sync + frontend 9 pages (mahasiswa, kelas, kurikulum, matkul, KRS/KHS, transkrip, status kuliah, pegawai, wisuda)
+7. **SIAKADU Schema** — 49 tables SQL Server script (siakadu.*)
+8. **Contribution Charts** — Heatmap, activity timeline, burndown, team ranking, user profile
+9. **Security Hardening** — fail2ban, SSH key-only, .env permissions, credentials dir
+
+### Commits (17-24 Maret)
+```
+9028a33cd feat(siakadu): frontend 9 pages + service
+20fbdecbb feat(siakadu): backend sync integration (3 modules + API client)
+9c2ee858c feat(data-model): SIAKADU schema v1.0 (49 tables)
+60ca20a60 feat: contribution charts, heatmap, analytics page
+680b36d25 feat: pimpinan visibility, members, watchers, org structure
+8eb38e07c fix(project-management): route mismatch fix
+46b8ec6a6 feat(rbac): Go RBAC CRUD middleware
+c70e6af7a feat(rbac): Permission Matrix Editor UI
+cad3e26f1 feat(rbac): full CRUD permission enforcement
+b9966081b fix(dashboard): IKU 9 binding order
+0fe12ab73 feat(data-unila): Export Excel 17 pages
+```
+
+## Detailed Guides
 - PostgreSQL VM3: `docs/VM3-POSTGRESQL-SETUP.md`
 - VM6 Replica + Kong LB: `docs/VM6-REPLICA-SETUP.md`
 - RBAC: `docs/RBAC-ENFORCEMENT-PLAN.md`
+- SIAKADU Integration: `docs/SIAKADU-INTEGRATION-PLAN.md`
+- SIAKADU Field Mapping: `docs/SIAKADU-FIELD-MAPPING.md`
+- Project Contribution: `docs/PROJECT-CONTRIBUTION-PLAN.md`
 - Org Structure: `docs/PROJECT-MANAGEMENT-ORG-PLAN.md`
 
 ## Config Files Ready
 - `deployment/production/vm3-backend2/services/project/docker-compose.yml`
-- `deployment/production/vm6-replica/docker-compose.yml`
-- `deployment/production/vm6-replica/.env.example`
+- `deployment/production/vm6-replica/docker-compose.yml` + `.env.example`
 - `deployment/production/vm6-replica/scripts/sync-from-vm3.sh`
-- `deployment/production/kong-lb/setup-upstreams.sh`
-- `deployment/production/kong-lb/check-health.sh`
+- `deployment/production/kong-lb/setup-upstreams.sh` + `check-health.sh`
 - `deployment/production/ansible/playbooks/06-deploy-vm6-replica.yml`
+- `data-model/script/sqlserver/siakadu/siakadu_schema_v1.0_fresh.sql`
+
+---
+
+## Pre-Deploy Checklist
+
+### Sebelum deploy, pastikan testing staging:
+- [ ] Login portal → semua apps accessible
+- [ ] Data Unila → 18 halaman + Export Excel
+- [ ] Dashboard Pimpinan → IKU (6 indikator, IKU 9 ≠ NULL)
+- [ ] Project Management → create project, task, kanban, analytics
+- [ ] RBAC → tab Permission Matrix, bulk save
+- [ ] Manajemen Akses → tambah pengguna, WS Auth
+- [ ] SIAKADU → sync mahasiswa (setelah API credentials di-setup)
 
 ---
 
 ## Phase 1: SQL Server Seed (Production DB)
 
-### Pre-requisite: Backup DB production
+### Pre-requisite: Backup
 ```bash
-# Di SQL Server 119, backup pdut dulu sebelum seed
-BACKUP DATABASE pdut TO DISK = 'C:\SQLBackupShare\pdut_pre_deploy_20260319.bak'
+# Di SQL Server 119
+BACKUP DATABASE pdut TO DISK = 'C:\SQLBackupShare\pdut_pre_deploy_20260324.bak'
 ```
 
-### Seeds yang perlu dijalankan di pdut (production)
+### SIAKADU Schema (BARU)
+```bash
+# Jalankan script SIAKADU schema di SQL Server 119
+# File: data-model/script/sqlserver/siakadu/siakadu_schema_v1.0_fresh.sql
+# 49 tables di schema siakadu.*
+```
+
+### Seeds
 File: `data-model/script/sqlserver/seed_staging_to_production_20260317.sql`
-
-Isi:
-1. **Data Unila** — App seed: 23 menus, 11 roles, `a_live=1`, `a_coming_soon=0`, `a_terintegrasi=1`, `url=/dashboard/data-unila`
-2. **Dashboard Pimpinan** — `a_live=1`, `a_coming_soon=0`, `a_terintegrasi=1`, `url=/dashboard/pimpinan`
-3. **Project Management** — App seed: kategori `Tools & Utilities`, 10 menus, RBAC Admin+Developer, `url=/dashboard/project-management`
-4. **WS Endpoint** — 121 endpoints WS-MYUNILA (`/v1/` prefix)
-5. **WS Authorization** — sync per PJ Aplikasi
-6. **Manajemen Akses** — pengguna management permissions, PJ Aplikasi fix
-
-**⚠️ PENTING: Seed harus dijalankan SEBELUM deploy service, karena service baca menu/role dari DB**
+- Data Unila: 23 menus, 11 roles
+- Dashboard Pimpinan: `a_live=1`, `a_terintegrasi=1`, `url=/dashboard/pimpinan`
+- Project Management: kategori Tools & Utilities, 10 menus
+- WS Endpoint: 121 endpoints WS-MYUNILA
+- SIAKADU Integrator: 10 menus (sudah ada di integrator app)
 
 ---
 
-## Phase 2: Deploy VM2 — PHP Services (Auth + Dashboard + Public)
-
-### SSH ke VM1 dulu, lalu deploy via Ansible/SCP
+## Phase 2: Deploy VM2 — PHP Services
 
 ```bash
 # Dari VM1
-cd /var/www/my-unila
-git pull origin master
+cd /var/www/my-unila && git pull origin master
 
-# Deploy ke VM2 via Ansible
+# Deploy via Ansible atau SCP
 ansible-playbook -i deployment/production/ansible/inventory/hosts.yml \
   deployment/production/ansible/playbooks/03-deploy-vm2-backend1.yml
-```
-
-### Atau manual SCP + rebuild:
-```bash
-# SCP dari VM1 ke VM2
-scp -r backend/auth-service/ mybackend1@192.168.120.42:/var/www/my-unila/backend/auth-service/
-scp -r backend/dashboard-service/ mybackend1@192.168.120.42:/var/www/my-unila/backend/dashboard-service/
-scp -r backend/public-service/ mybackend1@192.168.120.42:/var/www/my-unila/backend/public-service/
-
-# SSH ke VM2, rebuild
-cd /var/www/my-unila/deployment/production/vm2-backend1
-docker compose -f services/auth/docker-compose.yml up -d --build
-docker compose -f services/dashboard/docker-compose.yml up -d --build
-docker compose -f services/public/docker-compose.yml up -d --build
 ```
 
 ### Changes di VM2:
 | Service | Changes |
 |---------|---------|
-| Auth | RBAC permission caching (`cacheUserPermissions`), matrix API (`GET/POST /matrix`), tambah pengguna, PJ fix, WS Auth revamp |
-| Dashboard | IKU 9 binding fix, Data Unila backend (semua modul + sub-pages), Keuangan data |
-| Public | Minor |
+| **Auth** | RBAC permission caching, matrix API, tambah pengguna, WS Auth revamp |
+| **Dashboard** | IKU 9 fix, Data Unila backend (semua modul + sub-pages + IKU) |
+| **Public** | Minor |
 
-### Auth Service — Verify after deploy:
+### Verify:
 ```bash
-# Test routes
 docker exec myunila-auth php artisan route:list --path=matrix
-# Harus ada: GET /matrix, POST /matrix/bulk
-
-# Clear cache
 docker exec myunila-auth php artisan cache:clear
-docker exec myunila-auth php artisan route:clear
 ```
 
 ---
@@ -106,14 +120,11 @@ docker exec myunila-auth php artisan route:clear
 
 ```bash
 # SCP dari VM1 ke VM3
-scp -r backend/api-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/api-service/
-scp -r backend/sister-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/sister-service/
-scp -r backend/feeder-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/feeder-service/
-scp -r backend/myunila-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/myunila-service/
-scp -r backend/keuangan-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/keuangan-service/
-scp -r backend/monitoring-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/monitoring-service/
+for svc in sister feeder myunila api keuangan monitoring; do
+  scp -r backend/$svc-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/
+done
 
-# Rebuild semua Go services di VM3
+# Rebuild semua
 cd /var/www/my-unila/deployment/production/vm3-backend2
 for svc in sister feeder myunila api keuangan monitoring; do
   docker compose -f services/$svc/docker-compose.yml --env-file .env up -d --build
@@ -123,147 +134,112 @@ done
 ### Changes di VM3:
 | Service | Changes |
 |---------|---------|
-| API (ws-service) | RBAC Go middleware (`rbac_permission.go`), WS Auth enforcement (`ws_auth.go`), `/v1/` migration |
-| Keuangan | SIMPEDAM API integration |
-| Others | Minor |
+| **MyUnila** | SIAKADU sync modules (3 modules + API client), scheduler types |
+| **API (ws-service)** | RBAC Go middleware, WS Auth enforcement |
+| **Keuangan** | SIMPEDAM API |
 
-### VM3 .env — tambah env vars baru:
+### VM3 .env — tambah:
 ```env
-# RBAC (default off — aktifkan setelah verified)
 RBAC_ENFORCEMENT_ENABLED=false
 RBAC_ENFORCEMENT_MODE=permissive
-
-# WS Auth
 WS_AUTH_ENABLED=true
 WS_AUTH_APP_ID=<production-app-id>
-AUTH_CACHE_PREFIX=myunila_database_myunila_cache_
-API_REDIS_DB=1
+SIAKADU_API_BASE_URL=http://192.168.120.37:4000/api/v1
+SIAKADU_API_USERNAME=<credentials>
+SIAKADU_API_PASSWORD=<credentials>
 ```
+
+### SIAKADU API Config:
+Tambah ke `setting.api_configs`:
+```sql
+INSERT INTO setting.api_configs (api_code, api_name, base_url, auth_type, ...)
+VALUES ('SIAKADU', 'SIAKADU API', 'http://192.168.120.37:4000/api/v1', 'jwt', ...);
+```
+Atau insert via portal ManAkses → Settings → API Config.
 
 ---
 
 ## Phase 4: Install PostgreSQL + Project Service di VM3
 
-### Panduan lengkap: `docs/VM3-POSTGRESQL-SETUP.md`
-
-Ringkasan:
+### Panduan: `docs/VM3-POSTGRESQL-SETUP.md`
 ```bash
-# SSH ke VM3
+# Install PostgreSQL native
 sudo apt install -y postgresql postgresql-contrib
+
+# Create DB
 sudo -u postgres psql -c "CREATE USER myunila_pm WITH PASSWORD '<PASSWORD>';"
 sudo -u postgres psql -c "CREATE DATABASE myunila_project OWNER myunila_pm;"
-sudo -u postgres psql -d myunila_project -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
-# Config: listen_addresses = '*', pg_hba allow 192.168.120.0/24
-sudo systemctl restart postgresql
-
-# Import schema
-psql -U myunila_pm -d myunila_project -f data-model/script/postgresql/project_management_v1.0_fresh.sql
-
-# Migration tabel baru (members, watchers, org)
-psql -U myunila_pm -d myunila_project << 'SQL'
-CREATE TABLE IF NOT EXISTS project_members (...);
-CREATE TABLE IF NOT EXISTS project_watchers (...);
-CREATE TABLE IF NOT EXISTS project_org_nodes (...);
-CREATE TABLE IF NOT EXISTS project_org_edges (...);
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS id_unit VARCHAR(50);
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS nm_unit VARCHAR(200);
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS visibility VARCHAR(20) DEFAULT 'private';
-SQL
+# Import schema + migration
+psql -U myunila_pm -d myunila_project -f project_management_v1.0_fresh.sql
+# + migration tables (members, watchers, org, analytics)
 
 # Deploy project-service
-scp -r backend/project-service/ mybackend2@192.168.120.43:/var/www/my-unila/backend/
-cd /var/www/my-unila/deployment/production/vm3-backend2
 docker compose -f services/project/docker-compose.yml --env-file .env up -d --build
 ```
 
-### Register di Kong (VM1):
+### Register di Kong:
 ```bash
 curl -X POST http://localhost:9801/services/ \
-  --data "name=project-service" \
-  --data "host=192.168.120.43" \
-  --data "port=8095"
-
+  --data "name=project-service" --data "host=192.168.120.43" --data "port=8095"
 curl -X POST http://localhost:9801/services/project-service/routes \
-  --data "name=project-service-route" \
-  --data "paths[]=/project-service" \
-  --data "strip_path=true"
+  --data "name=project-service-route" --data "paths[]=/project-service" --data "strip_path=true"
 ```
-
-**Note:** Di staging, UFW perlu allow Docker→Host traffic (`ufw allow from 172.20.0.0/16 to any port 8095`). Di production, project-service mungkin on Docker network — check dulu.
 
 ---
 
 ## Phase 5: Deploy VM1 — Frontend + Kong
 
 ```bash
-# SSH ke VM1
-cd /var/www/my-unila
-git pull origin master
-
-# Rebuild frontend
+cd /var/www/my-unila && git pull origin master
 cd deployment/production/vm1-frontend-kong
 docker compose --env-file .env -f services/frontend/docker-compose.yml up -d --build
 ```
 
-### Frontend Changes:
-| Feature | Files |
-|---------|-------|
-| Data Unila | 18 halaman + Export Excel (xlsx) |
-| IKU | Dashboard IKU (473 lines) |
-| Dashboard Pimpinan | IKU components (IKUCard, IKUDetailModal) |
-| Project Management | 19 TSX (kanban, board, tasks, docs, sprints, timeline, settings) |
-| RBAC Matrix | RBACMatrixEditor.tsx (766 lines) |
-| Pimpinan Visibility | ProjectCard badge, settings tabs (members/watchers/visibility) |
-| ManAkses | Tambah pengguna, responsive modals, WS Auth revamp |
-| Hooks | usePermission.ts |
-| Services | rbacMatrixService, ikuDataService, projectService (updated), exportExcel |
-
 ### Frontend .env — tambah:
 ```env
 NEXT_PUBLIC_PROJECT_API_URL=http://192.168.120.43:8095/api/v1
-# Atau via Kong: http://192.168.120.41:9800/project-service/api/v1
 ```
 
-### Frontend Dockerfile — pastikan build args ada:
-```dockerfile
-ARG NEXT_PUBLIC_PROJECT_API_URL
-ENV NEXT_PUBLIC_PROJECT_API_URL=$NEXT_PUBLIC_PROJECT_API_URL
-```
-
-**⚠️ JANGAN pakai `docker build` langsung — SELALU via compose + env file!**
+### Frontend Changes (summary):
+| Feature | Files |
+|---------|-------|
+| Data Unila | 18 pages + Export Excel + IKU |
+| Project Management | 19 pages + analytics + charts |
+| RBAC Matrix | RBACMatrixEditor (766 lines) |
+| SIAKADU | 9 sync pages + siakaduService |
+| Pimpinan Visibility | Members, watchers, visibility |
+| ManAkses | Tambah pengguna, responsive, WS Auth |
+| Hooks | usePermission |
 
 ---
 
-## Phase 6: VM6 Replica + Kong Load Balancing
+## Phase 6: VM6 Replica (Optional)
 
-### Panduan lengkap: `docs/VM6-REPLICA-SETUP.md`
-
-Ringkasan:
+### Panduan: `docs/VM6-REPLICA-SETUP.md`
 1. Install Docker di VM6
-2. Clone repo / SCP files
-3. Copy .env dari VM3 (sama persis — semua service stateless)
-4. Project service: `PG_HOST=192.168.120.43` (remote ke VM3 PostgreSQL)
-5. `docker compose up -d --build`
-6. Run `deployment/production/kong-lb/setup-upstreams.sh` di VM1
-7. Verify: `deployment/production/kong-lb/check-health.sh`
-8. Test failover: stop VM6 → traffic ke VM3 only → start VM6 → both active
+2. Clone repo
+3. Copy .env dari VM3 (PROJECT_PG_HOST=192.168.120.43)
+4. `docker compose up -d --build`
+5. Run `kong-lb/setup-upstreams.sh`
+6. Verify: `kong-lb/check-health.sh`
 
 ---
 
 ## Deployment Order (WAJIB URUT!)
 
 ```
-1. Backup DB production (SQL Server 119)
-2. Run SQL seed di production DB
-3. Deploy VM2 (PHP services) → verify auth routes + dashboard
-4. Deploy VM3 (Go services) → verify health all services
-5. Install PostgreSQL di VM3 + deploy project-service → verify
-6. Deploy VM1 (Frontend) → verify portal + all apps accessible
-7. Register project-service di Kong (VM1)
-8. Smoke test semua fitur
-9. [Optional] Setup VM6 replica + Kong LB
-10. Monitor 30 menit, check Grafana (VM4)
+1. Backup DB (SQL Server 119)
+2. Run SIAKADU schema script di SQL Server
+3. Run SQL seed di production DB
+4. Insert SIAKADU API config ke setting.api_configs
+5. Deploy VM2 (PHP) → verify
+6. Deploy VM3 (Go) → verify
+7. Install PostgreSQL + project-service di VM3 → verify
+8. Deploy VM1 (Frontend) → verify
+9. Register project-service di Kong
+10. Smoke test semua fitur
+11. [Optional] VM6 replica + Kong LB
 ```
 
 ---
@@ -272,96 +248,85 @@ Ringkasan:
 
 ### Portal
 - [ ] Login SSO
-- [ ] Portal tampil semua apps (Data Unila, Dashboard Pimpinan, Project Management)
-- [ ] Klik Data Unila → masuk (bukan "Belum Tersedia")
-- [ ] Klik Dashboard Pimpinan → masuk
-- [ ] Klik Project Management → masuk
+- [ ] Data Unila → buka, bukan "Belum Tersedia"
+- [ ] Dashboard Pimpinan → buka
+- [ ] Project Management → buka
 
 ### Data Unila
 - [ ] Dashboard overview
-- [ ] Mahasiswa list + Export Excel
-- [ ] Dosen list + Export Excel
-- [ ] IKU dashboard (6 IKU wajib ada data)
-- [ ] Keuangan UKT + SPP
+- [ ] Mahasiswa + Export Excel
+- [ ] IKU (6 indikator, IKU 9 ada data)
 
 ### Dashboard Pimpinan
-- [ ] Beranda
-- [ ] IKU (6 indikator, termasuk IKU 9 ≠ NULL)
-- [ ] Mahasiswa, Dosen, Litabmas tabs
+- [ ] IKU chart
+- [ ] Mahasiswa, Dosen, Litabmas
 
 ### Project Management
-- [ ] Project list (global stats)
-- [ ] Kanban board (drag & drop)
-- [ ] Task detail modal
-- [ ] Documents (upload, preview, version)
-- [ ] Settings (members, watchers, visibility tabs)
-- [ ] Sprint management
+- [ ] Project list + create
+- [ ] Kanban board
+- [ ] Task CRUD
+- [ ] Analytics (charts + heatmap)
+- [ ] Settings (members, watchers, visibility)
+
+### SIAKADU Integrator
+- [ ] Mahasiswa sync page (no ComingSoon)
+- [ ] Kelas sync page
+- [ ] KRS/KHS sync page
+- [ ] Sync button works (setelah credentials OK)
 
 ### Manajemen Akses
+- [ ] RBAC → Permission Matrix tab
 - [ ] Tambah pengguna
-- [ ] RBAC → tab "Permission Matrix"
 - [ ] WS Authorization (per PJ Aplikasi)
-- [ ] WS Endpoint (filter per aplikasi)
-
-### RBAC Enforcement (setelah verified)
-- [ ] Set `RBAC_ENFORCEMENT_ENABLED=true` di VM3
-- [ ] Test: non-super role → restricted actions
-- [ ] Test: super role → full access
 
 ---
 
 ## Rollback Plan
-1. Frontend: `git stash` + rebuild commit sebelumnya
-2. Backend PHP: revert SCP files, restart containers
-3. Backend Go: revert SCP files, restart containers
-4. PostgreSQL: `dropdb myunila_project` + uninstall jika perlu
-5. SQL Server: restore dari backup
-6. Kong: remove project-service (`curl -X DELETE http://localhost:9801/services/project-service`)
+1. Frontend: rebuild commit sebelumnya
+2. Backend PHP: revert SCP, restart
+3. Backend Go: revert SCP, restart
+4. SIAKADU schema: `DROP SCHEMA siakadu CASCADE` (kalau perlu)
+5. PostgreSQL: `dropdb myunila_project`
+6. SQL Server: restore from backup
+7. Kong: remove project-service
 
 ---
 
 ## Estimasi Waktu
 | Phase | Estimasi |
 |-------|----------|
-| Phase 1 (SQL Seed) | 15 menit |
+| Phase 1 (DB seed + SIAKADU schema) | 20 menit |
 | Phase 2 (VM2 PHP) | 30-45 menit |
 | Phase 3 (VM3 Go) | 30-45 menit |
 | Phase 4 (PostgreSQL + Project) | 30 menit |
 | Phase 5 (VM1 Frontend) | 15-20 menit |
-| Phase 6 (VM6 + Kong LB) | 1-2 jam |
 | Smoke Test | 30 menit |
-| **Total tanpa VM6** | **~2-3 jam** |
-| **Total dengan VM6** | **~4-5 jam** |
+| **Total tanpa VM6** | **~2.5-3.5 jam** |
+| Phase 6 (VM6 + Kong LB) | 1-2 jam |
 
 ---
 
-## Environment Summary
+## Environment — Staging Verified ✅
 
-### Staging (VM5) — Verified Working ✅
 | Service | Port | Status |
 |---------|------|--------|
 | Frontend | 3000 | ✅ healthy |
 | Kong | 9800/9801 | ✅ healthy |
 | Auth | via nginx:80 | ✅ healthy |
 | Dashboard | via nginx:82 | ✅ healthy |
-| Public | via nginx:81 | ✅ healthy |
 | Project | 8095 | ✅ healthy |
-| Sister | 8083 | ✅ healthy |
-| Feeder | 8084 | ✅ healthy |
-| WS/API | 8085 | ✅ healthy |
-| MyUnila | 8086 | ✅ healthy |
-| Keuangan | 8088 | ✅ healthy |
-| Monitoring | 8089 | ✅ healthy |
-| PostgreSQL | 5432 | ✅ (native) |
+| MyUnila | 8086 | ✅ healthy (SIAKADU modules loaded) |
+| All Go services | 8083-8089 | ✅ healthy |
+| PostgreSQL | 5432 | ✅ native |
 | Redis | 6379 | ✅ healthy |
-| MeiliSearch | 7700 | ✅ healthy |
 
 ### Production Target
 | VM | Services | IP |
 |----|----------|-----|
 | VM1 | Frontend + Kong | 192.168.120.41 |
-| VM2 | Auth + Dashboard + Public + Nginx + Redis + MeiliSearch | 192.168.120.42 |
-| VM3 | Sister + Feeder + MyUnila + API + Keuangan + Monitoring + **Project** + **PostgreSQL** | 192.168.120.43 |
-| VM4 | Prometheus + Grafana + Loki + Alertmanager | 192.168.120.44 |
-| VM6 | Replica VM3 (active-active) | 192.168.120.46 |
+| VM2 | Auth + Dashboard + Public + Redis + MeiliSearch | 192.168.120.42 |
+| VM3 | Go services + PostgreSQL + **Project** + **SIAKADU sync** | 192.168.120.43 |
+| VM4 | Monitoring stack | 192.168.120.44 |
+| VM6 | Replica VM3 (optional) | 192.168.120.46 |
 | DB | SQL Server 2019 | 192.168.123.119 |
+| SIAKADU | SIAKADU API | 192.168.120.37 |

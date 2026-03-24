@@ -26,6 +26,10 @@ services:
       SIKEP_API_BASE_URL: ${SIKEP_API_BASE_URL:-https://sikep.unila.ac.id/2022/api/v1}
       SIKEP_API_USERNAME: ${SIKEP_API_USERNAME}
       SIKEP_API_PASSWORD: ${SIKEP_API_PASSWORD}
+      # SIAKADU API Configuration
+      SIAKADU_API_BASE_URL: ${SIAKADU_API_BASE_URL:-http://192.168.120.37:4000/api/v1}
+      SIAKADU_API_USERNAME: ${SIAKADU_API_USERNAME}
+      SIAKADU_API_PASSWORD: ${SIAKADU_API_PASSWORD}
 
       # Radius API Configuration (SSO Unila)
       RADIUS_API_BASE_URL: ${RADIUS_API_BASE_URL:-https://akses.unila.ac.id/api/live/v1}
