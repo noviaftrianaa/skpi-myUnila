@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Button,
   Spinner,
@@ -17,7 +15,6 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 import Link from "next/link";
-import { projectManagementMenuConfig } from "../../config/menuConfig";
 import TaskDetailModal from "../../components/TaskDetailModal";
 import {
   projectService,
@@ -166,7 +163,6 @@ function calcTaskBar(task: Task, timelineStart: Date, zoomConfig: ZoomConfig): T
 // ===================== MAIN COMPONENT =====================
 
 export default function TimelinePage() {
-  useRequireAuth();
   const params = useParams();
   const projectId = params.projectId as string;
 
@@ -289,329 +285,317 @@ export default function TimelinePage() {
 
   if (isLoading) {
     return (
-      <DashboardLayoutWithDynamicMenu
-        appName="Project Management"
-        appIcon={<FiFolder className="w-6 h-6 text-white" />}
-        appKey="project-management"
-        fallbackMenus={projectManagementMenuConfig}
-        pageTitle="Timeline"
-      >
-        <div className="flex justify-center items-center h-96">
-          <Spinner size="lg" color="primary" />
-        </div>
-      </DashboardLayoutWithDynamicMenu>
-    );
+        <>
+          <div className="flex justify-center items-center h-96">
+            <Spinner size="lg" color="primary" />
+          </div>
+        </>
+);
   }
 
   return (
-    <DashboardLayoutWithDynamicMenu
-      appName="Project Management"
-      appIcon={<FiFolder className="w-6 h-6 text-white" />}
-      appKey="project-management"
-      fallbackMenus={projectManagementMenuConfig}
-      pageTitle={project ? `${project.nama} — Timeline` : "Timeline"}
-    >
-      <div className="space-y-4">
-        {/* Page Header */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <Link
-                href="/dashboard/project-management"
-                className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-              >
-                Project Management
-              </Link>
-              <span className="text-gray-300">/</span>
-              <Link
-                href={`/dashboard/project-management/${projectId}/board`}
-                className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-              >
-                {project?.nama ?? "..."}
-              </Link>
-              <span className="text-gray-300">/</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Timeline</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FiBarChart2 className="w-5 h-5 text-[#0B5EA8]" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Timeline</h1>
-              <Chip size="sm" variant="flat" className="text-xs">{filteredTasks.length} task</Chip>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Module filter */}
-            <Select
-              selectedKeys={new Set([moduleFilter])}
-              onSelectionChange={(keys) => setModuleFilter(Array.from(keys)[0] as string ?? "all")}
-              variant="bordered"
-              size="sm"
-              className="w-44"
-              placeholder="Semua Modul"
-              items={[{ id: "all", nama: "Semua Modul" }, ...modules]}
-            >
-              {(m) => <SelectItem key={m.id}>{m.nama}</SelectItem>}
-            </Select>
-
-            {/* Zoom controls */}
-            <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              {(["day", "week", "month"] as ZoomLevel[]).map((z) => (
-                <button
-                  key={z}
-                  onClick={() => setZoom(z)}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                    zoom === z
-                      ? "bg-[#0B5EA8] text-white"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50"
-                  }`}
+      <>
+        <div className="space-y-4">
+          {/* Page Header */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <Link
+                  href="/dashboard/project-management"
+                  className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
                 >
-                  {z === "day" ? "Hari" : z === "week" ? "Minggu" : "Bulan"}
-                </button>
-              ))}
+                  Project Management
+                </Link>
+                <span className="text-gray-300">/</span>
+                <Link
+                  href={`/dashboard/project-management/${projectId}/board`}
+                  className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
+                >
+                  {project?.nama ?? "..."}
+                </Link>
+                <span className="text-gray-300">/</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Timeline</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FiBarChart2 className="w-5 h-5 text-[#0B5EA8]" />
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Timeline</h1>
+                <Chip size="sm" variant="flat" className="text-xs">{filteredTasks.length} task</Chip>
+              </div>
             </div>
 
-            <Link href={`/dashboard/project-management/${projectId}/board`}>
-              <Button size="sm" variant="bordered" className="text-xs">
-                Board
-              </Button>
-            </Link>
-            <Link href={`/dashboard/project-management/${projectId}/list`}>
-              <Button size="sm" variant="bordered" className="text-xs">
-                List
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Timeline grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="flex" style={{ overflow: "hidden" }}>
-            {/* ===== LEFT COLUMN (fixed) ===== */}
-            <div
-              className="shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20"
-              style={{ width: LEFT_COL_WIDTH }}
-            >
-              {/* Header cell */}
-              <div
-                className="flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80"
-                style={{ height: HEADER_HEIGHT }}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Module filter */}
+              <Select
+                selectedKeys={new Set([moduleFilter])}
+                onSelectionChange={(keys) => setModuleFilter(Array.from(keys)[0] as string ?? "all")}
+                variant="bordered"
+                size="sm"
+                className="w-44"
+                placeholder="Semua Modul"
+                items={[{ id: "all", nama: "Semua Modul" }, ...modules]}
               >
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Modul / Task
-                </span>
+                {(m) => <SelectItem key={m.id}>{m.nama}</SelectItem>}
+              </Select>
+
+              {/* Zoom controls */}
+              <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                {(["day", "week", "month"] as ZoomLevel[]).map((z) => (
+                  <button
+                    key={z}
+                    onClick={() => setZoom(z)}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      zoom === z
+                        ? "bg-[#0B5EA8] text-white"
+                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {z === "day" ? "Hari" : z === "week" ? "Minggu" : "Bulan"}
+                  </button>
+                ))}
               </div>
 
-              {/* Row labels */}
-              {rows.map((row, idx) => {
-                if (row.kind === "module") {
-                  return (
-                    <div
-                      key={`lbl-module-${row.moduleId}`}
-                      className="flex items-center px-4 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700"
-                      style={{ height: MODULE_ROW_HEIGHT }}
-                    >
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate">
-                        {getModuleName(row.moduleId)}
-                      </span>
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={`lbl-task-${row.task.id}`}
-                    className="flex items-center px-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer group"
-                    style={{ height: ROW_HEIGHT }}
-                    onClick={() => setSelectedTask(row.task)}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: STATUS_BAR_COLORS[row.task.status] ?? "#94a3b8" }}
-                      />
-                      <span className="text-xs text-gray-700 dark:text-gray-300 truncate group-hover:text-[#0B5EA8]">
-                        {row.task.judul}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {rows.length === 0 && (
-                <div
-                  className="flex items-center justify-center text-gray-400 text-xs"
-                  style={{ height: 160 }}
-                >
-                  Tidak ada task
-                </div>
-              )}
+              <Link href={`/dashboard/project-management/${projectId}/board`}>
+                <Button size="sm" variant="bordered" className="text-xs">
+                  Board
+                </Button>
+              </Link>
+              <Link href={`/dashboard/project-management/${projectId}/list`}>
+                <Button size="sm" variant="bordered" className="text-xs">
+                  List
+                </Button>
+              </Link>
             </div>
+          </div>
 
-            {/* ===== RIGHT: Scrollable grid ===== */}
-            <div
-              ref={gridScrollRef}
-              className="flex-1 overflow-x-auto"
-              style={{ position: "relative" }}
-            >
-              <div style={{ width: totalTimelineWidth, minWidth: totalTimelineWidth }}>
-                {/* Header row */}
+          {/* Timeline grid */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex" style={{ overflow: "hidden" }}>
+              {/* ===== LEFT COLUMN (fixed) ===== */}
+              <div
+                className="shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20"
+                style={{ width: LEFT_COL_WIDTH }}
+              >
+                {/* Header cell */}
                 <div
-                  className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 sticky top-0 z-10"
+                  className="flex items-center px-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80"
                   style={{ height: HEADER_HEIGHT }}
                 >
-                  {columnHeaders.map((col, i) => (
-                    <div
-                      key={i}
-                      className={`shrink-0 flex flex-col items-center justify-center text-center border-r border-gray-100 dark:border-gray-700/30 ${
-                        col.isToday ? "bg-red-50 dark:bg-red-900/20" : ""
-                      }`}
-                      style={{ width: zoomConfig.colWidth }}
-                    >
-                      <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
-                        {col.label}
-                      </span>
-                      {col.sub && (
-                        <span className="text-[9px] text-gray-400">{col.sub}</span>
-                      )}
-                    </div>
-                  ))}
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Modul / Task
+                  </span>
                 </div>
 
-                {/* Grid rows with bars */}
-                <div style={{ position: "relative" }}>
-                  {/* Vertical grid lines */}
-                  {columnHeaders.map((_, i) => (
-                    <div
-                      key={`grid-${i}`}
-                      className="absolute top-0 bottom-0 border-r border-gray-100 dark:border-gray-700/20"
-                      style={{ left: i * zoomConfig.colWidth, width: zoomConfig.colWidth }}
-                    />
-                  ))}
-
-                  {/* Today vertical line */}
-                  {todayOffset >= 0 && todayOffset <= zoomConfig.totalColumns && (
-                    <div
-                      className="absolute top-0 bottom-0 z-20 pointer-events-none"
-                      style={{
-                        left: todayOffset * zoomConfig.colWidth,
-                        width: 2,
-                        borderLeft: "2px dashed #f87171",
-                      }}
-                    />
-                  )}
-
-                  {/* Rows */}
-                  {rows.map((row) => {
-                    if (row.kind === "module") {
-                      return (
-                        <div
-                          key={`grid-module-${row.moduleId}`}
-                          className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/40"
-                          style={{ height: MODULE_ROW_HEIGHT }}
-                        />
-                      );
-                    }
-
-                    // Task row with bar
-                    const barInfo = calcTaskBar(row.task, timelineStart, zoomConfig);
-                    const barColor = STATUS_BAR_COLORS[row.task.status] ?? "#94a3b8";
-                    const left = barInfo.startOffset * zoomConfig.colWidth;
-                    const width = barInfo.widthCols * zoomConfig.colWidth;
-
+                {/* Row labels */}
+                {rows.map((row, idx) => {
+                  if (row.kind === "module") {
                     return (
                       <div
-                        key={`grid-task-${row.task.id}`}
-                        className="relative border-b border-gray-100 dark:border-gray-700/30"
-                        style={{ height: ROW_HEIGHT }}
+                        key={`lbl-module-${row.moduleId}`}
+                        className="flex items-center px-4 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700"
+                        style={{ height: MODULE_ROW_HEIGHT }}
                       >
-                        {barInfo.isDot ? (
-                          <div
-                            title={row.task.judul}
-                            onClick={() => setSelectedTask(row.task)}
-                            className="absolute cursor-pointer hover:scale-125 transition-transform z-10 rounded-full"
-                            style={{
-                              left: Math.max(0, left + zoomConfig.colWidth / 2 - 5),
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              width: 10,
-                              height: 10,
-                              backgroundColor: barColor,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            title={`${row.task.judul} — ${STATUS_LABELS[row.task.status] ?? row.task.status}`}
-                            onClick={() => setSelectedTask(row.task)}
-                            className="absolute cursor-pointer hover:brightness-110 hover:shadow-md transition-all flex items-center px-2 overflow-hidden z-10"
-                            style={{
-                              left: Math.max(0, left),
-                              width: Math.max(width, 8),
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              height: 22,
-                              borderRadius: 11,
-                              backgroundColor: barColor,
-                              opacity: 0.9,
-                            }}
-                          >
-                            {width > 50 && (
-                              <span
-                                className="text-[10px] font-medium truncate leading-none"
-                                style={{ color: "white" }}
-                              >
-                                {row.task.judul}
-                              </span>
-                            )}
-                          </div>
-                        )}
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate">
+                          {getModuleName(row.moduleId)}
+                        </span>
                       </div>
                     );
-                  })}
-
-                  {rows.length === 0 && (
+                  }
+                  return (
                     <div
-                      className="flex items-center justify-center text-gray-400 text-sm gap-2"
-                      style={{ height: 160 }}
+                      key={`lbl-task-${row.task.id}`}
+                      className="flex items-center px-4 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer group"
+                      style={{ height: ROW_HEIGHT }}
+                      onClick={() => setSelectedTask(row.task)}
                     >
-                      <FiCalendar className="w-5 h-5" />
-                      Tidak ada task untuk ditampilkan
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: STATUS_BAR_COLORS[row.task.status] ?? "#94a3b8" }}
+                        />
+                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate group-hover:text-[#0B5EA8]">
+                          {row.task.judul}
+                        </span>
+                      </div>
                     </div>
-                  )}
+                  );
+                })}
+
+                {rows.length === 0 && (
+                  <div
+                    className="flex items-center justify-center text-gray-400 text-xs"
+                    style={{ height: 160 }}
+                  >
+                    Tidak ada task
+                  </div>
+                )}
+              </div>
+
+              {/* ===== RIGHT: Scrollable grid ===== */}
+              <div
+                ref={gridScrollRef}
+                className="flex-1 overflow-x-auto"
+                style={{ position: "relative" }}
+              >
+                <div style={{ width: totalTimelineWidth, minWidth: totalTimelineWidth }}>
+                  {/* Header row */}
+                  <div
+                    className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 sticky top-0 z-10"
+                    style={{ height: HEADER_HEIGHT }}
+                  >
+                    {columnHeaders.map((col, i) => (
+                      <div
+                        key={i}
+                        className={`shrink-0 flex flex-col items-center justify-center text-center border-r border-gray-100 dark:border-gray-700/30 ${
+                          col.isToday ? "bg-red-50 dark:bg-red-900/20" : ""
+                        }`}
+                        style={{ width: zoomConfig.colWidth }}
+                      >
+                        <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                          {col.label}
+                        </span>
+                        {col.sub && (
+                          <span className="text-[9px] text-gray-400">{col.sub}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Grid rows with bars */}
+                  <div style={{ position: "relative" }}>
+                    {/* Vertical grid lines */}
+                    {columnHeaders.map((_, i) => (
+                      <div
+                        key={`grid-${i}`}
+                        className="absolute top-0 bottom-0 border-r border-gray-100 dark:border-gray-700/20"
+                        style={{ left: i * zoomConfig.colWidth, width: zoomConfig.colWidth }}
+                      />
+                    ))}
+
+                    {/* Today vertical line */}
+                    {todayOffset >= 0 && todayOffset <= zoomConfig.totalColumns && (
+                      <div
+                        className="absolute top-0 bottom-0 z-20 pointer-events-none"
+                        style={{
+                          left: todayOffset * zoomConfig.colWidth,
+                          width: 2,
+                          borderLeft: "2px dashed #f87171",
+                        }}
+                      />
+                    )}
+
+                    {/* Rows */}
+                    {rows.map((row) => {
+                      if (row.kind === "module") {
+                        return (
+                          <div
+                            key={`grid-module-${row.moduleId}`}
+                            className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/40"
+                            style={{ height: MODULE_ROW_HEIGHT }}
+                          />
+                        );
+                      }
+
+                      // Task row with bar
+                      const barInfo = calcTaskBar(row.task, timelineStart, zoomConfig);
+                      const barColor = STATUS_BAR_COLORS[row.task.status] ?? "#94a3b8";
+                      const left = barInfo.startOffset * zoomConfig.colWidth;
+                      const width = barInfo.widthCols * zoomConfig.colWidth;
+
+                      return (
+                        <div
+                          key={`grid-task-${row.task.id}`}
+                          className="relative border-b border-gray-100 dark:border-gray-700/30"
+                          style={{ height: ROW_HEIGHT }}
+                        >
+                          {barInfo.isDot ? (
+                            <div
+                              title={row.task.judul}
+                              onClick={() => setSelectedTask(row.task)}
+                              className="absolute cursor-pointer hover:scale-125 transition-transform z-10 rounded-full"
+                              style={{
+                                left: Math.max(0, left + zoomConfig.colWidth / 2 - 5),
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                width: 10,
+                                height: 10,
+                                backgroundColor: barColor,
+                              }}
+                            />
+                          ) : (
+                            <div
+                              title={`${row.task.judul} — ${STATUS_LABELS[row.task.status] ?? row.task.status}`}
+                              onClick={() => setSelectedTask(row.task)}
+                              className="absolute cursor-pointer hover:brightness-110 hover:shadow-md transition-all flex items-center px-2 overflow-hidden z-10"
+                              style={{
+                                left: Math.max(0, left),
+                                width: Math.max(width, 8),
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                height: 22,
+                                borderRadius: 11,
+                                backgroundColor: barColor,
+                                opacity: 0.9,
+                              }}
+                            >
+                              {width > 50 && (
+                                <span
+                                  className="text-[10px] font-medium truncate leading-none"
+                                  style={{ color: "white" }}
+                                >
+                                  {row.task.judul}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {rows.length === 0 && (
+                      <div
+                        className="flex items-center justify-center text-gray-400 text-sm gap-2"
+                        style={{ height: 160 }}
+                      >
+                        <FiCalendar className="w-5 h-5" />
+                        Tidak ada task untuk ditampilkan
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-4 px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-            {Object.entries(STATUS_LABELS).map(([status, label]) => (
-              <div key={status} className="flex items-center gap-1.5">
+            {/* Legend */}
+            <div className="flex items-center gap-4 px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 flex-wrap">
+              {Object.entries(STATUS_LABELS).map(([status, label]) => (
+                <div key={status} className="flex items-center gap-1.5">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: STATUS_BAR_COLORS[status] }}
+                  />
+                  <span className="text-xs text-gray-500">{label}</span>
+                </div>
+              ))}
+              <div className="flex items-center gap-1.5 ml-auto">
                 <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: STATUS_BAR_COLORS[status] }}
+                  className="w-6 border-t-2 border-dashed border-red-400"
+                  style={{ display: "inline-block" }}
                 />
-                <span className="text-xs text-gray-500">{label}</span>
+                <span className="text-xs text-gray-500">Hari ini</span>
               </div>
-            ))}
-            <div className="flex items-center gap-1.5 ml-auto">
-              <span
-                className="w-6 border-t-2 border-dashed border-red-400"
-                style={{ display: "inline-block" }}
-              />
-              <span className="text-xs text-gray-500">Hari ini</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Task Detail Modal */}
-      <TaskDetailModal
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        task={selectedTask}
-        projectId={projectId}
-        modules={modules}
-        onTaskUpdated={handleTaskUpdated}
-      />
-    </DashboardLayoutWithDynamicMenu>
-  );
+        {/* Task Detail Modal */}
+        <TaskDetailModal
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          task={selectedTask}
+          projectId={projectId}
+          modules={modules}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      </>
+);
 }

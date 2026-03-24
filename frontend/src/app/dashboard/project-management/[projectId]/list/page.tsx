@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import {
   Button,
@@ -15,7 +13,6 @@ import {
 import { FiPlus, FiList, FiBarChart2 } from "react-icons/fi";
 import { FiFolder } from "react-icons/fi";
 import Link from "next/link";
-import { projectManagementMenuConfig } from "../../config/menuConfig";
 import TaskDetailModal from "../../components/TaskDetailModal";
 import TaskCreateModal from "../../components/TaskCreateModal";
 import {
@@ -52,7 +49,6 @@ function formatDateShort(dateStr?: string): string {
 }
 
 export default function TaskListPage() {
-  useRequireAuth();
   const params = useParams();
   const projectId = params.projectId as string;
 
@@ -194,9 +190,11 @@ export default function TaskListPage() {
       render: (item) => {
         const overdue = item.status !== 'done' && item.due_date && new Date(item.due_date) < new Date();
         return (
-          <span className={`text-xs ${overdue ? "text-red-500 font-semibold" : "text-gray-500"}`}>
-            {formatDateShort(item.due_date)}
-          </span>
+            <>
+            <span className={`text-xs ${overdue ? "text-red-500 font-semibold" : "text-gray-500"}`}>
+              {formatDateShort(item.due_date)}
+            </span>
+            </>
         );
       },
     },
@@ -272,70 +270,64 @@ export default function TaskListPage() {
   );
 
   return (
-    <DashboardLayoutWithDynamicMenu
-      appName="Project Management"
-      appIcon={<FiFolder className="w-6 h-6 text-white" />}
-      appKey="project-management"
-      fallbackMenus={projectManagementMenuConfig}
-      pageTitle={project ? `${project.nama} — List` : "Daftar Task"}
-    >
-      <div className="space-y-4">
-        {/* Breadcrumb + Header */}
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link
-              href="/dashboard/project-management"
-              className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-            >
-              Project Management
-            </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {project?.nama ?? "..."}
-            </span>
+      <>
+        <div className="space-y-4">
+          {/* Breadcrumb + Header */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link
+                href="/dashboard/project-management"
+                className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
+              >
+                Project Management
+              </Link>
+              <span className="text-gray-300">/</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                {project?.nama ?? "..."}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiList className="w-5 h-5 text-[#0B5EA8]" />
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Daftar Task</h1>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <FiList className="w-5 h-5 text-[#0B5EA8]" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Daftar Task</h1>
-          </div>
+
+          <DataTable
+            data={tasks}
+            columns={columns}
+            loading={isLoading}
+            serverSide
+            totalRecords={totalRecords}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            searchable={false}
+            filterSlot={filterSlot}
+            actionSlot={actionSlot}
+            emptyMessage={
+              <div className="flex flex-col items-center py-12 text-gray-400">
+                <FiList className="w-10 h-10 mb-2" />
+                <p className="text-sm">Belum ada task</p>
+              </div>
+            }
+          />
         </div>
 
-        <DataTable
-          data={tasks}
-          columns={columns}
-          loading={isLoading}
-          serverSide
-          totalRecords={totalRecords}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          searchable={false}
-          filterSlot={filterSlot}
-          actionSlot={actionSlot}
-          emptyMessage={
-            <div className="flex flex-col items-center py-12 text-gray-400">
-              <FiList className="w-10 h-10 mb-2" />
-              <p className="text-sm">Belum ada task</p>
-            </div>
-          }
+        <TaskDetailModal
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          task={selectedTask}
+          projectId={projectId}
+          modules={modules}
+          onTaskUpdated={handleTaskUpdated}
         />
-      </div>
 
-      <TaskDetailModal
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        task={selectedTask}
-        projectId={projectId}
-        modules={modules}
-        onTaskUpdated={handleTaskUpdated}
-      />
-
-      <TaskCreateModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        projectId={projectId}
-        modules={modules}
-        onCreated={handleTaskCreated}
-      />
-    </DashboardLayoutWithDynamicMenu>
-  );
+        <TaskCreateModal
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          projectId={projectId}
+          modules={modules}
+          onCreated={handleTaskCreated}
+        />
+      </>
+);
 }
