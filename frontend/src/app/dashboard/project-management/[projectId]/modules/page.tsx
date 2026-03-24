@@ -52,7 +52,7 @@ export default function ModulesPage() {
 
   return (
       <>
-        <div className="space-y-4 max-w-2xl">
+        <div className="space-y-4 max-w-5xl mx-auto">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2">
             <Link

@@ -298,7 +298,7 @@ export default function SettingsPage() {
 
   return (
       <>
-        <div className="space-y-6 max-w-3xl">
+        <div className="space-y-6 max-w-4xl mx-auto">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 flex-wrap">
             <Link href="/dashboard/project-management" className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors">
