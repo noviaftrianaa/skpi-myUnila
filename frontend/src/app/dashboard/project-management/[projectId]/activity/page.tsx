@@ -53,28 +53,6 @@ export default function ActivityPage() {
   return (
       <>
         <div className="space-y-4 max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard/project-management"
-              className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-            >
-              Project Management
-            </Link>
-            <span className="text-gray-300">/</span>
-            <Link
-              href={`/dashboard/project-management/${projectId}/board`}
-              className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-            >
-              {project?.nama ?? "..."}
-            </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
-              <FiActivity className="w-3.5 h-3.5" />
-              Aktivitas
-            </span>
-          </div>
-
           <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
             <CardBody className="p-5">
               <h2 className="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2 mb-4">

@@ -218,29 +218,15 @@ export default function TaskListPage() {
   return (
       <>
         <div className="space-y-4">
-          {/* Breadcrumb + Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1 text-sm">
-                <Link href="/dashboard/project-management" className="text-gray-400 hover:text-gray-600 transition-colors">
-                  Project
-                </Link>
-                <span className="text-gray-300">/</span>
-                <Link href={`/dashboard/project-management/${projectId}`} className="text-gray-400 hover:text-gray-600 transition-colors">
-                  {project?.nama ?? "..."}
-                </Link>
-                <span className="text-gray-300">/</span>
-                <span className="font-medium text-gray-900 dark:text-white">List</span>
-              </div>
-            </div>
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Link href={`/dashboard/project-management/${projectId}/board`}>
-                <Btn variant="secondary" size="sm" className="text-xs">Board</Btn>
-              </Link>
-              <Btn size="sm" startContent={<FiPlus className="w-3.5 h-3.5" />} onClick={() => setIsCreateOpen(true)}>
-                Buat Task
-              </Btn>
+              <FiList className="w-5 h-5 text-[#0B5EA8]" />
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Daftar Task</h1>
             </div>
+            <Btn size="sm" startContent={<FiPlus className="w-3.5 h-3.5" />} onClick={() => setIsCreateOpen(true)}>
+              Buat Task
+            </Btn>
           </div>
 
           {/* Filters Row */}

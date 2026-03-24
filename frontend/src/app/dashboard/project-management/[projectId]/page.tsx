@@ -7,7 +7,6 @@ import {
   FiFolder,
   FiLayout,
   FiList,
-  FiClock,
   FiLayers,
   FiFileText,
   FiActivity,
@@ -18,14 +17,12 @@ import {
   FiAlertTriangle,
   FiCheckCircle,
   FiLoader,
-  FiGrid,
   FiCalendar,
   FiAlertCircle,
   FiFlag,
   FiBarChart2,
 } from "react-icons/fi";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import ProgressReport from "../components/ProgressReport";
 import TaskCreateModal from "../components/TaskCreateModal";
 import {
@@ -38,17 +35,7 @@ import {
   type Sprint,
 } from "@/lib/services/project/projectService";
 
-const NAV_TABS = [
-  { label: "Overview", icon: <FiGrid className="w-3.5 h-3.5" />, href: "" },
-  { label: "Board", icon: <FiLayout className="w-3.5 h-3.5" />, href: "/board" },
-  { label: "List", icon: <FiList className="w-3.5 h-3.5" />, href: "/list" },
-  { label: "Timeline", icon: <FiClock className="w-3.5 h-3.5" />, href: "/timeline" },
-  { label: "Modul", icon: <FiLayers className="w-3.5 h-3.5" />, href: "/modules" },
-  { label: "Dokumen", icon: <FiFileText className="w-3.5 h-3.5" />, href: "/documents" },
-  { label: "Aktivitas", icon: <FiActivity className="w-3.5 h-3.5" />, href: "/activity" },
-  { label: "Analytics", icon: <FiBarChart2 className="w-3.5 h-3.5" />, href: "/analytics" },
-  { label: "Pengaturan", icon: <FiSettings className="w-3.5 h-3.5" />, href: "/settings" },
-];
+// Tab navigation is in layout.tsx
 
 function formatDateId(dateStr?: string) {
   if (!dateStr) return "-";
@@ -76,7 +63,6 @@ function timeAgo(dateStr: string) {
 
 export default function ProjectOverviewPage() {
   const params = useParams();
-  const pathname = usePathname();
   const projectId = params.projectId as string;
 
   const [project, setProject] = useState<Project | null>(null);
@@ -162,41 +148,6 @@ export default function ProjectOverviewPage() {
 
   return (
     <div className="space-y-5">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm">
-        <Link href="/dashboard/project-management" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-          Project
-        </Link>
-        <span className="text-gray-300 dark:text-gray-600">/</span>
-        <span className="font-medium text-gray-900 dark:text-white truncate">
-          {project?.nama ?? "..."}
-        </span>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-        <div className="flex items-center gap-0.5 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl p-1 min-w-max">
-          {NAV_TABS.map((tab) => {
-            const href = `${base}${tab.href}`;
-            const isActive = tab.href === "" ? pathname === base : pathname === href;
-            return (
-              <Link
-                key={tab.label}
-                href={href}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
-                  isActive
-                    ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
-              >
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Project Header */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <div className="h-1 w-full" style={{ backgroundColor: project?.warna ?? "#6366f1" }} />

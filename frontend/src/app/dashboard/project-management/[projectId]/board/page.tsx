@@ -131,46 +131,12 @@ export default function BoardPage() {
         <div className="space-y-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                <Link
-                  href="/dashboard/project-management"
-                  className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-                >
-                  Project Management
-                </Link>
-                <span className="text-gray-300">/</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {project?.nama ?? "..."}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiLayout className="w-5 h-5 text-[#0B5EA8]" />
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Kanban Board</h1>
-                <Chip size="sm" color="default" className="text-xs">{totalTasks} task</Chip>
-              </div>
+            <div className="flex items-center gap-2">
+              <FiLayout className="w-5 h-5 text-[#0B5EA8]" />
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Kanban Board</h1>
+              <Chip size="sm" color="default" className="text-xs">{totalTasks} task</Chip>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Link href={`/dashboard/project-management/${projectId}/list`}>
-                <Btn size="sm" variant="secondary" className="text-xs">
-                  Tampilan List
-                </Btn>
-              </Link>
-              <Link href={`/dashboard/project-management/${projectId}/timeline`}>
-                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiBarChart2 className="w-3.5 h-3.5" />}>
-                  Timeline
-                </Btn>
-              </Link>
-              <Link href={`/dashboard/project-management/${projectId}/documents`}>
-                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiFolder className="w-3.5 h-3.5" />}>
-                  Dokumen
-                </Btn>
-              </Link>
-              <Link href={`/dashboard/project-management/${projectId}/settings`}>
-                <Btn size="sm" variant="secondary" className="text-xs" startContent={<FiSettings className="w-3.5 h-3.5" />}>
-                  Pengaturan
-                </Btn>
-              </Link>
               <Btn
                 size="sm"
                 variant="primary"

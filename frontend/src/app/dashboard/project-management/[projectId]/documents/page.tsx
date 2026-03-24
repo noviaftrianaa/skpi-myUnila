@@ -456,27 +456,7 @@ export default function DocumentsPage() {
   return (
       <>
         <div className="space-y-4">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link
-              href="/dashboard/project-management"
-              className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-            >
-              Project Management
-            </Link>
-            <span className="text-gray-300">/</span>
-            <Link
-              href={`/dashboard/project-management/${projectId}/board`}
-              className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors"
-            >
-              {project?.nama ?? "..."}
-            </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
-              <FiFileText className="w-3.5 h-3.5" />
-              Dokumen
-            </span>
-          </div>
+          {/* Header handled by layout tabs */}
 
           {/* Header + Actions */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

@@ -19,17 +19,7 @@ import { ProjectCharts } from "@/shared/components/project/ProjectCharts";
 
 // ─── Nav tabs ─────────────────────────────────────────────────────────────────
 
-const NAV_TABS = [
-  { label: "Overview",    href: ""           },
-  { label: "Board",       href: "/board"     },
-  { label: "List",        href: "/list"      },
-  { label: "Timeline",    href: "/timeline"  },
-  { label: "Modul",       href: "/modules"   },
-  { label: "Dokumen",     href: "/documents" },
-  { label: "Aktivitas",   href: "/activity"  },
-  { label: "Analytics",   href: "/analytics" },
-  { label: "Pengaturan",  href: "/settings"  },
-];
+// Tab navigation is in layout.tsx
 
 // ─── Gradient stat card ───────────────────────────────────────────────────────
 
@@ -200,27 +190,6 @@ export default function AnalyticsPage() {
               ))}
             </select>
           </motion.div>
-
-          {/* ── Nav Tabs ── */}
-          <div className="flex gap-0.5 overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-            {NAV_TABS.map((tab) => {
-              const href     = `/dashboard/project-management/${projectId}${tab.href}`;
-              const isActive = tab.href === "/analytics";
-              return (
-                <Link
-                  key={tab.label}
-                  href={href}
-                  className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
-                    isActive
-                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </div>
 
           {isLoading ? (
             // Skeleton

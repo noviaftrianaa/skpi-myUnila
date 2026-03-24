@@ -299,23 +299,7 @@ export default function SettingsPage() {
   return (
       <>
         <div className="space-y-6 max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link href="/dashboard/project-management" className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors">
-              Project Management
-            </Link>
-            <span className="text-gray-300">/</span>
-            <Link href={`/dashboard/project-management/${projectId}/board`} className="text-sm text-gray-500 hover:text-[#0B5EA8] transition-colors">
-              {project?.nama ?? "..."}
-            </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
-              <FiSettings className="w-3.5 h-3.5" />
-              Pengaturan
-            </span>
-          </div>
-
-          {/* Custom Tabs */}
+          {/* Settings Tabs */}
           <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
             {TABS.map((tab) => (
               <button
