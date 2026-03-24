@@ -483,6 +483,11 @@ create table siakadu.reg_pd (
    sert_prof                           varchar(80)               null,
    a_pindah_mhs_asing                  numeric(1,0)              null default ((0)),
    biaya_masuk_kuliah                  numeric(16,2)             null,
+   angkatan                            varchar(4)                null,
+   sks_total                           int                       null,
+   sks_lulus                           int                       null,
+   semester                            varchar(10)               null,
+   id_status_mahasiswa                 varchar(10)               null,
    create_date                         datetime                  not null,
    id_creator                          uniqueidentifier          not null,
    last_update                         datetime                  not null,
@@ -505,7 +510,7 @@ create table siakadu.matkul (
    id_mk                               uniqueidentifier          not null,
    id_kel_mk                           char(1)                   null,
    id_sms                              uniqueidentifier          null,
-   id_jns_mk                           char(1)                   null,
+   id_jns_mk                           varchar(5)                null,
    id_jenj_didik                       numeric(2,0)              not null,
    sks_mk                              numeric(5,2)              null,
    sks_tm                              numeric(5,2)              null,
@@ -786,7 +791,7 @@ create table siakadu.akt_mhs (
    lokasi_kegiatan                     varchar(80)               null,
    sk_tugas                            varchar(80)               null,
    tgl_sk_tugas                        date                      null,
-   ket_akt                             text(2147483647)          null,
+   ket_akt                             text          null,
    a_komunal                           numeric(1,0)              not null default ((0)),
    tgl_mulai                           datetime                  null,
    tgl_selesai                         datetime                  null,
@@ -833,7 +838,7 @@ create table siakadu.bimbing_dosen (
    tgl_selesai                         date                      not null,
    bid_ahli_pembimbing                 varchar(50)               null,
    bid_ahli_bimbingan                  varchar(50)               null,
-   desk_kegiatan                       text(2147483647)          null,
+   desk_kegiatan                       text          null,
    jns_bimbing                         char(1)                   not null,
    sk_tugas                            varchar(80)               not null,
    tgl_sk_tugas                        date                      not null,
@@ -924,8 +929,8 @@ create table siakadu.kehadiran_sdm (
    lokasi_presensi                     varchar(60)               null,
    waktu_pulang                        datetime                  null,
    lokasi_pulang                       varchar(60)               null,
-   rencana_hari_ini                    text(2147483647)          null,
-   realisasi_hari_ini                  text(2147483647)          null,
+   rencana_hari_ini                    text          null,
+   realisasi_hari_ini                  text          null,
    create_date                         datetime                  not null,
    id_creator                          uniqueidentifier          not null,
    last_update                         datetime                  not null,
@@ -989,7 +994,7 @@ go
 create table siakadu.spp_mhs (
    id_spp_mhs                          uniqueidentifier          not null,
    id_kelas_ukt                        uniqueidentifier          null,
-   id_smt                              nvarchar(10)              not null,
+   id_smt                              char(5)                   not null,
    id_daftar_ukt                       uniqueidentifier          null,
    id_reg_pd                           uniqueidentifier          not null,
    tgl_bayar                           datetime                  not null,
@@ -1499,4 +1504,288 @@ go
 -- ============================================================
 -- END OF SIAKADU SCHEMA v1.0
 -- Total tables: 36
+-- ============================================================
+
+-- ============================================================
+-- SECTION 10: MAPPING TABLES (SIAKADU → pdut UUID resolution)
+-- ============================================================
+
+/*==============================================================*/
+/* Table: mapping_unit                                          */
+/* Description: Mapping kode unit SIAKADU → id_sms pdut         */
+/*==============================================================*/
+create table siakadu.mapping_unit (
+   kode_siakad              varchar(20)          not null,
+   id_sms                   uniqueidentifier     not null,
+   nm_unit                  varchar(200)         null,
+   jenjang                  varchar(10)          null,
+   create_date              datetime             not null default getdate(),
+   last_update              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_unit primary key (kode_siakad)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_matkul                                        */
+/* Description: Mapping kode_mk SIAKADU (string) → id_mk UUID  */
+/*==============================================================*/
+create table siakadu.mapping_matkul (
+   kode_mk_siakadu          varchar(20)          not null,
+   id_unit_siakadu          varchar(20)          null,
+   id_mk                    uniqueidentifier     not null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_matkul primary key (kode_mk_siakadu, id_unit_siakadu)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_kurikulum                                     */
+/* Description: Mapping kode_mk+thn SIAKADU → id_kurikulum_sp  */
+/*==============================================================*/
+create table siakadu.mapping_kurikulum (
+   kode_mk_siakadu          varchar(20)          not null,
+   thn_kurikulum            int                  not null,
+   id_unit_siakadu          varchar(20)          null,
+   id_kurikulum_sp          uniqueidentifier     not null,
+   id_mk                    uniqueidentifier     not null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_kurikulum primary key (kode_mk_siakadu, thn_kurikulum)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_kelas                                         */
+/* Description: Mapping id_kelas SIAKADU (int) → id_kls UUID    */
+/*==============================================================*/
+create table siakadu.mapping_kelas (
+   id_kelas_siakadu         int                  not null,
+   id_kls                   uniqueidentifier     not null,
+   id_smt                   char(5)              null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_kelas primary key (id_kelas_siakadu)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_jadwal                                        */
+/* Description: Mapping id_jadwal SIAKADU (int) → UUID          */
+/*==============================================================*/
+create table siakadu.mapping_jadwal (
+   id_jadwal_siakadu        int                  not null,
+   id_jdwl_kls              uniqueidentifier     not null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_jadwal primary key (id_jadwal_siakadu)
+)
+go
+
+/*==============================================================*/
+/* Table: mapping_pegawai                                       */
+/* Description: Mapping id_pegawai SIAKADU (int) → id_sdm UUID  */
+/*==============================================================*/
+create table siakadu.mapping_pegawai (
+   id_pegawai_siakadu       int                  not null,
+   id_sdm                   uniqueidentifier     not null,
+   nip                      varchar(30)          null,
+   create_date              datetime             not null default getdate(),
+   a_sync_pddikti           numeric(1,0)         not null default ((0)),
+   constraint pk_mapping_pegawai primary key (id_pegawai_siakadu)
+)
+go
+
+-- ============================================================
+-- SECTION 11: WISUDA
+-- ============================================================
+
+/*==============================================================*/
+/* Table: periode_wisuda                                        */
+/* Description: Periode wisuda per semester                     */
+/*==============================================================*/
+create table siakadu.periode_wisuda (
+   id_periode_wisuda        varchar(20)          not null,
+   id_smt                   char(5)              null,
+   nm_periode               varchar(100)         null,
+   tgl_yudisium             datetime             null,
+   tgl_awal_daftar          datetime             null,
+   tgl_akhir_daftar         datetime             null,
+   create_date              datetime             not null default getdate(),
+   last_update              datetime             not null default getdate(),
+   soft_delete              numeric(1,0)         not null default 0,
+   last_sync                datetime             not null default getdate(),
+   constraint pk_periode_wisuda primary key (id_periode_wisuda)
+)
+go
+
+/*==============================================================*/
+/* Table: wisuda_mahasiswa                                      */
+/* Description: Data peserta wisuda per periode                 */
+/*==============================================================*/
+create table siakadu.wisuda_mahasiswa (
+   id_yudisium              int                  not null,
+   id_periode_wisuda        varchar(20)          not null,
+   id_reg_pd                uniqueidentifier     null,
+   nipd                     varchar(24)          null,
+   nm_mahasiswa             varchar(200)         null,
+   no_sk_yudisium           varchar(80)          null,
+   tgl_sk_yudisium          datetime             null,
+   no_ijasah                varchar(80)          null,
+   is_wisuda                varchar(5)           null,
+   is_hadir_wisuda          numeric(1,0)         null,
+   is_valid_wisuda          numeric(1,0)         null,
+   keterangan               varchar(500)         null,
+   ipk_lulusan              numeric(5,2)         null,
+   id_sms                   uniqueidentifier     null,
+   create_date              datetime             not null default getdate(),
+   last_update              datetime             not null default getdate(),
+   soft_delete              numeric(1,0)         not null default 0,
+   last_sync                datetime             not null default getdate(),
+   constraint pk_wisuda_mahasiswa primary key (id_yudisium)
+)
+go
+
+-- ============================================================
+-- SECTION 12: REFERENSI SIAKADU (yang digunakan oleh sync)
+-- ============================================================
+
+/*==============================================================*/
+/* Table: ref_agama                                             */
+/* Description: Referensi agama dari SIAKADU                    */
+/*==============================================================*/
+create table siakadu.ref_agama (
+   id_agama                 int                  not null,
+   nm_agama                 varchar(50)          null,
+   last_update              datetime             null,
+   constraint pk_ref_agama primary key (id_agama)
+)
+go
+
+/*==============================================================*/
+/* Table: ref_unit                                              */
+/* Description: Referensi unit/prodi dari SIAKADU               */
+/*==============================================================*/
+create table siakadu.ref_unit (
+   id_unit                  varchar(20)          not null,
+   id_parent_unit           varchar(20)          null,
+   jns_unit                 varchar(20)          not null,
+   nm_unit                  varchar(200)         null,
+   nm_singkat               varchar(50)          null,
+   id_jenjang               varchar(10)          null,
+   akreditasi               varchar(10)          null,
+   is_aktif                 varchar(5)           null,
+   last_update              datetime             null,
+   constraint pk_ref_unit primary key (id_unit)
+)
+go
+
+/*==============================================================*/
+/* Table: ref_tahun_ajaran                                      */
+/* Description: Referensi tahun ajaran/periode akademik          */
+/*==============================================================*/
+create table siakadu.ref_tahun_ajaran (
+   id_periode               varchar(10)          not null,
+   id_tahun_ajaran          varchar(10)          null,
+   nm_tahun_ajaran          varchar(50)          null,
+   nm_periode               varchar(100)         null,
+   tgl_awal                 varchar(20)          null,
+   tgl_akhir                varchar(20)          null,
+   is_aktif                 varchar(5)           null,
+   last_update              datetime             null,
+   constraint pk_ref_tahun_ajaran primary key (id_periode)
+)
+go
+
+/*==============================================================*/
+/* Table: ref_status_mhs                                        */
+/* Description: Referensi status mahasiswa dari SIAKADU          */
+/*==============================================================*/
+create table siakadu.ref_status_mhs (
+   id_status_mhs            varchar(5)           not null,
+   nm_status_mhs            varchar(50)          null,
+   is_keluar                varchar(5)           null,
+   last_update              datetime             null,
+   constraint pk_ref_status_mhs primary key (id_status_mhs)
+)
+go
+
+/*==============================================================*/
+/* Table: ref_jalur_daftar                                      */
+/* Description: Referensi jalur pendaftaran                     */
+/*==============================================================*/
+create table siakadu.ref_jalur_daftar (
+   id_jalur_daftar          int                  not null,
+   nm_jalur                 varchar(100)         null,
+   is_transfer              int                  null,
+   last_update              datetime             null,
+   constraint pk_ref_jalur_daftar primary key (id_jalur_daftar)
+)
+go
+
+/*==============================================================*/
+/* Table: ref_jenis_mk                                          */
+/* Description: Referensi jenis mata kuliah                     */
+/*==============================================================*/
+create table siakadu.ref_jenis_mk (
+   id_jenis_mk              varchar(5)           not null,
+   nm_jenis_mk              varchar(50)          null,
+   last_update              datetime             null,
+   constraint pk_ref_jenis_mk primary key (id_jenis_mk)
+)
+go
+
+-- Indexes for mapping tables
+create index idx_mapping_unit_id_sms on siakadu.mapping_unit (id_sms)
+go
+create index idx_mapping_kelas_id_kls on siakadu.mapping_kelas (id_kls)
+go
+create index idx_mapping_pegawai_nip on siakadu.mapping_pegawai (nip)
+go
+create index idx_mapping_pegawai_id_sdm on siakadu.mapping_pegawai (id_sdm)
+go
+create index idx_wisuda_mhs_periode on siakadu.wisuda_mahasiswa (id_periode_wisuda) where soft_delete = 0
+go
+create index idx_wisuda_mhs_nipd on siakadu.wisuda_mahasiswa (nipd) where soft_delete = 0
+go
+create index idx_ref_unit_parent on siakadu.ref_unit (id_parent_unit)
+go
+create index idx_ref_unit_jenis on siakadu.ref_unit (jns_unit)
+go
+
+-- ============================================================
+-- SYNC LOG TABLE
+-- ============================================================
+
+/*==============================================================*/
+/* Table: sync_log                                              */
+/* Description: Log sinkronisasi data dari API SIAKADU          */
+/*==============================================================*/
+create table siakadu.sync_log (
+   id_sync                  uniqueidentifier     not null default newid(),
+   sync_type                varchar(50)          not null,
+   sync_mode                varchar(20)          not null default 'manual',
+   status                   varchar(20)          not null default 'running',
+   total_fetched            int                  not null default 0,
+   total_inserted           int                  not null default 0,
+   total_updated            int                  not null default 0,
+   total_skipped            int                  not null default 0,
+   total_errors             int                  not null default 0,
+   error_message            varchar(2000)        null,
+   started_at               datetime             not null default getdate(),
+   finished_at              datetime             null,
+   duration_ms              int                  null,
+   synced_by                varchar(100)         null,
+   constraint pk_sync_log primary key (id_sync)
+)
+go
+
+create index idx_sync_log_type on siakadu.sync_log (sync_type, started_at desc)
+go
+
+-- ============================================================
+-- END OF SIAKADU SCHEMA v1.0 — ADDENDUM
+-- Tables added: 12 (mapping: 4, wisuda: 2, referensi: 5, sync: 1)
+-- Total tables: 48
 -- ============================================================
