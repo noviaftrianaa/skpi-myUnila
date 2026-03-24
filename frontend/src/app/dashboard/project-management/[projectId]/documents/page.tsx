@@ -15,6 +15,8 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  ConfirmDialog,
+  useToast,
 } from "../../components/ui";
 import {
   FiPlus,
@@ -155,6 +157,9 @@ export default function DocumentsPage() {
   const [docVersions, setDocVersions] = useState<DocumentVersion[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [detailTab, setDetailTab] = useState<"info" | "versions">("info");
+  const [deleteDoc, setDeleteDoc] = useState<{ id: string; name: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { toast } = useToast();
 
   // Replace file modal
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
@@ -409,13 +414,19 @@ export default function DocumentsPage() {
   };
 
   // Delete handler
-  const handleDelete = async (docId: string, docName: string) => {
-    if (!confirm(`Hapus dokumen "${docName}"?`)) return;
+  const handleDelete = async () => {
+    if (!deleteDoc) return;
+    setDeleteLoading(true);
     try {
-      await projectService.deleteDocument(docId);
+      await projectService.deleteDocument(deleteDoc.id);
       await loadDocuments();
+      toast(`Dokumen "${deleteDoc.name}" dihapus`, "success");
     } catch (e) {
       console.error(e);
+      toast("Gagal menghapus dokumen", "error");
+    } finally {
+      setDeleteLoading(false);
+      setDeleteDoc(null);
     }
   };
 
@@ -674,7 +685,7 @@ export default function DocumentsPage() {
                         isIconOnly
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(doc.id_document, doc.nm_dokumen);
+                          setDeleteDoc({ id: doc.id_document, name: doc.nm_dokumen });
                         }}
                         title="Hapus"
                         className="text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -732,7 +743,7 @@ export default function DocumentsPage() {
                           size="sm"
                           variant="ghost"
                           isIconOnly
-                          onClick={(e) => { e.stopPropagation(); handleDelete(doc.id_document, doc.nm_dokumen); }}
+                          onClick={(e) => { e.stopPropagation(); setDeleteDoc({ id: doc.id_document, name: doc.nm_dokumen }); }}
                           className="text-red-500 hover:text-red-600 hover:bg-red-50"
                         >
                           <FiTrash2 className="w-3.5 h-3.5" />
@@ -1312,6 +1323,17 @@ export default function DocumentsPage() {
             </>
           )}
         </Modal>
+
+        <ConfirmDialog
+          isOpen={!!deleteDoc}
+          onClose={() => setDeleteDoc(null)}
+          onConfirm={handleDelete}
+          title="Hapus Dokumen"
+          message={`Yakin hapus dokumen "${deleteDoc?.name}"? File akan dihapus permanen.`}
+          confirmText="Hapus"
+          variant="danger"
+          isLoading={deleteLoading}
+        />
       </>
 );
 }

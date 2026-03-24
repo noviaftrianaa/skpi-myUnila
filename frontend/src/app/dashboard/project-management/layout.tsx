@@ -4,6 +4,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardNavbar from "@/shared/components/dashboard/DashboardNavbar";
 import Link from "next/link";
 import { FiArrowLeft, FiFolder } from "react-icons/fi";
+import { ToastProvider } from "./components/ui";
 
 export default function ProjectManagementLayout({
   children,
@@ -42,9 +43,11 @@ export default function ProjectManagementLayout({
       </div>
 
       {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {children}
-      </main>
+      <ToastProvider>
+        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {children}
+        </main>
+      </ToastProvider>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardBody, Btn, TwInput, Modal, ModalHeader, ModalBody, ModalFooter, Chip } from "./ui";
+import { Card, CardBody, Btn, TwInput, Modal, ModalHeader, ModalBody, ModalFooter, Chip, ConfirmDialog, useToast } from "./ui";
 import { FiPlus, FiEdit2, FiTrash2, FiLayers } from "react-icons/fi";
 import type { ProjectModule } from "@/lib/services/project/projectService";
 import { projectService } from "@/lib/services/project/projectService";
@@ -15,9 +15,12 @@ interface ModuleListProps {
 export default function ModuleList({ projectId, modules, onModulesChange }: ModuleListProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editModule, setEditModule] = useState<ProjectModule | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProjectModule | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [nama, setNama] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const openAdd = () => {
     setNama("");
@@ -51,13 +54,19 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
     }
   };
 
-  const handleDelete = async (m: ProjectModule) => {
-    if (!confirm(`Hapus modul "${m.nama}"?`)) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      await projectService.deleteModule(projectId, m.id);
-      onModulesChange?.(modules.filter(mod => mod.id !== m.id));
+      await projectService.deleteModule(projectId, deleteTarget.id);
+      onModulesChange?.(modules.filter(mod => mod.id !== deleteTarget.id));
+      toast(`Modul "${deleteTarget.nama}" dihapus`, "success");
     } catch (err) {
       console.error(err);
+      toast("Gagal menghapus modul", "error");
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -164,7 +173,7 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
                       size="sm"
                       variant="ghost"
                       variant="danger"
-                      onClick={() => handleDelete(m)}
+                      onClick={() => setDeleteTarget(m)}
                     >
                       <FiTrash2 className="w-3.5 h-3.5" />
                     </Btn>
@@ -188,6 +197,18 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
         isOpen={!!editModule}
         onClose={() => setEditModule(null)}
         title="Edit Modul"
+      />
+
+      {/* Delete confirm */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Hapus Modul"
+        message={`Yakin hapus modul "${deleteTarget?.nama}"? Semua task di modul ini akan kehilangan referensi modul.`}
+        confirmText="Hapus"
+        variant="danger"
+        isLoading={deleteLoading}
       />
     </div>
   );

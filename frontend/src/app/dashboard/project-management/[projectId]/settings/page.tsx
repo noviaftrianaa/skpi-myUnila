@@ -15,6 +15,8 @@ import {
   ModalBody,
   ModalFooter,
   Chip,
+  ConfirmDialog,
+  useToast,
 } from "../../components/ui";
 import {
   FiGitBranch,
@@ -111,6 +113,9 @@ export default function SettingsPage() {
   const [watcherJabatan, setWatcherJabatan] = useState("");
   const [watcherUnit, setWatcherUnit] = useState("");
   const [addingWatcher, setAddingWatcher] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ title: string; message: string; action: () => Promise<void> } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const { toast } = useToast();
 
   const loadData = useCallback(async () => {
     if (!projectId) return;
@@ -192,14 +197,20 @@ export default function SettingsPage() {
     finally { setTogglingId(null); }
   };
 
-  const handleDeleteWebhook = async (webhookId: string) => {
-    if (!confirm("Hapus webhook ini?")) return;
-    setDeletingId(webhookId);
-    try {
-      await projectService.deleteWebhook(projectId, webhookId);
-      setWebhooks((prev) => prev.filter((w) => w.id_webhook !== webhookId));
-    } catch (e) { console.error(e); }
-    finally { setDeletingId(null); }
+  const handleDeleteWebhook = (webhookId: string) => {
+    setConfirmAction({
+      title: "Hapus Webhook",
+      message: "Yakin hapus webhook ini? Notifikasi tidak akan terkirim lagi.",
+      action: async () => {
+        setDeletingId(webhookId);
+        try {
+          await projectService.deleteWebhook(projectId, webhookId);
+          setWebhooks((prev) => prev.filter((w) => w.id_webhook !== webhookId));
+          toast("Webhook dihapus", "success");
+        } catch (e) { console.error(e); toast("Gagal menghapus", "error"); }
+        finally { setDeletingId(null); }
+      },
+    });
   };
 
   const handleSubmitWebhook = async () => {
@@ -240,12 +251,18 @@ export default function SettingsPage() {
     finally { setAddingMember(false); }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!confirm("Hapus anggota ini dari project?")) return;
-    try {
-      await projectService.removeMember(projectId, memberId);
-      setMembers((prev) => prev.filter((m) => m.id_member !== memberId));
-    } catch (e) { console.error(e); }
+  const handleRemoveMember = (memberId: string) => {
+    setConfirmAction({
+      title: "Hapus Anggota",
+      message: "Yakin hapus anggota ini dari project?",
+      action: async () => {
+        try {
+          await projectService.removeMember(projectId, memberId);
+          setMembers((prev) => prev.filter((m) => m.id_member !== memberId));
+          toast("Anggota dihapus", "success");
+        } catch (e) { console.error(e); toast("Gagal menghapus", "error"); }
+      },
+    });
   };
 
   // === Watcher handlers ===
@@ -269,12 +286,18 @@ export default function SettingsPage() {
     finally { setAddingWatcher(false); }
   };
 
-  const handleRemoveWatcher = async (watcherId: string) => {
-    if (!confirm("Hapus pengawas ini dari project?")) return;
-    try {
-      await projectService.removeWatcher(projectId, watcherId);
-      setWatchers((prev) => prev.filter((w) => w.id_watcher !== watcherId));
-    } catch (e) { console.error(e); }
+  const handleRemoveWatcher = (watcherId: string) => {
+    setConfirmAction({
+      title: "Hapus Pengawas",
+      message: "Yakin hapus pengawas ini dari project?",
+      action: async () => {
+        try {
+          await projectService.removeWatcher(projectId, watcherId);
+          setWatchers((prev) => prev.filter((w) => w.id_watcher !== watcherId));
+          toast("Pengawas dihapus", "success");
+        } catch (e) { console.error(e); toast("Gagal menghapus", "error"); }
+      },
+    });
   };
 
   // === Visibility handler ===
@@ -833,6 +856,22 @@ export default function SettingsPage() {
             </Btn>
           </ModalFooter>
         </Modal>
+
+        <ConfirmDialog
+          isOpen={!!confirmAction}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={async () => {
+            if (!confirmAction) return;
+            setConfirmLoading(true);
+            try { await confirmAction.action(); }
+            finally { setConfirmLoading(false); setConfirmAction(null); }
+          }}
+          title={confirmAction?.title ?? "Konfirmasi"}
+          message={confirmAction?.message ?? ""}
+          confirmText="Hapus"
+          variant="danger"
+          isLoading={confirmLoading}
+        />
       </>
 );
 }
