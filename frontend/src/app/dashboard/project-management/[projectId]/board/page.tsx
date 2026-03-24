@@ -149,43 +149,36 @@ export default function BoardPage() {
             </div>
           </div>
 
-          {/* Filter bar */}
-          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-            <FiFilter className="w-4 h-4 text-gray-400 shrink-0 hidden sm:block" />
+          {/* Filter bar — single row */}
+          <div className="flex items-center gap-2 overflow-x-auto">
             <TwInput
               value={searchQuery}
               onValueChange={setSearchQuery}
               placeholder="Cari task..."
               inputSize="sm"
-              className="w-full sm:w-48"
+              className="w-48 shrink-0"
             />
             <TwSelect
               value={moduleFilter}
               onValueChange={(v) => setModuleFilter(v)}
               options={moduleOptions}
               selectSize="sm"
-              className="w-full sm:w-40"
+              className="w-40 shrink-0"
             />
             <TwSelect
               value={priorityFilter}
               onValueChange={(v) => setPriorityFilter(v)}
               options={priorityOptions}
               selectSize="sm"
-              className="w-full sm:w-40"
+              className="w-40 shrink-0"
             />
             {(searchQuery || moduleFilter !== "all" || priorityFilter !== "all") && (
-              <Btn
-                size="sm"
-                variant="danger"
-                className="text-xs"
-                onClick={() => {
-                  setSearchQuery("");
-                  setModuleFilter("all");
-                  setPriorityFilter("all");
-                }}
+              <button
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors whitespace-nowrap shrink-0"
+                onClick={() => { setSearchQuery(""); setModuleFilter("all"); setPriorityFilter("all"); }}
               >
                 Reset
-              </Btn>
+              </button>
             )}
           </div>
 

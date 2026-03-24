@@ -557,14 +557,14 @@ export default function DocumentsPage() {
           })()}
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto">
             <TwInput
               inputSize="sm"
               placeholder="Cari dokumen..."
               value={searchQuery}
               onValueChange={setSearchQuery}
               startContent={<FiSearch className="w-4 h-4 text-gray-400" />}
-              className="w-full sm:max-w-xs"
+              className="w-48 shrink-0"
             />
             <TwSelect
               selectSize="sm"
@@ -572,7 +572,7 @@ export default function DocumentsPage() {
               value={categoryFilter}
               onValueChange={(v) => setCategoryFilter(v ?? "")}
               options={categorySelectOptions}
-              className="w-full sm:w-48"
+              className="w-44 shrink-0"
             />
             <TwSelect
               selectSize="sm"
@@ -580,7 +580,7 @@ export default function DocumentsPage() {
               value={statusFilter}
               onValueChange={(v) => setStatusFilter(v ?? "")}
               options={statusSelectOptions}
-              className="w-full sm:w-40"
+              className="w-36 shrink-0"
             />
             {(categoryFilter || statusFilter || searchQuery) && (
               <Btn
