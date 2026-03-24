@@ -99,5 +99,20 @@ func GetSyncTypes() []SyncTypeInfo {
 			Name:        "Status Kuliah SIAKADU",
 			Description: "Sinkronisasi status kuliah dari SIAKADU",
 		},
+		{
+			Type:        "siakadu_transkrip",
+			Name:        "Transkrip SIAKADU (Batch)",
+			Description: "Sinkronisasi transkrip per-NPM dari SIAKADU",
+		},
+		{
+			Type:        "siakadu_referensi",
+			Name:        "Referensi Unit SIAKADU",
+			Description: "Sinkronisasi unit/prodi + pimpinan dari SIAKADU",
+		},
+		{
+			Type:        "siakadu_akademik",
+			Name:        "Akademik All Prodi SIAKADU",
+			Description: "Sinkronisasi matakuliah + kurikulum + kelas semua prodi",
+		},
 	}
 }

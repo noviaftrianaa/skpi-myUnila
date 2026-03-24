@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +26,25 @@ type RadiusSyncService interface {
 // UnitOrganisasiSyncService interface for unit organisasi sync operations
 type UnitOrganisasiSyncService interface {
 	SyncFromSMS(ctx context.Context, syncedBy string) (interface{}, error)
+}
+
+// SiakaduSyncRunner runs SIAKADU sync via internal HTTP calls
+type SiakaduSyncRunner struct {
+	BaseURL string
+}
+
+func (r *SiakaduSyncRunner) Run(endpoint string) error {
+	client := &http.Client{Timeout: 4 * time.Hour}
+	url := r.BaseURL + endpoint
+	resp, err := client.Post(url, "application/json", strings.NewReader("{}"))
+	if err != nil {
+		return fmt.Errorf("failed to call %s: %w", endpoint, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("sync %s returned HTTP %d", endpoint, resp.StatusCode)
+	}
+	return nil
 }
 
 type Service interface {
@@ -49,6 +69,7 @@ type service struct {
 	pegawaiSync       PegawaiSyncService
 	radiusSync        RadiusSyncService
 	unitOrgSync       UnitOrganisasiSyncService
+	siakaduRunner     *SiakaduSyncRunner
 }
 
 func NewService(repo Repository) Service {
@@ -59,6 +80,7 @@ func NewService(repo Repository) Service {
 		repo:     repo,
 		cron:     c,
 		cronJobs: make(map[int]cron.EntryID),
+		siakaduRunner: &SiakaduSyncRunner{BaseURL: "http://localhost:8086/api/v1"},
 	}
 }
 
@@ -219,6 +241,24 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 		}
 		_, err := s.unitOrgSync.SyncFromSMS(ctx, syncedBy)
 		return err
+	case "siakadu_referensi":
+		return s.siakaduRunner.Run("/siakadu/referensi/unit/sync")
+	case "siakadu_mahasiswa":
+		return s.siakaduRunner.Run("/siakadu/mahasiswa/sync-all")
+	case "siakadu_akademik":
+		return s.siakaduRunner.Run("/siakadu/akademik/sync-all?id_semester=20241")
+	case "siakadu_matakuliah":
+		return s.siakaduRunner.Run("/siakadu/akademik/matakuliah/sync")
+	case "siakadu_kurikulum":
+		return s.siakaduRunner.Run("/siakadu/akademik/kurikulum/sync")
+	case "siakadu_kelas":
+		return s.siakaduRunner.Run("/siakadu/akademik/kelas/sync")
+	case "siakadu_khs":
+		return s.siakaduRunner.Run("/siakadu/nilai/khs/sync")
+	case "siakadu_kuliah":
+		return s.siakaduRunner.Run("/siakadu/nilai/kuliah/sync")
+	case "siakadu_transkrip":
+		return s.siakaduRunner.Run("/siakadu/nilai/transkrip/sync-batch")
 	default:
 		return fmt.Errorf("unknown sync type: %s", syncType)
 	}
