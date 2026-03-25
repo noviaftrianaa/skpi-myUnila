@@ -41,14 +41,17 @@ export default function ModuleList({ projectId, modules, onModulesChange }: Modu
       if (editModule) {
         const updated = await projectService.updateModule(projectId, editModule.id, { nama, deskripsi });
         onModulesChange?.(modules.map(m => m.id === updated.id ? updated : m));
+        toast("Modul diupdate", "success");
         setEditModule(null);
       } else {
         const created = await projectService.createModule(projectId, { nama, deskripsi });
         onModulesChange?.([...modules, created]);
+        toast("Modul ditambahkan!", "success");
         setIsAddOpen(false);
       }
     } catch (err) {
       console.error(err);
+      toast("Gagal menyimpan modul", "error");
     } finally {
       setLoading(false);
     }

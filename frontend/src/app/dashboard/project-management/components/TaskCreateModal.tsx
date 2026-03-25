@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Btn, TwInput, TwTextarea, TwSelect } from "./ui";
+import { Modal, ModalHeader, ModalBody, ModalFooter, Btn, TwInput, TwTextarea, TwSelect, useToast } from "./ui";
 import type { Task, ProjectModule } from "@/lib/services/project/projectService";
 import { projectService } from "@/lib/services/project/projectService";
 
@@ -54,6 +54,7 @@ export default function TaskCreateModal({
   const [dueDate, setDueDate] = useState("");
   const [assigneeName, setAssigneeName] = useState("");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [error, setError] = useState("");
 
   const handleClose = () => {
@@ -73,9 +74,12 @@ export default function TaskCreateModal({
         assignee_name: assigneeName || undefined,
       });
       onCreated?.(created);
+      toast("Task berhasil dibuat!", "success");
       handleClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Gagal membuat task");
+      const msg = err?.response?.data?.message || "Gagal membuat task";
+      setError(msg);
+      toast(msg, "error");
     } finally { setLoading(false); }
   };
 

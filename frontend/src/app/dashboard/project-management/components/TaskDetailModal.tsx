@@ -10,6 +10,7 @@ import {
   TwSelect,
   TwInput,
   Spinner,
+  useToast,
 } from "./ui";
 import {
   FiStar,
@@ -104,6 +105,7 @@ export default function TaskDetailModal({
   onTaskUpdated,
 }: TaskDetailModalProps) {
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [commits, setCommits] = useState<Commit[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -243,9 +245,10 @@ export default function TaskDetailModal({
       const saved = await projectService.updateTask(projectId, editTask.id, { [field]: value });
       setEditTask(saved);
       onTaskUpdated?.(saved);
+      toast("Task diupdate", "success");
     } catch {
-      // revert
       setEditTask(editTask);
+      toast("Gagal update task", "error");
     } finally {
       setSavingField(null);
     }

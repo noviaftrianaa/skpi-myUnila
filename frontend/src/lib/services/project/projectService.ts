@@ -499,13 +499,25 @@ export const projectService = {
   },
 
   async createProject(data: Partial<Project>): Promise<Project> {
-    const response = await projectClient.post<SingleResponse<Project>>('/project', data);
+    const payload = {
+      ...data,
+      nm_project: data.nama ?? (data as Record<string, unknown>).nm_project,
+      kode_project: data.kode ?? (data as Record<string, unknown>).kode_project,
+      tgl_mulai: data.tanggal_mulai ?? data.tgl_mulai,
+      tgl_target: data.tanggal_target ?? data.tgl_target,
+    };
+    const response = await projectClient.post<SingleResponse<Project>>('/project', payload);
     if (!response.data.success) throw new Error('Failed to create project');
     return mapProject(response.data.data as unknown as Record<string, unknown>);
   },
 
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    const response = await projectClient.put<SingleResponse<Project>>(`/project/${id}`, data);
+    const payload = { ...data } as Record<string, unknown>;
+    if (data.nama !== undefined) payload.nm_project = data.nama;
+    if (data.kode !== undefined) payload.kode_project = data.kode;
+    if (data.tanggal_mulai !== undefined) payload.tgl_mulai = data.tanggal_mulai;
+    if (data.tanggal_target !== undefined) payload.tgl_target = data.tanggal_target;
+    const response = await projectClient.put<SingleResponse<Project>>(`/project/${id}`, payload);
     if (!response.data.success) throw new Error('Failed to update project');
     return mapProject(response.data.data as unknown as Record<string, unknown>);
   },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
@@ -32,6 +32,7 @@ import {
   FiLock,
   FiSearch,
   FiUserPlus,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import Link from "next/link";
 import {
@@ -66,11 +67,13 @@ const TABS = [
   { key: "watchers", label: "Pengawas Pimpinan", icon: <FiEye className="w-4 h-4" /> },
   { key: "visibility", label: "Visibilitas", icon: <FiLock className="w-4 h-4" /> },
   { key: "git", label: "Integrasi Git", icon: <FiGitBranch className="w-4 h-4" /> },
+  { key: "danger", label: "Danger Zone", icon: <FiAlertTriangle className="w-4 h-4" /> },
 ];
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const projectId = params.projectId as string;
 
   const [project, setProject] = useState<Project | null>(null);
@@ -115,6 +118,8 @@ export default function SettingsPage() {
   const [addingWatcher, setAddingWatcher] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ title: string; message: string; action: () => Promise<void> } | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
@@ -298,6 +303,22 @@ export default function SettingsPage() {
         } catch (e) { console.error(e); toast("Gagal menghapus", "error"); }
       },
     });
+  };
+
+  // === Delete project handler ===
+  const handleDeleteProject = async () => {
+    if (deleteConfirmText !== "delete") return;
+    setIsDeleting(true);
+    try {
+      await projectService.deleteProject(projectId);
+      toast("Project dihapus!", "success");
+      router.push("/dashboard/project-management");
+    } catch (e) {
+      console.error(e);
+      toast("Gagal menghapus project", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // === Visibility handler ===
@@ -697,6 +718,46 @@ export default function SettingsPage() {
                       </div>
                     ))
                   )}
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* === TAB: Danger Zone === */}
+          {activeTab === "danger" && (
+            <Card className="border border-red-200 dark:border-red-900/40 shadow-sm">
+              <CardBody className="p-5 space-y-5">
+                <h2 className="text-base font-semibold text-red-700 dark:text-red-400 flex items-center gap-2">
+                  <FiAlertTriangle className="w-4 h-4" />
+                  Danger Zone
+                </h2>
+                <div className="p-4 border border-red-200 dark:border-red-800 rounded-xl bg-red-50/50 dark:bg-red-950/10 space-y-3">
+                  <h3 className="text-sm font-semibold text-red-700 dark:text-red-400">Hapus Project</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Menghapus project akan menghapus semua data terkait: task, modul, dokumen, aktivitas, dan konfigurasi.
+                    <strong className="text-red-600"> Aksi ini tidak dapat dibatalkan.</strong>
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Ketik <code className="font-mono bg-red-100 dark:bg-red-900/40 px-1.5 py-0.5 rounded text-red-600 dark:text-red-400 font-bold">delete</code> untuk mengkonfirmasi:
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder='Ketik "delete"'
+                      className="flex-1 h-9 px-3 text-sm border border-red-200 dark:border-red-800 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400"
+                    />
+                    <Btn
+                      variant="danger"
+                      size="sm"
+                      isLoading={isDeleting}
+                      disabled={deleteConfirmText !== "delete"}
+                      onClick={handleDeleteProject}
+                    >
+                      Hapus Project
+                    </Btn>
+                  </div>
                 </div>
               </CardBody>
             </Card>

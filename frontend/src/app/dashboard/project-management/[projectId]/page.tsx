@@ -13,10 +13,11 @@ import {
   FiLoader,
   FiCalendar,
   FiFlag,
+  FiEdit2,
 } from "react-icons/fi";
 import Link from "next/link";
 import ProgressReport from "../components/ProgressReport";
-// TaskCreateModal available in Board/List tabs
+import ProjectEditModal from "../components/ProjectEditModal";
 import {
   projectService,
   type Project,
@@ -64,7 +65,7 @@ export default function ProjectOverviewPage() {
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -160,6 +161,13 @@ export default function ProjectOverviewPage() {
                 <Chip size="sm" className="font-mono text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-500">
                   {project?.kode}
                 </Chip>
+                <button
+                  onClick={() => setIsEditOpen(true)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                  title="Edit Project"
+                >
+                  <FiEdit2 className="w-4 h-4" />
+                </button>
                 {project?.status && (
                   <Chip
                     size="sm"
@@ -391,6 +399,12 @@ export default function ProjectOverviewPage() {
         </div>
       )}
 
+      <ProjectEditModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        project={project}
+        onUpdated={(updated) => setProject(updated)}
+      />
     </div>
   );
 }
