@@ -103,7 +103,7 @@ export interface SiakaduSyncStats {
 const siakaduService = {
   // ---- Mahasiswa ----
   async getMahasiswaList(params: { page?: number; limit?: number; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/mahasiswa/list', { params });
+    const response = await myunilaClient.get('/siakadu/mahasiswa', { params });
     return response.data;
   },
 
@@ -128,15 +128,13 @@ const siakaduService = {
 
   // ---- Kelas ----
   async getKelasList(params: { page?: number; limit?: number; id_smt?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/kelas/list', { params });
+    const response = await myunilaClient.get('/siakadu/akademik/kelas', { params });
     return response.data;
   },
 
   async getKelasStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/kelas/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    // Backend belum punya /stats endpoint — return default
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncKelas(filter?: { id_semester?: string; id_unit?: string }, synced_by?: string) {
@@ -148,15 +146,12 @@ const siakaduService = {
 
   // ---- Kurikulum ----
   async getKurikulumList(params: { page?: number; limit?: number; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/kurikulum/list', { params });
+    const response = await myunilaClient.get('/siakadu/akademik/kurikulum', { params });
     return response.data;
   },
 
   async getKurikulumStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/kurikulum/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncKurikulum(filter?: { thn_kurikulum?: number; id_unit?: string }, synced_by?: string) {
@@ -168,15 +163,12 @@ const siakaduService = {
 
   // ---- Matakuliah ----
   async getMatakuliahList(params: { page?: number; limit?: number; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/matakuliah/list', { params });
+    const response = await myunilaClient.get('/siakadu/akademik/matakuliah', { params });
     return response.data;
   },
 
   async getMatakuliahStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/matakuliah/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncMatakuliah(filter?: { thn_kurikulum?: number; id_unit?: string }, synced_by?: string) {
@@ -188,15 +180,12 @@ const siakaduService = {
 
   // ---- KHS ----
   async getKHSList(params: { page?: number; limit?: number; npm?: string; id_smt?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/nilai/khs/list', { params });
+    const response = await myunilaClient.get('/siakadu/nilai/khs', { params });
     return response.data;
   },
 
   async getKHSStats() {
-    const response = await myunilaClient.get('/siakadu/nilai/khs/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncKHS(filter?: { id_semester?: string; npm?: string }, synced_by?: string) {
@@ -207,20 +196,18 @@ const siakaduService = {
   },
 
   // ---- KRS ----
+  // KRS — backend belum ada dedicated route, pakai kuliah endpoint
   async getKRSList(params: { page?: number; limit?: number; npm?: string; id_smt?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/krs/list', { params });
+    const response = await myunilaClient.get('/siakadu/nilai/kuliah', { params });
     return response.data;
   },
 
   async getKRSStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/krs/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncKRS(filter?: { id_semester?: string; npm?: string }, synced_by?: string) {
-    const response = await myunilaClient.post('/siakadu/akademik/krs/sync', filter, {
+    const response = await myunilaClient.post('/siakadu/nilai/kuliah/sync', filter, {
       params: { synced_by },
     });
     return response.data;
@@ -228,15 +215,12 @@ const siakaduService = {
 
   // ---- Transkrip ----
   async getTranskripList(params: { page?: number; limit?: number; npm?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/nilai/transkrip/list', { params });
+    const response = await myunilaClient.get('/siakadu/nilai/transkrip', { params });
     return response.data;
   },
 
   async getTranskripStats() {
-    const response = await myunilaClient.get('/siakadu/nilai/transkrip/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncTranskrip(filter?: { npm?: string }, synced_by?: string) {
@@ -247,20 +231,18 @@ const siakaduService = {
   },
 
   // ---- Status Kuliah ----
+  // Status Kuliah — backend belum ada dedicated route, pakai mahasiswa endpoint
   async getStatusKuliahList(params: { page?: number; limit?: number; npm?: string; id_smt?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/status-kuliah/list', { params });
+    const response = await myunilaClient.get('/siakadu/mahasiswa', { params });
     return response.data;
   },
 
   async getStatusKuliahStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/status-kuliah/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncStatusKuliah(filter?: { id_semester?: string; npm?: string }, synced_by?: string) {
-    const response = await myunilaClient.post('/siakadu/akademik/status-kuliah/sync', filter, {
+    const response = await myunilaClient.post('/siakadu/mahasiswa/sync', filter, {
       params: { synced_by },
     });
     return response.data;
@@ -268,15 +250,12 @@ const siakaduService = {
 
   // ---- Jadwal ----
   async getJadwalList(params: { page?: number; limit?: number; id_smt?: string; search?: string }) {
-    const response = await myunilaClient.get('/siakadu/akademik/jadwal/list', { params });
+    const response = await myunilaClient.get('/siakadu/akademik/jadwal', { params });
     return response.data;
   },
 
   async getJadwalStats() {
-    const response = await myunilaClient.get('/siakadu/akademik/jadwal/stats', {
-      params: { _t: Date.now() },
-    });
-    return response.data;
+    return { data: { total_records: 0, last_sync: null } };
   },
 
   async syncJadwal(filter?: { id_semester?: string; id_unit?: string }, synced_by?: string) {
