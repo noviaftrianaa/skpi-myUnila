@@ -1,0 +1,143 @@
+{
+  "_comment": "SI KKN menus. Roles: admin=[1,107], mahasiswa=[39], dosen/dpl=[46], admin_fakultas=[106], dekan=[43], pimpinan=[38,37,36,35,34], tendik=[111]",
+  "app_slug": "e-kkn",
+  "roles": [1, 107, 39, 46, 106, 43, 111],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/si-kkn",
+      "icon": "heroicons:squares-2x2",
+      "urutan": 1,
+      "roles": [1, 107, 39, 46, 106, 43, 111]
+    },
+    {
+      "nm_menu": "Pendaftaran KKN",
+      "nm_file": "/dashboard/si-kkn/pendaftaran",
+      "icon": "heroicons:clipboard-document-check",
+      "urutan": 2,
+      "roles": [1, 107, 39]
+    },
+    {
+      "nm_menu": "Kelompok Saya",
+      "nm_file": "/dashboard/si-kkn/kelompok",
+      "icon": "heroicons:user-group",
+      "urutan": 3,
+      "roles": [39, 46]
+    },
+    {
+      "nm_menu": "Kegiatan Lapangan",
+      "nm_file": "#kegiatan",
+      "icon": "heroicons:clipboard-document-list",
+      "urutan": 4,
+      "roles": [1, 107, 39, 46],
+      "children": [
+        {
+          "nm_menu": "Logbook Harian",
+          "nm_file": "/dashboard/si-kkn/kegiatan/logbook",
+          "urutan": 1,
+          "roles": [1, 107, 39, 46]
+        },
+        {
+          "nm_menu": "Program Kerja",
+          "nm_file": "/dashboard/si-kkn/kegiatan/proker",
+          "urutan": 2,
+          "roles": [1, 107, 39, 46]
+        },
+        {
+          "nm_menu": "Absensi",
+          "nm_file": "/dashboard/si-kkn/kegiatan/absensi",
+          "urutan": 3,
+          "roles": [1, 107, 39, 46]
+        }
+      ]
+    },
+    {
+      "nm_menu": "Bimbingan DPL",
+      "nm_file": "/dashboard/si-kkn/bimbingan",
+      "icon": "heroicons:academic-cap",
+      "urutan": 5,
+      "roles": [1, 107, 46]
+    },
+    {
+      "nm_menu": "Penilaian",
+      "nm_file": "#penilaian",
+      "icon": "heroicons:star",
+      "urutan": 6,
+      "roles": [1, 107, 46],
+      "children": [
+        {
+          "nm_menu": "Nilai Komponen",
+          "nm_file": "/dashboard/si-kkn/penilaian/komponen",
+          "urutan": 1,
+          "roles": [1, 107, 46]
+        },
+        {
+          "nm_menu": "Nilai Akhir",
+          "nm_file": "/dashboard/si-kkn/penilaian/rekap",
+          "urutan": 2,
+          "roles": [1, 107, 46]
+        },
+        {
+          "nm_menu": "Penilaian Pamong",
+          "nm_file": "/dashboard/si-kkn/penilaian/pamong",
+          "urutan": 3,
+          "roles": [1, 107]
+        }
+      ]
+    },
+    {
+      "nm_menu": "Manajemen",
+      "nm_file": "#manajemen",
+      "icon": "heroicons:cog-8-tooth",
+      "urutan": 7,
+      "roles": [1, 107, 111],
+      "children": [
+        {
+          "nm_menu": "Kelompok",
+          "nm_file": "/dashboard/si-kkn/manajemen/kelompok",
+          "urutan": 1,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "Penempatan",
+          "nm_file": "/dashboard/si-kkn/manajemen/penempatan",
+          "urutan": 2,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "DPL",
+          "nm_file": "/dashboard/si-kkn/manajemen/dpl",
+          "urutan": 3,
+          "roles": [1, 107, 111]
+        },
+        {
+          "nm_menu": "Verifikasi Pendaftaran",
+          "nm_file": "/dashboard/si-kkn/manajemen/verifikasi",
+          "urutan": 4,
+          "roles": [1, 107, 111]
+        }
+      ]
+    },
+    {
+      "nm_menu": "Dokumen & Sertifikat",
+      "nm_file": "/dashboard/si-kkn/dokumen",
+      "icon": "heroicons:document-duplicate",
+      "urutan": 8,
+      "roles": [1, 107, 46]
+    },
+    {
+      "nm_menu": "Master Data",
+      "nm_file": "/dashboard/si-kkn/master-data",
+      "icon": "heroicons:circle-stack",
+      "urutan": 9,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Monitoring",
+      "nm_file": "/dashboard/si-kkn/monitoring",
+      "icon": "heroicons:chart-bar",
+      "urutan": 10,
+      "roles": [1, 107, 111]
+    }
+  ]
+}
