@@ -161,8 +161,8 @@ export default function SiakaduMahasiswaPage() {
   };
 
   const columns: Column<SiakaduMahasiswa>[] = [
-    { key: "nipd", label: "NIM", sortable: true },
-    { key: "nm_pd", label: "Nama", sortable: true },
+    { key: "nim", label: "NIM", sortable: true },
+    { key: "nama", label: "Nama", sortable: true },
     { key: "nm_prodi", label: "Prodi", sortable: true },
     { key: "angkatan", label: "Angkatan", sortable: true, align: "center" },
     {

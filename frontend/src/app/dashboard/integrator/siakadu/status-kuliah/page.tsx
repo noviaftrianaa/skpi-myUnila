@@ -80,9 +80,9 @@ export default function SiakaduStatusKuliahPage() {
   };
 
   const columns: Column<SiakaduStatusKuliah>[] = [
-    { key: "nipd", label: "NIM", sortable: true },
-    { key: "id_smt", label: "Semester", sortable: true, align: "center" },
-    { key: "status", label: "Status", align: "center",
+    { key: "nim", label: "NIM", sortable: true },
+    { key: "id_semester", label: "Semester", sortable: true, align: "center" },
+    { key: "status_kuliah", label: "Status", align: "center",
       render: (item) => (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
           item.status === "Aktif" || item.status === "A" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -94,7 +94,7 @@ export default function SiakaduStatusKuliahPage() {
     },
     { key: "ips", label: "IPS", align: "center", render: (item) => item.ips?.toFixed(2) || "-" },
     { key: "ipk", label: "IPK", align: "center", render: (item) => item.ipk?.toFixed(2) || "-" },
-    { key: "sks_total", label: "Total SKS", align: "center", render: (item) => item.sks_total?.toString() || "-" },
+    { key: "total_sks", label: "Total SKS", align: "center", render: (item) => item.total_sks?.toString() || "-" },
   ];
 
   const filterSlot = (

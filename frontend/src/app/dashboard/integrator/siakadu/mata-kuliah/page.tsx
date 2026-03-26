@@ -80,8 +80,8 @@ export default function SiakaduMataKuliahPage() {
 
   const columns: Column<SiakaduMataKuliah>[] = [
     { key: "kode_mk", label: "Kode MK", sortable: true },
-    { key: "nm_mk", label: "Nama MK", sortable: true },
-    { key: "sks_mk", label: "SKS", align: "center", sortable: true },
+    { key: "nama_mata_kuliah", label: "Nama MK", sortable: true },
+    { key: "sks", label: "SKS", align: "center", sortable: true },
     { key: "jenis_mk", label: "Jenis", align: "center",
       render: (item) => (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${

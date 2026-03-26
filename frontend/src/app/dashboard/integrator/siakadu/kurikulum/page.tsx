@@ -79,10 +79,10 @@ export default function SiakaduKurikulumPage() {
   };
 
   const columns: Column<SiakaduKurikulum>[] = [
-    { key: "thn_kurikulum", label: "Tahun", sortable: true, align: "center" },
+    { key: "semester", label: "Tahun", sortable: true, align: "center" },
     { key: "kode_mk", label: "Kode MK", sortable: true },
-    { key: "nm_mk", label: "Nama MK", sortable: true },
-    { key: "sks_mk", label: "SKS", align: "center", sortable: true },
+    { key: "nama_mata_kuliah", label: "Nama MK", sortable: true },
+    { key: "sks", label: "SKS", align: "center", sortable: true },
     { key: "jenis_mk", label: "Jenis", align: "center" },
     { key: "nm_prodi", label: "Prodi", sortable: true },
   ];

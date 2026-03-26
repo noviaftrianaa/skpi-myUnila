@@ -80,10 +80,10 @@ export default function SiakaduTranskripPage() {
   };
 
   const columns: Column<SiakaduTranskrip>[] = [
-    { key: "nipd", label: "NIM", sortable: true },
-    { key: "nm_pd", label: "Nama", sortable: true },
+    { key: "nim", label: "NIM", sortable: true },
+    { key: "nama_mahasiswa", label: "Nama", sortable: true },
     { key: "kode_mk", label: "Kode MK", sortable: true },
-    { key: "nm_mk", label: "Nama MK", sortable: true },
+    { key: "nama_mk", label: "Nama MK", sortable: true },
     { key: "sks_mk", label: "SKS", align: "center" },
     { key: "nilai_huruf", label: "Nilai", align: "center",
       render: (item) => (
@@ -94,7 +94,7 @@ export default function SiakaduTranskripPage() {
         }`}>{item.nilai_huruf || "-"}</span>
       ),
     },
-    { key: "id_smt", label: "Semester", align: "center" },
+    { key: "smt_ke", label: "Semester", align: "center" },
   ];
 
   const filterSlot = (

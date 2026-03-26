@@ -116,11 +116,11 @@ export default function SiakaduKrsKhsPage() {
   };
 
   const krsColumns: Column<SiakaduKRS>[] = [
-    { key: "nipd", label: "NIM", sortable: true },
-    { key: "nm_pd", label: "Nama", sortable: true },
+    { key: "nim", label: "NIM", sortable: true },
+    { key: "nama_mahasiswa", label: "Nama", sortable: true },
     { key: "kode_mk", label: "Kode MK", sortable: true },
-    { key: "nm_kls", label: "Kelas", align: "center" },
-    { key: "status_krs", label: "Status KRS", align: "center",
+    { key: "status_kuliah", label: "Kelas", align: "center" },
+    { key: "id_semester", label: "Status KRS", align: "center",
       render: (item) => (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
           item.status_krs === "Disetujui" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -132,8 +132,8 @@ export default function SiakaduKrsKhsPage() {
   ];
 
   const khsColumns: Column<SiakaduKHS>[] = [
-    { key: "nipd", label: "NIM", sortable: true },
-    { key: "nm_pd", label: "Nama", sortable: true },
+    { key: "nim", label: "NIM", sortable: true },
+    { key: "nama_mahasiswa", label: "Nama", sortable: true },
     { key: "kode_mk", label: "Kode MK", sortable: true },
     { key: "nilai_huruf", label: "Nilai Huruf", align: "center",
       render: (item) => (
@@ -145,7 +145,7 @@ export default function SiakaduKrsKhsPage() {
       ),
     },
     { key: "nilai_angka", label: "Nilai Angka", align: "center", render: (item) => item.nilai_angka?.toFixed(2) || "-" },
-    { key: "nilai_indeks", label: "Indeks", align: "center", render: (item) => item.nilai_indeks?.toFixed(2) || "-" },
+    { key: "nilai_index", label: "Indeks", align: "center", render: (item) => item.nilai_index?.toFixed(2) || "-" },
   ];
 
   const currentStats = activeTab === "krs" ? krsStats : khsStats;

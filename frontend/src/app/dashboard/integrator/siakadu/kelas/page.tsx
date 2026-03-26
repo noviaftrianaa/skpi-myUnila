@@ -129,11 +129,10 @@ export default function SiakaduKelasPage() {
   };
 
   const columns: Column<SiakaduKelas>[] = [
-    { key: "kode_mk", label: "Kode MK", sortable: true },
-    { key: "nm_mk", label: "Nama MK", sortable: true },
-    { key: "sks", label: "SKS", align: "center", sortable: true },
-    { key: "nm_kls", label: "Kelas", align: "center" },
-    { key: "id_smt", label: "Semester", align: "center", sortable: true },
+    { key: "nama_mk", label: "Nama MK", sortable: true },
+    { key: "sks_mk", label: "SKS", align: "center", sortable: true },
+    { key: "nama_kelas", label: "Kelas", align: "center" },
+    { key: "id_semester", label: "Semester", align: "center", sortable: true },
     { key: "nm_prodi", label: "Prodi", sortable: true },
   ];
 

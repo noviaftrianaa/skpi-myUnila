@@ -3,10 +3,10 @@ import { myunilaClient } from '@/lib/api/myunilaClient';
 // ============ Types ============
 
 export interface SiakaduMahasiswa {
-  nipd: string;
-  nm_pd: string;
-  id_sms: string;
+  nim: string;
+  nama: string;
   nm_prodi?: string;
+  nm_fakultas?: string;
   angkatan?: string;
   ipk?: number;
   status?: string;
@@ -14,70 +14,77 @@ export interface SiakaduMahasiswa {
 }
 
 export interface SiakaduKelas {
-  id_kls: string;
-  kode_mk?: string;
-  nm_mk?: string;
-  sks?: number;
-  nm_kls?: string;
-  id_smt?: string;
-  nm_prodi?: string;
+  id_kelas?: string;
+  nama_kelas?: string;
+  nama_mk?: string;
+  sks_mk?: number;
+  id_semester?: string;
+  last_sync?: string;
 }
 
 export interface SiakaduKurikulum {
   id_kurikulum?: string;
-  thn_kurikulum?: number;
+  semester?: number;
   kode_mk?: string;
-  nm_mk?: string;
-  sks_mk?: number;
-  jenis_mk?: string;
-  nm_prodi?: string;
+  nama_mata_kuliah?: string;
+  sks?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduMataKuliah {
+  id_mata_kuliah?: string;
   kode_mk: string;
-  nm_mk: string;
-  sks_mk?: number;
-  jenis_mk?: string;
-  nm_prodi?: string;
+  nama_mata_kuliah: string;
+  sks?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduKHS {
-  nipd?: string;
-  nm_pd?: string;
+  nim?: string;
+  nama_mahasiswa?: string;
+  id_semester?: string;
   kode_mk?: string;
-  nm_mk?: string;
+  nama_mk?: string;
+  sks_mk?: number;
   nilai_huruf?: string;
   nilai_angka?: number;
-  nilai_indeks?: number;
-  id_smt?: string;
+  nilai_index?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduKRS {
-  nipd?: string;
-  nm_pd?: string;
-  kode_mk?: string;
-  nm_kls?: string;
-  status_krs?: string;
-  id_smt?: string;
+  nim?: string;
+  nama_mahasiswa?: string;
+  id_semester?: string;
+  status_kuliah?: string;
+  ips?: number;
+  sks_smt?: number;
+  ipk?: number;
+  total_sks?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduTranskrip {
-  nipd?: string;
-  nm_pd?: string;
+  nim?: string;
+  nama_mahasiswa?: string;
   kode_mk?: string;
-  nm_mk?: string;
+  nama_mk?: string;
   sks_mk?: number;
   nilai_huruf?: string;
-  id_smt?: string;
+  nilai_index?: number;
+  smt_ke?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduStatusKuliah {
-  nipd?: string;
-  id_smt?: string;
-  status?: string;
+  nim?: string;
+  id_semester?: string;
+  status_kuliah?: string;
   ips?: number;
   ipk?: number;
-  sks_total?: number;
+  sks_smt?: number;
+  total_sks?: number;
+  last_sync?: string;
 }
 
 export interface SiakaduSyncResult {
