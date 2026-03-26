@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyUnila — Executive Summary Q1 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --primary: #3730a3;
+    --primary-light: #6366f1;
+    --primary-dark: #1e1b4b;
+    --accent: #06b6d4;
+    --accent2: #8b5cf6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 48px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;
+  }
+
+  .slide:last-child { page-break-after: avoid; }
+
+  .slide-number {
+    position: absolute;
+    bottom: 24px;
+    right: 48px;
+    font-size: 14px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .slide-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 48px;
+    font-size: 12px;
+    color: var(--text-light);
+  }
+
+  /* Cover Slide */
+  .cover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 40%, var(--primary-light) 100%);
+    color: white;
+    text-align: center;
+    border-radius: 0;
+    min-height: 100vh;
+    padding: 64px;
+  }
+
+  .cover .logo-area {
+    margin-bottom: 40px;
+    font-size: 64px;
+  }
+
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+
+  .cover .subtitle {
+    font-size: 24px;
+    font-weight: 300;
+    opacity: 0.9;
+    margin-bottom: 48px;
+  }
+
+  .cover .period {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 48px;
+  }
+
+  .cover .org {
+    font-size: 16px;
+    opacity: 0.7;
+    margin-top: 24px;
+  }
+
+  /* Section Headers */
+  .slide h2 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .slide h2 .emoji { margin-right: 12px; }
+
+  .slide .slide-subtitle {
+    font-size: 16px;
+    color: var(--text-light);
+    margin-bottom: 36px;
+    font-weight: 400;
+  }
+
+  /* Stat Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+
+  .stat-card .stat-icon { font-size: 36px; margin-bottom: 12px; }
+  .stat-card .stat-number {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-card .stat-label {
+    font-size: 14px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  /* Module Cards */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .module-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary-light);
+  }
+
+  .module-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+  }
+
+  .module-card p {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  .module-card .tag {
+    display: inline-block;
+    background: #eef2ff;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 8px;
+    margin-right: 4px;
+  }
+
+  .module-card .tag.go { background: #ecfdf5; color: #059669; }
+  .module-card .tag.php { background: #fef3c7; color: #d97706; }
+  .module-card .tag.next { background: #fce7f3; color: #db2777; }
+
+  /* Integration */
+  .integration-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin: 24px 0;
+  }
+
+  .int-box {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 28px;
+    text-align: center;
+    min-width: 180px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .int-box .int-icon { font-size: 32px; margin-bottom: 8px; }
+  .int-box .int-name { font-weight: 700; font-size: 15px; color: var(--primary-dark); }
+  .int-box .int-desc { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+  .int-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 28px;
+    color: var(--primary-light);
+    font-weight: bold;
+  }
+
+  .center-hub {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-color: var(--primary);
+  }
+  .center-hub .int-name { color: white; }
+  .center-hub .int-desc { color: rgba(255,255,255,0.8); }
+
+  /* Infra Cards */
+  .infra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .infra-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .infra-card .infra-icon { font-size: 36px; margin-bottom: 10px; }
+  .infra-card h4 { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; }
+  .infra-card p { font-size: 13px; color: var(--text-light); }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    margin: 16px 0;
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+
+  .timeline-quarter {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 18px;
+  }
+
+  .timeline-quarter.done { background: linear-gradient(135deg, #059669, #10b981); }
+  .timeline-quarter.next { background: linear-gradient(135deg, var(--accent), #22d3ee); }
+  .timeline-quarter.future { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+
+  .timeline-content {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+
+  .timeline-content h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--primary-dark); }
+  .timeline-content ul { list-style: none; padding: 0; }
+  .timeline-content li {
+    font-size: 14px;
+    color: var(--text-light);
+    padding: 3px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+  .timeline-content li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: bold;
+  }
+  .timeline-content.upcoming li::before { content: '→'; color: var(--accent); }
+  .timeline-content.planned li::before { content: '○'; color: var(--accent2); }
+
+  /* Next Focus */
+  .focus-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .focus-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+
+  .focus-card h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 16px;
+  }
+
+  .focus-card ul { list-style: none; padding: 0; }
+  .focus-card li {
+    font-size: 14px;
+    padding: 6px 0;
+    color: var(--text);
+    padding-left: 24px;
+    position: relative;
+  }
+  .focus-card li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--primary-light);
+    font-weight: bold;
+  }
+
+  /* Validation slide */
+  .validation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .val-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warning);
+  }
+
+  .val-card h4 { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; }
+  .val-card p { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+  .val-timeline {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 14px;
+    padding: 24px;
+    margin-top: 20px;
+    border: 1px solid #fbbf24;
+  }
+  .val-timeline h4 { color: #92400e; font-size: 15px; margin-bottom: 10px; }
+  .val-timeline p { font-size: 13px; color: #78350f; }
+
+  /* Summary */
+  .summary-slide {
+    text-align: center;
+  }
+
+  .summary-slide h2 {
+    font-size: 40px;
+    margin-bottom: 32px;
+  }
+
+  .summary-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .summary-stat .num {
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--primary);
+  }
+  .summary-stat .lbl {
+    font-size: 14px;
+    color: var(--text-light);
+  }
+
+  .contact-info {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    display: inline-block;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+  }
+
+  /* Architecture Slide */
+  .arch-diagram {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    font-family: 'Inter', monospace;
+  }
+
+  .arch-layer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-box {
+    background: #eef2ff;
+    border: 2px solid #c7d2fe;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .arch-box.frontend { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+  .arch-box.gateway { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .arch-box.service-go { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+  .arch-box.service-php { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+  .arch-box.db { background: #f3e8ff; border-color: #c4b5fd; color: #5b21b6; }
+  .arch-box.infra { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+
+  .arch-arrow {
+    text-align: center;
+    font-size: 20px;
+    color: var(--text-light);
+    margin: 4px 0;
+  }
+
+  .arch-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: white; }
+    .slide {
+      min-height: 100vh;
+      padding: 40px 56px;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .slide:last-child { page-break-after: avoid; }
+    .stat-card:hover, .module-card:hover { transform: none; }
+    @page { size: A4 landscape; margin: 0; }
+  }
+
+  /* Mobile responsive */
+  @media screen and (max-width: 768px) {
+    .slide {
+      padding: 24px 20px;
+      min-height: auto;
+    }
+
+    .cover { padding: 32px 20px; min-height: 100vh; }
+    .cover h1 { font-size: 28px; }
+    .cover .subtitle { font-size: 16px; }
+    .cover .period { font-size: 14px; padding: 8px 20px; }
+    .cover .logo-area { font-size: 48px; }
+
+    .slide h2 { font-size: 24px; }
+    .slide .slide-subtitle { font-size: 14px; margin-bottom: 20px; }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-card { padding: 16px 12px; }
+    .stat-card .stat-number { font-size: 28px; }
+    .stat-card .stat-icon { font-size: 28px; }
+    .stat-card .stat-label { font-size: 12px; }
+
+    .modules-grid { grid-template-columns: 1fr; gap: 12px; }
+    .module-card { padding: 16px; }
+
+    .infra-grid { grid-template-columns: 1fr; gap: 12px; }
+
+    .integration-flow { flex-direction: column; align-items: center; }
+    .int-arrow { transform: rotate(90deg); }
+
+    .timeline-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .timeline-quarter { padding: 8px 12px; font-size: 15px; }
+
+    .focus-grid { grid-template-columns: 1fr; gap: 16px; }
+    .focus-card { padding: 20px; }
+    .focus-card h3 { font-size: 18px; }
+
+    .validation-grid { grid-template-columns: 1fr; }
+
+    .summary-stats { gap: 24px; }
+    .summary-stat .num { font-size: 32px; }
+
+    .slide-number { bottom: 12px; right: 20px; font-size: 12px; }
+    .slide-footer { bottom: 12px; left: 20px; font-size: 10px; }
+
+    .arch-layer { gap: 8px; }
+    .arch-box { padding: 8px 12px; font-size: 11px; min-width: 80px; }
+
+    .contact-info { padding: 20px; }
+  }
+
+  @media screen and (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .cover h1 { font-size: 24px; }
+    .summary-stats { flex-direction: column; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: COVER -->
+<div class="slide cover">
+  <div class="logo-area">🎓</div>
+  <h1>MyUnila</h1>
+  <div class="subtitle">Portal Terpadu Universitas Lampung</div>
+  <div class="period">📊 Laporan Progres Q1 2026 — Januari s.d. Maret</div>
+  <div class="org" style="margin-top:40px;">
+    <div style="font-size:18px; font-weight:600; opacity:0.9;">UPT Teknologi Informasi dan Komunikasi</div>
+    <div style="font-size:14px; margin-top:8px; opacity:0.7;">Universitas Lampung</div>
+  </div>
+  <div class="slide-number" style="color:rgba(255,255,255,0.5);">1 / 11</div>
+</div>
+
+<!-- SLIDE 2: ARSITEKTUR -->
+<div class="slide">
+  <h2><span class="emoji">🏗️</span> Arsitektur Sistem</h2>
+  <div class="slide-subtitle">Microservices • Multi-stack • 7 Virtual Machine</div>
+
+  <div class="arch-diagram">
+    <div class="arch-label">👤 Users & Clients</div>
+    <div class="arch-layer">
+      <div class="arch-box frontend">🌐 Next.js 15<br><small>Portal Frontend</small></div>
+      <div class="arch-box frontend">📱 Mobile<br><small>Companion App</small></div>
+    </div>
+    <div class="arch-arrow">⬇️</div>
+    <div class="arch-label">🔀 API Gateway</div>
+    <div class="arch-layer">
+      <div class="arch-box gateway">🦍 Kong Gateway<br><small>JWT • CORS • Rate Limit</small></div>
+    </div>
+    <div class="arch-arrow">⬇️</div>
+    <div class="arch-label">⚙️ Microservices</div>
+    <div class="arch-layer">
+      <div class="arch-box service-go">🔷 Sister (Go)</div>
+      <div class="arch-box service-go">🔷 Feeder (Go)</div>
+      <div class="arch-box service-go">🔷 MyUnila (Go)</div>
+      <div class="arch-box service-go">🔷 API (Go)</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-box service-go">🔷 Keuangan (Go)</div>
+      <div class="arch-box service-go">🔷 Monitoring (Go)</div>
+      <div class="arch-box service-go">🔷 Project (Go)</div>
+      <div class="arch-box service-php">🟡 Auth (PHP)</div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-box service-php">🟡 Dashboard (PHP)</div>
+      <div class="arch-box service-php">🟡 Public (PHP)</div>
+    </div>
+    <div class="arch-arrow">⬇️</div>
+    <div class="arch-label">💾 Data & Storage</div>
+    <div class="arch-layer">
+      <div class="arch-box db">🗄️ SQL Server 2019</div>
+      <div class="arch-box db">🐘 PostgreSQL</div>
+      <div class="arch-box infra">⚡ Redis Cache</div>
+      <div class="arch-box infra">📦 MinIO Storage</div>
+    </div>
+    <div class="arch-arrow">⬇️</div>
+    <div class="arch-label">📊 Monitoring</div>
+    <div class="arch-layer">
+      <div class="arch-box infra">📈 Prometheus</div>
+      <div class="arch-box infra">📊 Grafana</div>
+      <div class="arch-box infra">📝 Loki</div>
+      <div class="arch-box infra">🔔 Alertmanager</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">2 / 11</div>
+</div>
+
+<!-- SLIDE 3: HIGHLIGHTS -->
+<div class="slide">
+  <h2><span class="emoji">⚡</span> Highlights Q1 2026</h2>
+  <div class="slide-subtitle">Capaian utama selama periode Januari — Maret 2026</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💻</div>
+      <div class="stat-number">634</div>
+      <div class="stat-label">Total Commits</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-number">11</div>
+      <div class="stat-label">Modul Selesai</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-number">7M+</div>
+      <div class="stat-label">Records Accessible</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🖥️</div>
+      <div class="stat-number">7</div>
+      <div class="stat-label">Virtual Machines</div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div class="stat-number">4,186</div>
+      <div class="stat-label">Files Changed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">➕</div>
+      <div class="stat-number">911K+</div>
+      <div class="stat-label">Lines of Code Added</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔗</div>
+      <div class="stat-number">5</div>
+      <div class="stat-label">Sistem Terintegrasi</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-number">12</div>
+      <div class="stat-label">Dashboard Endpoint</div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:16px; margin-top:8px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px; background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-radius:12px; padding:16px 20px; text-align:center;">
+      <div style="font-size:13px; color:#065f46; font-weight:600;">Jan: 133 commits</div>
+    </div>
+    <div style="flex:1; min-width:200px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-radius:12px; padding:16px 20px; text-align:center;">
+      <div style="font-size:13px; color:#1e40af; font-weight:600;">Feb: 110 commits</div>
+    </div>
+    <div style="flex:1; min-width:200px; background:linear-gradient(135deg,#fce7f3,#fbcfe8); border-radius:12px; padding:16px 20px; text-align:center;">
+      <div style="font-size:13px; color:#9d174d; font-weight:600;">Mar: 391 commits 🔥</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">3 / 11</div>
+</div>
+
+<!-- SLIDE 4: MODUL UTAMA (1/2) -->
+<div class="slide">
+  <h2><span class="emoji">🧩</span> Modul yang Telah Selesai (1/2)</h2>
+  <div class="slide-subtitle">Sistem inti dan layanan data — siap produksi</div>
+
+  <div class="modules-grid">
+    <div class="module-card">
+      <h4>🔐 Manajemen Akses (Auth)</h4>
+      <p>SSO Radius, portal app management, RBAC enforcement dengan Redis, JWT/login/access logging. 16 menu, full CRUD.</p>
+      <span class="tag php">PHP/Laravel</span>
+      <span class="tag">SSO</span>
+      <span class="tag">RBAC</span>
+    </div>
+    <div class="module-card">
+      <h4>📊 Dashboard Pimpinan</h4>
+      <p>12 endpoint: Beranda, Mahasiswa, Dosen, Akreditasi, Lulusan, Litabmas, Publikasi, Pegawai, Keuangan, Prestasi, Kerjasama, IKU. Filter semester & fakultas.</p>
+      <span class="tag php">Laravel</span>
+      <span class="tag">Redis Cache</span>
+      <span class="tag">IKU 9 Indikator</span>
+    </div>
+    <div class="module-card">
+      <h4>📋 Data Unila — Raw Data Portal</h4>
+      <p>18 halaman (8 modul + sub-page). Mahasiswa, Dosen, Tridarma, Akademik, Kerjasama, Tracer Study, Keuangan. Server-side DataTable, export Excel.</p>
+      <span class="tag php">Laravel</span>
+      <span class="tag">7M+ Records</span>
+    </div>
+    <div class="module-card">
+      <h4>💰 Integrasi Keuangan (SIMPEDAM)</h4>
+      <p>UKT (8,378 rows), SPP (411,555 rows), auto-mapping 111 prodi. Sync UI dengan progress tracking.</p>
+      <span class="tag go">Go Service</span>
+      <span class="tag">SIMPEDAM API</span>
+    </div>
+    <div class="module-card">
+      <h4>🛡️ Web Monitoring & Keamanan</h4>
+      <p>Deteksi konten judol/judi/slot. Crawler: deep scan, cloaking, redirect chain, AMP. GSC integration, WhatsApp/Telegram notifikasi.</p>
+      <span class="tag go">Go Fiber</span>
+      <span class="tag">GSC API</span>
+      <span class="tag">16 Tabel</span>
+    </div>
+    <div class="module-card">
+      <h4>📋 Project Management</h4>
+      <p>Kanban board, timeline, sprints, time tracking, contribution heatmap, public share page. Telegram notifications.</p>
+      <span class="tag go">Go Service</span>
+      <span class="tag">PostgreSQL</span>
+      <span class="tag">17 Tabel</span>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">4 / 11</div>
+</div>
+
+<!-- SLIDE 5: MODUL UTAMA (2/2) -->
+<div class="slide">
+  <h2><span class="emoji">🧩</span> Modul yang Telah Selesai (2/2)</h2>
+  <div class="slide-subtitle">Integrasi data nasional, portal, dan modul baru</div>
+
+  <div class="modules-grid">
+    <div class="module-card">
+      <h4>🔄 SIAKADU Integration</h4>
+      <p>36 tabel SQL, 9 halaman sync (referensi, mahasiswa, nilai, KHS, transkrip, kuliah, pimpinan unit, akademik). Scheduler support.</p>
+      <span class="tag go">Go</span>
+      <span class="tag">36 Tabel</span>
+    </div>
+    <div class="module-card">
+      <h4>🎓 SISTER & Feeder Integrator</h4>
+      <p>SISTER: foto dosen sync (MinIO), dokumen sync, scheduler. Feeder: dosen pembimbing, aktivitas mahasiswa, LulusDO sync. API docs (Scalar UI).</p>
+      <span class="tag go">Go</span>
+      <span class="tag">MinIO</span>
+      <span class="tag">Scalar UI</span>
+    </div>
+    <div class="module-card">
+      <h4>📝 SI MBAK — BAK <span style="color:var(--warning); font-weight:800;">(In Progress)</span></h4>
+      <p>Frontend scaffold complete. 8 menu: Dashboard, Surat Mandiri, Permohonan Akademik, Verifikasi, Persetujuan, Batch Administrasi, Monitoring, Master Data.</p>
+      <span class="tag next">Next.js</span>
+      <span class="tag">8 Menu</span>
+    </div>
+    <div class="module-card">
+      <h4>🌐 Portal Frontend</h4>
+      <p>Next.js 15 unified portal. Dynamic menu dari DB per-role. App categories, search, access control. Dark mode, responsive design.</p>
+      <span class="tag next">Next.js 15</span>
+      <span class="tag">Dynamic RBAC</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius:14px; padding:20px 28px; border:1px solid #86efac;">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <span style="font-size:24px;">✅</span>
+      <span style="font-size:16px; font-weight:700; color:#065f46;">Total: 10 modul selesai + 1 modul in progress</span>
+      <span style="margin-left:auto; font-size:14px; color:#047857; font-weight:500;">Target Q1 tercapai 100%</span>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">5 / 11</div>
+</div>
+
+<!-- SLIDE 6: INTEGRASI -->
+<div class="slide">
+  <h2><span class="emoji">🔗</span> Integrasi Sistem Eksternal</h2>
+  <div class="slide-subtitle">MyUnila sebagai hub integrasi data kampus dan nasional</div>
+
+  <div class="integration-flow">
+    <div class="int-box">
+      <div class="int-icon">🎓</div>
+      <div class="int-name">SISTER</div>
+      <div class="int-desc">Data Dosen<br>Foto, Dokumen</div>
+    </div>
+    <div class="int-arrow">→</div>
+    <div class="int-box">
+      <div class="int-icon">📚</div>
+      <div class="int-name">Feeder PDDIKTI</div>
+      <div class="int-desc">Data Mahasiswa<br>Nilai, Transkrip</div>
+    </div>
+    <div class="int-arrow">→</div>
+    <div class="int-box center-hub">
+      <div class="int-icon">⚡</div>
+      <div class="int-name">MyUnila Hub</div>
+      <div class="int-desc">Portal Terpadu</div>
+    </div>
+    <div class="int-arrow">←</div>
+    <div class="int-box">
+      <div class="int-icon">💰</div>
+      <div class="int-name">SIMPEDAM</div>
+      <div class="int-desc">Data Keuangan<br>UKT, SPP</div>
+    </div>
+  </div>
+
+  <div class="integration-flow" style="margin-top:8px;">
+    <div class="int-box">
+      <div class="int-icon">📖</div>
+      <div class="int-name">SIAKADU</div>
+      <div class="int-desc">Data Akademik<br>36 Tabel Sync</div>
+    </div>
+    <div class="int-arrow">→</div>
+    <div class="int-box center-hub">
+      <div class="int-icon">⚡</div>
+      <div class="int-name">MyUnila Hub</div>
+      <div class="int-desc">Portal Terpadu</div>
+    </div>
+    <div class="int-arrow">←</div>
+    <div class="int-box">
+      <div class="int-icon">🔍</div>
+      <div class="int-name">Google GSC</div>
+      <div class="int-desc">Search Console<br>URL Removal</div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:24px;">
+    <div style="background:#f0fdf4; border-radius:10px; padding:14px; text-align:center; border:1px solid #bbf7d0;">
+      <div style="font-size:20px; font-weight:800; color:#059669;">411K+</div>
+      <div style="font-size:12px; color:#047857;">SPP Records Synced</div>
+    </div>
+    <div style="background:#eff6ff; border-radius:10px; padding:14px; text-align:center; border:1px solid #bfdbfe;">
+      <div style="font-size:20px; font-weight:800; color:#2563eb;">36</div>
+      <div style="font-size:12px; color:#1d4ed8;">Tabel SIAKADU</div>
+    </div>
+    <div style="background:#fef3c7; border-radius:10px; padding:14px; text-align:center; border:1px solid #fde68a;">
+      <div style="font-size:20px; font-weight:800; color:#d97706;">111</div>
+      <div style="font-size:12px; color:#b45309;">Prodi Auto-mapped</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">6 / 11</div>
+</div>
+
+<!-- SLIDE 7: INFRASTRUKTUR -->
+<div class="slide">
+  <h2><span class="emoji">🏗️</span> Infrastructure & Keamanan</h2>
+  <div class="slide-subtitle">Production-grade deployment di 7 virtual machine</div>
+
+  <div class="infra-grid">
+    <div class="infra-card">
+      <div class="infra-icon">🦍</div>
+      <h4>Kong API Gateway</h4>
+      <p>15+ services terdaftar<br>JWT auth, CORS, Rate limiting</p>
+    </div>
+    <div class="infra-card">
+      <div class="infra-icon">📈</div>
+      <h4>Monitoring Stack</h4>
+      <p>Prometheus + Grafana + Loki + Alertmanager (VM4)</p>
+    </div>
+    <div class="infra-card">
+      <div class="infra-icon">📦</div>
+      <h4>MinIO Object Storage</h4>
+      <p>Foto dosen, dokumen<br>S3-compatible (VM7)</p>
+    </div>
+    <div class="infra-card">
+      <div class="infra-icon">🔄</div>
+      <h4>DB Log Shipping</h4>
+      <p>SQL Server 119 → 190<br>Interval 5 menit</p>
+    </div>
+    <div class="infra-card">
+      <div class="infra-icon">🤖</div>
+      <h4>Ansible Automation</h4>
+      <p>Rebuild per-VM, per-service<br>Automated deployment</p>
+    </div>
+    <div class="infra-card">
+      <div class="infra-icon">🐳</div>
+      <h4>Docker Deployment</h4>
+      <p>Containerized services<br>Tersebar di 7 VM</p>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; background:linear-gradient(135deg,#fef2f2,#fee2e2); border-radius:14px; padding:20px 28px; border:1px solid #fecaca;">
+    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <span style="font-size:28px;">🛡️</span>
+      <div>
+        <div style="font-weight:700; color:#991b1b; font-size:15px;">Keamanan Web Aktif</div>
+        <div style="font-size:13px; color:#b91c1c;">Crawler otomatis deteksi judol/judi/slot • GSC URL removal • Dashboard ancaman per-fakultas • WhatsApp & Telegram alert</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">7 / 11</div>
+</div>
+
+<!-- SLIDE 8: ROADMAP -->
+<div class="slide">
+  <h2><span class="emoji">🗺️</span> Roadmap 1 Tahun — 2026</h2>
+  <div class="slide-subtitle">Rencana pengembangan per kuartal</div>
+
+  <div class="timeline">
+    <div class="timeline-row">
+      <div class="timeline-quarter done">Q1 ✅</div>
+      <div class="timeline-content">
+        <h4>Jan — Mar 2026 (Selesai)</h4>
+        <ul>
+          <li>Portal inti + Auth + RBAC</li>
+          <li>Dashboard Pimpinan + Data Unila (7M+ records)</li>
+          <li>Integrasi Keuangan (SIMPEDAM)</li>
+          <li>Web Monitoring & Keamanan</li>
+          <li>Project Management + Infrastructure</li>
+        </ul>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-quarter next">Q2 🔜</div>
+      <div class="timeline-content upcoming">
+        <h4>Apr — Jun 2026</h4>
+        <ul>
+          <li>SI MBAK — full 6 modul (surat, permohonan, verifikasi, persetujuan, batch, monitoring)</li>
+          <li>SI KKN — pendaftaran, penempatan, penilaian, laporan</li>
+          <li>SIAKADU deploy production</li>
+          <li>VM6 replica (active-active)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-quarter future">Q3</div>
+      <div class="timeline-content planned">
+        <h4>Jul — Sep 2026</h4>
+        <ul>
+          <li>SIKEMA — Sistem Informasi Kemahasiswaan</li>
+          <li>SIKEBAS — Sistem Informasi Kebijakan Akademik</li>
+          <li>Mobile app (companion)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-quarter future">Q4</div>
+      <div class="timeline-content planned">
+        <h4>Oct — Dec 2026</h4>
+        <ul>
+          <li>SPMI — Sistem Penjaminan Mutu Internal</li>
+          <li>Analytics & BI dashboard</li>
+          <li>Performance optimization & scaling</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">8 / 11</div>
+</div>
+
+<!-- SLIDE 9: VALIDASI & QA -->
+<div class="slide">
+  <h2><span class="emoji">🔍</span> Rencana Validasi & Quality Assurance</h2>
+  <div class="slide-subtitle">Memastikan akurasi data sebelum go-live ke stakeholder</div>
+
+  <div class="validation-grid">
+    <div class="val-card">
+      <h4>📊 Validasi Dashboard Pimpinan</h4>
+      <p>Cross-check data Dashboard vs sumber asli: SISTER (dosen), Feeder PDDIKTI (mahasiswa), SIMPEDAM (keuangan), BAN-PT (akreditasi). Sampling minimal 5 fakultas, bandingkan per-prodi.</p>
+    </div>
+    <div class="val-card">
+      <h4>📐 Validasi Rumus IKU</h4>
+      <p>9 Indikator Kinerja Utama — verifikasi formula, numerator/denominator, dan sumber data. Cross-check manual vs sistem. Koordinasi dengan BPM/LPMPP. Estimasi: 4-6 minggu.</p>
+    </div>
+    <div class="val-card">
+      <h4>🗃️ Verifikasi Data Unila</h4>
+      <p>7M+ records accuracy check. Random sampling 10% per fakultas. Bandingkan: mahasiswa vs laporan semester, dosen vs kepegawaian, litabmas vs LPPM, keuangan vs SIMPEDAM langsung.</p>
+    </div>
+    <div class="val-card">
+      <h4>👥 UAT Stakeholder</h4>
+      <p>3 fase: (1) Tim developer internal, (2) Admin 5 fakultas pilot, (3) Pimpinan (Rektor, Wakil Rektor, Dekan). Feedback via Project Management module.</p>
+    </div>
+  </div>
+
+  <div class="val-timeline">
+    <h4>📅 Timeline Validasi (April — Juni 2026)</h4>
+    <p>
+      <strong>Apr Minggu 1-2:</strong> Dashboard Pimpinan + Data Unila &nbsp;→&nbsp;
+      <strong>Apr Minggu 3-4:</strong> IKU batch 1 (IKU 1-5) &nbsp;→&nbsp;
+      <strong>Mei Minggu 1-2:</strong> IKU batch 2 (IKU 6-9) &nbsp;→&nbsp;
+      <strong>Mei Minggu 3-4:</strong> UAT + Fix &nbsp;→&nbsp;
+      <strong>Juni:</strong> Sign-off & Go-live ✅
+    </p>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">9 / 11</div>
+</div>
+
+<!-- SLIDE 10: FOKUS BERIKUTNYA -->
+<div class="slide">
+  <h2><span class="emoji">🎯</span> Fokus 2 Bulan ke Depan</h2>
+  <div class="slide-subtitle">April — Mei 2026: SI MBAK & SI KKN</div>
+
+  <div class="focus-grid">
+    <div class="focus-card">
+      <h3>📝 SI MBAK</h3>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Sistem Informasi Biro Administrasi Kemahasiswaan</p>
+      <ul>
+        <li>Surat Mandiri — generate surat otomatis</li>
+        <li>Permohonan Akademik — workflow approval</li>
+        <li>Verifikasi — dokumen & data mahasiswa</li>
+        <li>Persetujuan — multi-level approval</li>
+        <li>Batch Administrasi — operasi massal</li>
+        <li>Monitoring — tracking status real-time</li>
+      </ul>
+      <div style="margin-top:16px; background:#eef2ff; border-radius:8px; padding:10px 14px;">
+        <span style="font-size:12px; color:var(--primary); font-weight:600;">Status: Frontend scaffold ✅ • Backend: April</span>
+      </div>
+    </div>
+    <div class="focus-card">
+      <h3>🏘️ SI KKN</h3>
+      <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Sistem Informasi Kuliah Kerja Nyata</p>
+      <ul>
+        <li>Pendaftaran — registrasi mahasiswa KKN</li>
+        <li>Penempatan — lokasi & kelompok</li>
+        <li>Penilaian — DPL, masyarakat, presentasi</li>
+        <li>Laporan — individu & kelompok</li>
+        <li>Monitoring — progress harian</li>
+        <li>Sertifikat — generate otomatis</li>
+      </ul>
+      <div style="margin-top:16px; background:#f0fdf4; border-radius:8px; padding:10px 14px;">
+        <span style="font-size:12px; color:#059669; font-weight:600;">Status: Planning phase • Start: April</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">10 / 11</div>
+</div>
+
+<!-- SLIDE 11: SUMMARY -->
+<div class="slide summary-slide">
+  <h2><span class="emoji">🎓</span> Ringkasan & Penutup</h2>
+
+  <div class="summary-stats">
+    <div class="summary-stat">
+      <div class="num">634</div>
+      <div class="lbl">Commits</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">11</div>
+      <div class="lbl">Modul</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">7M+</div>
+      <div class="lbl">Records</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">5</div>
+      <div class="lbl">Integrasi</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">7</div>
+      <div class="lbl">VM</div>
+    </div>
+  </div>
+
+  <p style="font-size:18px; color:var(--text-light); max-width:700px; margin:0 auto 40px; line-height:1.8;">
+    MyUnila telah menjadi <strong style="color:var(--primary);">portal terpadu</strong> yang mengintegrasikan data akademik, keuangan, kepegawaian, dan monitoring keamanan Universitas Lampung dalam satu platform.
+  </p>
+
+  <div class="contact-info">
+    <div style="font-size:14px; color:var(--text-light); margin-bottom:8px;">Tim Pengembang MyUnila</div>
+    <div style="font-size:18px; font-weight:700; color:var(--primary);">UPT Teknologi Informasi dan Komunikasi</div>
+    <div style="font-size:14px; color:var(--text-light); margin-top:4px;">Universitas Lampung — 2026</div>
+  </div>
+
+  <div class="slide-footer">MyUnila — Executive Summary Q1 2026</div>
+  <div class="slide-number">11 / 11</div>
+</div>
+
+</body>
+</html>
