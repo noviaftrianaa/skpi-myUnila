@@ -11,8 +11,10 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { getToken, setToken, clearTokens } from './client';
 
-// Project Service API URL
-const PROJECT_API_URL = process.env.NEXT_PUBLIC_PROJECT_API_URL || 'http://localhost:8090/api/v1';
+// Project Service API URL — env tanpa /api/v1 (konsisten dengan service lain)
+const PROJECT_API_URL = process.env.NEXT_PUBLIC_PROJECT_API_URL
+  ? `${process.env.NEXT_PUBLIC_PROJECT_API_URL}/api/v1`
+  : 'http://localhost:8090/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**

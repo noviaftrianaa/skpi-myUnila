@@ -21,7 +21,9 @@ import {
   FiList,
 } from "react-icons/fi";
 
-const API = process.env.NEXT_PUBLIC_PROJECT_API_URL || "http://localhost:8095/api/v1";
+const API = process.env.NEXT_PUBLIC_PROJECT_API_URL
+  ? `${process.env.NEXT_PUBLIC_PROJECT_API_URL}/api/v1`
+  : "http://localhost:8095/api/v1";
 
 function formatDateId(dateStr?: string) {
   if (!dateStr) return "-";
