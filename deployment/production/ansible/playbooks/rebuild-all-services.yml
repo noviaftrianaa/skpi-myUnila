@@ -616,12 +616,12 @@
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
 
-    - name: Restart PHP Services
+    - name: Restart PHP Services (force recreate)
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml up -d
-        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml up -d
-        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml up -d
+        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml up -d --force-recreate
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
