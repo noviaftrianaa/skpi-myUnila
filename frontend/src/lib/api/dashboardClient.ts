@@ -69,7 +69,7 @@ const createDashboardClient = (): AxiosInstance => {
             throw new Error('No refresh token available');
           }
 
-          const AUTH_REFRESH_URL = `${process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service'}/api/v1/auth/refresh`;
+          const AUTH_REFRESH_URL = `${process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:9800/auth-service/api/v1'}/auth/refresh`;
 
           const response = await axios.post(
             AUTH_REFRESH_URL,

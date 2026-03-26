@@ -12,7 +12,9 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { getToken, setToken, clearTokens } from './client';
 
 // BAK Service API URL
-const BAK_API_URL = process.env.NEXT_PUBLIC_BAK_API_URL || 'http://localhost:8090/api/v1';
+const BAK_API_URL = process.env.NEXT_PUBLIC_BAK_API_URL
+  ? `${process.env.NEXT_PUBLIC_BAK_API_URL}/api/v1`
+  : 'http://localhost:9800/bak-service/api/v1';
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**

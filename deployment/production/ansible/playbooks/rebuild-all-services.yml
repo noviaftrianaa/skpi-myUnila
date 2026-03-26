@@ -168,10 +168,19 @@
       become_user: "{{ ansible_user }}"
       register: auth_build
 
+    - name: Rebuild Dashboard Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: dashboard_build
+
     - name: Restart Public Service
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/public/docker-compose.yml up -d
+        docker compose --env-file .env -f services/public/docker-compose.yml up -d --force-recreate
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -179,7 +188,15 @@
     - name: Restart Auth Service
       shell: |
         cd {{ deployment_dir }}
-        docker compose --env-file .env -f services/auth/docker-compose.yml up -d
+        docker compose --env-file .env -f services/auth/docker-compose.yml up -d --force-recreate
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Restart Dashboard Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml up -d --force-recreate
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -189,6 +206,26 @@
         docker exec myunila-auth-service php artisan config:clear 2>/dev/null || true
         docker exec myunila-auth-service php artisan route:clear 2>/dev/null || true
         docker exec myunila-auth-service php artisan cache:clear 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Clear Laravel caches for Dashboard Service
+      shell: |
+        docker exec myunila-dashboard-service php artisan config:clear 2>/dev/null || true
+        docker exec myunila-dashboard-service php artisan route:clear 2>/dev/null || true
+        docker exec myunila-dashboard-service php artisan cache:clear 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Clear Laravel caches for Public Service
+      shell: |
+        docker exec myunila-public-service php artisan config:clear 2>/dev/null || true
+        docker exec myunila-public-service php artisan route:clear 2>/dev/null || true
+        docker exec myunila-public-service php artisan cache:clear 2>/dev/null || true
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -917,6 +954,7 @@
           Backend services (via Kong - Production):
           - Public:      http://192.168.120.41:9800/public-service/api/health
           - Auth:        http://192.168.120.41:9800/auth-service/api/health
+          - Dashboard:   http://192.168.120.41:9800/dashboard-service/api/health
           - Sister:      http://192.168.120.41:9800/sister-service/health
           - Feeder:      http://192.168.120.41:9800/feeder-service/health
           - MyUnila:     http://192.168.120.41:9800/myunila-service/health
