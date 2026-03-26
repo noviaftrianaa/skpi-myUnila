@@ -981,3 +981,24 @@ IF NOT EXISTS (SELECT 1 FROM man_akses.menu_role WHERE id_peran=1 AND id_menu='D
 GO
 PRINT '=== SEED COMPLETE ===';
 GO
+
+-- ==========================================
+-- 5. REORGANIZE CATEGORIES
+-- ==========================================
+
+-- 5a. Hide Dashboard Unila dan IKU Dashboard (a_live=0, a_tampil_portal=0)
+UPDATE man_akses.aplikasi SET a_live = 0, a_tampil_portal = 0, a_aktif = 0, last_update = GETDATE() WHERE app_slug = 'dashboard-unila';
+UPDATE man_akses.aplikasi SET a_live = 0, a_tampil_portal = 0, a_aktif = 0, last_update = GETDATE() WHERE app_slug = 'iku-dashboard';
+GO
+
+-- 5b. Move Data Unila from "Data dan Pelaporan" to "Dashboard & Akreditasi"
+UPDATE man_akses.aplikasi 
+SET id_kategori = '7759AE05-D113-4324-997D-1F3053DE9527',  -- Dashboard & Akreditasi
+    last_update = GETDATE()
+WHERE app_slug = 'data-unila';
+GO
+
+PRINT '=== CATEGORY REORGANIZE DONE ===';
+PRINT 'Dashboard & Akreditasi: Dashboard Pimpinan + Data Unila';
+PRINT 'Hidden: Dashboard Unila, IKU Dashboard';
+GO
