@@ -30,7 +30,7 @@ export default function ActivityPage() {
           projectService.getActivity(projectId, { per_page: 50 }),
         ]);
         setProject(proj);
-        setActivities(acts.data);
+        setActivities(acts?.data ?? []);
       } catch (e) {
         console.error(e);
       } finally {

@@ -84,10 +84,10 @@ export default function ProjectOverviewPage() {
         ]);
         if (cancelled) return;
         setProject(proj);
-        setModules(mods);
-        setTasks(tasksResp.data);
-        setActivities(actResp.data);
-        setDocuments(docsResp.data ?? []);
+        setModules(mods ?? []);
+        setTasks(tasksResp?.data ?? []);
+        setActivities(actResp?.data ?? []);
+        setDocuments(docsResp?.data ?? []);
         setSprints(sprintsResp ?? []);
       } catch (error: unknown) {
         if (cancelled) return;

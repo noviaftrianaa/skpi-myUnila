@@ -189,7 +189,7 @@ export default function TimelinePage() {
       ]);
       setProject(proj);
       setModules(mods);
-      setTasks(tasksResp.data);
+      setTasks(tasksResp?.data ?? []);
     } catch (error) {
       console.error("Error loading timeline:", error);
     } finally {

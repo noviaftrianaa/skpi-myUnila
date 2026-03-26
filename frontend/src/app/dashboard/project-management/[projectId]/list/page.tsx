@@ -92,7 +92,7 @@ export default function TaskListPage() {
         status: statusFilter !== "all" ? statusFilter : undefined,
         prioritas: priorityFilter !== "all" ? priorityFilter : undefined,
       });
-      setTasks(res.data);
+      setTasks(res?.data ?? []);
       setTotalRecords(res.meta.total);
     } catch (e) {
       console.error(e);
