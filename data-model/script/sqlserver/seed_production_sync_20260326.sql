@@ -1065,3 +1065,12 @@ BEGIN
   PRINT 'SIMBAK: app + 8 menus + RBAC (Admin + Developer) inserted';
 END
 GO
+
+-- ==========================================
+-- 7. RENAME E-KKN → SI KKN
+-- ==========================================
+UPDATE man_akses.aplikasi SET nm_aplikasi = 'SI KKN', last_update = GETDATE() WHERE app_slug = 'e-kkn';
+GO
+
+PRINT 'E-KKN renamed to SI KKN';
+GO
