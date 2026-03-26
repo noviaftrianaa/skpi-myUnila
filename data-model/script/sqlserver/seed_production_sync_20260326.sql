@@ -1010,7 +1010,7 @@ GO
 -- 6a. INSERT SIMBAK app
 IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE app_slug = 'sim-bak')
   INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, a_live, a_terintegrasi, icon_name, icon_color, id_kategori, app_slug, urutan, a_tampil_portal, a_maintenance, a_coming_soon, a_aktif, a_filter_organisasi, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, tgl_create, last_update, last_sync)
-  VALUES (NEWID(), 'SIMBAK', 'Sistem Informasi Manajemen BAK — Layanan administrasi kemahasiswaan', '/dashboard/sim-bak', 0, 1, 'heroicons:document-text', 'text-teal-600', 'CB701AB4-FE11-4355-BB01-5FBEEBB0DBD2', 'sim-bak', 15, 1, 0, 1, 1, 0, 1, 1, 1, GETDATE(), GETDATE(), GETDATE());
+  VALUES (NEWID(), 'SI MBAK', 'Sistem Informasi Manajemen BAK — Layanan administrasi kemahasiswaan', '/dashboard/sim-bak', 0, 1, 'heroicons:document-text', 'text-teal-600', '04F046DF-F52B-402A-BEC3-F8E1FF6A146D', 'sim-bak', 15, 1, 0, 1, 1, 0, 1, 1, 1, GETDATE(), GETDATE(), GETDATE());
 GO
 
 -- 6b. INSERT SIMBAK menus
@@ -1062,7 +1062,7 @@ BEGIN
   FROM man_akses.menu WHERE id_aplikasi = @simbak_app_id
   AND id_menu NOT IN (SELECT id_menu FROM man_akses.menu_role WHERE id_peran = 107);
 
-  PRINT 'SIMBAK: app + 8 menus + RBAC (Admin + Developer) inserted';
+  PRINT 'SI MBAK: app + 8 menus + RBAC (Admin + Developer) inserted';
 END
 GO
 
