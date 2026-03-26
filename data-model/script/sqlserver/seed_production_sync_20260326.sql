@@ -1002,3 +1002,66 @@ PRINT '=== CATEGORY REORGANIZE DONE ===';
 PRINT 'Dashboard & Akreditasi: Dashboard Pimpinan + Data Unila';
 PRINT 'Hidden: Dashboard Unila, IKU Dashboard';
 GO
+
+-- ==========================================
+-- 6. INSERT SIMBAK app + menus + RBAC
+-- ==========================================
+
+-- 6a. INSERT SIMBAK app
+IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE app_slug = 'sim-bak')
+  INSERT INTO man_akses.aplikasi (id_aplikasi, nm_aplikasi, ket_aplikasi, url, a_live, a_terintegrasi, icon_name, icon_color, id_kategori, app_slug, urutan, a_tampil_portal, a_maintenance, a_coming_soon, a_aktif, a_filter_organisasi, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, tgl_create, last_update, last_sync)
+  VALUES (NEWID(), 'SIMBAK', 'Sistem Informasi Manajemen BAK — Layanan administrasi kemahasiswaan', '/dashboard/sim-bak', 0, 1, 'heroicons:document-text', 'text-teal-600', 'CB701AB4-FE11-4355-BB01-5FBEEBB0DBD2', 'sim-bak', 15, 1, 0, 1, 1, 0, 1, 1, 1, GETDATE(), GETDATE(), GETDATE());
+GO
+
+-- 6b. INSERT SIMBAK menus
+DECLARE @simbak_app_id UNIQUEIDENTIFIER;
+SELECT @simbak_app_id = id_aplikasi FROM man_akses.aplikasi WHERE app_slug = 'sim-bak';
+
+IF @simbak_app_id IS NOT NULL
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Dashboard', '/dashboard/sim-bak', 1, 1, 1, 'heroicons:squares-2x2', 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/surat-mandiri' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Surat Mandiri', '/dashboard/sim-bak/surat-mandiri', 2, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/permohonan' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Permohonan Akademik', '/dashboard/sim-bak/permohonan', 3, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/admin/verifikasi' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Verifikasi', '/dashboard/sim-bak/admin/verifikasi', 4, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/admin/persetujuan' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Persetujuan', '/dashboard/sim-bak/admin/persetujuan', 5, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/batch' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Batch Administrasi', '/dashboard/sim-bak/batch', 6, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/monitoring' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Monitoring', '/dashboard/sim-bak/monitoring', 7, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE nm_file = '/dashboard/sim-bak/master-data' AND id_aplikasi = @simbak_app_id)
+    INSERT INTO man_akses.menu (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    VALUES (NEWID(), 'Master Data', '/dashboard/sim-bak/master-data', 8, 1, 1, NULL, 0, @simbak_app_id, NULL, GETDATE(), GETDATE(), GETDATE());
+
+  -- 6c. RBAC: Admin (1) + Developer (107) access all menus
+  INSERT INTO man_akses.menu_role (id_peran, id_menu, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, tgl_create, last_update, last_sync)
+  SELECT 1, id_menu, 1, 1, 1, 1, 1, GETDATE(), GETDATE(), GETDATE()
+  FROM man_akses.menu WHERE id_aplikasi = @simbak_app_id
+  AND id_menu NOT IN (SELECT id_menu FROM man_akses.menu_role WHERE id_peran = 1);
+
+  INSERT INTO man_akses.menu_role (id_peran, id_menu, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, tgl_create, last_update, last_sync)
+  SELECT 107, id_menu, 1, 1, 1, 1, 1, GETDATE(), GETDATE(), GETDATE()
+  FROM man_akses.menu WHERE id_aplikasi = @simbak_app_id
+  AND id_menu NOT IN (SELECT id_menu FROM man_akses.menu_role WHERE id_peran = 107);
+
+  PRINT 'SIMBAK: app + 8 menus + RBAC (Admin + Developer) inserted';
+END
+GO
