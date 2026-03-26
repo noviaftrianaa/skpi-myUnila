@@ -469,6 +469,45 @@
         delay: 5
         timeout: 60
 
+    - name: Clean Docker build cache for Project Service
+      shell: |
+        docker builder prune -af --filter "label!=keep"
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Check if Project Service docker-compose exists
+      stat:
+        path: "{{ deployment_dir }}/services/project/docker-compose.yml"
+      register: project_compose
+
+    - name: Rebuild Project Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/project/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: project_build
+      when: project_compose.stat.exists
+
+    - name: Restart Project Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/project/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      when: project_compose.stat.exists
+
+    - name: Wait for Project Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8095
+        delay: 5
+        timeout: 60
+      when: project_compose.stat.exists
+
     - name: Verify VM3 services status
       shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
       register: vm3_status

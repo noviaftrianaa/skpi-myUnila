@@ -1716,6 +1716,64 @@ else
     fi
 fi
 
+###############################################################################
+# Project Service (VM3 - 192.168.120.43:8095)
+# JWT required for /project-service/* (authenticated endpoints)
+# Public endpoints at /project-service/api/v1/public/* (no auth)
+###############################################################################
+echo ""
+echo -e "${BLUE}=== Project Service ===${NC}"
+
+PROJECT_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"project-service\",
+    \"url\": \"${PROJECT_SERVICE_URL:-http://192.168.120.43:8095}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000
+  }")
+
+PROJECT_SERVICE_ID=$(parse_json_id "$PROJECT_SERVICE")
+
+if [ -n "$PROJECT_SERVICE_ID" ]; then
+    echo -e "${GREEN}  ✓ project-service created: $PROJECT_SERVICE_ID${NC}"
+
+    # Route: JWT-protected endpoints
+    echo -e "${YELLOW}  → Creating project-service route (JWT required)...${NC}"
+    PROJECT_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/project-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "project-service-route",
+        "paths": ["/project-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    PROJECT_ROUTE_ID=$(parse_json_id "$PROJECT_ROUTE")
+
+    if [ -n "$PROJECT_ROUTE_ID" ]; then
+        # CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PROJECT_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Authorization", "X-User-ID", "X-User-Name"],
+              "exposed_headers": ["Content-Length"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ project-service-route created with CORS${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ Failed to create project-service${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
