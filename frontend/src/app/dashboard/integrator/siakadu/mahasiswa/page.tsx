@@ -34,7 +34,8 @@ import { MdSync, MdSchool } from "react-icons/md";
 import { toast } from "react-hot-toast";
 
 interface StatsData {
-  total_records: number;
+  total_records?: number;
+  total_mahasiswa?: number;
   last_sync: string | null;
 }
 
@@ -81,8 +82,8 @@ export default function SiakaduMahasiswaPage() {
         search: searchQuery || undefined,
       });
       if (response.success) {
-        setData(response.data?.items || response.data || []);
-        setTotalRecords(response.data?.total || response.total || 0);
+        setData(response.data || []);
+        setTotalRecords(response.meta?.total || 0);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -233,7 +234,7 @@ export default function SiakaduMahasiswaPage() {
                     <Spinner size="sm" color="white" />
                   ) : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_records ?? 0).toLocaleString("id-ID")}
+                      {(stats?.total_mahasiswa ?? stats?.total_records ?? 0).toLocaleString("id-ID")}
                     </h3>
                   )}
                 </div>
@@ -251,7 +252,7 @@ export default function SiakaduMahasiswaPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-emerald-100 mb-1">Status Sync</p>
                   <h3 className="text-lg font-bold text-white leading-tight">
-                    {stats?.total_records ? "Tersinkronisasi" : "Belum Sync"}
+                    {stats?.total_mahasiswa ?? stats?.total_records ? "Tersinkronisasi" : "Belum Sync"}
                   </h3>
                 </div>
               </div>

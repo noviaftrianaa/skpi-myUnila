@@ -67,7 +67,7 @@ export default function SiakaduKrsKhsPage() {
     try {
       setIsLoadingKrs(true);
       const r = await siakaduService.getKRSList({ page: krsPage, limit: krsRowsPerPage, search: krsSearch || undefined, id_smt: krsSemester || undefined });
-      if (r.success) { setKrsData(r.data?.items || r.data || []); setKrsTotalRecords(r.data?.total || r.total || 0); }
+      if (r.success) { setKrsData(r.data || []); setKrsTotalRecords(r.meta?.total || 0); }
     } catch (e) { console.error(e); } finally { setIsLoadingKrs(false); }
   }, [krsPage, krsRowsPerPage, krsSearch, krsSemester]);
 
@@ -75,7 +75,7 @@ export default function SiakaduKrsKhsPage() {
     try {
       setIsLoadingKhs(true);
       const r = await siakaduService.getKHSList({ page: khsPage, limit: khsRowsPerPage, search: khsSearch || undefined, id_smt: khsSemester || undefined });
-      if (r.success) { setKhsData(r.data?.items || r.data || []); setKhsTotalRecords(r.data?.total || r.total || 0); }
+      if (r.success) { setKhsData(r.data || []); setKhsTotalRecords(r.meta?.total || 0); }
     } catch (e) { console.error(e); } finally { setIsLoadingKhs(false); }
   }, [khsPage, khsRowsPerPage, khsSearch, khsSemester]);
 

@@ -65,8 +65,8 @@ export default function SiakaduKelasPage() {
         id_smt: semesterFilter || undefined,
       });
       if (response.success) {
-        setData(response.data?.items || response.data || []);
-        setTotalRecords(response.data?.total || response.total || 0);
+        setData(response.data || []);
+        setTotalRecords(response.meta?.total || 0);
       }
     } catch (error) {
       console.error("Error fetching data:", error);

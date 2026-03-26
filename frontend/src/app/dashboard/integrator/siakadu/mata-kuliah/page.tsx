@@ -47,7 +47,7 @@ export default function SiakaduMataKuliahPage() {
     try {
       setIsLoadingData(true);
       const r = await siakaduService.getMatakuliahList({ page: currentPage, limit: rowsPerPage, search: searchQuery || undefined });
-      if (r.success) { setData(r.data?.items || r.data || []); setTotalRecords(r.data?.total || r.total || 0); }
+      if (r.success) { setData(r.data || []); setTotalRecords(r.meta?.total || 0); }
     } catch (e) { console.error(e); } finally { setIsLoadingData(false); }
   }, [currentPage, rowsPerPage, searchQuery]);
 

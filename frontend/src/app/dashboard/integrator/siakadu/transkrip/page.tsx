@@ -48,7 +48,7 @@ export default function SiakaduTranskripPage() {
     try {
       setIsLoadingData(true);
       const r = await siakaduService.getTranskripList({ page: currentPage, limit: rowsPerPage, search: searchQuery || undefined, npm: nimFilter || undefined });
-      if (r.success) { setData(r.data?.items || r.data || []); setTotalRecords(r.data?.total || r.total || 0); }
+      if (r.success) { setData(r.data || []); setTotalRecords(r.meta?.total || 0); }
     } catch (e) { console.error(e); } finally { setIsLoadingData(false); }
   }, [currentPage, rowsPerPage, searchQuery, nimFilter]);
 
