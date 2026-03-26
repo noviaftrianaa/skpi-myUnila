@@ -1,17 +1,110 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
+import { myunilaClient } from "@/lib/api/myunilaClient";
 
 const APP_KEY = "myunila-integrator";
 
-import { Card, CardBody } from "@heroui/react";
-import { FiUsers, FiClock, FiTool } from "react-icons/fi";
+import { Card, CardBody, Chip } from "@heroui/react";
+import { FiUsers, FiDatabase, FiClock } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
+
+interface Pegawai {
+  id_pegawai: string;
+  nm_pegawai: string;
+  nip?: string;
+  nidn?: string;
+  jk?: string;
+  jns_pegawai?: string;
+  jns_tenaga?: string;
+  nama_org2?: string;
+  nama_org3?: string;
+  status?: string;
+  last_sync?: string;
+}
+
+interface StatsData {
+  total_pegawai: number;
+  total_dosen_aktif: number;
+  total_tendik_aktif: number;
+  last_sync?: string;
+}
 
 export default function SiakaduPegawaiPage() {
   useRequireAuth();
+
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [data, setData] = useState<Pegawai[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const fetchStats = useCallback(async () => {
+    try {
+      setIsLoadingStats(true);
+      const response = await myunilaClient.get("/sikep/pegawai/stats");
+      setStats(response.data?.data);
+    } catch (e) {
+      console.error("Error fetching stats:", e);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoadingData(true);
+      const response = await myunilaClient.get("/sikep/pegawai", {
+        params: { page: currentPage, limit: rowsPerPage, search: searchQuery || undefined },
+      });
+      const r = response.data;
+      if (r.success) {
+        setData(r.data || []);
+        setTotalRecords(r.meta?.total || 0);
+      }
+    } catch (e) {
+      console.error("Error fetching data:", e);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [currentPage, rowsPerPage, searchQuery]);
+
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const columns: Column<Pegawai>[] = [
+    { key: "nm_pegawai", label: "Nama Pegawai", sortable: true },
+    { key: "nip", label: "NIP", sortable: true, render: (item) => item.nip?.trim() || "-" },
+    { key: "nidn", label: "NIDN", render: (item) => item.nidn?.trim() || "-" },
+    { key: "jk", label: "JK", align: "center", render: (item) => item.jk?.trim() || "-" },
+    { key: "jns_tenaga", label: "Jenis", sortable: true },
+    { key: "nama_org3", label: "Fakultas" },
+    { key: "nama_org2", label: "Unit" },
+    {
+      key: "status",
+      label: "Status",
+      align: "center",
+      render: (item) => (
+        <Chip size="sm" variant="flat" color={item.status === "Aktif" ? "success" : "default"}>
+          {item.status || "-"}
+        </Chip>
+      ),
+    },
+  ];
+
+  const statCards = [
+    { label: "Total Pegawai", value: stats?.total_pegawai ?? 0, icon: <FiUsers className="w-5 h-5" />, color: "from-blue-500 to-blue-600" },
+    { label: "Dosen Aktif", value: stats?.total_dosen_aktif ?? 0, icon: <FiUsers className="w-5 h-5" />, color: "from-green-500 to-green-600" },
+    { label: "Tendik Aktif", value: stats?.total_tendik_aktif ?? 0, icon: <FiUsers className="w-5 h-5" />, color: "from-purple-500 to-purple-600" },
+    { label: "Total Records", value: totalRecords, icon: <FiDatabase className="w-5 h-5" />, color: "from-orange-500 to-orange-600" },
+  ];
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -19,71 +112,63 @@ export default function SiakaduPegawaiPage() {
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
       appKey={APP_KEY}
       fallbackMenus={myunilaIntegratorMenuConfig}
-      pageTitle="Pegawai SIAKADU"
+      pageTitle="Data Pegawai (SIKEP)"
     >
       <div className="space-y-6">
-        {/* Header */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Data Pegawai / Dosen SIAKADU
+            Data Pegawai / Dosen
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Sinkronisasi data pegawai dan dosen dari Sistem Akademik UNILA
+            Data pegawai dari SIKEP — {stats?.total_pegawai?.toLocaleString("id-ID") || "..."} records
           </p>
         </div>
 
-        {/* Phase 2 Notice */}
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-          <CardBody className="p-8 sm:p-12">
-            <div className="flex flex-col items-center text-center max-w-lg mx-auto">
-              {/* Icon */}
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl mb-6">
-                <FiUsers className="w-10 h-10" />
-              </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {statCards.map((s, i) => (
+            <Card key={i} className="border-none shadow-md">
+              <CardBody className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white`}>
+                    {s.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">{s.label}</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                      {isLoadingStats ? "..." : s.value.toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
 
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-semibold mb-4">
-                <FiClock className="w-4 h-4" />
-                Coming Soon — Phase 2
-              </div>
+        {stats?.last_sync && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <FiClock className="w-3 h-3" />
+            Last sync: {new Date(stats.last_sync).toLocaleString("id-ID")}
+          </div>
+        )}
 
-              {/* Title */}
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                Modul Sinkronisasi Pegawai
-              </h2>
-
-              {/* Description */}
-              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                Modul sinkronisasi data pegawai/dosen dari SIAKADU sedang dalam tahap pengembangan. 
-                Fitur ini akan tersedia di Phase 2 pengembangan MyUnila Integrator.
-              </p>
-
-              {/* Features Preview */}
-              <div className="w-full p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
-                  <FiTool className="w-4 h-4 text-blue-600" />
-                  Fitur yang akan tersedia:
-                </h3>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 text-left">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    Sinkronisasi data dosen aktif dari SIAKADU
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    Sinkronisasi data tenaga kependidikan
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    Mapping data dengan SIKEP
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    Histori dan monitoring sinkronisasi
-                  </li>
-                </ul>
-              </div>
-            </div>
+        {/* Data Table */}
+        <Card className="border-none shadow-md">
+          <CardBody className="p-0 sm:p-4">
+            <DataTable
+              data={data}
+              columns={columns}
+              searchable
+              searchPlaceholder="Cari nama atau NIP..."
+              loading={isLoadingData}
+              serverSide
+              totalRecords={totalRecords}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setCurrentPage(1); }}
+              onSearchChange={(q) => { setSearchQuery(q); setCurrentPage(1); }}
+              defaultRowsPerPage={rowsPerPage}
+            />
           </CardBody>
         </Card>
       </div>
