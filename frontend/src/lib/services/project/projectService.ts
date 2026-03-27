@@ -582,10 +582,19 @@ export const projectService = {
     );
     if (!response.data.success) throw new Error('Failed to fetch board tasks');
     // Map tasks in each status column
-    const data = response.data.data;
+    const rawData = response.data.data;
     const mapped: Record<string, Task[]> = {};
-    for (const [status, tasks] of Object.entries(data)) {
-      mapped[status] = mapTasks(tasks as unknown as Record<string, unknown>[]);
+    // Handle { columns: [{ status, tasks }] } format from backend
+    if (rawData && typeof rawData === 'object' && 'columns' in rawData) {
+      const columns = (rawData as unknown as { columns: { status: string; tasks: Record<string, unknown>[] }[] }).columns || [];
+      for (const col of columns) {
+        mapped[col.status] = mapTasks(col.tasks || []);
+      }
+    } else {
+      // Fallback: direct Record<status, Task[]> format
+      for (const [status, tasks] of Object.entries(rawData || {})) {
+        mapped[status] = mapTasks(tasks as unknown as Record<string, unknown>[]);
+      }
     }
     return mapped;
   },
