@@ -55,11 +55,12 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/integrator/siakadu/mahasiswa",
         roles: defaultRoles,
       },
-      {
-        title: "Pegawai",
-        href: "/dashboard/integrator/siakadu/pegawai",
-        roles: defaultRoles,
-      },
+      // Pegawai — hidden, belum deploy schema siakadu
+      // {
+      //   title: "Pegawai",
+      //   href: "/dashboard/integrator/siakadu/pegawai",
+      //   roles: defaultRoles,
+      // },
       {
         title: "Kurikulum",
         href: "/dashboard/integrator/siakadu/kurikulum",
@@ -90,11 +91,12 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/integrator/siakadu/status-kuliah",
         roles: defaultRoles,
       },
-      {
-        title: "Wisuda",
-        href: "/dashboard/integrator/siakadu/wisuda",
-        roles: defaultRoles,
-      },
+      // Wisuda — hidden, belum deploy schema siakadu
+      // {
+      //   title: "Wisuda",
+      //   href: "/dashboard/integrator/siakadu/wisuda",
+      //   roles: defaultRoles,
+      // },
     ],
   },
   {
