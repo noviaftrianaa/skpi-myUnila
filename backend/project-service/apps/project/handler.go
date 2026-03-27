@@ -359,14 +359,17 @@ func (h *Handler) DeleteModule(c *fiber.Ctx) error {
 
 // ===== TASK HANDLERS =====
 
-// GetTaskList GET /api/v1/tasks
+// GetTaskList GET /api/v1/project/:id/tasks
 func (h *Handler) GetTaskList(c *fiber.Ctx) error {
 	ctx := c.Context()
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "20"))
 
+	// Project ID from URL path param (primary) or query param (fallback)
+	projectID := c.Params("id", c.Query("id_project", ""))
+
 	filters := TaskFilters{
-		IDProject:  c.Query("id_project", ""),
+		IDProject:  projectID,
 		IDModule:   c.Query("id_module", ""),
 		Status:     c.Query("status", ""),
 		Prioritas:  c.Query("prioritas", ""),
