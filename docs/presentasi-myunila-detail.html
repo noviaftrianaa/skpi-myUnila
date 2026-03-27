@@ -1049,22 +1049,47 @@
   <h2>📑 Modul 9-11: SI MBAK, Portal, Infrastructure</h2>
   <div class="page-subtitle">Modul baru, unified portal, dan DevOps</div>
 
-  <h3>📝 SI MBAK — Sistem Informasi BAK (In Progress)</h3>
+  <h3>📝 SI MBAK — Sistem Informasi BAK <span style="color:#059669;">(Frontend Complete)</span></h3>
   <div class="card">
-    <p style="margin-bottom:12px;">Frontend scaffold complete — 8 menu dengan dummy data untuk demo.</p>
+    <p style="margin-bottom:12px;"><strong>17 halaman + 8 komponen UI</strong> — demo-ready dengan dummy data. DB Schema: 15 tabel PostgreSQL (4 schema: ref, layanan, batch, log).</p>
     <table>
       <thead>
         <tr><th>#</th><th>Menu</th><th>Fungsi</th><th>Status</th></tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>Dashboard</td><td>Overview statistik & chart</td><td><span class="tag tag-done">✅ Scaffold</span></td></tr>
-        <tr><td>2</td><td>Surat Mandiri</td><td>Generate surat otomatis</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>3</td><td>Permohonan Akademik</td><td>Workflow approval</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>4</td><td>Verifikasi</td><td>Dokumen & data check</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>5</td><td>Persetujuan</td><td>Multi-level approval</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>6</td><td>Batch Administrasi</td><td>Operasi massal</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>7</td><td>Monitoring</td><td>Tracking status</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
-        <tr><td>8</td><td>Master Data</td><td>Data referensi</td><td><span class="tag tag-progress">🔄 UI Ready</span></td></tr>
+        <tr><td>1</td><td>Dashboard</td><td>Stat cards, SLA gauge, trend chart, activity feed</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>2</td><td>Surat Mandiri</td><td>Service cards, multi-step form, riwayat + detail</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>3</td><td>Permohonan Akademik</td><td>Form pengajuan + tracking status + detail per kode</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>4</td><td>Riwayat Pengajuan</td><td>Daftar semua pengajuan mahasiswa + detail per ID</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>5</td><td>Verifikasi</td><td>Admin workflow — verifikasi dokumen + data per ID</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>6</td><td>Persetujuan</td><td>Multi-level approval pejabat + per ID detail</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>7</td><td>Batch Administrasi</td><td>Daftar batch, create wizard, detail, verifikasi fakultas</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>8</td><td>Monitoring</td><td>Tab mahasiswa aktif & lulusan, DataTable + export</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>9</td><td>Master Data</td><td>4 tab CRUD: jenis layanan, persyaratan, tahapan, template</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🏘️ SI KKN — Sistem Informasi Kuliah Kerja Nyata <span style="color:#059669;">(Frontend Complete)</span></h3>
+  <div class="card">
+    <p style="margin-bottom:12px;"><strong>18 halaman + 9 komponen UI</strong> — demo-ready dengan dummy data. DB Schema: 25 tabel PostgreSQL (7 schema: ref, pendaftaran, kelompok, kegiatan, penilaian, dokumen, log).</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Menu</th><th>Fungsi</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Dashboard</td><td>Overview KKN: statistik, periode aktif, progress</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>2</td><td>Pendaftaran KKN</td><td>Form registrasi + verifikasi syarat otomatis</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>3</td><td>Kelompok Saya</td><td>Info kelompok, anggota, DPL, lokasi</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>4</td><td>Logbook Harian</td><td>Input kegiatan harian + foto + approval DPL</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>5</td><td>Program Kerja</td><td>Rencana & realisasi proker per bidang</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>6</td><td>Absensi</td><td>Kehadiran harian + rekap per mahasiswa</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>7</td><td>Bimbingan DPL</td><td>Catatan bimbingan per kunjungan/online</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>8</td><td>Penilaian (3 sub)</td><td>Komponen nilai, penilaian pamong, rekap akhir</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>9</td><td>Manajemen (4 sub)</td><td>Kelompok, penempatan, DPL, verifikasi pendaftaran</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>10</td><td>Dokumen & Sertifikat</td><td>Upload laporan, generate sertifikat KKN</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>11</td><td>Master Data</td><td>6 tab: periode, lokasi, wilayah, jenis dokumen, komponen penilaian, kriteria</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>12</td><td>Monitoring</td><td>Dashboard progress per kelompok & periode</td><td><span class="tag tag-done">✅ Done</span></td></tr>
       </tbody>
     </table>
   </div>
@@ -1475,7 +1500,7 @@
       <tr>
         <td><strong>Maret</strong><br><small>391 commits</small></td>
         <td>Expansion</td>
-        <td>Data Unila (18 pages), Web Monitoring, Project Management, SIAKADU, SI MBAK scaffold</td>
+        <td>Data Unila (18 pages), Web Monitoring, Project Management, SIAKADU, SI MBAK (17 pages), SI KKN (18 pages)</td>
       </tr>
     </tbody>
   </table>
