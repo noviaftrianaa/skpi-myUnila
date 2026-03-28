@@ -814,24 +814,31 @@ dashboardService.ts       (baru)
 | **4a** | Docker staging (VM5 all-in-one) | ✅ DONE | 2026-03-28 |
 | **4b** | Docker production (VM8 dedicated) | ✅ CONFIG READY | 2026-03-28 |
 | **4c** | Kong route staging | ✅ DONE | 2026-03-28 |
-| **4d** | Frontend env vars | ⬜ TODO | |
-| **5** | Frontend integration (25 files dummy → API) | ⬜ TODO | |
-| **5a** | — API client (bakClient.ts) | ⬜ TODO | |
-| **5b** | — Service files (8 files) | ⬜ TODO | |
-| **5c** | — Dashboard role-based | ⬜ TODO | |
-| **5d** | — Master Data tabs (4 tabs → API) | ⬜ TODO | |
-| **5e** | — Surat Mandiri (list + form) | ⬜ TODO | |
-| **5f** | — Permohonan (list + form) | ⬜ TODO | |
-| **5g** | — Admin Verifikasi (list + detail) | ⬜ TODO | |
-| **5h** | — Admin Persetujuan (list + detail) | ⬜ TODO | |
-| **5i** | — Batch (list + create + detail + verifikasi) | ⬜ TODO | |
-| **5j** | — Riwayat (list + detail) | ⬜ TODO | |
-| **5k** | — Monitoring (aktif + lulusan) | ⬜ TODO | |
+| **4d** | Frontend env vars (Dockerfile + .env) | ✅ DONE | 2026-03-29 |
+| **4e** | Local dev config (deployment/local) | ✅ DONE | 2026-03-29 |
+| **5** | Frontend integration (25 files dummy → API) | 🔶 15/17 DONE | 2026-03-29 |
+| **5a** | — bakClient.ts (fallback URL fixed) | ✅ DONE | 2026-03-29 |
+| **5b** | — simBakService.ts (40+ API functions) | ✅ DONE | 2026-03-29 |
+| **5c** | — types.ts (synced with DB schema) | ✅ DONE | 2026-03-29 |
+| **5d** | — Dashboard (stats + SLA + trends + activity) | ✅ DONE | 2026-03-29 |
+| **5e** | — Master Data (4 tabs CRUD → API) | ✅ DONE | 2026-03-29 |
+| **5f** | — Surat Mandiri list (real layanan + count) | ✅ DONE | 2026-03-29 |
+| **5g** | — Permohonan list (real + tahapan + SLA) | ✅ DONE | 2026-03-29 |
+| **5h** | — Admin Verifikasi list (getAdminPengajuan) | ✅ DONE | 2026-03-29 |
+| **5i** | — Admin Persetujuan list (getApprovalQueue) | ✅ DONE | 2026-03-29 |
+| **5j** | — Batch list + create (getBatchList + createBatch) | ✅ DONE | 2026-03-29 |
+| **5k** | — Riwayat list + detail (getMyPengajuan + detail) | ✅ DONE | 2026-03-29 |
+| **5l** | — Monitoring (getMahasiswaAktif + empty state) | ✅ DONE | 2026-03-29 |
+| **5m** | — Surat Mandiri [kode] form (create + upload) | ⬜ TODO | |
+| **5n** | — Permohonan [kode] form (create + upload) | ⬜ TODO | |
+| **5o** | — Admin Verifikasi [id] detail (review + action) | ⬜ TODO | |
+| **5p** | — Admin Persetujuan [id] detail (approve/reject) | ⬜ TODO | |
+| **5q** | — Batch [id] detail + verifikasi | ⬜ TODO | |
 | **6** | Integration testing + polish | ⬜ TODO | |
 | **6a** | — Auth + RBAC per role | ⬜ TODO | |
 | **6b** | — File upload (MinIO) | ⬜ TODO | |
 | **6c** | — E2E workflow test | ⬜ TODO | |
-| **7** | Production deploy (VM8) | ⬜ BLOCKED (VM belum ada) | |
+| **7** | Production deploy (VM8) | ⬜ BLOCKED (VM belum request) | |
 
 ## Progress Tracker — SI KKN
 
@@ -855,13 +862,13 @@ dashboardService.ts       (baru)
 | **6** | Integration testing + polish | **2-3 hari** | Setelah Phase 5 |
 | **Total** | | **~10-15 hari kerja** | |
 
-### Critical Path (updated)
+### Critical Path (updated 2026-03-29)
 
 ```
-✅ Phase 1 ──→ ⬜ Phase 2 (kkn-service)  ──→ ⬜ Phase 5a (FE KKN)   ──→ ⬜ Phase 6
-✅ Phase 3 ──→ ✅ Phase 4 ──→ ⬜ Phase 5b (FE SIMBAK) ──↗
-                              ^^^^^^^^^^^^^^^^^^^^^^^^
-                              NEXT STEP
+✅ Phase 1 ──→ ⬜ Phase 2 (kkn-service)   ──→ ⬜ Phase 5a (FE KKN)   ──→ ⬜ Phase 6
+✅ Phase 3 ──→ ✅ Phase 4 ──→ 🔶 Phase 5b (FE SIMBAK — 15/17 done)
+                                              ⬜ 5 detail pages remaining
+                                              ⬜ Phase 6 (integration testing)
 ```
 
 ---
