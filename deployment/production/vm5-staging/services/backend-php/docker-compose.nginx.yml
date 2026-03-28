@@ -12,6 +12,7 @@ services:
       - "${NGINX_DASHBOARD_PORT:-8086}:82"
       - "8090:8090"   # stub_status untuk nginx-prometheus-exporter
       - "8093:83"     # Frontend proxy dengan caching
+      - "9002:9002"   # SIMBAK service
     volumes:
       - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro
