@@ -805,23 +805,63 @@ dashboardService.ts       (baru)
 
 ---
 
+## Progress Tracker — SIMBAK
+
+| Phase | Task | Status | Tanggal |
+|---|---|---|---|
+| **1** | DB Setup (PG user + schema + seed) | ✅ DONE | 2026-03-28 |
+| **3** | simbak-service backend (7 repo + 11 ctrl) | ✅ DONE | 2026-03-28 |
+| **4a** | Docker staging (VM5 all-in-one) | ✅ DONE | 2026-03-28 |
+| **4b** | Docker production (VM8 dedicated) | ✅ CONFIG READY | 2026-03-28 |
+| **4c** | Kong route staging | ✅ DONE | 2026-03-28 |
+| **4d** | Frontend env vars | ⬜ TODO | |
+| **5** | Frontend integration (25 files dummy → API) | ⬜ TODO | |
+| **5a** | — API client (bakClient.ts) | ⬜ TODO | |
+| **5b** | — Service files (8 files) | ⬜ TODO | |
+| **5c** | — Dashboard role-based | ⬜ TODO | |
+| **5d** | — Master Data tabs (4 tabs → API) | ⬜ TODO | |
+| **5e** | — Surat Mandiri (list + form) | ⬜ TODO | |
+| **5f** | — Permohonan (list + form) | ⬜ TODO | |
+| **5g** | — Admin Verifikasi (list + detail) | ⬜ TODO | |
+| **5h** | — Admin Persetujuan (list + detail) | ⬜ TODO | |
+| **5i** | — Batch (list + create + detail + verifikasi) | ⬜ TODO | |
+| **5j** | — Riwayat (list + detail) | ⬜ TODO | |
+| **5k** | — Monitoring (aktif + lulusan) | ⬜ TODO | |
+| **6** | Integration testing + polish | ⬜ TODO | |
+| **6a** | — Auth + RBAC per role | ⬜ TODO | |
+| **6b** | — File upload (MinIO) | ⬜ TODO | |
+| **6c** | — E2E workflow test | ⬜ TODO | |
+| **7** | Production deploy (VM8) | ⬜ BLOCKED (VM belum ada) | |
+
+## Progress Tracker — SI KKN
+
+| Phase | Task | Status | Tanggal |
+|---|---|---|---|
+| **1** | DB Setup (siknila) | ⬜ TODO | |
+| **2** | kkn-service backend (Laravel baru) | ⬜ TODO | |
+| **4** | Docker + Kong | ⬜ TODO | |
+| **5** | Frontend integration (27 files) | ⬜ TODO | |
+| **6** | Integration testing | ⬜ TODO | |
+
 ## Timeline Summary
 
 | Phase | Task | Estimasi | Paralel? |
 |---|---|---|---|
-| **1** | DB Setup (PG users + schema + seed) | **1-2 jam** | — |
+| **1** | DB Setup (PG users + schema + seed) | ~~1-2 jam~~ ✅ | — |
 | **2** | kkn-service backend (Laravel baru) | **3-4 hari** | ↕ |
-| **3** | simbak-service backend (lanjut skeleton) | **2-3 hari** | ↕ Paralel Phase 2 |
-| **4** | Docker + Kong + Frontend env | **2-3 jam** | Setelah Phase 2/3 |
-| **5** | Frontend integration (27 + 25 files) | **3-5 hari** | Setelah Phase 4 |
+| **3** | simbak-service backend (lanjut skeleton) | ~~2-3 hari~~ ✅ | ↕ |
+| **4** | Docker + Kong + Frontend env | ~~2-3 jam~~ ✅ | |
+| **5** | Frontend integration (27 + 25 files) | **3-5 hari** ← NEXT | Setelah Phase 4 |
 | **6** | Integration testing + polish | **2-3 hari** | Setelah Phase 5 |
 | **Total** | | **~10-15 hari kerja** | |
 
-### Critical Path
+### Critical Path (updated)
 
 ```
-Phase 1 ──→ Phase 2 (kkn-service)    ──→ Phase 4 ──→ Phase 5a (FE KKN)   ──→ Phase 6
-         ──→ Phase 3 (simbak-service) ──↗          ──→ Phase 5b (FE SIMBAK) ──↗
+✅ Phase 1 ──→ ⬜ Phase 2 (kkn-service)  ──→ ⬜ Phase 5a (FE KKN)   ──→ ⬜ Phase 6
+✅ Phase 3 ──→ ✅ Phase 4 ──→ ⬜ Phase 5b (FE SIMBAK) ──↗
+                              ^^^^^^^^^^^^^^^^^^^^^^^^
+                              NEXT STEP
 ```
 
 ---
