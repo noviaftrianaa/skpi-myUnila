@@ -23,7 +23,7 @@ services:
 
       # PostgreSQL (simbak — primary, native on VM5)
       DB_CONNECTION: pgsql
-      DB_HOST: "${SIMBAK_PG_HOST:-host-gateway}"
+      DB_HOST: "${SIMBAK_PG_HOST:-host.docker.internal}"
       DB_PORT: "${SIMBAK_PG_PORT:-5432}"
       DB_DATABASE: "${SIMBAK_PG_DATABASE:-simbak}"
       DB_USERNAME: "${SIMBAK_PG_USERNAME:-myunila_bak}"
@@ -60,7 +60,7 @@ services:
       TZ: "${TIMEZONE:-Asia/Jakarta}"
 
     extra_hosts:
-      - "host-gateway:host-gateway"
+      - "host.docker.internal:host-gateway"
     deploy:
       resources:
         limits:
