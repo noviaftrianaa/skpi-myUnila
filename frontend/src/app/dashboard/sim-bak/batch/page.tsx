@@ -176,41 +176,37 @@ export default function BatchPage() {
         </div>
 
         {/* DataTable */}
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden dark:bg-gray-800">
-          <CardBody className="p-0">
-            <DataTable
-              data={filtered}
-              columns={columns}
-              searchable={true}
-              searchKeys={["no_sk", "jenis_sk", "periode_akademik"]}
-              searchPlaceholder="Cari batch..."
-              filterSlot={
-                <div className="flex gap-2">
-                  <select
-                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                    value={filterJenis}
-                    onChange={(e) => setFilterJenis(e.target.value)}
-                  >
-                    <option value="">Semua Jenis</option>
-                    <option value="HABIS_MASA_MUKIM">HMM</option>
-                    <option value="PUTUS_STUDI">Putus Studi</option>
-                  </select>
-                  <select
-                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="">Semua Status</option>
-                    <option value="draft">Draft</option>
-                    <option value="verifikasi_fakultas">Verifikasi Fakultas</option>
-                    <option value="finalisasi">Finalisasi</option>
-                    <option value="terbit">Terbit</option>
-                  </select>
-                </div>
-              }
-            />
-          </CardBody>
-        </Card>
+        <DataTable
+          data={filtered}
+          columns={columns}
+          searchable={true}
+          searchKeys={["no_sk", "jenis_sk", "periode_akademik"]}
+          searchPlaceholder="Cari batch..."
+          filterSlot={
+            <div className="flex gap-2">
+              <select
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterJenis}
+                onChange={(e) => setFilterJenis(e.target.value)}
+              >
+                <option value="">Semua Jenis</option>
+                <option value="HABIS_MASA_MUKIM">HMM</option>
+                <option value="PUTUS_STUDI">Putus Studi</option>
+              </select>
+              <select
+                className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">Semua Status</option>
+                <option value="draft">Draft</option>
+                <option value="verifikasi_fakultas">Verifikasi Fakultas</option>
+                <option value="finalisasi">Finalisasi</option>
+                <option value="terbit">Terbit</option>
+              </select>
+            </div>
+          }
+        />
       </div>
     </DashboardLayoutWithDynamicMenu>
   );

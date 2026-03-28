@@ -7,7 +7,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiUsers, FiPauseCircle, FiAward, FiClock, FiDownload, FiBarChart2 } from "react-icons/fi";
+import { FiUsers, FiPauseCircle, FiAward, FiClock, FiDownload, FiBarChart2, FiInbox } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import { dummyMahasiswaAktif, dummyLulusan, fakultasList } from "@/lib/services/sim-bak/dummyData";
@@ -245,42 +245,38 @@ export default function MonitoringPage() {
             </div>
 
             {/* DataTable */}
-            <Card className="border-none shadow-lg rounded-xl overflow-hidden dark:bg-gray-800">
-              <CardBody className="p-0">
-                <DataTable
-                  data={filteredAktif}
-                  columns={aktifColumns}
-                  searchable={true}
-                  searchKeys={["npm", "nama", "prodi", "fakultas"]}
-                  searchPlaceholder="Cari mahasiswa..."
-                  filterSlot={
-                    <div className="flex gap-2">
-                      <select
-                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        value={filterFakultasAktif}
-                        onChange={(e) => setFilterFakultasAktif(e.target.value)}
-                      >
-                        <option value="">Semua Fakultas</option>
-                        {fakultasList.map((f) => (
-                          <option key={f.id} value={f.nama}>{f.nama}</option>
-                        ))}
-                      </select>
-                    </div>
-                  }
-                  actionSlot={
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      color="success"
-                      startContent={<FiDownload className="w-4 h-4" />}
-                      onPress={handleExport}
-                    >
-                      Export CSV
-                    </Button>
-                  }
-                />
-              </CardBody>
-            </Card>
+            <DataTable
+              data={filteredAktif}
+              columns={aktifColumns}
+              searchable={true}
+              searchKeys={["npm", "nama", "prodi", "fakultas"]}
+              searchPlaceholder="Cari mahasiswa..."
+              filterSlot={
+                <div className="flex gap-2">
+                  <select
+                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterFakultasAktif}
+                    onChange={(e) => setFilterFakultasAktif(e.target.value)}
+                  >
+                    <option value="">Semua Fakultas</option>
+                    {fakultasList.map((f) => (
+                      <option key={f.id} value={f.nama}>{f.nama}</option>
+                    ))}
+                  </select>
+                </div>
+              }
+              actionSlot={
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="success"
+                  startContent={<FiDownload className="w-4 h-4" />}
+                  onPress={handleExport}
+                >
+                  Export CSV
+                </Button>
+              }
+            />
           </div>
         )}
 
@@ -307,52 +303,48 @@ export default function MonitoringPage() {
             </div>
 
             {/* DataTable */}
-            <Card className="border-none shadow-lg rounded-xl overflow-hidden dark:bg-gray-800">
-              <CardBody className="p-0">
-                <DataTable
-                  data={filteredLulusan}
-                  columns={lulusanColumns}
-                  searchable={true}
-                  searchKeys={["npm", "nama", "prodi", "fakultas"]}
-                  searchPlaceholder="Cari lulusan..."
-                  filterSlot={
-                    <div className="flex gap-2">
-                      <select
-                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        value={filterTahunLulus}
-                        onChange={(e) => setFilterTahunLulus(e.target.value)}
-                      >
-                        <option value="">Semua Tahun</option>
-                        {tahunLulusOptions.map((y) => (
-                          <option key={y} value={y}>{y}</option>
-                        ))}
-                      </select>
-                      <select
-                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        value={filterFakultasLulusan}
-                        onChange={(e) => setFilterFakultasLulusan(e.target.value)}
-                      >
-                        <option value="">Semua Fakultas</option>
-                        {fakultasList.map((f) => (
-                          <option key={f.id} value={f.nama}>{f.nama}</option>
-                        ))}
-                      </select>
-                    </div>
-                  }
-                  actionSlot={
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      color="success"
-                      startContent={<FiDownload className="w-4 h-4" />}
-                      onPress={handleExport}
-                    >
-                      Export CSV
-                    </Button>
-                  }
-                />
-              </CardBody>
-            </Card>
+            <DataTable
+              data={filteredLulusan}
+              columns={lulusanColumns}
+              searchable={true}
+              searchKeys={["npm", "nama", "prodi", "fakultas"]}
+              searchPlaceholder="Cari lulusan..."
+              filterSlot={
+                <div className="flex gap-2">
+                  <select
+                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterTahunLulus}
+                    onChange={(e) => setFilterTahunLulus(e.target.value)}
+                  >
+                    <option value="">Semua Tahun</option>
+                    {tahunLulusOptions.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterFakultasLulusan}
+                    onChange={(e) => setFilterFakultasLulusan(e.target.value)}
+                  >
+                    <option value="">Semua Fakultas</option>
+                    {fakultasList.map((f) => (
+                      <option key={f.id} value={f.nama}>{f.nama}</option>
+                    ))}
+                  </select>
+                </div>
+              }
+              actionSlot={
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="success"
+                  startContent={<FiDownload className="w-4 h-4" />}
+                  onPress={handleExport}
+                >
+                  Export CSV
+                </Button>
+              }
+            />
           </div>
         )}
       </div>

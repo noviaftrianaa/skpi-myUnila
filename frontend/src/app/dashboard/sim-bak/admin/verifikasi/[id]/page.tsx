@@ -180,7 +180,7 @@ export default function VerifikasiDetailPage() {
                           <input
                             type="text"
                             placeholder="Catatan verifikasi (opsional)..."
-                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder-gray-400"
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                             value={state.catatan}
                             onChange={(e) => updateDocCatatan(doc.id_dokumen, e.target.value)}
                           />

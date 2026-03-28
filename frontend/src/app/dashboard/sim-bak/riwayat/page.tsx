@@ -6,8 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
-import { Spinner, Chip, Button, Select, SelectItem } from "@heroui/react";
-import { FiEye } from "react-icons/fi";
+import { Spinner, Chip, Button, Card, CardBody } from "@heroui/react";
+import { FiEye, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiRotateCcw } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import { dummyPengajuan, dummyJenisLayanan } from "@/lib/services/sim-bak/dummyData";
@@ -36,14 +36,8 @@ const statusLabelMap: Record<StatusPengajuan, string> = {
 };
 
 const allStatuses: StatusPengajuan[] = [
-  "draft",
-  "diajukan",
-  "perlu_perbaikan",
-  "diverifikasi",
-  "menunggu_persetujuan",
-  "disetujui",
-  "ditolak",
-  "terbit",
+  "draft", "diajukan", "perlu_perbaikan", "diverifikasi",
+  "menunggu_persetujuan", "disetujui", "ditolak", "terbit",
 ];
 
 export default function RiwayatPengajuanPage() {
@@ -56,22 +50,23 @@ export default function RiwayatPengajuanPage() {
 
   const filteredData = useMemo(() => {
     let data = [...dummyPengajuan];
-    if (filterStatus) {
-      data = data.filter((p) => p.status === filterStatus);
-    }
-    if (filterLayanan) {
-      data = data.filter((p) => p.kode_layanan === filterLayanan);
-    }
+    if (filterStatus) data = data.filter((p) => p.status === filterStatus);
+    if (filterLayanan) data = data.filter((p) => p.kode_layanan === filterLayanan);
     return data;
   }, [filterStatus, filterLayanan]);
 
   const layananOptions = useMemo(
-    () =>
-      dummyJenisLayanan.filter(
-        (j) => j.kategori === "surat_mandiri" || j.kategori === "permohonan_akademik"
-      ),
+    () => dummyJenisLayanan.filter((j) => j.kategori === "surat_mandiri" || j.kategori === "permohonan_akademik"),
     []
   );
+
+  // Stats
+  const stats = useMemo(() => ({
+    total: dummyPengajuan.length,
+    proses: dummyPengajuan.filter((p) => ["diajukan", "diverifikasi", "menunggu_persetujuan"].includes(p.status)).length,
+    selesai: dummyPengajuan.filter((p) => ["disetujui", "terbit"].includes(p.status)).length,
+    ditolak: dummyPengajuan.filter((p) => p.status === "ditolak").length,
+  }), []);
 
   if (!user) {
     return (
@@ -87,7 +82,7 @@ export default function RiwayatPengajuanPage() {
       label: "No. Pengajuan",
       sortable: true,
       render: (item) => (
-        <span className="font-mono text-sm text-gray-900 dark:text-white">
+        <span className="font-mono text-sm font-medium text-blue-600 dark:text-blue-400">
           {item.no_pengajuan}
         </span>
       ),
@@ -97,23 +92,17 @@ export default function RiwayatPengajuanPage() {
       label: "Jenis Layanan",
       sortable: true,
       render: (item) => (
-        <span className="text-sm text-gray-900 dark:text-white">
-          {item.nm_layanan}
-        </span>
+        <span className="text-sm text-gray-900 dark:text-white">{item.nm_layanan}</span>
       ),
     },
     {
       key: "tgl_pengajuan",
-      label: "Tanggal Pengajuan",
+      label: "Tanggal",
       sortable: true,
       render: (item) => (
         <span className="text-sm text-gray-600 dark:text-gray-400">
           {item.tgl_pengajuan
-            ? new Date(item.tgl_pengajuan).toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+            ? new Date(item.tgl_pengajuan).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
             : "-"}
         </span>
       ),
@@ -123,11 +112,7 @@ export default function RiwayatPengajuanPage() {
       label: "Status",
       sortable: true,
       render: (item) => (
-        <Chip
-          color={statusColorMap[item.status]}
-          variant="flat"
-          size="sm"
-        >
+        <Chip color={statusColorMap[item.status]} variant="flat" size="sm">
           {statusLabelMap[item.status]}
         </Chip>
       ),
@@ -137,61 +122,20 @@ export default function RiwayatPengajuanPage() {
       label: "Aksi",
       align: "center",
       render: (item) => (
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<FiEye className="w-3.5 h-3.5" />}
-          onPress={() => router.push(`/dashboard/sim-bak/riwayat/${item.id_pengajuan}`)}
-        >
-          Lihat
+        <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+          onPress={() => router.push(`/dashboard/sim-bak/riwayat/${item.id_pengajuan}`)}>
+          Detail
         </Button>
       ),
     },
   ];
 
-  const filterSlot = (
-    <div className="flex flex-wrap gap-3">
-      <Select
-        size="sm"
-        label="Status"
-        className="w-48"
-        selectedKeys={filterStatus ? [filterStatus] : []}
-        onChange={(e) => setFilterStatus(e.target.value)}
-      >
-        {allStatuses.map((s) => (
-          <SelectItem key={s} textValue={statusLabelMap[s]}>
-            {statusLabelMap[s]}
-          </SelectItem>
-        ))}
-      </Select>
-      <Select
-        size="sm"
-        label="Jenis Layanan"
-        className="w-56"
-        selectedKeys={filterLayanan ? [filterLayanan] : []}
-        onChange={(e) => setFilterLayanan(e.target.value)}
-      >
-        {layananOptions.map((l) => (
-          <SelectItem key={l.kode_layanan} textValue={l.nm_layanan}>
-            {l.nm_layanan}
-          </SelectItem>
-        ))}
-      </Select>
-      {(filterStatus || filterLayanan) && (
-        <Button
-          size="sm"
-          variant="flat"
-          onPress={() => {
-            setFilterStatus("");
-            setFilterLayanan("");
-          }}
-        >
-          Reset Filter
-        </Button>
-      )}
-    </div>
-  );
+  const statCards = [
+    { label: "Total Pengajuan", value: stats.total, icon: <FiFileText className="w-5 h-5" />, gradient: "from-blue-500 to-blue-600" },
+    { label: "Dalam Proses", value: stats.proses, icon: <FiClock className="w-5 h-5" />, gradient: "from-amber-500 to-orange-500" },
+    { label: "Selesai", value: stats.selesai, icon: <FiCheckCircle className="w-5 h-5" />, gradient: "from-emerald-500 to-green-600" },
+    { label: "Ditolak", value: stats.ditolak, icon: <FiXCircle className="w-5 h-5" />, gradient: "from-rose-500 to-red-600" },
+  ];
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -211,14 +155,64 @@ export default function RiwayatPengajuanPage() {
           </p>
         </div>
 
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {statCards.map((card) => (
+            <Card key={card.label} className="border-none shadow-md rounded-xl overflow-hidden dark:bg-gray-800">
+              <CardBody className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${card.gradient} text-white`}>
+                    {card.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.label}</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+
         <DataTable
           data={filteredData}
           columns={columns}
           searchable
-          searchKeys={["no_pengajuan"]}
-          searchPlaceholder="Cari no. pengajuan..."
-          filterSlot={filterSlot}
+          searchKeys={["no_pengajuan", "nm_layanan"]}
+          searchPlaceholder="Cari no. pengajuan atau layanan..."
           defaultRowsPerPage={10}
+          filterSlot={
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Semua Status</option>
+                {allStatuses.map((s) => (
+                  <option key={s} value={s}>{statusLabelMap[s]}</option>
+                ))}
+              </select>
+              <select
+                value={filterLayanan}
+                onChange={(e) => setFilterLayanan(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Semua Layanan</option>
+                {layananOptions.map((l) => (
+                  <option key={l.kode_layanan} value={l.kode_layanan}>{l.nm_layanan}</option>
+                ))}
+              </select>
+              {(filterStatus || filterLayanan) && (
+                <button
+                  onClick={() => { setFilterStatus(""); setFilterLayanan(""); }}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiRotateCcw className="w-3.5 h-3.5" /> Reset
+                </button>
+              )}
+            </div>
+          }
         />
       </div>
     </DashboardLayoutWithDynamicMenu>

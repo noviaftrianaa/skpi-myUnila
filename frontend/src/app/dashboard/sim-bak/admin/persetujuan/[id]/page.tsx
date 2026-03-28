@@ -208,7 +208,7 @@ export default function PersetujuanDetailPage() {
                   </label>
                   <textarea
                     rows={4}
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
                     placeholder={showPanel === "approve" ? "Catatan persetujuan (opsional)..." : "Alasan penolakan (wajib)..."}
                     value={actionCatatan}
                     onChange={(e) => setActionCatatan(e.target.value)}
