@@ -826,6 +826,87 @@ Phase 1 ──→ Phase 2 (kkn-service)    ──→ Phase 4 ──→ Phase 5a 
 
 ---
 
+## RBAC — SIMBAK (SI MBAK)
+
+### Role Definitions
+
+| Role ID | Nama | Kode Frontend | Deskripsi |
+|---|---|---|---|
+| **1** | Administrator | `admin` | Super admin, akses semua |
+| **107** | Developer | `developer` | Super admin, akses semua |
+| **39** | Mahasiswa | `mahasiswa` | Pengaju layanan |
+| **106** | Admin Fakultas | `admin_fakultas` | Verifikasi fakultas, persetujuan |
+| **43** | Dekan | `pejabat` | Approver pejabat |
+| **111** | Tendik / Operator BAK | `admin_bak` | Verifikasi, batch, monitoring |
+
+### Page × Role Matrix
+
+| # | Page | Route | 🎓 Mhs (39) | 🏢 BAK (111) | 📋 Fak (106) | 👔 Dekan (43) | ⚙️ Admin (1,107) |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|
+| 1 | Dashboard | `/sim-bak` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 2 | Surat Mandiri (list) | `/sim-bak/surat-mandiri` | ✅ | — | — | — | ✅ |
+| 3 | Surat Mandiri (form) | `/sim-bak/surat-mandiri/[kode]` | ✅ | — | — | — | ✅ |
+| 4 | Permohonan (list) | `/sim-bak/permohonan` | ✅ | — | — | — | ✅ |
+| 5 | Permohonan (form) | `/sim-bak/permohonan/[kode]` | ✅ | — | — | — | ✅ |
+| 6 | Riwayat (list) | `/sim-bak/riwayat` | ✅ | — | — | — | — |
+| 7 | Riwayat (detail) | `/sim-bak/riwayat/[id]` | ✅ | — | — | — | — |
+| 8 | Verifikasi (list) | `/sim-bak/admin/verifikasi` | — | ✅ | — | — | ✅ |
+| 9 | Verifikasi (detail) | `/sim-bak/admin/verifikasi/[id]` | — | ✅ | — | — | ✅ |
+| 10 | Persetujuan (list) | `/sim-bak/admin/persetujuan` | — | — | ✅ | ✅ | ✅ |
+| 11 | Persetujuan (detail) | `/sim-bak/admin/persetujuan/[id]` | — | — | ✅ | ✅ | ✅ |
+| 12 | Batch (list) | `/sim-bak/batch` | — | ✅ | — | — | ✅ |
+| 13 | Batch (create) | `/sim-bak/batch/create` | — | ✅ | — | — | ✅ |
+| 14 | Batch (detail) | `/sim-bak/batch/[id]` | — | ✅ | — | — | ✅ |
+| 15 | Batch Verifikasi Fak | `/sim-bak/batch/verifikasi` | — | — | ✅ | — | ✅ |
+| 16 | Monitoring | `/sim-bak/monitoring` | — | ✅ | — | — | ✅ |
+| 17 | Master Data | `/sim-bak/master-data` | — | — | — | — | ✅ |
+
+### Per-Role View
+
+**🎓 Mahasiswa (39)** — 7 pages:
+- Dashboard (status pengajuan sendiri + aksi cepat ajukan surat/permohonan)
+- Surat Mandiri (list + form submit)
+- Permohonan Akademik (list + form submit)
+- Riwayat Pengajuan (list + detail tracking)
+
+**🏢 Tendik / Operator BAK (111)** — 8 pages:
+- Dashboard (antrean verifikasi + batch pending + SLA compliance)
+- Verifikasi Pengajuan (list + detail review)
+- Batch Administrasi (list + create + detail)
+- Monitoring (mahasiswa aktif + lulusan)
+
+**📋 Admin Fakultas (106)** — 4 pages:
+- Dashboard (persetujuan pending + batch verifikasi pending)
+- Persetujuan (list + detail approve/reject)
+- Batch Verifikasi Fakultas
+
+**👔 Dekan (43)** — 3 pages:
+- Dashboard (persetujuan pending)
+- Persetujuan (list + detail approve/reject)
+
+**⚙️ Admin (1) + Developer (107)** — 17 pages (semua)
+
+### Dashboard Role-Based Content
+
+Dashboard page harus menampilkan konten berbeda per role:
+
+| Role | Stat Cards | Quick Actions | Activity Feed |
+|---|---|---|---|
+| Mahasiswa | Pengajuan saya (draft/proses/selesai/ditolak) | Ajukan Surat, Ajukan Permohonan, Lihat Riwayat | Riwayat pengajuan sendiri |
+| Tendik/BAK | Menunggu verifikasi, Batch pending, SLA% | Verifikasi, Buat Batch, Monitoring | Semua pengajuan masuk |
+| Admin Fakultas | Menunggu persetujuan, Batch verifikasi pending | Persetujuan, Verifikasi Batch | Persetujuan + batch terkait |
+| Dekan | Menunggu persetujuan | Persetujuan | Persetujuan terkait |
+| Admin/Dev | Semua statistik + SLA | Semua aksi | Semua aktivitas |
+
+### Portal Menu Seed (pdut_staging)
+
+Sudah di-seed via `sim-bak.json`:
+- 13 menu entries (8 parent + 5 children)
+- 42 RBAC entries (menu × role mappings)
+- Roles: [1, 107, 39, 106, 43, 111]
+
+---
+
 ## Summary Keputusan
 
 | # | Keputusan | Jawaban |
