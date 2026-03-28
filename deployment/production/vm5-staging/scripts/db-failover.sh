@@ -118,7 +118,7 @@ cmd_test() {
     # Test via docker (sqlcmd or mssql-tools might not be on host)
     local result=$(docker exec myunila-auth-staging php -r "
         try {
-            \$pdo = new PDO('sqlsrv:Server=$target,1433;Database=pdut_staging;TrustServerCertificate=true', 'mizarzulmi', '__REDACTED_DB_PASSWORD__');
+            \$pdo = new PDO('sqlsrv:Server=$target,1433;Database=pdut_staging;TrustServerCertificate=true', $DB_USERNAME, $DB_PASSWORD);
             echo 'OK';
         } catch (Exception \$e) {
             echo 'FAIL: ' . \$e->getMessage();
