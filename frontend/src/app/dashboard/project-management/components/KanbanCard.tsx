@@ -8,6 +8,7 @@ import {
   FiPackage,
   FiFileText,
   FiCalendar,
+  FiMoreHorizontal,
 } from "react-icons/fi";
 import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import type { Task } from "@/lib/services/project/projectService";
@@ -19,7 +20,7 @@ interface KanbanCardProps {
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
-// ── Priority: left-border colour + label ───────────────────────────────────
+// ── Priority config ────────────────────────────────────────────────────────
 const PRIORITY_BORDER: Record<string, string> = {
   urgent: "border-l-[3px] border-l-red-500",
   high:   "border-l-[3px] border-l-orange-500",
@@ -39,55 +40,25 @@ const PRIORITY_LABEL: Record<string, string> = {
   low:    "Low",
 };
 
-// ── Type chip ──────────────────────────────────────────────────────────────
+// ── Type chip config ───────────────────────────────────────────────────────
 const typeConfig: Record<
   string,
-  {
-    icon: React.ReactNode;
-    color: "primary" | "danger" | "warning" | "default" | "secondary" | "success";
-    label: string;
-  }
+  { icon: React.ReactNode; color: "primary" | "danger" | "warning" | "default" | "secondary" | "success"; label: string }
 > = {
-  feature: {
-    icon: <FiStar className="w-2.5 h-2.5" />,
-    color: "primary",
-    label: "Feature",
-  },
-  bugfix: {
-    icon: <FiAlertCircle className="w-2.5 h-2.5" />,
-    color: "danger",
-    label: "Bug",
-  },
-  improvement: {
-    icon: <FiTool className="w-2.5 h-2.5" />,
-    color: "warning",
-    label: "Improvement",
-  },
-  chore: {
-    icon: <FiPackage className="w-2.5 h-2.5" />,
-    color: "secondary",
-    label: "Chore",
-  },
-  documentation: {
-    icon: <FiFileText className="w-2.5 h-2.5" />,
-    color: "default",
-    label: "Docs",
-  },
+  feature:       { icon: <FiStar className="w-2.5 h-2.5" />,        color: "primary",   label: "Feature" },
+  bugfix:        { icon: <FiAlertCircle className="w-2.5 h-2.5" />, color: "danger",    label: "Bug" },
+  improvement:   { icon: <FiTool className="w-2.5 h-2.5" />,        color: "warning",   label: "Improve" },
+  chore:         { icon: <FiPackage className="w-2.5 h-2.5" />,     color: "secondary", label: "Chore" },
+  documentation: { icon: <FiFileText className="w-2.5 h-2.5" />,    color: "default",   label: "Docs" },
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "";
   try {
     const d = new Date(dateStr);
-    const months = [
-      "Jan","Feb","Mar","Apr","Mei","Jun",
-      "Jul","Agu","Sep","Okt","Nov","Des",
-    ];
+    const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
     return `${d.getDate()} ${months[d.getMonth()]}`;
-  } catch {
-    return "";
-  }
+  } catch { return ""; }
 }
 
 function isOverdue(dateStr?: string): boolean {
@@ -95,26 +66,20 @@ function isOverdue(dateStr?: string): boolean {
   return new Date(dateStr) < new Date();
 }
 
-// ── Grip-dots icon (drag handle visual) ───────────────────────────────────
+// ── Grip-dots drag handle icon ─────────────────────────────────────────────
 function GripDotsIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 8 16"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="2" cy="3"  r="1.2" />
-      <circle cx="6" cy="3"  r="1.2" />
-      <circle cx="2" cy="8"  r="1.2" />
-      <circle cx="6" cy="8"  r="1.2" />
+    <svg viewBox="0 0 8 16" fill="currentColor" className={className} aria-hidden="true">
+      <circle cx="2" cy="3" r="1.2" />
+      <circle cx="6" cy="3" r="1.2" />
+      <circle cx="2" cy="8" r="1.2" />
+      <circle cx="6" cy="8" r="1.2" />
       <circle cx="2" cy="13" r="1.2" />
       <circle cx="6" cy="13" r="1.2" />
     </svg>
   );
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
 export default function KanbanCard({
   task,
   onClick,
@@ -122,75 +87,67 @@ export default function KanbanCard({
   dragHandleProps,
 }: KanbanCardProps) {
   const priorityBorder = PRIORITY_BORDER[task.prioritas] ?? PRIORITY_BORDER.medium;
-  const priorityDot    = PRIORITY_DOT[task.prioritas]    ?? PRIORITY_DOT.medium;
-  const priorityLabel  = PRIORITY_LABEL[task.prioritas]  ?? "Medium";
-  const type           = typeConfig[task.tipe]           ?? typeConfig.feature;
-  const overdue        = task.status !== "done" && isOverdue(task.due_date);
+  const priorityDot = PRIORITY_DOT[task.prioritas] ?? PRIORITY_DOT.medium;
+  const priorityLabel = PRIORITY_LABEL[task.prioritas] ?? "Medium";
+  const type = typeConfig[task.tipe] ?? typeConfig.feature;
+  const overdue = task.status !== "done" && isOverdue(task.due_date);
 
   return (
     <div
       onClick={() => onClick?.(task)}
       className={[
-        // layout
         "flex items-stretch gap-0",
         "bg-white dark:bg-slate-800",
-        "rounded-xl",
-        "border border-gray-200 dark:border-slate-700",
-        // priority left border applied on the inner content area
-        "overflow-hidden",
-        // shadow & scale on hover / drag
+        "rounded-xl overflow-hidden",
+        "border border-gray-200/80 dark:border-slate-700/80",
+        // Shadow + transform
         "shadow-sm",
-        "hover:shadow-md hover:scale-[1.015]",
-        "active:scale-[0.99]",
-        "transition-all duration-150 ease-out",
-        // dragging state
+        "transition-all duration-200 ease-out",
+        // Hover — subtle lift
+        !isDragging ? "hover:shadow-md hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-slate-600" : "",
+        // Active press
+        !isDragging ? "active:scale-[0.98] active:shadow-sm" : "",
+        // Dragging state — elevated, rotated, glowing
         isDragging
-          ? "shadow-2xl scale-[1.03] rotate-1 opacity-95 ring-2 ring-[#0B5EA8]/30"
+          ? [
+              "shadow-2xl shadow-blue-500/20 dark:shadow-blue-400/10",
+              "scale-[1.04] -rotate-[1.5deg]",
+              "ring-2 ring-blue-400/40 dark:ring-blue-500/30",
+              "border-blue-300 dark:border-blue-600",
+              "z-50",
+            ].join(" ")
           : "",
         "cursor-pointer select-none",
-        "group",
+        "group/card",
       ].join(" ")}
     >
-      {/* ── Drag handle strip ─────────────────────────────────────────── */}
+      {/* ── Drag handle — always visible on touch, hover on desktop ───── */}
       <div
         {...(dragHandleProps ?? {})}
         className={[
-          "flex items-center justify-center px-1.5",
-          "bg-gray-50 dark:bg-slate-700/60",
-          "border-r border-gray-100 dark:border-slate-700",
-          "opacity-0 group-hover:opacity-100",
-          isDragging ? "opacity-100" : "",
-          "transition-opacity duration-150",
+          "flex items-center justify-center w-6",
+          "bg-gray-50/80 dark:bg-slate-700/40",
+          "border-r border-gray-100 dark:border-slate-700/50",
+          // Mobile: always show, Desktop: show on hover
+          "opacity-40 sm:opacity-0 sm:group-hover/card:opacity-100",
+          isDragging ? "opacity-100 bg-blue-50 dark:bg-blue-900/30" : "",
+          "transition-all duration-150",
           "cursor-grab active:cursor-grabbing",
           "flex-shrink-0",
+          "touch-manipulation",
         ].join(" ")}
         onClick={(e) => e.stopPropagation()}
       >
-        <GripDotsIcon className="w-2 h-4 text-gray-400 dark:text-slate-500" />
+        <GripDotsIcon className="w-2.5 h-4 text-gray-400 dark:text-slate-500" />
       </div>
 
       {/* ── Card body ─────────────────────────────────────────────────── */}
-      <div
-        className={[
-          "flex-1 min-w-0 p-3",
-          // priority left border
-          priorityBorder,
-        ].join(" ")}
-      >
-        {/* Row 1: Priority dot + Type chip + Task code */}
-        <div className="flex items-center justify-between mb-2 gap-1">
+      <div className={`flex-1 min-w-0 p-2.5 sm:p-3 ${priorityBorder}`}>
+        {/* Row 1: Priority + Type + Code */}
+        <div className="flex items-center justify-between mb-1.5 gap-1">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`w-2 h-2 rounded-full flex-shrink-0 ${priorityDot}`}
-              title={priorityLabel}
-            />
-            <Chip
-              size="sm"
-              variant="flat"
-              color={type.color}
-              className="text-[10px] h-4 px-1.5 flex-shrink-0"
-              startContent={type.icon}
-            >
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${priorityDot}`} title={priorityLabel} />
+            <Chip size="sm" variant="flat" color={type.color} className="text-[10px] h-4 px-1.5 flex-shrink-0" startContent={type.icon}>
               {type.label}
             </Chip>
           </div>
@@ -200,13 +157,13 @@ export default function KanbanCard({
         </div>
 
         {/* Row 2: Title */}
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2 leading-snug">
+        <h4 className="text-[13px] font-medium text-gray-900 dark:text-white line-clamp-2 mb-1.5 leading-snug">
           {task.judul}
         </h4>
 
-        {/* Row 3: Module chip (if available) */}
+        {/* Row 3: Module */}
         {task.module_name && (
-          <div className="mb-2">
+          <div className="mb-1.5">
             <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
               {task.module_name}
             </span>
@@ -215,20 +172,20 @@ export default function KanbanCard({
 
         {/* Row 4: Tags */}
         {task.tags && task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
+          <div className="flex flex-wrap gap-1 mb-1.5">
             {task.tags.slice(0, 3).map((tag, i) => (
-              <span
-                key={i}
-                className="px-1.5 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md"
-              >
+              <span key={i} className="px-1.5 py-0.5 text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-md">
                 {tag}
               </span>
             ))}
+            {task.tags.length > 3 && (
+              <span className="px-1 py-0.5 text-[10px] text-gray-400">+{task.tags.length - 3}</span>
+            )}
           </div>
         )}
 
         {/* Row 5: Footer — assignee + due date */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-700 gap-1">
+        <div className="flex items-center justify-between pt-1.5 border-t border-gray-100/80 dark:border-slate-700/60 gap-1">
           {/* Assignee */}
           <div className="flex items-center gap-1.5 min-w-0">
             {task.assignee_initial ? (
@@ -241,9 +198,7 @@ export default function KanbanCard({
                 </span>
               </>
             ) : (
-              <span className="text-[10px] text-gray-400 dark:text-slate-500 italic">
-                Unassigned
-              </span>
+              <span className="text-[10px] text-gray-400 dark:text-slate-500 italic">Unassigned</span>
             )}
           </div>
 
@@ -254,7 +209,7 @@ export default function KanbanCard({
                 "text-[10px] flex items-center gap-0.5 flex-shrink-0",
                 "px-1.5 py-0.5 rounded-md font-medium",
                 overdue
-                  ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"
+                  ? "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 animate-pulse"
                   : "text-gray-400 dark:text-slate-500",
               ].join(" ")}
             >
