@@ -8,6 +8,7 @@ services:
       - "8081:80"   # Auth Service
       - "8082:81"   # Public Service
       - "8087:82"   # Dashboard Service
+      - "9002:84"   # SIMBAK Service
     volumes:
       - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro

@@ -1431,6 +1431,8 @@ SERVICE_URLS["feeder-service"]="http://myunila-feeder-service:8084"
 SERVICE_URLS["myunila-service"]="http://myunila-service:8086"
 SERVICE_URLS["api-service"]="http://myunila-api-service:8085"
 SERVICE_URLS["keuangan-service"]="http://myunila-keuangan-service:8088"
+SERVICE_URLS["simbak-service"]="http://myunila-nginx:84"
+SERVICE_URLS["project-service"]="http://myunila-project-service:8095"
 
 for SERVICE in "${!SERVICE_URLS[@]}"; do
     UPSTREAM_URL="${SERVICE_URLS[$SERVICE]}"
@@ -1530,6 +1532,9 @@ echo "  Keuangan (protected):  http://localhost:9800/keuangan-service/api/v1"
 echo "  WebMon (protected):    http://localhost:9800/webmon-service/api/v1"
 echo "  WebMon (public):       http://localhost:9800/webmon-service/v1/public"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
+echo "  SIMBAK (protected):    http://localhost:9800/simbak-service/api/v1"
+echo "  SIMBAK (public):       http://localhost:9800/simbak-service/api/v1/layanan/jenis-layanan"
+echo "  Project (protected):   http://localhost:9800/project-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""
 
