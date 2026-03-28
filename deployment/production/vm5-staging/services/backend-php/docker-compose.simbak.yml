@@ -29,12 +29,12 @@ services:
       DB_USERNAME: "${SIMBAK_PG_USERNAME:-myunila_bak}"
       DB_PASSWORD: "${SIMBAK_PG_PASSWORD}"
 
-      # SQL Server (pdut — read only)
-      SQLSRV_HOST: "${SQLSRV_HOST:-192.168.123.119}"
-      SQLSRV_PORT: "${SQLSRV_PORT:-1433}"
-      SQLSRV_DATABASE: "${SQLSRV_DATABASE:-pdut_staging}"
-      SQLSRV_USERNAME: "${SQLSRV_USERNAME}"
-      SQLSRV_PASSWORD: "${SQLSRV_PASSWORD}"
+      # SQL Server (pdut — read only, same creds as project-service)
+      SQLSRV_HOST: "${DB_MSSQL_HOST:-192.168.123.119}"
+      SQLSRV_PORT: "${DB_MSSQL_PORT:-1433}"
+      SQLSRV_DATABASE: "${API_DB_DATABASE:-pdut_staging}"
+      SQLSRV_USERNAME: "${DB_MSSQL_USERNAME}"
+      SQLSRV_PASSWORD: "${DB_MSSQL_PASSWORD}"
       SQLSRV_TRUST_SERVER_CERTIFICATE: "true"
 
       # JWT (validation only)
