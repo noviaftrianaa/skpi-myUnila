@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Chip, Button } from "@heroui/react";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
-import { dummyJenisLayanan } from "@/lib/services/sim-bak/dummyData";
+import { getJenisLayanan, createJenisLayanan, updateJenisLayanan, deleteJenisLayanan } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan } from "@/lib/services/sim-bak/types";
-import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiLoader } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
 
 const kategoriColors: Record<string, { color: "primary" | "secondary" | "warning" | "success"; label: string }> = {
@@ -16,19 +16,33 @@ const kategoriColors: Record<string, { color: "primary" | "secondary" | "warning
   monitoring: { color: "success", label: "Monitoring" },
 };
 
-const emptyForm = { kode_layanan: "", nm_layanan: "", kategori: "surat_mandiri" as JenisLayanan["kategori"], deskripsi: "", urutan: 1, apakah_aktif: true };
+const emptyForm = { kode_layanan: "", nm_layanan: "", kategori: "surat_mandiri" as JenisLayanan["kategori"], deskripsi: "", urutan: 1, a_aktif: true, sla_hari: null as number | null };
 
 export default function JenisLayananTab() {
-  const [data, setData] = useState(dummyJenisLayanan);
+  const [data, setData] = useState<JenisLayanan[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [filterKategori, setFilterKategori] = useState("");
   const [showPanel, setShowPanel] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (!filterKategori) return data;
-    return data.filter((d) => d.kategori === filterKategori);
-  }, [data, filterKategori]);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getJenisLayanan({ page, limit: 10, kategori: filterKategori || undefined });
+      setData(result.data);
+      setTotal(result.pagination.total);
+    } catch {
+      toast.error("Gagal memuat data jenis layanan");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filterKategori]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const openAdd = () => {
     setEditId(null);
@@ -38,29 +52,42 @@ export default function JenisLayananTab() {
 
   const openEdit = (item: JenisLayanan) => {
     setEditId(item.id_jenis_layanan);
-    setForm({ kode_layanan: item.kode_layanan, nm_layanan: item.nm_layanan, kategori: item.kategori, deskripsi: item.deskripsi || "", urutan: item.urutan, apakah_aktif: item.apakah_aktif });
+    setForm({ kode_layanan: item.kode_layanan, nm_layanan: item.nm_layanan, kategori: item.kategori, deskripsi: item.deskripsi || "", urutan: item.urutan, a_aktif: item.a_aktif, sla_hari: item.sla_hari });
     setShowPanel(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.kode_layanan || !form.nm_layanan) {
       toast.error("Kode dan Nama Layanan wajib diisi");
       return;
     }
-    if (editId) {
-      setData((prev) => prev.map((d) => d.id_jenis_layanan === editId ? { ...d, ...form, updated_at: new Date().toISOString() } : d));
-      toast.success("Jenis layanan berhasil diperbarui");
-    } else {
-      const newItem: JenisLayanan = { id_jenis_layanan: `jl-${Date.now()}`, ...form, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      setData((prev) => [...prev, newItem]);
-      toast.success("Jenis layanan berhasil ditambahkan");
+    setSaving(true);
+    try {
+      if (editId) {
+        await updateJenisLayanan(editId, form);
+        toast.success("Jenis layanan berhasil diperbarui");
+      } else {
+        await createJenisLayanan(form);
+        toast.success("Jenis layanan berhasil ditambahkan");
+      }
+      setShowPanel(false);
+      fetchData();
+    } catch {
+      toast.error("Gagal menyimpan data");
+    } finally {
+      setSaving(false);
     }
-    setShowPanel(false);
   };
 
-  const handleDelete = (id: string) => {
-    setData((prev) => prev.filter((d) => d.id_jenis_layanan !== id));
-    toast.success("Jenis layanan berhasil dihapus");
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus jenis layanan ini?")) return;
+    try {
+      await deleteJenisLayanan(id);
+      toast.success("Jenis layanan berhasil dihapus");
+      fetchData();
+    } catch {
+      toast.error("Gagal menghapus data");
+    }
   };
 
   const columns: Column<JenisLayanan>[] = [
@@ -81,20 +108,20 @@ export default function JenisLayananTab() {
       key: "kategori", label: "KATEGORI", width: "180px",
       render: (item) => {
         const k = kategoriColors[item.kategori];
-        return <Chip size="sm" color={k.color} variant="flat">{k.label}</Chip>;
+        return k ? <Chip size="sm" color={k.color} variant="flat">{k.label}</Chip> : <span>{item.kategori}</span>;
       },
     },
     {
-      key: "apakah_aktif", label: "STATUS", width: "100px",
-      render: (item) => (
-        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${item.apakah_aktif ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
-          {item.apakah_aktif ? "Aktif" : "Nonaktif"}
-        </span>
-      ),
+      key: "sla_hari", label: "SLA", width: "80px",
+      render: (item) => <span className="text-sm text-gray-600 dark:text-gray-400">{item.sla_hari ? `${item.sla_hari}h` : "-"}</span>,
     },
     {
-      key: "urutan", label: "URUTAN", width: "80px", sortable: true,
-      render: (item) => <span className="text-sm text-gray-600 dark:text-gray-400">{item.urutan}</span>,
+      key: "a_aktif", label: "STATUS", width: "100px",
+      render: (item) => (
+        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${item.a_aktif ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
+          {item.a_aktif ? "Aktif" : "Nonaktif"}
+        </span>
+      ),
     },
     {
       key: "aksi", label: "AKSI", width: "100px",
@@ -115,26 +142,24 @@ export default function JenisLayananTab() {
     <div className="relative">
       <Toaster position="top-right" />
       <DataTable
-        data={filtered}
+        data={data}
         columns={columns}
         searchable
         searchPlaceholder="Cari jenis layanan..."
         searchKeys={["kode_layanan", "nm_layanan"]}
         defaultRowsPerPage={10}
         filterSlot={
-          <div className="flex items-center gap-2">
-            <select
-              value={filterKategori}
-              onChange={(e) => setFilterKategori(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Kategori</option>
-              <option value="surat_mandiri">Surat Mandiri</option>
-              <option value="permohonan_akademik">Permohonan Akademik</option>
-              <option value="batch_administrasi">Batch Administrasi</option>
-              <option value="monitoring">Monitoring</option>
-            </select>
-          </div>
+          <select
+            value={filterKategori}
+            onChange={(e) => { setFilterKategori(e.target.value); setPage(1); }}
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Semua Kategori</option>
+            <option value="surat_mandiri">Surat Mandiri</option>
+            <option value="permohonan_akademik">Permohonan Akademik</option>
+            <option value="batch_administrasi">Batch Administrasi</option>
+            <option value="monitoring">Monitoring</option>
+          </select>
         }
         actionSlot={
           <Button size="sm" color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={openAdd} className="rounded-lg">
@@ -161,13 +186,13 @@ export default function JenisLayananTab() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kode Layanan *</label>
                 <input type="text" value={form.kode_layanan} onChange={(e) => setForm({ ...form, kode_layanan: e.target.value.toUpperCase() })}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="cth: LOA" />
+                  placeholder="cth: SK-LOA" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Layanan *</label>
                 <input type="text" value={form.nm_layanan} onChange={(e) => setForm({ ...form, nm_layanan: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="cth: Letter of Acceptance" />
+                  placeholder="cth: Surat Keterangan Diterima" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
@@ -185,16 +210,22 @@ export default function JenisLayananTab() {
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   placeholder="Deskripsi layanan..." />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Urutan</label>
                   <input type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SLA (hari)</label>
+                  <input type="number" value={form.sla_hari ?? ""} onChange={(e) => setForm({ ...form, sla_hari: e.target.value ? parseInt(e.target.value) : null })}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="-" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                   <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                    <input type="checkbox" checked={form.apakah_aktif} onChange={(e) => setForm({ ...form, apakah_aktif: e.target.checked })}
+                    <input type="checkbox" checked={form.a_aktif} onChange={(e) => setForm({ ...form, a_aktif: e.target.checked })}
                       className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                     <span className="text-sm text-gray-700 dark:text-gray-300">Aktif</span>
                   </label>
@@ -205,7 +236,8 @@ export default function JenisLayananTab() {
               <button onClick={() => setShowPanel(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Batal
               </button>
-              <button onClick={handleSave} className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+              <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                {saving && <FiLoader className="w-4 h-4 animate-spin" />}
                 {editId ? "Perbarui" : "Simpan"}
               </button>
             </div>
