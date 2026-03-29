@@ -816,7 +816,7 @@ dashboardService.ts       (baru)
 | **4c** | Kong route staging | ✅ DONE | 2026-03-28 |
 | **4d** | Frontend env vars (Dockerfile + .env) | ✅ DONE | 2026-03-29 |
 | **4e** | Local dev config (deployment/local) | ✅ DONE | 2026-03-29 |
-| **5** | Frontend integration (25 files dummy → API) | 🔶 15/17 DONE | 2026-03-29 |
+| **5** | Frontend integration (25 files dummy → API) | ✅ 25/25 DONE | 2026-03-30 |
 | **5a** | — bakClient.ts (fallback URL fixed) | ✅ DONE | 2026-03-29 |
 | **5b** | — simBakService.ts (40+ API functions) | ✅ DONE | 2026-03-29 |
 | **5c** | — types.ts (synced with DB schema) | ✅ DONE | 2026-03-29 |
@@ -829,11 +829,11 @@ dashboardService.ts       (baru)
 | **5j** | — Batch list + create (getBatchList + createBatch) | ✅ DONE | 2026-03-29 |
 | **5k** | — Riwayat list + detail (getMyPengajuan + detail) | ✅ DONE | 2026-03-29 |
 | **5l** | — Monitoring (getMahasiswaAktif + empty state) | ✅ DONE | 2026-03-29 |
-| **5m** | — Surat Mandiri [kode] form (create + upload) | ⬜ TODO | |
-| **5n** | — Permohonan [kode] form (create + upload) | ⬜ TODO | |
-| **5o** | — Admin Verifikasi [id] detail (review + action) | ⬜ TODO | |
-| **5p** | — Admin Persetujuan [id] detail (approve/reject) | ⬜ TODO | |
-| **5q** | — Batch [id] detail + verifikasi | ⬜ TODO | |
+| **5m** | — Surat Mandiri [kode] form (create + upload) | ✅ DONE | 2026-03-30 |
+| **5n** | — Permohonan [kode] form (create + upload) | ✅ DONE | 2026-03-30 |
+| **5o** | — Admin Verifikasi [id] detail (review + action) | ✅ DONE | 2026-03-30 |
+| **5p** | — Admin Persetujuan [id] detail (approve/reject) | ✅ DONE | 2026-03-30 |
+| **5q** | — Batch [id] detail + verifikasi | ✅ DONE | 2026-03-30 |
 | **6** | Integration testing + polish | ⬜ TODO | |
 | **6a** | — Auth + RBAC per role | ⬜ TODO | |
 | **6b** | — File upload (MinIO) | ⬜ TODO | |
@@ -866,8 +866,7 @@ dashboardService.ts       (baru)
 
 ```
 ✅ Phase 1 ──→ ⬜ Phase 2 (kkn-service)   ──→ ⬜ Phase 5a (FE KKN)   ──→ ⬜ Phase 6
-✅ Phase 3 ──→ ✅ Phase 4 ──→ 🔶 Phase 5b (FE SIMBAK — 15/17 done)
-                                              ⬜ 5 detail pages remaining
+✅ Phase 3 ──→ ✅ Phase 4 ──→ ✅ Phase 5b (FE SIMBAK — 25/25 COMPLETE)
                                               ⬜ Phase 6 (integration testing)
 ```
 

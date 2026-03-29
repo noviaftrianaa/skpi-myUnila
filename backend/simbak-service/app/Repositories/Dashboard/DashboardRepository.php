@@ -56,7 +56,7 @@ class DashboardRepository extends BaseRepository
     {
         return $this->pgSelect("
             SELECT
-                TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as bulan,
+                TO_CHAR(DATE_TRUNC('month', p.created_at), 'YYYY-MM') as bulan,
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE jl.kategori = 'surat_mandiri') as surat_mandiri,
                 COUNT(*) FILTER (WHERE jl.kategori = 'permohonan_akademik') as permohonan,
@@ -64,7 +64,7 @@ class DashboardRepository extends BaseRepository
             FROM layanan.pengajuan p
             JOIN ref.jenis_layanan jl ON jl.id_jenis_layanan = p.id_jenis_layanan
             WHERE p.soft_delete = false AND p.created_at >= NOW() - INTERVAL '6 months'
-            GROUP BY DATE_TRUNC('month', created_at)
+            GROUP BY DATE_TRUNC('month', p.created_at)
             ORDER BY bulan ASC
         ");
     }
