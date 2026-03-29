@@ -38,6 +38,11 @@ type Repository interface {
 	BulkReorderTasks(ctx context.Context, items []TaskReorderItem) error
 	GetBoardView(ctx context.Context, projectID, moduleID string) (*BoardView, error)
 
+	// Task Assignees
+	GetTaskAssignees(ctx context.Context, taskID string) ([]TaskAssignee, error)
+	AddTaskAssignee(ctx context.Context, taskID, userID, userName, initial string) (*TaskAssignee, error)
+	RemoveTaskAssignee(ctx context.Context, taskID, userID string) error
+
 	// Comments
 	GetCommentsByTask(ctx context.Context, taskID string) ([]TaskComment, error)
 	GetCommentByID(ctx context.Context, id string) (*TaskComment, error)

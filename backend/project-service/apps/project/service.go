@@ -39,6 +39,11 @@ type Service interface {
 	BulkReorderTasks(ctx context.Context, req *TaskReorderRequest) error
 	GetBoardView(ctx context.Context, projectID, moduleID string) (*BoardView, error)
 
+	// Task Assignees
+	GetTaskAssignees(ctx context.Context, taskID string) ([]TaskAssignee, error)
+	AddTaskAssignee(ctx context.Context, taskID, userID, userName, initial string) (*TaskAssignee, error)
+	RemoveTaskAssignee(ctx context.Context, taskID, userID string) error
+
 	// Comments
 	GetCommentsByTask(ctx context.Context, taskID string) ([]TaskComment, error)
 	CreateComment(ctx context.Context, req *CommentCreateRequest) (*TaskComment, error)
@@ -617,6 +622,18 @@ func (s *service) DeleteTask(ctx context.Context, id string, deletedBy *string) 
 	s.logActivity(ctx, t.IDProject, &id, deletedBy, "task_deleted",
 		fmt.Sprintf("Task '%s: %s' dihapus", t.KodeTask, t.Judul))
 	return nil
+}
+
+func (s *service) GetTaskAssignees(ctx context.Context, taskID string) ([]TaskAssignee, error) {
+	return s.repo.GetTaskAssignees(ctx, taskID)
+}
+
+func (s *service) AddTaskAssignee(ctx context.Context, taskID, userID, userName, initial string) (*TaskAssignee, error) {
+	return s.repo.AddTaskAssignee(ctx, taskID, userID, userName, initial)
+}
+
+func (s *service) RemoveTaskAssignee(ctx context.Context, taskID, userID string) error {
+	return s.repo.RemoveTaskAssignee(ctx, taskID, userID)
 }
 
 func (s *service) BulkReorderTasks(ctx context.Context, req *TaskReorderRequest) error {

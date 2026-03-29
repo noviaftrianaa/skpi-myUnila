@@ -624,7 +624,7 @@ func (h *Handler) GetBoardView(c *fiber.Ctx) error {
 // GetTaskAssignees GET /api/v1/project/:id/tasks/:taskId/assignees
 func (h *Handler) GetTaskAssignees(c *fiber.Ctx) error {
 	taskID := c.Params("taskId")
-	assignees, err := h.repo.GetTaskAssignees(c.Context(), taskID)
+	assignees, err := h.svc.GetTaskAssignees(c.Context(), taskID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
 	}
@@ -642,7 +642,7 @@ func (h *Handler) AddTaskAssignee(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "message": "Invalid request"})
 	}
-	assignee, err := h.repo.AddTaskAssignee(c.Context(), taskID, req.IDPengguna, req.NmPengguna, req.Initial)
+	assignee, err := h.svc.AddTaskAssignee(c.Context(), taskID, req.IDPengguna, req.NmPengguna, req.Initial)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
 	}
@@ -653,7 +653,7 @@ func (h *Handler) AddTaskAssignee(c *fiber.Ctx) error {
 func (h *Handler) RemoveTaskAssignee(c *fiber.Ctx) error {
 	taskID := c.Params("taskId")
 	userID := c.Params("userId")
-	if err := h.repo.RemoveTaskAssignee(c.Context(), taskID, userID); err != nil {
+	if err := h.svc.RemoveTaskAssignee(c.Context(), taskID, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Assignee removed"})
