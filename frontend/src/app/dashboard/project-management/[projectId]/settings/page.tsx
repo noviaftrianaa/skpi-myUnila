@@ -156,15 +156,10 @@ export default function SettingsPage() {
     }
     type === "member" ? setMemberSearching(true) : setWatcherSearching(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_PROJECT_API_URL || "http://localhost:8090/api/v1"}/users/search?q=${encodeURIComponent(query)}&limit=10`
-      );
-      const data = await response.json();
-      if (data.success) {
-        type === "member"
-          ? setMemberSearchResults(data.data ?? [])
-          : setWatcherSearchResults(data.data ?? []);
-      }
+      const results = await projectService.searchUsers(query, 10);
+      type === "member"
+        ? setMemberSearchResults(results ?? [])
+        : setWatcherSearchResults(results ?? []);
     } catch {
       // ignore
     } finally {
