@@ -647,6 +647,22 @@ export const projectService = {
     await projectClient.post(`/project/${projectId}/tasks/reorder`, { items: mapReorderPayload(items) });
   },
 
+  // --- Task Assignees (multi) ---
+  async getTaskAssignees(projectId: string, taskId: string): Promise<{ id_task_assignee: string; id_pengguna: string; nm_pengguna: string; initial: string }[]> {
+    const response = await projectClient.get<SingleResponse<{ id_task_assignee: string; id_pengguna: string; nm_pengguna: string; initial: string }[]>>(
+      `/project/${projectId}/tasks/${taskId}/assignees`
+    );
+    return response.data.data ?? [];
+  },
+
+  async addTaskAssignee(projectId: string, taskId: string, data: { id_pengguna: string; nm_pengguna: string; initial: string }): Promise<void> {
+    await projectClient.post(`/project/${projectId}/tasks/${taskId}/assignees`, data);
+  },
+
+  async removeTaskAssignee(projectId: string, taskId: string, userId: string): Promise<void> {
+    await projectClient.delete(`/project/${projectId}/tasks/${taskId}/assignees/${userId}`);
+  },
+
   // --- User Search ---
   async searchUsers(query: string, limit: number = 10): Promise<{ id_pengguna: string; nama: string; username: string; email: string }[]> {
     const response = await projectClient.get<SingleResponse<{ id_pengguna: string; nama: string; username: string; email: string }[]>>(

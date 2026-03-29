@@ -121,11 +121,12 @@ export default function TaskDetailModal({
   const [projectLabels, setProjectLabels] = useState<Label[]>([]);
   const [showLabelDropdown, setShowLabelDropdown] = useState(false);
 
-  // Assignee search
+  // Assignee search (multi)
   const [showAssigneeSearch, setShowAssigneeSearch] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState("");
   const [assigneeResults, setAssigneeResults] = useState<{ id_pengguna: string; nama: string; username: string; email: string }[]>([]);
   const [assigneeLoading, setAssigneeLoading] = useState(false);
+  const [taskAssignees, setTaskAssignees] = useState<{ id_task_assignee: string; id_pengguna: string; nm_pengguna: string; initial: string }[]>([]);
   const assigneeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const [labelLoading, setLabelLoading] = useState(false);
   const [newLabelName, setNewLabelName] = useState("");
@@ -139,6 +140,7 @@ export default function TaskDetailModal({
       loadComments(task.id);
       loadCommits(task.id);
       loadTaskLabels(task.id);
+      loadTaskAssignees(task.id);
       loadProjectLabels();
     }
   }, [task]);
@@ -201,30 +203,43 @@ export default function TaskDetailModal({
     }, 300);
   };
 
+  const loadTaskAssignees = async (taskId: string) => {
+    try {
+      const data = await projectService.getTaskAssignees(projectId, taskId);
+      setTaskAssignees(data ?? []);
+    } catch { setTaskAssignees([]); }
+  };
+
   const handleAssign = async (user: { id_pengguna: string; nama: string }) => {
     if (!task) return;
+    // Check if already assigned
+    if (taskAssignees.some(a => a.id_pengguna === user.id_pengguna)) {
+      toast('User sudah di-assign', 'error'); return;
+    }
     const initial = user.nama.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     try {
       setSavingField('assignee');
-      const updated = await projectService.updateTask(projectId, task.id, {
-        assignee_id: user.id_pengguna,
-        assignee_name: user.nama,
-        assignee_initial: initial,
-      });
-      setEditTask(prev => ({ ...prev, assignee_id: user.id_pengguna, assignee_name: user.nama, assignee_initial: initial }));
-      onTaskUpdated?.({ ...task, ...updated, assignee_id: user.id_pengguna, assignee_name: user.nama, assignee_initial: initial });
-      toast('Assignee diperbarui', 'success');
-    } catch { toast('Gagal mengubah assignee', 'error'); }
-    finally { setSavingField(null); setShowAssigneeSearch(false); setAssigneeQuery(''); setAssigneeResults([]); }
+      await projectService.addTaskAssignee(projectId, task.id, { id_pengguna: user.id_pengguna, nm_pengguna: user.nama, initial });
+      await loadTaskAssignees(task.id);
+      // Update card display with first assignee
+      const updated = taskAssignees.length === 0
+        ? { assignee_id: user.id_pengguna, assignee_name: user.nama, assignee_initial: initial }
+        : {};
+      if (Object.keys(updated).length) {
+        setEditTask(prev => ({ ...prev, ...updated }));
+        onTaskUpdated?.({ ...task, ...updated });
+      }
+      toast('Assignee ditambahkan', 'success');
+    } catch { toast('Gagal menambah assignee', 'error'); }
+    finally { setSavingField(null); setAssigneeQuery(''); setAssigneeResults([]); }
   };
 
-  const handleUnassign = async () => {
+  const handleRemoveAssignee = async (userId: string) => {
     if (!task) return;
     try {
       setSavingField('assignee');
-      await projectService.updateTask(projectId, task.id, { assignee_id: '', assignee_name: '', assignee_initial: '' });
-      setEditTask(prev => ({ ...prev, assignee_id: undefined, assignee_name: undefined, assignee_initial: undefined }));
-      onTaskUpdated?.({ ...task, assignee_id: undefined, assignee_name: undefined, assignee_initial: undefined });
+      await projectService.removeTaskAssignee(projectId, task.id, userId);
+      await loadTaskAssignees(task.id);
       toast('Assignee dihapus', 'success');
     } catch { toast('Gagal menghapus assignee', 'error'); }
     finally { setSavingField(null); }
@@ -535,82 +550,76 @@ export default function TaskDetailModal({
                 />
               </div>
 
-              {/* Assignee — clickable with search */}
+              {/* Assignees — multi-assign with search */}
               <div className="relative">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                  <FiUser className="w-3 h-3" /> Assignee
+                  <FiUser className="w-3 h-3" /> Assignees
                 </p>
-                {editTask.assignee_name ? (
-                  <div className="flex items-center gap-2 group/assign">
-                    <div className="w-6 h-6 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold">
-                      {editTask.assignee_initial || editTask.assignee_name[0]}
-                    </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{editTask.assignee_name}</span>
-                    <button onClick={() => setShowAssigneeSearch(true)}
-                      className="text-[10px] text-blue-500 hover:text-blue-700 opacity-0 group-hover/assign:opacity-100 transition-opacity">
-                      Ganti
-                    </button>
-                    <button onClick={handleUnassign}
-                      className="text-[10px] text-red-400 hover:text-red-600 opacity-0 group-hover/assign:opacity-100 transition-opacity">
-                      <FiX className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setShowAssigneeSearch(true)}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-500 transition-colors py-1">
-                    <FiPlus className="w-3 h-3" /> Assign seseorang
-                  </button>
-                )}
 
-                {/* Assignee Search Dropdown */}
+                {/* Current assignees list */}
+                <div className="space-y-1.5 mb-2">
+                  {taskAssignees.map((a) => (
+                    <div key={a.id_pengguna} className="flex items-center gap-2 group/assign">
+                      <div className="w-6 h-6 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">
+                        {a.initial || a.nm_pengguna[0]}
+                      </div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 flex-1 truncate">{a.nm_pengguna}</span>
+                      <button onClick={() => handleRemoveAssignee(a.id_pengguna)}
+                        className="text-red-400 hover:text-red-600 opacity-0 group-hover/assign:opacity-100 transition-opacity p-0.5">
+                        <FiX className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {taskAssignees.length === 0 && !showAssigneeSearch && (
+                    <span className="text-xs text-gray-400 italic">Belum ada assignee</span>
+                  )}
+                </div>
+
+                {/* Add button */}
+                <button onClick={() => setShowAssigneeSearch(!showAssigneeSearch)}
+                  className="flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-700 transition-colors py-0.5">
+                  <FiPlus className="w-3 h-3" /> Tambah assignee
+                </button>
+
+                {/* Search Dropdown */}
                 {showAssigneeSearch && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                     <div className="p-2 border-b border-gray-100 dark:border-gray-700">
                       <div className="relative">
                         <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={assigneeQuery}
-                          onChange={(e) => searchAssignee(e.target.value)}
+                        <input type="text" value={assigneeQuery} onChange={(e) => searchAssignee(e.target.value)}
                           placeholder="Cari nama atau username..."
                           className="w-full pl-8 pr-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          autoFocus
-                        />
+                          autoFocus />
                       </div>
                     </div>
                     <div className="max-h-48 overflow-y-auto">
-                      {assigneeLoading && (
-                        <div className="flex items-center justify-center py-4">
-                          <Spinner size="sm" />
-                        </div>
-                      )}
+                      {assigneeLoading && <div className="flex items-center justify-center py-4"><Spinner size="sm" /></div>}
                       {!assigneeLoading && assigneeQuery.length >= 2 && assigneeResults.length === 0 && (
                         <p className="text-xs text-gray-400 text-center py-4">Tidak ditemukan</p>
                       )}
-                      {assigneeResults.map((user) => (
-                        <button
-                          key={user.id_pengguna}
-                          onClick={() => handleAssign(user)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                        >
-                          <div className="w-7 h-7 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">
-                            {user.nama.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.nama}</p>
-                            <p className="text-[10px] text-gray-400 truncate">{user.username} · {user.email}</p>
-                          </div>
-                        </button>
-                      ))}
+                      {assigneeResults.map((user) => {
+                        const alreadyAssigned = taskAssignees.some(a => a.id_pengguna === user.id_pengguna);
+                        return (
+                          <button key={user.id_pengguna} onClick={() => !alreadyAssigned && handleAssign(user)} disabled={alreadyAssigned}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${alreadyAssigned ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}>
+                            <div className="w-7 h-7 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">
+                              {user.nama.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.nama}</p>
+                              <p className="text-[10px] text-gray-400 truncate">{user.username}{alreadyAssigned ? ' · ✓ Assigned' : ''}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
                       {assigneeQuery.length < 2 && !assigneeLoading && (
                         <p className="text-xs text-gray-400 text-center py-4">Ketik min. 2 karakter</p>
                       )}
                     </div>
                     <div className="p-1.5 border-t border-gray-100 dark:border-gray-700">
                       <button onClick={() => { setShowAssigneeSearch(false); setAssigneeQuery(''); setAssigneeResults([]); }}
-                        className="w-full text-xs text-gray-400 hover:text-gray-600 py-1 transition-colors">
-                        Tutup
-                      </button>
+                        className="w-full text-xs text-gray-400 hover:text-gray-600 py-1 transition-colors">Tutup</button>
                     </div>
                   </div>
                 )}

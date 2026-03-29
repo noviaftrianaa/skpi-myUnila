@@ -571,6 +571,53 @@ func (r *repository) GetBoardView(ctx context.Context, projectID, moduleID strin
 	}, nil
 }
 
+// ===== TASK ASSIGNEES =====
+
+func (r *repository) GetTaskAssignees(ctx context.Context, taskID string) ([]TaskAssignee, error) {
+	var assignees []TaskAssignee
+	query := `SELECT id_task_assignee, id_task, id_pengguna, nm_pengguna, initial, created_at::text AS created_at
+	          FROM task_assignees WHERE id_task = $1 ORDER BY created_at ASC`
+	if err := r.db.SelectContext(ctx, &assignees, query, taskID); err != nil {
+		return nil, fmt.Errorf("failed to get task assignees: %w", err)
+	}
+	if assignees == nil {
+		assignees = []TaskAssignee{}
+	}
+	return assignees, nil
+}
+
+func (r *repository) AddTaskAssignee(ctx context.Context, taskID, userID, userName, initial string) (*TaskAssignee, error) {
+	var assignee TaskAssignee
+	query := `INSERT INTO task_assignees (id_task, id_pengguna, nm_pengguna, initial)
+	          VALUES ($1, $2, $3, $4)
+	          ON CONFLICT (id_task, id_pengguna) DO NOTHING
+	          RETURNING id_task_assignee, id_task, id_pengguna, nm_pengguna, initial, created_at::text AS created_at`
+	if err := r.db.GetContext(ctx, &assignee, query, taskID, userID, userName, initial); err != nil {
+		return nil, fmt.Errorf("failed to add task assignee: %w", err)
+	}
+	// Also update the single assignee fields for backward compat
+	r.db.ExecContext(ctx, "UPDATE tasks SET id_assignee = $1, assignee_name = $2, assignee_initial = $3 WHERE id_task = $4",
+		userID, userName, initial, taskID)
+	return &assignee, nil
+}
+
+func (r *repository) RemoveTaskAssignee(ctx context.Context, taskID, userID string) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM task_assignees WHERE id_task = $1 AND id_pengguna = $2", taskID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to remove task assignee: %w", err)
+	}
+	// Update single assignee field — pick first remaining or null
+	var remaining []TaskAssignee
+	r.db.SelectContext(ctx, &remaining, "SELECT id_pengguna, nm_pengguna, initial FROM task_assignees WHERE id_task = $1 ORDER BY created_at ASC LIMIT 1", taskID)
+	if len(remaining) > 0 {
+		r.db.ExecContext(ctx, "UPDATE tasks SET id_assignee = $1, assignee_name = $2, assignee_initial = $3 WHERE id_task = $4",
+			remaining[0].IDPengguna, remaining[0].NmPengguna, remaining[0].Initial, taskID)
+	} else {
+		r.db.ExecContext(ctx, "UPDATE tasks SET id_assignee = NULL, assignee_name = NULL, assignee_initial = NULL WHERE id_task = $1", taskID)
+	}
+	return nil
+}
+
 // ===== COMMENTS =====
 
 func (r *repository) GetCommentsByTask(ctx context.Context, taskID string) ([]TaskComment, error) {

@@ -317,6 +317,15 @@ type BoardView struct {
 
 // ===== TASK COMMENT =====
 
+type TaskAssignee struct {
+	IDTaskAssignee string `db:"id_task_assignee" json:"id_task_assignee"`
+	IDTask         string `db:"id_task" json:"id_task"`
+	IDPengguna     string `db:"id_pengguna" json:"id_pengguna"`
+	NmPengguna     string `db:"nm_pengguna" json:"nm_pengguna"`
+	Initial        string `db:"initial" json:"initial"`
+	CreatedAt      string `db:"created_at" json:"created_at"`
+}
+
 type TaskComment struct {
 	IDComment  string    `db:"id_comment" json:"id_comment"`
 	IDTask     string    `db:"id_task" json:"id_task"`
