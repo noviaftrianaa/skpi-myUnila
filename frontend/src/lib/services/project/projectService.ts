@@ -95,6 +95,7 @@ export interface Task {
   assignee_id?: string;
   assignee_name?: string;
   assignee_initial?: string;
+  assignees?: { id: string; name: string; initial: string }[];
   due_date?: string;
   tgl_mulai?: string;
   tgl_target?: string;
@@ -115,6 +116,14 @@ export interface Task {
 }
 
 function mapTask(raw: Record<string, unknown>): Task {
+  // Parse assignees_json from backend
+  let assignees: { id: string; name: string; initial: string }[] = [];
+  if (raw.assignees_json && typeof raw.assignees_json === 'string') {
+    try { assignees = JSON.parse(raw.assignees_json); } catch { /* ignore */ }
+  } else if (Array.isArray(raw.assignees)) {
+    assignees = raw.assignees as { id: string; name: string; initial: string }[];
+  }
+
   const mapped = {
     ...raw,
     id: (raw.id_task ?? raw.id) as string,
@@ -124,6 +133,7 @@ function mapTask(raw: Record<string, unknown>): Task {
     assignee_id: (raw.id_assignee ?? raw.assignee_id) as string | undefined,
     kode: (raw.kode_task ?? raw.kode) as string,
     due_date: (raw.tgl_target ?? raw.due_date) as string | undefined,
+    assignees: assignees.length > 0 ? assignees : undefined,
   } as Task;
   // Map nested module if present
   if (raw.module && typeof raw.module === 'object') {

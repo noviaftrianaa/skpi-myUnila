@@ -529,11 +529,16 @@ func (r *repository) GetBoardView(ctx context.Context, projectID, moduleID strin
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id_task, id_module, id_project, kode_task, nomor_task, judul,
-		       tipe, prioritas, status, id_assignee, assignee_name, assignee_initial,
-		       tgl_target, progress, urutan, created_at, updated_at
+		SELECT t.id_task, t.id_module, t.id_project, t.kode_task, t.nomor_task, t.judul,
+		       t.tipe, t.prioritas, t.status, t.id_assignee, t.assignee_name, t.assignee_initial,
+		       COALESCE(
+		         (SELECT json_agg(json_build_object('id', ta.id_pengguna, 'name', ta.nm_pengguna, 'initial', ta.initial))
+		          FROM task_assignees ta WHERE ta.id_task = t.id_task),
+		         '[]'
+		       )::text AS assignees_json,
+		       t.tgl_target, t.progress, t.urutan, t.created_at, t.updated_at
 		FROM tasks t %s
-		ORDER BY status, urutan ASC
+		ORDER BY t.status, t.urutan ASC
 	`, where)
 
 	var tasks []TaskListItem

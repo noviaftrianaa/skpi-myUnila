@@ -158,8 +158,27 @@ export default function KanbanCard({ task, onClick, isDragging }: KanbanCardProp
 
         {/* Row 5: Footer */}
         <div className="flex items-center justify-between pt-1.5 border-t border-gray-100/80 dark:border-slate-700/60 gap-1">
-          <div className="flex items-center gap-1.5 min-w-0">
-            {task.assignee_initial ? (
+          <div className="flex items-center gap-1 min-w-0">
+            {task.assignees && task.assignees.length > 0 ? (
+              <>
+                <div className="flex -space-x-1.5">
+                  {task.assignees.slice(0, 4).map((a, i) => (
+                    <div key={a.id} className="w-5 h-5 rounded-full bg-[#0B5EA8] text-white text-[8px] flex items-center justify-center font-bold ring-1.5 ring-white dark:ring-slate-800 flex-shrink-0"
+                      style={{ zIndex: 10 - i }} title={a.name}>
+                      {a.initial}
+                    </div>
+                  ))}
+                  {task.assignees.length > 4 && (
+                    <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-[8px] flex items-center justify-center font-bold ring-1.5 ring-white dark:ring-slate-800 flex-shrink-0">
+                      +{task.assignees.length - 4}
+                    </div>
+                  )}
+                </div>
+                {task.assignees.length === 1 && (
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[70px]">{task.assignees[0].name.split(',')[0]}</span>
+                )}
+              </>
+            ) : task.assignee_initial ? (
               <>
                 <div className="w-5 h-5 rounded-full bg-[#0B5EA8] text-white text-[9px] flex items-center justify-center font-bold flex-shrink-0 ring-1 ring-white dark:ring-slate-700">
                   {task.assignee_initial}

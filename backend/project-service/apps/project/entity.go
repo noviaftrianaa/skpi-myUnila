@@ -225,6 +225,7 @@ type TaskListItem struct {
 	IDAssignee      *string    `db:"id_assignee" json:"id_assignee"`
 	AssigneeName    *string    `db:"assignee_name" json:"assignee_name"`
 	AssigneeInitial *string    `db:"assignee_initial" json:"assignee_initial"`
+	AssigneesJSON   *string    `db:"assignees_json" json:"assignees_json"`
 	TglTarget       *time.Time `db:"tgl_target" json:"tgl_target"`
 	Progress        int        `db:"progress" json:"progress"`
 	Urutan          int        `db:"urutan" json:"urutan"`
