@@ -457,6 +457,15 @@ export interface TaskReorderPayload {
   posisi: number;
 }
 
+/** Map frontend payload to backend format */
+function mapReorderPayload(items: TaskReorderPayload[]): { id_task: string; status: string; urutan: number }[] {
+  return items.map((item) => ({
+    id_task: item.task_id,
+    status: item.status,
+    urutan: item.posisi,
+  }));
+}
+
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
@@ -635,7 +644,7 @@ export const projectService = {
   },
 
   async reorderTasks(projectId: string, items: TaskReorderPayload[]): Promise<void> {
-    await projectClient.post(`/project/${projectId}/tasks/reorder`, { items });
+    await projectClient.post(`/project/${projectId}/tasks/reorder`, { items: mapReorderPayload(items) });
   },
 
   // --- Comments ---

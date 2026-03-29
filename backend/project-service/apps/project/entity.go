@@ -277,6 +277,7 @@ type TaskStatusUpdate struct {
 
 type TaskReorderItem struct {
 	IDTask string `json:"id_task"`
+	Status string `json:"status,omitempty"`
 	Urutan int    `json:"urutan"`
 }
 

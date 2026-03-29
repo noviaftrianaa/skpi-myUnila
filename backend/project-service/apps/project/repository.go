@@ -494,9 +494,16 @@ func (r *repository) BulkReorderTasks(ctx context.Context, items []TaskReorderIt
 	defer tx.Rollback()
 
 	for _, item := range items {
-		_, err := tx.ExecContext(ctx, "UPDATE tasks SET urutan = $1 WHERE id_task = $2", item.Urutan, item.IDTask)
-		if err != nil {
-			return fmt.Errorf("failed to reorder task %s: %w", item.IDTask, err)
+		if item.Status != "" {
+			_, err := tx.ExecContext(ctx, "UPDATE tasks SET urutan = $1, status = $2 WHERE id_task = $3", item.Urutan, item.Status, item.IDTask)
+			if err != nil {
+				return fmt.Errorf("failed to reorder task %s: %w", item.IDTask, err)
+			}
+		} else {
+			_, err := tx.ExecContext(ctx, "UPDATE tasks SET urutan = $1 WHERE id_task = $2", item.Urutan, item.IDTask)
+			if err != nil {
+				return fmt.Errorf("failed to reorder task %s: %w", item.IDTask, err)
+			}
 		}
 	}
 
