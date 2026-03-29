@@ -5,6 +5,9 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  pointerWithin,
+  rectIntersection,
+  getFirstCollision,
   PointerSensor,
   TouchSensor,
   useSensor,
@@ -13,6 +16,7 @@ import {
   type DragOverEvent,
   type DragEndEvent,
   type UniqueIdentifier,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import KanbanColumn from "./KanbanColumn";
@@ -36,6 +40,26 @@ const COLUMNS: { id: string; title: string }[] = [
 ];
 
 const COLUMN_IDS = new Set(COLUMNS.map((c) => c.id));
+
+/**
+ * Custom collision detection:
+ * 1. First check pointerWithin (is cursor inside a droppable?)
+ * 2. Then closestCorners as fallback
+ * 3. Prioritize column containers over individual cards
+ */
+const customCollisionDetection: CollisionDetection = (args) => {
+  // First try pointer-within (most accurate — cursor is inside the element)
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    // Prefer column droppables over card sortables
+    const columnHit = pointerCollisions.find((c) => COLUMN_IDS.has(c.id as string));
+    if (columnHit) return [columnHit];
+    return pointerCollisions;
+  }
+
+  // Fallback to closestCorners
+  return closestCorners(args);
+};
 
 export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: KanbanBoardProps) {
   const [columns, setColumns] = useState<Record<string, Task[]>>(() =>
@@ -96,13 +120,19 @@ export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: Ka
       const [movedTask] = activeItems.splice(activeIdx, 1);
       const updatedTask = { ...movedTask, status: overContainer as Task["status"] };
 
-      // Find insert position in destination
-      const overIdx = overItems.findIndex((t) => t.id === over.id);
-      if (overIdx >= 0) {
-        overItems.splice(overIdx, 0, updatedTask);
-      } else {
-        // Dropped on column itself (not on a card) — add to end
+      // Determine insert position
+      // If hovering over a card in the destination, insert before/after it
+      // If hovering over the column itself, append to end
+      const isOverColumn = COLUMN_IDS.has(over.id as string);
+      if (isOverColumn) {
         overItems.push(updatedTask);
+      } else {
+        const overIdx = overItems.findIndex((t) => t.id === over.id);
+        if (overIdx >= 0) {
+          overItems.splice(overIdx, 0, updatedTask);
+        } else {
+          overItems.push(updatedTask);
+        }
       }
 
       return {
@@ -167,7 +197,7 @@ export default function KanbanBoard({ projectId, initialTasks, onTaskClick }: Ka
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
