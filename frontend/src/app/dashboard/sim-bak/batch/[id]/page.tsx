@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,30 +8,22 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiSend, FiCheckCircle, FiDownload, FiLock } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiDownload } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
-import { dummyBatch, dummyKandidat } from "@/lib/services/sim-bak/dummyData";
-import type { KandidatBatch } from "@/lib/services/sim-bak/types";
 import toast, { Toaster } from "react-hot-toast";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch } from "@/lib/services/sim-bak/simBakService";
+import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
-const statusConfig: Record<string, { label: string; color: "default" | "primary" | "warning" | "success" | "danger" }> = {
+const statusConfig: Record<string, { label: string; color: "default" | "primary" | "warning" | "success" }> = {
   draft: { label: "Draft", color: "default" },
   verifikasi_fakultas: { label: "Verifikasi Fakultas", color: "warning" },
   finalisasi: { label: "Finalisasi", color: "primary" },
   terbit: { label: "Terbit", color: "success" },
 };
 
-const verifikasiConfig: Record<string, { label: string; color: "default" | "primary" | "warning" | "success" | "danger" }> = {
-  belum_dicek: { label: "Belum Dicek", color: "default" },
-  valid: { label: "Valid", color: "success" },
-  tidak_valid: { label: "Tidak Valid", color: "danger" },
-  dikecualikan: { label: "Dikecualikan", color: "warning" },
-};
-
-const jenisSkLabels: Record<string, string> = {
-  HABIS_MASA_MUKIM: "Habis Masa Mukim (HMM)",
-  PUTUS_STUDI: "Putus Studi",
+const kandidatStatusColor: Record<string, "default" | "success" | "danger" | "warning"> = {
+  masuk: "default", terverifikasi: "success", dikeluarkan: "danger",
 };
 
 export default function BatchDetailPage() {
@@ -41,274 +33,140 @@ export default function BatchDetailPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const batch = dummyBatch.find((b) => b.id_batch === id);
-  const kandidat = dummyKandidat.filter((k) => k.id_batch === id);
+  const [batch, setBatch] = useState<BatchPenetapan | null>(null);
+  const [kandidatList, setKandidatList] = useState<KandidatBatch[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const fakultasBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    kandidat.forEach((k) => {
-      map.set(k.nm_fakultas, (map.get(k.nm_fakultas) || 0) + 1);
-    });
-    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
-  }, [kandidat]);
+  const fetchData = useCallback(async () => {
+    try {
+      const [b, k] = await Promise.all([
+        getBatchDetail(id),
+        getBatchKandidat(id, { page, limit: 50, status_kandidat: filterStatus || undefined }),
+      ]);
+      setBatch(b);
+      setKandidatList(k.data ?? []);
+      setTotal(k.pagination?.total ?? 0);
+    } catch { setBatch(null); }
+    finally { setLoading(false); }
+  }, [id, page, filterStatus]);
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  useEffect(() => { if (user && id) fetchData(); }, [user, id, fetchData]);
+
+  if (!user || loading) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   if (!batch) {
     return (
-      <DashboardLayoutWithDynamicMenu
-        appName="SI MBAK"
-        appIcon={<MdDashboard className="w-6 h-6" />}
-        appKey="sim-bak"
-        fallbackMenus={simBakMenuConfig}
-        pageTitle="Batch Tidak Ditemukan"
-      >
-        <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Batch dengan ID &quot;{id}&quot; tidak ditemukan.</p>
-          <Button variant="flat" onPress={() => router.push("/dashboard/sim-bak/batch")}>
-            Kembali ke Daftar Batch
-          </Button>
+      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Batch Detail">
+        <div className="flex flex-col items-center justify-center py-20"><FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" /><p className="text-gray-500">Batch tidak ditemukan</p>
+          <Button className="mt-4" variant="flat" color="primary" onPress={() => router.push("/dashboard/sim-bak/batch")}>Kembali</Button>
         </div>
       </DashboardLayoutWithDynamicMenu>
     );
   }
 
-  const batchStatus = statusConfig[batch.status];
+  const cfg = statusConfig[batch.status] ?? statusConfig.draft;
 
-  const handleAction = (action: string) => {
-    const messages: Record<string, string> = {
-      kirim: "Batch berhasil dikirim ke fakultas untuk verifikasi",
-      finalisasi: "Batch berhasil difinalisasi",
-      terbitkan: "SK berhasil diterbitkan",
-      download: "Mengunduh file SK...",
-    };
-    toast.success(messages[action] || "Aksi berhasil dilakukan");
+  const handleVerifikasi = async (idKandidat: string, hasil: "valid" | "dikeluarkan") => {
+    setActionLoading(true);
+    try {
+      await verifikasiKandidat(idKandidat, { hasil });
+      toast.success(hasil === "valid" ? "Kandidat diverifikasi" : "Kandidat dikeluarkan");
+      fetchData();
+    } catch { toast.error("Gagal memproses"); }
+    finally { setActionLoading(false); }
+  };
+
+  const handleFinalize = async () => {
+    if (!confirm("Finalkan batch ini? SK Rektor akan diterbitkan.")) return;
+    setActionLoading(true);
+    try {
+      await finalizeBatch(id);
+      toast.success("Batch berhasil difinalkan");
+      fetchData();
+    } catch { toast.error("Gagal memfinalkan"); }
+    finally { setActionLoading(false); }
   };
 
   const columns: Column<KandidatBatch>[] = [
-    {
-      key: "npm",
-      label: "NPM",
-      sortable: true,
-      render: (item) => <span className="font-mono text-sm">{item.npm}</span>,
+    { key: "nim", label: "NIM", sortable: true, render: (item) => <span className="font-mono text-sm">{item.nim}</span> },
+    { key: "nm_mahasiswa", label: "Nama", sortable: true, render: (item) => <span className="text-sm font-medium text-gray-900 dark:text-white">{item.nm_mahasiswa}</span> },
+    { key: "nm_prodi", label: "Prodi", render: (item) => <span className="text-sm text-gray-600 dark:text-gray-400">{item.nm_prodi ?? "-"}</span> },
+    { key: "nm_fakultas", label: "Fakultas", render: (item) => <span className="text-sm text-gray-600 dark:text-gray-400">{item.nm_fakultas ?? "-"}</span> },
+    { key: "ipk", label: "IPK", align: "center" as const, render: (item) => <span className="text-sm">{item.ipk ?? "-"}</span> },
+    { key: "semester_aktif", label: "Smt", align: "center" as const, render: (item) => <span className="text-sm">{item.semester_aktif ?? "-"}</span> },
+    { key: "status_kandidat", label: "Status", render: (item) => (
+      <Chip size="sm" color={kandidatStatusColor[item.status_kandidat] || "default"} variant="flat">{item.status_kandidat}</Chip>
+    )},
+    { key: "hasil_verifikasi", label: "Verifikasi", render: (item) => item.hasil_verifikasi
+      ? <Chip size="sm" color={item.hasil_verifikasi === "valid" ? "success" : "danger"} variant="flat">{item.hasil_verifikasi}</Chip>
+      : <span className="text-xs text-gray-400">Belum</span>
     },
-    {
-      key: "nm_mahasiswa",
-      label: "Nama",
-      sortable: true,
-      render: (item) => <span className="text-sm font-medium text-gray-900 dark:text-white">{item.nm_mahasiswa}</span>,
-    },
-    {
-      key: "nm_prodi",
-      label: "Prodi",
-      sortable: true,
-      render: (item) => <span className="text-sm text-gray-700 dark:text-gray-300">{item.nm_prodi}</span>,
-    },
-    {
-      key: "nm_fakultas",
-      label: "Fakultas",
-      sortable: true,
-      render: (item) => <span className="text-sm text-gray-700 dark:text-gray-300">{item.nm_fakultas}</span>,
-    },
-    {
-      key: "semester_terakhir",
-      label: "Semester Terakhir",
-      align: "center",
-      sortable: true,
-      render: (item) => <span className="text-sm">{item.semester_terakhir}</span>,
-    },
-    {
-      key: "ipk_terakhir",
-      label: "IPK",
-      align: "center",
-      sortable: true,
-      render: (item) => <span className="text-sm">{item.ipk_terakhir}</span>,
-    },
-    {
-      key: "status_verifikasi",
-      label: "Status Verifikasi",
-      align: "center",
-      sortable: true,
-      render: (item) => {
-        const cfg = verifikasiConfig[item.status_verifikasi];
-        return <Chip size="sm" color={cfg?.color || "default"} variant="flat">{cfg?.label || item.status_verifikasi}</Chip>;
-      },
-    },
-    {
-      key: "catatan_verifikasi",
-      label: "Catatan",
-      render: (item) => (
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {item.catatan_verifikasi || "-"}
-        </span>
-      ),
-    },
+    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => item.status_kandidat === "masuk" && !item.hasil_verifikasi ? (
+      <div className="flex gap-1">
+        <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading} onPress={() => handleVerifikasi(item.id_kandidat, "valid")}><FiCheck className="w-3.5 h-3.5" /></Button>
+        <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading} onPress={() => handleVerifikasi(item.id_kandidat, "dikeluarkan")}><FiX className="w-3.5 h-3.5" /></Button>
+      </div>
+    ) : null },
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu
-      appName="SI MBAK"
-      appIcon={<MdDashboard className="w-6 h-6" />}
-      appKey="sim-bak"
-      fallbackMenus={simBakMenuConfig}
-      pageTitle={`Detail Batch - ${batch.no_sk || batch.id_batch}`}
-    >
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Batch — ${batch.kode_batch}`}>
       <Toaster position="top-right" />
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="light"
-            isIconOnly
-            onPress={() => router.push("/dashboard/sim-bak/batch")}
-          >
-            <FiArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Detail Batch
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {batch.no_sk || "SK belum diterbitkan"}
-            </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button isIconOnly variant="light" size="sm" onPress={() => router.push("/dashboard/sim-bak/batch")}><FiArrowLeft className="w-5 h-5" /></Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">{batch.nm_batch}</h1>
+            <p className="text-sm text-gray-500">{batch.kode_batch} · {batch.nm_layanan}</p>
           </div>
+          <Chip size="sm" color={cfg.color} variant="flat">{cfg.label}</Chip>
         </div>
 
-        {/* Batch Info Card */}
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden dark:bg-gray-800">
-          <CardBody className="p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">No. SK</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                  {batch.no_sk || "Belum Terbit"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Jenis</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                  {jenisSkLabels[batch.jenis_sk] || batch.jenis_sk}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Periode</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{batch.periode_akademik}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Status</p>
-                <div className="mt-1">
-                  <Chip size="sm" color={batchStatus?.color || "default"} variant="flat">
-                    {batchStatus?.label || batch.status}
-                  </Chip>
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Total Kandidat", value: batch.jumlah_kandidat, gradient: "from-blue-500 to-blue-600" },
+            { label: "Terverifikasi", value: batch.jumlah_terverifikasi, gradient: "from-emerald-500 to-green-600" },
+            { label: "Dikeluarkan", value: batch.jumlah_dikeluarkan, gradient: "from-rose-500 to-red-600" },
+            { label: "Belum", value: batch.jumlah_kandidat - batch.jumlah_terverifikasi - batch.jumlah_dikeluarkan, gradient: "from-amber-500 to-orange-500" },
+          ].map(s => (
+            <Card key={s.label} className="border-none shadow-md rounded-xl dark:bg-gray-800">
+              <CardBody className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${s.gradient} text-white`}><FiUsers className="w-5 h-5" /></div>
+                  <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p></div>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tanggal SK</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                  {batch.tgl_sk || "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Jumlah Kandidat</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{batch.jumlah_kandidat}</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
 
-        {/* Per-fakultas Breakdown */}
-        {fakultasBreakdown.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Breakdown per Fakultas
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {fakultasBreakdown.map((f) => (
-                <Card key={f.name} className="border-none shadow-sm rounded-lg dark:bg-gray-800">
-                  <CardBody className="p-3">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{f.name}</p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">{f.count}</p>
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
+        {/* Kandidat Table */}
+        <DataTable data={kandidatList} columns={columns} searchable searchKeys={["nim", "nm_mahasiswa", "nm_prodi", "nm_fakultas"]}
+          searchPlaceholder="Cari kandidat..." defaultRowsPerPage={50}
+          filterSlot={
+            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Semua Status</option>
+              <option value="masuk">Masuk</option>
+              <option value="terverifikasi">Terverifikasi</option>
+              <option value="dikeluarkan">Dikeluarkan</option>
+            </select>
+          }
+        />
+
+        {/* Finalize */}
+        {batch.status !== "terbit" && (
+          <div className="flex justify-end">
+            <Button color="primary" size="lg" startContent={<FiCheck className="w-5 h-5" />} isLoading={actionLoading} onPress={handleFinalize}>
+              Finalkan & Terbitkan SK
+            </Button>
           </div>
         )}
-
-        {/* Kandidat DataTable */}
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden dark:bg-gray-800">
-          <CardBody className="p-0">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Kandidat</h2>
-            </div>
-            <DataTable
-              data={kandidat}
-              columns={columns}
-              searchable={true}
-              searchKeys={["npm", "nm_mahasiswa", "nm_prodi", "nm_fakultas"]}
-              searchPlaceholder="Cari kandidat..."
-              noWrapper
-            />
-          </CardBody>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="flat"
-            startContent={<FiArrowLeft className="w-4 h-4" />}
-            onPress={() => router.push("/dashboard/sim-bak/batch")}
-          >
-            Kembali
-          </Button>
-          <div className="flex-1" />
-
-          {batch.status === "draft" && (
-            <Button
-              color="primary"
-              startContent={<FiSend className="w-4 h-4" />}
-              onPress={() => handleAction("kirim")}
-            >
-              Kirim ke Fakultas
-            </Button>
-          )}
-
-          {batch.status === "verifikasi_fakultas" && (
-            <Button
-              color="primary"
-              startContent={<FiLock className="w-4 h-4" />}
-              onPress={() => handleAction("finalisasi")}
-            >
-              Finalisasi Batch
-            </Button>
-          )}
-
-          {batch.status === "finalisasi" && (
-            <Button
-              color="success"
-              startContent={<FiCheckCircle className="w-4 h-4" />}
-              onPress={() => handleAction("terbitkan")}
-            >
-              Terbitkan SK
-            </Button>
-          )}
-
-          {batch.status === "terbit" && (
-            <Button
-              color="primary"
-              startContent={<FiDownload className="w-4 h-4" />}
-              onPress={() => handleAction("download")}
-            >
-              Download SK
-            </Button>
-          )}
-        </div>
       </div>
     </DashboardLayoutWithDynamicMenu>
   );

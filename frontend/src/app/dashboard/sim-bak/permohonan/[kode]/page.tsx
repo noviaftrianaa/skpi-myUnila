@@ -1,357 +1,282 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
-import { Spinner, Card, CardBody, Button, Chip } from "@heroui/react";
-import { FiArrowLeft, FiArrowRight, FiCheck, FiUpload, FiInfo } from "react-icons/fi";
-import { useRouter } from "next/navigation";
+import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
+import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo } from "react-icons/fi";
+import { useParams, useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { dummyJenisLayanan, dummyPersyaratan, prodiList } from "@/lib/services/sim-bak/dummyData";
+import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
+import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan } from "@/lib/services/sim-bak/types";
 
-const stepLabels = ["Data & Informasi", "Upload Dokumen", "Konfirmasi"];
-
-const alasanCutiOptions = ["Sakit", "Keuangan", "Keluarga", "Lainnya"];
+const steps = [
+  { no: 1, label: "Data & Alasan" },
+  { no: 2, label: "Upload Dokumen" },
+  { no: 3, label: "Review & Submit" },
+];
 
 export default function PermohonanFormPage() {
   useRequireAuth();
   const { user } = useAuth();
-  const router = useRouter();
   const params = useParams();
+  const router = useRouter();
   const kode = params.kode as string;
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    catatan: "",
-    // CUTI fields
-    semester_cuti: 1,
-    alasan_cuti: "",
-    // UNDUR_DIRI fields
-    alasan_undur_diri: "",
-    pernyataan_ortu: false,
-    // ALIH_PROGRAM fields
-    prodi_tujuan: "",
-  });
+  const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File | null>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [layanan, setLayanan] = useState<JenisLayanan | null>(null);
+  const [persyaratan, setPersyaratan] = useState<PersyaratanLayanan[]>([]);
+  const [tahapan, setTahapan] = useState<TahapanLayanan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [alasan, setAlasan] = useState("");
+  const [catatan, setCatatan] = useState("");
+  // Cuti-specific
+  const [jumlahSemesterCuti, setJumlahSemesterCuti] = useState<number>(1);
 
-  const layanan = dummyJenisLayanan.find((j) => j.kode_layanan === kode);
-  const persyaratan = dummyPersyaratan.filter((p) => p.id_jenis_layanan === layanan?.id_jenis_layanan);
+  useEffect(() => {
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const allLayanan = await getJenisLayananPublic();
+        const found = allLayanan.find(j => j.kode_layanan === kode);
+        setLayanan(found ?? null);
+        if (found) {
+          const [p, t] = await Promise.all([
+            getPersyaratanByLayanan(found.id_jenis_layanan),
+            getTahapanByLayanan(found.id_jenis_layanan),
+          ]);
+          setPersyaratan((p ?? []).sort((a, b) => a.urutan - b.urutan));
+          setTahapan(t ?? []);
+        }
+      } catch { /* fallback */ }
+      finally { setLoading(false); }
+    };
+    fetchData();
+  }, [user, kode]);
 
-  const handleFileChange = (kodeDoc: string, file: File | null) => {
-    setUploadedFiles((prev) => ({ ...prev, [kodeDoc]: file }));
-  };
-
-  const canProceedStep0 = useMemo(() => {
-    if (kode === "CUTI") return formData.alasan_cuti !== "";
-    if (kode === "UNDUR_DIRI") return formData.alasan_undur_diri.trim() !== "" && formData.pernyataan_ortu;
-    if (kode === "ALIH_PROGRAM") return formData.prodi_tujuan !== "";
-    return true;
-  }, [kode, formData]);
-
-  const canProceedStep1 = useMemo(() => {
-    const wajib = persyaratan.filter((p) => p.apakah_wajib);
-    return wajib.every((p) => uploadedFiles[p.kode_dokumen]);
-  }, [persyaratan, uploadedFiles]);
-
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast.success("Permohonan berhasil diajukan! Silakan pantau status di halaman Riwayat.");
-      setTimeout(() => router.push("/dashboard/sim-bak/permohonan"), 1500);
-    }, 1500);
-  };
-
-  if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
+  if (!user || loading) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   if (!layanan) {
     return (
-      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Permohonan">
-        <div className="text-center py-20">
-          <p className="text-gray-500 dark:text-gray-400">Layanan tidak ditemukan</p>
+      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Tidak Ditemukan">
+        <div className="flex flex-col items-center justify-center py-20">
+          <FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" />
+          <p className="text-gray-500">Jenis layanan <span className="font-mono font-bold">{kode}</span> tidak ditemukan.</p>
           <Button className="mt-4" variant="flat" color="primary" onPress={() => router.push("/dashboard/sim-bak/permohonan")}>Kembali</Button>
         </div>
       </DashboardLayoutWithDynamicMenu>
     );
   }
 
+  const isCuti = kode === "PM-CUTI";
+  const dataPemohon = { nama: user?.nm_pengguna ?? "-", npm: user?.username ?? "-", prodi: "-", fakultas: "-", semester: "-", ipk: "-" };
+
+  const handleSubmit = async (isDraft: boolean) => {
+    if (!isDraft && !alasan.trim()) { toast.error("Alasan permohonan wajib diisi"); return; }
+    setSubmitting(true);
+    try {
+      const pengajuan = await createPengajuan({
+        id_jenis_layanan: layanan.id_jenis_layanan,
+        alasan,
+        catatan_pemohon: catatan || undefined,
+        jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
+      });
+
+      for (const [kodeDok, file] of Object.entries(uploadedFiles)) {
+        if (!file) continue;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("nm_dokumen", persyaratan.find(p => p.kode_dokumen === kodeDok)?.nm_dokumen ?? file.name);
+        const match = persyaratan.find(p => p.kode_dokumen === kodeDok);
+        if (match) formData.append("id_persyaratan", match.id_persyaratan);
+        await uploadDokumen(pengajuan.id_pengajuan, formData);
+      }
+
+      if (!isDraft) {
+        await ajukanPengajuan(pengajuan.id_pengajuan);
+        toast.success("Permohonan berhasil diajukan!");
+      } else {
+        toast.success("Draft disimpan");
+      }
+      setTimeout(() => router.push("/dashboard/sim-bak/riwayat"), 1500);
+    } catch (e) {
+      toast.error("Gagal: " + (e instanceof Error ? e.message : "Error"));
+    } finally { setSubmitting(false); }
+  };
+
+  const allRequiredUploaded = persyaratan.filter(p => p.a_wajib).every(p => uploadedFiles[p.kode_dokumen]);
+
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Ajukan ${layanan.nm_layanan}`}>
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Permohonan ${layanan.nm_layanan}`}>
       <Toaster position="top-right" />
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button isIconOnly variant="light" size="sm" onPress={() => router.push("/dashboard/sim-bak/permohonan")}>
-            <FiArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{layanan.nm_layanan}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{layanan.deskripsi}</p>
-          </div>
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Permohonan {layanan.nm_layanan}</h1>
+          <p className="text-sm text-gray-500 mt-1">{layanan.deskripsi}</p>
         </div>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-0">
-          {stepLabels.map((label, idx) => (
-            <div key={label} className="flex items-center">
+          {steps.map((step, idx) => (
+            <div key={step.no} className="flex items-center">
               <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                  idx < currentStep ? "bg-green-500 text-white" : idx === currentStep ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                }`}>
-                  {idx < currentStep ? <FiCheck className="w-5 h-5" /> : idx + 1}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${currentStep > step.no ? "bg-green-500 border-green-500 text-white" : currentStep === step.no ? "bg-blue-600 border-blue-600 text-white" : "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400"}`}>
+                  {currentStep > step.no ? <FiCheck className="w-5 h-5" /> : step.no}
                 </div>
-                <span className={`text-xs mt-1.5 font-medium ${idx === currentStep ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>
-                  {label}
-                </span>
+                <span className={`text-xs mt-1.5 font-medium whitespace-nowrap ${currentStep >= step.no ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>{step.label}</span>
               </div>
-              {idx < stepLabels.length - 1 && (
-                <div className={`w-16 sm:w-24 h-0.5 mx-2 mb-5 ${idx < currentStep ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`} />
-              )}
+              {idx < steps.length - 1 && <div className={`w-16 sm:w-24 h-0.5 mx-2 mb-5 ${currentStep > step.no ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`} />}
             </div>
           ))}
         </div>
 
-        {/* Step Content */}
-        <Card className="shadow-md rounded-xl border-none">
-          <CardBody className="p-6">
-            {/* Step 1: Data & Information */}
-            {currentStep === 0 && (
-              <div className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Data Permohonan</h2>
-
-                {/* Type-specific fields */}
-                {kode === "CUTI" && (
-                  <>
+        {/* Step 1: Data + Alasan */}
+        {currentStep === 1 && (
+          <div className="space-y-4">
+            {/* Tahapan info */}
+            {tahapan.length > 0 && (
+              <Card className="shadow-sm rounded-xl border border-blue-100 dark:border-blue-900">
+                <CardBody className="p-4">
+                  <div className="flex items-start gap-2">
+                    <FiInfo className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester Cuti <span className="text-red-500">*</span></label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={2}
-                        className="w-full sm:w-48 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                        value={formData.semester_cuti}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, semester_cuti: parseInt(e.target.value) || 1 }))}
-                      />
-                      <p className="text-xs text-gray-400 mt-1">Maksimal 2 semester cuti</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Cuti <span className="text-red-500">*</span></label>
-                      <select
-                        className="w-full sm:w-64 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                        value={formData.alasan_cuti}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, alasan_cuti: e.target.value }))}
-                      >
-                        <option value="">Pilih alasan...</option>
-                        {alasanCutiOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Alur proses ({tahapan.length} tahap)</p>
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {tahapan.map((t, i) => (
+                          <span key={t.id_tahapan} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                            {i + 1}. {t.nm_tahapan}
+                          </span>
                         ))}
-                      </select>
+                      </div>
                     </div>
-                  </>
+                  </div>
+                </CardBody>
+              </Card>
+            )}
+
+            <Card className="shadow-md rounded-xl"><CardBody className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Pemohon</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {Object.entries(dataPemohon).map(([label, value]) => (
+                  <div key={label} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 mb-0.5 capitalize">{label}</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Permohonan *</label>
+                  <textarea value={alasan} onChange={e => setAlasan(e.target.value)} rows={4}
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Jelaskan alasan permohonan Anda..." />
+                </div>
+
+                {isCuti && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah Semester Cuti</label>
+                    <select value={jumlahSemesterCuti} onChange={e => setJumlahSemesterCuti(Number(e.target.value))}
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value={1}>1 Semester</option>
+                      <option value={2}>2 Semester</option>
+                    </select>
+                  </div>
                 )}
 
-                {kode === "UNDUR_DIRI" && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Pengunduran Diri <span className="text-red-500">*</span></label>
-                      <textarea
-                        rows={4}
-                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                        placeholder="Jelaskan alasan pengunduran diri Anda..."
-                        value={formData.alasan_undur_diri}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, alasan_undur_diri: e.target.value }))}
-                      />
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <input
-                        type="checkbox"
-                        id="pernyataan_ortu"
-                        className="mt-1"
-                        checked={formData.pernyataan_ortu}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, pernyataan_ortu: e.target.checked }))}
-                      />
-                      <label htmlFor="pernyataan_ortu" className="text-sm text-gray-700 dark:text-gray-300">
-                        Saya menyatakan bahwa orang tua/wali telah mengetahui dan menyetujui pengunduran diri ini <span className="text-red-500">*</span>
-                      </label>
-                    </div>
-                  </>
-                )}
-
-                {kode === "ALIH_PROGRAM" && (
-                  <>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-start gap-2">
-                      <FiInfo className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-amber-700 dark:text-amber-300">Syarat: IPK minimal 2.75 dan minimal 40 SKS yang telah ditempuh</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Program Studi Tujuan <span className="text-red-500">*</span></label>
-                      <select
-                        className="w-full sm:w-80 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                        value={formData.prodi_tujuan}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, prodi_tujuan: e.target.value }))}
-                      >
-                        <option value="">Pilih program studi tujuan...</option>
-                        {prodiList.map((prodi) => (
-                          <option key={prodi.id} value={prodi.id}>{prodi.nama}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </>
-                )}
-
-                {/* Common catatan field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan Tambahan</label>
-                  <textarea
-                    rows={3}
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                    placeholder="Catatan tambahan (opsional)..."
-                    value={formData.catatan}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, catatan: e.target.value }))}
-                  />
+                  <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={2}
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Catatan tambahan (opsional)..." />
                 </div>
               </div>
-            )}
+            </CardBody></Card>
+          </div>
+        )}
 
-            {/* Step 2: Upload Documents */}
-            {currentStep === 1 && (
-              <div className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Upload Dokumen</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Upload dokumen persyaratan berikut. Dokumen bertanda <span className="text-red-500">*</span> wajib diupload.</p>
-
-                <div className="space-y-4">
-                  {persyaratan.map((req) => (
-                    <div key={req.id_persyaratan} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm text-gray-900 dark:text-white">
-                            {req.nm_persyaratan} {req.apakah_wajib && <span className="text-red-500">*</span>}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">Maks {req.ukuran_maks_mb} MB &middot; {req.tipe_file.split(",").map((t) => t.split("/").pop()?.toUpperCase()).join(", ")}</p>
-                        </div>
-                        {uploadedFiles[req.kode_dokumen] && (
-                          <Chip size="sm" color="success" variant="flat">Uploaded</Chip>
-                        )}
-                      </div>
-                      <div className="mt-3">
-                        <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 hover:border-blue-400 transition-colors">
-                          <FiUpload className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {uploadedFiles[req.kode_dokumen] ? uploadedFiles[req.kode_dokumen]!.name : "Pilih file..."}
-                          </span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept={req.tipe_file}
-                            onChange={(e) => handleFileChange(req.kode_dokumen, e.target.files?.[0] || null)}
-                          />
-                        </label>
-                      </div>
+        {/* Step 2: Upload */}
+        {currentStep === 2 && (
+          <Card className="shadow-md rounded-xl"><CardBody className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Upload Dokumen Persyaratan</h2>
+            <p className="text-sm text-gray-500 mb-6">{persyaratan.length} dokumen diperlukan</p>
+            <div className="space-y-4">
+              {persyaratan.map(req => (
+                <div key={req.id_persyaratan} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{req.nm_dokumen}</span>
+                      {req.a_wajib && <Chip color="danger" variant="flat" size="sm">Wajib</Chip>}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Confirmation */}
-            {currentStep === 2 && (
-              <div className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Konfirmasi Pengajuan</h2>
-
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <h3 className="font-semibold text-sm text-blue-800 dark:text-blue-300 mb-2">Ringkasan</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Jenis Permohonan</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{layanan.nm_layanan}</span>
-                    </div>
-                    {kode === "CUTI" && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Semester Cuti</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{formData.semester_cuti} semester</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Alasan</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{formData.alasan_cuti}</span>
-                        </div>
-                      </>
-                    )}
-                    {kode === "UNDUR_DIRI" && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Alasan</span>
-                        <span className="font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{formData.alasan_undur_diri}</span>
-                      </div>
-                    )}
-                    {kode === "ALIH_PROGRAM" && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Prodi Tujuan</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{prodiList.find((p) => p.id === formData.prodi_tujuan)?.nama || "-"}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Dokumen</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{Object.values(uploadedFiles).filter(Boolean).length} file</span>
-                    </div>
-                    {formData.catatan && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Catatan</span>
-                        <span className="font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{formData.catatan}</span>
-                      </div>
-                    )}
+                    <span className="text-xs text-gray-400">Maks {req.max_size_mb} MB</span>
                   </div>
+                  {uploadedFiles[req.kode_dokumen] ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2">
+                        <FiFile className="w-4 h-4 text-green-600" />
+                        <p className="text-sm text-green-700 dark:text-green-300">{uploadedFiles[req.kode_dokumen]!.name}</p>
+                      </div>
+                      <button onClick={() => handleFileChange(req.kode_dokumen, null)} className="p-1 rounded-full hover:bg-green-100"><FiX className="w-4 h-4 text-green-600" /></button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-400 transition-colors"
+                      onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); handleFileChange(req.kode_dokumen, e.dataTransfer.files[0]); }}>
+                      <FiUpload className="w-8 h-8 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500">Drag & drop atau <span className="text-blue-600 font-medium">pilih file</span></p>
+                      <input type="file" className="hidden" accept={req.tipe_file} onChange={e => handleFileChange(req.kode_dokumen, e.target.files?.[0] || null)} />
+                    </label>
+                  )}
                 </div>
+              ))}
+            </div>
+          </CardBody></Card>
+        )}
 
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-start gap-2">
-                  <FiInfo className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Pastikan semua data dan dokumen sudah benar. Setelah diajukan, permohonan akan melewati proses verifikasi dan persetujuan bertahap.
-                  </p>
-                </div>
+        {/* Step 3: Review */}
+        {currentStep === 3 && (
+          <div className="space-y-4">
+            <Card className="shadow-md rounded-xl"><CardBody className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ringkasan</h2>
+              <Chip color="primary" variant="flat" size="sm" className="mb-3">{layanan.nm_layanan}</Chip>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                <p className="text-xs text-gray-500 mb-1">Alasan:</p>
+                <p className="text-sm text-gray-900 dark:text-white">{alasan || "-"}</p>
               </div>
-            )}
-          </CardBody>
-        </Card>
+              {isCuti && <p className="text-sm text-gray-600 mb-4">Jumlah semester cuti: <strong>{jumlahSemesterCuti}</strong></p>}
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dokumen ({Object.values(uploadedFiles).filter(Boolean).length}/{persyaratan.length})</h3>
+              <div className="space-y-2">
+                {persyaratan.map(req => (
+                  <div key={req.id_persyaratan} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{req.nm_dokumen}</span>
+                    <Chip color={uploadedFiles[req.kode_dokumen] ? "success" : req.a_wajib ? "danger" : "default"} variant="flat" size="sm">
+                      {uploadedFiles[req.kode_dokumen] ? "✓" : req.a_wajib ? "!" : "-"}
+                    </Chip>
+                  </div>
+                ))}
+              </div>
+            </CardBody></Card>
+            <div className="flex gap-3 justify-end">
+              <Button variant="flat" startContent={<FiSave className="w-4 h-4" />} isLoading={submitting} onPress={() => handleSubmit(true)}>Simpan Draft</Button>
+              <Button color="primary" startContent={<FiSend className="w-4 h-4" />} isDisabled={!allRequiredUploaded || !alasan.trim()} isLoading={submitting} onPress={() => handleSubmit(false)}>Ajukan</Button>
+            </div>
+          </div>
+        )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between">
-          <Button
-            variant="flat"
-            color="default"
-            startContent={<FiArrowLeft className="w-4 h-4" />}
-            onPress={() => {
-              if (currentStep === 0) router.push("/dashboard/sim-bak/permohonan");
-              else setCurrentStep((s) => s - 1);
-            }}
-          >
-            {currentStep === 0 ? "Kembali" : "Sebelumnya"}
-          </Button>
-          {currentStep < 2 ? (
-            <Button
-              color="primary"
-              endContent={<FiArrowRight className="w-4 h-4" />}
-              isDisabled={currentStep === 0 ? !canProceedStep0 : !canProceedStep1}
-              onPress={() => setCurrentStep((s) => s + 1)}
-            >
-              Selanjutnya
-            </Button>
-          ) : (
-            <Button
-              color="success"
-              startContent={<FiCheck className="w-4 h-4" />}
-              isLoading={isSubmitting}
-              onPress={handleSubmit}
-            >
-              Ajukan Permohonan
-            </Button>
-          )}
+        {/* Nav */}
+        <div className="flex justify-between pt-2">
+          <Button variant="flat" startContent={<FiChevronLeft className="w-4 h-4" />} isDisabled={currentStep === 1} onPress={() => setCurrentStep(s => Math.max(1, s - 1))}>Sebelumnya</Button>
+          {currentStep < 3 && <Button color="primary" endContent={<FiChevronRight className="w-4 h-4" />} onPress={() => setCurrentStep(s => Math.min(3, s + 1))}>Selanjutnya</Button>}
         </div>
       </div>
     </DashboardLayoutWithDynamicMenu>
   );
+
+  function handleFileChange(kodeDokumen: string, file: File | null) {
+    setUploadedFiles(prev => ({ ...prev, [kodeDokumen]: file }));
+  }
 }
