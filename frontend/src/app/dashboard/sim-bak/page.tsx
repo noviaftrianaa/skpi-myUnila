@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "./config/menuConfig";
@@ -21,7 +20,6 @@ const statusColorMap: Record<string, string> = {
 };
 
 export default function SimBakDashboardPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>(dummyDashboardStats);

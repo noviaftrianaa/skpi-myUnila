@@ -1,6 +1,5 @@
 "use client";
 
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import MaintenancePage from "@/shared/components/dashboard/MaintenancePage";
@@ -21,7 +20,6 @@ export default function SimBakComingSoon({
   menuIcon = "heroicons:wrench-screwdriver",
   message,
 }: SimBakComingSoonProps) {
-  useRequireAuth();
   const { user } = useAuth();
 
   if (!user) {

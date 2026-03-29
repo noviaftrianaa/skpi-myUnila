@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -27,7 +26,6 @@ const jenisSkConfig: Record<string, { label: string; tw: string }> = {
 };
 
 export default function BatchPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<BatchPenetapan[]>([]);

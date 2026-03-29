@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -31,7 +30,6 @@ const rulesMap: Record<string, string[]> = {
 };
 
 export default function PermohonanAkademikPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [permohonan, setPermohonan] = useState<JenisLayanan[]>([]);

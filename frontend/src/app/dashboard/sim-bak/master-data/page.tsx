@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -21,7 +20,6 @@ const tabs = [
 ];
 
 export default function MasterDataPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("jenis");
 

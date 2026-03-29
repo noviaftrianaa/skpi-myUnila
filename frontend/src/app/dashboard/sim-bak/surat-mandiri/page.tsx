@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -27,7 +26,6 @@ const colorMap: Record<string, string> = {
 };
 
 export default function SuratMandiriPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [suratMandiri, setSuratMandiri] = useState<JenisLayanan[]>([]);

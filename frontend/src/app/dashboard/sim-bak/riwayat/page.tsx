@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -24,7 +23,6 @@ const statusLabelMap: Record<StatusPengajuan, string> = {
 const allStatuses: StatusPengajuan[] = ["draft","diajukan","perlu_perbaikan","diverifikasi","menunggu_persetujuan","disetujui","ditolak","terbit"];
 
 export default function RiwayatPengajuanPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<Pengajuan[]>([]);

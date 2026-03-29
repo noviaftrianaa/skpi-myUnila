@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../../config/menuConfig";
@@ -24,7 +23,6 @@ const statusLabelMap: Record<string, string> = {
 };
 
 export default function PersetujuanDetailPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../config/menuConfig";
@@ -27,7 +26,6 @@ const jenisSkLabels: Record<string, string> = {
 };
 
 export default function BatchVerifikasiPage() {
-  useRequireAuth();
   const { user } = useAuth();
 
   const verifikasiBatches = useMemo(

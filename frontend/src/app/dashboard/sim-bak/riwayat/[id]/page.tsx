@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../config/menuConfig";
@@ -22,7 +21,6 @@ const statusLabelMap: Record<StatusPengajuan, string> = {
 };
 
 export default function DetailPengajuanPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();

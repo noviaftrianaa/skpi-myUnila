@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -19,7 +18,6 @@ const tabs = [
 ];
 
 export default function MonitoringPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("aktif");
   const [aktifData, setAktifData] = useState<Record<string,unknown>[]>([]);

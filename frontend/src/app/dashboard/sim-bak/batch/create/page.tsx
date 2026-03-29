@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../config/menuConfig";
@@ -16,7 +15,6 @@ import toast, { Toaster } from "react-hot-toast";
 const semesterOptions = ["20251","20252","20241","20242","20231","20232"];
 
 export default function CreateBatchPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [batchLayanan, setBatchLayanan] = useState<JenisLayanan[]>([]);

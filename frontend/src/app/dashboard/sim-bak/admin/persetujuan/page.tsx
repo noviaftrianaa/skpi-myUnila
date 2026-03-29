@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../../config/menuConfig";
@@ -15,7 +14,6 @@ import { getApprovalQueue } from "@/lib/services/sim-bak/simBakService";
 import type { Pengajuan } from "@/lib/services/sim-bak/types";
 
 export default function PersetujuanPage() {
-  useRequireAuth();
   const { user } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<Pengajuan[]>([]);
