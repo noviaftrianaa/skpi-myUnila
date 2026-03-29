@@ -151,7 +151,7 @@ export default function TaskDetailModal({
     setLoadingComments(true);
     try {
       const data = await projectService.getComments(projectId, taskId);
-      setComments(data);
+      setComments(data ?? []);
     } catch {
       // ignore
     } finally {
@@ -162,7 +162,7 @@ export default function TaskDetailModal({
   const loadCommits = async (taskId: string) => {
     try {
       const data = await projectService.getCommits(projectId, taskId);
-      setCommits(data);
+      setCommits(data ?? []);
     } catch {
       // ignore
     }
@@ -171,7 +171,7 @@ export default function TaskDetailModal({
   const loadTaskLabels = async (taskId: string) => {
     try {
       const data = await projectService.getTaskLabels(projectId, taskId);
-      setTaskLabels(data);
+      setTaskLabels(data ?? []);
     } catch {
       setTaskLabels([]);
     }
@@ -180,7 +180,7 @@ export default function TaskDetailModal({
   const loadProjectLabels = async () => {
     try {
       const data = await projectService.getProjectLabels(projectId);
-      setProjectLabels(data);
+      setProjectLabels(data ?? []);
     } catch {
       setProjectLabels([]);
     }

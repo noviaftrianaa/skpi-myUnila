@@ -6,8 +6,6 @@ import {
   DragOverlay,
   closestCorners,
   pointerWithin,
-  rectIntersection,
-  getFirstCollision,
   PointerSensor,
   TouchSensor,
   useSensor,
