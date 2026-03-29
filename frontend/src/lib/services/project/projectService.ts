@@ -647,6 +647,15 @@ export const projectService = {
     await projectClient.post(`/project/${projectId}/tasks/reorder`, { items: mapReorderPayload(items) });
   },
 
+  // --- User Search ---
+  async searchUsers(query: string, limit: number = 10): Promise<{ id_pengguna: string; nama: string; username: string; email: string }[]> {
+    const response = await projectClient.get<SingleResponse<{ id_pengguna: string; nama: string; username: string; email: string }[]>>(
+      '/users/search',
+      { params: { q: query, limit } }
+    );
+    return response.data.data ?? [];
+  },
+
   // --- Comments ---
   async getComments(projectId: string, taskId: string): Promise<Comment[]> {
     const response = await projectClient.get<SingleResponse<Comment[]>>(

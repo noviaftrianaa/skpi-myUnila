@@ -27,6 +27,8 @@ import {
   FiTag,
   FiPlus,
   FiCheck,
+  FiUser,
+  FiSearch,
 } from "react-icons/fi";
 import type { Task, Comment, Commit, ProjectModule, Label } from "@/lib/services/project/projectService";
 import { projectService } from "@/lib/services/project/projectService";
@@ -118,6 +120,13 @@ export default function TaskDetailModal({
   const [taskLabels, setTaskLabels] = useState<Label[]>([]);
   const [projectLabels, setProjectLabels] = useState<Label[]>([]);
   const [showLabelDropdown, setShowLabelDropdown] = useState(false);
+
+  // Assignee search
+  const [showAssigneeSearch, setShowAssigneeSearch] = useState(false);
+  const [assigneeQuery, setAssigneeQuery] = useState("");
+  const [assigneeResults, setAssigneeResults] = useState<{ id_pengguna: string; nama: string; username: string; email: string }[]>([]);
+  const [assigneeLoading, setAssigneeLoading] = useState(false);
+  const assigneeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const [labelLoading, setLabelLoading] = useState(false);
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState("#6B7280");
@@ -175,6 +184,50 @@ export default function TaskDetailModal({
     } catch {
       setTaskLabels([]);
     }
+  };
+
+  // Assignee search — debounced 300ms, min 2 chars
+  const searchAssignee = (query: string) => {
+    setAssigneeQuery(query);
+    if (assigneeDebounceRef.current) clearTimeout(assigneeDebounceRef.current);
+    if (query.length < 2) { setAssigneeResults([]); return; }
+    assigneeDebounceRef.current = setTimeout(async () => {
+      setAssigneeLoading(true);
+      try {
+        const results = await projectService.searchUsers(query, 8);
+        setAssigneeResults(results ?? []);
+      } catch { setAssigneeResults([]); }
+      finally { setAssigneeLoading(false); }
+    }, 300);
+  };
+
+  const handleAssign = async (user: { id_pengguna: string; nama: string }) => {
+    if (!task) return;
+    const initial = user.nama.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    try {
+      setSavingField('assignee');
+      const updated = await projectService.updateTask(projectId, task.id, {
+        assignee_id: user.id_pengguna,
+        assignee_name: user.nama,
+        assignee_initial: initial,
+      });
+      setEditTask(prev => ({ ...prev, assignee_id: user.id_pengguna, assignee_name: user.nama, assignee_initial: initial }));
+      onTaskUpdated?.({ ...task, ...updated, assignee_id: user.id_pengguna, assignee_name: user.nama, assignee_initial: initial });
+      toast('Assignee diperbarui', 'success');
+    } catch { toast('Gagal mengubah assignee', 'error'); }
+    finally { setSavingField(null); setShowAssigneeSearch(false); setAssigneeQuery(''); setAssigneeResults([]); }
+  };
+
+  const handleUnassign = async () => {
+    if (!task) return;
+    try {
+      setSavingField('assignee');
+      await projectService.updateTask(projectId, task.id, { assignee_id: '', assignee_name: '', assignee_initial: '' });
+      setEditTask(prev => ({ ...prev, assignee_id: undefined, assignee_name: undefined, assignee_initial: undefined }));
+      onTaskUpdated?.({ ...task, assignee_id: undefined, assignee_name: undefined, assignee_initial: undefined });
+      toast('Assignee dihapus', 'success');
+    } catch { toast('Gagal menghapus assignee', 'error'); }
+    finally { setSavingField(null); }
   };
 
   const loadProjectLabels = async () => {
@@ -482,18 +535,84 @@ export default function TaskDetailModal({
                 />
               </div>
 
-              {/* Assignee */}
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Assignee</p>
+              {/* Assignee — clickable with search */}
+              <div className="relative">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                  <FiUser className="w-3 h-3" /> Assignee
+                </p>
                 {editTask.assignee_name ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 group/assign">
                     <div className="w-6 h-6 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold">
                       {editTask.assignee_initial || editTask.assignee_name[0]}
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{editTask.assignee_name}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{editTask.assignee_name}</span>
+                    <button onClick={() => setShowAssigneeSearch(true)}
+                      className="text-[10px] text-blue-500 hover:text-blue-700 opacity-0 group-hover/assign:opacity-100 transition-opacity">
+                      Ganti
+                    </button>
+                    <button onClick={handleUnassign}
+                      className="text-[10px] text-red-400 hover:text-red-600 opacity-0 group-hover/assign:opacity-100 transition-opacity">
+                      <FiX className="w-3 h-3" />
+                    </button>
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-400">Unassigned</span>
+                  <button onClick={() => setShowAssigneeSearch(true)}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-500 transition-colors py-1">
+                    <FiPlus className="w-3 h-3" /> Assign seseorang
+                  </button>
+                )}
+
+                {/* Assignee Search Dropdown */}
+                {showAssigneeSearch && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+                    <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+                      <div className="relative">
+                        <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={assigneeQuery}
+                          onChange={(e) => searchAssignee(e.target.value)}
+                          placeholder="Cari nama atau username..."
+                          className="w-full pl-8 pr-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {assigneeLoading && (
+                        <div className="flex items-center justify-center py-4">
+                          <Spinner size="sm" />
+                        </div>
+                      )}
+                      {!assigneeLoading && assigneeQuery.length >= 2 && assigneeResults.length === 0 && (
+                        <p className="text-xs text-gray-400 text-center py-4">Tidak ditemukan</p>
+                      )}
+                      {assigneeResults.map((user) => (
+                        <button
+                          key={user.id_pengguna}
+                          onClick={() => handleAssign(user)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                          <div className="w-7 h-7 rounded-full bg-[#0B5EA8] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">
+                            {user.nama.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.nama}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{user.username} · {user.email}</p>
+                          </div>
+                        </button>
+                      ))}
+                      {assigneeQuery.length < 2 && !assigneeLoading && (
+                        <p className="text-xs text-gray-400 text-center py-4">Ketik min. 2 karakter</p>
+                      )}
+                    </div>
+                    <div className="p-1.5 border-t border-gray-100 dark:border-gray-700">
+                      <button onClick={() => { setShowAssigneeSearch(false); setAssigneeQuery(''); setAssigneeResults([]); }}
+                        className="w-full text-xs text-gray-400 hover:text-gray-600 py-1 transition-colors">
+                        Tutup
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
