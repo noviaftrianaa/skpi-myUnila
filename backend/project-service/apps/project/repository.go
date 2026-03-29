@@ -141,23 +141,23 @@ func NewRepository(db *sqlx.DB) Repository {
 
 func (r *repository) GetProjectList(ctx context.Context, page, limit int, search, status string) (*PaginatedResult, error) {
 	offset := (page - 1) * limit
-	where := "WHERE soft_delete = FALSE"
+	where := "WHERE p.soft_delete = FALSE"
 	args := []interface{}{}
 	argIdx := 1
 
 	if search != "" {
-		where += fmt.Sprintf(" AND (nm_project ILIKE $%d OR kode_project ILIKE $%d)", argIdx, argIdx)
+		where += fmt.Sprintf(" AND (p.nm_project ILIKE $%d OR p.kode_project ILIKE $%d)", argIdx, argIdx)
 		args = append(args, "%"+search+"%")
 		argIdx++
 	}
 	if status != "" {
-		where += fmt.Sprintf(" AND status = $%d", argIdx)
+		where += fmt.Sprintf(" AND p.status = $%d", argIdx)
 		args = append(args, status)
 		argIdx++
 	}
 
 	var total int
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM projects %s", where)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM projects p %s", where)
 	if err := r.db.GetContext(ctx, &total, countQuery, args...); err != nil {
 		return nil, fmt.Errorf("failed to count projects: %w", err)
 	}
@@ -166,10 +166,13 @@ func (r *repository) GetProjectList(ctx context.Context, page, limit int, search
 	limitIdx := argIdx
 	offsetIdx := argIdx + 1
 	dataQuery := fmt.Sprintf(`
-		SELECT id_project, kode_project, nm_project, deskripsi, status, warna,
-		       tgl_mulai, tgl_target, repo_url, id_unit, nm_unit, visibility, created_at, updated_at
-		FROM projects %s
-		ORDER BY created_at DESC
+		SELECT p.id_project, p.kode_project, p.nm_project, p.deskripsi, p.status, p.warna,
+		       p.tgl_mulai, p.tgl_target, p.repo_url, p.id_unit, p.nm_unit, p.visibility, p.created_at, p.updated_at,
+		       COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = p.id_project AND t.soft_delete = FALSE), 0) AS task_count,
+		       COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = p.id_project AND t.soft_delete = FALSE AND t.status = 'done'), 0) AS task_done,
+		       COALESCE((SELECT COUNT(DISTINCT id_module) FROM modules m WHERE m.id_project = p.id_project AND m.soft_delete = FALSE), 0) AS module_count
+		FROM projects p %s
+		ORDER BY p.created_at DESC
 		LIMIT $%d OFFSET $%d
 	`, where, limitIdx, offsetIdx)
 
@@ -1223,8 +1226,11 @@ func (r *repository) GetProjectsForUser(ctx context.Context, userID string, isPi
 	}
 
 	dataQuery := `
-		SELECT id_project, kode_project, nm_project, deskripsi, status, warna,
-		       tgl_mulai, tgl_target, repo_url, id_unit, nm_unit, visibility, created_at, updated_at
+		SELECT p.id_project, p.kode_project, p.nm_project, p.deskripsi, p.status, p.warna,
+		       p.tgl_mulai, p.tgl_target, p.repo_url, p.id_unit, p.nm_unit, p.visibility, p.created_at, p.updated_at,
+		       COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = p.id_project AND t.soft_delete = FALSE), 0) AS task_count,
+		       COALESCE((SELECT COUNT(*) FROM tasks t WHERE t.id_project = p.id_project AND t.soft_delete = FALSE AND t.status = 'done'), 0) AS task_done,
+		       COALESCE((SELECT COUNT(DISTINCT id_module) FROM modules m WHERE m.id_project = p.id_project AND m.soft_delete = FALSE), 0) AS module_count
 		FROM projects p
 		WHERE p.soft_delete = FALSE
 		AND (

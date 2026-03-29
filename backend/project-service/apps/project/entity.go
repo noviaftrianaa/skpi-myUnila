@@ -41,6 +41,9 @@ type ProjectListItem struct {
 	Visibility  string     `db:"visibility" json:"visibility"`
 	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
+	TaskCount   int        `db:"task_count" json:"task_count"`
+	TaskDone    int        `db:"task_done" json:"task_done"`
+	ModuleCount int        `db:"module_count" json:"module_count"`
 }
 
 type ProjectCreateRequest struct {
