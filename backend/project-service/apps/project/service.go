@@ -525,7 +525,19 @@ func (s *service) UpdateTask(ctx context.Context, id string, req *TaskUpdateRequ
 		fields["status"] = *req.Status
 	}
 	if req.IDAssignee != nil {
-		fields["id_assignee"] = *req.IDAssignee
+		if *req.IDAssignee == "" {
+			fields["id_assignee"] = nil
+			fields["assignee_name"] = nil
+			fields["assignee_initial"] = nil
+		} else {
+			fields["id_assignee"] = *req.IDAssignee
+			if req.AssigneeName != nil {
+				fields["assignee_name"] = *req.AssigneeName
+			}
+			if req.AssigneeInitial != nil {
+				fields["assignee_initial"] = *req.AssigneeInitial
+			}
+		}
 	}
 	if req.IDReporter != nil {
 		fields["id_reporter"] = *req.IDReporter

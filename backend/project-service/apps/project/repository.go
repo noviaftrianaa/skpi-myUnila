@@ -525,7 +525,8 @@ func (r *repository) GetBoardView(ctx context.Context, projectID, moduleID strin
 
 	query := fmt.Sprintf(`
 		SELECT id_task, id_module, id_project, kode_task, nomor_task, judul,
-		       tipe, prioritas, status, id_assignee, tgl_target, progress, urutan, created_at, updated_at
+		       tipe, prioritas, status, id_assignee, assignee_name, assignee_initial,
+		       tgl_target, progress, urutan, created_at, updated_at
 		FROM tasks t %s
 		ORDER BY status, urutan ASC
 	`, where)

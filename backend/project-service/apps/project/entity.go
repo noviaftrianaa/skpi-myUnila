@@ -194,37 +194,41 @@ type Task struct {
 	Tipe         string     `db:"tipe" json:"tipe"`
 	Prioritas    string     `db:"prioritas" json:"prioritas"`
 	Status       string     `db:"status" json:"status"`
-	IDAssignee   *string    `db:"id_assignee" json:"id_assignee"`
-	IDReporter   *string    `db:"id_reporter" json:"id_reporter"`
-	TglMulai     *time.Time `db:"tgl_mulai" json:"tgl_mulai"`
-	TglTarget    *time.Time `db:"tgl_target" json:"tgl_target"`
-	TglSelesai   *time.Time `db:"tgl_selesai" json:"tgl_selesai"`
-	Progress     int        `db:"progress" json:"progress"`
-	EstimasiJam  *float64   `db:"estimasi_jam" json:"estimasi_jam"`
-	ActualJam    *float64   `db:"actual_jam" json:"actual_jam"`
-	Tags         *string    `db:"tags" json:"tags"`
-	Urutan       int        `db:"urutan" json:"urutan"`
-	CreatedAt    time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time  `db:"updated_at" json:"updated_at"`
-	SoftDelete   bool       `db:"soft_delete" json:"-"`
+	IDAssignee      *string    `db:"id_assignee" json:"id_assignee"`
+	AssigneeName    *string    `db:"assignee_name" json:"assignee_name"`
+	AssigneeInitial *string    `db:"assignee_initial" json:"assignee_initial"`
+	IDReporter      *string    `db:"id_reporter" json:"id_reporter"`
+	TglMulai        *time.Time `db:"tgl_mulai" json:"tgl_mulai"`
+	TglTarget       *time.Time `db:"tgl_target" json:"tgl_target"`
+	TglSelesai      *time.Time `db:"tgl_selesai" json:"tgl_selesai"`
+	Progress        int        `db:"progress" json:"progress"`
+	EstimasiJam     *float64   `db:"estimasi_jam" json:"estimasi_jam"`
+	ActualJam       *float64   `db:"actual_jam" json:"actual_jam"`
+	Tags            *string    `db:"tags" json:"tags"`
+	Urutan          int        `db:"urutan" json:"urutan"`
+	CreatedAt       time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `db:"updated_at" json:"updated_at"`
+	SoftDelete      bool       `db:"soft_delete" json:"-"`
 }
 
 type TaskListItem struct {
-	IDTask      string     `db:"id_task" json:"id_task"`
-	IDModule    string     `db:"id_module" json:"id_module"`
-	IDProject   string     `db:"id_project" json:"id_project"`
-	IDSprint    *string    `db:"id_sprint" json:"id_sprint"`
-	KodeTask    string     `db:"kode_task" json:"kode_task"`
-	NomorTask   int        `db:"nomor_task" json:"nomor_task"`
-	Judul       string     `db:"judul" json:"judul"`
-	Tipe        string     `db:"tipe" json:"tipe"`
-	Prioritas   string     `db:"prioritas" json:"prioritas"`
-	Status      string     `db:"status" json:"status"`
-	IDAssignee  *string    `db:"id_assignee" json:"id_assignee"`
-	TglTarget   *time.Time `db:"tgl_target" json:"tgl_target"`
-	Progress    int        `db:"progress" json:"progress"`
-	Urutan      int        `db:"urutan" json:"urutan"`
-	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
+	IDTask          string     `db:"id_task" json:"id_task"`
+	IDModule        string     `db:"id_module" json:"id_module"`
+	IDProject       string     `db:"id_project" json:"id_project"`
+	IDSprint        *string    `db:"id_sprint" json:"id_sprint"`
+	KodeTask        string     `db:"kode_task" json:"kode_task"`
+	NomorTask       int        `db:"nomor_task" json:"nomor_task"`
+	Judul           string     `db:"judul" json:"judul"`
+	Tipe            string     `db:"tipe" json:"tipe"`
+	Prioritas       string     `db:"prioritas" json:"prioritas"`
+	Status          string     `db:"status" json:"status"`
+	IDAssignee      *string    `db:"id_assignee" json:"id_assignee"`
+	AssigneeName    *string    `db:"assignee_name" json:"assignee_name"`
+	AssigneeInitial *string    `db:"assignee_initial" json:"assignee_initial"`
+	TglTarget       *time.Time `db:"tgl_target" json:"tgl_target"`
+	Progress        int        `db:"progress" json:"progress"`
+	Urutan          int        `db:"urutan" json:"urutan"`
+	CreatedAt       time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
 }
 
@@ -253,15 +257,17 @@ type TaskCreateRequest struct {
 }
 
 type TaskUpdateRequest struct {
-	IDModule    *string  `json:"id_module"`
-	IDSprint    *string  `json:"id_sprint"`
-	Judul       *string  `json:"judul"`
-	Deskripsi   *string  `json:"deskripsi"`
-	Tipe        *string  `json:"tipe"`
-	Prioritas   *string  `json:"prioritas"`
-	Status      *string  `json:"status"`
-	IDAssignee  *string  `json:"id_assignee"`
-	IDReporter  *string  `json:"id_reporter"`
+	IDModule        *string  `json:"id_module"`
+	IDSprint        *string  `json:"id_sprint"`
+	Judul           *string  `json:"judul"`
+	Deskripsi       *string  `json:"deskripsi"`
+	Tipe            *string  `json:"tipe"`
+	Prioritas       *string  `json:"prioritas"`
+	Status          *string  `json:"status"`
+	IDAssignee      *string  `json:"id_assignee"`
+	AssigneeName    *string  `json:"assignee_name"`
+	AssigneeInitial *string  `json:"assignee_initial"`
+	IDReporter      *string  `json:"id_reporter"`
 	TglMulai    *string  `json:"tgl_mulai"`
 	TglTarget   *string  `json:"tgl_target"`
 	TglSelesai  *string  `json:"tgl_selesai"`
