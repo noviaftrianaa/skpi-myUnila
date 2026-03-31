@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Layanan;
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
+use App\Services\MinioService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,11 +17,13 @@ class PengajuanController extends Controller
 
     protected PengajuanRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
+    protected MinioService $minioService;
 
     public function __construct()
     {
         $this->repository = new PengajuanRepository();
         $this->jenisLayananRepo = new JenisLayananRepository();
+        $this->minioService = new MinioService();
     }
 
     /**
@@ -172,10 +175,10 @@ class PengajuanController extends Controller
             $user = $request->user();
             $file = $request->file('file');
 
-            // Upload ke MinIO via MinioService (atau simpan sementara)
-            $path = 'simbak/dokumen/' . $id . '/' . $file->hashName();
-            // TODO: integrate MinioService upload
-            // Sementara simpan path placeholder
+            // Upload ke MinIO
+            $kodeDokumen = $request->get('id_persyaratan', 'general');
+            $path = $this->minioService->uploadDokumenPengajuan($id, $kodeDokumen, $file);
+
             $dokumen = $this->repository->createDokumen([
                 'id_pengajuan' => $id,
                 'id_persyaratan' => $request->get('id_persyaratan'),
