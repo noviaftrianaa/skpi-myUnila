@@ -85,12 +85,15 @@ RUN test -f /var/www/vendor/autoload.php || (echo "ERROR: vendor/autoload.php no
 # Create necessary directories
 RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
     && mkdir -p /var/www/storage/logs \
-    && mkdir -p /var/www/bootstrap/cache
+    && mkdir -p /var/www/bootstrap/cache \
+    && mkdir -p /data/simbak-storage
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \
+    && chown -R www-data:www-data /data/simbak-storage \
     && chmod -R 775 /var/www/storage \
     && chmod -R 775 /var/www/bootstrap/cache \
+    && chmod -R 775 /data/simbak-storage \
     && touch /var/www/storage/logs/laravel.log \
     && touch /var/www/storage/logs/queue-worker.log \
     && chown www-data:www-data /var/www/storage/logs/*.log

@@ -15,7 +15,7 @@ abstract class BaseRepository
         return DB::connection('pgsql')->select($query, $bindings);
     }
 
-    protected function pgSelectOne(string $query, array $bindings = []): ?object
+    public function pgSelectOne(string $query, array $bindings = []): ?object
     {
         return DB::connection('pgsql')->selectOne($query, $bindings);
     }
@@ -51,24 +51,26 @@ abstract class BaseRepository
     /**
      * Begin transaction di PostgreSQL + set session context untuk audit.
      */
-    protected function pgBeginTransaction(?string $userId = null, ?string $ipAddress = null): void
+    public function pgBeginTransaction(?string $userId = null, ?string $ipAddress = null): void
     {
         DB::connection('pgsql')->beginTransaction();
 
         if ($userId) {
-            DB::connection('pgsql')->statement("SET LOCAL simbak.id_pengguna = ?", [$userId]);
+            $safeUserId = addslashes($userId);
+            DB::connection('pgsql')->unprepared("SET LOCAL simbak.id_pengguna = '{$safeUserId}'");
         }
         if ($ipAddress) {
-            DB::connection('pgsql')->statement("SET LOCAL simbak.ip_address = ?", [$ipAddress]);
+            $safeIp = addslashes($ipAddress);
+            DB::connection('pgsql')->unprepared("SET LOCAL simbak.ip_address = '{$safeIp}'");
         }
     }
 
-    protected function pgCommit(): void
+    public function pgCommit(): void
     {
         DB::connection('pgsql')->commit();
     }
 
-    protected function pgRollback(): void
+    public function pgRollback(): void
     {
         DB::connection('pgsql')->rollBack();
     }
