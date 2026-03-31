@@ -8,7 +8,9 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Service untuk upload/download file ke MinIO (VM7).
+ * Service untuk upload/download file.
+ * Supports local storage (default) dan MinIO (S3-compatible).
+ * Disk ditentukan oleh FILESYSTEM_DISK env var.
  *
  * Path convention:
  *   simbak/pengajuan/{id_pengajuan}/{kode_dokumen}/{filename}
@@ -18,10 +20,15 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class MinioService
 {
-    private string $disk = 'minio';
+    private string $disk;
+
+    public function __construct()
+    {
+        $this->disk = config('filesystems.default', 'simbak');
+    }
 
     /**
-     * Upload file ke MinIO.
+     * Upload file.
      *
      * @return string Path file di MinIO
      */

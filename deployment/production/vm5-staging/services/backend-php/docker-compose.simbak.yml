@@ -50,7 +50,11 @@ services:
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
 
-      # MinIO (VM7)
+      # File Storage
+      # Default: local disk (FILESYSTEM_DISK=simbak)
+      # Switch to MinIO: FILESYSTEM_DISK=minio
+      FILESYSTEM_DISK: "${SIMBAK_FILESYSTEM_DISK:-simbak}"
+      SIMBAK_STORAGE_PATH: "/data/simbak-storage"
       MINIO_ENDPOINT: "${MINIO_ENDPOINT:-http://192.168.120.47:9000}"
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
@@ -59,6 +63,8 @@ services:
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
 
+    volumes:
+      - simbak-storage:/data/simbak-storage
     extra_hosts:
       - "host.docker.internal:host-gateway"
     deploy:
@@ -84,6 +90,11 @@ services:
         max-size: "10m"
         max-file: "3"
         labels: "service=simbak,vm=vm5-staging"
+
+volumes:
+  simbak-storage:
+    driver: local
+    name: simbak-storage
 
 networks:
   myunila-staging-network:

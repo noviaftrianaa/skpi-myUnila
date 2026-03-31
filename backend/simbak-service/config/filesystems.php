@@ -2,7 +2,20 @@
 
 return [
 
-    'default' => env('FILESYSTEM_DISK', 'minio'),
+    /*
+    |--------------------------------------------------------------------------
+    | Default Filesystem Disk
+    |--------------------------------------------------------------------------
+    |
+    | Opsi: 'simbak' (local storage, default) atau 'minio' (S3-compatible)
+    | Local storage: file disimpan di /data/simbak-storage (volume mount)
+    | MinIO: file disimpan di MinIO server (VM7 atau remote)
+    |
+    | Ganti via env: FILESYSTEM_DISK=minio (kalau sudah ada MinIO server)
+    |
+    */
+
+    'default' => env('FILESYSTEM_DISK', 'simbak'),
 
     'disks' => [
 
@@ -21,13 +34,21 @@ return [
             'throw' => false,
         ],
 
-        // MinIO (S3-compatible) - VM7: 192.168.120.47:9000
-        // Bucket: myunila-storage
+        // Local file storage — mounted volume di /data/simbak-storage
+        // Aman saat rebuild karena di-mount dari host filesystem
         // Path convention:
         //   simbak/pengajuan/{id_pengajuan}/{kode_dokumen}/{filename}
         //   simbak/hasil/{id_pengajuan}/{jenis_output}/{filename}
         //   simbak/batch/{id_batch}/{jenis_sk}/{filename}
         //   simbak/template/{kode_layanan}/{filename}
+        'simbak' => [
+            'driver' => 'local',
+            'root' => env('SIMBAK_STORAGE_PATH', '/data/simbak-storage'),
+            'throw' => true,
+        ],
+
+        // MinIO (S3-compatible) — gunakan jika MinIO server tersedia
+        // Set FILESYSTEM_DISK=minio di .env untuk aktifkan
         'minio' => [
             'driver' => 's3',
             'key' => env('MINIO_ACCESS_KEY'),

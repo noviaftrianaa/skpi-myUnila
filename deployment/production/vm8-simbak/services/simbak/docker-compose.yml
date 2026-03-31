@@ -48,7 +48,9 @@ services:
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
 
-      # MinIO
+      # File Storage
+      FILESYSTEM_DISK: "${FILESYSTEM_DISK:-simbak}"
+      SIMBAK_STORAGE_PATH: "/data/simbak-storage"
       MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
@@ -60,6 +62,8 @@ services:
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
 
+    volumes:
+      - simbak-storage:/data/simbak-storage
     depends_on:
       simbak-postgres:
         condition: service_healthy
@@ -188,6 +192,8 @@ volumes:
   simbak-pg-data:
     driver: local
   simbak-redis-data:
+    driver: local
+  simbak-storage:
     driver: local
 
 networks:
