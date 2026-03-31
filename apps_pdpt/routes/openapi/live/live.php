@@ -189,6 +189,16 @@ Route::group([
                 Route::get('daftar_lembaga', 'LembagaController@listLembaga');
                 Route::get('daftar_satuan_pendidikan', 'LembagaController@listSp');
             });
+
+            Route::prefix('visiting_scientist')->group(function () {
+                Route::get('daftar', 'VisitingScientistController@daftar');
+                Route::get('daftar_id', 'VisitingScientistController@daftar_id');
+            });
+
+            Route::prefix('detasering')->group(function () {
+                Route::get('daftar', 'DetaseringController@daftar');
+                Route::get('daftar_id', 'DetaseringController@daftar_id');
+            });
         });
 
         Route::group([
