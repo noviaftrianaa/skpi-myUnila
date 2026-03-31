@@ -59,7 +59,7 @@ class DetaseringController extends Controller
                 WHERE
                     d.soft_delete = 0
                 ORDER BY
-                    d.id_detasering $sort
+                    d.create_date $sort
             ";
 
             $pagination = CustomPagination($query);

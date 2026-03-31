@@ -213,6 +213,16 @@ Route::group([
                 Route::get('daftar', 'PengelolaJurnalController@daftar');
                 Route::get('daftar_id', 'PengelolaJurnalController@daftar_id');
             });
+
+            Route::prefix('anggota_organisasi_profesi')->group(function () {
+                Route::get('daftar', 'AnggotaOrganisasiProfesiController@daftar');
+                Route::get('daftar_id', 'AnggotaOrganisasiProfesiController@daftar_id');
+            });
+
+            Route::prefix('penghargaan')->group(function () {
+                Route::get('daftar', 'PenghargaanController@daftar');
+                Route::get('daftar_id', 'PenghargaanController@daftar_id');
+            });
         });
 
         Route::group([
