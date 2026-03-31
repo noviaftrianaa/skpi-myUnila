@@ -83,6 +83,7 @@ class DashboardRepository extends BaseRepository
 
     /**
      * Monitoring: mahasiswa aktif dari pdut (SQL Server, read-only).
+     * Status mahasiswa ada di siakadu.kuliah_mhs (bukan pdrd.reg_pd).
      */
     public function getMahasiswaAktif(array $params = []): array
     {
@@ -91,7 +92,7 @@ class DashboardRepository extends BaseRepository
         $fakultas = $params['fakultas'] ?? null;
         $bindings = [];
 
-        $where = "WHERE rp.id_stat_mhs = 'A'";
+        $where = "WHERE km.id_stat_mhs = 'A'";
         if ($fakultas) {
             $where .= " AND sms.nm_lemb LIKE ?";
             $bindings[] = '%' . $fakultas . '%';
@@ -99,7 +100,8 @@ class DashboardRepository extends BaseRepository
 
         $countSql = "
             SELECT COUNT(*) as total
-            FROM pdrd.reg_pd rp
+            FROM siakadu.kuliah_mhs km
+            JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
             JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd
             JOIN pdrd.sms sms ON sms.id_sms = rp.id_sms
             {$where}
@@ -108,16 +110,17 @@ class DashboardRepository extends BaseRepository
 
         $offset = ($page - 1) * $limit;
         $dataSql = "
-            SELECT TOP {$limit}
-                pd.nipd as nim, pd.nm_pd as nama,
+            SELECT
+                rp.nipd as nim, pd.nm_pd as nama,
                 sms.nm_lemb as prodi,
-                rp.id_stat_mhs as status
-            FROM pdrd.reg_pd rp
+                km.id_stat_mhs as status
+            FROM siakadu.kuliah_mhs km
+            JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
             JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd
             JOIN pdrd.sms sms ON sms.id_sms = rp.id_sms
             {$where}
             ORDER BY pd.nm_pd ASC
-            OFFSET {$offset} ROWS
+            OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
         ";
         $data = $this->pdutSelect($dataSql, $bindings);
 
