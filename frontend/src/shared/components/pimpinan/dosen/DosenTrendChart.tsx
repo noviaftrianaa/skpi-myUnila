@@ -194,7 +194,12 @@ export {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+      <div className="z-50 p-4 bg-white border border-gray-200 rounded-lg shadow-lg"         
+          style={{
+          maxHeight: "300px",
+          overflowY: "auto",
+          pointerEvents: "auto",
+        }}>
         <p className="mb-2 font-bold text-gray-800">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="mb-1">
