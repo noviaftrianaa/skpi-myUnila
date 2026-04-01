@@ -55,14 +55,14 @@ class AnggotaOrganisasiProfesiController extends Controller
                 WHERE
                     aop.soft_delete = 0
                 ORDER BY
-                    aop.create_date $sort
+                    aop.create_date " . $sort . "
             ";
 
             $pagination = CustomPagination($query);
             $query = $pagination['query'];
             $datas = DB::select($query);
             if (empty($datas)) {
-                return WrapResponse(['data' => null], 'tidak ada daftar detasering yang ditampilkan', FALSE);
+                return WrapResponse(['data' => null], 'tidak ada daftar anggota organisasi profesi yang ditampilkan', FALSE);
             }
 
             $data = [];
