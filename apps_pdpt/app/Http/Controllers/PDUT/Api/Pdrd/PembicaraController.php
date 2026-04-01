@@ -61,7 +61,7 @@ class PembicaraController extends Controller
                 WHERE
                     p.soft_delete = 0
                 ORDER BY
-                    p.id_pembicara $sort
+                    p.create_date $sort
             ";
 
             $pagination = CustomPagination($query);
@@ -143,7 +143,7 @@ class PembicaraController extends Controller
                     p.soft_delete = 0
                     AND p.id_sdm = '$id_sdm'
                 ORDER BY
-                    p.id_pembicara $sort
+                    p.create_date $sort
             ";
 
             $pagination = CustomPagination($query);

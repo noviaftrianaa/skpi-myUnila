@@ -55,7 +55,7 @@ class BimbingDosenController extends Controller
                 WHERE
                     bd.soft_delete = 0
                 ORDER BY
-                    bd.id_bimbing_dosen $sort
+                    bd.create_date $sort
             ";
 
             $pagination = CustomPagination($query);

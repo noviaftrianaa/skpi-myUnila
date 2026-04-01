@@ -55,7 +55,7 @@ class AnggotaOrganisasiProfesiController extends Controller
                 WHERE
                     aop.soft_delete = 0
                 ORDER BY
-                    aop.created_date $sort
+                    aop.create_date $sort
             ";
 
             $pagination = CustomPagination($query);
@@ -127,7 +127,7 @@ class AnggotaOrganisasiProfesiController extends Controller
                     aop.soft_delete = 0
                     AND aop.id_sdm = '$id_sdm'
                 ORDER BY
-                    aop.created_date $sort
+                    aop.create_date $sort
             ";
 
             $pagination = CustomPagination($query);

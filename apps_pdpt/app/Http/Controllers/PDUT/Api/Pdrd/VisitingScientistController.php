@@ -59,7 +59,7 @@ class VisitingScientistController extends Controller
                 WHERE
                     vs.soft_delete = 0
                 ORDER BY
-                    vs.id_visit $sort
+                    vs.create_date $sort
             ";
 
             $pagination = CustomPagination($query);
@@ -132,7 +132,7 @@ class VisitingScientistController extends Controller
                     vs.soft_delete = 0
                     AND vs.id_sdm = '$id_sdm'
                 ORDER BY
-                    vs.id_visit $sort
+                    vs.create_date $sort
             ";
 
             $pagination = CustomPagination($query);
