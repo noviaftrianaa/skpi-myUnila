@@ -734,16 +734,23 @@ export default function DosenPage() {
   const panggolHistoricalData = useMemo(() => {
     if (selectedTipeData !== "pang_gol") return [];
 
-    // If prodi is selected, use prodi historical data
+    // If prodi is selected, use prodi historical data (filtered by prodi)
     if (selectedProdi && panggolProdiHistorical.length > 0) {
       return panggolProdiHistorical;
     }
 
-    // If fakultas is selected (or no filter), use fakultas historical data
+    // If fakultas is selected (without prodi), use prodi historical data
+    // (which returns all prodis in that fakultas = tingkat fakultas)
+    if (selectedFakultas && panggolProdiHistorical.length > 0) {
+      return panggolProdiHistorical;
+    }
+
+    // University level: no fakultas selected
     return panggolFakultasHistorical;
   }, [
     selectedTipeData,
     selectedProdi,
+    selectedFakultas,
     panggolFakultasHistorical,
     panggolProdiHistorical,
   ]);
@@ -1013,7 +1020,7 @@ export default function DosenPage() {
                       value: "text-slate-700 font-semibold text-sm truncate",
                       popoverContent:
                         "bg-white rounded-lg shadow-xl max-w-[400px]",
-                      innerWrapper: "text-slate-700",
+                      innerWrapper: "text-slate-700 overflow-hidden",
                     }}
                     listboxProps={{
                       itemClasses: {

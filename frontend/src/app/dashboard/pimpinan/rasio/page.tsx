@@ -391,7 +391,7 @@ export default function RasioPage() {
                       label: "text-gray-700 font-medium text-sm",
                       value: "text-slate-700 font-semibold text-sm",
                       popoverContent: "bg-white rounded-lg shadow-xl",
-                      innerWrapper: "text-slate-700",
+                      innerWrapper: "text-slate-700 overflow-hidden",
                     }}
                   >
                     {fakultasList.map((fakultas) => (

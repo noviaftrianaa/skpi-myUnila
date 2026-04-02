@@ -197,12 +197,12 @@ class PangGolController extends Controller
      * @param string $idFakultas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getPangkatGolonganProdiHistorical(Request $request, $idFakultas)
+    public function getPangkatGolonganProdiHistorical(Request $request)
     {
         try {
             $tahunAjaran = $request->query('tahun_ajaran');
             $prodiId = $request->query('prodi_id');
-
+            $idFakultas = $request->query('fakultas_id');
             if (!$tahunAjaran) {
                 return response()->json([
                     'status' => 'error',

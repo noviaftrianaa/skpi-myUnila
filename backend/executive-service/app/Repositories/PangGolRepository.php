@@ -121,7 +121,7 @@ class PangGolRepository
      * @param string $idFakultas
      * @return \Illuminate\Support\Collection
      */
-    private function getPangkatGolonganFakultasLevel($idThnAjaran, $idFakultas)
+    private function getPangkatGolonganFakultasLevel($idThnAjaran, $idFakultas, $idProdi = null)
     {
         $sql = "
             SELECT
@@ -191,11 +191,21 @@ class PangGolRepository
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
+        ";
+
+        $bindings = [$idThnAjaran, $idFakultas];
+
+        if ($idProdi) {
+            $sql .= " AND tsms.id_sms = CAST(? AS uniqueidentifier)";
+            $bindings[] = $idProdi;
+        }
+
+        $sql .= "
             GROUP BY tsms.id_sms, CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') '), fakultas.id_sms, fakultas.nm_lemb
             ORDER BY CONCAT(tsms.nm_lemb,' (', jenj_prodi.nm_jenj_didik, ') ') ASC
         ";
 
-        return collect(DB::select($sql, [$idThnAjaran, $idFakultas]));
+        return collect(DB::select($sql, $bindings));
     }
 
     /**
@@ -278,10 +288,13 @@ class PangGolRepository
                 GROUP BY id_sdm
             ) AS tpanggol
                 ON tpanggol.id_sdm = tsdm.id_sdm
+            LEFT JOIN ref.pangkat_golongan 
+                ON pangkat_golongan.id_pangkat_gol = tpanggol.id_pangkat_gol
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
             GROUP BY tpanggol.id_pangkat_gol,
+                pangkat_golongan.kode_gol,
                 tsms.id_sms,
                 tsms.nm_lemb,
                 fakultas.id_sms,
@@ -661,7 +674,9 @@ class PangGolRepository
         $years = collect(DB::select($sql_years, [$startYearId, $endYear]));
 
         $historicalData = $years->map(function ($year) use ($fakultasId, $prodiId) {
-            $data = $this->getPangkatGolonganByLevel($year->id_thn_ajaran, $fakultasId, $prodiId);
+            // Selalu gunakan getFakultasLevel (dengan optional prodi filter) agar
+            // format kolom pivot (juru_muda, penata, dst) konsisten
+            $data = $this->getPangkatGolonganFakultasLevel($year->id_thn_ajaran, $fakultasId, $prodiId);
 
             return [
                 'tahun' => $this->formatTahunAjaran($year->id_thn_ajaran),

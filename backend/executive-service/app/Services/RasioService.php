@@ -74,6 +74,12 @@ class RasioService
 
         // Transform to match frontend Mahasiswa interface
         $mahasiswa_data = collect($result['data'])->map(function ($item) {
+            // Ekstrak tahun angkatan dari id_semester_masuk (misal: "20241" → "2024")
+            // Jika tidak tersedia, gunakan field angkatan dari query
+            $angkatan = !empty($item->id_semester_masuk)
+                ? substr((string) $item->id_semester_masuk, 0, 4)
+                : " ";
+
             return [
                 'id' => $item->id,
                 "encrypted_id" => Crypt::encryptString($item->id),
@@ -81,7 +87,7 @@ class RasioService
                 'nama' => $item->nama,
                 'prodi' => $item->nama_prodi,
                 'fakultas' => $item->nama_fakultas,
-                'angkatan' => $item->angkatan,
+                'angkatan' => $angkatan,
             ];
         })->values();
 

@@ -208,7 +208,8 @@ class RasioRepository
                     CONVERT(VARCHAR(36), peserta.id_pd),
                     LEN(CONVERT(VARCHAR(36), peserta.id_pd)) - 3,
                     4
-                )  AS angkatan
+                )  AS angkatan,
+                reg_pd.id_semester_masuk
             FROM pdrd.peserta_didik AS peserta
                 JOIN pdrd.reg_pd AS reg_pd ON reg_pd.id_pd = peserta.id_pd
                 AND reg_pd.soft_delete = 0
