@@ -44,7 +44,7 @@ restart_service() {
     docker compose restart ${service_name}-service
 
     # Clear Laravel caches if it's a PHP service (not Go services)
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -79,6 +79,9 @@ case "$SERVICE" in
     api)
         restart_service "api"
         ;;
+    monitoring)
+        restart_service "monitoring"
+        ;;
     public)
         restart_service "public"
         ;;
@@ -110,6 +113,7 @@ case "$SERVICE" in
         restart_service "keuangan"
         restart_service "myunila"
         restart_service "api"
+        restart_service "monitoring"
 
         echo -e "${GREEN}Restarting Nginx...${NC}"
         docker compose restart nginx

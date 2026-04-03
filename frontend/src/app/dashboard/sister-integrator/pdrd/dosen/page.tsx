@@ -18,20 +18,16 @@ import {
   Progress,
 } from "@heroui/react";
 import {
-  FiUsers,
   FiRefreshCw,
   FiCheckCircle,
   FiXCircle,
   FiClock,
   FiDatabase,
-  FiArrowLeft,
   FiAlertCircle,
-  FiUser,
 } from "react-icons/fi";
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import Link from "next/link";
 import { sisterDosenService, type SisterDosenStats } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";

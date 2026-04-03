@@ -35,22 +35,32 @@
       ]
     },
     {
+      "nm_menu": "Dokumen",
+      "nm_file": "#dokumen",
+      "icon": "heroicons:folder",
+      "urutan": 4,
+      "children": [
+        {"nm_menu": "Foto Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/dosen-foto", "urutan": 1},
+        {"nm_menu": "Dokumen Dosen", "nm_file": "/dashboard/sister-integrator/pdrd/dosen-dokumen", "urutan": 2}
+      ]
+    },
+    {
       "nm_menu": "Monitoring",
       "nm_file": "/dashboard/sister-integrator/monitoring",
       "icon": "heroicons:presentation-chart-line",
-      "urutan": 4
+      "urutan": 5
     },
     {
       "nm_menu": "Sync Logs",
       "nm_file": "/dashboard/sister-integrator/logs",
       "icon": "heroicons:document-text",
-      "urutan": 5
+      "urutan": 6
     },
     {
       "nm_menu": "API Configuration",
       "nm_file": "/dashboard/sister-integrator/settings",
       "icon": "heroicons:cog-6-tooth",
-      "urutan": 6
+      "urutan": 7
     }
   ]
 }

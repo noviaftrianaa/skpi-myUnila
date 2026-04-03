@@ -16,6 +16,13 @@ type Repository interface {
 	GetDosenList(page, limit int, search string, idJnsSDM, idStatAktif int) (*DosenListResult, error)
 	GetDosenByID(idSDM string) (*Dosen, error)
 	GetDosenStats() (*DosenStats, error)
+	GetAllActiveDosenIDs() ([]DosenIDName, error)
+	UpsertDokumen(item *DokumenSyncItem) error
+	GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error)
+	GetDokumenMinioPath(idDok string) (string, error)
+	GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error)
+	GetDokumenStats() (*DokumenStats, error)
+	GetJenisDokumenList() ([]map[string]interface{}, error)
 }
 
 type repository struct {
@@ -578,4 +585,367 @@ func (r *repository) GetDosenStats() (*DosenStats, error) {
 	}
 
 	return stats, nil
+}
+
+// GetAllActiveDosenIDs returns id_sdm and nm_sdm for all active dosen
+func (r *repository) GetAllActiveDosenIDs() ([]DosenIDName, error) {
+	query := `SELECT CONVERT(NVARCHAR(36), id_sdm) as id_sdm, nm_sdm FROM pdrd.sdm WHERE soft_delete = 0`
+
+	var results []DosenIDName
+	err := r.db.Select(&results, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dosen IDs: %w", err)
+	}
+
+	return results, nil
+}
+
+// systemSyncUUID is a fixed UUID used as id_creator/id_updater for system sync operations
+const systemSyncUUID = "00000000-0000-0000-0000-000000000001"
+
+// UpsertDokumen upserts a document into dok.dokumen and dok.dok_sdm
+// file_dok is intentionally left NULL — files are stored in MinIO (item.MinioPath = url field)
+func (r *repository) UpsertDokumen(item *DokumenSyncItem) error {
+	now := time.Now()
+
+	// Truncate nm_dok to 60 chars (schema constraint)
+	nmDok := item.NmDok
+	if len(nmDok) > 60 {
+		nmDok = nmDok[:60]
+	}
+
+	// Truncate ket_dok to 200 chars
+	ketDok := item.Keterangan
+	if len(ketDok) > 200 {
+		ketDok = ketDok[:200]
+	}
+
+	// Parse wkt_unggah — try multiple formats
+	var wktUnggah interface{}
+	for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02 15:04:05.999"} {
+		if t, err := time.ParseInLocation(layout, item.WktUnggah, time.Local); err == nil {
+			wktUnggah = t
+			break
+		}
+	}
+	if wktUnggah == nil {
+		wktUnggah = now
+	}
+
+	// MERGE dok.dokumen — url stores MinIO object path, file_dok stays NULL
+	mergeDokumen := `
+		MERGE dok.dokumen AS target
+		USING (SELECT
+			@p1  AS id_dok,
+			@p2  AS id_jns_dok,
+			@p3  AS nm_dok,
+			@p4  AS ket_dok,
+			@p5  AS wkt_unggah,
+			@p6  AS url,
+			@p7  AS media_type,
+			@p8  AS file_name,
+			@p9  AS create_date,
+			@p10 AS id_creator,
+			@p11 AS last_update,
+			@p12 AS last_sync
+		) AS source ON target.id_dok = source.id_dok
+		WHEN MATCHED THEN
+			UPDATE SET
+				id_jns_dok  = source.id_jns_dok,
+				nm_dok      = source.nm_dok,
+				ket_dok     = source.ket_dok,
+				wkt_unggah  = source.wkt_unggah,
+				url         = source.url,
+				media_type  = source.media_type,
+				file_name   = source.file_name,
+				last_update = source.last_update,
+				last_sync   = source.last_sync
+		WHEN NOT MATCHED THEN
+			INSERT (id_dok, id_jns_dok, nm_dok, ket_dok, file_dok, wkt_unggah, url, media_type,
+			        file_name, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+			VALUES (source.id_dok, source.id_jns_dok, source.nm_dok, source.ket_dok, NULL,
+			        source.wkt_unggah, source.url, source.media_type, source.file_name,
+			        source.create_date, source.id_creator, source.last_update, NULL, 0, source.last_sync);
+	`
+
+	_, err := r.db.Exec(mergeDokumen,
+		item.IDDok,    // @p1
+		item.IDJnsDok, // @p2
+		nmDok,         // @p3
+		ketDok,        // @p4
+		wktUnggah,     // @p5
+		item.MinioPath, // @p6 url = MinIO object path
+		item.JenisFile, // @p7 media_type
+		item.NmFile,    // @p8 file_name
+		now,            // @p9 create_date
+		systemSyncUUID, // @p10 id_creator
+		now,            // @p11 last_update
+		now,            // @p12 last_sync
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upsert dok.dokumen for %s: %w", item.IDDok, err)
+	}
+
+	// MERGE dok.dok_sdm — junction antara pdrd.sdm dan dok.dokumen
+	mergeDokSDM := `
+		MERGE dok.dok_sdm AS target
+		USING (SELECT @p1 AS id_sdm, @p2 AS id_dok) AS source
+		ON target.id_sdm = source.id_sdm AND target.id_dok = source.id_dok
+		WHEN MATCHED THEN
+			UPDATE SET
+				last_update = @p5,
+				last_sync   = @p6,
+				soft_delete = 0
+		WHEN NOT MATCHED THEN
+			INSERT (id_sdm, id_dok, create_date, id_creator, last_update, id_updater, soft_delete, last_sync)
+			VALUES (source.id_sdm, source.id_dok, @p3, @p4, @p5, NULL, 0, @p6);
+	`
+
+	_, err = r.db.Exec(mergeDokSDM,
+		item.IDSDM,     // @p1
+		item.IDDok,     // @p2
+		now,            // @p3 create_date
+		systemSyncUUID, // @p4 id_creator
+		now,            // @p5 last_update
+		now,            // @p6 last_sync
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upsert dok.dok_sdm for sdm=%s dok=%s: %w", item.IDSDM, item.IDDok, err)
+	}
+
+	return nil
+}
+
+// GetDokumenBySDM retrieves all documents for a dosen from dok.dok_sdm + dok.dokumen
+func (r *repository) GetDokumenBySDM(idSDM string) ([]DokumenSyncItem, error) {
+	query := `
+		SELECT
+			CONVERT(NVARCHAR(36), ds.id_sdm) AS id_sdm,
+			CONVERT(NVARCHAR(36), d.id_dok)  AS id_dok,
+			d.id_jns_dok,
+			ISNULL(jd.nm_jns_dok, '')        AS nm_jns_dok,
+			ISNULL(d.nm_dok, '')             AS nm_dok,
+			ISNULL(d.file_name, '')          AS nm_file,
+			ISNULL(d.media_type, '')         AS jenis_file,
+			ISNULL(d.ket_dok, '')            AS keterangan,
+			CONVERT(NVARCHAR(19), d.wkt_unggah, 120) AS wkt_unggah,
+			ISNULL(d.url, '')                AS minio_path
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		WHERE ds.id_sdm = @p1 AND ds.soft_delete = 0
+		ORDER BY d.wkt_unggah DESC
+	`
+
+	rows, err := r.db.Query(query, idSDM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dokumen for sdm %s: %w", idSDM, err)
+	}
+	defer rows.Close()
+
+	var results []DokumenSyncItem
+	for rows.Next() {
+		var item DokumenSyncItem
+		if err := rows.Scan(
+			&item.IDSDM, &item.IDDok, &item.IDJnsDok, &item.NmJnsDok,
+			&item.NmDok, &item.NmFile, &item.JenisFile, &item.Keterangan,
+			&item.WktUnggah, &item.MinioPath,
+		); err != nil {
+			log.Printf("⚠️  Failed to scan dokumen row: %v", err)
+			continue
+		}
+		results = append(results, item)
+	}
+
+	return results, nil
+}
+
+// GetDokumenMinioPath retrieves the MinIO object path (url field) for a document
+func (r *repository) GetDokumenMinioPath(idDok string) (string, error) {
+	var minioPath string
+	err := r.db.Get(&minioPath, `
+		SELECT ISNULL(url, '') FROM dok.dokumen WHERE id_dok = @p1 AND soft_delete = 0
+	`, idDok)
+	if err != nil {
+		return "", fmt.Errorf("dokumen not found: %w", err)
+	}
+	return minioPath, nil
+}
+
+// GetAllDokumen retrieves paginated list of all synced documents (dok.dok_sdm + dok.dokumen + pdrd.sdm)
+func (r *repository) GetAllDokumen(page, limit int, search string, idJnsDok int) (*DokumenListResult, error) {
+	offset := (page - 1) * limit
+
+	whereConditions := "WHERE ds.soft_delete = 0 AND d.soft_delete = 0"
+	args := []interface{}{}
+	argIndex := 1
+
+	if search != "" {
+		whereConditions += fmt.Sprintf(" AND (s.nm_sdm LIKE @p%d OR d.nm_dok LIKE @p%d OR d.file_name LIKE @p%d)", argIndex, argIndex, argIndex)
+		args = append(args, "%"+search+"%")
+		argIndex++
+	}
+
+	if idJnsDok > 0 {
+		whereConditions += fmt.Sprintf(" AND d.id_jns_dok = @p%d", argIndex)
+		args = append(args, idJnsDok)
+		argIndex++
+	}
+
+	// Count total
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok
+		JOIN pdrd.sdm s ON s.id_sdm = ds.id_sdm
+		%s
+	`, whereConditions)
+
+	var total int
+	if err := r.db.Get(&total, countQuery, args...); err != nil {
+		return nil, fmt.Errorf("failed to count dokumen: %w", err)
+	}
+
+	// Get paginated data
+	dataQuery := fmt.Sprintf(`
+		SELECT
+			CONVERT(NVARCHAR(36), ds.id_sdm) AS id_sdm,
+			s.nm_sdm,
+			CONVERT(NVARCHAR(36), d.id_dok) AS id_dok,
+			d.id_jns_dok,
+			jd.nm_jns_dok,
+			d.nm_dok,
+			d.file_name,
+			d.media_type,
+			d.url,
+			CONVERT(NVARCHAR(19), d.wkt_unggah, 120) AS wkt_unggah,
+			CONVERT(NVARCHAR(19), ds.last_sync, 120) AS last_sync
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		JOIN pdrd.sdm s ON s.id_sdm = ds.id_sdm AND s.soft_delete = 0
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		%s
+		ORDER BY ds.last_sync DESC
+		OFFSET @p%d ROWS
+		FETCH NEXT @p%d ROWS ONLY
+	`, whereConditions, argIndex, argIndex+1)
+
+	args = append(args, offset, limit)
+
+	var results []DokumenListItem
+	if err := r.db.Select(&results, dataQuery, args...); err != nil {
+		return nil, fmt.Errorf("failed to get dokumen list: %w", err)
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return &DokumenListResult{
+		Data:       results,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetDokumenStats retrieves document statistics
+func (r *repository) GetDokumenStats() (*DokumenStats, error) {
+	stats := &DokumenStats{}
+
+	// Total dokumen
+	err := r.db.Get(&stats.TotalDokumen, `
+		SELECT COUNT(*) FROM dok.dokumen WHERE soft_delete = 0
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count dokumen: %w", err)
+	}
+
+	// Total unique dosen with dokumen
+	err = r.db.Get(&stats.TotalDosen, `
+		SELECT COUNT(DISTINCT ds.id_sdm)
+		FROM dok.dok_sdm ds
+		JOIN dok.dokumen d ON d.id_dok = ds.id_dok AND d.soft_delete = 0
+		WHERE ds.soft_delete = 0
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count dosen with dokumen: %w", err)
+	}
+
+	// By jenis dokumen
+	rows, err := r.db.Query(`
+		SELECT
+			ISNULL(jd.id_jns_dok, d.id_jns_dok) AS id_jns_dok,
+			ISNULL(jd.nm_jns_dok, 'Tidak Diketahui') AS nm_jns_dok,
+			COUNT(*) AS total
+		FROM dok.dokumen d
+		LEFT JOIN ref.jenis_dokumen jd ON jd.id_jns_dok = d.id_jns_dok
+		WHERE d.soft_delete = 0
+		GROUP BY ISNULL(jd.id_jns_dok, d.id_jns_dok), ISNULL(jd.nm_jns_dok, 'Tidak Diketahui')
+		ORDER BY total DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get dokumen by jenis: %w", err)
+	}
+	defer rows.Close()
+
+	stats.ByJenisDok = []map[string]interface{}{}
+	for rows.Next() {
+		var idJns int
+		var nmJns string
+		var total int
+		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
+			stats.ByJenisDok = append(stats.ByJenisDok, map[string]interface{}{
+				"id_jns_dok": idJns,
+				"nm_jns_dok": nmJns,
+				"total":      total,
+			})
+		}
+	}
+
+	// Last sync
+	var lastSync *time.Time
+	err = r.db.Get(&lastSync, `
+		SELECT TOP 1 synced_at
+		FROM logger.sync_logs
+		WHERE endpoint_name = 'Dosen Dokumen' AND status = 'success'
+		ORDER BY synced_at DESC
+	`)
+	if err == nil && lastSync != nil {
+		stats.LastSync = lastSync
+	}
+
+	return stats, nil
+}
+
+// GetJenisDokumenList retrieves list of jenis dokumen for filter dropdown
+func (r *repository) GetJenisDokumenList() ([]map[string]interface{}, error) {
+	rows, err := r.db.Query(`
+		SELECT jd.id_jns_dok, jd.nm_jns_dok, COUNT(d.id_dok) AS total
+		FROM ref.jenis_dokumen jd
+		LEFT JOIN dok.dokumen d ON d.id_jns_dok = jd.id_jns_dok AND d.soft_delete = 0
+		WHERE jd.expired_date IS NULL
+		GROUP BY jd.id_jns_dok, jd.nm_jns_dok
+		HAVING COUNT(d.id_dok) > 0
+		ORDER BY total DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jenis dokumen: %w", err)
+	}
+	defer rows.Close()
+
+	var results []map[string]interface{}
+	for rows.Next() {
+		var idJns int
+		var nmJns string
+		var total int
+		if err := rows.Scan(&idJns, &nmJns, &total); err == nil {
+			results = append(results, map[string]interface{}{
+				"id_jns_dok": idJns,
+				"nm_jns_dok": nmJns,
+				"total":      total,
+			})
+		}
+	}
+
+	return results, nil
 }

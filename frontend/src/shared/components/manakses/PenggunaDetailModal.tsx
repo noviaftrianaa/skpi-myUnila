@@ -101,7 +101,7 @@ export default function PenggunaDetailModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[85vh]",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4 max-h-[85vh]",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         body: "overflow-y-auto",
       }}
@@ -162,7 +162,7 @@ export default function PenggunaDetailModal({
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Informasi Kontak
                 </h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
                       <FiMail className="w-4 h-4 text-blue-600" />

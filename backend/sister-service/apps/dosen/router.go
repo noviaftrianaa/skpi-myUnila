@@ -6,13 +6,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"sister-service/apps/logger"
 	"sister-service/external/sister_api"
+	minioClient "sister-service/internal/minio"
 	"sister-service/pkg/crypto"
 )
 
 // Init initializes dosen routes (public endpoints) with Redis caching and returns the service
-func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client, loggerSvc logger.Service, laravelCrypto *crypto.LaravelEncryption) Service {
+func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisClient *redis.Client, loggerSvc logger.Service, laravelCrypto *crypto.LaravelEncryption, minio *minioClient.Client) Service {
 	repo := NewRepository(db)
-	svc := NewService(sisterAPI, redisClient, repo, loggerSvc)
+	svc := NewService(sisterAPI, redisClient, repo, loggerSvc, minio)
 
 	// Use controller with crypto for public routes that need encrypted ID
 	ctrl := NewControllerWithCrypto(svc, laravelCrypto)
@@ -23,12 +24,22 @@ func Init(router fiber.Router, db *sqlx.DB, sisterAPI *sister_api.Client, redisC
 	{
 		// Sync routes (POST)
 		dosenAPI.Post("/sync", ctrl.SyncDosenFromSister)
+		dosenAPI.Post("/sync-photos", ctrl.SyncDosenPhotos)
+		dosenAPI.Post("/sync-dokumen", ctrl.SyncDosenDokumen)
 		dosenAPI.Post("/test/:id_sdm", ctrl.SyncSingleDosenTest)
 
 		// GET routes (also protected with JWT)
 		dosenAPI.Get("/", ctrl.GetDosenList)
 		dosenAPI.Get("/stats", ctrl.GetDosenStats)
+		dosenAPI.Get("/photos/stats", ctrl.GetPhotoStats)
 		dosenAPI.Get("/bidang_ilmu/:id_sdm", ctrl.GetDosenBidangIlmu)
+		// Dokumen routes — exact paths before param routes to avoid collision
+		dosenAPI.Get("/dokumen/stats", ctrl.GetDokumenStats)
+		dosenAPI.Get("/dokumen/jenis", ctrl.GetJenisDokumenList)
+		dosenAPI.Get("/dokumen/preview/:id_dok", ctrl.PreviewDosenDokumen)
+		dosenAPI.Get("/dokumen/download/:id_dok", ctrl.DownloadDosenDokumen)
+		dosenAPI.Get("/dokumen/all", ctrl.GetAllDokumen)
+		dosenAPI.Get("/dokumen/:id_sdm", ctrl.GetDosenDokumenList)
 		dosenAPI.Get("/:id_sdm", ctrl.GetDosenDetail)
 	}
 

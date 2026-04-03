@@ -179,9 +179,9 @@ export default function DashboardKeuanganPage() {
                 <CardHeader>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Status Pembayaran UKT
+                      Metode Pembayaran UKT
                     </h2>
-                    <p className="text-sm text-gray-500">Status pembayaran mahasiswa</p>
+                    <p className="text-sm text-gray-500">Distribusi metode pembayaran mahasiswa</p>
                   </div>
                 </CardHeader>
                 <Divider />
@@ -216,14 +216,14 @@ export default function DashboardKeuanganPage() {
               </Card>
             </div>
 
-            {/* Row 3: Tunggakan per Fakultas */}
+            {/* Row 3: Pembayaran per Fakultas */}
             <Card className="bg-white dark:bg-gray-800 shadow-md">
               <CardHeader>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Tunggakan UKT per Fakultas
+                    Pembayaran UKT per Fakultas
                   </h2>
-                  <p className="text-sm text-gray-500">Fakultas dengan tunggakan tertinggi</p>
+                  <p className="text-sm text-gray-500">Total pembayaran UKT per fakultas</p>
                 </div>
               </CardHeader>
               <Divider />
@@ -232,8 +232,8 @@ export default function DashboardKeuanganPage() {
                   data={data.tunggakanFakultas}
                   height={300}
                   horizontal={true}
-                  colors={["#ef4444"]}
-                  xAxisLabel="Jumlah Tunggakan (Milyar Rp)"
+                  colors={["#3b82f6"]}
+                  xAxisLabel="Total Pembayaran"
                 />
               </CardBody>
             </Card>

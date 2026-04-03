@@ -64,6 +64,16 @@ class KerjasamaRepository extends BaseRepository
 
     public function getMitraByType(): array
     {
-        return [];
+        $sql = "
+            SELECT
+                ISNULL(m.nm_bu, 'Tidak Diketahui') as name,
+                COUNT(*) as value
+            FROM kerjasama.mou m
+            WHERE m.soft_delete = 0
+              AND m.tgl_selesai >= GETDATE()
+            GROUP BY m.nm_bu
+            ORDER BY value DESC
+        ";
+        return $this->select($sql, []);
     }
 }

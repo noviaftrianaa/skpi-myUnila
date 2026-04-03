@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'staging'
+    vm: 'vm5'
+    hostname: 'mystagging'
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+scrape_configs:
+  # Prometheus self
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # Host system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['myunila-node-exporter-staging:9100']
+        labels:
+          vm: 'vm5-staging'
+          hostname: 'mystagging'
+
+  # Docker container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['myunila-cadvisor-staging:8080']
+        labels:
+          vm: 'vm5-staging'
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['myunila-redis-exporter-staging:9121']
+        labels:
+          service: 'redis'
+          vm: 'vm5-staging'
+
+  # Kong API Gateway metrics (via built-in prometheus plugin)
+  - job_name: 'kong'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['myunila-kong-staging:8001']
+        labels:
+          service: 'kong-gateway'
+          vm: 'vm5-staging'
+    metrics_path: '/metrics'
+
+  # Nginx stub_status via nginx-prometheus-exporter
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['myunila-nginx-exporter-staging:9113']
+        labels:
+          service: 'nginx'
+          vm: 'vm5-staging'

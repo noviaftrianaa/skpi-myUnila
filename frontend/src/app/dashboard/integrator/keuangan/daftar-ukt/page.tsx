@@ -1,23 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import toast from "react-hot-toast";
 
 const APP_KEY = "myunila-integrator";
 import KeuanganDaftarUktTable from "@/shared/components/keuangan-integrator/KeuanganDaftarUktTable";
 import {
-  Card,
-  CardBody,
-  Spinner,
+  Card, CardBody, Spinner, Button, Modal, ModalContent,
+  ModalHeader, ModalBody, ModalFooter, Input, Checkbox,
 } from "@heroui/react";
 import {
-  FiCheckCircle,
-  FiClock,
-  FiDatabase,
-  FiList,
+  FiCheckCircle, FiClock, FiDatabase, FiList, FiRefreshCw,
 } from "react-icons/fi";
-import { MdSchool } from "react-icons/md";
+import { MdSchool, MdSync } from "react-icons/md";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { keuanganClient } from "@/lib/api/keuanganClient";
 
@@ -30,13 +27,25 @@ interface DaftarUktStats {
 }
 
 export default function DaftarUktManagementPage() {
-  useRequireAuth();
+  const { user } = useRequireAuth();
 
-  // State
   const [stats, setStats] = useState<DaftarUktStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Fetch stats on mount
+  // Sync state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncTahun, setSyncTahun] = useState<string>(new Date().getFullYear().toString());
+  const [forceSync, setForceSync] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
+
+  const currentYear = new Date().getFullYear();
+  const tahunOptions = Array.from({ length: 11 }, (_, i) => currentYear - i);
+
   useEffect(() => {
     fetchStats();
   }, []);
@@ -44,36 +53,75 @@ export default function DaftarUktManagementPage() {
   const fetchStats = async () => {
     try {
       setIsLoadingStats(true);
-      const response = await keuanganClient.get("/daftar-ukt/stats", {
-        params: { _t: Date.now() }
-      });
-      const data = response.data;
-
-      if (data.success) {
-        setStats(data.data);
-      }
+      const response = await keuanganClient.get("/daftar-ukt/stats", { params: { _t: Date.now() } });
+      if (response.data.success) setStats(response.data.data);
     } catch (error) {
-      console.error("Error fetching stats:", error);
-      setStats({
-        total_daftar_ukt: 0,
-        total_prodi: 0,
-        total_mapped: 0,
-        total_unmapped: 0,
-        last_sync: undefined,
-      });
+      setStats({ total_daftar_ukt: 0, total_prodi: 0, total_mapped: 0, total_unmapped: 0 });
     } finally {
       setIsLoadingStats(false);
+    }
+  };
+
+  const handleConfirmSync = async () => {
+    if (!syncTahun) {
+      toast.error("Pilih tahun terlebih dahulu");
+      return;
+    }
+    setShowSyncModal(false);
+    setShowProgressModal(true);
+    setIsSyncing(true);
+    setSyncStatus("syncing");
+    setSyncProgress(0);
+    setSyncMessage("");
+
+    try {
+      const progressInterval = setInterval(() => {
+        setSyncProgress(prev => prev >= 85 ? 85 : prev + 5);
+      }, 300);
+
+      const response = await keuanganClient.post("/daftar-ukt/sync", {
+        tahun: parseInt(syncTahun),
+        force_sync: forceSync,
+        synced_by: user?.name || "system",
+      });
+
+      clearInterval(progressInterval);
+
+      if (response.data.success) {
+        setSyncProgress(100);
+        setSyncStatus("success");
+        setSyncMessage(response.data.message || "Sync berhasil");
+        toast.success("Sync Daftar UKT berhasil!");
+        setTimeout(async () => {
+          await fetchStats();
+          setRefreshKey(prev => prev + 1);
+          setShowProgressModal(false);
+          setSyncStatus("idle");
+          setSyncProgress(0);
+        }, 2000);
+      } else {
+        throw new Error(response.data.message || "Sync gagal");
+      }
+    } catch (error: any) {
+      setSyncStatus("error");
+      const msg = error.response?.data?.message || error.message || "Gagal sync";
+      setSyncMessage(msg);
+      toast.error(msg);
+      setTimeout(() => {
+        setShowProgressModal(false);
+        setSyncStatus("idle");
+        setSyncProgress(0);
+      }, 3000);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Belum pernah";
     return new Date(dateString).toLocaleString("id-ID", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      year: "numeric", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit",
     });
   };
 
@@ -87,103 +135,87 @@ export default function DaftarUktManagementPage() {
     >
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Daftar UKT
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Data kelas UKT per prodi per tahun dari SIMPEDAM
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Daftar UKT</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Data kelas UKT per prodi per tahun dari SIMPEDAM
+            </p>
+          </div>
+          <Button
+            color="primary"
+            startContent={isSyncing ? <Spinner size="sm" color="white" /> : <MdSync className="w-5 h-5" />}
+            onPress={() => setShowSyncModal(true)}
+            isDisabled={isSyncing}
+            className="flex-shrink-0"
+          >
+            Sync Data
+          </Button>
         </div>
 
-        {/* Statistics Cards - 4 Cards Only */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Daftar UKT Card */}
-          <Card className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-5 relative z-10">
+          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-none shadow-lg rounded-xl overflow-hidden">
+            <CardBody className="p-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiList className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <FiList className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-emerald-100 mb-1">Total Daftar UKT</p>
-                  {isLoadingStats ? (
-                    <Spinner size="sm" color="white" />
-                  ) : (
-                    <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_daftar_ukt ?? 0).toLocaleString("id-ID")}
-                    </h3>
+                <div>
+                  <p className="text-sm text-emerald-100">Total Daftar UKT</p>
+                  {isLoadingStats ? <Spinner size="sm" color="white" /> : (
+                    <h3 className="text-2xl font-bold text-white">{(stats?.total_daftar_ukt ?? 0).toLocaleString("id-ID")}</h3>
                   )}
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Total Prodi Card */}
-          <Card className="bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-5 relative z-10">
+          <Card className="bg-gradient-to-br from-teal-500 to-cyan-600 border-none shadow-lg rounded-xl overflow-hidden">
+            <CardBody className="p-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiDatabase className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <FiDatabase className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-teal-100 mb-1">Total Prodi</p>
-                  {isLoadingStats ? (
-                    <Spinner size="sm" color="white" />
-                  ) : (
-                    <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_prodi ?? 0).toLocaleString("id-ID")}
-                    </h3>
+                <div>
+                  <p className="text-sm text-teal-100">Total Prodi</p>
+                  {isLoadingStats ? <Spinner size="sm" color="white" /> : (
+                    <h3 className="text-2xl font-bold text-white">{(stats?.total_prodi ?? 0).toLocaleString("id-ID")}</h3>
                   )}
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Prodi Mapped Card */}
-          <Card className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-5 relative z-10">
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-none shadow-lg rounded-xl overflow-hidden">
+            <CardBody className="p-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiCheckCircle className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <FiCheckCircle className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-green-100 mb-1">Mapped</p>
-                  {isLoadingStats ? (
-                    <Spinner size="sm" color="white" />
-                  ) : (
-                    <h3 className="text-3xl font-bold text-white tracking-tight leading-none">
-                      {(stats?.total_mapped ?? 0).toLocaleString("id-ID")}
-                    </h3>
+                <div>
+                  <p className="text-sm text-green-100">Ter-mapping</p>
+                  {isLoadingStats ? <Spinner size="sm" color="white" /> : (
+                    <h3 className="text-2xl font-bold text-white">{(stats?.total_mapped ?? 0).toLocaleString("id-ID")}</h3>
+                  )}
+                  {stats && stats.total_unmapped > 0 && (
+                    <p className="text-xs text-yellow-200">{stats.total_unmapped} belum mapped</p>
                   )}
                 </div>
               </div>
             </CardBody>
           </Card>
 
-          {/* Last Sync Card */}
-          <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10 group-hover:scale-125 transition-transform duration-700" />
-            <CardBody className="p-5 relative z-10">
+          <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 border-none shadow-lg rounded-xl overflow-hidden">
+            <CardBody className="p-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-300 flex-shrink-0">
-                  <FiClock className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <FiClock className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-purple-100 mb-1">Last Sync</p>
-                  {isLoadingStats ? (
-                    <Spinner size="sm" color="white" />
-                  ) : (
-                    <h3 className="text-base font-bold text-white leading-tight truncate">
-                      {formatDate(stats?.last_sync)}
-                    </h3>
+                <div className="min-w-0">
+                  <p className="text-sm text-purple-100">Last Sync</p>
+                  {isLoadingStats ? <Spinner size="sm" color="white" /> : (
+                    <h3 className="text-sm font-bold text-white truncate">{formatDate(stats?.last_sync)}</h3>
                   )}
                 </div>
               </div>
@@ -194,10 +226,79 @@ export default function DaftarUktManagementPage() {
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
-            <KeuanganDaftarUktTable />
+            <KeuanganDaftarUktTable key={refreshKey} />
           </CardBody>
         </Card>
       </div>
+
+      {/* Sync Modal */}
+      <Modal isOpen={showSyncModal} onClose={() => setShowSyncModal(false)} size="md">
+        <ModalContent>
+          <ModalHeader>Sinkronisasi Daftar UKT</ModalHeader>
+          <ModalBody className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Sync data UKT dari SIMPEDAM untuk tahun yang dipilih.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Tahun</label>
+              <select
+                value={syncTahun}
+                onChange={(e) => setSyncTahun(e.target.value)}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800"
+              >
+                {tahunOptions.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            <Checkbox isSelected={forceSync} onValueChange={setForceSync} size="sm">
+              Force sync (update data yang sudah ada)
+            </Checkbox>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={() => setShowSyncModal(false)}>Batal</Button>
+            <Button color="primary" onPress={handleConfirmSync} startContent={<MdSync />}>
+              Mulai Sync
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Progress Modal */}
+      <Modal isOpen={showProgressModal} isDismissable={false} size="sm">
+        <ModalContent>
+          <ModalHeader>
+            {syncStatus === "syncing" ? "Sync Berlangsung..." :
+             syncStatus === "success" ? "✅ Sync Berhasil" : "❌ Sync Gagal"}
+          </ModalHeader>
+          <ModalBody className="py-6">
+            <div className="space-y-4">
+              {syncStatus === "syncing" && (
+                <>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${syncProgress}%` }} />
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Spinner size="sm" color="primary" />
+                    <span className="text-sm text-gray-600">Sinkronisasi data tahun {syncTahun}...</span>
+                  </div>
+                </>
+              )}
+              {syncStatus === "success" && (
+                <div className="text-center">
+                  <FiCheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">{syncMessage || "Data berhasil disinkronkan"}</p>
+                </div>
+              )}
+              {syncStatus === "error" && (
+                <div className="text-center">
+                  <p className="text-red-500 text-sm">{syncMessage}</p>
+                </div>
+              )}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </DashboardLayoutWithDynamicMenu>
   );
 }

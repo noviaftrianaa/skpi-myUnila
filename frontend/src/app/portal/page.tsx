@@ -138,38 +138,6 @@ export default function PortalPage() {
     // Clone available categories or start empty
     let categories: PortalCategory[] = portalData?.categories ? [...portalData.categories] : [];
 
-    // --- DEMO: Inject Web Monitoring App ---
-    const monitoringApp: PortalApp = {
-      id_aplikasi: "web-mon-demo",
-      nm_aplikasi: "Web Monitoring",
-      ket_aplikasi: "Early warning system & monitoring konten ilegal (Judi Online)",
-      url: "/dashboard/monitoring",
-      icon_name: "heroicons:shield-check",
-      icon_color: "text-blue-600",
-      app_slug: "webmon",
-      urutan: 1,
-      id_organisasi: "univ",
-      nm_organisasi: "Universitas Lampung",
-      a_maintenance: false,
-      a_coming_soon: false,
-      a_terintegrasi: true,
-      a_live: true,
-      has_access: true,
-    };
-
-    const monitoringCategory: PortalCategory = {
-      id_kategori: "monitoring-demo",
-      nm_kategori: "Monitoring & Keamanan",
-      icon_kategori: "heroicons:shield-exclamation",
-      icon_color: "text-blue-600",
-      urutan: -1, // Ensure it's at the top
-      apps: [monitoringApp],
-    };
-
-    // Add to categories list
-    categories = [monitoringCategory, ...categories];
-    // --- END DEMO ---
-
     return categories.map(category => ({
       ...category,
       apps: (category.apps || []).map(app => ({
@@ -388,13 +356,6 @@ export default function PortalPage() {
   const handleAppClick = async (app: AppWithFavorite) => {
     // Determine if app is in production (a_live AND a_terintegrasi)
     const isProduction = app.a_live && app.a_terintegrasi;
-
-    // --- DEMO: Bypass check for demo webmon ---
-    if (app.app_slug === 'webmon') {
-      router.push(app.url || '/dashboard/monitoring');
-      return;
-    }
-    // ------------------------------------------
 
     // Check if locked (no access) - only for production apps
     if (isProduction && !app.has_access) {

@@ -2,19 +2,22 @@
 
 ###############################################################################
 # Script: rebuild.sh
-# Description: Rebuild and restart all production services across VM1, VM2, VM3
+# Description: Rebuild and restart all production services across VM1, VM2, VM3, VM5
 # Usage: ./rebuild.sh [options]
 #
 # Options:
 #   --help, -h       Show this help message
 #   --vm1            Rebuild only VM1 (Frontend & Kong)
 #   --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)
-#   --vm3            Rebuild only VM3 (Sister & Feeder services)
+#   --vm3            Rebuild only VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)
+#   --vm5            Rebuild only VM5 Staging (All services)
+#   --vm5 <service>  Rebuild specific service on VM5 (e.g. sister, frontend)
 #   --check          Dry run - only check connections
 #
 # Examples:
-#   ./rebuild.sh                 # Rebuild all VMs
+#   ./rebuild.sh                 # Rebuild all production VMs (VM1-VM3)
 #   ./rebuild.sh --vm1           # Rebuild only VM1
+#   ./rebuild.sh --vm5           # Rebuild only VM5 Staging
 #   ./rebuild.sh --check         # Check connections only
 ###############################################################################
 
@@ -44,15 +47,20 @@ show_help() {
     echo "  --help, -h       Show this help message"
     echo "  --vm1            Rebuild only VM1 (Frontend & Kong)"
     echo "  --vm2            Rebuild only VM2 (Dashboard, Auth & MyUnila services)"
-    echo "  --vm3            Rebuild only VM3 (Sister & Feeder services)"
+    echo "  --vm3            Rebuild only VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)"
+    echo "  --vm5            Rebuild only VM5 Staging (All services)"
     echo "  --check          Dry run - only check connections"
     echo "  --cleanup        Clean up Docker resources on all VMs (no rebuild)"
     echo ""
     echo "Examples:"
-    echo "  $0                    # Rebuild all VMs"
+    echo "  $0                    # Rebuild all production VMs (VM1-VM3)"
     echo "  $0 --vm1              # Rebuild only VM1"
     echo "  $0 --vm2              # Rebuild only VM2"
     echo "  $0 --vm3              # Rebuild only VM3"
+    echo "  $0 --vm5              # Rebuild only VM5 Staging (all)"
+    echo "  $0 --vm5 sister       # Rebuild only sister on VM5"
+    echo "  $0 --vm5 frontend     # Rebuild only frontend on VM5"
+    echo "  $0 --vm5 auth dashboard  # Rebuild auth & dashboard on VM5"
     echo "  $0 --check            # Check connections only"
     echo "  $0 --cleanup          # Clean up Docker resources"
     echo ""
@@ -145,6 +153,22 @@ main() {
         --vm3)
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "backend2"
             ;;
+        --vm5)
+            shift
+            if [ $# -gt 0 ]; then
+                # Rebuild specific service(s) on VM5 via Ansible
+                SERVICES="$*"
+                echo -e "${GREEN}========================================${NC}"
+                echo -e "${GREEN}  Rebuilding on VM5: $SERVICES${NC}"
+                echo -e "${GREEN}========================================${NC}"
+                echo ""
+                ansible-playbook -i "$INVENTORY" "$PLAYBOOK_DIR/rebuild-vm5-service.yml" \
+                    --limit "staging" \
+                    -e "services=$SERVICES"
+            else
+                run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "staging"
+            fi
+            ;;
         "")
             # No arguments - rebuild all
             echo -e "${YELLOW}========================================${NC}"
@@ -152,7 +176,7 @@ main() {
             echo -e "${YELLOW}  This will rebuild services on:${NC}"
             echo -e "${YELLOW}  - VM1 (Frontend & Kong)${NC}"
             echo -e "${YELLOW}  - VM2 (Dashboard, Auth & MyUnila)${NC}"
-            echo -e "${YELLOW}  - VM3 (Sister & Feeder Services)${NC}"
+            echo -e "${YELLOW}  - VM3 (Sister, Feeder, MyUnila, Keuangan, API, Monitoring)${NC}"
             echo -e "${YELLOW}========================================${NC}"
             echo ""
             read -p "Continue? (yes/no): " confirm
@@ -176,10 +200,15 @@ main() {
     echo -e "${GREEN}  Rebuild Complete!${NC}"
     echo -e "${GREEN}========================================${NC}"
     echo ""
-    echo -e "${BLUE}Access Points:${NC}"
+    echo -e "${BLUE}Access Points (Production):${NC}"
     echo "  Frontend:    http://192.168.120.41:3000"
     echo "  Kong Proxy:  http://192.168.120.41:9800"
     echo "  Kong Admin:  http://192.168.120.41:9801"
+    echo ""
+    echo -e "${BLUE}Access Points (Staging VM5):${NC}"
+    echo "  Frontend:    http://192.168.120.45:3000"
+    echo "  Kong Proxy:  http://192.168.120.45:9800"
+    echo "  Kong Admin:  http://192.168.120.45:9801"
     echo ""
 }
 

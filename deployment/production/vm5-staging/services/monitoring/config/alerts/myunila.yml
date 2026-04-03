@@ -1,0 +1,102 @@
+groups:
+  - name: myunila.infra
+    interval: 1m
+    rules:
+      # Target down
+      - alert: TargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target {{ $labels.job }} ({{ $labels.instance }}) down"
+          description: "Target telah down selama lebih dari 2 menit."
+
+      # CPU tinggi
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU > 80% di {{ $labels.instance }}"
+          description: "CPU usage {{ humanize $value }}% selama 5 menit."
+
+      # RAM hampir penuh
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory > 85% di {{ $labels.instance }}"
+          description: "Memory usage {{ humanize $value }}%."
+
+      # Disk hampir penuh
+      - alert: DiskAlmostFull
+        expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk > 80% di {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          description: "Disk usage {{ humanize $value }}%."
+
+      # Container restart loop
+      - alert: ContainerRestartLoop
+        expr: increase(container_start_time_seconds{name=~"myunila-.*"}[15m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} restart berkali-kali"
+          description: "Container restart {{ $value }}x dalam 15 menit."
+
+  - name: myunila.kong
+    rules:
+      # Kong 5xx error rate
+      - alert: KongHighErrorRate
+        expr: |
+          sum(rate(kong_http_requests_total{code=~"5.."}[5m])) by (service)
+          /
+          sum(rate(kong_http_requests_total[5m])) by (service)
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kong error rate > 5% di service {{ $labels.service }}"
+          description: "Error rate: {{ humanize $value | humanizePercentage }}."
+
+      # Kong high latency
+      - alert: KongHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(kong_request_latency_ms_bucket[5m])) by (le, service)
+          ) > 2000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kong P95 latency > 2s di service {{ $labels.service }}"
+
+  - name: myunila.redis
+    rules:
+      # Redis down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis down di {{ $labels.instance }}"
+
+      # Redis memory tinggi
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory > 80%"
+          description: "Redis memory usage {{ humanize $value }}%."

@@ -1,0 +1,47 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://myunila-loki-prod:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs — VM4 sendiri
+  - job_name: docker-vm4
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["myunila-"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/myunila-.*'
+        action: keep
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+        replacement: '$1'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+      - target_label: 'vm'
+        replacement: 'vm4'
+      - target_label: 'environment'
+        replacement: 'production'
+    pipeline_stages:
+      - docker: {}
+
+  # System logs VM4
+  - job_name: system-vm4
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          vm: vm4
+          environment: production
+          __path__: /var/log/syslog

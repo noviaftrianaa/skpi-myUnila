@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  public-service:
+    build:
+      context: ../../../../../backend/public-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=staging
+    image: myunila/public-service:staging
+    container_name: myunila-public-staging
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila}"
+      APP_ENV: staging
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Sister Database (same as pdut)
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Meilisearch (local container)
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+
+      # Redis (local container)
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      # MinIO
+      MINIO_PUBLIC_URL: "${MINIO_PUBLIC_URL:-http://192.168.120.47:9000}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+
+      # Session & Cache
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: default
+      CACHE_DRIVER: redis
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=public,vm=vm5-staging"
+
+  # Public Scheduler (Supervisor)
+  # Only runs read-only Meilisearch sync (search:import), no DB writes
+  public-scheduler:
+    image: myunila/public-service:staging
+    container_name: myunila-public-scheduler-staging
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-MyUnila}"
+      APP_ENV: staging
+      APP_KEY: "${PUBLIC_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+
+      # Database
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${PUBLIC_DB_HOST}"
+      DB_PORT: "${PUBLIC_DB_PORT}"
+      DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Sister Database
+      SISTER_DB_HOST: "${PUBLIC_DB_HOST}"
+      SISTER_DB_PORT: "${PUBLIC_DB_PORT}"
+      SISTER_DB_DATABASE: "${PUBLIC_DB_DATABASE}"
+      SISTER_DB_USERNAME: "${PUBLIC_DB_USERNAME}"
+      SISTER_DB_PASSWORD: "${PUBLIC_DB_PASSWORD}"
+
+      # Meilisearch
+      MEILISEARCH_HOST: "${MEILISEARCH_HOST}"
+      MEILISEARCH_KEY: "${MEILISEARCH_KEY}"
+
+      # Redis
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: default
+      CACHE_DRIVER: redis
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    networks:
+      - myunila-staging-network
+    depends_on:
+      - public-service
+    volumes:
+      - ../../../../../backend/public-service/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+    command: >
+      sh -c "
+      apk add --no-cache supervisor &&
+      mkdir -p /var/log/supervisor &&
+      /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+      "
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=public-scheduler,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

@@ -127,12 +127,12 @@ class PegawaiRepository extends BaseRepository
     {
         $sql = "
             SELECT
-                uo.nm_lemb as name,
+                ISNULL(uo.nm_lemb, 'Belum Terklasifikasi') as name,
                 COUNT(DISTINCT sdm.id_sdm) as value
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
-            INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
-            INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
               AND ptk.id_jns_keluar IS NULL

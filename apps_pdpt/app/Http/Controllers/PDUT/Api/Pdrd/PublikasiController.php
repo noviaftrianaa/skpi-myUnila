@@ -188,11 +188,11 @@ class PublikasiController extends Controller
 
         if (empty($check_id_is_sdm)) {
             $check_id_is_pd = "
-                SELECT 
-                    TOP 1 pd.id_pd 
-                FROM 
-                    pdrd.peserta_didik AS pd 
-                WHERE 
+                SELECT
+                    TOP 1 pd.id_pd
+                FROM
+                    pdrd.peserta_didik AS pd
+                WHERE
                     pd.id_pd = '" . $sdmid . "'
             ";
             $check_id_is_pd = DB::select($check_id_is_pd);
@@ -219,6 +219,7 @@ class PublikasiController extends Controller
                 publikasi.judul AS judul,
                 publikasi.quartile,
                 kb.nm_kel_bidang AS bidang_keilmuan,
+                jp.id_jns_pub,
                 jp.nm_jns_pub AS jenis_publikasi,
                 publikasi.tgl_terbit AS tanggal_terbit,
                 publikasi.create_date AS waktu_data_ditambahkan,
@@ -266,6 +267,7 @@ class PublikasiController extends Controller
                 'judul' => $value->judul,
                 'quartile' => $value->quartile,
                 'bidang_keilmuan' => $value->bidang_keilmuan,
+                'id_jenis_publikasi' => $value->id_jns_pub,
                 'jenis_publikasi' => $value->jenis_publikasi,
                 'tanggal_terbit' => $value->tanggal_terbit,
                 'waktu_data_ditambahkan' => $value->waktu_data_ditambahkan,
@@ -435,7 +437,7 @@ class PublikasiController extends Controller
         //     'a_prosiding' => 'nullable|date_format:Y-m-d',
         //     'a_issn' => 'nullable|date_format:Y-m-d',
         //     'tgl_terbit' => 'nullable|date_format:Y-m-d',
-            
+
         //     'dok_penelitian.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,txt|max:2048',
         //     'nama_dok.*' => 'required_with:dok_penelitian|string',
         //     'keterangan_dok.*' => 'required_with:dok_penelitian|string',
@@ -447,13 +449,13 @@ class PublikasiController extends Controller
         //     'afiliasi_dosen.*' => 'nullable|uuid',
         //     'peran_dosen.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
         //     'dsn_a_corresponding_author.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-           
+
         //     'penulis_mahasiswa.*' => 'nullable|uuid',
         //     'urutan_mahasiswa.*' => 'nullable|uuid',
         //     'afiliasi_mahasiswa.*' => 'nullable|uuid',
         //     'peran_mahasiswa.*' => ['alpha', 'nullable', ValidationRule::in(['A', 'K'])],
         //     'mhs_a_corresponding_author.*' => ['numeric', 'nullable', ValidationRule::in(['0', '1'])],
-            
+
         //     'penulis_non_ca.*' => 'nullable|uuid',
         //     'urutan_non_ca.*' => 'nullable|uuid',
         //     'afiliasi_non_ca.*' => 'nullable|uuid',

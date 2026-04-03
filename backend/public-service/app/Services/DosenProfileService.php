@@ -161,9 +161,13 @@ class DosenProfileService
             Log::warning('Failed to fetch bidang ilmu for dosen: ' . $e->getMessage());
         }
 
+        // Build photo URL via backend endpoint (hides raw id_sdm)
+        $photoUrl = url("/api/v1/dosen/{$encryptedId}/photo");
+
         // Format response
         $data = [
             'id' => $encryptedId,
+            'photo_url' => $photoUrl,
             'nama' => $namaLengkap, // Nama lengkap dengan gelar
             'nama_tanpa_gelar' => $profile->nm_sdm,
             'nidn' => $profile->nidn,

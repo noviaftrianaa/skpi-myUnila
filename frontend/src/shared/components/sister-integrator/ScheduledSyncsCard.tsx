@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 
 interface ScheduledSyncsCardProps {
-  syncType: "dosen" | "referensi" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan";
+  syncType: "dosen" | "dosen_foto" | "dosen_dokumen" | "referensi" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan";
   title?: string;
 }
 

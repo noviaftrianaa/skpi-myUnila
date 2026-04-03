@@ -23,6 +23,7 @@ import (
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
+	minioStorage "sister-service/internal/minio"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -139,6 +140,20 @@ func main() {
 		log.Println("⚠️  No LARAVEL_APP_KEY configured - encrypted ID decryption disabled")
 	}
 
+	// Initialize MinIO client for photo storage
+	var minioClient *minioStorage.Client
+	if config.Cfg.MinIO.AccessKey != "" {
+		var err error
+		minioClient, err = minioStorage.NewClient(config.Cfg.MinIO)
+		if err != nil {
+			log.Printf("⚠️  MinIO client initialization failed: %v", err)
+		} else {
+			log.Println("✅ MinIO client connected successfully")
+		}
+	} else {
+		log.Println("⚠️  MinIO not configured - photo sync to MinIO disabled")
+	}
+
 	// Initialize logger service (needs to be initialized first for referensi)
 	loggerRepo := appLogger.NewRepository(db.DB)
 	loggerService := appLogger.NewService(loggerRepo)
@@ -160,7 +175,7 @@ func main() {
 
 	// Initialize Dosen Service with public routes (no auth required)
 	// Register on app directly so it's accessible at /dosen/* without /public prefix
-	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService, laravelCrypto) // Dosen endpoints with Redis cache and DB
+	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService, laravelCrypto, minioClient) // Dosen endpoints with Redis cache, DB, and MinIO
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)

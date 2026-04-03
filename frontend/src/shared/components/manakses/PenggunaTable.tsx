@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
-import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import { FiEye, FiEdit2, FiMoreVertical, FiTrash2, FiPlus, FiShield, FiShieldOff, FiKey } from "react-icons/fi";
+import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, useDisclosure } from "@heroui/react";
+import { FiEye, FiEdit2, FiMoreVertical, FiTrash2, FiPlus, FiShield, FiShieldOff, FiKey, FiUser } from "react-icons/fi";
+import { authClient } from "@/lib/api/authClient";
 import { penggunaService, type Pengguna, type PenggunaStats, type PenggunaDetail, type PeranOption } from "@/lib/services/manakses/penggunaService";
 import PenggunaDetailModal from "./PenggunaDetailModal";
 import PenggunaEditModal from "./PenggunaEditModal";
@@ -27,6 +28,15 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [sortBy, setSortBy] = useState<string>("username");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Add modal
+  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addForm, setAddForm] = useState({
+    username: "", password: "", nm_pengguna: "", email: "",
+    tempat_lahir: "", tgl_lahir: "", jenis_kelamin: "L",
+    alamat: "", no_tel: "", no_hp: "", jabatan: "", id_peran: "",
+  });
 
   // Modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -609,16 +619,55 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
 
   // Handle add pengguna (placeholder for future implementation)
   const handleAdd = () => {
-    toast("Fitur tambah pengguna akan segera tersedia", {
-      duration: 2000,
-      icon: "🚧",
-      style: {
-        borderRadius: "12px",
-        background: "#F59E0B",
-        color: "#fff",
-        fontWeight: "500",
-      },
+    setAddForm({
+      username: "", password: "", nm_pengguna: "", email: "",
+      tempat_lahir: "", tgl_lahir: "", jenis_kelamin: "L",
+      alamat: "", no_tel: "", no_hp: "", jabatan: "", id_peran: "",
     });
+    onAddOpen();
+  };
+
+  const handleSubmitAdd = async () => {
+    if (!addForm.username.trim() || !addForm.password.trim() || !addForm.nm_pengguna.trim()) {
+      toast.error("Username, password, dan nama pengguna wajib diisi", {
+        duration: 3000, style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+        iconTheme: { primary: "#fff", secondary: "#EF4444" },
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const payload: any = {
+        username: addForm.username,
+        password: addForm.password,
+        nm_pengguna: addForm.nm_pengguna,
+        jenis_kelamin: addForm.jenis_kelamin || "L",
+      };
+      if (addForm.email) payload.email = addForm.email;
+      if (addForm.tempat_lahir) payload.tempat_lahir = addForm.tempat_lahir;
+      if (addForm.tgl_lahir) payload.tgl_lahir = addForm.tgl_lahir;
+      if (addForm.alamat) payload.alamat = addForm.alamat;
+      if (addForm.no_tel) payload.no_tel = addForm.no_tel;
+      if (addForm.no_hp) payload.no_hp = addForm.no_hp;
+      if (addForm.jabatan) payload.jabatan = addForm.jabatan;
+      if (addForm.id_peran) payload.id_peran = parseInt(addForm.id_peran);
+
+      await authClient.post("/manakses/pengguna", payload);
+      toast.success("Pengguna berhasil ditambahkan", {
+        duration: 3000, style: { borderRadius: "12px", background: "#10B981", color: "#fff", fontWeight: "500" },
+        iconTheme: { primary: "#fff", secondary: "#10B981" },
+      });
+      onAddClose();
+      setRefreshTrigger((t) => t + 1);
+    } catch (e: any) {
+      const msg = e.response?.data?.message || "Gagal menambahkan pengguna";
+      toast.error(msg, {
+        duration: 4000, style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+        iconTheme: { primary: "#fff", secondary: "#EF4444" },
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle sort change
@@ -863,6 +912,148 @@ export default function PenggunaTable({ onStatsLoaded }: PenggunaTableProps) {
               isLoading={resetPasswordLoading}
             >
               Reset Password
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Add Pengguna Modal */}
+      <Modal isOpen={isAddOpen} onClose={onAddClose} size="2xl" scrollBehavior="inside"
+        classNames={{ backdrop: "bg-black/50 backdrop-blur-sm", base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4" }}>
+        <ModalContent>
+          <ModalHeader className="border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg">
+                <FiUser className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Tambah Pengguna</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">Daftarkan pengguna baru ke sistem</p>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody className="py-5 px-4 sm:px-6">
+            <div className="space-y-5">
+              {/* Akun Section */}
+              <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Informasi Akun
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Username <span className="text-red-500">*</span></label>
+                    <Input aria-label="Username" placeholder="username" value={addForm.username}
+                      onValueChange={(v) => setAddForm({...addForm, username: v})} variant="bordered" size="sm"
+                      classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Password <span className="text-red-500">*</span></label>
+                    <Input aria-label="Password" placeholder="Min 6 karakter" type="password" value={addForm.password}
+                      onValueChange={(v) => setAddForm({...addForm, password: v})} variant="bordered" size="sm"
+                      classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Pribadi Section */}
+              <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />Data Pribadi
+                </h4>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Nama Lengkap <span className="text-red-500">*</span></label>
+                    <Input aria-label="Nama" placeholder="Nama lengkap pengguna" value={addForm.nm_pengguna}
+                      onValueChange={(v) => setAddForm({...addForm, nm_pengguna: v})} variant="bordered" size="sm"
+                      classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Email</label>
+                      <Input aria-label="Email" placeholder="email@unila.ac.id" type="email" value={addForm.email}
+                        onValueChange={(v) => setAddForm({...addForm, email: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Jenis Kelamin <span className="text-red-500">*</span></label>
+                      <Select aria-label="JK" placeholder="Pilih" selectedKeys={[addForm.jenis_kelamin]}
+                        onChange={(e) => setAddForm({...addForm, jenis_kelamin: e.target.value || "L"})}
+                        variant="bordered" size="sm"
+                        classNames={{ trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm", value: "text-gray-900 dark:text-white" }}>
+                        <SelectItem key="L">Laki-laki</SelectItem>
+                        <SelectItem key="P">Perempuan</SelectItem>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Tempat Lahir</label>
+                      <Input aria-label="Tempat Lahir" placeholder="Kota" value={addForm.tempat_lahir}
+                        onValueChange={(v) => setAddForm({...addForm, tempat_lahir: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Tanggal Lahir</label>
+                      <Input aria-label="Tanggal Lahir" type="date" value={addForm.tgl_lahir}
+                        onValueChange={(v) => setAddForm({...addForm, tgl_lahir: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Alamat</label>
+                    <Input aria-label="Alamat" placeholder="Alamat lengkap" value={addForm.alamat}
+                      onValueChange={(v) => setAddForm({...addForm, alamat: v})} variant="bordered" size="sm"
+                      classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">No Telpon</label>
+                      <Input aria-label="No Telpon" placeholder="021-xxx" value={addForm.no_tel}
+                        onValueChange={(v) => setAddForm({...addForm, no_tel: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">No HP</label>
+                      <Input aria-label="No HP" placeholder="08xxx" value={addForm.no_hp}
+                        onValueChange={(v) => setAddForm({...addForm, no_hp: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Jabatan</label>
+                      <Input aria-label="Jabatan" placeholder="Jabatan" value={addForm.jabatan}
+                        onValueChange={(v) => setAddForm({...addForm, jabatan: v})} variant="bordered" size="sm"
+                        classNames={{ input: "text-gray-900 dark:text-white", inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm" }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Peran Section */}
+              <div className="bg-purple-50/50 dark:bg-purple-900/10 rounded-xl p-4 border border-purple-200/50 dark:border-purple-800/30">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />Peran (Opsional)
+                </h4>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-slate-300">Peran Awal</label>
+                  <Select aria-label="Peran" placeholder="Pilih peran (opsional)"
+                    selectedKeys={addForm.id_peran ? [addForm.id_peran] : []}
+                    onChange={(e) => setAddForm({...addForm, id_peran: e.target.value})}
+                    variant="bordered" size="sm"
+                    classNames={{ trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm", value: "text-gray-900 dark:text-white", popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg" }}>
+                    {peranOptions.map((p) => (
+                      <SelectItem key={String(p.id_peran)}>{p.nm_peran}</SelectItem>
+                    ))}
+                  </Select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Jika dipilih, peran akan otomatis di-assign ke pengguna</p>
+                </div>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter className="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4">
+            <Button variant="flat" onPress={onAddClose} className="font-medium">Batal</Button>
+            <Button onPress={handleSubmitAdd} isLoading={isSubmitting}
+              className="font-medium bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg">
+              Tambah Pengguna
             </Button>
           </ModalFooter>
         </ModalContent>

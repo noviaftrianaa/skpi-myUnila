@@ -130,6 +130,7 @@ Route::prefix('v1')->group(function () {
         // Bidang Ilmu - accepts encrypted ID, must be before /{id} to avoid conflict
         Route::get('/bidang-ilmu/{encrypted_id}', [BidangIlmuController::class, 'getByEncryptedId']);
         // Dosen Profile
+        Route::get('/{id}/photo', [DosenProfileController::class, 'photo']);
         Route::get('/{id}', [DosenProfileController::class, 'show']);
     });
 

@@ -32,6 +32,7 @@ export interface Aplikasi {
   a_coming_soon: boolean;
   a_terintegrasi: boolean;
   a_live: boolean;
+  a_filter_organisasi: boolean;
   jumlah_table: number;
   jumlah_pj: number;
   jumlah_menu: number;
@@ -148,6 +149,7 @@ export interface CreateAplikasiRequest {
   a_coming_soon?: boolean;
   a_terintegrasi?: boolean;
   a_live?: boolean;
+  a_filter_organisasi?: boolean;
   status?: 'Aktif' | 'Tidak Aktif';
 }
 

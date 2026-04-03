@@ -10,7 +10,7 @@ export interface ScheduledSync {
   id: number;
   name: string;
   description: string;
-  sync_type: 'dosen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
+  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
   endpoint_key?: string | null;
   cron_expression: string;
   schedule_time?: string | null;
@@ -32,7 +32,7 @@ export interface ScheduledSyncListResponse {
 export interface CreateScheduleRequest {
   name: string;
   description: string;
-  sync_type: 'dosen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
+  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
   endpoint_key?: string;
   schedule_date: string; // YYYY-MM-DD
   schedule_time: string; // HH:mm

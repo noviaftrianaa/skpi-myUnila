@@ -1,0 +1,13 @@
+{
+  "app_slug": "monitoring",
+  "_comment": "Roles: Administrator(1), Developer(107) only — infra tools, bukan untuk pimpinan",
+  "roles": [1, 107],
+  "menus": [
+    {
+      "nm_menu": "Monitoring Tools",
+      "nm_file": "/portal/monitoring",
+      "icon": "heroicons:chart-bar",
+      "urutan": 1
+    }
+  ]
+}

@@ -12,8 +12,18 @@ type Config struct {
 	JWT           JWTConfig
 	Database      DatabaseConfig
 	SisterAPI     SisterAPIConfig
+	MinIO         MinIOConfig
 	EncryptionKey string
 	LaravelAppKey string // Laravel APP_KEY for decrypting encrypted IDs from public-service
+}
+
+type MinIOConfig struct {
+	Endpoint  string
+	AccessKey string
+	SecretKey string
+	Bucket    string
+	UseSSL    bool
+	PublicURL string // URL for public access to MinIO objects
 }
 
 type AppConfig struct {
@@ -82,6 +92,14 @@ func LoadConfig() error {
 			Username:   getEnv("SISTER_API_USERNAME", ""),
 			Password:   getEnv("SISTER_API_PASSWORD", ""),
 			APICode:    getEnv("SISTER_API_CODE", "SISTER"), // Default to SISTER
+		},
+		MinIO: MinIOConfig{
+			Endpoint:  getEnv("MINIO_ENDPOINT", "192.168.120.47:9000"),
+			AccessKey: getEnv("MINIO_ACCESS_KEY", ""),
+			SecretKey: getEnv("MINIO_SECRET_KEY", ""),
+			Bucket:    getEnv("MINIO_BUCKET", "myunila-photos"),
+			UseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
+			PublicURL: getEnv("MINIO_PUBLIC_URL", "http://192.168.120.47:9000"),
 		},
 		EncryptionKey: getEnv("API_CONFIG_ENCRYPTION_KEY", ""),
 		LaravelAppKey: getEnv("LARAVEL_APP_KEY", ""), // Laravel APP_KEY (base64 encoded, without "base64:" prefix)

@@ -42,6 +42,10 @@ services:
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
 
+      # MinIO (photo storage)
+      MINIO_PUBLIC_URL: "${MINIO_PUBLIC_URL:-https://my.unila.ac.id/gateway/storage}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+
       # Session & Cache (use Redis)
       SESSION_DRIVER: redis
       SESSION_CONNECTION: default

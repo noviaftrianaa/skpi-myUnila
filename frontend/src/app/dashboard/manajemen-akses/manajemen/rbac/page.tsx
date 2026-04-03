@@ -5,13 +5,14 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import RolePenggunaTable from "@/shared/components/manakses/RolePenggunaTable";
 import MenuRoleTable from "@/shared/components/manakses/MenuRoleTable";
+import RBACMatrixEditor from "@/shared/components/manakses/RBACMatrixEditor";
 import {
   Spinner,
   Card,
   CardBody,
 } from "@heroui/react";
 import { MdSecurity } from "react-icons/md";
-import { FiUsers, FiLock, FiShield } from "react-icons/fi";
+import { FiUsers, FiLock, FiShield, FiGrid } from "react-icons/fi";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type MenuRoleStats } from "@/lib/services/manakses/menuRoleService";
 
@@ -60,10 +61,10 @@ export default function RBACPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Role Base Access Control
+              RBAC Portal Internal
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Kelola assignment peran ke pengguna dan akses menu di sistem
+              Kelola akses menu dan peran pengguna untuk aplikasi internal MyUnila Portal
             </p>
           </div>
         </div>
@@ -192,7 +193,7 @@ export default function RBACPage() {
             `}
           >
             <FiLock className={`w-4 h-4 ${activeTab === "menu-role" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
-            <span>Menu Role</span>
+            <span>Akses Menu per Role</span>
           </button>
           <button
             onClick={() => setActiveTab("role-pengguna")}
@@ -206,7 +207,21 @@ export default function RBACPage() {
             `}
           >
             <FiUsers className={`w-4 h-4 ${activeTab === "role-pengguna" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
-            <span>Role Pengguna</span>
+            <span>Pengguna & Role</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("matrix")}
+            className={`
+              relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+              transition-all duration-200 ease-out
+              ${activeTab === "matrix"
+                ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-slate-700/50"
+              }
+            `}
+          >
+            <FiGrid className={`w-4 h-4 ${activeTab === "matrix" ? "text-gray-700 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`} />
+            <span>Permission Matrix</span>
           </button>
         </div>
 
@@ -214,6 +229,7 @@ export default function RBACPage() {
         <div className="mt-2">
           {activeTab === "menu-role" && <MenuRoleTable onStatsLoaded={setMenuRoleStats} />}
           {activeTab === "role-pengguna" && <RolePenggunaTable />}
+          {activeTab === "matrix" && <RBACMatrixEditor />}
         </div>
       </div>
     </DashboardLayoutWithDynamicMenu>

@@ -71,10 +71,18 @@ func (s *service) GetMahasiswaPaymentSummary(ctx context.Context, npm string) (*
 	}
 
 	// Build summary
+	namaMahasiswa := ""
+	if payments[0].NamaMahasiswa != nil {
+		namaMahasiswa = *payments[0].NamaMahasiswa
+	}
+	namaProdi := ""
+	if payments[0].NamaProdi != nil {
+		namaProdi = *payments[0].NamaProdi
+	}
 	summary := &MahasiswaPaymentSummary{
 		NPM:           npm,
-		NamaMahasiswa: payments[0].NamaMahasiswa,
-		NamaProdi:     payments[0].NamaProdi,
+		NamaMahasiswa: namaMahasiswa,
+		NamaProdi:     namaProdi,
 		RiwayatBayar:  []RiwayatBayar{},
 	}
 

@@ -1,6 +1,8 @@
 package dosen
 
 import (
+	"fmt"
+	"strings"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,8 +63,11 @@ func (ctrl *Controller) GetDosenPhoto(c *fiber.Ctx) error {
 		}
 		idSdm = decrypted
 	} else {
-		// Fallback: assume it's already a plain id_sdm (for backward compatibility)
-		idSdm = encryptedId
+		// SECURITY: Do not accept plain IDs — encryption service must be initialized
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Encryption service not initialized",
+		})
 	}
 
 	// Get photo from SISTER API
@@ -86,8 +91,10 @@ func (ctrl *Controller) GetDosenPhoto(c *fiber.Ctx) error {
 	// Set content type header
 	c.Set("Content-Type", contentType)
 
-	// Set cache headers (cache for 1 hour)
+	// Set cache and security headers
 	c.Set("Cache-Control", "public, max-age=3600")
+	c.Set("X-Content-Type-Options", "nosniff")
+	c.Set("Content-Security-Policy", "default-src 'none'")
 
 	// Return photo binary
 	return c.Send(photoBytes)
@@ -252,6 +259,35 @@ func (ctrl *Controller) GetDosenStats(c *fiber.Ctx) error {
 	})
 }
 
+// SyncDosenPhotos handles POST /api/v1/dosen/sync-photos
+// @Summary Sync all dosen photos from SISTER API to MinIO
+// @Description Batch fetches dosen photos from SISTER API and uploads to MinIO storage
+// @Tags Dosen
+// @Produce json
+// @Param synced_by query string true "Username of person who triggered the sync"
+// @Success 200 {object} BatchPhotoSyncResult "Photo sync result"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync-photos [post]
+func (ctrl *Controller) SyncDosenPhotos(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	result, err := ctrl.service.SyncDosenPhotosToMinIO(syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen photos",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Photo sync completed: %d success, %d skipped, %d failed",
+			result.TotalSuccess, result.TotalSkipped, result.TotalFailed),
+		"data": result,
+	})
+}
+
 // SyncDosenFromSister handles POST /dosen/sync
 // @Summary Sync all dosen data from SISTER API to database
 // @Description Performs batch sync of all Unila dosen from SISTER API using goroutine workers
@@ -291,6 +327,231 @@ func (ctrl *Controller) SyncDosenFromSister(c *fiber.Ctx) error {
 		"message": "Dosen sync completed",
 		"data":    result,
 	})
+}
+
+// SyncDosenDokumen handles POST /api/v1/dosen/sync-dokumen
+// @Summary Sync all dosen documents from SISTER API to MinIO
+// @Description Batch fetches dosen documents from SISTER API and uploads to MinIO storage
+// @Tags Dosen
+// @Produce json
+// @Param synced_by query string false "Username of person who triggered the sync"
+// @Success 200 {object} BatchDokumenSyncResult "Dokumen sync result"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/sync-dokumen [post]
+func (ctrl *Controller) SyncDosenDokumen(c *fiber.Ctx) error {
+	syncedBy := c.Query("synced_by", "system")
+
+	result, err := ctrl.service.SyncDosenDokumenToMinIO(syncedBy)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to sync dosen documents",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Dokumen sync completed: %d dosen, %d docs (%d success, %d skipped, %d failed)",
+			result.TotalDosen, result.TotalDokumen, result.TotalSuccess, result.TotalSkipped, result.TotalFailed),
+		"data": result,
+	})
+}
+
+// GetAllDokumen handles GET /api/v1/dosen/dokumen
+// @Summary Get paginated list of all synced documents
+// @Description Returns all documents from dok.dok_sdm joined with dok.dokumen and pdrd.sdm
+func (ctrl *Controller) GetAllDokumen(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 20)
+	search := c.Query("search", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	idJnsDok := c.QueryInt("id_jns_dok", 0)
+
+	result, err := ctrl.service.GetAllDokumen(page, limit, search, idJnsDok)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen list",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("%d dokumen found", result.Total),
+		"data":    result,
+	})
+}
+
+// GetDosenDokumenList handles GET /api/v1/dosen/dokumen/:id_sdm
+// @Summary Get list of documents for a dosen
+// @Description Returns metadata of all documents synced from SISTER API for a given dosen
+// @Tags Dosen
+// @Produce json
+// @Param id_sdm path string true "Dosen ID (UUID)"
+// @Success 200 {object} map[string]interface{} "Dokumen list"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/dokumen/{id_sdm} [get]
+func (ctrl *Controller) GetDosenDokumenList(c *fiber.Ctx) error {
+	idSDM := c.Params("id_sdm")
+	if idSDM == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_sdm parameter is required",
+		})
+	}
+
+	docs, err := ctrl.service.GetDosenDokumen(idSDM)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("%d dokumen found", len(docs)),
+		"data":    docs,
+	})
+}
+
+// DownloadDosenDokumen handles GET /api/v1/dosen/dokumen/download/:id_dok
+// @Summary Download a dosen document from MinIO
+// @Description Streams document binary from MinIO storage
+// @Tags Dosen
+// @Produce application/octet-stream
+// @Param id_dok path string true "Document ID (UUID)"
+// @Success 200 {file} binary "Document binary"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Document not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /dosen/dokumen/download/{id_dok} [get]
+func (ctrl *Controller) DownloadDosenDokumen(c *fiber.Ctx) error {
+	idDok := c.Params("id_dok")
+	if idDok == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_dok parameter is required",
+		})
+	}
+
+	data, contentType, fileName, err := ctrl.service.DownloadDosenDokumen(idDok)
+	if err != nil {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "dokumen not found") || strings.Contains(errMsg, "no MinIO path") {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"success": false,
+				"message": "Document not found",
+				"error":   errMsg,
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to download document",
+			"error":   errMsg,
+		})
+	}
+
+	c.Set("Content-Type", contentType)
+	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	c.Set("Cache-Control", "private, max-age=3600")
+
+	return c.Send(data)
+}
+
+// GetPhotoStats handles GET /api/v1/dosen/photos/stats
+func (ctrl *Controller) GetPhotoStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetPhotoStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve photo statistics",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Photo statistics retrieved successfully",
+		"data":    stats,
+	})
+}
+
+// GetDokumenStats handles GET /api/v1/dosen/dokumen/stats
+func (ctrl *Controller) GetDokumenStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetDokumenStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve dokumen statistics",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Dokumen statistics retrieved successfully",
+		"data":    stats,
+	})
+}
+
+// GetJenisDokumenList handles GET /api/v1/dosen/dokumen/jenis
+func (ctrl *Controller) GetJenisDokumenList(c *fiber.Ctx) error {
+	list, err := ctrl.service.GetJenisDokumenList()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to retrieve jenis dokumen",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    list,
+	})
+}
+
+// PreviewDosenDokumen handles GET /api/v1/dosen/dokumen/preview/:id_dok
+func (ctrl *Controller) PreviewDosenDokumen(c *fiber.Ctx) error {
+	idDok := c.Params("id_dok")
+	if idDok == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "id_dok parameter is required",
+		})
+	}
+
+	data, contentType, fileName, err := ctrl.service.PreviewDosenDokumen(idDok)
+	if err != nil {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "dokumen not found") || strings.Contains(errMsg, "no MinIO path") {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"success": false,
+				"message": "Document not found",
+				"error":   errMsg,
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to preview document",
+			"error":   errMsg,
+		})
+	}
+
+	c.Set("Content-Type", contentType)
+	c.Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
+	c.Set("Cache-Control", "private, max-age=3600")
+
+	return c.Send(data)
 }
 
 // SyncSingleDosenTest handles POST /dosen/sync-one/:id_sdm

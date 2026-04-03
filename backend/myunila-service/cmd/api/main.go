@@ -17,11 +17,16 @@ import (
 	"github.com/myunila/myunila-service/apps/monitoring"
 	"github.com/myunila/myunila-service/apps/scheduler"
 	"github.com/myunila/myunila-service/apps/radius"
+	"github.com/myunila/myunila-service/apps/siakadu/akademik"
+	siakadu_mahasiswa "github.com/myunila/myunila-service/apps/siakadu/mahasiswa"
+	siakadu_nilai "github.com/myunila/myunila-service/apps/siakadu/nilai"
+	siakadu_referensi "github.com/myunila/myunila-service/apps/siakadu/referensi"
 	"github.com/myunila/myunila-service/apps/sikep/pegawai"
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
 	"github.com/myunila/myunila-service/docs"
 	"github.com/myunila/myunila-service/external/database"
 	"github.com/myunila/myunila-service/external/radius_api"
+	"github.com/myunila/myunila-service/external/siakadu_api"
 	"github.com/myunila/myunila-service/external/sikep_api"
 	"github.com/myunila/myunila-service/internal/config"
 	"github.com/myunila/myunila-service/pkg/crypto"
@@ -93,6 +98,14 @@ func main() {
 		log.Println("✅ Radius API client initialized")
 	}
 
+	// Initialize SIAKADU API client
+	siakaduAPI, err := siakadu_api.NewSiakaduClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize SIAKADU API client: %v", err)
+	} else {
+		log.Println("✅ SIAKADU API client initialized")
+	}
+
 	// Initialize Redis client for caching (used by RequireDeveloper middleware)
 	redisClient := database.ConnectRedis()
 	if redisClient != nil {
@@ -155,6 +168,19 @@ func main() {
 	radiusSvc := radius.Init(apiV1, db.DB, radiusAPI)
 	log.Println("✅ Radius module initialized")
 
+	// Initialize SIAKADU Mahasiswa module
+	siakadu_mahasiswa.Init(apiV1, db.DB, siakaduAPI)
+	log.Println("✅ SIAKADU Mahasiswa module initialized")
+
+	// Initialize SIAKADU Akademik module (kelas, kurikulum, matakuliah, jadwal)
+	akademik.Init(apiV1, db.DB, siakaduAPI)
+	log.Println("✅ SIAKADU Akademik module initialized")
+
+	// Initialize SIAKADU Nilai module (khs, transkrip, kuliah)
+	siakadu_nilai.Init(apiV1, db.DB, siakaduAPI)
+	siakadu_referensi.Init(apiV1, db.DB, siakaduAPI)
+	log.Println("✅ SIAKADU Nilai module initialized")
+
 	// Initialize ManAkses Unit Organisasi module
 	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
 	log.Println("✅ ManAkses Unit Organisasi module initialized")
@@ -195,21 +221,25 @@ func main() {
 			"version": "1.0.0",
 			"message": "MyUnila Service - Data Synchronization from External Systems",
 			"endpoints": fiber.Map{
-				"docs":             "/docs",
-				"health":           "/health",
-				"api":              "/api/v1",
-				"api_configs":      "/api/v1/api-configs",
-				"sikep_pegawai":    "/api/v1/sikep/pegawai",
-				"sikep_stats":      "/api/v1/sikep/pegawai/stats",
-				"sikep_sync":       "/api/v1/sikep/pegawai/sync",
-				"sikep_referensi":  "/api/v1/sikep/referensi",
-				"sikep_ref_meta":   "/api/v1/sikep/referensi/metadata",
-				"radius_pengguna":  "/api/v1/radius/pengguna",
-				"radius_stats":     "/api/v1/radius/stats",
-				"radius_sync":      "/api/v1/radius/sync",
-				"logger":           "/api/v1/logger",
-				"monitoring":       "/api/v1/monitoring",
-				"scheduler":        "/api/v1/schedules",
+				"docs":                "/docs",
+				"health":              "/health",
+				"api":                 "/api/v1",
+				"api_configs":         "/api/v1/api-configs",
+				"sikep_pegawai":       "/api/v1/sikep/pegawai",
+				"sikep_stats":         "/api/v1/sikep/pegawai/stats",
+				"sikep_sync":          "/api/v1/sikep/pegawai/sync",
+				"sikep_referensi":     "/api/v1/sikep/referensi",
+				"sikep_ref_meta":      "/api/v1/sikep/referensi/metadata",
+				"siakadu_mahasiswa":   "/api/v1/siakadu/mahasiswa",
+				"siakadu_akademik":    "/api/v1/siakadu/akademik",
+				"siakadu_nilai":       "/api/v1/siakadu/nilai",
+				"siakadu_referensi":   "/api/v1/siakadu/referensi",
+				"radius_pengguna":     "/api/v1/radius/pengguna",
+				"radius_stats":        "/api/v1/radius/stats",
+				"radius_sync":         "/api/v1/radius/sync",
+				"logger":              "/api/v1/logger",
+				"monitoring":          "/api/v1/monitoring",
+				"scheduler":           "/api/v1/schedules",
 			},
 		})
 	})

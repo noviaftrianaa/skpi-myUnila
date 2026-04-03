@@ -6,7 +6,7 @@
 #
 # CARA MENJALANKAN:
 # 1. Buka PowerShell sebagai Administrator
-# 2. cd C:\laragon\www\my-unila\manAkses
+# 2. cd E:\laragon\www\my-unila\manAkses
 # 3. .\setup-scheduler-windows.ps1
 # ============================================
 
@@ -26,8 +26,8 @@ Write-Host ""
 # Configuration
 $TaskName = "Laravel_SSO_Scheduler"
 $TaskDescription = "Run Laravel SSO Sync Scheduler every minute"
-$BatchFilePath = "C:\laragon\www\my-unila\manAkses\scheduler.bat"
-$LogPath = "C:\laragon\www\my-unila\manAkses\storage\logs"
+$BatchFilePath = "E:\laragon\www\my-unila\manAkses\scheduler.bat"
+$LogPath = "E:\laragon\www\my-unila\manAkses\storage\logs"
 
 # Check if batch file exists
 if (-not (Test-Path $BatchFilePath)) {
@@ -52,7 +52,7 @@ Write-Host ""
 Write-Host "Membuat Windows Task Scheduler baru..." -ForegroundColor Cyan
 
 # Create Action
-$Action = New-ScheduledTaskAction -Execute $BatchFilePath -WorkingDirectory "C:\laragon\www\my-unila\manAkses"
+$Action = New-ScheduledTaskAction -Execute $BatchFilePath -WorkingDirectory "E:\laragon\www\my-unila\manAkses"
 
 # Create Trigger (every 1 minute)
 $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration ([TimeSpan]::MaxValue)

@@ -13,6 +13,7 @@ export interface IKUCardProps {
     target: number;
     color: string;
     unit?: string;
+    isWajib?: boolean;
     onDetailClick?: () => void;
 }
 
@@ -23,6 +24,7 @@ export default function IKUCard({
     target,
     color,
     unit = "%",
+    isWajib = false,
     onDetailClick,
 }: IKUCardProps) {
     const isAchieved = value >= target;
@@ -34,13 +36,20 @@ export default function IKUCard({
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                     <div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                             <span
                                 className="px-2 py-0.5 rounded text-xs font-bold text-white bg-gray-900 dark:bg-gray-700"
                                 style={{ backgroundColor: color }}
                             >
                                 {code}
                             </span>
+                            <Chip
+                                size="sm"
+                                variant="bordered"
+                                className={`h-5 text-[10px] px-1 ${isWajib ? 'border-blue-400 text-blue-600 dark:text-blue-400' : 'border-gray-300 text-gray-500 dark:border-gray-600 dark:text-gray-400'}`}
+                            >
+                                {isWajib ? 'Wajib' : 'Opsional'}
+                            </Chip>
                             {isAchieved ? (
                                 <Chip size="sm" color="success" variant="flat" className="h-5 text-[10px] px-1">Terlampaui</Chip>
                             ) : (

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\ManAkses\MenuRoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Menu Role Controller
@@ -385,6 +387,170 @@ class MenuRoleController extends Controller
                 'message' => 'Failed to retrieve RBAC statistics',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Get RBAC permission matrix for an application
+     * GET /manakses/menu-role/matrix?app_id={appId}
+     */
+    public function matrix(Request $request): JsonResponse
+    {
+        $appId = $request->query('app_id');
+        if (!$appId) return response()->json(['success' => false, 'message' => 'app_id required'], 400);
+
+        // Get all menus for this app
+        $menus = DB::select("
+            SELECT CONVERT(VARCHAR(36), id_menu) as id_menu, nm_menu, nm_file, urutan_menu, level_menu,
+                   CONVERT(VARCHAR(36), id_group_menu) as id_group_menu
+            FROM man_akses.menu
+            WHERE id_aplikasi = ? AND a_aktif = 1
+            ORDER BY level_menu, urutan_menu
+        ", [$appId]);
+
+        // Get all roles that have any assignment in this app
+        $roles = DB::select("
+            SELECT DISTINCT p.id_peran, p.nm_peran
+            FROM man_akses.menu_role mr
+            INNER JOIN man_akses.peran p ON p.id_peran = mr.id_peran
+            INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+            WHERE m.id_aplikasi = ? AND ISNULL(mr.soft_delete, 0) = 0
+            ORDER BY p.nm_peran
+        ", [$appId]);
+
+        // Get all assignments
+        $assignments = DB::select("
+            SELECT mr.id_peran, CONVERT(VARCHAR(36), mr.id_menu) as id_menu,
+                   ISNULL(mr.a_boleh_show, 0) as show_perm,
+                   ISNULL(mr.a_boleh_insert, 0) as insert_perm,
+                   ISNULL(mr.a_boleh_update, 0) as update_perm,
+                   ISNULL(mr.a_boleh_delete, 0) as delete_perm
+            FROM man_akses.menu_role mr
+            INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+            WHERE m.id_aplikasi = ? AND ISNULL(mr.soft_delete, 0) = 0
+        ", [$appId]);
+
+        // Build map: { role_id: { menu_id: { show, insert, update, delete } } }
+        $assignmentMap = [];
+        foreach ($assignments as $a) {
+            $assignmentMap[$a->id_peran][$a->id_menu] = [
+                'show'   => (int)$a->show_perm,
+                'insert' => (int)$a->insert_perm,
+                'update' => (int)$a->update_perm,
+                'delete' => (int)$a->delete_perm,
+            ];
+        }
+
+        // Get ALL roles (for adding new roles)
+        $allRoles = DB::select("SELECT id_peran, nm_peran FROM man_akses.peran ORDER BY nm_peran");
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'menus'       => $menus,
+                'roles'       => $roles,
+                'all_roles'   => $allRoles,
+                'assignments' => $assignmentMap,
+            ]
+        ]);
+    }
+
+    /**
+     * Bulk update RBAC permission matrix for an application
+     * POST /manakses/menu-role/matrix/bulk
+     */
+    public function bulkUpdateMatrix(Request $request): JsonResponse
+    {
+        $appId   = $request->input('app_id');
+        $changes = $request->input('changes', []);
+
+        if (!$appId || empty($changes)) {
+            return response()->json(['success' => false, 'message' => 'app_id and changes required'], 400);
+        }
+
+        $userId   = $request->user()?->id ?? '00000000-0000-0000-0000-000000000001';
+        $now      = now();
+        $updated  = 0;
+        $inserted = 0;
+        $deleted  = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($changes as $change) {
+                $idPeran = $change['id_peran'];
+                $idMenu  = $change['id_menu'];
+                $show    = $change['show']   ?? 0;
+                $insert  = $change['insert'] ?? 0;
+                $update  = $change['update'] ?? 0;
+                $delete  = $change['delete'] ?? 0;
+
+                // All permissions 0 → remove assignment
+                if (!$show && !$insert && !$update && !$delete) {
+                    $affected = DB::delete("
+                        DELETE FROM man_akses.menu_role WHERE id_peran = ? AND id_menu = ?
+                    ", [$idPeran, $idMenu]);
+                    if ($affected) $deleted++;
+                    continue;
+                }
+
+                // Try update first
+                $affected = DB::update("
+                    UPDATE man_akses.menu_role
+                    SET a_boleh_show = ?, a_boleh_insert = ?, a_boleh_update = ?, a_boleh_delete = ?,
+                        last_update = ?, last_sync = ?, id_updater = ?, soft_delete = 0
+                    WHERE id_peran = ? AND id_menu = ?
+                ", [$show, $insert, $update, $delete, $now, $now, $userId, $idPeran, $idMenu]);
+
+                if ($affected) {
+                    $updated++;
+                } else {
+                    // Insert new
+                    DB::insert("
+                        INSERT INTO man_akses.menu_role
+                        (id_peran, id_menu, a_boleh_show, a_boleh_insert, a_boleh_update, a_boleh_delete,
+                         a_boleh_sanggah, approval_menu, tgl_create, last_update, soft_delete, last_sync, id_updater)
+                        VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, ?, 0, ?, ?)
+                    ", [$idPeran, $idMenu, $show, $insert, $update, $delete, $now, $now, $now, $userId]);
+                    $inserted++;
+                }
+            }
+
+            DB::commit();
+
+            // Invalidate permissions cache for affected roles
+            $affectedRoles = array_unique(array_column($changes, 'id_peran'));
+            foreach ($affectedRoles as $roleId) {
+                Cache::forget("permissions:{$roleId}:" . strtolower($appId));
+            }
+
+            // Invalidate portal apps cache
+            $this->invalidatePortalAppsCache();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil: {$updated} diupdate, {$inserted} ditambah, {$deleted} dihapus",
+                'data'    => ['updated' => $updated, 'inserted' => $inserted, 'deleted' => $deleted],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Invalidate all portal-related cache
+     */
+    private function invalidatePortalAppsCache(): void
+    {
+        try {
+            $redis  = Cache::getStore()->getRedis();
+            $prefix = config('cache.prefix', '');
+            $keys   = $redis->keys("{$prefix}*portal_apps*");
+            foreach ($keys as $key) {
+                Cache::forget(str_replace($prefix . ':', '', $key));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to invalidate portal apps cache', ['error' => $e->getMessage()]);
         }
     }
 }

@@ -170,6 +170,7 @@ export interface BidangIlmu {
 // Dosen Profile Types
 export interface DosenProfile {
   id: string;
+  photo_url?: string;
   nama: string;
   nama_tanpa_gelar?: string;
   nidn?: string;

@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,6 +21,7 @@ import (
 	"github.com/myunila/api-service/external/database"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
+	"github.com/myunila/api-service/internal/middleware"
 )
 
 // @title MyUnila API Service
@@ -43,6 +44,7 @@ import (
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
 
+// endpointPrefix kept for backward compat in deriveGroup; URL always /v1/
 var endpointPrefix string
 
 func main() {
@@ -57,11 +59,9 @@ func main() {
 	log.Printf("📝 App Name: %s", config.Cfg.App.Name)
 	log.Printf("🌍 Environment: %s", config.Cfg.App.Env)
 
-	if config.Cfg.App.Env == "production" {
-		endpointPrefix = "live"
-	} else {
-		endpointPrefix = "dev"
-	}
+	// APP_ENV for internal behavior only (logging, cache TTL)
+	// URL prefix always /v1 regardless of environment
+	endpointPrefix = "v1" // kept for deriveGroup compatibility
 
 	// Connect to database
 	db, err := database.ConnectSQLServer(database.DatabaseConfig{
@@ -149,31 +149,94 @@ func main() {
 			"endpoints": fiber.Map{
 				"health":        "/health",
 				"documentation": "/docs",
-				"api":           "/v1",
-				"auth_login":    "/v1/auth/login",
-				"auth_check":    "/v1/auth/check-token",
+				"api":        "/v1",
+				"auth_login": "/v1/auth/login",
+				"auth_check": "/v1/auth/check-token",
 			},
 		})
 	})
 
 	// API routes - menggunakan /v1 tanpa /api prefix
 	// Production URL: https://my.unila.ac.id/gateway/api-service/v1/...
-	apiV1 := app.Group(fmt.Sprintf("/%s/v1", endpointPrefix))
+	apiV1 := app.Group("/v1")
+
+	// WS Authorization config
+	// WS_AUTH_APP_ID: aplikasi ID di man_akses untuk endpoint authorization
+	// WS_AUTH_ENABLED: enable/disable ws_authorization enforcement (default: false for backward compat)
+	wsAuthEnabled := os.Getenv("WS_AUTH_ENABLED") == "true"
+	wsAuthAppID := os.Getenv("WS_AUTH_APP_ID")
+
+	// Build middleware chain for protected routes: KongAuth → WsAuth → Handler
+	var protectedMiddlewares []fiber.Handler
+	protectedMiddlewares = append(protectedMiddlewares, middleware.KongAuth())
+
+	if wsAuthEnabled && wsAuthAppID != "" {
+		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthorization(middleware.WsAuthConfig{
+			DB:       db,
+			AppID:    wsAuthAppID,
+			CacheTTL: 5 * time.Minute,
+		}))
+		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthLog(db, wsAuthAppID))
+		log.Printf("✅ WS Authorization ENABLED (app_id: %s)", wsAuthAppID[:8]+"...")
+	} else {
+		log.Println("⚠️  WS Authorization DISABLED (set WS_AUTH_ENABLED=true and WS_AUTH_APP_ID to enable)")
+	}
 
 	// Initialize Auth module (public - tanpa auth)
 	auth.Init(apiV1, db)
 	log.Println("✅ Auth module initialized")
 
-	// Initialize Referensi module (protected - dengan JWT auth middleware)
-	referensi.RegisterRoutes(apiV1, db, redis.Client)
+	// Initialize protected modules with KongAuth + WsAuth middleware chain
+	referensi.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Referensi module initialized")
 
-	// Initialize Diklat module (protected - dengan JWT auth middleware)
-	diklat.RegisterRoutes(apiV1, db, redis.Client)
+	diklat.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Diklat module initialized")
 
-	pdrd.RegisterRoutes(apiV1, db, redis.Client)
+	pdrd.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ PDRD module initialized")
+
+	// System routes (for endpoint management - self-report all registered routes)
+	app.Get("/system/routes", func(c *fiber.Ctx) error {
+		routes := app.GetRoutes()
+		var result []fiber.Map
+		seen := make(map[string]bool)
+
+		for _, r := range routes {
+			// Skip internal/system/docs routes
+			if r.Path == "/" || r.Path == "/health" ||
+				strings.HasPrefix(r.Path, "/system") ||
+				strings.HasPrefix(r.Path, "/docs") {
+				continue
+			}
+			// Only include standard HTTP methods (nm_method column is varchar(6))
+			validMethods := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}
+			if !validMethods[r.Method] {
+				continue
+			}
+
+			key := r.Method + ":" + r.Path
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			// Derive group from path
+			group := deriveGroup(r.Path, endpointPrefix)
+
+			result = append(result, fiber.Map{
+				"method":   r.Method,
+				"path":     r.Path,
+				"nm_group": group,
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+			"routes":  result,
+			"total":   len(result),
+		})
+	})
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -197,6 +260,22 @@ func main() {
 	if err := app.Listen(config.Cfg.App.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
+}
+
+// deriveGroup extracts the module/group name from route path
+// e.g. /v1/referensi/agama → "referensi"
+// e.g. /v1/auth/login → "auth"
+// e.g. /v1/pdrd/list_mahasiswa → "pdrd"
+func deriveGroup(path string, _ string) string {
+	// Remove /v1/ prefix
+	trimmed := strings.TrimPrefix(path, "/v1/")
+
+	// Get first segment
+	parts := strings.SplitN(trimmed, "/", 2)
+	if len(parts) > 0 && parts[0] != "" {
+		return parts[0]
+	}
+	return "uncategorized"
 }
 
 // customErrorHandler handles Fiber errors

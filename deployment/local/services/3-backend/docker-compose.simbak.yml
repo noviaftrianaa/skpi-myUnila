@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  simbak-service:
+    build:
+      context: ../../../../backend/simbak-service
+      dockerfile: Dockerfile
+    image: myunila/simbak-service:latest
+    container_name: myunila-simbak-service
+    working_dir: /var/www
+    # Port exposed via nginx (8090:84 -> simbak-service:9000)
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      # App Config
+      APP_NAME: "${BAK_APP_NAME:-SIMBAK Service}"
+      APP_ENV: "${BAK_APP_ENV:-local}"
+      APP_KEY: "${BAK_APP_KEY}"
+      APP_DEBUG: "${BAK_APP_DEBUG:-true}"
+      APP_URL: "${BAK_APP_URL:-http://localhost:8090}"
+      APP_APLIKASI_ID: "${APP_APLIKASI_ID}"
+
+      # Primary Database (PostgreSQL - simbak)
+      DB_CONNECTION: "${BAK_DB_CONNECTION:-pgsql}"
+      DB_HOST: "${BAK_DB_HOST:-postgres}"
+      DB_PORT: "${BAK_DB_PORT:-5432}"
+      DB_DATABASE: "${BAK_DB_DATABASE:-simbak}"
+      DB_USERNAME: "${BAK_DB_USERNAME}"
+      DB_PASSWORD: "${BAK_DB_PASSWORD}"
+
+      # Secondary Database (SQL Server - pdut, read-only)
+      SQLSRV_HOST: "${BAK_SQLSRV_HOST}"
+      SQLSRV_PORT: "${BAK_SQLSRV_PORT:-1433}"
+      SQLSRV_DATABASE: "${BAK_SQLSRV_DATABASE:-pdut}"
+      SQLSRV_USERNAME: "${BAK_SQLSRV_USERNAME}"
+      SQLSRV_PASSWORD: "${BAK_SQLSRV_PASSWORD}"
+      DB_ENCRYPT: "${DB_ENCRYPT:-no}"
+      DB_TRUST_SERVER_CERTIFICATE: "${DB_TRUST_SERVER_CERTIFICATE:-yes}"
+
+      # MinIO (S3-compatible)
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT:-http://192.168.120.47:9000}"
+      MINIO_KEY: "${MINIO_KEY}"
+      MINIO_SECRET: "${MINIO_SECRET}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_REGION: "${MINIO_REGION:-us-east-1}"
+
+      # Redis
+      REDIS_HOST: "${BAK_REDIS_HOST:-redis}"
+      REDIS_PORT: "${BAK_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Permission
+      BYPASS_PERMISSION_CHECK: "${BYPASS_PERMISSION_CHECK:-false}"
+
+      TZ: "${TZ:-Asia/Jakarta}"
+    volumes:
+      - bak_storage:/var/www/storage
+      - bak_logs:/var/www/storage/logs
+      # Hot reload: mount source code directories (read-only)
+      - ../../../../backend/simbak-service/app:/var/www/app:ro
+      - ../../../../backend/simbak-service/routes:/var/www/routes:ro
+      - ../../../../backend/simbak-service/config:/var/www/config:ro
+      - ../../../../backend/simbak-service/resources:/var/www/resources:ro
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+      - postgres-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=bak"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-bak
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+  # Postgres health check
+  postgres-check:
+    image: postgres:16-alpine
+    container_name: myunila-pg-check-bak
+    command: >
+      sh -c "
+      until pg_isready -h postgres -U postgres; do
+        echo 'Waiting for PostgreSQL...';
+        sleep 2;
+      done;
+      echo 'PostgreSQL is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  bak_storage:
+    driver: local
+    name: myunila-bak-storage
+  bak_logs:
+    driver: local
+    name: myunila-bak-logs

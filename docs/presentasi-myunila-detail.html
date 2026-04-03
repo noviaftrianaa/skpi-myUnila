@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyUnila — Technical Detail Q1 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --primary: #3730a3;
+    --primary-light: #6366f1;
+    --primary-dark: #1e1b4b;
+    --accent: #06b6d4;
+    --accent2: #8b5cf6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 48px 64px;
+    position: relative;
+    page-break-after: always;
+  }
+
+  .page:last-child { page-break-after: avoid; }
+
+  .page-number {
+    position: absolute;
+    bottom: 24px;
+    right: 48px;
+    font-size: 13px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .page-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 48px;
+    font-size: 11px;
+    color: var(--text-light);
+  }
+
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent2) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .cover .logo { font-size: 56px; margin-bottom: 32px; }
+  .cover h1 { font-size: 48px; font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; }
+  .cover .sub { font-size: 22px; font-weight: 300; opacity: 0.9; margin-bottom: 40px; }
+  .cover .badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 10px 28px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 48px;
+  }
+  .cover .meta { font-size: 14px; opacity: 0.6; }
+
+  /* Headers */
+  h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+
+  h3:first-of-type { margin-top: 0; }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 28px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  thead th:first-child { border-radius: 10px 0 0 0; }
+  thead th:last-child { border-radius: 0 10px 0 0; }
+
+  tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:hover { background: #f1f5f9; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  tbody tr:nth-child(even):hover { background: #f1f5f9; }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 10px;
+  }
+
+  .card p, .card li {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Tag/Badge */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .tag-go { background: #ecfdf5; color: #059669; }
+  .tag-php { background: #fef3c7; color: #d97706; }
+  .tag-next { background: #fce7f3; color: #db2777; }
+  .tag-sql { background: #f3e8ff; color: #7c3aed; }
+  .tag-infra { background: #f1f5f9; color: #475569; }
+  .tag-done { background: #ecfdf5; color: #059669; }
+  .tag-progress { background: #fef3c7; color: #d97706; }
+
+  /* Stat row */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .stat-box {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .stat-box .num { font-size: 32px; font-weight: 900; color: var(--primary); }
+  .stat-box .lbl { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  /* Detail list */
+  .detail-list { list-style: none; padding: 0; }
+  .detail-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+  }
+  .detail-list li:last-child { border-bottom: none; }
+  .detail-list .dl-label { font-weight: 600; color: var(--primary-dark); min-width: 140px; }
+  .detail-list .dl-value { color: var(--text-light); }
+
+  /* Architecture diagram */
+  .arch-box {
+    display: inline-block;
+    background: #eef2ff;
+    border: 2px solid #c7d2fe;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin: 4px;
+  }
+  .arch-box.go { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+  .arch-box.php { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+  .arch-box.gw { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+  .arch-box.db { background: #f3e8ff; border-color: #c4b5fd; color: #5b21b6; }
+  .arch-box.store { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+
+  /* Highlight box */
+  .highlight {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .highlight-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .highlight-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #065f46; }
+  .highlight-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .highlight-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+  /* Validation specific */
+  .val-section {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warning);
+  }
+  .val-section h4 { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 10px; }
+  .val-section.critical { border-left-color: var(--danger); }
+  .val-section.iku { border-left-color: #dc2626; }
+
+  .iku-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .iku-item {
+    background: #fef2f2;
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #fecaca;
+  }
+  .iku-item .iku-num { font-weight: 800; color: #dc2626; font-size: 12px; }
+  .iku-item .iku-name { font-size: 13px; color: #7f1d1d; font-weight: 600; }
+  .iku-item .iku-formula { font-size: 11px; color: #991b1b; margin-top: 4px; font-style: italic; }
+
+  .val-timeline-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .vtb-item {
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Screenshot placeholder */
+  .screenshot-placeholder {
+    background: #f1f5f9;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+    margin: 12px 0;
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .page {
+      min-height: 100vh;
+      padding: 36px 48px;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .page:last-child { page-break-after: avoid; }
+    @page { size: A4 landscape; margin: 0; }
+  }
+
+  /* Mobile */
+  @media screen and (max-width: 768px) {
+    .page {
+      padding: 24px 16px;
+      min-height: auto;
+    }
+    .cover { padding: 32px 16px; min-height: 100vh; }
+    .cover h1 { font-size: 28px; }
+    .cover .sub { font-size: 16px; }
+
+    h2 { font-size: 22px; }
+    h3 { font-size: 17px; }
+
+    .stat-row {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat-box .num { font-size: 24px; }
+
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .iku-grid { grid-template-columns: 1fr; }
+    .val-timeline-bar { grid-template-columns: 1fr; }
+
+    table { font-size: 11px; }
+    thead th { padding: 8px 10px; font-size: 10px; }
+    tbody td { padding: 8px 10px; }
+
+    .card { padding: 16px; }
+
+    .page-number { bottom: 10px; right: 16px; font-size: 11px; }
+    .page-footer { bottom: 10px; left: 16px; font-size: 9px; }
+
+    .arch-box { font-size: 10px; padding: 6px 10px; }
+  }
+
+  @media screen and (max-width: 480px) {
+    .stat-row { grid-template-columns: 1fr; }
+    .cover h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<div class="page cover">
+  <div class="logo">🎓</div>
+  <h1>MyUnila</h1>
+  <div class="sub">Portal Terpadu Universitas Lampung</div>
+  <div class="badge">📋 Technical Detail — Appendix Q1 2026</div>
+  <div class="meta">
+    UPT Teknologi Informasi dan Komunikasi<br>
+    Universitas Lampung — Maret 2026
+  </div>
+  <div class="page-number" style="color:rgba(255,255,255,0.4);">1 / 20</div>
+</div>
+
+<!-- PAGE 2: DAFTAR ISI -->
+<div class="page">
+  <h2>📑 Daftar Isi</h2>
+  <div class="page-subtitle">Navigasi dokumen teknis</div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th style="width:60px;">Hal.</th><th>Konten</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>3</strong></td><td>Git Statistics & Development Activity</td></tr>
+        <tr><td><strong>4</strong></td><td>VM Architecture & Infrastructure</td></tr>
+        <tr><td><strong>5</strong></td><td>Kong API Gateway & Routing</td></tr>
+        <tr><td><strong>6</strong></td><td>RBAC Architecture</td></tr>
+        <tr><td><strong>7</strong></td><td>Modul 1: Manajemen Akses (Auth Service)</td></tr>
+        <tr><td><strong>8</strong></td><td>Modul 2: Dashboard Pimpinan</td></tr>
+        <tr><td><strong>9</strong></td><td>Modul 3: Data Unila — Raw Data Portal</td></tr>
+        <tr><td><strong>10</strong></td><td>Modul 4: Integrasi Keuangan (SIMPEDAM)</td></tr>
+        <tr><td><strong>11</strong></td><td>Modul 5: Web Monitoring & Keamanan</td></tr>
+        <tr><td><strong>12</strong></td><td>Modul 6: Project Management</td></tr>
+        <tr><td><strong>13</strong></td><td>Modul 7-8: SIAKADU & SISTER/Feeder</td></tr>
+        <tr><td><strong>14</strong></td><td>Modul 9-11: SI MBAK, Portal Frontend, Infrastructure</td></tr>
+        <tr><td><strong>15</strong></td><td>Database Schema Overview</td></tr>
+        <tr><td><strong>16</strong></td><td>API Documentation & Endpoints</td></tr>
+        <tr><td><strong>17</strong></td><td>Testing & Validasi Data — Dashboard Pimpinan</td></tr>
+        <tr><td><strong>18</strong></td><td>Testing & Validasi Data — IKU (9 Indikator)</td></tr>
+        <tr><td><strong>19</strong></td><td>Testing & Validasi Data — Data Unila, Integrasi, UAT</td></tr>
+        <tr><td><strong>20</strong></td><td>Timeline Detail & Roadmap</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">2 / 20</div>
+</div>
+
+<!-- PAGE 3: GIT STATISTICS -->
+<div class="page">
+  <h2>📊 Git Statistics & Development Activity</h2>
+  <div class="page-subtitle">Januari — Maret 2026</div>
+
+  <div class="stat-row">
+    <div class="stat-box">
+      <div class="num">634</div>
+      <div class="lbl">Total Commits</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">4,186</div>
+      <div class="lbl">Files Changed</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">911K+</div>
+      <div class="lbl">Insertions</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">3</div>
+      <div class="lbl">Bulan Aktif</div>
+    </div>
+  </div>
+
+  <h3>📈 Commit per Bulan</h3>
+  <table>
+    <thead>
+      <tr><th>Bulan</th><th>Commits</th><th>Persentase</th><th>Visualisasi</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Januari 2026</strong></td>
+        <td>133</td>
+        <td>21%</td>
+        <td><div style="background:linear-gradient(90deg,#6366f1,#818cf8);height:20px;border-radius:10px;width:34%;"></div></td>
+      </tr>
+      <tr>
+        <td><strong>Februari 2026</strong></td>
+        <td>110</td>
+        <td>17%</td>
+        <td><div style="background:linear-gradient(90deg,#6366f1,#818cf8);height:20px;border-radius:10px;width:28%;"></div></td>
+      </tr>
+      <tr>
+        <td><strong>Maret 2026</strong></td>
+        <td>391</td>
+        <td>62%</td>
+        <td><div style="background:linear-gradient(90deg,#6366f1,#818cf8);height:20px;border-radius:10px;width:100%;"></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>🗂️ Breakdown per Area</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Backend Services</h4>
+      <ul>
+        <li>Go services: 7 services (sister, feeder, myunila, api, keuangan, monitoring, project)</li>
+        <li>PHP services: 3 services (auth, dashboard, public)</li>
+        <li>Total: 10 microservices</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Frontend & Infra</h4>
+      <ul>
+        <li>Next.js 15 portal (unified frontend)</li>
+        <li>Ansible playbooks (7 VM)</li>
+        <li>Docker configurations</li>
+        <li>Database migrations & schemas</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight highlight-info">
+    💡 <strong>Insight:</strong> Maret menunjukkan akselerasi 3x lipat (391 commits) — didorong oleh finalisasi Data Unila, Web Monitoring, dan Project Management.
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">3 / 20</div>
+</div>
+
+<!-- PAGE 4: VM ARCHITECTURE -->
+<div class="page">
+  <h2>🖥️ VM Architecture & Infrastructure</h2>
+  <div class="page-subtitle">7 Virtual Machine — production deployment</div>
+
+  <table>
+    <thead>
+      <tr><th>VM</th><th>Hostname</th><th>Fungsi Utama</th><th>Services</th><th>Stack</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>VM1</strong></td>
+        <td>myunila-web</td>
+        <td>Frontend & Portal</td>
+        <td>Next.js 15, Nginx</td>
+        <td><span class="tag tag-next">Next.js</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM2</strong></td>
+        <td>myunila-api</td>
+        <td>API Gateway & Core Services</td>
+        <td>Kong, Auth, MyUnila API, Sister, Feeder</td>
+        <td><span class="tag tag-go">Go</span><span class="tag tag-php">PHP</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM3</strong></td>
+        <td>myunila-app</td>
+        <td>Application Services</td>
+        <td>Dashboard, Keuangan, Monitoring, Project</td>
+        <td><span class="tag tag-go">Go</span><span class="tag tag-php">PHP</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM4</strong></td>
+        <td>myunila-mon</td>
+        <td>Monitoring & Observability</td>
+        <td>Prometheus, Grafana, Loki, Alertmanager</td>
+        <td><span class="tag tag-infra">Infra</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM5</strong></td>
+        <td>myunila-db</td>
+        <td>Primary Database</td>
+        <td>SQL Server 2019, PostgreSQL, Redis</td>
+        <td><span class="tag tag-sql">Database</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM6</strong></td>
+        <td>myunila-db2</td>
+        <td>Database Replica</td>
+        <td>SQL Server (Log Shipping target)</td>
+        <td><span class="tag tag-sql">Database</span></td>
+      </tr>
+      <tr>
+        <td><strong>VM7</strong></td>
+        <td>myunila-store</td>
+        <td>Object Storage</td>
+        <td>MinIO (S3-compatible)</td>
+        <td><span class="tag tag-infra">Storage</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>🔄 Database Log Shipping</h3>
+  <div class="card">
+    <ul class="detail-list">
+      <li><span class="dl-label">Primary (IP .119)</span><span class="dl-value">SQL Server 2019 — semua database production</span></li>
+      <li><span class="dl-label">Secondary (IP .190)</span><span class="dl-value">SQL Server 2019 — log shipping target</span></li>
+      <li><span class="dl-label">Interval</span><span class="dl-value">5 menit (copy + restore)</span></li>
+      <li><span class="dl-label">Mode</span><span class="dl-value">Standby (read-only) — siap failover manual</span></li>
+    </ul>
+  </div>
+
+  <div class="screenshot-placeholder">📸 Screenshot: Grafana Dashboard — VM Resource Monitoring</div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">4 / 20</div>
+</div>
+
+<!-- PAGE 5: KONG API GATEWAY -->
+<div class="page">
+  <h2>🦍 Kong API Gateway & Routing</h2>
+  <div class="page-subtitle">Centralized API management — 15+ registered services</div>
+
+  <h3>🔀 Service Routing Table</h3>
+  <table>
+    <thead>
+      <tr><th>Route Pattern</th><th>Service</th><th>Upstream</th><th>Plugins</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/api/auth/*</code></td><td>Auth Service</td><td>VM2:8001</td><td>JWT, CORS, Rate Limit</td></tr>
+      <tr><td><code>/api/sister/*</code></td><td>Sister Service</td><td>VM2:8002</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/feeder/*</code></td><td>Feeder Service</td><td>VM2:8003</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/myunila/*</code></td><td>MyUnila API</td><td>VM2:8004</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/keuangan/*</code></td><td>Keuangan Service</td><td>VM3:8005</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/monitoring/*</code></td><td>Web Monitoring</td><td>VM3:8006</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/project/*</code></td><td>Project Service</td><td>VM3:8007</td><td>JWT, CORS</td></tr>
+      <tr><td><code>/api/dashboard/*</code></td><td>Dashboard Service</td><td>VM3:8080</td><td>JWT, CORS, Cache</td></tr>
+      <tr><td><code>/api/public/*</code></td><td>Public Service</td><td>VM3:8081</td><td>CORS, Rate Limit</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🔌 Kong Plugins Active</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>🔐 JWT Authentication</h4>
+      <p>Token validation per-request. RS256 signing. Auto-refresh. Claims-based routing.</p>
+    </div>
+    <div class="card">
+      <h4>🌐 CORS</h4>
+      <p>Cross-origin handling. Whitelist per-domain. Preflight caching. Credentials support.</p>
+    </div>
+    <div class="card">
+      <h4>⏱️ Rate Limiting</h4>
+      <p>Per-IP dan per-user throttle. Redis-backed counter. Configurable per-route.</p>
+    </div>
+  </div>
+
+  <div class="highlight highlight-info">
+    💡 <strong>Architecture:</strong> Semua traffic masuk melalui Kong → JWT validation → route ke service yang sesuai. Setiap service hanya accessible via Kong (port internal tidak exposed).
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">5 / 20</div>
+</div>
+
+<!-- PAGE 6: RBAC ARCHITECTURE -->
+<div class="page">
+  <h2>🔐 RBAC Architecture</h2>
+  <div class="page-subtitle">Role-Based Access Control — multi-layer enforcement</div>
+
+  <h3>📐 RBAC Flow</h3>
+  <div class="card" style="text-align:center; font-family:monospace; font-size:13px; line-height:2.2;">
+    <div style="margin-bottom:8px;">
+      <span class="arch-box" style="background:#fce7f3;border-color:#f9a8d4;">👤 User Login (SSO/Radius)</span>
+    </div>
+    ⬇️
+    <div style="margin-bottom:8px;">
+      <span class="arch-box php">🔑 Auth Service → JWT Token (roles, permissions embedded)</span>
+    </div>
+    ⬇️
+    <div style="margin-bottom:8px;">
+      <span class="arch-box gw">🦍 Kong → JWT Validation → Extract Claims</span>
+    </div>
+    ⬇️
+    <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+      <span class="arch-box go">Go Middleware → Redis Permission Check</span>
+      <span class="arch-box php">PHP Middleware → Redis Permission Check</span>
+    </div>
+    ⬇️
+    <div style="margin-bottom:8px;">
+      <span class="arch-box" style="background:#ecfdf5;border-color:#6ee7b7;">✅ Route Access Granted / ❌ 403 Forbidden</span>
+    </div>
+  </div>
+
+  <h3>🏗️ Permission Model</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Hierarki Role</h4>
+      <ul>
+        <li><strong>Super Admin</strong> — akses penuh semua aplikasi</li>
+        <li><strong>Admin Aplikasi</strong> — manajemen per-aplikasi</li>
+        <li><strong>PJ Aplikasi</strong> — penanggung jawab tertentu</li>
+        <li><strong>User Role</strong> — akses berdasarkan organisasi</li>
+        <li><strong>Public</strong> — halaman publik saja</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Permission Matrix</h4>
+      <ul>
+        <li><strong>Menu-level:</strong> visibility per role</li>
+        <li><strong>API-level:</strong> WS Authorization per endpoint</li>
+        <li><strong>Data-level:</strong> filter by organisasi/fakultas</li>
+        <li><strong>Action-level:</strong> CRUD granular per resource</li>
+        <li><strong>Cache:</strong> Redis TTL 5 menit</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>📊 Permission Storage</h3>
+  <div class="card">
+    <ul class="detail-list">
+      <li><span class="dl-label">Primary Store</span><span class="dl-value">SQL Server — role_permissions, ws_authorizations tables</span></li>
+      <li><span class="dl-label">Cache Layer</span><span class="dl-value">Redis — key: <code>perm:{user_id}:{app_slug}</code> — TTL 300s</span></li>
+      <li><span class="dl-label">UI Management</span><span class="dl-value">Matrix UI — bulk assign/revoke per role × resource</span></li>
+      <li><span class="dl-label">Logging</span><span class="dl-value">JWT log, login log, access log — full audit trail</span></li>
+    </ul>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">6 / 20</div>
+</div>
+
+<!-- PAGE 7: MODUL 1 - AUTH -->
+<div class="page">
+  <h2>🔐 Modul 1: Manajemen Akses (Auth Service)</h2>
+  <div class="page-subtitle">PHP/Laravel — SSO, RBAC, Portal Management</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">16</div><div class="lbl">Menu Items</div></div>
+    <div class="stat-box"><div class="num">SSO</div><div class="lbl">Radius Auth</div></div>
+    <div class="stat-box"><div class="num">RBAC</div><div class="lbl">Full Enforcement</div></div>
+    <div class="stat-box"><div class="num">3</div><div class="lbl">Log Types</div></div>
+  </div>
+
+  <h3>📋 Fitur Lengkap</h3>
+  <table>
+    <thead>
+      <tr><th>Fitur</th><th>Deskripsi</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SSO Radius</td><td>Integrasi multi-role, custom password, single sign-on</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>Portal App Management</td><td>Kategori, slug, icon, urutan — dynamic menu</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>RBAC Enforcement</td><td>Redis permissions, matrix UI, Go/PHP middleware</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>PJ Aplikasi</td><td>CRUD penanggung jawab per aplikasi</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>WS Endpoint Mgmt</td><td>Daftar semua web service endpoint</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>WS Authorization</td><td>Per-role API access control matrix</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>Organisasi Access</td><td>Filter data berdasarkan unit/organisasi</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>JWT Logging</td><td>Semua token issuance dicatat</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>Login Logging</td><td>Login attempts, IP, user-agent</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      <tr><td>Access Logging</td><td>Page access per user dicatat</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="screenshot-placeholder">📸 Screenshot: Auth — Permission Matrix UI</div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">7 / 20</div>
+</div>
+
+<!-- PAGE 8: MODUL 2 - DASHBOARD -->
+<div class="page">
+  <h2>📊 Modul 2: Dashboard Pimpinan</h2>
+  <div class="page-subtitle">Laravel — 12 endpoint, Redis caching, IKU drilldown</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">12</div><div class="lbl">Dashboard Endpoints</div></div>
+    <div class="stat-box"><div class="num">9</div><div class="lbl">IKU Indikator</div></div>
+    <div class="stat-box"><div class="num">Redis</div><div class="lbl">Cache Layer</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="lbl">Filter Dimensi</div></div>
+  </div>
+
+  <h3>📋 Dashboard Endpoints</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Endpoint</th><th>Data Source</th><th>Key Metrics</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Beranda</td><td>Aggregated</td><td>Overview semua indikator</td></tr>
+      <tr><td>2</td><td>Mahasiswa</td><td>Feeder PDDIKTI</td><td>Aktif, baru, DO, cuti per prodi</td></tr>
+      <tr><td>3</td><td>Dosen</td><td>SISTER</td><td>Jumlah, jabfung, sertifikasi</td></tr>
+      <tr><td>4</td><td>Akreditasi</td><td>BAN-PT</td><td>Status prodi, institusi</td></tr>
+      <tr><td>5</td><td>Lulusan</td><td>Feeder</td><td>Jumlah, IPK rata-rata, masa studi</td></tr>
+      <tr><td>6</td><td>Litabmas</td><td>SISTER</td><td>Penelitian, pengabdian per tahun</td></tr>
+      <tr><td>7</td><td>Publikasi</td><td>SISTER</td><td>Jurnal, prosiding, scopus</td></tr>
+      <tr><td>8</td><td>Pegawai</td><td>Internal</td><td>Tendik, struktural, jabfung</td></tr>
+      <tr><td>9</td><td>Keuangan</td><td>SIMPEDAM</td><td>UKT terbayar, tagihan, rekapitulasi</td></tr>
+      <tr><td>10</td><td>Prestasi</td><td>Internal</td><td>Mahasiswa, dosen berprestasi</td></tr>
+      <tr><td>11</td><td>Kerjasama</td><td>SISTER</td><td>MoU aktif, DN/LN</td></tr>
+      <tr><td>12</td><td>IKU</td><td>Combined</td><td>9 indikator dengan drilldown</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight highlight-warning">
+    ⚠️ <strong>IKU (Indikator Kinerja Utama):</strong> 9 indikator sesuai Permendikbud. Masing-masing memiliki drilldown per fakultas → prodi. Data di-cache Redis dengan TTL 1 jam.
+  </div>
+
+  <div class="screenshot-placeholder">📸 Screenshot: Dashboard Pimpinan — IKU Overview</div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">8 / 20</div>
+</div>
+
+<!-- PAGE 9: MODUL 3 - DATA UNILA -->
+<div class="page">
+  <h2>📋 Modul 3: Data Unila — Raw Data Portal</h2>
+  <div class="page-subtitle">18 halaman — server-side DataTable — export Excel — 7M+ records</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">8</div><div class="lbl">Modul Utama</div></div>
+    <div class="stat-box"><div class="num">18</div><div class="lbl">Total Halaman</div></div>
+    <div class="stat-box"><div class="num">7M+</div><div class="lbl">Total Records</div></div>
+    <div class="stat-box"><div class="num">Excel</div><div class="lbl">Export Semua Page</div></div>
+  </div>
+
+  <h3>📑 Modul & Sub-halaman</h3>
+  <table>
+    <thead>
+      <tr><th>Modul</th><th>Sub-halaman</th><th>Estimasi Records</th><th>Fitur</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Mahasiswa</strong></td><td>Daftar, Lulusan, Aktivitas</td><td>~2M</td><td>Filter fakultas/prodi/angkatan, export</td></tr>
+      <tr><td><strong>Dosen</strong></td><td>Jabfung, Sertifikasi</td><td>~5K</td><td>Filter status, unit, jabfung</td></tr>
+      <tr><td><strong>Tridarma</strong></td><td>Penelitian, Pengabdian, Publikasi</td><td>~100K</td><td>Filter tahun, jenis, sumber dana</td></tr>
+      <tr><td><strong>Akademik</strong></td><td>Prodi, Akreditasi, Mata Kuliah</td><td>~50K</td><td>Filter jenjang, status</td></tr>
+      <tr><td><strong>Kerjasama</strong></td><td>(Single page)</td><td>~1K</td><td>Filter DN/LN, aktif/expired</td></tr>
+      <tr><td><strong>Tracer Study</strong></td><td>(Single page)</td><td>~50K</td><td>Filter angkatan, status kerja</td></tr>
+      <tr><td><strong>Keuangan</strong></td><td>UKT, SPP</td><td>~420K</td><td>Filter semester, prodi, status bayar</td></tr>
+    </tbody>
+  </table>
+
+  <h3>⚙️ Technical Details</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Server-side DataTable</h4>
+      <ul>
+        <li>Pagination: 10/25/50/100 per page</li>
+        <li>Global search + column filter</li>
+        <li>Multi-column sort</li>
+        <li>Response time: &lt;500ms untuk 7M records</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Export Excel</h4>
+      <ul>
+        <li>PhpSpreadsheet — streaming write</li>
+        <li>Semua 18 halaman exportable</li>
+        <li>Filter applied saat export</li>
+        <li>Max export: 100K rows per batch</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">9 / 20</div>
+</div>
+
+<!-- PAGE 10: MODUL 4 - KEUANGAN -->
+<div class="page">
+  <h2>💰 Modul 4: Integrasi Keuangan (SIMPEDAM)</h2>
+  <div class="page-subtitle">Go service — SIMPEDAM API integration — UKT & SPP sync</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">8,378</div><div class="lbl">UKT Rows</div></div>
+    <div class="stat-box"><div class="num">411,555</div><div class="lbl">SPP Rows</div></div>
+    <div class="stat-box"><div class="num">111</div><div class="lbl">Prodi Mappings</div></div>
+    <div class="stat-box"><div class="num">59K</div><div class="lbl">Mahasiswa SPP</div></div>
+  </div>
+
+  <h3>📋 Data Keuangan</h3>
+  <table>
+    <thead>
+      <tr><th>Dataset</th><th>Periode</th><th>Records</th><th>Source</th><th>Sync Method</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Daftar UKT</strong></td><td>2015 — 2025</td><td>8,378</td><td>SIMPEDAM API</td><td>Batch sync + UI</td></tr>
+      <tr><td><strong>SPP Mahasiswa</strong></td><td>2014 — 2025</td><td>411,555</td><td>SIMPEDAM API</td><td>Batch sync + UI</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🔄 Auto-mapping Prodi</h3>
+  <div class="card">
+    <p>SIMPEDAM menggunakan kode prodi internal yang berbeda dengan kode Feeder PDDIKTI. Sistem melakukan auto-mapping 111 prodi secara otomatis berdasarkan nama similarity matching + manual override.</p>
+    <ul>
+      <li>111 prodi berhasil di-map otomatis</li>
+      <li>Sync UI dengan progress bar — status per batch</li>
+      <li>Error handling: retry mechanism + log</li>
+    </ul>
+  </div>
+
+  <h3>🖥️ Sync UI</h3>
+  <div class="card">
+    <ul>
+      <li><strong>Dashboard:</strong> total records, last sync time, status per dataset</li>
+      <li><strong>Sync button:</strong> manual trigger dengan progress tracking</li>
+      <li><strong>Log viewer:</strong> detail per batch (success/failed/skipped)</li>
+      <li><strong>Mapping editor:</strong> manual override untuk prodi yang gagal auto-map</li>
+    </ul>
+  </div>
+
+  <div class="screenshot-placeholder">📸 Screenshot: Keuangan — Sync Progress UI</div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">10 / 20</div>
+</div>
+
+<!-- PAGE 11: MODUL 5 - WEB MONITORING -->
+<div class="page">
+  <h2>🛡️ Modul 5: Web Monitoring & Keamanan</h2>
+  <div class="page-subtitle">Go Fiber — deteksi konten judol/judi/slot — GSC integration</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">16</div><div class="lbl">SQL Tables</div></div>
+    <div class="stat-box"><div class="num">GSC</div><div class="lbl">Integration</div></div>
+    <div class="stat-box"><div class="num">Deep</div><div class="lbl">Crawler Scan</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="lbl">Alert Channels</div></div>
+  </div>
+
+  <h3>🔍 Crawler Capabilities</h3>
+  <table>
+    <thead>
+      <tr><th>Fitur</th><th>Deskripsi</th><th>Teknik</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Deep Scan</td><td>Scan semua halaman subdomain Unila</td><td>Recursive crawling, sitemap parsing</td></tr>
+      <tr><td>Cloaking Detection</td><td>Deteksi konten berbeda untuk Googlebot vs user</td><td>UA switching, response diff</td></tr>
+      <tr><td>Redirect Chain</td><td>Tracking redirect berbahaya</td><td>Follow redirect, max hop limit</td></tr>
+      <tr><td>AMP Scan</td><td>Scan AMP pages yang di-inject</td><td>AMP cache check, Google AMP URL</td></tr>
+      <tr><td>Content Analysis</td><td>Keyword matching judol/judi/slot</td><td>Pattern regex, keyword dictionary</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📊 Dashboard Features</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Threat Dashboard</h4>
+      <ul>
+        <li>Per-fakultas statistics</li>
+        <li>PJ info + WhatsApp direct link</li>
+        <li>Timeline chart ancaman</li>
+        <li>Status: clean / infected / suspicious</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>GSC Integration</h4>
+      <ul>
+        <li>Google Search Console API</li>
+        <li>URL removal request otomatis</li>
+        <li>Index status monitoring</li>
+        <li>Search appearance tracking</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>📢 Notifications</h3>
+  <div class="card">
+    <ul class="detail-list">
+      <li><span class="dl-label">WhatsApp</span><span class="dl-value">Alert ke PJ fakultas — template: subdomain, jenis ancaman, link bukti</span></li>
+      <li><span class="dl-label">Telegram</span><span class="dl-value">Alert ke tim keamanan — real-time notification</span></li>
+      <li><span class="dl-label">Public Page</span><span class="dl-value">/keamanan-web — early warning page untuk publik</span></li>
+    </ul>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">11 / 20</div>
+</div>
+
+<!-- PAGE 12: MODUL 6 - PROJECT MANAGEMENT -->
+<div class="page">
+  <h2>📋 Modul 6: Project Management</h2>
+  <div class="page-subtitle">Go service — dual DB (PostgreSQL + SQL Server) — 17 tables</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">10</div><div class="lbl">Pages</div></div>
+    <div class="stat-box"><div class="num">17</div><div class="lbl">PostgreSQL Tables</div></div>
+    <div class="stat-box"><div class="num">Dual</div><div class="lbl">Database</div></div>
+    <div class="stat-box"><div class="num">TG</div><div class="lbl">Notifications</div></div>
+  </div>
+
+  <h3>📑 Halaman & Fitur</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Halaman</th><th>Fitur Utama</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Dashboard</td><td>Overview semua project, stats, chart</td></tr>
+      <tr><td>2</td><td>Overview</td><td>Detail per-project: description, members, progress</td></tr>
+      <tr><td>3</td><td>Board (Kanban)</td><td>Drag & drop tasks, status columns, assignee</td></tr>
+      <tr><td>4</td><td>List</td><td>Table view tasks, bulk actions, filter</td></tr>
+      <tr><td>5</td><td>Timeline</td><td>Gantt-style timeline, dependencies</td></tr>
+      <tr><td>6</td><td>Modules</td><td>Sub-project / module grouping</td></tr>
+      <tr><td>7</td><td>Documents</td><td>File upload, markdown docs, versioning</td></tr>
+      <tr><td>8</td><td>Activity</td><td>Audit log semua perubahan</td></tr>
+      <tr><td>9</td><td>Analytics</td><td>Burn-down chart, velocity, contribution heatmap</td></tr>
+      <tr><td>10</td><td>Settings</td><td>Project config, members, visibility, notifications</td></tr>
+    </tbody>
+  </table>
+
+  <h3>⚙️ Advanced Features</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Sprint & Time Tracking</h4>
+      <ul>
+        <li>Sprint planning: start/end date, goals</li>
+        <li>Time tracking: per-task, per-member</li>
+        <li>Sprint review: velocity calculation</li>
+        <li>Contribution heatmap (like GitHub)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Organization & Sharing</h4>
+      <ul>
+        <li>Members: role-based (admin, member, viewer)</li>
+        <li>Watchers: notification subscribers</li>
+        <li>Visibility: private / unit / public</li>
+        <li>Public share page: read-only link</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">12 / 20</div>
+</div>
+
+<!-- PAGE 13: MODUL 7-8 -->
+<div class="page">
+  <h2>🔄 Modul 7-8: SIAKADU & SISTER/Feeder</h2>
+  <div class="page-subtitle">Data integration dari sistem akademik nasional</div>
+
+  <h3>📖 SIAKADU Integration</h3>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">36</div><div class="lbl">SQL Tables</div></div>
+    <div class="stat-box"><div class="num">9</div><div class="lbl">Sync Pages</div></div>
+    <div class="stat-box"><div class="num">Auto</div><div class="lbl">Scheduler</div></div>
+    <div class="stat-box"><div class="num">Go</div><div class="lbl">Backend</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Sync Page</th><th>Sumber Data</th><th>Estimasi Records</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Referensi</td><td>Master data prodi, jenjang, semester</td><td>~5K</td></tr>
+      <tr><td>2</td><td>Mahasiswa</td><td>Data mahasiswa aktif & non-aktif</td><td>~200K</td></tr>
+      <tr><td>3</td><td>Nilai</td><td>Nilai per mata kuliah per semester</td><td>~3M</td></tr>
+      <tr><td>4</td><td>KHS</td><td>Kartu Hasil Studi</td><td>~1M</td></tr>
+      <tr><td>5</td><td>Transkrip</td><td>Transkrip kumulatif</td><td>~200K</td></tr>
+      <tr><td>6</td><td>Kuliah</td><td>Jadwal & realisasi perkuliahan</td><td>~500K</td></tr>
+      <tr><td>7</td><td>Pimpinan Unit</td><td>Dekan, Wakil Dekan, Kaprodi</td><td>~500</td></tr>
+      <tr><td>8</td><td>Akademik</td><td>Kurikulum, mata kuliah</td><td>~50K</td></tr>
+      <tr><td>9</td><td>Scheduler</td><td>Konfigurasi auto-sync</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:32px;">🎓 SISTER & Feeder Enhanced</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>SISTER Enhancements</h4>
+      <ul>
+        <li><strong>Foto Dosen Sync:</strong> download & store di MinIO</li>
+        <li><strong>Dokumen Sync:</strong> SK, sertifikat, dll</li>
+        <li><strong>Scheduler:</strong> periodic sync configurable</li>
+        <li><strong>API Docs:</strong> Scalar UI endpoint documentation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Feeder Enhancements</h4>
+      <ul>
+        <li><strong>Dosen Pembimbing:</strong> data PA & pembimbing skripsi</li>
+        <li><strong>Aktivitas Mahasiswa:</strong> detail per semester</li>
+        <li><strong>LulusDO Sync:</strong> data kelulusan & drop out</li>
+        <li><strong>API Docs:</strong> Scalar UI endpoint documentation</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">13 / 20</div>
+</div>
+
+<!-- PAGE 14: MODUL 9-11 -->
+<div class="page">
+  <h2>📑 Modul 9-11: SI MBAK, Portal, Infrastructure</h2>
+  <div class="page-subtitle">Modul baru, unified portal, dan DevOps</div>
+
+  <h3>📝 SI MBAK — Sistem Informasi BAK <span style="color:#059669;">(Frontend Complete)</span></h3>
+  <div class="card">
+    <p style="margin-bottom:12px;"><strong>17 halaman + 8 komponen UI</strong> — demo-ready dengan dummy data. DB Schema: 15 tabel PostgreSQL (4 schema: ref, layanan, batch, log).</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Menu</th><th>Fungsi</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Dashboard</td><td>Stat cards, SLA gauge, trend chart, activity feed</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>2</td><td>Surat Mandiri</td><td>Service cards, multi-step form, riwayat + detail</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>3</td><td>Permohonan Akademik</td><td>Form pengajuan + tracking status + detail per kode</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>4</td><td>Riwayat Pengajuan</td><td>Daftar semua pengajuan mahasiswa + detail per ID</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>5</td><td>Verifikasi</td><td>Admin workflow — verifikasi dokumen + data per ID</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>6</td><td>Persetujuan</td><td>Multi-level approval pejabat + per ID detail</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>7</td><td>Batch Administrasi</td><td>Daftar batch, create wizard, detail, verifikasi fakultas</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>8</td><td>Monitoring</td><td>Tab mahasiswa aktif & lulusan, DataTable + export</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>9</td><td>Master Data</td><td>4 tab CRUD: jenis layanan, persyaratan, tahapan, template</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🏘️ SI KKN — Sistem Informasi Kuliah Kerja Nyata <span style="color:#059669;">(Frontend Complete)</span></h3>
+  <div class="card">
+    <p style="margin-bottom:12px;"><strong>18 halaman + 9 komponen UI</strong> — demo-ready dengan dummy data. DB Schema: 25 tabel PostgreSQL (7 schema: ref, pendaftaran, kelompok, kegiatan, penilaian, dokumen, log).</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Menu</th><th>Fungsi</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Dashboard</td><td>Overview KKN: statistik, periode aktif, progress</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>2</td><td>Pendaftaran KKN</td><td>Form registrasi + verifikasi syarat otomatis</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>3</td><td>Kelompok Saya</td><td>Info kelompok, anggota, DPL, lokasi</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>4</td><td>Logbook Harian</td><td>Input kegiatan harian + foto + approval DPL</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>5</td><td>Program Kerja</td><td>Rencana & realisasi proker per bidang</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>6</td><td>Absensi</td><td>Kehadiran harian + rekap per mahasiswa</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>7</td><td>Bimbingan DPL</td><td>Catatan bimbingan per kunjungan/online</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>8</td><td>Penilaian (3 sub)</td><td>Komponen nilai, penilaian pamong, rekap akhir</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>9</td><td>Manajemen (4 sub)</td><td>Kelompok, penempatan, DPL, verifikasi pendaftaran</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>10</td><td>Dokumen & Sertifikat</td><td>Upload laporan, generate sertifikat KKN</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>11</td><td>Master Data</td><td>6 tab: periode, lokasi, wilayah, jenis dokumen, komponen penilaian, kriteria</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+        <tr><td>12</td><td>Monitoring</td><td>Dashboard progress per kelompok & periode</td><td><span class="tag tag-done">✅ Done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>🌐 Portal Frontend (Next.js 15)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Core Features</h4>
+      <ul>
+        <li>Dynamic menu dari DB per-role</li>
+        <li>App categories & search</li>
+        <li>Access control enforcement</li>
+        <li>Dark mode toggle</li>
+        <li>Responsive design</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Technical Stack</h4>
+      <ul>
+        <li>Next.js 15 (App Router)</li>
+        <li>TypeScript</li>
+        <li>Tailwind CSS</li>
+        <li>ShadCN UI components</li>
+        <li>React Query — API caching</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>🏗️ Infrastructure & DevOps</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>📈 Monitoring (VM4)</h4>
+      <p>Prometheus metrics, Grafana dashboards, Loki log aggregation, Alertmanager notifications</p>
+    </div>
+    <div class="card">
+      <h4>🤖 Ansible</h4>
+      <p>Rebuild per-VM, per-service. One-command deployment. Rollback support.</p>
+    </div>
+    <div class="card">
+      <h4>📄 API Docs</h4>
+      <p>Scalar UI untuk 8 services. Auto-generated dari Go & PHP annotations.</p>
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">14 / 20</div>
+</div>
+
+<!-- PAGE 15: DATABASE SCHEMA -->
+<div class="page">
+  <h2>🗄️ Database Schema Overview</h2>
+  <div class="page-subtitle">SQL Server 2019 + PostgreSQL — total schema per service</div>
+
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Database</th><th>Tables</th><th>Key Tables</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Auth</strong></td><td>SQL Server</td><td>~15</td><td>users, roles, permissions, apps, menus, ws_endpoints, ws_authorizations, logs</td></tr>
+      <tr><td><strong>Dashboard</strong></td><td>SQL Server</td><td>~8</td><td>dashboard_cache, iku_config, filter_config</td></tr>
+      <tr><td><strong>Keuangan</strong></td><td>SQL Server</td><td>~6</td><td>ukt_data, spp_data, prodi_mapping, sync_log</td></tr>
+      <tr><td><strong>Web Monitoring</strong></td><td>SQL Server</td><td>16</td><td>domains, scans, threats, gsc_removals, notifications, settings, pj_info</td></tr>
+      <tr><td><strong>Project</strong></td><td>PostgreSQL</td><td>17</td><td>projects, tasks, sprints, members, documents, activities, time_entries</td></tr>
+      <tr><td><strong>SIAKADU</strong></td><td>SQL Server</td><td>36</td><td>mahasiswa, nilai, khs, transkrip, kuliah, referensi, pimpinan_unit</td></tr>
+      <tr><td><strong>Sister</strong></td><td>SQL Server</td><td>~10</td><td>dosen, foto_dosen, dokumen, penelitian, pengabdian, publikasi</td></tr>
+      <tr><td><strong>Feeder</strong></td><td>SQL Server</td><td>~12</td><td>mahasiswa, aktivitas, dosen_pembimbing, lulus_do, referensi</td></tr>
+    </tbody>
+  </table>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">~120</div><div class="lbl">Total Tables</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="lbl">Database Engines</div></div>
+    <div class="stat-box"><div class="num">7M+</div><div class="lbl">Total Records</div></div>
+    <div class="stat-box"><div class="num">5 min</div><div class="lbl">Log Ship Interval</div></div>
+  </div>
+
+  <h3>🔑 Database Design Principles</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>SQL Server (Primary)</h4>
+      <ul>
+        <li>Semua service utama + data terintegrasi</li>
+        <li>Log shipping ke VM6 (5-min interval)</li>
+        <li>Indexed untuk query dashboard (covering indexes)</li>
+        <li>Partitioning untuk tabel besar (SPP, nilai)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>PostgreSQL (Project)</h4>
+      <ul>
+        <li>Khusus Project Management</li>
+        <li>JSONB untuk flexible metadata</li>
+        <li>Full-text search untuk dokumen</li>
+        <li>17 tabel terstruktur</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">15 / 20</div>
+</div>
+
+<!-- PAGE 16: API DOCUMENTATION -->
+<div class="page">
+  <h2>📄 API Documentation & Endpoints</h2>
+  <div class="page-subtitle">Scalar UI documentation — 8 services documented</div>
+
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Stack</th><th>Est. Endpoints</th><th>Auth Method</th><th>Doc URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Auth</strong></td><td>PHP/Laravel</td><td>~30</td><td>JWT</td><td>/api/auth/docs</td></tr>
+      <tr><td><strong>Sister</strong></td><td>Go</td><td>~25</td><td>JWT</td><td>/api/sister/docs</td></tr>
+      <tr><td><strong>Feeder</strong></td><td>Go</td><td>~20</td><td>JWT</td><td>/api/feeder/docs</td></tr>
+      <tr><td><strong>MyUnila API</strong></td><td>Go</td><td>~35</td><td>JWT</td><td>/api/myunila/docs</td></tr>
+      <tr><td><strong>Keuangan</strong></td><td>Go</td><td>~15</td><td>JWT</td><td>/api/keuangan/docs</td></tr>
+      <tr><td><strong>Monitoring</strong></td><td>Go</td><td>~20</td><td>JWT</td><td>/api/monitoring/docs</td></tr>
+      <tr><td><strong>Project</strong></td><td>Go</td><td>~40</td><td>JWT</td><td>/api/project/docs</td></tr>
+      <tr><td><strong>Dashboard</strong></td><td>PHP/Laravel</td><td>~25</td><td>JWT</td><td>/api/dashboard/docs</td></tr>
+    </tbody>
+  </table>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">~210</div><div class="lbl">Total Endpoints</div></div>
+    <div class="stat-box"><div class="num">8</div><div class="lbl">Services Documented</div></div>
+    <div class="stat-box"><div class="num">Scalar</div><div class="lbl">UI Framework</div></div>
+    <div class="stat-box"><div class="num">OpenAPI</div><div class="lbl">Spec Format</div></div>
+  </div>
+
+  <h3>📐 API Standards</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Request/Response Format</h4>
+      <ul>
+        <li>JSON format (application/json)</li>
+        <li>Consistent error response: <code>{code, message, data}</code></li>
+        <li>Pagination: <code>page, per_page, total</code></li>
+        <li>Filter via query params</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Security</h4>
+      <ul>
+        <li>Bearer JWT token (RS256)</li>
+        <li>CORS whitelist per-domain</li>
+        <li>Rate limiting per-IP & per-user</li>
+        <li>Request logging (audit trail)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="screenshot-placeholder">📸 Screenshot: Scalar UI — API Documentation</div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">16 / 20</div>
+</div>
+
+<!-- PAGE 17: VALIDASI - DASHBOARD PIMPINAN -->
+<div class="page">
+  <h2>🔍 Testing & Validasi Data — Dashboard Pimpinan</h2>
+  <div class="page-subtitle">Cross-check data dashboard vs sumber asli</div>
+
+  <div class="val-section">
+    <h4>📊 1. Dashboard Pimpinan Validation</h4>
+    <table>
+      <thead>
+        <tr><th>Data Point</th><th>Sumber Referensi</th><th>Metode Validasi</th><th>Prioritas</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Jumlah Mahasiswa Aktif</td><td>Feeder PDDIKTI</td><td>Compare total per-prodi, per-semester</td><td>🔴 Tinggi</td></tr>
+        <tr><td>Jumlah Dosen</td><td>SISTER</td><td>Compare per-fakultas, jabfung, status</td><td>🔴 Tinggi</td></tr>
+        <tr><td>Data Akreditasi</td><td>BAN-PT</td><td>Tanggal, status, peringkat per-prodi</td><td>🟡 Sedang</td></tr>
+        <tr><td>Data Keuangan</td><td>SIMPEDAM</td><td>Total UKT terbayar, tunggakan</td><td>🔴 Tinggi</td></tr>
+        <tr><td>Data Lulusan</td><td>Feeder PDDIKTI</td><td>Jumlah per-semester, rata-rata IPK</td><td>🟡 Sedang</td></tr>
+        <tr><td>Litabmas</td><td>SISTER / LPPM</td><td>Jumlah penelitian & pengabdian</td><td>🟡 Sedang</td></tr>
+        <tr><td>Publikasi</td><td>SISTER</td><td>Jurnal, scopus count</td><td>🟡 Sedang</td></tr>
+        <tr><td>Kerjasama</td><td>SISTER</td><td>MoU aktif, DN/LN</td><td>🟢 Rendah</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="val-section">
+    <h4>🔬 Sampling Methodology</h4>
+    <div class="grid-2">
+      <div class="card" style="border:none;box-shadow:none;padding:0;">
+        <ul>
+          <li><strong>Minimum 5 fakultas</strong> sebagai sampel</li>
+          <li>Bandingkan per-prodi dalam setiap fakultas</li>
+          <li>Toleransi deviasi: <strong>&lt;1%</strong> untuk data numerik</li>
+          <li>Tanggal akreditasi harus exact match</li>
+        </ul>
+      </div>
+      <div class="card" style="border:none;box-shadow:none;padding:0;">
+        <ul>
+          <li>Validasi dilakukan per-semester aktif</li>
+          <li>Dokumentasi setiap perbedaan yang ditemukan</li>
+          <li>Root cause analysis untuk deviasi &gt;1%</li>
+          <li>Sign-off dari data owner (fakultas)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight highlight-danger">
+    🚨 <strong>Critical:</strong> Data Dashboard Pimpinan akan digunakan oleh Rektor dan jajaran pimpinan untuk pengambilan keputusan. Akurasi data WAJIB divalidasi sebelum go-live resmi.
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">17 / 20</div>
+</div>
+
+<!-- PAGE 18: VALIDASI - IKU -->
+<div class="page">
+  <h2>📐 Testing & Validasi Data — IKU (9 Indikator)</h2>
+  <div class="page-subtitle">⚠️ CRITICAL — Validasi rumus, sumber data, numerator/denominator</div>
+
+  <div class="highlight highlight-danger">
+    🚨 <strong>IKU adalah indikator utama yang dilaporkan ke Kemendikbudristek.</strong> Setiap kesalahan rumus berdampak langsung pada penilaian kinerja universitas. Koordinasi wajib dengan BPM/LPMPP.
+  </div>
+
+  <div class="iku-grid">
+    <div class="iku-item" style="border-left:4px solid #dc2626;">
+      <div class="iku-num">IKU 1 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Angka Efisiensi Edukasi Perguruan Tinggi (AEE)</div>
+      <div class="iku-formula">Mengukur tingkat keberhasilan mahasiswa menyelesaikan studi tepat waktu sesuai masa studi standar. Sumber: Feeder PDDIKTI — data lulusan vs masuk per kohort. Target: 80%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #dc2626;">
+      <div class="iku-num">IKU 2 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Lulusan Langsung Bekerja / Studi Lanjut / Wiraswasta</div>
+      <div class="iku-formula">Persentase lulusan S1/Diploma yang langsung bekerja, studi lanjut, atau berwirausaha dalam 1 tahun setelah kelulusan. Sumber: Tracer Study. Target: 80%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #dc2626;">
+      <div class="iku-num">IKU 3 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Mahasiswa Berkegiatan di Luar Program Studi</div>
+      <div class="iku-formula">Persentase mahasiswa S1/D4/D3 yang berkegiatan di luar prodi atau meraih prestasi min. tingkat nasional. Sumber: MBKM, SISTER. Target: 50%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #9ca3af;">
+      <div class="iku-num">IKU 4 <span style="font-size:10px;color:#9ca3af;">OPSIONAL</span></div>
+      <div class="iku-name">Dosen dengan Rekognisi Internasional</div>
+      <div class="iku-formula">Jumlah dosen yang memiliki rekognisi/pengakuan internasional. Sumber: SISTER. Target: 200 orang</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #dc2626;">
+      <div class="iku-num">IKU 5 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Rasio Luaran Hasil Kerjasama Mitra</div>
+      <div class="iku-formula">Rasio jumlah luaran hasil kerjasama PT dan start-up/industri/lembaga terhadap total dosen PT. Sumber: SISTER — kerjasama aktif. Target: 100%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #9ca3af;">
+      <div class="iku-num">IKU 6 <span style="font-size:10px;color:#9ca3af;">OPSIONAL</span></div>
+      <div class="iku-name">Publikasi Bereputasi Internasional (Scopus/WoS)</div>
+      <div class="iku-formula">Persentase publikasi pada jurnal bereputasi internasional. Sumber: SISTER — publikasi. Target: 50%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #dc2626;">
+      <div class="iku-num">IKU 7 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Keterlibatan PT dalam SDGs</div>
+      <div class="iku-formula">Persentase program Tri Dharma yang berkontribusi pada SDG 1, 4, 17 + 2 SDG pilihan. Sumber: SISTER — litabmas dengan keyword matching. Target: 50%</div>
+    </div>
+    <div class="iku-item" style="border-left:4px solid #9ca3af;">
+      <div class="iku-num">IKU 8 <span style="font-size:10px;color:#9ca3af;">OPSIONAL</span></div>
+      <div class="iku-name">SDM Terlibat dalam Kebijakan</div>
+      <div class="iku-formula">Jumlah SDM yang terlibat dalam penyusunan kebijakan publik. Sumber: SISTER. Target: 50 orang</div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <div class="iku-item" style="background:#fef2f2;border:2px solid #dc2626;">
+      <div class="iku-num">IKU 9 <span style="font-size:10px;color:#dc2626;">WAJIB</span></div>
+      <div class="iku-name">Pendapatan Non Pendidikan / Non-UKT</div>
+      <div class="iku-formula">Persentase pendapatan PT dari sumber selain biaya pendidikan (SPP/UKT): dana riset, kerjasama industri, pendapatan operasional. Sumber: SIMPEDAM + Keuangan. Target: 40%</div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <h4 style="color:#6b7280;margin-bottom:8px;">📋 IKU Opsional Lainnya (belum tersedia di database)</h4>
+    <div class="iku-grid">
+      <div class="iku-item" style="border-left:4px solid #9ca3af;opacity:0.7;">
+        <div class="iku-num">IKU 10</div>
+        <div class="iku-name">Usulan Zona Integritas (WBK/WBBM)</div>
+        <div class="iku-formula">Target: 6 unit kerja</div>
+      </div>
+      <div class="iku-item" style="border-left:4px solid #9ca3af;opacity:0.7;">
+        <div class="iku-num">IKU 11</div>
+        <div class="iku-name">Tata Kelola (WTP / SAKIP / Etik)</div>
+        <div class="iku-formula">Target: 100%</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px;">✅ Checklist Validasi per IKU</h3>
+  <div class="card">
+    <p>Setiap IKU harus melewati validasi berikut:</p>
+    <ul>
+      <li>☐ <strong>Verifikasi rumus</strong> — formula sesuai Permendikbud/pedoman BPM</li>
+      <li>☐ <strong>Verifikasi sumber data</strong> — tabel & query yang digunakan</li>
+      <li>☐ <strong>Validasi numerator</strong> — angka pembilang benar</li>
+      <li>☐ <strong>Validasi denominator</strong> — angka penyebut benar</li>
+      <li>☐ <strong>Cross-check manual vs sistem</strong> — hitung manual untuk 1 fakultas, bandingkan</li>
+      <li>☐ <strong>Sign-off BPM/LPMPP</strong> — approval tertulis</li>
+    </ul>
+  </div>
+
+  <div class="highlight highlight-warning">
+    ⏱️ <strong>Estimasi:</strong> 2 minggu per IKU (batch processing), total 4-6 minggu. Batch 1 (IKU 1-5): April minggu 3-4. Batch 2 (IKU 6-9): Mei minggu 1-2.
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">18 / 20</div>
+</div>
+
+<!-- PAGE 19: VALIDASI - DATA UNILA, INTEGRASI, UAT -->
+<div class="page">
+  <h2>🧪 Testing & Validasi — Data Unila, Integrasi, UAT</h2>
+  <div class="page-subtitle">Comprehensive validation plan sebelum go-live</div>
+
+  <div class="val-section">
+    <h4>🗃️ 3. Data Unila Raw Data Validation</h4>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Sumber Pembanding</th><th>Metode</th><th>Threshold</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mahasiswa (aktif, DO, lulus)</td><td>Laporan semester resmi</td><td>Total comparison per-fak</td><td>Deviasi &lt;0.5%</td></tr>
+        <tr><td>Dosen (per jabfung)</td><td>Data Kepegawaian</td><td>Cross-check per-unit</td><td>Exact match</td></tr>
+        <tr><td>Tridarma (litabmas)</td><td>Laporan LPPM</td><td>Count comparison</td><td>Deviasi &lt;2%</td></tr>
+        <tr><td>Keuangan (UKT, SPP)</td><td>SIMPEDAM langsung</td><td>Sum comparison per-fak</td><td>Exact match (Rp)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;font-size:13px;color:var(--text-light);"><strong>Method:</strong> Random sampling 10% per fakultas. Minimal 3 prodi per fakultas divalidasi detail.</p>
+  </div>
+
+  <div class="val-section">
+    <h4>🔗 4. Integration Testing</h4>
+    <div class="grid-2" style="margin-top:12px;">
+      <div class="card" style="border:none;box-shadow:none;padding:0;">
+        <ul>
+          <li><strong>SISTER API:</strong> data freshness check (max lag 24h), sync completeness (&gt;99%)</li>
+          <li><strong>Feeder PDDIKTI:</strong> semester aktif sesuai, data lag &lt;1 semester</li>
+        </ul>
+      </div>
+      <div class="card" style="border:none;box-shadow:none;padding:0;">
+        <ul>
+          <li><strong>SIMPEDAM:</strong> pembayaran real-time vs batch — reconciliation</li>
+          <li><strong>SIAKADU:</strong> referensi data consistency — FK integrity check</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="val-section">
+    <h4>👥 5. UAT (User Acceptance Testing) Plan</h4>
+    <table>
+      <thead>
+        <tr><th>Phase</th><th>Peserta</th><th>Durasi</th><th>Fokus</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Phase 1</strong></td><td>Tim developer internal</td><td>1 minggu</td><td>Functional testing, edge cases, performance</td></tr>
+        <tr><td><strong>Phase 2</strong></td><td>Admin fakultas (5 pilot)</td><td>2 minggu</td><td>Usability, data accuracy per-fakultas, workflow</td></tr>
+        <tr><td><strong>Phase 3</strong></td><td>Pimpinan (Rektor, WR, Dekan)</td><td>1 minggu</td><td>Dashboard review, data sign-off, feedback</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;font-size:13px;color:var(--text-light);">Feedback dikumpulkan via <strong>Project Management module</strong> — bug tracking, priority tagging, assignment.</p>
+  </div>
+
+  <h3>📅 6. Timeline Validasi Keseluruhan</h3>
+  <div class="val-timeline-bar">
+    <div class="vtb-item" style="background:#dbeafe; color:#1e40af;">
+      <strong>Apr W1-2</strong><br>Dashboard + Data Unila
+    </div>
+    <div class="vtb-item" style="background:#fef3c7; color:#92400e;">
+      <strong>Apr W3-4</strong><br>IKU 1-5
+    </div>
+    <div class="vtb-item" style="background:#fce7f3; color:#9d174d;">
+      <strong>Mei W1-2</strong><br>IKU 6-9
+    </div>
+    <div class="vtb-item" style="background:#f3e8ff; color:#6b21a8;">
+      <strong>Mei W3-4</strong><br>UAT + Fix
+    </div>
+    <div class="vtb-item" style="background:#ecfdf5; color:#065f46;">
+      <strong>Juni</strong><br>Sign-off ✅
+    </div>
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">19 / 20</div>
+</div>
+
+<!-- PAGE 20: TIMELINE DETAIL -->
+<div class="page">
+  <h2>📅 Timeline Detail & Roadmap 2026</h2>
+  <div class="page-subtitle">Rencana pengembangan per kuartal — detail</div>
+
+  <h3>Q1 2026 — Januari s.d. Maret ✅ COMPLETED</h3>
+  <table>
+    <thead>
+      <tr><th>Bulan</th><th>Fokus</th><th>Deliverables</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Januari</strong><br><small>133 commits</small></td>
+        <td>Foundation</td>
+        <td>Auth service + SSO, Portal frontend scaffold, Kong setup, SISTER/Feeder base</td>
+      </tr>
+      <tr>
+        <td><strong>Februari</strong><br><small>110 commits</small></td>
+        <td>Core Features</td>
+        <td>Dashboard Pimpinan, RBAC enforcement, Keuangan integration, DB log shipping</td>
+      </tr>
+      <tr>
+        <td><strong>Maret</strong><br><small>391 commits</small></td>
+        <td>Expansion</td>
+        <td>Data Unila (18 pages), Web Monitoring, Project Management, SIAKADU, SI MBAK (17 pages), SI KKN (18 pages)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Q2 2026 — April s.d. Juni 🔜 NEXT</h3>
+  <table>
+    <thead>
+      <tr><th>Bulan</th><th>Fokus</th><th>Target</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>April</strong></td>
+        <td>SI MBAK + Validasi</td>
+        <td>SI MBAK backend (6 modules), Dashboard + Data Unila validation, IKU batch 1</td>
+      </tr>
+      <tr>
+        <td><strong>Mei</strong></td>
+        <td>SI KKN + UAT</td>
+        <td>SI KKN development, IKU batch 2, UAT with stakeholders</td>
+      </tr>
+      <tr>
+        <td><strong>Juni</strong></td>
+        <td>Deploy + Go-live</td>
+        <td>SIAKADU production, VM6 active-active, validation sign-off, go-live</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Q3 — Q4 2026 (Plan)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Q3: Jul — Sep 2026</h4>
+      <ul>
+        <li><strong>SIKEMA</strong> — Kemahasiswaan (beasiswa, organisasi, kegiatan)</li>
+        <li><strong>SIKEBAS</strong> — Kebijakan Akademik (kurikulum, evaluasi)</li>
+        <li><strong>Mobile App</strong> — Companion app (Android/iOS)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Q4: Oct — Dec 2026</h4>
+      <ul>
+        <li><strong>SPMI</strong> — Penjaminan Mutu Internal (audit, standar)</li>
+        <li><strong>Analytics & BI</strong> — Advanced dashboard & reporting</li>
+        <li><strong>Optimization</strong> — Performance tuning & scaling</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight highlight-success">
+    ✅ <strong>Q1 Target Achievement: 100%</strong> — Semua deliverable Q1 tercapai. 634 commits, 11 modul, infrastruktur production-ready. Tim siap untuk akselerasi Q2.
+  </div>
+
+  <div class="page-footer">MyUnila — Technical Detail Q1 2026</div>
+  <div class="page-number">20 / 20</div>
+</div>
+
+</body>
+</html>

@@ -118,6 +118,11 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if err := s.penugasanService.ForceRefreshToken(); err != nil {
 			log.Printf("⚠️  Failed to refresh token for penugasan sync, continuing anyway: %v", err)
 		}
+	} else if schedule.SyncType == "dosen_foto" || schedule.SyncType == "dosen_dokumen" {
+		// Dosen foto/dokumen sync uses the same Sister API token
+		if err := s.dosenService.ForceRefreshToken(); err != nil {
+			log.Printf("⚠️  Failed to refresh token for %s sync, continuing anyway: %v", schedule.SyncType, err)
+		}
 	} else if schedule.SyncType == "penelitian" || schedule.SyncType == "pengabdian" || schedule.SyncType == "pendidikan" || schedule.SyncType == "publikasi" || schedule.SyncType == "riwayat_pekerjaan" || schedule.SyncType == "riwayat_fungsional" || schedule.SyncType == "jabatan_fungsional" || schedule.SyncType == "jabatan_struktural" || schedule.SyncType == "tugas_tambahan" || schedule.SyncType == "sertifikasi_dosen" || schedule.SyncType == "bidang_ilmu" {
 		// Penelitian, pengabdian, pendidikan, publikasi, riwayat_pekerjaan, riwayat_fungsional, jabatan_fungsional, jabatan_struktural, tugas_tambahan, sertifikasi_dosen, and bidang_ilmu use the same Sister API token as dosen
 		if err := s.dosenService.ForceRefreshToken(); err != nil {
@@ -131,6 +136,12 @@ func (s *Service) executeWithRetry(schedule ScheduledSync) error {
 		if schedule.SyncType == "dosen" {
 			// Execute dosen sync - using UNILA_ID_SP to sync all Unila dosen
 			_, err = s.dosenService.SyncDosenFromSister(UNILA_ID_SP, "scheduler")
+		} else if schedule.SyncType == "dosen_foto" {
+			// Execute dosen photo sync to MinIO
+			_, err = s.dosenService.SyncDosenPhotosToMinIO("scheduler")
+		} else if schedule.SyncType == "dosen_dokumen" {
+			// Execute dosen document sync to MinIO
+			_, err = s.dosenService.SyncDosenDokumenToMinIO("scheduler")
 		} else if schedule.SyncType == "referensi" && schedule.EndpointKey != nil {
 			// Execute referensi sync - BatchSync with single endpoint
 			_, err = s.referensiService.BatchSyncFromSister(context.Background(), []string{*schedule.EndpointKey}, "scheduler")

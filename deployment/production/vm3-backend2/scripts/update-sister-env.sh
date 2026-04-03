@@ -148,6 +148,43 @@ else
     echo "SISTER_DB_CONN_MAX_LIFETIME=5m" >> "$ENV_FILE"
 fi
 
+# Update MINIO vars
+if grep -q "^MINIO_ENDPOINT=" "$ENV_FILE"; then
+    sed -i "s|^MINIO_ENDPOINT=.*|MINIO_ENDPOINT=192.168.120.47:9000|" "$ENV_FILE"
+    log_info "✓ Updated MINIO_ENDPOINT"
+else
+    echo "MINIO_ENDPOINT=192.168.120.47:9000" >> "$ENV_FILE"
+    log_info "✓ Added MINIO_ENDPOINT"
+fi
+
+if ! grep -q "^MINIO_ACCESS_KEY=" "$ENV_FILE"; then
+    echo "MINIO_ACCESS_KEY=myunila-api-access" >> "$ENV_FILE"
+    log_info "✓ Added MINIO_ACCESS_KEY"
+fi
+
+if ! grep -q "^MINIO_SECRET_KEY=" "$ENV_FILE"; then
+    echo "MINIO_SECRET_KEY=" >> "$ENV_FILE"
+    log_warn "⚠ MINIO_SECRET_KEY is empty — please set it in .env"
+fi
+
+if grep -q "^MINIO_BUCKET=" "$ENV_FILE"; then
+    sed -i "s|^MINIO_BUCKET=.*|MINIO_BUCKET=myunila-storage|" "$ENV_FILE"
+    log_info "✓ Updated MINIO_BUCKET"
+else
+    echo "MINIO_BUCKET=myunila-storage" >> "$ENV_FILE"
+    log_info "✓ Added MINIO_BUCKET"
+fi
+
+if ! grep -q "^MINIO_USE_SSL=" "$ENV_FILE"; then
+    echo "MINIO_USE_SSL=false" >> "$ENV_FILE"
+fi
+
+if grep -q "^MINIO_PUBLIC_URL=" "$ENV_FILE"; then
+    sed -i "s|^MINIO_PUBLIC_URL=.*|MINIO_PUBLIC_URL=http://192.168.120.47:9000|" "$ENV_FILE"
+else
+    echo "MINIO_PUBLIC_URL=http://192.168.120.47:9000" >> "$ENV_FILE"
+fi
+
 echo ""
 log_step "Verifying updated values..."
 echo ""

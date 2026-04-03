@@ -189,6 +189,40 @@ Route::group([
                 Route::get('daftar_lembaga', 'LembagaController@listLembaga');
                 Route::get('daftar_satuan_pendidikan', 'LembagaController@listSp');
             });
+
+            Route::prefix('visiting_scientist')->group(function () {
+                Route::get('daftar', 'VisitingScientistController@daftar');
+                Route::get('daftar_id', 'VisitingScientistController@daftar_id');
+            });
+
+            Route::prefix('detasering')->group(function () {
+                Route::get('daftar', 'DetaseringController@daftar');
+                Route::get('daftar_id', 'DetaseringController@daftar_id');
+            });
+
+            Route::prefix('bimbing_dosen')->group(function () {
+                Route::get('daftar', 'BimbingDosenController@daftar');
+            });
+
+            Route::prefix('pembicara')->group(function () {
+                Route::get('daftar', 'PembicaraController@daftar');
+                Route::get('daftar_id', 'PembicaraController@daftar_id');
+            });
+
+            Route::prefix('pengelola_jurnal')->group(function () {
+                Route::get('daftar', 'PengelolaJurnalController@daftar');
+                Route::get('daftar_id', 'PengelolaJurnalController@daftar_id');
+            });
+
+            Route::prefix('anggota_organisasi_profesi')->group(function () {
+                Route::get('daftar', 'AnggotaOrganisasiProfesiController@daftar');
+                Route::get('daftar_id', 'AnggotaOrganisasiProfesiController@daftar_id');
+            });
+
+            Route::prefix('penghargaan')->group(function () {
+                Route::get('daftar', 'PenghargaanController@daftar');
+                Route::get('daftar_id', 'PenghargaanController@daftar_id');
+            });
         });
 
         Route::group([

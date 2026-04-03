@@ -25,7 +25,7 @@ This folder contains CSV files for managing university ranking data. You can eas
 
 **From your local machine (Windows):**
 ```bash
-cd C:\laragon\www\my-unila\backend\dashboard-service
+cd E:\laragon\www\my-unila\backend\dashboard-service
 docker exec myunila-dashboard-service php artisan db:seed --class=RankingSeeder
 ```
 

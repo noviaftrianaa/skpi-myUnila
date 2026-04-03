@@ -46,10 +46,10 @@ type SppMhs struct {
 // SppMhsDetail represents student SPP with additional details
 type SppMhsDetail struct {
 	SppMhs
-	NPM           string  `json:"npm" db:"npm"`
-	NamaMahasiswa string  `json:"nama_mahasiswa" db:"nama_mahasiswa"`
-	NamaProdi     string  `json:"nama_prodi" db:"nama_prodi"`
-	NamaKelasUKT  *string `json:"nama_kelas_ukt,omitempty" db:"nama_kelas_ukt"`
+	NPM           *string  `json:"npm,omitempty" db:"npm"`
+	NamaMahasiswa *string  `json:"nama_mahasiswa,omitempty" db:"nama_mahasiswa"`
+	NamaProdi     *string  `json:"nama_prodi,omitempty" db:"nama_prodi"`
+	NamaKelasUKT  *string  `json:"nama_kelas_ukt,omitempty" db:"nama_kelas_ukt"`
 	NominalUKT    *float64 `json:"nominal_ukt,omitempty" db:"nominal_ukt"`
 }
 

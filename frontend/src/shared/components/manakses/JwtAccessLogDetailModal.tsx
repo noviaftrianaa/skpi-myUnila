@@ -81,7 +81,7 @@ export default function JwtAccessLogDetailModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[85vh]",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4 max-h-[85vh]",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         body: "overflow-y-auto",
       }}

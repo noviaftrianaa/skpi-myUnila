@@ -26,7 +26,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "referensi" | "dosen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi" | "riwayat_pekerjaan" | "jabatan_struktural" | "tugas_tambahan";
+  syncType: "referensi" | "dosen" | "dosen_foto" | "dosen_dokumen" | "penugasan" | "penelitian" | "pengabdian" | "pendidikan" | "publikasi" | "riwayat_pekerjaan" | "jabatan_struktural" | "tugas_tambahan";
   endpointKey?: string;
   endpointName?: string;
   schedule?: ScheduledSync; // For edit mode
@@ -106,6 +106,10 @@ export default function ScheduleModal({
         switch (syncType) {
           case "dosen":
             return `Dosen Sync ${timestamp}`;
+          case "dosen_foto":
+            return `Dosen Photo Sync ${timestamp}`;
+          case "dosen_dokumen":
+            return `Dosen Dokumen Sync ${timestamp}`;
           case "penelitian":
             return `Penelitian Sync ${timestamp}`;
           case "pengabdian":
@@ -125,6 +129,10 @@ export default function ScheduleModal({
         switch (syncType) {
           case "dosen":
             return "Sync all Unila dosen data every day";
+          case "dosen_foto":
+            return "Sync dosen photos from SISTER API to MinIO every day";
+          case "dosen_dokumen":
+            return "Sync dosen documents from SISTER API to MinIO every day";
           case "penelitian":
             return "Batch sync penelitian data for all dosen every day";
           case "pengabdian":
@@ -273,6 +281,10 @@ export default function ScheduleModal({
             <p className="text-sm font-normal text-gray-600 dark:text-slate-400">
               {syncType === "dosen"
                 ? "Schedule sync untuk data dosen"
+                : syncType === "dosen_foto"
+                ? "Schedule sync foto dosen ke MinIO"
+                : syncType === "dosen_dokumen"
+                ? "Schedule sync dokumen dosen ke MinIO"
                 : syncType === "referensi"
                 ? "Schedule sync untuk data referensi"
                 : syncType === "penelitian"

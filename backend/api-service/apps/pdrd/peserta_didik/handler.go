@@ -72,3 +72,24 @@ func (h *Handler) GetRegPd(c *fiber.Ctx) error {
 	params.NormalizePagination()
 	return response.SuccessWithMeta(c, "Berhasil mengambil data registrasi peserta didik", data, params.Page, params.Limit, total)
 }
+
+// GetStatusKuliahMahasiswa returns data kuliah per semester dari tabel kuliah_mhs
+func (h *Handler) GetStatusKuliahMahasiswa(c *fiber.Ctx) error {
+	var params types.StatusKuliahMahasiswaParams
+	if err := c.QueryParser(&params); err != nil {
+		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
+	}
+
+	if params.IDRegPd == "" {
+		return response.BadRequest(c, "Parameter id_reg_pd wajib diisi", nil)
+	}
+
+	data, total, err := h.svc.GetStatusKuliahMahasiswa(c.Context(), params)
+	if err != nil {
+		log.Printf("Error getting status kuliah mahasiswa: %v", err)
+		return response.InternalError(c, "Gagal mengambil data status kuliah mahasiswa")
+	}
+
+	params.NormalizePagination()
+	return response.SuccessWithMeta(c, "Berhasil mengambil data status kuliah mahasiswa", data, params.Page, params.Limit, total)
+}

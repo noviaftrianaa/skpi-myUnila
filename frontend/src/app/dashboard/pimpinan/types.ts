@@ -245,6 +245,144 @@ export interface KerjasamaData {
   mitraByType: SimpleData[];
 }
 
+// IKU
+export interface IkuJenjangDetail {
+  jenjang: string;
+  lulus_tepat_waktu: number;
+  total_aktif: number;
+  aee_realisasi: number;
+  aee_ideal: number;
+  tingkat_pencapaian: number;
+}
+
+export interface IkuDrilldownChild {
+  id: string;
+  name: string;
+  value: number;
+  target: number;
+  status: string;
+}
+
+export interface IkuDrilldownItem {
+  id: string;
+  name: string;
+  value: number;
+  target: number;
+  status: string;
+  children?: IkuDrilldownChild[];
+}
+
+export interface IkuItem {
+  id: number;
+  code: string;
+  title: string;
+  definition: string;
+  value: number;
+  target: number;
+  color: string;
+  description?: string;
+  perJenjang?: IkuJenjangDetail[];
+  trendData: SimpleData[];
+  drilldownData?: IkuDrilldownItem[];
+}
+
+// IKU 2 specific types
+export interface Iku2StatusBreakdown {
+  bekerja: number;
+  wiraswasta: number;
+  kuliah_lanjut: number;
+  belum_bekerja: number;
+}
+
+export interface Iku2KategoriKerja {
+  kat1: number; // <6bln, >1.2xUMP (Bobot 10)
+  kat2: number; // <12bln, >1.2xUMP (Bobot 6)
+  kat3: number; // <12bln, <1.2xUMP (Bobot 4)
+}
+
+export interface Iku2Item extends IkuItem {
+  statusBreakdown?: Iku2StatusBreakdown;
+  kategoriKerja?: Iku2KategoriKerja;
+  totalLulusan?: number;
+  totalResponden?: number;
+  responseRate?: number;
+}
+
+// IKU 3 specific types
+export interface Iku3KegiatanBreakdown {
+  jenis_kegiatan: string;
+  jumlah_mahasiswa: number;
+}
+
+export interface Iku3Item extends IkuItem {
+  kegiatanBreakdown?: Iku3KegiatanBreakdown[];
+  mbkm?: number;
+  prestasiNasional?: number;
+  totalAktif?: number;
+  totalBerkegiatan?: number;
+}
+
+// IKU 5 specific types
+export interface Iku5Item extends IkuItem {
+  totalLuaran?: number;
+  totalDosen?: number;
+  kerjasamaBreakdown?: { name: string; value: number }[];
+}
+
+// IKU 7 specific types
+export interface Iku7SdgBreakdownItem {
+  sdg: number;
+  name: string;
+  value: number;
+}
+
+export interface Iku7Item extends IkuItem {
+  kegiatanSDG?: number;
+  litabmasSDG?: number;
+  kerjasamaSDG?: number;
+  totalKegiatan?: number;
+  totalLitabmas?: number;
+  totalKerjasama?: number;
+  sdgBreakdown?: Iku7SdgBreakdownItem[];
+  sdgWajib?: number[];
+  sdgPilihan?: number[];
+}
+
+// IKU 9 specific types
+export interface Iku9Item extends IkuItem {
+  pendapatanMahasiswa?: number;
+  pendapatanNonMahasiswa?: number;
+  totalPendapatan?: number;
+  detailLitabmas?: number;
+  detailKerjasama?: number;
+  detailOperasional?: number;
+  revenueBreakdown?: { name: string; value: number }[];
+}
+
+export interface IkuOpsionalItem {
+  id: number;
+  code: string;
+  title: string;
+  definition: string;
+  value: number;
+  target: number;
+  color: string;
+  unit?: string;
+  trendData: SimpleData[];
+  drilldownData?: IkuDrilldownItem[];
+}
+
+export interface IkuData {
+  ikuWajib?: number[];
+  ikuOpsional?: IkuOpsionalItem[];
+  iku1: IkuItem;
+  iku2?: Iku2Item;
+  iku3?: Iku3Item;
+  iku5?: Iku5Item;
+  iku7?: Iku7Item;
+  iku9?: Iku9Item;
+}
+
 // Reference
 export interface ReferenceItem {
   id: string;

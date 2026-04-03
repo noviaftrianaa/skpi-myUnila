@@ -7,8 +7,8 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 $taskName = "Laravel-Scheduler-ManAkses"
-$scriptPath = "C:\laragon\www\my-unila\manAkses\scheduler.bat"
-$workingDir = "C:\laragon\www\my-unila\manAkses"
+$scriptPath = "E:\laragon\www\my-unila\manAkses\scheduler.bat"
+$workingDir = "E:\laragon\www\my-unila\manAkses"
 
 # Check if running as Administrator
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())

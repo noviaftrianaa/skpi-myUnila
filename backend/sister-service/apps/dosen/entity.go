@@ -179,6 +179,108 @@ type DosenListResult struct {
 	TotalPages int      `json:"total_pages"`
 }
 
+// PhotoSyncResult represents the result of syncing a single dosen photo
+type PhotoSyncResult struct {
+	IDSDM       string `json:"id_sdm"`
+	Nama        string `json:"nama"`
+	Success     bool   `json:"success"`
+	Error       string `json:"error,omitempty"`
+	FileSize    int    `json:"file_size,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+	MinIOPath   string `json:"minio_path,omitempty"`
+}
+
+// BatchPhotoSyncResult represents the result of batch photo sync
+type BatchPhotoSyncResult struct {
+	TotalProcessed int               `json:"total_processed"`
+	TotalSuccess   int               `json:"total_success"`
+	TotalFailed    int               `json:"total_failed"`
+	TotalSkipped   int               `json:"total_skipped"`
+	Duration       string            `json:"duration"`
+	SyncedBy       string            `json:"synced_by"`
+	Results        []PhotoSyncResult `json:"results,omitempty"`
+}
+
+// DosenIDName represents a simple dosen ID and name pair for photo sync
+type DosenIDName struct {
+	IDSDM string `db:"id_sdm"`
+	Nama  string `db:"nm_sdm"`
+}
+
+// DokumenSyncItem represents a single document to be synced from SISTER to MinIO
+type DokumenSyncItem struct {
+	IDSDM      string `json:"id_sdm"`
+	IDDok      string `json:"id_dok"`
+	IDJnsDok   int    `json:"id_jns_dok"`
+	NmJnsDok   string `json:"nm_jns_dok"`
+	NmDok      string `json:"nm_dok"`
+	NmFile     string `json:"nm_file"`
+	JenisFile  string `json:"jenis_file"`
+	Keterangan string `json:"keterangan"`
+	WktUnggah  string `json:"wkt_unggah"`
+	MinioPath  string `json:"minio_path,omitempty"`
+}
+
+// DokumenSyncResult represents the result of syncing documents for a single dosen
+type DokumenSyncResult struct {
+	IDSDM   string `json:"id_sdm"`
+	Total   int    `json:"total"`
+	Success int    `json:"success"`
+	Skipped int    `json:"skipped"`
+	Failed  int    `json:"failed"`
+}
+
+// BatchDokumenSyncResult represents the aggregate result of syncing all dosen documents
+type BatchDokumenSyncResult struct {
+	TotalDosen   int    `json:"total_dosen"`
+	TotalDokumen int    `json:"total_dokumen"`
+	TotalSuccess int    `json:"total_success"`
+	TotalSkipped int    `json:"total_skipped"`
+	TotalFailed  int    `json:"total_failed"`
+	Duration     string `json:"duration"`
+	SyncedBy     string `json:"synced_by"`
+}
+
+// DokumenListItem represents a document record joined with dosen name for listing
+type DokumenListItem struct {
+	IDSDM     string  `json:"id_sdm" db:"id_sdm"`
+	NamaSDM   string  `json:"nama_sdm" db:"nm_sdm"`
+	IDDok     string  `json:"id_dok" db:"id_dok"`
+	IDJnsDok  int     `json:"id_jns_dok" db:"id_jns_dok"`
+	NmJnsDok  *string `json:"nm_jns_dok" db:"nm_jns_dok"`
+	NmDok     *string `json:"nm_dok" db:"nm_dok"`
+	NmFile    *string `json:"file_name" db:"file_name"`
+	MediaType *string `json:"media_type" db:"media_type"`
+	MinioPath *string `json:"url" db:"url"`
+	WktUnggah *string `json:"wkt_unggah" db:"wkt_unggah"`
+	LastSync  *string `json:"last_sync" db:"last_sync"`
+}
+
+// DokumenListResult represents paginated dokumen list response
+type DokumenListResult struct {
+	Data       []DokumenListItem `json:"data"`
+	Total      int               `json:"total"`
+	Page       int               `json:"page"`
+	Limit      int               `json:"limit"`
+	TotalPages int               `json:"total_pages"`
+}
+
+// PhotoStats represents dosen photo statistics
+type PhotoStats struct {
+	TotalDosen   int        `json:"total_dosen"`
+	TotalPhotos  int        `json:"total_photos"`
+	TotalMissing int        `json:"total_missing"`
+	LastSync     *time.Time `json:"last_sync"`
+}
+
+// DokumenStats represents dosen document statistics
+type DokumenStats struct {
+	TotalDokumen int                      `json:"total_dokumen"`
+	TotalDosen   int                      `json:"total_dosen_with_dokumen"`
+	ByJenisDok   []map[string]interface{} `json:"by_jenis_dok"`
+	LastSync     *time.Time               `json:"last_sync"`
+}
+
 // DosenStats represents dosen statistics
 type DosenStats struct {
 	TotalDosen      int                    `json:"total_dosen"`

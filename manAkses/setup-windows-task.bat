@@ -18,7 +18,7 @@ echo.
 REM Buat task baru - Run setiap 1 menit
 schtasks /Create ^
     /TN "Laravel-Scheduler-ManAkses" ^
-    /TR "C:\laragon\www\my-unila\manAkses\scheduler.bat" ^
+    /TR "E:\laragon\www\my-unila\manAkses\scheduler.bat" ^
     /SC MINUTE ^
     /MO 1 ^
     /RU SYSTEM ^

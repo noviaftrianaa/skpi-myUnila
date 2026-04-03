@@ -303,9 +303,9 @@ SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -d '{
     "name": "sister-service",
     "url": "http://myunila-sister-service:8083",
-    "connect_timeout": 300000,
-    "write_timeout": 300000,
-    "read_timeout": 300000,
+    "connect_timeout": 720000,
+    "write_timeout": 720000,
+    "read_timeout": 720000,
     "retries": 5
   }')
 
@@ -1291,6 +1291,128 @@ if [ -n "$KEUANGAN_DOCS_SERVICE_ID" ]; then
 fi
 
 ###############################################################################
+# Web Monitoring Service (Go Fiber, port 8089)
+###############################################################################
+echo ""
+echo -e "${GREEN}[+] Setting up Web Monitoring Service...${NC}"
+
+# --- Service: authenticated routes (api/v1/*) ---
+WEBMON_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "webmon-service",
+    "url": "http://myunila-monitoring-service:8089",
+    "connect_timeout": 300000,
+    "write_timeout": 300000,
+    "read_timeout": 300000,
+    "retries": 3
+  }')
+
+WEBMON_SERVICE_ID=$(parse_json_id "$WEBMON_SERVICE")
+
+if [ -z "$WEBMON_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-service (may already exist)${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-service created: $WEBMON_SERVICE_ID${NC}"
+
+    WEBMON_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-route",
+        "paths": ["/webmon-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    WEBMON_ROUTE_ID=$(parse_json_id "$WEBMON_ROUTE")
+
+    if [ -n "$WEBMON_ROUTE_ID" ]; then
+        # CORS
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # JWT
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "key_claim_name": "iss",
+              "claims_to_verify": ["exp"],
+              "header_names": ["Authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-service route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# --- Service: public routes (v1/public/*) — no auth required ---
+# Service URL includes /v1/public so strip_path correctly strips /webmon-service/v1/public
+WEBMON_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "webmon-public-service",
+    "url": "http://myunila-monitoring-service:8089/v1/public",
+    "connect_timeout": 60000,
+    "write_timeout": 60000,
+    "read_timeout": 60000,
+    "retries": 2
+  }')
+
+WEBMON_PUBLIC_SERVICE_ID=$(parse_json_id "$WEBMON_PUBLIC_SERVICE")
+
+if [ -z "$WEBMON_PUBLIC_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-public-service (may already exist)${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-public-service created: $WEBMON_PUBLIC_SERVICE_ID${NC}"
+
+    WEBMON_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_PUBLIC_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-public-route",
+        "paths": ["/webmon-service/v1/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 300
+      }')
+
+    WEBMON_PUBLIC_ROUTE_ID=$(parse_json_id "$WEBMON_PUBLIC_ROUTE")
+
+    if [ -n "$WEBMON_PUBLIC_ROUTE_ID" ]; then
+        # CORS only — NO JWT plugin (public endpoints)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-public-route created (no auth) for /v1/public/*${NC}"
+    fi
+fi
+
+###############################################################################
 # 10. Gateway Routes (for consistency with production)
 # Production uses /gateway/{service}/docs via Nginx proxy
 # Local: add same routes for frontend consistency
@@ -1309,6 +1431,8 @@ SERVICE_URLS["feeder-service"]="http://myunila-feeder-service:8084"
 SERVICE_URLS["myunila-service"]="http://myunila-service:8086"
 SERVICE_URLS["api-service"]="http://myunila-api-service:8085"
 SERVICE_URLS["keuangan-service"]="http://myunila-keuangan-service:8088"
+SERVICE_URLS["simbak-service"]="http://myunila-nginx:84"
+SERVICE_URLS["project-service"]="http://myunila-project-service:8095"
 
 for SERVICE in "${!SERVICE_URLS[@]}"; do
     UPSTREAM_URL="${SERVICE_URLS[$SERVICE]}"
@@ -1405,7 +1529,12 @@ echo "  Sister (public photo): http://localhost:9800/sister-service/public/api/v
 echo "  Feeder (protected):    http://localhost:9800/feeder-service/api/v1"
 echo "  MyUnila (protected):   http://localhost:9800/myunila-service/api/v1"
 echo "  Keuangan (protected):  http://localhost:9800/keuangan-service/api/v1"
+echo "  WebMon (protected):    http://localhost:9800/webmon-service/api/v1"
+echo "  WebMon (public):       http://localhost:9800/webmon-service/v1/public"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
+echo "  SIMBAK (protected):    http://localhost:9800/simbak-service/api/v1"
+echo "  SIMBAK (public):       http://localhost:9800/simbak-service/api/v1/layanan/jenis-layanan"
+echo "  Project (protected):   http://localhost:9800/project-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""
 
