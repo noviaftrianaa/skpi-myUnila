@@ -25,7 +25,7 @@ abstract class BaseRepository
         return DB::connection('pgsql')->insert($query, $bindings);
     }
 
-    protected function pgUpdate(string $query, array $bindings = []): int
+    public function pgUpdate(string $query, array $bindings = []): int
     {
         return DB::connection('pgsql')->update($query, $bindings);
     }

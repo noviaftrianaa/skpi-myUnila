@@ -24,22 +24,11 @@ class Cors
 
         $response = $next($request);
 
-<<<<<<<< HEAD:backend/public-service/app/Http/Middleware/Cors.php
-        // Add CORS headers only if not already set (avoid duplicates from Kong)
-        if (!$response->headers->has('Access-Control-Allow-Origin')) {
-            if (in_array('*', $allowedOrigins) || ($origin && in_array($origin, $allowedOrigins))) {
-                $response->headers->set('Access-Control-Allow-Origin', in_array('*', $allowedOrigins) ? '*' : $origin);
-                $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-                $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Auth-Token');
-                $response->headers->set('Access-Control-Allow-Credentials', 'true');
-            }
-========
         if ($origin && in_array($origin, $allowedOrigins)) {
             $response->headers->set('Access-Control-Allow-Origin', $origin);
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
             $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-App-Key');
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
->>>>>>>> c3c52c3942c48e0a2bb32f77ac672825b20df7ff:backend/simbak-service/app/Http/Middleware/Cors.php
         }
 
         return $response;

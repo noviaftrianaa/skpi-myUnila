@@ -102,6 +102,30 @@ class MinioService
     }
 
     /**
+     * Serve file inline (untuk preview di browser, bukan download).
+     * Content-Disposition: inline — browser akan menampilkan file, bukan download.
+     */
+    public function inline(string $path, ?string $displayName = null): \Illuminate\Http\Response
+    {
+        $disk = Storage::disk($this->disk);
+
+        if (!$disk->exists($path)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        $filename = $displayName ?? basename($path);
+        $mimeType = $disk->mimeType($path) ?: 'application/octet-stream';
+        $content = $disk->get($path);
+
+        return response($content, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Content-Length' => strlen($content),
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
+    }
+
+    /**
      * Get temporary/presigned URL (berlaku 60 menit default).
      */
     public function getTemporaryUrl(string $path, int $minutes = 60): string
