@@ -115,3 +115,33 @@ All API calls go through Kong Gateway (port 9800):
 - `pddikti:sync` dan `pddikti:sync-desc` adalah command yang WRITE ke DB — jangan jalankan di VM5
 - Scheduler (`search:import`) aman karena read-only (sync ke Meilisearch)
 - Setelah edit code, rebuild container: `./scripts/rebuild-service.sh <service>`
+
+## SIMBAK Service (SI MBAK)
+
+### Overview
+Sistem Informasi Manajemen BAK — layanan administrasi kemahasiswaan (surat, permohonan, batch penetapan, monitoring).
+
+### Architecture
+- **Backend**: Laravel 11, `backend/simbak-service/`, port 9002 (via nginx)
+- **Frontend**: `frontend/src/app/dashboard/sim-bak/`
+- **DB Primary**: PostgreSQL `simbak` (schemas: ref, layanan, batch, log)
+- **DB Reference**: SQL Server `pdut_staging` (read-only)
+
+### PDUT Query Pattern (CRITICAL)
+```
+Prodi:    pdrd.sms          (BUKAN siakadu.sms — kosong!)
+Jenjang:  ref.jenjang_pendidikan  (BUKAN siakadu.jenjang_pendidikan — id tidak cocok)
+Fakultas: man_akses.unit_organisasi  (BUKAN siakadu.ref_unit — format id beda)
+Angkatan: siakadu.reg_pd.angkatan   (BUKAN YEAR(tgl_masuk_sp))
+Status:   siakadu.peserta_didik.id_stat_mhs → siakadu.status_mahasiswa
+```
+
+### Key Files
+- `app/Repositories/PdutRepository.php` — semua query ke SQL Server
+- `app/Services/WorkflowService.php` — multi-level approval engine
+- `docs/simbak/08-rencana-perbaikan-simbak.md` — checklist 7 tahap perbaikan
+
+### Docs
+- `docs/simbak/analisa-awal/` — analisis awal & alur layanan
+- `docs/simbak/07-analisis-kesesuaian-alur-vs-implementasi.md` — gap analysis
+- `docs/simbak/08-rencana-perbaikan-simbak.md` — rencana & checklist perbaikan
