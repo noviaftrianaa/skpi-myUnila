@@ -12,9 +12,15 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { getToken, setToken, clearTokens } from './client';
 
 // BAK Service API URL
-const BAK_API_URL = process.env.NEXT_PUBLIC_BAK_API_URL
-  ? `${process.env.NEXT_PUBLIC_BAK_API_URL}/api/v1`
-  : 'http://localhost:9800/simbak-service/api/v1';
+const rawUrl = process.env.NEXT_PUBLIC_BAK_API_URL || 'http://localhost:9002';
+// Avoid double /api/v1 — append only if not already present
+const BAK_API_URL = rawUrl.includes('/api/v1') ? rawUrl : `${rawUrl}/api/v1`;
+
+// Debug: log the resolved URL (remove after confirming)
+if (typeof window !== 'undefined') {
+  console.log('[bakClient] NEXT_PUBLIC_BAK_API_URL:', process.env.NEXT_PUBLIC_BAK_API_URL);
+  console.log('[bakClient] Resolved BAK_API_URL:', BAK_API_URL);
+}
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**
@@ -40,6 +46,19 @@ const createBakClient = (): AxiosInstance => {
 
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      // Send active role from UserContext (stored in localStorage by UserContextContext)
+      if (typeof window !== 'undefined' && config.headers) {
+        try {
+          const ctx = localStorage.getItem('myunila_active_context');
+          if (ctx) {
+            const parsed = JSON.parse(ctx);
+            if (parsed?.nm_peran) {
+              config.headers['X-Active-Role'] = parsed.nm_peran;
+            }
+          }
+        } catch { /* ignore */ }
       }
 
       return config;
