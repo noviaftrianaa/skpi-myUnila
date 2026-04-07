@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import {
   Card,
@@ -31,6 +31,8 @@ import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import { unitKerjaService, type UnitKerjaData } from "@/lib/services/sister/referensi/sisterService";
 import { toast } from "react-hot-toast";
+
+const APP_KEY = "sister-integrator";
 
 // UNILA ID Perguruan Tinggi (from Sister API)
 const UNILA_ID = "e2b705a7-173e-464a-9fac-509128709515";
@@ -282,11 +284,12 @@ export default function UnitKerjaPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Referensi - Unit Kerja"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Unit Kerja"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -639,6 +642,6 @@ export default function UnitKerjaPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

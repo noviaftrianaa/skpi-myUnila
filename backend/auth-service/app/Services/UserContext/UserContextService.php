@@ -166,6 +166,9 @@ class UserContextService
             $cacheKey = self::CACHE_PREFIX . $userId;
             Cache::put($cacheKey, $context, self::CACHE_TTL);
 
+            // Build and cache full permissions for this user's role
+            $this->cacheUserPermissions($userId, (int)$role->id_peran);
+
             // Update last_active in database
             $this->repository->updateLastActive($idRolePengguna);
 
@@ -256,10 +259,7 @@ class UserContextService
                 ];
             }
 
-            // Check menu_role for this role and app (RBAC is the ONLY access control)
-            // Note: Organization filter is NOT used for app access.
-            // If a role has menu_role for an app, they can access it regardless of organization.
-            // Organization on aplikasi is for administrative grouping, not access control.
+            // Check menu_role for this role and app (RBAC)
             $hasMenuAccess = $this->checkMenuRoleAccess(
                 (int) $context['id_peran'],
                 $app->id_aplikasi
@@ -272,6 +272,29 @@ class UserContextService
                     'reason' => 'Role ' . $context['nm_peran'] . ' tidak memiliki akses ke aplikasi ' . $app->nm_aplikasi,
                     'context' => $context,
                 ];
+            }
+
+            // Check organisasi filter (if enabled on this app)
+            if (!empty($app->a_filter_organisasi) && $app->a_filter_organisasi == 1) {
+                // Check if role is universal (bypass org filter)
+                $isUniversal = $this->repository->isUniversalRole((int) $context['id_peran']);
+                
+                if (!$isUniversal) {
+                    // Check if user's org is whitelisted for this app
+                    $orgWhitelisted = $this->repository->isOrgWhitelisted(
+                        $app->id_aplikasi,
+                        $context['id_organisasi'] ?? null
+                    );
+                    
+                    if (!$orgWhitelisted) {
+                        return [
+                            'success' => true,
+                            'has_access' => false,
+                            'reason' => 'Organisasi ' . ($context['nm_organisasi'] ?? '') . ' tidak memiliki akses ke aplikasi ' . $app->nm_aplikasi,
+                            'context' => $context,
+                        ];
+                    }
+                }
             }
 
             // Get CRUD permissions for this role on this app
@@ -757,6 +780,40 @@ class UserContextService
         }
 
         return $rootMenus;
+    }
+
+    /**
+     * Cache full permissions map for a user (keyed by userId)
+     * Stores per-menu CRUD permissions across all apps for the user's role
+     *
+     * @param string $userId
+     * @param int $idPeran
+     * @return void
+     */
+    private function cacheUserPermissions(string $userId, int $idPeran): void
+    {
+        try {
+            if ($this->isSuperRole($idPeran)) {
+                $permData = ['is_super_role' => true, 'apps' => []];
+            } else {
+                $menus = $this->repository->getAllMenuPermissions($idPeran);
+                $apps = [];
+                foreach ($menus as $menu) {
+                    $appId = $menu->app_id;
+                    if (!isset($apps[$appId])) $apps[$appId] = [];
+                    $apps[$appId][$menu->url_menu] = [
+                        'show'   => (int)$menu->can_show,
+                        'insert' => (int)$menu->can_insert,
+                        'update' => (int)$menu->can_update,
+                        'delete' => (int)$menu->can_delete,
+                    ];
+                }
+                $permData = ['is_super_role' => false, 'id_peran' => $idPeran, 'apps' => $apps];
+            }
+            Cache::put("user_permissions:{$userId}", $permData, self::CACHE_TTL);
+        } catch (\Exception $e) {
+            Log::warning('Failed to cache user permissions', ['user_id' => $userId, 'error' => $e->getMessage()]);
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import SisterPenugasanTable from "@/shared/components/sister-integrator/SisterPenugasanTable";
 import {
   Card,
@@ -30,6 +30,8 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import { sisterPenugasanService, type PenugasanStats } from "@/lib/services/sister/pdrd/penugasanService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function PenugasanManagementPage() {
   useRequireAuth();
@@ -138,25 +140,27 @@ export default function PenugasanManagementPage() {
 
   if (isLoadingStats) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="SISTER Integrator"
         appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-        menuConfig={sisterIntegratorMenuConfig}
-        pageTitle="Penugasan/Penempatan Dosen"
+        fallbackMenus={sisterIntegratorMenuConfig}
+        appKey={APP_KEY}
+        pageTitle="Penugasan"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Penugasan/Penempatan Dosen"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Penugasan"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -489,6 +493,6 @@ export default function PenugasanManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

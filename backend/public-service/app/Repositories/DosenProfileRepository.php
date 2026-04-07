@@ -22,9 +22,13 @@ class DosenProfileRepository
                     sdm.nuptk,
                     sdm.email,
                     sdm.jk AS jenis_kelamin,
-                    -- Get first homebase from reg_ptk with fakultas, jurusan, prodi
+                    -- Get homebase from reg_ptk filtered by active + homebase flag
                     (SELECT TOP 1 fak.nm_lemb
                         FROM pdrd.reg_ptk AS ptk
+                        INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                            ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                            AND keaktifan.soft_delete = 0
+                            AND keaktifan.a_sp_homebase = 1
                         INNER JOIN pdrd.sms AS sms
                             ON sms.id_sms = ptk.id_sms
                             AND sms.soft_delete = 0
@@ -33,9 +37,15 @@ class DosenProfileRepository
                             AND fak.soft_delete = 0
                         WHERE ptk.id_sdm = sdm.id_sdm
                             AND ptk.soft_delete = 0
+                            AND ptk.id_jns_keluar IS NULL
+                        ORDER BY keaktifan.id_thn_ajaran DESC
                     ) AS homebase_fakultas,
                     (SELECT TOP 1 jur.nm_lemb
                         FROM pdrd.reg_ptk AS ptk
+                        INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                            ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                            AND keaktifan.soft_delete = 0
+                            AND keaktifan.a_sp_homebase = 1
                         INNER JOIN pdrd.sms AS sms
                             ON sms.id_sms = ptk.id_sms
                             AND sms.soft_delete = 0
@@ -44,17 +54,29 @@ class DosenProfileRepository
                             AND jur.soft_delete = 0
                         WHERE ptk.id_sdm = sdm.id_sdm
                             AND ptk.soft_delete = 0
+                            AND ptk.id_jns_keluar IS NULL
+                        ORDER BY keaktifan.id_thn_ajaran DESC
                     ) AS homebase_jurusan,
                     (SELECT TOP 1 sms.nm_lemb
                         FROM pdrd.reg_ptk AS ptk
+                        INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                            ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                            AND keaktifan.soft_delete = 0
+                            AND keaktifan.a_sp_homebase = 1
                         INNER JOIN pdrd.sms AS sms
                             ON sms.id_sms = ptk.id_sms
                             AND sms.soft_delete = 0
                         WHERE ptk.id_sdm = sdm.id_sdm
                             AND ptk.soft_delete = 0
+                            AND ptk.id_jns_keluar IS NULL
+                        ORDER BY keaktifan.id_thn_ajaran DESC
                     ) AS homebase_prodi,
                     (SELECT TOP 1 jenjang.nm_jenj_didik
                         FROM pdrd.reg_ptk AS ptk
+                        INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                            ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                            AND keaktifan.soft_delete = 0
+                            AND keaktifan.a_sp_homebase = 1
                         INNER JOIN pdrd.sms AS sms
                             ON sms.id_sms = ptk.id_sms
                             AND sms.soft_delete = 0
@@ -63,6 +85,8 @@ class DosenProfileRepository
                             AND jenjang.expired_date IS NULL
                         WHERE ptk.id_sdm = sdm.id_sdm
                             AND ptk.soft_delete = 0
+                            AND ptk.id_jns_keluar IS NULL
+                        ORDER BY keaktifan.id_thn_ajaran DESC
                     ) AS homebase_jenjang
                 FROM pdrd.sdm AS sdm
                 WHERE sdm.id_sdm = ?

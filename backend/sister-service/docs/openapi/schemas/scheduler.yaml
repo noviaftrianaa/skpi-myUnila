@@ -1,0 +1,32 @@
+Schedule:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    name:
+      type: string
+      example: "Sync Dosen Harian"
+    cron_expression:
+      type: string
+      example: "0 2 * * *"
+    sync_type:
+      type: string
+      enum: [dosen, penugasan, penelitian, publikasi, pendidikan, referensi]
+    params:
+      type: object
+    is_active:
+      type: boolean
+      example: true
+    last_run:
+      type: string
+      format: date-time
+    next_run:
+      type: string
+      format: date-time
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

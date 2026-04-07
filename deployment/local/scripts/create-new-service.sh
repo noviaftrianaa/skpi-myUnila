@@ -14,12 +14,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    BACKEND_DIR="/c/laragon/www/my-unila/backend"
-else
-    BACKEND_DIR="$(cd "$(dirname "$0")/../../../backend" && pwd)"
-fi
+# Auto-detect paths (works on any machine/OS)
+BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../backend" && pwd)"
 
 # Function to show header
 show_header() {
@@ -979,8 +975,11 @@ main() {
 
                 # Get service name
                 while true; do
-                    echo -n "Service name (lowercase, e.g., 'example', 'integration'): "
+                    echo -n "Service name (lowercase, tanpa '-service', e.g., 'dashboard', 'integration'): "
                     read service_name
+
+                    # Remove -service suffix if user accidentally added it
+                    service_name="${service_name%-service}"
 
                     if validate_service_name "$service_name"; then
                         break
@@ -1030,8 +1029,11 @@ main() {
 
                 # Get service name
                 while true; do
-                    echo -n "Service name (lowercase, e.g., 'example', 'integration'): "
+                    echo -n "Service name (lowercase, tanpa '-service', e.g., 'dashboard', 'integration'): "
                     read service_name
+
+                    # Remove -service suffix if user accidentally added it
+                    service_name="${service_name%-service}"
 
                     if validate_service_name "$service_name"; then
                         break

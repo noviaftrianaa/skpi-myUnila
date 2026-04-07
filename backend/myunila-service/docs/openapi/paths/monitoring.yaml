@@ -1,0 +1,22 @@
+active:
+  get:
+    tags:
+      - Monitoring
+    summary: Get Active Sync Processes
+    description: Mengambil daftar proses sinkronisasi yang sedang berjalan
+    operationId: getActiveSyncProcesses
+    responses:
+      '200':
+        description: Berhasil mengambil proses aktif
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/monitoring.yaml#/ActiveProcess'

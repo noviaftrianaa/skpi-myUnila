@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Table,
@@ -41,6 +41,7 @@ interface DataTableProps<T> {
   loading?: boolean;
   serverSide?: boolean;
   totalRecords?: number;
+  currentPage?: number;
   onPageChange?: (page: number) => void;
   onRowsPerPageChange?: (rows: number) => void;
   onSearchChange?: (query: string) => void;
@@ -63,6 +64,7 @@ export default function DataTable<T extends Record<string, any>>({
   loading = false,
   serverSide = false,
   totalRecords,
+  currentPage: controlledPage,
   onPageChange,
   onRowsPerPageChange,
   onSearchChange,
@@ -70,11 +72,19 @@ export default function DataTable<T extends Record<string, any>>({
   emptyMessage,
 }: DataTableProps<T>) {
   const [searchValue, setSearchValue] = useState("");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(controlledPage ?? 1);
   const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
   const [selectedKey, setSelectedKey] = useState(String(defaultRowsPerPage));
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Sync internal page with controlled page from parent (server-side mode)
+  useEffect(() => {
+    if (controlledPage !== undefined && controlledPage !== page) {
+      setPage(controlledPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledPage]);
 
   // Create select items with "Semua" option
   const selectItems = useMemo(() => {
@@ -170,14 +180,14 @@ export default function DataTable<T extends Record<string, any>>({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-2.5 md:gap-3 items-center">
           {/* Filter (jika ada) - Kiri */}
           {filterSlot && (
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4">
               {filterSlot}
             </div>
           )}
 
           {/* Search - Tengah (flexible) */}
           {searchable && (
-            <div className={filterSlot ? "lg:col-span-6" : "lg:col-span-9"}>
+            <div className={filterSlot ? "lg:col-span-5" : "lg:col-span-9"}>
               <Input
                 isClearable
                 classNames={{

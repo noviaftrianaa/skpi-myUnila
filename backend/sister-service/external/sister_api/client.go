@@ -858,3 +858,91 @@ func (c *Client) GetJabatanFungsionalDetail(idRwyJabfung string) ([]byte, error)
 	endpoint := fmt.Sprintf("/1.0/jabatan_fungsional/%s", idRwyJabfung)
 	return c.Get(endpoint)
 }
+
+// ==================== DOKUMEN ENDPOINTS ====================
+
+// DosenDokumenItem represents a document item from Sister API dokumen list response
+type DosenDokumenItem struct {
+	ID             string  `json:"id"`
+	IDJenisDokumen int     `json:"id_jenis_dokumen"`
+	JenisDokumen   string  `json:"jenis_dokumen"`
+	Nama           *string `json:"nama"`
+	Keterangan     *string `json:"keterangan"`
+	Tautan         *string `json:"tautan"`
+	TanggalUpload  string  `json:"tanggal_upload"`
+	NamaFile       string  `json:"nama_file"`
+	JenisFile      string  `json:"jenis_file"`
+	LastUpdate     string  `json:"last_update"`
+}
+
+// GetDosenDokumen fetches list of documents for a dosen from Sister API
+// Endpoint: GET /1.0/dokumen?id_sdm={id_sdm}  (per SISTER API v1 OpenAPI spec)
+func (c *Client) GetDosenDokumen(idSdm string) ([]DosenDokumenItem, error) {
+	body, err := c.Get(fmt.Sprintf("/1.0/dokumen?id_sdm=%s", idSdm))
+	if err != nil {
+		return nil, err
+	}
+	var docs []DosenDokumenItem
+	if err := json.Unmarshal(body, &docs); err != nil {
+		return nil, fmt.Errorf("failed to parse dokumen response: %w", err)
+	}
+	return docs, nil
+}
+
+// GetDosenDokumenDownload downloads a document binary from Sister API
+// Endpoint: GET /1.0/dokumen/{id}/download  (per SISTER API v1 OpenAPI spec)
+// Returns file bytes, content type, and error
+func (c *Client) GetDosenDokumenDownload(idDokumen string) ([]byte, string, error) {
+	if err := c.EnsureAuthenticated(); err != nil {
+		return nil, "", err
+	}
+
+	url := fmt.Sprintf("%s/1.0/dokumen/%s/download", c.BaseURL, idDokumen)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+
+	log.Printf("📄 Downloading dokumen from Sister API: %s", url)
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, "", fmt.Errorf("dokumen not found")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// Check for token expiry
+		var errResp ErrorResponse
+		if err := json.Unmarshal(body, &errResp); err == nil {
+			if errResp.Message == "Token expired" || errResp.Detail == "Token expired" {
+				c.Token = ""
+				if err := c.EnsureAuthenticated(); err != nil {
+					return nil, "", fmt.Errorf("failed to re-authenticate: %w", err)
+				}
+				return c.GetDosenDokumenDownload(idDokumen)
+			}
+			return nil, "", fmt.Errorf("Sister API error: %s - %s", errResp.Message, errResp.Detail)
+		}
+		return nil, "", fmt.Errorf("API returned status %d", resp.StatusCode)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	log.Printf("✅ Dokumen downloaded: %d bytes, type: %s", len(body), contentType)
+	return body, contentType, nil
+}

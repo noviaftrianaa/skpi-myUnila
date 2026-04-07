@@ -14,10 +14,10 @@ REM 4. Set action: Run this batch file
 REM ============================================
 
 REM Set PHP executable path (adjust if needed)
-SET PHP_PATH=C:\laragon\bin\php\php-8.1.10-Win32-vs16-x64\php.exe
+SET PHP_PATH=E:\laragon\bin\php\php-8.1.10-Win32-vs16-x64\php.exe
 
 REM Set project directory
-SET PROJECT_PATH=C:\laragon\www\my-unila\manAkses
+SET PROJECT_PATH=E:\laragon\www\my-unila\manAkses
 
 REM Change to project directory
 cd /d "%PROJECT_PATH%"

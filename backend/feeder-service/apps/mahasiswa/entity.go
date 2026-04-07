@@ -291,19 +291,21 @@ type FeederRiwayatPendidikan struct {
 }
 
 // FeederMahasiswaLulusDO - Response from GetDetailMahasiswaLulusDO
+// NOTE: Neo Feeder API returns numeric fields as strings (e.g. "1" instead of 1),
+// so we must use FlexibleInt/FlexibleFloat to handle both string and number formats.
 type FeederMahasiswaLulusDO struct {
-	IDJenisKeluar       *int     `json:"id_jenis_keluar"`
-	TanggalKeluar       *string  `json:"tanggal_keluar"`
-	Keterangan          *string  `json:"keterangan"`
-	NomorSKYudisium     *string  `json:"nomor_sk_yudisium"`
-	TanggalSKYudisium   *string  `json:"tanggal_sk_yudisium"`
-	IPK                 *float64 `json:"ipk"`
-	NomorIjazah         *string  `json:"nomor_ijazah"`
-	JalurSkripsi        *int     `json:"jalur_skripsi"`
-	JudulSkripsi        *string  `json:"judul_skripsi"`
-	BulanAwalBimbingan  *string  `json:"bulan_awal_bimbingan"`
-	BulanAkhirBimbingan *string  `json:"bulan_akhir_bimbingan"`
-	AsalIjazah          *int     `json:"asal_ijazah"`
+	IDJenisKeluar       *FlexibleInt   `json:"id_jenis_keluar"`
+	TanggalKeluar       *string        `json:"tanggal_keluar"`
+	Keterangan          *string        `json:"keterangan"`
+	NomorSKYudisium     *string        `json:"nomor_sk_yudisium"`
+	TanggalSKYudisium   *string        `json:"tanggal_sk_yudisium"`
+	IPK                 *FlexibleFloat `json:"ipk"`
+	NomorIjazah         *string        `json:"nomor_ijazah"`
+	JalurSkripsi        *FlexibleInt   `json:"jalur_skripsi"`
+	JudulSkripsi        *string        `json:"judul_skripsi"`
+	BulanAwalBimbingan  *string        `json:"bulan_awal_bimbingan"`
+	BulanAkhirBimbingan *string        `json:"bulan_akhir_bimbingan"`
+	AsalIjazah          *FlexibleInt   `json:"asal_ijazah"`
 }
 
 // FeederPerkuliahanMahasiswa - Response from GetListPerkuliahanMahasiswa

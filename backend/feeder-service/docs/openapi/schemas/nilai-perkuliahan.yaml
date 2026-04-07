@@ -1,0 +1,46 @@
+NilaiPerkuliahan:
+  type: object
+  properties:
+    id:
+      type: string
+    id_kls:
+      type: string
+      description: ID Kelas Kuliah
+    id_pd:
+      type: string
+      description: ID Peserta Didik
+    nim:
+      type: string
+      example: "2011234567"
+    nama_mahasiswa:
+      type: string
+      example: "Budi Santoso"
+    kode_mk:
+      type: string
+      example: "IF1234"
+    nama_mk:
+      type: string
+      example: "Algoritma dan Pemrograman"
+    sks:
+      type: integer
+      example: 3
+    nilai_angka:
+      type: number
+      format: float
+      example: 85.5
+    nilai_huruf:
+      type: string
+      example: "A"
+    nilai_indeks:
+      type: number
+      format: float
+      example: 4.0
+    id_semester:
+      type: string
+      example: "20241"
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

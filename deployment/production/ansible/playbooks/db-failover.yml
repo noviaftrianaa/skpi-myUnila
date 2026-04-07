@@ -1,0 +1,281 @@
+---
+# ============================================================
+# Playbook: DB Failover — Switch database host across all VMs
+# ============================================================
+#
+# Usage:
+#   # Switch ke replica (190)
+#   ansible-playbook -i inventory/hosts.yml playbooks/db-failover.yml \
+#     --extra-vars "target_db_host=192.168.123.190"
+#
+#   # Switch balik ke primary (119)
+#   ansible-playbook -i inventory/hosts.yml playbooks/db-failover.yml \
+#     --extra-vars "target_db_host=192.168.123.119"
+#
+#   # Dry-run (cek dulu tanpa apply)
+#   ansible-playbook -i inventory/hosts.yml playbooks/db-failover.yml \
+#     --extra-vars "target_db_host=192.168.123.190" --check --diff
+#
+# PENTING:
+#   Sebelum menjalankan playbook ini, pastikan:
+#   1. Database di server target sudah ONLINE (bukan Restoring)
+#   2. Jika failover ke 190: jalankan RESTORE DATABASE pdut WITH RECOVERY di SSMS 190
+#   3. pdut_staging juga harus ada & ONLINE di server target
+#
+# ============================================================
+
+# ============================================
+# PHASE 1: Pre-flight checks
+# ============================================
+- name: "DB Failover — Pre-flight"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    db_primary: "192.168.123.119"
+    db_replica: "192.168.123.190"
+
+  tasks:
+    - name: Validate target_db_host is provided
+      fail:
+        msg: |
+          ❌ target_db_host is required!
+          Usage: ansible-playbook playbooks/db-failover.yml --extra-vars "target_db_host=192.168.123.190"
+      when: target_db_host is not defined
+
+    - name: Validate target_db_host is valid
+      fail:
+        msg: "❌ target_db_host must be {{ db_primary }} or {{ db_replica }}"
+      when: target_db_host not in [db_primary, db_replica]
+
+    - name: Show failover plan
+      debug:
+        msg: |
+          ╔══════════════════════════════════════════════╗
+          ║          DB FAILOVER PLAN                    ║
+          ╚══════════════════════════════════════════════╝
+
+          Target DB Host: {{ target_db_host }}
+          {% if target_db_host == db_replica %}
+          ⚠️  FAILOVER ke REPLICA ({{ db_replica }})
+          {% else %}
+          ✅ FAILBACK ke PRIMARY ({{ db_primary }})
+          {% endif %}
+
+          VMs affected:
+            - VM2 (backend1) — Auth, Dashboard, Public
+            - VM3 (backend2) — Sister, Feeder, MyUnila, API, Keuangan, Monitoring
+            - VM5 (staging)  — All services
+
+          Pastikan database sudah ONLINE di {{ target_db_host }}!
+
+# ============================================
+# PHASE 2: Update VM2 (backend1)
+# ============================================
+- name: "DB Failover — VM2 Backend1"
+  hosts: backend1
+  become: yes
+  gather_facts: no
+
+  vars:
+    env_file: "/var/www/my-unila/deployment/production/vm2-backend1/.env"
+    deployment_dir: "/var/www/my-unila/deployment/production/vm2-backend1"
+    db_host_vars:
+      - "DB_MSSQL_HOST"
+      - "PUBLIC_DB_HOST"
+      - "AUTH_DB_HOST"
+      - "DASHBOARD_DB_HOST"
+
+  tasks:
+    - name: "Backup .env"
+      copy:
+        src: "{{ env_file }}"
+        dest: "{{ env_file }}.bak.{{ ansible_date_time.iso8601_basic_short | default('backup') }}"
+        remote_src: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: "Update DB_HOST entries"
+      replace:
+        path: "{{ env_file }}"
+        regexp: '{{ item }}=192\.168\.123\.\d+'
+        replace: '{{ item }}={{ target_db_host }}'
+      loop: "{{ db_host_vars }}"
+      become_user: "{{ ansible_user }}"
+
+    - name: "Restart services"
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/auth/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/dashboard/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/public/docker-compose.yml up -d --force-recreate
+        docker compose -f services/nginx/docker-compose.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: "Wait for services"
+      pause:
+        seconds: 10
+
+# ============================================
+# PHASE 3: Update VM3 (backend2)
+# ============================================
+- name: "DB Failover — VM3 Backend2"
+  hosts: backend2
+  become: yes
+  gather_facts: no
+
+  vars:
+    env_file: "/var/www/my-unila/deployment/production/vm3-backend2/.env"
+    deployment_dir: "/var/www/my-unila/deployment/production/vm3-backend2"
+    db_host_vars:
+      - "SISTER_DB_HOST"
+      - "FEEDER_DB_HOST"
+      - "MYUNILA_DB_HOST"
+      - "API_DB_HOST"
+      - "KEUANGAN_DB_HOST"
+      - "MONITORING_DB_HOST"
+
+  tasks:
+    - name: "Backup .env"
+      copy:
+        src: "{{ env_file }}"
+        dest: "{{ env_file }}.bak.{{ ansible_date_time.iso8601_basic_short | default('backup') }}"
+        remote_src: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: "Update DB_HOST entries"
+      replace:
+        path: "{{ env_file }}"
+        regexp: '{{ item }}=192\.168\.123\.\d+'
+        replace: '{{ item }}={{ target_db_host }}'
+      loop: "{{ db_host_vars }}"
+      become_user: "{{ ansible_user }}"
+
+    - name: "Restart services"
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/sister/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/feeder/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/myunila/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/api/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/keuangan/docker-compose.yml up -d --force-recreate
+        docker compose --env-file .env -f services/monitoring/docker-compose.yml up -d --force-recreate
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: "Wait for services"
+      pause:
+        seconds: 10
+
+# ============================================
+# PHASE 4: Update VM5 (staging)
+# ============================================
+- name: "DB Failover — VM5 Staging"
+  hosts: staging
+  become: yes
+  gather_facts: no
+
+  vars:
+    env_file: "/var/www/my-unila/deployment/production/vm5-staging/.env"
+    deployment_dir: "/var/www/my-unila/deployment/production/vm5-staging"
+    db_host_vars:
+      - "DB_MSSQL_HOST"
+      - "AUTH_DB_HOST"
+      - "DASHBOARD_DB_HOST"
+      - "PUBLIC_DB_HOST"
+      - "SISTER_DB_HOST"
+      - "FEEDER_DB_HOST"
+      - "MYUNILA_DB_HOST"
+      - "API_DB_HOST"
+      - "KEUANGAN_DB_HOST"
+      - "MONITORING_DB_HOST"
+
+  tasks:
+    - name: "Backup .env"
+      copy:
+        src: "{{ env_file }}"
+        dest: "{{ env_file }}.bak.{{ ansible_date_time.iso8601_basic_short | default('backup') }}"
+        remote_src: yes
+      become_user: "{{ ansible_user }}"
+
+    - name: "Update DB_HOST entries"
+      replace:
+        path: "{{ env_file }}"
+        regexp: '{{ item }}=192\.168\.123\.\d+'
+        replace: '{{ item }}={{ target_db_host }}'
+      loop: "{{ db_host_vars }}"
+      become_user: "{{ ansible_user }}"
+
+    - name: "Restart PHP services"
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-php/docker-compose.auth.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-php/docker-compose.dashboard.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-php/docker-compose.public.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-php/docker-compose.nginx.yml restart
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: "Restart Go services"
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/backend-go/docker-compose.api.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-go/docker-compose.sister.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-go/docker-compose.feeder.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-go/docker-compose.myunila.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-go/docker-compose.keuangan.yml up -d --force-recreate
+        docker compose --env-file .env -f services/backend-go/docker-compose.monitoring.yml up -d --force-recreate
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: "Wait for services"
+      pause:
+        seconds: 10
+
+# ============================================
+# PHASE 5: Health check
+# ============================================
+- name: "DB Failover — Health Check"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: "Check VM2 Auth health"
+      uri:
+        url: "http://192.168.120.42:8081/health"
+        timeout: 5
+      register: vm2_health
+      ignore_errors: yes
+
+    - name: "Check VM5 Auth health"
+      uri:
+        url: "http://192.168.120.45:8081/health"
+        timeout: 5
+      register: vm5_health
+      ignore_errors: yes
+
+    - name: Show results
+      debug:
+        msg: |
+          ╔══════════════════════════════════════════════╗
+          ║          FAILOVER COMPLETE                   ║
+          ╚══════════════════════════════════════════════╝
+
+          Target DB: {{ target_db_host }}
+
+          Health Checks:
+            VM2 Auth: {{ 'OK ✅' if vm2_health.status is defined and vm2_health.status == 200 else 'FAIL ❌' }}
+            VM5 Auth: {{ 'OK ✅' if vm5_health.status is defined and vm5_health.status == 200 else 'FAIL ❌' }}
+
+          Rollback command:
+          {% if target_db_host == '192.168.123.190' %}
+            ansible-playbook playbooks/db-failover.yml --extra-vars "target_db_host=192.168.123.119"
+          {% else %}
+            ansible-playbook playbooks/db-failover.yml --extra-vars "target_db_host=192.168.123.190"
+          {% endif %}

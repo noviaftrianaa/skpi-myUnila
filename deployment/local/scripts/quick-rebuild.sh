@@ -10,7 +10,6 @@
 #   bash quick-rebuild.sh auth         # Rebuild only auth
 #   bash quick-rebuild.sh sister       # Rebuild only sister
 #   bash quick-rebuild.sh feeder       # Rebuild only feeder
-#   bash quick-rebuild.sh executive    # Rebuild only executive
 ###############################################################################
 
 # Colors
@@ -20,14 +19,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Detect if running in Git Bash on Windows
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    # Windows paths (Git Bash format)
-    REPO_DIR="/c/laragon/www/my-unila"
-else
-    # Unix paths
-    REPO_DIR=$(cd "$(dirname "$0")/../../.." && pwd)
-fi
+# Auto-detect paths (works on any machine/OS)
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 DEPLOYMENT_DIR="$REPO_DIR/deployment/local"
 
@@ -70,7 +63,7 @@ rebuild_service() {
     docker compose --env-file .env -f "$compose_file" up -d ${docker_service_name}
 
     # Clear Laravel caches if it's a PHP service (not Go services)
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -141,12 +134,18 @@ case "$SERVICE" in
         # Public uses nginx as reverse proxy, need to restart nginx too
         echo -e "${YELLOW}Restarting nginx to reconnect to public-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
+        # Generate API docs
+        echo "  → Generating Public Service docs..."
+        docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Docs generated" || echo "    ⚠ Docs failed"
         ;;
     auth)
         rebuild_service "auth"
         # Auth uses nginx as reverse proxy, need to restart nginx too
         echo -e "${YELLOW}Restarting nginx to reconnect to auth-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
+        # Generate API docs
+        echo "  → Generating Auth Service docs..."
+        docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Docs generated" || echo "    ⚠ Docs failed"
         ;;
     sister)
         rebuild_service "sister"
@@ -154,17 +153,20 @@ case "$SERVICE" in
     feeder)
         rebuild_service "feeder"
         ;;
+    keuangan)
+        rebuild_service "keuangan"
+        ;;
     myunila)
         rebuild_service "myunila"
         ;;
     api)
         rebuild_service "api"
         ;;
-    executive)
-        rebuild_service "executive"
-        # Executive uses nginx as reverse proxy, need to restart nginx too
-        echo -e "${YELLOW}Restarting nginx to reconnect to executive-service...${NC}"
-        docker restart myunila-nginx 2>/dev/null || true
+    dashboard)
+        rebuild_service "dashboard"
+        ;;
+    monitoring)
+        rebuild_service "monitoring"
         ;;
     frontend)
         rebuild_frontend
@@ -180,10 +182,30 @@ case "$SERVICE" in
         rebuild_service "auth"
         rebuild_service "sister"
         rebuild_service "feeder"
+        rebuild_service "keuangan"
         rebuild_service "myunila"
         rebuild_service "api"
-        rebuild_service "executive"
+        rebuild_service "dashboard"
+        rebuild_service "monitoring"
         rebuild_nginx
+
+        # Setup Kong routes after all services are up
+        echo ""
+        echo -e "${GREEN}Setting up Kong routes...${NC}"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        if [ -f "$SCRIPT_DIR/setup-kong-routes.sh" ]; then
+            bash "$SCRIPT_DIR/setup-kong-routes.sh"
+        else
+            echo -e "${YELLOW}⚠ Kong routes script not found, skipping...${NC}"
+        fi
+
+        # Generate API documentation for Laravel services
+        echo ""
+        echo -e "${GREEN}Generating API documentation...${NC}"
+        echo "  → Generating Public Service docs..."
+        docker exec myunila-public-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Public Service docs generated" || echo "    ⚠ Public Service docs failed"
+        echo "  → Generating Auth Service docs..."
+        docker exec myunila-auth-service php artisan l5-swagger:generate 2>/dev/null && echo "    ✓ Auth Service docs generated" || echo "    ⚠ Auth Service docs failed"
         echo ""
         ;;
     *)
@@ -195,9 +217,10 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh auth         # Rebuild auth only"
         echo "  bash quick-rebuild.sh sister       # Rebuild sister only"
         echo "  bash quick-rebuild.sh feeder       # Rebuild feeder only"
+        echo "  bash quick-rebuild.sh keuangan     # Rebuild keuangan only"
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
-        echo "  bash quick-rebuild.sh executive    # Rebuild executive only"
+        echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -234,6 +257,9 @@ fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "feeder" ]; then
     echo "  Feeder:    curl http://localhost:8084/health"
 fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "keuangan" ]; then
+    echo "  Keuangan:  curl http://localhost:8088/health"
+fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "myunila" ]; then
     echo "  MyUnila:   curl http://localhost:8086/health"
 fi
@@ -241,7 +267,10 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "api" ]; then
     echo "  OneData:   curl http://localhost:8085/health"
     echo "  API Docs:  http://localhost:8085/api/docs"
 fi
-if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "executive" ]; then
-    echo "  Executive: curl http://localhost:8087/api/health"
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
+    echo "  Dashboard:   curl http://localhost:8087/api/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "monitoring" ]; then
+    echo "  Monitoring:  curl http://localhost:8089/health"
 fi
 echo ""

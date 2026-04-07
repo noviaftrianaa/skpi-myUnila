@@ -9,8 +9,13 @@ apps_pdpt/storage/api-docs/api-docs.json
 dashboard/.env-mp
 dashboard/.env
 
-# Claude Code settings (local only)
+# Claude Code settings & docs (local only)
 .claude/
+docs/claude/
+.mcp.json
+
+# VSCode workspace settings (local only)
+.vscode/
 
 # Docker compose development files with credentials
 docker-compose.dev.yml
@@ -23,11 +28,44 @@ deployment/production/**/.env.production
 
 # Local development environment files (contains credentials)
 deployment/local/.env
+deployment/local/services/**/.env
+frontend/.env.local
+
+# SIMPEDAM proxy files (local tools)
+deployment/local/SIMPEDAM_PROXY_SETUP.md
+deployment/local/simpedam-proxy.js
+deployment/local/start-simpedam-proxy.bat
 
 # Keep .env.example files for reference
 !deployment/production/**/.env.example
+
+# Allow encrypted env files (SOPS)
+!deployment/production/**/.env.encrypted
 
 # Temporary files
 *.tmp
 *.log
 .DS_Store
+
+# Generated/temp docs (not source code)
+docs/progress-report*.html
+docs/progress-report*.pptx
+docs/generate_pptx.py
+
+# Documentation folders - ignore summary and sensitive security reports
+docs/summary/
+docs/security/
+
+# Monitoring GSC secrets
+deployment/local/secrets/
+
+# Root-level plan/temp docs
+MINIO_SETUP_PLAN.md
+
+# Monitoring & internal deployment plans (local only)
+deployment/docs/
+
+.env
+*.bak-*
+*.env.bak*
+backend/project-service/.env

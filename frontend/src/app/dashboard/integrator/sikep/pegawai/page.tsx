@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
 import {
   Card,
   CardBody,
@@ -165,10 +167,11 @@ export default function SikepPegawaiPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={myunilaIntegratorMenuConfig}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
       pageTitle="Data Pegawai SIKEP"
     >
       <div className="space-y-6">
@@ -501,6 +504,6 @@ export default function SikepPegawaiPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

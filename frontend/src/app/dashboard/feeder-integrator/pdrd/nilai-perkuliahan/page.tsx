@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederNilaiPerkuliahanTable from "@/shared/components/feeder-integrator/FeederNilaiPerkuliahanTable";
 import {
   Card,
@@ -23,6 +23,7 @@ import {
   FiXCircle,
   FiClock,
   FiAlertCircle,
+  FiDatabase,
   FiUsers,
   FiRefreshCw,
 } from "react-icons/fi";
@@ -31,6 +32,8 @@ import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
+
+const APP_KEY = "feeder-integrator";
 
 interface NilaiPerkuliahanStats {
   total_nilai: number;
@@ -215,10 +218,11 @@ export default function NilaiPerkuliahanManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Nilai Perkuliahan"
     >
       <div className="space-y-6">
@@ -665,6 +669,6 @@ export default function NilaiPerkuliahanManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

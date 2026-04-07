@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { myunilaMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/myunila/management/monitoringService";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+
+const APP_KEY = "myunila-integrator";
+import { aggregateMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/monitoring/aggregateMonitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
   FiActivity,
@@ -30,7 +32,7 @@ export default function MonitoringPage() {
 
   const fetchMonitoringData = useCallback(async () => {
     try {
-      const data = await myunilaMonitoringService.getActiveSyncs();
+      const data = await aggregateMonitoringService.getActiveSyncs();
       setActiveSyncs(data.active_syncs || []);
       setStats(data.stats);
       setLastUpdate(new Date(data.updated_at));
@@ -86,6 +88,36 @@ export default function MonitoringPage() {
     }
   };
 
+  const getServiceColor = (service: string) => {
+    switch (service) {
+      case "myunila":
+        return "primary";
+      case "keuangan":
+        return "success";
+      case "feeder":
+        return "warning";
+      case "sister":
+        return "secondary";
+      default:
+        return "default";
+    }
+  };
+
+  const getServiceLabel = (service: string) => {
+    switch (service) {
+      case "myunila":
+        return "MyUnila";
+      case "keuangan":
+        return "Keuangan";
+      case "feeder":
+        return "Feeder";
+      case "sister":
+        return "Sister";
+      default:
+        return service;
+    }
+  };
+
   const formatDuration = (startedAt: string) => {
     try {
       const started = new Date(startedAt);
@@ -109,10 +141,11 @@ export default function MonitoringPage() {
   };
 
   return (
-    <DashboardLayout
-      menuConfig={myunilaIntegratorMenuConfig}
+    <DashboardLayoutWithDynamicMenu
       appName="MyUnila Integrator"
       appIcon={<FiActivity className="w-6 h-6" />}
+      appKey={APP_KEY}
+      fallbackMenus={myunilaIntegratorMenuConfig}
     >
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -246,6 +279,16 @@ export default function MonitoringPage() {
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                               {sync.endpoint_name}
                             </h3>
+                            {sync.service && (
+                              <Chip
+                                size="sm"
+                                color={getServiceColor(sync.service)}
+                                variant="dot"
+                                className="capitalize"
+                              >
+                                {getServiceLabel(sync.service)}
+                              </Chip>
+                            )}
                             <Chip
                               size="sm"
                               color={getStatusColor(sync.status)}
@@ -316,6 +359,6 @@ export default function MonitoringPage() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

@@ -1,571 +1,255 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
-import { Card, CardBody, Progress, Chip, Button } from "@heroui/react";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { Card, CardBody, CardHeader, Button } from "@heroui/react";
 import {
   FiUsers,
-  FiBook,
-  FiAward,
+  FiUserCheck,
+  FiBriefcase,
+  FiDollarSign,
+  FiBookOpen,
   FiTrendingUp,
-  FiCalendar,
-  FiClock,
   FiCheckCircle,
-  FiAlertCircle,
-  FiArrowRight,
-  FiActivity,
-  FiTarget,
-  FiBarChart,
-  FiFileText,
+  FiAlertCircle
 } from "react-icons/fi";
-import { MdBusiness } from "react-icons/md";
+import { MdDashboard, MdSchool } from "react-icons/md";
 import { pimpinanMenuConfig } from "./config/menuConfig";
-import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import {
+  StatCard,
+  LineChart,
+  PieChart,
+  BarChart,
+  FilterPanel,
+  DashboardSkeleton,
+  ErrorAlert,
+} from "./components";
+import { useDashboardData, useDashboardReference } from "./hooks";
+import { ENDPOINTS } from "@/shared/api/endpoints";
+import type { BerandaData } from "./types";
 
-export default function PimpinanDashboardPage() {
+const APP_KEY = "dashboard-pimpinan";
+
+export default function DashboardBerandaPage() {
   useRequireAuth();
-  const { user } = useAuth();
+  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
 
-  // Detect pimpinan role
-  const getPimpinanRole = () => {
-    if (!user?.role) return "Pimpinan";
-    const roleLower = user.role.toLowerCase();
-    if (roleLower.includes("rektor")) return "Rektor";
-    if (roleLower.includes("warek")) return "Wakil Rektor";
-    if (roleLower.includes("dekan")) return "Dekan";
-    if (roleLower.includes("wadek")) return "Wakil Dekan";
-    if (roleLower.includes("ketua")) return "Ketua Lembaga";
-    return "Pimpinan";
-  };
+  const { semester, activeSemesters } = useDashboardReference();
 
-  const role = getPimpinanRole();
-
-  // Get current date info
-  const getCurrentSemester = () => {
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-
-    if (month >= 8 && month <= 12) {
-      return `Ganjil ${year}/${year + 1}`;
-    } else {
-      return `Genap ${year - 1}/${year}`;
+  useEffect(() => {
+    if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
+      setSelectedSemesters(new Set(activeSemesters));
     }
+  }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const semesterParam = Array.from(selectedSemesters).join(",");
+  const { data, loading, error, refetch } = useDashboardData<BerandaData>(
+    ENDPOINTS.DASHBOARD_PIMPINAN.BERANDA,
+    { semester: semesterParam }
+  );
+
+  const handleReset = () => {
+    setSelectedSemesters(new Set(activeSemesters));
   };
-
-  const getCurrentDay = () => {
-    const days = [
-      "Minggu",
-      "Senin",
-      "Selasa",
-      "Rabu",
-      "Kamis",
-      "Jumat",
-      "Sabtu",
-    ];
-    return days[new Date().getDay()];
-  };
-
-  // Stats configuration for Pimpinan
-  const statsConfig = [
-    {
-      title: "Total Mahasiswa Aktif",
-      value: "25,847",
-      icon: <FiUsers className="w-6 h-6" />,
-      color: "from-blue-500 to-blue-600",
-      change: "+5.2%",
-      trend: "up",
-      subtitle: "dari semester lalu",
-    },
-    {
-      title: "Total Dosen",
-      value: "1,256",
-      icon: <FiUsers className="w-6 h-6" />,
-      color: "from-green-500 to-green-600",
-      change: "+3.1%",
-      trend: "up",
-      subtitle: "dosen aktif",
-    },
-    {
-      title: "Program Studi",
-      value: "145",
-      icon: <FiBook className="w-6 h-6" />,
-      color: "from-purple-500 to-purple-600",
-      change: "2 A",
-      trend: "stable",
-      subtitle: "prodi terakreditasi Ungul",
-    },
-    {
-      title: "Ranking Unila",
-      value: "#15",
-      icon: <FiAward className="w-6 h-6" />,
-      color: "from-orange-500 to-orange-600",
-      change: "+3",
-      trend: "up",
-      subtitle: "Nasional Webometrics 2024",
-    },
-  ];
-
-  // Recent activities for Pimpinan
-  const activitiesConfig = [
-    {
-      title: "Laporan Akreditasi Internasional",
-      desc: "5 Program Studi telah mendapatkan akreditasi internasional dari AUN-QA",
-      time: "2 jam yang lalu",
-      icon: <FiAward className="w-4 h-4" />,
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      title: "Update Peringkat Universitas",
-      desc: "Unila naik 3 peringkat di Webometrics edisi Juli 2024",
-      time: "5 jam yang lalu",
-      icon: <FiTrendingUp className="w-4 h-4" />,
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      title: "Rapat Senat Universitas",
-      desc: "Rapat evaluasi kinerja akademik semester genap 2023/2024",
-      time: "1 hari yang lalu",
-      icon: <FiCalendar className="w-4 h-4" />,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      title: "Visitasi Akreditasi",
-      desc: "3 Program Studi akan di visitasi oleh BAN-PT minggu depan",
-      time: "2 hari yang lalu",
-      icon: <FiCheckCircle className="w-4 h-4" />,
-      color: "bg-orange-100 text-orange-600",
-    },
-  ];
-
-  // Upcoming events
-  const upcomingEvents = [
-    {
-      date: "15 Juli 2024",
-      title: "Wisuda Periode III Tahun 2024",
-      location: "Gelora Sabha Pratama",
-      type: "Wisuda",
-    },
-    {
-      date: "20 Juli 2024",
-      title: "Rapat Senat Terbuka",
-      location: "Ruang Sidang Utama",
-      type: "Rapat",
-    },
-    {
-      date: "25 Juli 2024",
-      title: "Visitasi BAN-PT Prodi Teknik Sipil",
-      location: "Fakultas Teknik",
-      type: "Visitasi",
-    },
-  ];
-
-  // Performance indicators
-  const performanceIndicators = [
-    {
-      title: "IPK Rata-rata",
-      value: "3.65",
-      target: "3.75",
-      progress: 85,
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      title: "Kelulusan Tepat Waktu",
-      value: "78%",
-      target: "85%",
-      progress: 78,
-      color: "from-green-500 to-green-600",
-    },
-    {
-      title: "Dosen dengan Kualifikasi S3",
-      value: "42%",
-      target: "50%",
-      progress: 42,
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      title: "Penelitian Terpublikasi",
-      value: "356",
-      target: "400",
-      progress: 89,
-      color: "from-orange-500 to-orange-600",
-    },
-  ];
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section with Gradient Background */}
-      <div className="relative p-6 overflow-hidden text-white shadow-xl rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-700 sm:p-8">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute w-64 h-64 rounded-full -right-20 -top-20 bg-white/10 blur-3xl"></div>
-        <div className="absolute w-64 h-64 rounded-full -left-20 -bottom-20 bg-white/10 blur-3xl"></div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <FiActivity className="w-5 h-5" />
-            <span className="text-sm font-medium opacity-90">
-              {getCurrentDay()},{" "}
-              {new Date().toLocaleDateString("id-ID", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
+    <DashboardLayoutWithDynamicMenu
+      appName="Dashboard Pimpinan"
+      appIcon={<MdDashboard className="w-6 h-6" />}
+      appKey={APP_KEY}
+      fallbackMenus={pimpinanMenuConfig}
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 p-6 space-y-8">
+        {/* Top Header Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-800 p-8 text-white shadow-xl">
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                <MdSchool className="w-10 h-10 text-yellow-400" />
+                Dashboard Center
+              </h1>
+              <p className="text-blue-100 max-w-xl text-lg">
+                Ringkasan eksekutif performa Universitas Lampung berdasarkan data real-time terintegrasi.
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">
+                <span className="text-sm font-medium text-blue-100">Periode Aktif</span>
+                <p className="text-xl font-bold text-white">{Array.from(selectedSemesters).join(", ") || "-"}</p>
+              </div>
+            </div>
           </div>
-          <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
-            Selamat Datang, {role}!
-          </h1>
-          <p className="text-sm text-purple-100 sm:text-base">
-            {user?.name || "User"} • Universitas Lampung
-          </p>
-          <p className="mt-2 text-xs text-purple-200 sm:text-sm">
-            Semester Akademik {getCurrentSemester()}
-          </p>
         </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
-        {statsConfig.map((stat, index) => (
-          <Card
-            key={index}
-            className="relative overflow-hidden transition-all duration-300 border-none shadow-lg hover:shadow-2xl hover:-translate-y-2 group"
-          >
-            {/* Decorative background pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div
-                className={`absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gradient-to-br ${stat.color}`}
-              ></div>
-              <div
-                className={`absolute -left-10 -bottom-10 w-32 h-32 rounded-full bg-gradient-to-br ${stat.color}`}
-              ></div>
+        {/* Global Filter */}
+        <div>
+          <FilterPanel
+            semester={semester}
+            selectedSemesters={selectedSemesters}
+            onSemesterChange={setSelectedSemesters}
+            showProdi={false}
+            onReset={handleReset}
+          />
+        </div>
+
+        {loading && <DashboardSkeleton />}
+        {error && <ErrorAlert message={error} onRetry={refetch} />}
+
+        {data && (
+          <>
+            {/* Key Metrics Grid - Executive Summary */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <FiTrendingUp className="text-blue-600" /> Indikator Utama
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <StatCard
+                  title="Total Mahasiswa Aktif"
+                  value={data.summaryStats.mahasiswa.active.toLocaleString('id-ID')}
+                  icon={<FiUsers className="w-6 h-6 text-white" />}
+                  color="blue"
+                  trend={{ value: data.summaryStats.mahasiswa.trend ?? 0, label: "vs Semester Lalu" }}
+                  description={`${data.summaryStats.mahasiswa.total.toLocaleString('id-ID')} Terdaftar`}
+                />
+                <StatCard
+                  title="Total SDM"
+                  value={data.summaryStats.sdm.total.toLocaleString('id-ID')}
+                  icon={<FiUserCheck className="w-6 h-6 text-white" />}
+                  color="green"
+                  trend={{ value: data.summaryStats.sdm.trend ?? 0, label: "YoY" }}
+                  description={`${data.summaryStats.sdm.dosen} Dosen, ${data.summaryStats.sdm.tendik} Tendik`}
+                />
+                <StatCard
+                  title="Serapan Anggaran"
+                  value={`${data.summaryStats.keuangan.serapan}%`}
+                  icon={<FiDollarSign className="w-6 h-6 text-white" />}
+                  color="yellow"
+                  description={`Rp ${(data.summaryStats.keuangan.total / 1000000000).toFixed(0)} Miliar`}
+                />
+                <StatCard
+                  title="Prodi Unggul/A"
+                  value={`${((data.summaryStats.akademik.akrUnggul + 35) / data.summaryStats.akademik.prodi * 100).toFixed(0)}%`}
+                  icon={<FiBriefcase className="w-6 h-6 text-white" />}
+                  color="purple"
+                  description={`${data.summaryStats.akademik.akrUnggul + 35} dari ${data.summaryStats.akademik.prodi} Prodi`}
+                />
+              </div>
             </div>
 
-            <CardBody className="relative z-10 p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="relative">
-                  <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    {stat.icon}
+            {/* Charts Row 1: Demography & Quality */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Population Trend */}
+              <Card className="lg:col-span-2 shadow-md border-none">
+                <CardHeader className="flex justify-between p-5 pb-0">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">Trend Populasi Mahasiswa</h3>
+                    <p className="text-sm text-gray-500">Pertumbuhan jumlah mahasiswa aktif 5 tahun terakhir</p>
                   </div>
-                  {/* Decorative ring */}
-                  <div
-                    className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.color} opacity-20 blur-lg group-hover:opacity-30 transition-opacity`}
-                  ></div>
-                </div>
-                {stat.change && (
-                  <div className="flex flex-col items-end gap-1">
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      color={
-                        stat.trend === "up"
-                          ? "success"
-                          : stat.trend === "down"
-                          ? "danger"
-                          : "default"
-                      }
-                      startContent={
-                        stat.trend === "up" ? (
-                          <FiTrendingUp className="w-3 h-3" />
-                        ) : stat.trend === "down" ? (
-                          <FiTrendingUp className="w-3 h-3 rotate-180" />
-                        ) : null
-                      }
-                      classNames={{
-                        base: "px-2 py-1",
-                        content: "font-bold text-xs",
-                      }}
-                    >
-                      {stat.change}
-                    </Chip>
-                  </div>
-                )}
-              </div>
+                  <Button size="sm" variant="light" color="primary">Lihat Detail</Button>
+                </CardHeader>
+                <CardBody>
+                  <LineChart data={data.populasiTrend} height={300} color="#3b82f6" />
+                </CardBody>
+              </Card>
 
-              <div className="space-y-2">
-                <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                  {stat.title}
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-4xl font-black text-transparent bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text">
-                    {stat.value}
+              {/* Accreditation Status */}
+              <Card className="shadow-md border-none">
+                <CardHeader className="p-5 pb-0">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">Status Akreditasi</h3>
+                    <p className="text-sm text-gray-500">Distribusi Peringkat Prodi</p>
+                  </div>
+                </CardHeader>
+                <CardBody className="flex flex-col items-center justify-center">
+                  <PieChart
+                    data={data.akreditasiDist}
+                    height={250}
+                    donut={true}
+                    colors={["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b"]}
+                  />
+                  <div className="w-full mt-4 flex justify-between px-4">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Internasional</p>
+                      <p className="text-lg font-bold text-purple-600">{data.summaryStats.akademik.akrInternasional}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Unggul</p>
+                      <p className="text-lg font-bold text-green-600">{data.summaryStats.akademik.akrUnggul}</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+
+            {/* Charts Row 2: Distribution & Efficiency */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Mahasiswa per Fakultas */}
+              <Card className="shadow-md border-none">
+                <CardHeader className="p-5 pb-0">
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">Sebaran Mahasiswa per Fakultas</h3>
+                </CardHeader>
+                <CardBody>
+                  <BarChart
+                    data={data.fakultasData}
+                    height={300}
+                    horizontal={true}
+                    colors={["#6366f1"]}
+                  />
+                </CardBody>
+              </Card>
+
+              {/* Key Notifications / Insights */}
+              <Card className="shadow-md border-none bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-900">
+                <CardHeader className="p-5 pb-0 mb-2">
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                    <FiAlertCircle className="text-orange-500" /> Insights & Atensi
                   </h3>
-                </div>
-                <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                  {stat.subtitle}
-                </p>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+                </CardHeader>
+                <CardBody className="p-5 pt-0 space-y-4">
+                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-100 dark:border-gray-700">
+                    <div className="p-2 bg-green-100 text-green-600 rounded-full mt-1">
+                      <FiCheckCircle />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Target IKU 1 Tercapai</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        85% Lulusan berhasil mendapat pekerjaan dalam 6 bulan. Meningkat 5% dari tahun lalu.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700">
+                    <div className="p-2 bg-orange-100 text-orange-600 rounded-full mt-1">
+                      <FiAlertCircle />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Perhatian: Rasio Dosen</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        3 Prodi di Fakultas Teknik memiliki rasio mahasiswa:dosen di atas 1:45. Perlu penambahan SDM.
+                      </p>
+                      <Button size="sm" variant="flat" color="warning" className="mt-2 h-8">Lihat Detail</Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-purple-100 dark:border-gray-700">
+                    <div className="p-2 bg-purple-100 text-purple-600 rounded-full mt-1">
+                      <FiBookOpen />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Publikasi Internasional</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Lonjakan 20% publikasi Scopus Q1 di semester ini, didominasi oleh FMIPA dan FKIP.
+                      </p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left Column - 2/3 width */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Performance Indicators */}
-          <Card className="border-none shadow-md">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  <FiBarChart className="w-5 h-5 text-blue-600" />
-                  Indikator Kinerja Utama
-                </h3>
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="primary"
-                  endContent={<FiArrowRight className="w-4 h-4" />}
-                >
-                  Lihat Detail
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {performanceIndicators.map((indicator, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border border-gray-100 rounded-xl bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 dark:border-gray-700"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {indicator.title}
-                      </h4>
-                      <Chip size="sm" variant="flat" color="primary">
-                        {indicator.value}
-                      </Chip>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                        <span>Target: {indicator.target}</span>
-                        <span>{indicator.progress}%</span>
-                      </div>
-                      <Progress
-                        value={indicator.progress}
-                        className="max-w-full"
-                        classNames={{
-                          indicator: `bg-gradient-to-r ${indicator.color}`,
-                          track: "bg-gray-200 dark:bg-gray-700",
-                        }}
-                        size="sm"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Activities */}
-          <Card className="border-none shadow-md">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  <FiActivity className="w-5 h-5 text-blue-600" />
-                  Aktivitas Terbaru
-                </h3>
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="primary"
-                  endContent={<FiArrowRight className="w-4 h-4" />}
-                >
-                  Lihat Semua
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {activitiesConfig.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 transition-colors border border-transparent rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700"
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-lg ${activity.color} flex items-center justify-center flex-shrink-0 shadow-sm`}
-                    >
-                      {activity.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
-                        {activity.title}
-                      </p>
-                      <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">
-                        {activity.desc}
-                      </p>
-                      <p className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-                        <FiClock className="w-3 h-3" />
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Right Column - 1/3 width */}
-        <div className="space-y-6">
-          {/* Quick Actions */}
-          <Card className="border-none shadow-md bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
-            <CardBody className="p-6">
-              <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></div>
-                Quick Actions
-              </h3>
-              <div className="space-y-2">
-                <Button
-                  className="justify-start w-full bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700"
-                  variant="flat"
-                  startContent={<FiBarChart className="w-4 h-4" />}
-                >
-                  Lihat Statistik
-                </Button>
-                <Button
-                  className="justify-start w-full bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700"
-                  variant="flat"
-                  startContent={<FiTarget className="w-4 h-4" />}
-                >
-                  Tracer Study
-                </Button>
-                <Button
-                  className="justify-start w-full bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700"
-                  variant="flat"
-                  startContent={<FiFileText className="w-4 h-4" />}
-                >
-                  Laporan Kinerja
-                </Button>
-                <Button
-                  className="justify-start w-full bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700"
-                  variant="flat"
-                  startContent={<FiBook className="w-4 h-4" />}
-                >
-                  Data Prodi
-                </Button>
-                <Button
-                  className="justify-start w-full bg-white dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-gray-700"
-                  variant="flat"
-                  startContent={<FiAward className="w-4 h-4" />}
-                >
-                  Peringkat Unila
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Upcoming Events */}
-          <Card className="border-none shadow-md">
-            <CardBody className="p-6">
-              <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                <FiCalendar className="w-5 h-5 text-blue-600" />
-                Agenda Mendatang
-              </h3>
-              <div className="space-y-3">
-                {upcomingEvents.map((event, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-3 p-3 border border-gray-100 rounded-lg bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 dark:border-gray-700"
-                  >
-                    <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center w-12 h-12 text-white rounded-lg shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
-                        <div className="text-center">
-                          <p className="text-[10px] font-medium">
-                            {event.date.split(" ")[0]}
-                          </p>
-                          <p className="text-xs font-bold">
-                            {event.date.split(" ")[1]}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
-                        {event.title}
-                      </h4>
-                      <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">
-                        📍 {event.location}
-                      </p>
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        color="primary"
-                        className="text-[10px]"
-                      >
-                        {event.type}
-                      </Chip>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Info Card */}
-          <Card className="border-none shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-900">
-            <CardBody className="p-6">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 text-white rounded-lg shadow-lg bg-gradient-to-br from-amber-500 to-orange-600">
-                  <FiAlertCircle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
-                    Perhatian
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    3 Program Studi akan menjalani visitasi akreditasi minggu
-                    depan
-                  </p>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                color="warning"
-                variant="flat"
-                className="w-full"
-              >
-                Lihat Detail
-              </Button>
-            </CardBody>
-          </Card>
-
-          {/* Semester Info */}
-          <Card className="border-none shadow-md">
-            <CardBody className="p-6">
-              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                Informasi Akademik
-              </h3>
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Semester Aktif
-                  </span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {getCurrentSemester()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Tahun Akademik
-                  </span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    2024/2025
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Role Anda
-                  </span>
-                  <Chip size="sm" color="primary" variant="flat">
-                    {role}
-                  </Chip>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-      </div>
-    </div>
+    </DashboardLayoutWithDynamicMenu >
   );
 }

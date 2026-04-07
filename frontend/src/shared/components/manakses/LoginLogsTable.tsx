@@ -270,6 +270,7 @@ export default function LoginLogsTable() {
           rowsPerPageOptions={[5, 10, 25, 50, 100]}
           serverSide={true}
           totalRecords={totalRecords}
+          currentPage={currentPage}
           onPageChange={setCurrentPage}
           onRowsPerPageChange={(newRowsPerPage) => {
             setRowsPerPage(newRowsPerPage);

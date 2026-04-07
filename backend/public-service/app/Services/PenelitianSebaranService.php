@@ -9,6 +9,9 @@ class PenelitianSebaranService
 {
     protected $repository;
 
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
+
     public function __construct(PenelitianSebaranRepository $repository)
     {
         $this->repository = $repository;
@@ -28,7 +31,7 @@ class PenelitianSebaranService
         $endYear = $endYear ?? $currentYear;
 
         $cacheKey = "penelitian_sebaran_fakultas_{$startYear}_{$endYear}";
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($startYear, $endYear) {
             $data = $this->repository->getSebaranPenelitianByFakultas($startYear, $endYear);
@@ -70,7 +73,7 @@ class PenelitianSebaranService
         $endYear = $endYear ?? $currentYear;
 
         $cacheKey = "penelitian_sebaran_prodi_{$idFakultas}_{$startYear}_{$endYear}";
-        $cacheDuration = 3600; // 1 hour
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas, $startYear, $endYear) {
             $data = $this->repository->getSebaranPenelitianByProdiInFakultas($idFakultas, $startYear, $endYear);

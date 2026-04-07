@@ -1,0 +1,125 @@
+openapi: 3.1.0
+info:
+  title: Feeder Service API
+  description: |
+    API untuk mengakses data dari Neo Feeder PDDIKTI yang tersinkronisasi ke MyUnila/OneData PDDIKTI.
+
+    ## Fitur Utama
+    - Data mahasiswa dari Feeder PDDIKTI
+    - Data kelas kuliah dan nilai perkuliahan
+    - Data kurikulum dan matakuliah
+    - Data aktivitas mahasiswa dan prestasi
+
+    ## Authentication
+    Sebagian besar endpoint memerlukan JWT Bearer token yang divalidasi melalui Kong Gateway.
+  version: 1.0.0
+  contact:
+    name: Tim MyUnila
+    email: myunila@unila.ac.id
+    url: https://my.unila.ac.id
+  license:
+    name: Internal Use Only
+    url: https://unila.ac.id
+
+servers:
+  - url: http://localhost:8084
+    description: Local Development
+  - url: http://localhost:9800/feeder
+    description: Via Kong Gateway (Local)
+  - url: https://api.unila.ac.id/feeder
+    description: Production
+
+tags:
+  - name: Health
+    description: Health check endpoint
+  - name: Mahasiswa
+    description: Data mahasiswa dari Feeder PDDIKTI
+  - name: Kelas Kuliah
+    description: Data kelas kuliah
+  - name: Nilai Perkuliahan
+    description: Nilai perkuliahan mahasiswa
+  - name: Kurikulum
+    description: Data kurikulum dan matakuliah
+  - name: Aktivitas Mahasiswa
+    description: Data aktivitas mahasiswa (KKN, PKL, dll)
+  - name: Prestasi
+    description: Data prestasi mahasiswa
+  - name: Transkrip Nilai
+    description: Data transkrip nilai
+  - name: Nilai Konversi
+    description: Data nilai konversi/transfer
+  - name: Rencana Evaluasi
+    description: Rencana evaluasi matakuliah
+  - name: Referensi
+    description: Data referensi dari Feeder PDDIKTI
+  - name: Dashboard
+    description: Statistik dashboard
+
+paths:
+  /health:
+    $ref: './paths/health.yaml#/health'
+
+  # Mahasiswa
+  /api/v1/mahasiswa:
+    $ref: './paths/mahasiswa.yaml#/list'
+  /api/v1/mahasiswa/stats:
+    $ref: './paths/mahasiswa.yaml#/stats'
+  /api/v1/mahasiswa/helper/angkatan:
+    $ref: './paths/mahasiswa.yaml#/helper-angkatan'
+  /api/v1/mahasiswa/helper/prodi:
+    $ref: './paths/mahasiswa.yaml#/helper-prodi'
+  /api/v1/mahasiswa/{id_pd}:
+    $ref: './paths/mahasiswa.yaml#/detail'
+
+  # Kelas Kuliah
+  /api/v1/kelas-kuliah:
+    $ref: './paths/kelas-kuliah.yaml#/list'
+  /api/v1/kelas-kuliah/stats:
+    $ref: './paths/kelas-kuliah.yaml#/stats'
+  /api/v1/kelas-kuliah/{id_kls}:
+    $ref: './paths/kelas-kuliah.yaml#/detail'
+
+  # Nilai Perkuliahan
+  /api/v1/nilai-perkuliahan:
+    $ref: './paths/nilai-perkuliahan.yaml#/list'
+  /api/v1/nilai-perkuliahan/stats:
+    $ref: './paths/nilai-perkuliahan.yaml#/stats'
+
+  # Kurikulum
+  /api/v1/kurikulum:
+    $ref: './paths/kurikulum.yaml#/list'
+  /api/v1/kurikulum/stats:
+    $ref: './paths/kurikulum.yaml#/stats'
+
+  # Aktivitas Mahasiswa
+  /api/v1/aktivitas-mahasiswa:
+    $ref: './paths/aktivitas-mahasiswa.yaml#/list'
+  /api/v1/aktivitas-mahasiswa/stats:
+    $ref: './paths/aktivitas-mahasiswa.yaml#/stats'
+
+  # Prestasi
+  /api/v1/prestasi:
+    $ref: './paths/prestasi.yaml#/list'
+  /api/v1/prestasi/stats:
+    $ref: './paths/prestasi.yaml#/stats'
+
+  # Dashboard
+  /api/v1/dashboard/stats:
+    $ref: './paths/dashboard.yaml#/stats'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token dari Kong Gateway
+
+  schemas:
+    $ref: './schemas/_index.yaml'
+
+  responses:
+    $ref: './responses/_index.yaml'
+
+security:
+  - bearerAuth: []

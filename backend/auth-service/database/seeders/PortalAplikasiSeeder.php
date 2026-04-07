@@ -93,7 +93,7 @@ class PortalAplikasiSeeder extends Seeder
         $apps = $this->getAplikasiData();
 
         $inserted = 0;
-        $updated = 0;
+        $skipped = 0;
 
         foreach ($apps as $app) {
             $kategoriId = $kategoris[$app['kategori']] ?? null;
@@ -110,6 +110,8 @@ class PortalAplikasiSeeder extends Seeder
             $aTerintegrasi = $app['a_terintegrasi'] ?? false;
             $aComingSoon = $app['a_coming_soon'] ?? false;
             $aMaintenance = $app['a_maintenance'] ?? false;
+            // a_live: explicitly set or auto-derive (terintegrasi + not coming_soon = live)
+            $aLive = $app['a_live'] ?? ($aTerintegrasi && !$aComingSoon);
 
             // Check if app exists by nm_aplikasi AND url (both must match)
             // Case-insensitive comparison for nm_aplikasi
@@ -120,60 +122,16 @@ class PortalAplikasiSeeder extends Seeder
             );
 
             if ($existing) {
-                // UPDATE existing app
-                // Boolean flags:
-                // - a_tampil_portal = 1 (show in portal)
-                // - a_aktif = 1 (active)
-                // - a_generate_menu = 0 (false)
-                // - a_integrasi_cas = 0 (false)
-                // - a_sistem_internal_pt = 0 (false)
-                // - a_terintegrasi, a_coming_soon, a_maintenance from data
-                // - expired_date = NULL (no expiry)
-                DB::update(
-                    "UPDATE man_akses.aplikasi SET
-                        ket_aplikasi = ?,
-                        icon_name = ?,
-                        icon_color = ?,
-                        id_kategori = ?,
-                        id_organisasi = ?,
-                        app_slug = ?,
-                        urutan = ?,
-                        a_tampil_portal = 1,
-                        a_generate_menu = 0,
-                        a_integrasi_cas = 0,
-                        a_sistem_internal_pt = 0,
-                        a_terintegrasi = ?,
-                        a_coming_soon = ?,
-                        a_maintenance = ?,
-                        a_aktif = 1,
-                        expired_date = NULL,
-                        last_update = GETDATE(),
-                        last_sync = GETDATE()
-                    WHERE id_aplikasi = ?",
-                    [
-                        $app['ket_aplikasi'],
-                        $app['icon_name'],
-                        $app['icon_color'],
-                        $kategoriId,
-                        $idOrganisasi,
-                        $app['app_slug'],
-                        $app['urutan'],
-                        $aTerintegrasi ? 1 : 0,
-                        $aComingSoon ? 1 : 0,
-                        $aMaintenance ? 1 : 0,
-                        $existing->id_aplikasi
-                    ]
-                );
-                $updated++;
-                $this->command->line("  ~ Updated '{$app['nm_aplikasi']}'");
+                $skipped++;
+                $this->command->line("  - Skipped '{$app['nm_aplikasi']}' (already exists)");
             } else {
                 // INSERT new app
                 DB::insert(
                     "INSERT INTO man_akses.aplikasi
                     (id_aplikasi, nm_aplikasi, ket_aplikasi, url, icon_name, icon_color, id_kategori, id_organisasi, app_slug, urutan,
                      a_tampil_portal, a_generate_menu, a_integrasi_cas, a_sistem_internal_pt, a_terintegrasi, a_coming_soon, a_maintenance,
-                     a_aktif, expired_date, tgl_create, last_update, last_sync)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?, 1, NULL, GETDATE(), GETDATE(), GETDATE())",
+                     a_live, a_aktif, expired_date, tgl_create, last_update, last_sync)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?, ?, 1, NULL, GETDATE(), GETDATE(), GETDATE())",
                     [
                         Str::uuid()->toString(),
                         $app['nm_aplikasi'],
@@ -187,7 +145,8 @@ class PortalAplikasiSeeder extends Seeder
                         $app['urutan'],
                         $aTerintegrasi ? 1 : 0,
                         $aComingSoon ? 1 : 0,
-                        $aMaintenance ? 1 : 0
+                        $aMaintenance ? 1 : 0,
+                        $aLive ? 1 : 0
                     ]
                 );
                 $inserted++;
@@ -195,7 +154,7 @@ class PortalAplikasiSeeder extends Seeder
             }
         }
 
-        $this->command->info("  Aplikasi: {$inserted} inserted, {$updated} updated");
+        $this->command->info("  Aplikasi: {$inserted} inserted, {$skipped} skipped");
     }
 
     /**
@@ -220,13 +179,15 @@ class PortalAplikasiSeeder extends Seeder
             // Akademik - Semua Unit (accessible by all homebase: Mahasiswa, Dosen, etc.)
             ['app_slug' => 'presensi-sirandu', 'nm_aplikasi' => 'Presensi (SIRANDU)', 'ket_aplikasi' => 'Sistem Presensi Perkuliahan', 'url' => '#', 'icon_name' => 'heroicons:clipboard-document-check', 'icon_color' => 'text-green-600', 'kategori' => 'Akademik', 'urutan' => 1, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'siakadu', 'nm_aplikasi' => 'SIAKADU', 'ket_aplikasi' => 'Sistem Informasi Akademik', 'url' => '#', 'icon_name' => 'heroicons:clipboard-document-list', 'icon_color' => 'text-blue-600', 'kategori' => 'Akademik', 'urutan' => 2, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
-            ['app_slug' => 'e-kkn', 'nm_aplikasi' => 'E-KKN', 'ket_aplikasi' => 'Sistem Kuliah Kerja Nyata', 'url' => '#', 'icon_name' => 'heroicons:map-pin', 'icon_color' => 'text-teal-600', 'kategori' => 'Akademik', 'urutan' => 3, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
+            ['app_slug' => 'e-kkn', 'nm_aplikasi' => 'SI KKN', 'ket_aplikasi' => 'Sistem Informasi Kuliah Kerja Nyata — Pendaftaran, Penempatan, Kegiatan, Penilaian', 'url' => '/dashboard/si-kkn', 'icon_name' => 'heroicons:map-pin', 'icon_color' => 'text-teal-600', 'kategori' => 'Akademik', 'urutan' => 3, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'berdampak-mbkm', 'nm_aplikasi' => 'Berdampak (MBKM)', 'ket_aplikasi' => 'Merdeka Belajar Kampus Merdeka', 'url' => '#', 'icon_name' => 'heroicons:presentation-chart-line', 'icon_color' => 'text-cyan-600', 'kategori' => 'Akademik', 'urutan' => 4, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'v-class', 'nm_aplikasi' => 'V-CLASS', 'ket_aplikasi' => 'Platform Pembelajaran Virtual', 'url' => '#', 'icon_name' => 'heroicons:building-library', 'icon_color' => 'text-sky-600', 'kategori' => 'Akademik', 'urutan' => 5, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'wali', 'nm_aplikasi' => 'Wali', 'ket_aplikasi' => 'Sistem Perwalian', 'url' => '#', 'icon_name' => 'heroicons:users', 'icon_color' => 'text-violet-600', 'kategori' => 'Akademik', 'urutan' => 6, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'sikebas', 'nm_aplikasi' => 'SIKEBAS', 'ket_aplikasi' => 'Sistem Keringanan & Bebas UKT', 'url' => '#', 'icon_name' => 'heroicons:banknotes', 'icon_color' => 'text-emerald-600', 'kategori' => 'Akademik', 'urutan' => 7, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'sikep', 'nm_aplikasi' => 'SIKEP', 'ket_aplikasi' => 'Sistem Kepegawaian', 'url' => '#', 'icon_name' => 'heroicons:identification', 'icon_color' => 'text-rose-600', 'kategori' => 'Akademik', 'urutan' => 8, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => false, 'a_coming_soon' => true],
             ['app_slug' => 'spmi', 'nm_aplikasi' => 'SPMI', 'ket_aplikasi' => 'Sistem Penjaminan Mutu Internal', 'url' => '#', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-lime-600', 'kategori' => 'Akademik', 'urutan' => 9, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
+            // NOTE: SIMBA dihapus — fungsinya sudah di-cover SI MBAK (sim-bak)
+            ['app_slug' => 'sim-bak', 'nm_aplikasi' => 'SI MBAK', 'ket_aplikasi' => 'Sistem Informasi Manajemen BAK - Layanan Administrasi Kemahasiswaan', 'url' => '/dashboard/sim-bak', 'icon_name' => 'heroicons:document-check', 'icon_color' => 'text-amber-600', 'kategori' => 'Akademik', 'urutan' => 11, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => true, 'a_coming_soon' => false],
 
             // Riset dan Kerjasama - Universitas Lampung (Rektorat/Dosen)
             ['app_slug' => 'si-penelitian', 'nm_aplikasi' => 'SI Penelitian', 'ket_aplikasi' => 'Manajemen penelitian', 'url' => '#', 'icon_name' => 'heroicons:document-text', 'icon_color' => 'text-sky-600', 'kategori' => 'Riset dan Kerjasama', 'urutan' => 1, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => false, 'a_coming_soon' => true],
@@ -245,14 +206,15 @@ class PortalAplikasiSeeder extends Seeder
             ['app_slug' => 'service-layanan', 'nm_aplikasi' => 'Service Layanan', 'ket_aplikasi' => 'Layanan untuk Alumni', 'url' => '#', 'icon_name' => 'heroicons:hand-raised', 'icon_color' => 'text-teal-600', 'kategori' => 'Alumni', 'urutan' => 2, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => true],
 
             // Dashboard & Akreditasi - Universitas Lampung (Pimpinan only)
-            ['app_slug' => 'iku-dashboard', 'nm_aplikasi' => 'IKU Dashboard', 'ket_aplikasi' => 'Dashboard Indikator Kinerja Utama', 'url' => '#', 'icon_name' => 'heroicons:chart-pie', 'icon_color' => 'text-blue-600', 'kategori' => 'Dashboard & Akreditasi', 'urutan' => 1, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => false, 'a_coming_soon' => true],
-            ['app_slug' => 'dashboard-pimpinan', 'nm_aplikasi' => 'Dashboard Pimpinan', 'ket_aplikasi' => 'Visualisasi Data dan Analitik untuk Pengambilan Keputusan', 'url' => '#', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-indigo-600', 'kategori' => 'Dashboard & Akreditasi', 'urutan' => 2, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => false, 'a_coming_soon' => true],
+            // NOTE: IKU Dashboard dan Dashboard Unila DIHAPUS — sudah merged ke Dashboard Pimpinan
+            ['app_slug' => 'dashboard-pimpinan', 'nm_aplikasi' => 'Dashboard Pimpinan', 'ket_aplikasi' => 'Visualisasi Data Akademik, IKU, dan Analitik Pimpinan', 'url' => '/dashboard/pimpinan', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-indigo-600', 'kategori' => 'Dashboard & Akreditasi', 'urutan' => 1, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => true, 'a_coming_soon' => false],
+            ['app_slug' => 'data-unila', 'nm_aplikasi' => 'Data Unila', 'ket_aplikasi' => 'Portal Raw Data Akademik Universitas Lampung', 'url' => '/dashboard/data-unila', 'icon_name' => 'heroicons:table-cells', 'icon_color' => 'text-emerald-600', 'kategori' => 'Dashboard & Akreditasi', 'urutan' => 2, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => true, 'a_coming_soon' => false],
 
             // Data dan Pelaporan - Universitas Lampung/UPT TIK (INTEGRATED)
             ['app_slug' => 'feeder-integrator', 'nm_aplikasi' => 'Feeder Integrator', 'ket_aplikasi' => 'Integrasi Data PDDikti', 'url' => '/dashboard/feeder-integrator', 'icon_name' => 'heroicons:server', 'icon_color' => 'text-cyan-600', 'kategori' => 'Data dan Pelaporan', 'urutan' => 1, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'sister-integrator', 'nm_aplikasi' => 'SISTER Integrator', 'ket_aplikasi' => 'Integrasi SISTER Kemenristekdikti', 'url' => '/dashboard/sister-integrator', 'icon_name' => 'heroicons:building-office', 'icon_color' => 'text-purple-600', 'kategori' => 'Data dan Pelaporan', 'urutan' => 2, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => true, 'a_coming_soon' => false],
-            ['app_slug' => 'myunila-integrator', 'nm_aplikasi' => 'myUnila Integrator', 'ket_aplikasi' => 'Integrasi Apps Existing di Unila', 'url' => '/dashboard/integrator', 'icon_name' => 'heroicons:link', 'icon_color' => 'text-emerald-600', 'kategori' => 'Data dan Pelaporan', 'urutan' => 3, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
-            ['app_slug' => 'data-unila', 'nm_aplikasi' => 'Data Unila', 'ket_aplikasi' => 'Raw Data Kebutuhan Pelaporan Data di Unila', 'url' => '#', 'icon_name' => 'heroicons:table-cells', 'icon_color' => 'text-emerald-600', 'kategori' => 'Data dan Pelaporan', 'urutan' => 4, 'id_organisasi' => self::ORG_UNILA, 'a_terintegrasi' => false, 'a_coming_soon' => true],
+            ['app_slug' => 'myunila-integrator', 'nm_aplikasi' => 'myUnila Integrator', 'ket_aplikasi' => 'Integrasi Apps Internal Unila (SIKEP, Siakadu, Sirandu, SIMPEDAM)', 'url' => '/dashboard/integrator', 'icon_name' => 'heroicons:link', 'icon_color' => 'text-emerald-600', 'kategori' => 'Data dan Pelaporan', 'urutan' => 3, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
+            // NOTE: Data Unila dipindahkan ke Dashboard & Akreditasi (bukan di sini)
 
             // Layanan - Semua Unit (publik/accessible by all)
             ['app_slug' => 'helpdesk-tik', 'nm_aplikasi' => 'Helpdesk TIK', 'ket_aplikasi' => 'Layanan Bantuan TIK', 'url' => 'https://helpdesktik.unila.ac.id', 'icon_name' => 'heroicons:phone', 'icon_color' => 'text-red-600', 'kategori' => 'Layanan', 'urutan' => 1, 'id_organisasi' => self::ORG_SEMUA_UNIT, 'a_terintegrasi' => false, 'a_coming_soon' => false],
@@ -262,6 +224,7 @@ class PortalAplikasiSeeder extends Seeder
             ['app_slug' => 'api-gateway', 'nm_aplikasi' => 'API Gateway', 'ket_aplikasi' => 'Kong Dashboard', 'url' => '/portal/kong-admin', 'icon_name' => 'heroicons:cube', 'icon_color' => 'text-blue-600', 'kategori' => 'Tools & Utilities', 'urutan' => 1, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'monitoring', 'nm_aplikasi' => 'Monitoring & Observability', 'ket_aplikasi' => 'Grafana, Prometheus, Loki', 'url' => '/portal/monitoring', 'icon_name' => 'heroicons:chart-bar', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 2, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
             ['app_slug' => 'manajemen-akses', 'nm_aplikasi' => 'Manajemen Akses myUnila', 'ket_aplikasi' => 'Identity & Access Management', 'url' => '/dashboard/manajemen-akses', 'icon_name' => 'heroicons:key', 'icon_color' => 'text-indigo-600', 'kategori' => 'Tools & Utilities', 'urutan' => 3, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
+            ['app_slug' => 'webmon', 'nm_aplikasi' => 'Web Monitoring', 'ket_aplikasi' => 'Web Monitoring & Early Warning System', 'url' => '/dashboard/web-monitoring', 'icon_name' => 'heroicons:shield-check', 'icon_color' => 'text-orange-600', 'kategori' => 'Tools & Utilities', 'urutan' => 4, 'id_organisasi' => self::ORG_UPT_TIK, 'a_terintegrasi' => true, 'a_coming_soon' => false],
         ];
     }
 }

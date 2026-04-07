@@ -496,6 +496,7 @@ export default function AplikasiFormModal({
     a_coming_soon: false,
     a_terintegrasi: false,
     a_live: false,
+    a_filter_organisasi: false,
     status: 'Aktif',
   });
 
@@ -565,6 +566,7 @@ export default function AplikasiFormModal({
         a_coming_soon: aplikasi.a_coming_soon || false,
         a_terintegrasi: aplikasi.a_terintegrasi || false,
         a_live: aplikasi.a_live || false,
+        a_filter_organisasi: aplikasi.a_filter_organisasi || false,
         status: aplikasi.status || 'Aktif',
       });
       // Set selected unit for edit mode (to preserve in autocomplete list)
@@ -605,6 +607,7 @@ export default function AplikasiFormModal({
         a_coming_soon: false,
         a_terintegrasi: false,
         a_live: false,
+    a_filter_organisasi: false,
         status: 'Aktif',
       });
       setSelectedUnit(null);
@@ -691,8 +694,11 @@ export default function AplikasiFormModal({
       scrollBehavior="inside"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+        base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
         closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
+        body: "px-0",
+        header: "px-3 sm:px-6",
+        footer: "px-3 sm:px-6",
       }}
     >
       <ModalContent>
@@ -713,11 +719,11 @@ export default function AplikasiFormModal({
               selectedKey={activeTab}
               onSelectionChange={(key) => setActiveTab(key as string)}
               classNames={{
-                tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-6 mt-4",
+                tabList: "bg-gray-100 dark:bg-slate-700/50 p-1 rounded-lg mx-3 sm:mx-6 mt-4 flex-wrap sm:flex-nowrap",
                 cursor: "bg-white dark:bg-slate-600 shadow-sm",
-                tab: "px-4 py-2 text-sm font-medium",
+                tab: "px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium",
                 tabContent: "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-400",
-                panel: "px-6 py-5",
+                panel: "px-3 sm:px-6 py-4 sm:py-5",
               }}
             >
               {/* Basic Info Tab */}
@@ -731,7 +737,7 @@ export default function AplikasiFormModal({
                     </h4>
                     <div className="space-y-4">
                       {/* Nama & Kategori */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             Nama Aplikasi <span className="text-red-500">*</span>
@@ -876,8 +882,8 @@ export default function AplikasiFormModal({
                     </h4>
                     <div className="space-y-4">
                       {/* URL and Port */}
-                      <div className="grid grid-cols-4 gap-3">
-                        <div className="col-span-3 space-y-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="sm:col-span-3 space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             URL Aplikasi
                           </label>
@@ -918,7 +924,7 @@ export default function AplikasiFormModal({
                       </div>
 
                       {/* Teknologi and Endpoint WS */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                             Teknologi
@@ -1224,6 +1230,38 @@ export default function AplikasiFormModal({
                           className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
                         />
                         <span className="text-sm font-medium text-gray-800 dark:text-white">Terintegrasi myUnila</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Akses Organisasi Section */}
+                  <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      Pembatasan Akses Organisasi
+                    </h4>
+                    <div className="space-y-3">
+                      <label
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          formData.a_filter_organisasi
+                            ? "border-blue-400 bg-white dark:bg-blue-900/20 shadow-sm"
+                            : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.a_filter_organisasi}
+                          onChange={(e) =>
+                            setFormData({ ...formData, a_filter_organisasi: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">Filter Organisasi</span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Jika aktif, hanya organisasi yang di-whitelist yang bisa mengakses aplikasi ini. Role universal (Mahasiswa, Dosen, Tendik, Rektor, dll) tetap bisa akses.
+                          </p>
+                        </div>
                       </label>
                     </div>
                   </div>

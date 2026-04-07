@@ -108,7 +108,7 @@ export default function DashboardNavbar({
 
   const handleLogout = () => {
     logout();
-    router.push("/auth/login");
+    router.push("/login");
   };
 
   const markAsRead = (id: number) => {

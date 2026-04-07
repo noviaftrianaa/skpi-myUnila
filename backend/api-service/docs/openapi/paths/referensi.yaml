@@ -1,0 +1,2500 @@
+# Referensi API Paths
+
+semester:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar semester
+    description: Mengambil daftar semester dengan pagination dan filter. Memerlukan autentikasi JWT.
+    operationId: getSemesters
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: tahun_ajaran
+        in: query
+        description: Filter berdasarkan tahun ajaran
+        schema:
+          type: integer
+      - name: periode_aktif
+        in: query
+        description: Filter periode aktif (1=aktif, 0=tidak)
+        schema:
+          type: integer
+          enum: [0, 1]
+    responses:
+      '200':
+        description: Berhasil mengambil data semester
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tahun-ajaran:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tahun ajaran
+    description: Mengambil daftar tahun ajaran dengan pagination dan filter. Memerlukan autentikasi JWT.
+    operationId: getTahunAjarans
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: periode_aktif
+        in: query
+        description: Filter periode aktif (1=aktif, 0=tidak)
+        schema:
+          type: integer
+          enum: [0, 1]
+    responses:
+      '200':
+        description: Berhasil mengambil data tahun ajaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+agama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar agama
+    description: Mengambil daftar agama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getAgamas
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data agama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+wilayah:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar wilayah
+    description: |
+      Mengambil daftar wilayah dengan pagination dan filter level.
+
+      Level wilayah:
+      - 1 = Provinsi
+      - 2 = Kabupaten/Kota
+      - 3 = Kecamatan
+      - 4 = Kelurahan/Desa
+
+      Memerlukan autentikasi JWT.
+    operationId: getWilayahs
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: level
+        in: query
+        description: Level wilayah (1=Provinsi, 2=Kab/Kota, 3=Kecamatan, 4=Kelurahan)
+        schema:
+          type: integer
+          enum: [1, 2, 3, 4]
+      - name: id_induk_wilayah
+        in: query
+        description: Filter berdasarkan ID induk wilayah
+        schema:
+          type: string
+      - name: id_negara
+        in: query
+        description: Filter berdasarkan ID negara
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data wilayah
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# BENTUK ENDPOINTS
+# =============================================================================
+
+bentuk-kegiatan-kerjasama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bentuk kegiatan kerjasama
+    description: Mengambil daftar bentuk kegiatan kerjasama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getBentukKegiatanKerjasama
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bentuk kegiatan kerjasama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+bentuk-pendidikan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bentuk pendidikan
+    description: |
+      Mengambil daftar bentuk pendidikan dengan pagination.
+      
+      Setiap bentuk pendidikan memiliki flag untuk jenjang:
+      - a_jenj_paud: Jenjang PAUD
+      - a_jenj_tk: Jenjang TK
+      - a_jenj_sd: Jenjang SD
+      - a_jenj_smp: Jenjang SMP
+      - a_jenj_sma: Jenjang SMA
+      - a_jenj_tinggi: Jenjang Tinggi
+
+      Memerlukan autentikasi JWT.
+    operationId: getBentukPendidikan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bentuk pendidikan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# BIDANG ENDPOINTS
+# =============================================================================
+
+bidang-kerjasama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bidang kerjasama
+    description: Mengambil daftar bidang kerjasama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getBidangKerjasama
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bidang kerjasama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+bidang-pekerjaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bidang pekerjaan
+    description: Mengambil daftar bidang pekerjaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getBidangPekerjaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bidang pekerjaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+bidang-studi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bidang studi
+    description: |
+      Mengambil daftar bidang studi dengan pagination.
+      
+      Bidang studi memiliki struktur hierarki dengan id_induk_bidang_studi.
+      Setiap bidang studi memiliki flag untuk jenjang pendidikan.
+
+      Memerlukan autentikasi JWT.
+    operationId: getBidangStudi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bidang studi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+bidang-usaha:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar bidang usaha
+    description: Mengambil daftar bidang usaha dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getBidangUsaha
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data bidang usaha
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# TINGKAT ENDPOINTS
+# =============================================================================
+
+tingkat-kerjasama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tingkat kerjasama
+    description: Mengambil daftar tingkat kerjasama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getTingkatKerjasama
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data tingkat kerjasama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tingkat-penghargaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tingkat penghargaan
+    description: Mengambil daftar tingkat penghargaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getTingkatPenghargaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data tingkat penghargaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tingkat-prestasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tingkat prestasi
+    description: Mengambil daftar tingkat prestasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getTingkatPrestasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data tingkat prestasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# SUMBER ENDPOINTS
+# =============================================================================
+
+sumber-air:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar sumber air
+    description: Mengambil daftar sumber air dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getSumberAir
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data sumber air
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+sumber-dana:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar sumber dana
+    description: |
+      Mengambil daftar sumber dana dengan pagination.
+      
+      Setiap sumber dana memiliki flag penggunaan:
+      - u_blockgrant: Untuk blockgrant
+      - u_beasiswa: Untuk beasiswa
+      - u_lit: Untuk penelitian
+      - u_unit_usaha: Untuk unit usaha
+
+      Memerlukan autentikasi JWT.
+    operationId: getSumberDana
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data sumber dana
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+sumber-gaji:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar sumber gaji
+    description: Mengambil daftar sumber gaji dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getSumberGaji
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data sumber gaji
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+sumber-listrik:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar sumber listrik
+    description: Mengambil daftar sumber listrik dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getSumberListrik
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data sumber listrik
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# PETA ENDPOINTS
+# =============================================================================
+
+peta-katgiat-jabfung:
+  get:
+    tags:
+      - Referensi
+    summary: Get peta kategori kegiatan - jabatan fungsional
+    description: |
+      Mengambil daftar peta kategori kegiatan ke jabatan fungsional dengan pagination.
+      
+      Peta ini menghubungkan kategori kegiatan dengan jabatan fungsional.
+
+      Memerlukan autentikasi JWT.
+    operationId: getPetaKatgiatJabfung
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data peta kategori kegiatan - jabatan fungsional
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+peta-katgiat-jnsdok:
+  get:
+    tags:
+      - Referensi
+    summary: Get peta kategori kegiatan - jenis dokumen
+    description: |
+      Mengambil daftar peta kategori kegiatan ke jenis dokumen dengan pagination.
+      
+      Peta ini menghubungkan kategori kegiatan dengan jenis dokumen.
+      Memiliki informasi:
+      - a_wajib: Apakah dokumen wajib
+      - no_urut: Urutan dokumen
+
+      Memerlukan autentikasi JWT.
+    operationId: getPetaKatgiatJnsdok
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data peta kategori kegiatan - jenis dokumen
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+peta-katgiat-jnspub:
+  get:
+    tags:
+      - Referensi
+    summary: Get peta kategori kegiatan - jenis publikasi
+    description: |
+      Mengambil daftar peta kategori kegiatan ke jenis publikasi dengan pagination.
+      
+      Peta ini menghubungkan kategori kegiatan dengan jenis publikasi.
+
+      Memerlukan autentikasi JWT.
+    operationId: getPetaKatgiatJnspub
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data peta kategori kegiatan - jenis publikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# COMMON ENDPOINTS (ADDITIONAL)
+# =============================================================================
+
+aktifitas-kerjasama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar aktifitas kerjasama
+    description: Mengambil daftar aktifitas kerjasama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getAktifitasKerjasama
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data aktifitas kerjasama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+basis-evaluasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar basis evaluasi
+    description: Mengambil daftar basis evaluasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getBasisEvaluasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data basis evaluasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+fungsi-lab:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar fungsi laboratorium
+    description: Mengambil daftar fungsi laboratorium dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getFungsiLab
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data fungsi laboratorium
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+gelar-akademik:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar gelar akademik
+    description: Mengambil daftar gelar akademik dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getGelarAkademik
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: posisi_gelar
+        in: query
+        description: Filter berdasarkan posisi gelar
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data gelar akademik
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+ikatan-kerja-sdm:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar ikatan kerja SDM
+    description: Mengambil daftar ikatan kerja SDM dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getIkatanKerjaSdm
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data ikatan kerja SDM
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jalur-daftar:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jalur pendaftaran
+    description: Mengambil daftar jalur pendaftaran dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJalurDaftar
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jalur pendaftaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenjang-pendidikan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenjang pendidikan
+    description: Mengambil daftar jenjang pendidikan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenjangPendidikan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenjang pendidikan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jurusan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jurusan
+    description: Mengambil daftar jurusan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJurusan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jurusan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kbli:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar KBLI (Klasifikasi Baku Lapangan Usaha Indonesia)
+    description: Mengambil daftar KBLI dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKbli
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data KBLI
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+keahlian-lab:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar keahlian laboratorium
+    description: Mengambil daftar keahlian laboratorium dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKeahlianLab
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data keahlian laboratorium
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kebutuhan-khusus:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kebutuhan khusus
+    description: Mengambil daftar kebutuhan khusus dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKebutuhanKhusus
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kebutuhan khusus
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kriteria-mitra:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kriteria mitra
+    description: Mengambil daftar kriteria mitra dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKriteriaMitra
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kriteria mitra
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+level-wilayah:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar level wilayah
+    description: Mengambil daftar level wilayah dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getLevelWilayah
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data level wilayah
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+media-publikasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar media publikasi
+    description: Mengambil daftar media publikasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getMediaPublikasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data media publikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+negara:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar negara
+    description: Mengambil daftar negara dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getNegara
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data negara
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+nilai-akred:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar nilai akreditasi
+    description: Mengambil daftar nilai akreditasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getNilaiAkred
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data nilai akreditasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+pangkat-golongan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar pangkat golongan
+    description: Mengambil daftar pangkat golongan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getPangkatGolongan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data pangkat golongan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+pekerjaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar pekerjaan
+    description: Mengambil daftar pekerjaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getPekerjaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data pekerjaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+pembiayaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar pembiayaan
+    description: Mengambil daftar pembiayaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getPembiayaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data pembiayaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+penghasilan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar penghasilan
+    description: Mengambil daftar penghasilan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getPenghasilan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data penghasilan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+satuan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar satuan
+    description: Mengambil daftar satuan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getSatuan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data satuan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tahun-anggaran:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar tahun anggaran
+    description: Mengambil daftar tahun anggaran dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getTahunAnggaran
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data tahun anggaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+tse:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar TSE
+    description: Mengambil daftar TSE dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getTse
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data TSE
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+skim-kegiatan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar skim kegiatan
+    description: Mengambil daftar skim kegiatan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getSkimKegiatan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data skim kegiatan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# JAB ENDPOINTS
+# =============================================================================
+
+jab-tgs:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jabatan tugas
+    description: Mengambil daftar jabatan tugas dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJabTgs
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_kel_prof
+        in: query
+        description: Filter berdasarkan kelompok profesi
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data jabatan tugas
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jabfung:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jabatan fungsional
+    description: Mengambil daftar jabatan fungsional dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJabfung
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_kel_prof
+        in: query
+        description: Filter berdasarkan kelompok profesi
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data jabatan fungsional
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# JENIS ENDPOINTS
+# =============================================================================
+
+jenis-akt-mhs:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis aktivitas mahasiswa
+    description: Mengambil daftar jenis aktivitas mahasiswa dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisAktMhs
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: kegiatan_kampus_merdeka
+        in: query
+        description: Filter kegiatan kampus merdeka
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis aktivitas mahasiswa
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-bahan-ajar:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis bahan ajar
+    description: Mengambil daftar jenis bahan ajar dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisBahanAjar
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis bahan ajar
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-beasiswa:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis beasiswa
+    description: Mengambil daftar jenis beasiswa dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisBeasiswa
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_sumber_dana
+        in: query
+        description: Filter berdasarkan sumber dana
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis beasiswa
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-diklat:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis diklat
+    description: Mengambil daftar jenis diklat dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisDiklat
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis diklat
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-dokumen:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis dokumen
+    description: Mengambil daftar jenis dokumen dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisDokumen
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis dokumen
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-evaluasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis evaluasi
+    description: Mengambil daftar jenis evaluasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisEvaluasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis evaluasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-hapus-buku:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis hapus buku
+    description: Mengambil daftar jenis hapus buku dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisHapusBuku
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis hapus buku
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-jalur-pekerjaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis jalur pekerjaan
+    description: Mengambil daftar jenis jalur pekerjaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisJalurPekerjaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis jalur pekerjaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-keluar:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis keluar
+    description: Mengambil daftar jenis keluar dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisKeluar
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis keluar
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-kepanitiaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis kepanitiaan
+    description: Mengambil daftar jenis kepanitiaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisKepanitiaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis kepanitiaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-kesejahteraan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis kesejahteraan
+    description: Mengambil daftar jenis kesejahteraan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisKesejahteraan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis kesejahteraan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-keuangan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis keuangan
+    description: Mengambil daftar jenis keuangan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisKeuangan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis keuangan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-lembaga:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis lembaga
+    description: Mengambil daftar jenis lembaga dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisLembaga
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis lembaga
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-media-pub:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis media publikasi
+    description: Mengambil daftar jenis media publikasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisMediaPub
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis media publikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-mk:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis mata kuliah
+    description: Mengambil daftar jenis mata kuliah dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisMk
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis mata kuliah
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-pendaftaran:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis pendaftaran
+    description: Mengambil daftar jenis pendaftaran dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPendaftaran
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis pendaftaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-penelitian:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis penelitian
+    description: Mengambil daftar jenis penelitian dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPenelitian
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis penelitian
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-penghargaan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis penghargaan
+    description: Mengambil daftar jenis penghargaan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPenghargaan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis penghargaan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-prasarana:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis prasarana
+    description: Mengambil daftar jenis prasarana dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPrasarana
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis prasarana
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-prestasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis prestasi
+    description: Mengambil daftar jenis prestasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPrestasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis prestasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-publikasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis publikasi
+    description: Mengambil daftar jenis publikasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisPublikasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis publikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-sarana:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis sarana
+    description: Mengambil daftar jenis sarana dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisSarana
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis sarana
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-sdm:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis SDM
+    description: Mengambil daftar jenis SDM dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisSdm
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis SDM
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-sert:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis sertifikasi
+    description: Mengambil daftar jenis sertifikasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisSert
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis sertifikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-sms:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis SMS
+    description: Mengambil daftar jenis SMS dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisSms
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis SMS
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-subst:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis substansi
+    description: Mengambil daftar jenis substansi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisSubst
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis substansi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-tes:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis tes
+    description: Mengambil daftar jenis tes dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisTes
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis tes
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-tinggal:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis tinggal
+    description: Mengambil daftar jenis tinggal dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisTinggal
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis tinggal
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-tunjangan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis tunjangan
+    description: Mengambil daftar jenis tunjangan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getJenisTunjangan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis tunjangan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+jenis-unit:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar jenis unit
+    description: |
+      Mengambil daftar jenis unit dengan pagination.
+      
+      Data ini berasal dari tabel SMS dengan soft delete (bukan expired_date).
+      
+      Memerlukan autentikasi JWT.
+    operationId: getJenisUnit
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+      - name: id_jns_sms
+        in: query
+        description: Filter berdasarkan jenis SMS
+        schema:
+          type: integer
+      - name: id_sp
+        in: query
+        description: Filter berdasarkan satuan pendidikan (UUID)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data jenis unit
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# KATEGORI ENDPOINTS
+# =============================================================================
+
+kategori-capaian-luaran:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kategori capaian luaran
+    description: Mengambil daftar kategori capaian luaran dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKategoriCapaianLuaran
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kategori capaian luaran
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kategori-kegiatan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kategori kegiatan
+    description: Mengambil daftar kategori kegiatan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKategoriKegiatan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kategori kegiatan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kategori-tabel:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kategori tabel
+    description: Mengambil daftar kategori tabel dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKategoriTabel
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kategori tabel
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# KELOMPOK ENDPOINTS
+# =============================================================================
+
+kelompok-bidang:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kelompok bidang
+    description: Mengambil daftar kelompok bidang dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKelompokBidang
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kelompok bidang
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kelompok-mk:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kelompok mata kuliah
+    description: Mengambil daftar kelompok mata kuliah dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKelompokMk
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kelompok mata kuliah
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kelompok-profesi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kelompok profesi
+    description: Mengambil daftar kelompok profesi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKelompokProfesi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kelompok profesi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+kelompok-usaha:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar kelompok usaha
+    description: Mengambil daftar kelompok usaha dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getKelompokUsaha
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data kelompok usaha
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# LEMBAGA ENDPOINTS
+# =============================================================================
+
+lembaga-akred:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar lembaga akreditasi
+    description: Mengambil daftar lembaga akreditasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getLembagaAkred
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data lembaga akreditasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+lembaga-pengangkat:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar lembaga pengangkat
+    description: Mengambil daftar lembaga pengangkat dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getLembagaPengangkat
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data lembaga pengangkat
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+lembaga-sertifikasi:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar lembaga sertifikasi
+    description: Mengambil daftar lembaga sertifikasi dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getLembagaSertifikasi
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data lembaga sertifikasi
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+# =============================================================================
+# STATUS ENDPOINTS
+# =============================================================================
+
+status-kepegawaian:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status kepegawaian
+    description: Mengambil daftar status kepegawaian dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusKepegawaian
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status kepegawaian
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-kepemilikan:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status kepemilikan
+    description: Mengambil daftar status kepemilikan dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusKepemilikan
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status kepemilikan
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-kerjasama:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status kerjasama
+    description: Mengambil daftar status kerjasama dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusKerjasama
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status kerjasama
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-mahasiswa:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status mahasiswa
+    description: Mengambil daftar status mahasiswa dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusMahasiswa
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status mahasiswa
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-milik-sarpras:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status milik sarana prasarana
+    description: Mengambil daftar status milik sarana prasarana dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusMilikSarpras
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status milik sarana prasarana
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-anak:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status anak
+    description: Mengambil daftar status anak dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusAnak
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status anak
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+
+status-keaktifan-pegawai:
+  get:
+    tags:
+      - Referensi
+    summary: Get daftar status keaktifan pegawai
+    description: Mengambil daftar status keaktifan pegawai dengan pagination. Memerlukan autentikasi JWT.
+    operationId: getStatusKeaktifanPegawai
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses:
+      '200':
+        description: Berhasil mengambil data status keaktifan pegawai
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/PaginatedResponse'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'

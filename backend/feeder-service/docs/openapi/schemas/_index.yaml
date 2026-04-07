@@ -1,0 +1,26 @@
+Pagination:
+  $ref: './common.yaml#/Pagination'
+
+Mahasiswa:
+  $ref: './mahasiswa.yaml#/Mahasiswa'
+
+KelasKuliah:
+  $ref: './kelas-kuliah.yaml#/KelasKuliah'
+
+NilaiPerkuliahan:
+  $ref: './nilai-perkuliahan.yaml#/NilaiPerkuliahan'
+
+Kurikulum:
+  $ref: './kurikulum.yaml#/Kurikulum'
+
+AktivitasMahasiswa:
+  $ref: './aktivitas-mahasiswa.yaml#/AktivitasMahasiswa'
+
+Prestasi:
+  $ref: './prestasi.yaml#/Prestasi'
+
+Schedule:
+  $ref: './scheduler.yaml#/Schedule'
+
+SyncLog:
+  $ref: './sync-log.yaml#/SyncLog'

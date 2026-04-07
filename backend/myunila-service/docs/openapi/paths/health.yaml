@@ -1,0 +1,25 @@
+health:
+  get:
+    tags:
+      - Health
+    summary: Health Check
+    description: Mengecek status kesehatan service
+    operationId: healthCheck
+    security: []
+    responses:
+      '200':
+        description: Service healthy
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ok
+                service:
+                  type: string
+                  example: MyUnila Service
+                version:
+                  type: string
+                  example: 1.0.0

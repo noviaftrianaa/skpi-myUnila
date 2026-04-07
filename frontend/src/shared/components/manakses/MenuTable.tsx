@@ -416,6 +416,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
   // Dropdown options
   const [aplikasiOptions, setAplikasiOptions] = useState<Aplikasi[]>([]);
   const [parentMenuOptions, setParentMenuOptions] = useState<Menu[]>([]);
+  const [loadingParentMenus, setLoadingParentMenus] = useState(false);
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -486,14 +487,23 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         setParentMenuOptions([]);
         return;
       }
+      setLoadingParentMenus(true);
       try {
         const result = await menuService.getByAplikasi(formData.id_aplikasi, "flat");
         // Filter only level 0 (parent menus) as potential parents for level 1 (child menus)
-        const parents = result.menus.filter(m => (m.level_menu ?? 0) === 0);
+        // Note: level_menu could be string, number, or null from API
+        const parents = (result.menus || []).filter(m => {
+          const level = m.level_menu !== null && m.level_menu !== undefined
+            ? Number(m.level_menu)
+            : 0;
+          return level === 0;
+        });
         setParentMenuOptions(parents);
       } catch (error) {
         console.error("Error loading parent menus:", error);
         setParentMenuOptions([]);
+      } finally {
+        setLoadingParentMenus(false);
       }
     };
     loadParentMenus();
@@ -1189,38 +1199,59 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                 Parent Menu <span className="text-red-500">*</span>
               </label>
-              <Select
-                aria-label="Pilih Parent Menu"
-                placeholder="Pilih menu utama (Level 0)"
-                selectedKeys={formData.id_group_menu ? [formData.id_group_menu] : []}
-                onChange={(e) => {
-                  const value = e.target.value || null;
-                  setFormData({
-                    ...formData,
-                    id_group_menu: value,
-                  });
-                }}
-                isDisabled={!formData.id_aplikasi}
-                variant="bordered"
-                size="sm"
-                classNames={{
-                  trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                  value: "text-gray-900 dark:text-white",
-                  popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
-                }}
-              >
-                {parentMenuOptions
-                  .filter(m => (m.level_menu ?? 0) === 0) // Only show Level 0 menus as parent
-                  .map((menu) => (
+              {!formData.id_aplikasi ? (
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Pilih aplikasi terlebih dahulu untuk melihat daftar menu parent
+                  </p>
+                </div>
+              ) : loadingParentMenus ? (
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Memuat daftar menu parent...
+                  </p>
+                </div>
+              ) : parentMenuOptions.length === 0 ? (
+                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg space-y-2">
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                    Tidak ada menu utama (Level 0) untuk aplikasi ini.
+                  </p>
+                  <p className="text-xs text-orange-600 dark:text-orange-400">
+                    Untuk menambahkan Sub Menu (Level 1), Anda harus membuat Menu Utama (Level 0) terlebih dahulu.
+                    Tutup modal ini, ubah Level Menu ke &quot;Level 0 - Menu Utama&quot;, lalu buat menu utama.
+                  </p>
+                </div>
+              ) : (
+                <Select
+                  aria-label="Pilih Parent Menu"
+                  placeholder="Pilih menu utama (Level 0)"
+                  selectedKeys={formData.id_group_menu ? [formData.id_group_menu] : []}
+                  onChange={(e) => {
+                    const value = e.target.value || null;
+                    setFormData({
+                      ...formData,
+                      id_group_menu: value,
+                    });
+                  }}
+                  variant="bordered"
+                  size="sm"
+                  classNames={{
+                    trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+                    value: "text-gray-900 dark:text-white",
+                    popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600",
+                  }}
+                >
+                  {parentMenuOptions.map((menu) => (
                     <SelectItem key={menu.id_menu} value={menu.id_menu}>
                       <div className="flex items-center gap-2">
                         <FiFolder className="w-4 h-4 text-indigo-500" />
                         {menu.nm_menu}
                       </div>
                     </SelectItem>
-                  ))
-                }
-              </Select>
+                  ))}
+                </Select>
+              )}
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Pilih menu utama sebagai parent dari sub menu ini
               </p>
@@ -1312,12 +1343,12 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         scrollBehavior="inside"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
+          <ModalHeader className="flex flex-col gap-2 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Tambah Menu Baru
             </h3>
@@ -1325,10 +1356,10 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Isi form untuk menambah menu baru ke aplikasi
             </p>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             {renderFormContent()}
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsAddModalOpen(false)}>
               Batal
             </Button>
@@ -1347,12 +1378,12 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         scrollBehavior="inside"
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
+          <ModalHeader className="flex flex-col gap-2 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Edit Menu
             </h3>
@@ -1360,10 +1391,10 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Perbarui informasi menu
             </p>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             {renderFormContent()}
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsEditModalOpen(false)}>
               Batal
             </Button>
@@ -1380,7 +1411,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
         onClose={() => setIsDeleteModalOpen(false)}
         classNames={{
           backdrop: "bg-black/50 backdrop-blur-sm",
-          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl",
+          base: "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl mx-2 sm:mx-4",
           closeButton: "hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors",
         }}
       >
@@ -1388,7 +1419,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
           <ModalHeader className="px-6 py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">Konfirmasi Hapus</h3>
           </ModalHeader>
-          <ModalBody className="px-6 py-5">
+          <ModalBody className="px-3 sm:px-6 py-4 sm:py-5">
             <p className="text-gray-700 dark:text-gray-300">
               Apakah Anda yakin ingin menghapus menu <strong>{selectedItem?.nm_menu}</strong>?
             </p>
@@ -1396,7 +1427,7 @@ export default function MenuTable({ onStatsLoaded }: MenuTableProps) {
               Perhatian: Menghapus menu parent akan menghapus semua sub-menu di bawahnya.
             </p>
           </ModalBody>
-          <ModalFooter className="px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+          <ModalFooter className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700">
             <Button variant="light" onPress={() => setIsDeleteModalOpen(false)}>
               Batal
             </Button>

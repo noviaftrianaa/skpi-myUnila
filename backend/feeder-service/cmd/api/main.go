@@ -2,21 +2,24 @@ package main
 
 import (
 	"log"
+
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
 	"github.com/myunila/feeder-service/apps/apiconfig"
+	"github.com/myunila/feeder-service/apps/bimbing_mhs"
 	"github.com/myunila/feeder-service/apps/dashboard"
 	"github.com/myunila/feeder-service/apps/kelas_kuliah"
 	"github.com/myunila/feeder-service/apps/logger"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
+	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/nilai_konversi"
 	"github.com/myunila/feeder-service/apps/nilai_perkuliahan"
 	"github.com/myunila/feeder-service/apps/prestasi"
 	"github.com/myunila/feeder-service/apps/referensi"
 	"github.com/myunila/feeder-service/apps/rencana_evaluasi"
-	"github.com/myunila/feeder-service/apps/transkrip_nilai"
-	"github.com/myunila/feeder-service/apps/monitoring"
 	"github.com/myunila/feeder-service/apps/scheduler"
+	"github.com/myunila/feeder-service/apps/transkrip_nilai"
+	"github.com/myunila/feeder-service/docs"
 	"github.com/myunila/feeder-service/external/database"
 	"github.com/myunila/feeder-service/external/feeder_api"
 	"github.com/myunila/feeder-service/internal/config"
@@ -76,6 +79,8 @@ func main() {
 	// Initialize Redis client for caching
 	redisClient := database.ConnectRedis()
 	if redisClient != nil {
+		// Set global Redis client for middleware access (e.g., RequireDeveloper)
+		database.SetGlobalRedisClient(redisClient)
 		log.Println("✅ Redis client connected successfully")
 	} else {
 		log.Println("⚠️  Redis client not available - caching disabled")
@@ -101,6 +106,10 @@ func main() {
 		ExposeHeaders:    "Content-Length",
 		MaxAge:           12 * 3600,
 	}))
+
+	// Setup API Documentation (Scalar UI)
+	docs.SetupDocs(app)
+	log.Println("✅ API Documentation available at /docs")
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -179,6 +188,10 @@ func main() {
 	prestasi.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Prestasi module initialized")
 
+	// Initialize Bimbing Mhs module (Dosen Pembimbing - pass logger service for sync logging)
+	bimbing_mhs.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	log.Println("✅ Bimbing Mhs (Dosen Pembimbing) module initialized")
+
 	// Initialize Referensi module (master data from Feeder API)
 	referensi.Init(apiV1, db, feederAPI, loggerService)
 	log.Println("✅ Referensi module initialized")
@@ -219,6 +232,7 @@ func main() {
 			"version": "1.0.0",
 			"message": "Feeder Service - Data Synchronization from Neo Feeder PDDIKTI",
 			"endpoints": fiber.Map{
+				"docs":                "/docs",
 				"health":              "/health",
 				"api":                 "/api/v1",
 				"mahasiswa":           "/api/v1/mahasiswa",
@@ -230,6 +244,7 @@ func main() {
 				"nilai_konversi":      "/api/v1/nilai-konversi",
 				"transkrip_nilai":     "/api/v1/transkrip-nilai",
 				"prestasi":            "/api/v1/prestasi",
+				"bimbing_mhs":         "/api/v1/bimbing-mhs",
 				"referensi":           "/api/v1/referensi",
 				"dashboard":           "/api/v1/dashboard/stats",
 				"schedules":           "/api/v1/schedules",

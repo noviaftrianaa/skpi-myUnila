@@ -1,0 +1,106 @@
+# Auth Schemas
+
+LoginRequest:
+  type: object
+  required:
+    - id_aplikasi
+    - username
+    - password
+  properties:
+    id_aplikasi:
+      type: string
+      format: uuid
+      description: ID Aplikasi yang terdaftar
+    username:
+      type: string
+      description: Username pengguna
+    password:
+      type: string
+      format: password
+      description: Password pengguna
+
+CheckTokenRequest:
+  type: object
+  required:
+    - token_bearer
+  properties:
+    token_bearer:
+      type: string
+      description: JWT token yang akan dicek
+
+LoginSuccessResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: Berhasil Otentikasi
+    data:
+      type: object
+      properties:
+        token_status:
+          type: string
+          example: Baru
+        token_dibuat:
+          type: string
+          example: "2026-01-12 10:00:00"
+        token_kadarluwasa:
+          type: string
+          example: "2026-01-12 11:00:00"
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          example: 3600
+    timestamp:
+      type: string
+      format: date-time
+
+CheckTokenSuccessResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: Token valid
+    data:
+      type: object
+      properties:
+        token_status:
+          type: string
+          example: Aktif
+        token_dibuat:
+          type: string
+          example: "2026-01-12 10:00:00"
+        token_kadarluwasa:
+          type: string
+          example: "2026-01-12 11:00:00"
+        user:
+          $ref: '#/UserInfo'
+    timestamp:
+      type: string
+      format: date-time
+
+UserInfo:
+  type: object
+  properties:
+    id_pengguna:
+      type: string
+    username:
+      type: string
+    email:
+      type: string
+    nm_pengguna:
+      type: string
+    peran:
+      type: string
+    id_aplikasi:
+      type: string

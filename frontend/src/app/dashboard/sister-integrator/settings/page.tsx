@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import {
@@ -27,6 +27,8 @@ import {
   type APIConfig,
   type CreateAPIConfigRequest,
 } from "@/lib/services/config/apiConfigService";
+
+const APP_KEY = "sister-integrator";
 
 export default function APIConfigurationPage() {
   useRequireAuth();
@@ -289,11 +291,12 @@ export default function APIConfigurationPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<FiSettings className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="API Configuration"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Settings"
     >
       <Toaster position="top-right" />
 
@@ -576,6 +579,6 @@ export default function APIConfigurationPage() {
           </ModalContent>
         </Modal>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

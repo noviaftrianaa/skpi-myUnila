@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
 import {
   Card,
@@ -34,6 +34,8 @@ import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
 import { jenjangPendidikanService, type JenjangPendidikanData } from "@/lib/services/sister/referensi/jenjangPendidikanService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+
+const APP_KEY = "sister-integrator";
 
 export default function JenjangPendidikanPage() {
   useRequireAuth();
@@ -213,11 +215,12 @@ export default function JenjangPendidikanPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Referensi - Jenjang Pendidikan"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Jenjang Pendidikan"
     >
       <div className="space-y-6">
         {/* Breadcrumb & Header */}
@@ -610,6 +613,6 @@ export default function JenjangPendidikanPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

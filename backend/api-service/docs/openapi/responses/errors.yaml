@@ -1,0 +1,103 @@
+# Error Responses - Reusable across all services
+
+BadRequest:
+  description: Request tidak valid
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: Request tidak valid
+          error:
+            type: object
+            properties:
+              code:
+                type: string
+                example: BAD_REQUEST
+              details:
+                type: object
+
+Unauthorized:
+  description: Token tidak valid atau tidak ditemukan
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: Token tidak ditemukan
+          error:
+            type: object
+            properties:
+              code:
+                type: string
+                example: UNAUTHORIZED
+
+Forbidden:
+  description: Tidak memiliki akses
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: Akses ditolak
+          error:
+            type: object
+            properties:
+              code:
+                type: string
+                example: FORBIDDEN
+
+NotFound:
+  description: Data tidak ditemukan
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: Data tidak ditemukan
+          error:
+            type: object
+            properties:
+              code:
+                type: string
+                example: NOT_FOUND
+
+InternalServerError:
+  description: Terjadi kesalahan server
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: Terjadi kesalahan internal
+          error:
+            type: object
+            properties:
+              code:
+                type: string
+                example: INTERNAL_ERROR

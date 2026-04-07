@@ -19,17 +19,17 @@ import (
 	"sister-service/apps/sertifikasi_dosen"
 	"sister-service/apps/synclog"
 	"sister-service/apps/tugas_tambahan"
-	_ "sister-service/docs"
+	"sister-service/docs"
 	"sister-service/external/database"
 	"sister-service/external/sister_api"
 	"sister-service/internal/config"
+	minioStorage "sister-service/internal/minio"
 	"sister-service/pkg/crypto"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 // @title Sister Service API
@@ -76,6 +76,8 @@ func main() {
 	// Initialize Redis client for caching
 	redisClient := database.ConnectRedis()
 	if redisClient != nil {
+		// Set global Redis client for middleware access (e.g., RequireDeveloper)
+		database.SetGlobalRedisClient(redisClient)
 		log.Println("✅ Redis client connected successfully")
 	} else {
 		log.Println("⚠️  Redis client not available - caching disabled")
@@ -102,6 +104,10 @@ func main() {
 		MaxAge:           12 * 3600,
 	}))
 
+	// Setup API Documentation (Scalar UI)
+	docs.SetupDocs(app)
+	log.Println("✅ API Documentation available at /docs")
+
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -109,14 +115,6 @@ func main() {
 			"service": config.Cfg.App.Name,
 			"version": "1.0.0",
 		})
-	})
-
-	// Swagger documentation
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
-
-	// Alias for consistent documentation URL across all services
-	app.Get("/api/documentation", func(c *fiber.Ctx) error {
-		return c.Redirect("/swagger/index.html", fiber.StatusMovedPermanently)
 	})
 
 	// Initialize encryption service for API config
@@ -142,6 +140,20 @@ func main() {
 		log.Println("⚠️  No LARAVEL_APP_KEY configured - encrypted ID decryption disabled")
 	}
 
+	// Initialize MinIO client for photo storage
+	var minioClient *minioStorage.Client
+	if config.Cfg.MinIO.AccessKey != "" {
+		var err error
+		minioClient, err = minioStorage.NewClient(config.Cfg.MinIO)
+		if err != nil {
+			log.Printf("⚠️  MinIO client initialization failed: %v", err)
+		} else {
+			log.Println("✅ MinIO client connected successfully")
+		}
+	} else {
+		log.Println("⚠️  MinIO not configured - photo sync to MinIO disabled")
+	}
+
 	// Initialize logger service (needs to be initialized first for referensi)
 	loggerRepo := appLogger.NewRepository(db.DB)
 	loggerService := appLogger.NewService(loggerRepo)
@@ -163,7 +175,7 @@ func main() {
 
 	// Initialize Dosen Service with public routes (no auth required)
 	// Register on app directly so it's accessible at /dosen/* without /public prefix
-	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService, laravelCrypto) // Dosen endpoints with Redis cache and DB
+	dosenService := dosen.Init(app, db, sisterAPI, redisClient, loggerService, laravelCrypto, minioClient) // Dosen endpoints with Redis cache, DB, and MinIO
 
 	// Initialize Penugasan module
 	penugasanRepo := penugasan.NewRepository(db)

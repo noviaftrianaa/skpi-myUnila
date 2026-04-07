@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -33,6 +33,8 @@ import {
 import { toast } from "react-hot-toast";
 import SisterBidangIlmuTable from "@/shared/components/sister-integrator/SisterBidangIlmuTable";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function BidangIlmuPage() {
   useRequireAuth();
@@ -156,11 +158,12 @@ export default function BidangIlmuPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Bidang Ilmu Dosen"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Bidang Ilmu"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -447,6 +450,6 @@ export default function BidangIlmuPage() {
           )}
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

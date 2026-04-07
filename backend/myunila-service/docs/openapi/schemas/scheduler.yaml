@@ -1,0 +1,69 @@
+Schedule:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    name:
+      type: string
+      example: "Sync SIKEP Pegawai Daily"
+    type:
+      type: string
+      enum:
+        - sikep_pegawai
+        - radius
+        - unit_organisasi
+      example: sikep_pegawai
+    cron_expression:
+      type: string
+      example: "0 2 * * *"
+      description: Cron expression untuk jadwal
+    is_active:
+      type: boolean
+      example: true
+    last_run:
+      type: string
+      format: date-time
+      nullable: true
+    next_run:
+      type: string
+      format: date-time
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
+
+ScheduleCreate:
+  type: object
+  required:
+    - name
+    - type
+    - cron_expression
+  properties:
+    name:
+      type: string
+      example: "Sync SIKEP Pegawai Daily"
+    type:
+      type: string
+      enum:
+        - sikep_pegawai
+        - radius
+        - unit_organisasi
+    cron_expression:
+      type: string
+      example: "0 2 * * *"
+    is_active:
+      type: boolean
+      default: true
+
+ScheduleUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+    cron_expression:
+      type: string
+    is_active:
+      type: boolean

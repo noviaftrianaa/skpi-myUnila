@@ -1,0 +1,728 @@
+# PDRD Schemas
+
+# =============================================================================
+# PESERTA DIDIK SCHEMA (tanpa lookup names)
+# =============================================================================
+
+PesertaDidik:
+  type: object
+  description: Data peserta didik dari tabel pdrd.peserta_didik
+  properties:
+    id_pd:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+    nm_pd:
+      type: string
+      example: "Budi Santoso"
+    jk:
+      type: string
+      nullable: true
+      enum: ["L", "P"]
+      example: "L"
+    nisn:
+      type: string
+      nullable: true
+      example: "0012345678"
+    nik:
+      type: string
+      nullable: true
+      example: "1801012501990001"
+    tmpt_lahir:
+      type: string
+      format: date-time
+      example: "Bandar Lampung"
+    tgl_lahir:
+      type: string
+      format: date-time
+      nullable: true
+      example: "1999-01-25T00:00:00Z"
+    jln:
+      type: string
+      nullable: true
+      example: "Jl. Soekarno Hatta No. 10"
+    rt:
+      type: integer
+      nullable: true
+      example: 2
+    rw:
+      type: integer
+      nullable: true
+      example: 5
+    nm_dsn:
+      type: string
+      nullable: true
+      example: "Kedaton"
+    ds_kel:
+      type: string
+      nullable: true
+      example: "Sukabumi"
+    kode_pos:
+      type: string
+      nullable: true
+      example: "35141"
+    tlpn_rumah:
+      type: string
+      nullable: true
+    tlpn_hp:
+      type: string
+      nullable: true
+      example: "081234567890"
+    email:
+      type: string
+      nullable: true
+      example: "budi@example.com"
+    a_pmpap:
+      type: integer
+      example: 0
+    a_bidikmisi:
+      type: integer
+      example: 0
+    a_bebas_biaya:
+      type: integer
+      example: 0
+    nm_wali:
+      type: string
+      nullable: true
+    tgl_lahir_wali:
+      type: string
+      format: date-time
+      nullable: true
+    id_pendidikan_wali:
+      type: integer
+      nullable: true
+    id_pekerjaan_wali:
+      type: integer
+      nullable: true
+    id_penghasilan_wali:
+      type: integer
+      nullable: true
+    nm_ayah:
+      type: string
+      nullable: true
+      example: "Hendra Santoso"
+    tgl_lahir_ayah:
+      type: string
+      format: date-time
+      nullable: true
+    nik_ayah:
+      type: string
+      nullable: true
+    id_pendidikan_ayah:
+      type: integer
+      nullable: true
+    id_pekerjaan_ayah:
+      type: integer
+      nullable: true
+    id_penghasilan_ayah:
+      type: integer
+      nullable: true
+    id_kk_ayah:
+      type: integer
+      nullable: true
+    nm_ibu_kandung:
+      type: string
+      nullable: true
+      example: "Sri Wahyuni"
+    tgl_lahir_ibu:
+      type: string
+      format: date-time
+      nullable: true
+    nik_ibu:
+      type: string
+      nullable: true
+    id_pendidikan_ibu:
+      type: integer
+      nullable: true
+    id_pekerjaan_ibu:
+      type: integer
+      nullable: true
+    id_penghasilan_ibu:
+      type: integer
+      nullable: true
+    id_kk_ibu:
+      type: integer
+      nullable: true
+    a_terima_kps:
+      type: integer
+      example: 0
+    no_kps:
+      type: string
+      nullable: true
+    id_kk:
+      type: integer
+      nullable: true
+    id_kewarganegaraan:
+      type: string
+      example: "ID"
+    id_agama:
+      type: integer
+      example: 1
+    id_blob:
+      type: string
+      format: uuid
+      nullable: true
+    id_jns_tinggal:
+      type: integer
+      nullable: true
+    id_stat_mhs:
+      type: string
+      example: "A"
+    id_alat_transport:
+      type: integer
+      nullable: true
+    id_wil:
+      type: string
+      nullable: true
+      example: "180000"
+    terakhir_diubah:
+      type: string
+      format: date-time
+    last_sync:
+      type: string
+      format: date-time
+
+# =============================================================================
+# PESERTA DIDIK DETAIL SCHEMA (dengan lookup names dari JOIN)
+# =============================================================================
+
+PesertaDidikDetail:
+  allOf:
+    - $ref: '#/PesertaDidik'
+    - type: object
+      description: Field tambahan hasil JOIN ke tabel referensi
+      properties:
+        nm_stat_mhs:
+          type: string
+          description: Nama status mahasiswa (dari ref.status_mahasiswa)
+          example: "Aktif"
+        nm_agama:
+          type: string
+          description: Nama agama (dari ref.agama)
+          example: "Islam"
+        nm_jns_tinggal:
+          type: string
+          nullable: true
+          description: Nama jenis tinggal (dari ref.jenis_tinggal)
+          example: "Kos/Kontrak"
+        nm_wil:
+          type: string
+          nullable: true
+          description: Nama wilayah (dari ref.wilayah)
+          example: "Lampung"
+        nm_kk:
+          type: string
+          nullable: true
+          description: Nama kebutuhan khusus mahasiswa (dari ref.kebutuhan_khusus)
+          example: "Tidak Ada"
+        nm_kk_ibu:
+          type: string
+          nullable: true
+          description: Nama kebutuhan khusus ibu (dari ref.kebutuhan_khusus)
+          example: null
+        nm_kk_ayah:
+          type: string
+          nullable: true
+          description: Nama kebutuhan khusus ayah (dari ref.kebutuhan_khusus)
+          example: null
+        nm_penghasilan_ayah:
+          type: string
+          nullable: true
+          description: Nama kategori penghasilan ayah (dari ref.penghasilan)
+          example: "Rp. 1.000.000 - Rp. 2.000.000"
+        nm_penghasilan_ibu:
+          type: string
+          nullable: true
+          description: Nama kategori penghasilan ibu (dari ref.penghasilan)
+          example: null
+        nm_penghasilan_wali:
+          type: string
+          nullable: true
+          description: Nama kategori penghasilan wali (dari ref.penghasilan)
+          example: null
+
+# =============================================================================
+# STATUS KULIAH MAHASISWA SCHEMA
+# =============================================================================
+
+StatusKuliahMahasiswa:
+  type: object
+  description: Data status kuliah mahasiswa dari tabel pdrd.kuliah_mhs
+  properties:
+    id_reg_pd:
+      type: string
+      format: uuid
+      description: ID registrasi peserta didik
+      example: "550e8400-e29b-41d4-a716-446655440001"
+    id_smt:
+      type: string
+      description: ID semester
+      example: "20241"
+    id_pembiayaan:
+      type: integer
+      nullable: true
+      description: ID pembiayaan pada semester ini
+      example: 1
+    id_stat_mhs:
+      type: string
+      description: ID status mahasiswa pada semester ini
+      example: "A"
+    ips:
+      type: number
+      format: float
+      nullable: true
+      description: Indeks Prestasi Semester
+      example: 3.80
+    sks_semester:
+      type: number
+      format: float
+      nullable: true
+      description: Jumlah SKS yang diambil pada semester ini
+      example: 21
+    ipk:
+      type: number
+      format: float
+      nullable: true
+      description: Indeks Prestasi Kumulatif hingga semester ini
+      example: 3.75
+    total_sks:
+      type: number
+      format: float
+      nullable: true
+      description: Total SKS yang telah ditempuh
+      example: 84
+    biaya_smt:
+      type: number
+      format: float
+      nullable: true
+      description: Biaya kuliah semester ini
+      example: 5000000
+    terakhir_diubah:
+      type: string
+      format: date-time
+    last_sync:
+      type: string
+      format: date-time
+
+# =============================================================================
+# REG PD SCHEMA
+# =============================================================================
+
+RegPd:
+  allOf:
+    - $ref: '#/PesertaDidikDetail'
+    - type: object
+      description: Data riwayat pendidikan mahasiswa dari tabel pdrd.reg_pd beserta data peserta didik
+      properties:
+        id_reg_pd:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        id_sp:
+          type: string
+          format: uuid
+          description: ID satuan pendidikan
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        nm_lemb:
+          type: string
+          description: Nama satuan pendidikan (dari pdrd.satuan_pendidikan)
+          example: "Universitas Lampung"
+        id_sms:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID satuan manajemen studi
+        nm_lemb_sms:
+          type: string
+          nullable: true
+          description: Nama satuan manajemen studi (dari pdrd.sms)
+          example: "Teknik Informatika"
+        id_pd:
+          type: string
+          format: uuid
+          description: ID peserta didik
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        id_jns_daftar:
+          type: integer
+          description: ID jenis pendaftaran
+          example: 1
+        nm_jns_daftar:
+          type: string
+          description: Nama jenis pendaftaran (dari ref.jenis_pendaftaran)
+          example: "Baru"
+        id_jalur_daftar:
+          type: integer
+          nullable: true
+          description: ID jalur pendaftaran
+          example: 1
+        nm_jalur_daftar:
+          type: string
+          nullable: true
+          description: Nama jalur pendaftaran (dari ref.jalur_daftar)
+          example: "SNBP"
+        id_pembiayaan:
+          type: integer
+          nullable: true
+          description: ID pembiayaan
+          example: 1
+        nm_pembiayaan:
+          type: string
+          nullable: true
+          description: Nama pembiayaan (dari ref.pembiayaan)
+          example: "Mandiri"
+        id_smt:
+          type: integer
+          nullable: true
+          description: ID semester aktif saat ini
+          example: 20241
+        nm_smt:
+          type: string
+          nullable: true
+          description: Nama semester (dari ref.semester)
+          example: "2024/2025 Ganjil"
+        tgl_masuk_sp:
+          type: string
+          format: date-time
+          description: Tanggal masuk satuan pendidikan
+          example: "2020-08-01T00:00:00Z"
+        nipd:
+          type: string
+          description: Nomor Induk Peserta Didik
+          example: "2017011001"
+        id_semester_masuk:
+          type: string
+          description: Semester pertama masuk
+          example: "20201"
+        id_pt_asal:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID perguruan tinggi asal (untuk mahasiswa pindahan)
+        nm_pt_asal:
+          type: string
+          nullable: true
+          description: Nama perguruan tinggi asal
+        id_prodi_asal:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID program studi asal
+        nm_prodi_asal:
+          type: string
+          nullable: true
+          description: Nama program studi asal
+        id_jns_keluar:
+          type: string
+          nullable: true
+          description: ID jenis keluar
+        tgl_keluar:
+          type: string
+          format: date-time
+          nullable: true
+          description: Tanggal keluar
+        ket:
+          type: string
+          nullable: true
+          description: Keterangan
+        skhun:
+          type: string
+          nullable: true
+          description: Nomor SKHUN
+        no_peserta_ujian:
+          type: string
+          nullable: true
+          description: Nomor peserta ujian masuk
+        no_seri_ijazah:
+          type: string
+          nullable: true
+          description: Nomor seri ijazah
+        asal_data_ijazah:
+          type: string
+          example: "Forlap"
+        bidang_mayor:
+          type: string
+          nullable: true
+        bidang_minor:
+          type: string
+          nullable: true
+        sks_diakui:
+          type: integer
+          nullable: true
+        jalur_skripsi:
+          type: integer
+          nullable: true
+        judul_skripsi:
+          type: string
+          nullable: true
+        bln_awal_bimbingan:
+          type: string
+          format: date-time
+          nullable: true
+        bln_akhir_bimbingan:
+          type: string
+          format: date-time
+          nullable: true
+        sk_yudisium:
+          type: string
+          nullable: true
+        tgl_sk_yudisium:
+          type: string
+          format: date-time
+          nullable: true
+        ipk:
+          type: number
+          format: float
+          nullable: true
+          example: 3.75
+        sert_prof:
+          type: string
+          nullable: true
+        a_pindah_mhs_asing:
+          type: integer
+          nullable: true
+        biaya_masuk_kuliah:
+          type: number
+          format: float
+          nullable: true
+        terakhir_diubah:
+          type: string
+          format: date-time
+        last_sync:
+          type: string
+          format: date-time
+
+# =============================================================================
+# PUBLIKASI SCHEMA
+# =============================================================================
+
+Publikasi:
+  type: object
+  description: Data publikasi ilmiah dari tabel pdrd.publikasi
+  properties:
+    id_publikasi:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440010"
+    id_jns_pub:
+      type: integer
+      example: 1
+    nm_jns_pub:
+      type: string
+      example: "Jurnal Nasional"
+    judul:
+      type: string
+      example: "Analisis Sistem Informasi Universitas"
+    judul_chapter:
+      type: string
+      nullable: true
+    judul_asli:
+      type: string
+      nullable: true
+    abstrak:
+      type: string
+      nullable: true
+    nama_jurnal:
+      type: string
+      nullable: true
+      example: "Jurnal Teknik Informatika"
+    laman_jurnal:
+      type: string
+      nullable: true
+      example: "https://journal.unila.ac.id"
+    tgl_terbit:
+      type: string
+      format: date-time
+      nullable: true
+      example: "2024-06-01T00:00:00Z"
+    edisi:
+      type: string
+      nullable: true
+    impact_jurnal:
+      type: integer
+      nullable: true
+    vol:
+      type: integer
+      nullable: true
+    no:
+      type: integer
+      nullable: true
+    hal:
+      type: string
+      nullable: true
+    jml_hal:
+      type: integer
+      nullable: true
+    penerbit:
+      type: string
+      nullable: true
+    kota:
+      type: string
+      nullable: true
+    a_seminar:
+      type: integer
+      nullable: true
+    a_prosiding:
+      type: integer
+      nullable: true
+    doi:
+      type: string
+      nullable: true
+      example: "10.1000/xyz123"
+    isbn:
+      type: string
+      nullable: true
+    issn:
+      type: string
+      nullable: true
+    e_issn:
+      type: string
+      nullable: true
+    url:
+      type: string
+      nullable: true
+    quartile:
+      type: integer
+      nullable: true
+    id_kat_capaian:
+      type: integer
+      nullable: true
+    nm_kat_capaian:
+      type: string
+      nullable: true
+    id_media_pub:
+      type: string
+      format: uuid
+    nm_media_pub:
+      type: string
+      nullable: true
+    id_litabmas:
+      type: string
+      format: uuid
+      nullable: true
+    judul_litabmas:
+      type: string
+      nullable: true
+    terakhir_ditambahkan:
+      type: string
+      format: date-time
+    last_sync:
+      type: string
+      format: date-time
+
+# =============================================================================
+# LITABMAS SCHEMA
+# =============================================================================
+
+Litabmas:
+  type: object
+  description: Data penelitian/pengabdian masyarakat (litabmas) dari tabel pdrd.litabmas
+  properties:
+    id_litabmas:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440020"
+    id_sdm:
+      type: string
+      format: uuid
+    id_pd_ang_litabmas:
+      type: string
+      format: uuid
+      nullable: true
+    id_pd:
+      type: string
+      format: uuid
+      nullable: true
+    id_lemb_iptek:
+      type: string
+      format: uuid
+    nm_lemb:
+      type: string
+      example: "Universitas Lampung"
+    judul_litabmas:
+      type: string
+      example: "Pengembangan Sistem Informasi Berbasis AI"
+    lama_kegiatan:
+      type: integer
+      example: 3
+    thn_laks_ke:
+      type: integer
+      example: 1
+    dana_dikti:
+      type: number
+      format: float
+      example: 50000000
+    dana_pt:
+      type: number
+      format: float
+      example: 10000000
+    dana_institusi_lain:
+      type: number
+      format: float
+      example: 0
+    stat_aktif:
+      type: number
+      format: float
+      example: 1
+    jns_litabmas:
+      type: string
+      nullable: true
+      enum: ["L", "M"]
+      description: "L = Penelitian, M = Pengabdian Masyarakat"
+    sk_tugas:
+      type: string
+      nullable: true
+    tgl_sk_tugas:
+      type: string
+      format: date-time
+      nullable: true
+    lokasi_kegiatan:
+      type: string
+      nullable: true
+    id_skim:
+      type: string
+      format: uuid
+      nullable: true
+    nm_skim:
+      type: string
+      nullable: true
+    id_thn_usulan:
+      type: integer
+      example: 2024
+    id_thn_kegiatan:
+      type: integer
+      example: 2024
+    id_thn_laks:
+      type: integer
+      example: 2024
+    id_kel_bidang:
+      type: string
+      format: uuid
+      nullable: true
+    nm_kel_bidang:
+      type: string
+      nullable: true
+    id_tse:
+      type: integer
+      nullable: true
+    nm_tse:
+      type: string
+      nullable: true
+    id_smi:
+      type: string
+      format: uuid
+      nullable: true
+    kode_smi:
+      type: string
+      nullable: true
+    id_jns_lit:
+      type: integer
+      nullable: true
+    nm_jns_lit:
+      type: string
+      nullable: true
+    terakhir_ditambahkan:
+      type: string
+      format: date-time
+    last_sync:
+      type: string
+      format: date-time

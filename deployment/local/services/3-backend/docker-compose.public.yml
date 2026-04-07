@@ -51,6 +51,12 @@ services:
     volumes:
       - public_storage:/var/www/storage
       - public_logs:/var/www/storage/logs
+      # Hot reload: mount source code directories (read-only)
+      - ../../../../backend/public-service/app:/var/www/app:ro
+      - ../../../../backend/public-service/routes:/var/www/routes:ro
+      - ../../../../backend/public-service/config:/var/www/config:ro
+      - ../../../../backend/public-service/database/seeders:/var/www/database/seeders:ro
+      - ../../../../backend/public-service/resources:/var/www/resources:ro
     networks:
       - myunila-network
     depends_on:

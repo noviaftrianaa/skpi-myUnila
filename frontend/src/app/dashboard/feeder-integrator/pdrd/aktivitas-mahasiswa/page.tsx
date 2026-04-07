@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederAktivitasMahasiswaTable from "@/shared/components/feeder-integrator/FeederAktivitasMahasiswaTable";
 import {
   Card,
@@ -33,6 +33,8 @@ import { feederClient } from "@/lib/api/feederClient";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
 
+const APP_KEY = "feeder-integrator";
+
 interface AktivitasStats {
   total_aktivitas: number;
   total_anggota: number;
@@ -59,32 +61,48 @@ export default function AktivitasMahasiswaManagementPage() {
   const [syncFilters, setSyncFilters] = useState<{
     id_prodi?: string;
     id_semester?: string[];
+    id_jenis_aktivitas?: number;
   }>({});
   const [syncFilterLabels, setSyncFilterLabels] = useState<{
     prodi?: string;
     semester?: string;
+    jenis_aktivitas?: string;
   }>({});
+  const [jenisAktivitasOptions, setJenisAktivitasOptions] = useState<{id_jns_akt_mhs: number; nm_jns_akt_mhs: string}[]>([]);
   const [forceSync, setForceSync] = useState(false);
 
   // Handle filter changes from table
   const handleFilterChange = useCallback(
-    (filters: { id_semester?: string[]; id_prodi?: string }) => {
+    (filters: { id_semester?: string[]; id_prodi?: string; id_jenis_aktivitas?: number }) => {
       setSyncFilters(filters);
       // Update labels for display in modal
-      if (filters.id_semester) {
-        setSyncFilterLabels((prev) => ({
-          ...prev,
-          semester: filters.id_semester?.join(", "),
-        }));
-      }
+      setSyncFilterLabels((prev) => ({
+        ...prev,
+        semester: filters.id_semester?.join(", "),
+        jenis_aktivitas: filters.id_jenis_aktivitas
+          ? jenisAktivitasOptions.find(j => j.id_jns_akt_mhs === filters.id_jenis_aktivitas)?.nm_jns_akt_mhs
+          : undefined,
+      }));
     },
-    []
+    [jenisAktivitasOptions]
   );
 
-  // Fetch stats on mount
+  // Fetch stats and jenis aktivitas options on mount
   useEffect(() => {
     fetchStats();
+    fetchJenisAktivitasOptions();
   }, []);
+
+  const fetchJenisAktivitasOptions = async () => {
+    try {
+      const response = await feederClient.get("/aktivitas-mahasiswa/jenis");
+      if (response.data.success) {
+        setJenisAktivitasOptions(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching jenis aktivitas options:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -141,6 +159,11 @@ export default function AktivitasMahasiswaManagementPage() {
       // Add id_prodi parameter (optional)
       if (syncFilters.id_prodi) {
         params.append("id_prodi", syncFilters.id_prodi);
+      }
+
+      // Add id_jenis_aktivitas parameter (optional)
+      if (syncFilters.id_jenis_aktivitas) {
+        params.append("id_jenis_aktivitas", syncFilters.id_jenis_aktivitas.toString());
       }
 
       // Add force_sync parameter (optional)
@@ -216,10 +239,11 @@ export default function AktivitasMahasiswaManagementPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Aktivitas Mahasiswa"
     >
       <div className="space-y-6">
@@ -456,7 +480,8 @@ export default function AktivitasMahasiswaManagementPage() {
                   {/* Filter Info */}
                   {(syncFilters.id_prodi ||
                     (syncFilters.id_semester &&
-                      syncFilters.id_semester.length > 0)) && (
+                      syncFilters.id_semester.length > 0) ||
+                    syncFilters.id_jenis_aktivitas) && (
                     <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                       <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-2">
                         Filter yang Diterapkan:
@@ -469,6 +494,14 @@ export default function AktivitasMahasiswaManagementPage() {
                               <span>{syncFilters.id_semester.join(", ")}</span>
                             </div>
                           )}
+                        {syncFilters.id_jenis_aktivitas && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">• Jenis Aktivitas:</span>
+                            <span>
+                              {syncFilterLabels.jenis_aktivitas || `ID: ${syncFilters.id_jenis_aktivitas}`}
+                            </span>
+                          </div>
+                        )}
                         {syncFilters.id_prodi && (
                           <div className="flex items-center gap-2">
                             <span className="font-medium">• Prodi:</span>
@@ -479,7 +512,8 @@ export default function AktivitasMahasiswaManagementPage() {
                         )}
                         {!syncFilters.id_prodi &&
                           (!syncFilters.id_semester ||
-                            syncFilters.id_semester.length === 0) && (
+                            syncFilters.id_semester.length === 0) &&
+                          !syncFilters.id_jenis_aktivitas && (
                             <p className="text-sm italic">
                               Tidak ada filter - akan sync semua data
                             </p>
@@ -657,6 +691,6 @@ export default function AktivitasMahasiswaManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

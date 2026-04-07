@@ -22,7 +22,7 @@ class PenelitianController extends Controller
      * @return JsonResponse
      */
     #[OA\Get(
-        path: '/api/v1/penelitian/statistics',
+        path: '/penelitian/statistics',
         tags: ['Penelitian'],
         summary: 'Get penelitian statistics',
         description: 'Mendapatkan statistik penelitian dosen Universitas Lampung, termasuk total penelitian, distribusi per kategori/skim, dan tren penelitian per tahun (tidak termasuk pengabdian masyarakat)',

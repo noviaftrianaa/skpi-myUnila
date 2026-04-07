@@ -1,0 +1,308 @@
+openapi: 3.0.3
+info:
+  title: myUnila API Web Service
+  description: |
+    Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
+
+    **Base URL:** `/v1/...` (sama untuk staging dan production)
+    
+    **Environment:**
+    - Staging: `http://192.168.120.45:9800/ws-service/v1`
+    - Production: `https://my.unila.ac.id/ws-service/v1`
+
+    Untuk permintaan penambahan endpoint atau akses API, hubungi PJ Aplikasi terkait atau tim pengembang.
+  version: 1.0.0
+  contact:
+    name: Tim MyUnila - UPT TIK
+    email: dev@unila.ac.id
+
+servers:
+  - url: /
+    description: Relative (auto-detect environment)
+
+tags:
+  - name: Auth
+    description: Autentikasi dan manajemen token
+  - name: Referensi
+    description: Data referensi master (semester, tahun ajaran, agama, wilayah)
+  - name: PDRD
+    description: Data peserta didik (mahasiswa) dan registrasi pendidikan
+  - name: System
+    description: System endpoints
+
+paths:
+  # Auth endpoints
+  /v1/auth/login:
+    $ref: './paths/auth.yaml#/login'
+  /v1/auth/check-token:
+    $ref: './paths/auth.yaml#/check-token'
+
+  # ==========================================================================
+  # COMMON ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/semester:
+    $ref: './paths/referensi.yaml#/semester'
+  /v1/referensi/tahun_ajaran:
+    $ref: './paths/referensi.yaml#/tahun-ajaran'
+  /v1/referensi/agama:
+    $ref: './paths/referensi.yaml#/agama'
+  /v1/referensi/wilayah:
+    $ref: './paths/referensi.yaml#/wilayah'
+  /v1/referensi/aktifitas_kerjasama:
+    $ref: './paths/referensi.yaml#/aktifitas-kerjasama'
+  /v1/referensi/basis_evaluasi:
+    $ref: './paths/referensi.yaml#/basis-evaluasi'
+  /v1/referensi/fungsi_lab:
+    $ref: './paths/referensi.yaml#/fungsi-lab'
+  /v1/referensi/gelar_akademik:
+    $ref: './paths/referensi.yaml#/gelar-akademik'
+  /v1/referensi/ikatan_kerja_sdm:
+    $ref: './paths/referensi.yaml#/ikatan-kerja-sdm'
+  /v1/referensi/jalur_daftar:
+    $ref: './paths/referensi.yaml#/jalur-daftar'
+  /v1/referensi/jenjang_pendidikan:
+    $ref: './paths/referensi.yaml#/jenjang-pendidikan'
+  /v1/referensi/jurusan:
+    $ref: './paths/referensi.yaml#/jurusan'
+  /v1/referensi/kbli:
+    $ref: './paths/referensi.yaml#/kbli'
+  /v1/referensi/keahlian_lab:
+    $ref: './paths/referensi.yaml#/keahlian-lab'
+  /v1/referensi/kebutuhan_khusus:
+    $ref: './paths/referensi.yaml#/kebutuhan-khusus'
+  /v1/referensi/kriteria_mitra:
+    $ref: './paths/referensi.yaml#/kriteria-mitra'
+  /v1/referensi/level_wilayah:
+    $ref: './paths/referensi.yaml#/level-wilayah'
+  /v1/referensi/media_publikasi:
+    $ref: './paths/referensi.yaml#/media-publikasi'
+  /v1/referensi/negara:
+    $ref: './paths/referensi.yaml#/negara'
+  /v1/referensi/nilai_akred:
+    $ref: './paths/referensi.yaml#/nilai-akred'
+  /v1/referensi/pangkat_golongan:
+    $ref: './paths/referensi.yaml#/pangkat-golongan'
+  /v1/referensi/pekerjaan:
+    $ref: './paths/referensi.yaml#/pekerjaan'
+  /v1/referensi/pembiayaan:
+    $ref: './paths/referensi.yaml#/pembiayaan'
+  /v1/referensi/penghasilan:
+    $ref: './paths/referensi.yaml#/penghasilan'
+  /v1/referensi/satuan:
+    $ref: './paths/referensi.yaml#/satuan'
+  /v1/referensi/tahun_anggaran:
+    $ref: './paths/referensi.yaml#/tahun-anggaran'
+  /v1/referensi/tse:
+    $ref: './paths/referensi.yaml#/tse'
+  /v1/referensi/skim_kegiatan:
+    $ref: './paths/referensi.yaml#/skim-kegiatan'
+
+  # ==========================================================================
+  # BENTUK ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/bentuk_kegiatan_kerjasama:
+    $ref: './paths/referensi.yaml#/bentuk-kegiatan-kerjasama'
+  /v1/referensi/bentuk_pendidikan:
+    $ref: './paths/referensi.yaml#/bentuk-pendidikan'
+
+  # ==========================================================================
+  # BIDANG ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/bidang_kerjasama:
+    $ref: './paths/referensi.yaml#/bidang-kerjasama'
+  /v1/referensi/bidang_pekerjaan:
+    $ref: './paths/referensi.yaml#/bidang-pekerjaan'
+  /v1/referensi/bidang_studi:
+    $ref: './paths/referensi.yaml#/bidang-studi'
+  /v1/referensi/bidang_usaha:
+    $ref: './paths/referensi.yaml#/bidang-usaha'
+
+  # ==========================================================================
+  # TINGKAT ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/tingkat_kerjasama:
+    $ref: './paths/referensi.yaml#/tingkat-kerjasama'
+  /v1/referensi/tingkat_penghargaan:
+    $ref: './paths/referensi.yaml#/tingkat-penghargaan'
+  /v1/referensi/tingkat_prestasi:
+    $ref: './paths/referensi.yaml#/tingkat-prestasi'
+
+  # ==========================================================================
+  # SUMBER ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/sumber_air:
+    $ref: './paths/referensi.yaml#/sumber-air'
+  /v1/referensi/sumber_dana:
+    $ref: './paths/referensi.yaml#/sumber-dana'
+  /v1/referensi/sumber_gaji:
+    $ref: './paths/referensi.yaml#/sumber-gaji'
+  /v1/referensi/sumber_listrik:
+    $ref: './paths/referensi.yaml#/sumber-listrik'
+
+  # ==========================================================================
+  # PETA ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/peta_katgiat_jabfung:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jabfung'
+  /v1/referensi/peta_katgiat_jnsdok:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jnsdok'
+  /v1/referensi/peta_katgiat_jnspub:
+    $ref: './paths/referensi.yaml#/peta-katgiat-jnspub'
+
+  # ==========================================================================
+  # JAB ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/jab_tgs:
+    $ref: './paths/referensi.yaml#/jab-tgs'
+  /v1/referensi/jabfung:
+    $ref: './paths/referensi.yaml#/jabfung'
+
+  # ==========================================================================
+  # JENIS ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/jenis_akt_mhs:
+    $ref: './paths/referensi.yaml#/jenis-akt-mhs'
+  /v1/referensi/jenis_bahan_ajar:
+    $ref: './paths/referensi.yaml#/jenis-bahan-ajar'
+  /v1/referensi/jenis_beasiswa:
+    $ref: './paths/referensi.yaml#/jenis-beasiswa'
+  /v1/referensi/jenis_diklat:
+    $ref: './paths/referensi.yaml#/jenis-diklat'
+  /v1/referensi/jenis_dokumen:
+    $ref: './paths/referensi.yaml#/jenis-dokumen'
+  /v1/referensi/jenis_evaluasi:
+    $ref: './paths/referensi.yaml#/jenis-evaluasi'
+  /v1/referensi/jenis_hapus_buku:
+    $ref: './paths/referensi.yaml#/jenis-hapus-buku'
+  /v1/referensi/jenis_jalur_pekerjaan:
+    $ref: './paths/referensi.yaml#/jenis-jalur-pekerjaan'
+  /v1/referensi/jenis_keluar:
+    $ref: './paths/referensi.yaml#/jenis-keluar'
+  /v1/referensi/jenis_kepanitiaan:
+    $ref: './paths/referensi.yaml#/jenis-kepanitiaan'
+  /v1/referensi/jenis_kesejahteraan:
+    $ref: './paths/referensi.yaml#/jenis-kesejahteraan'
+  /v1/referensi/jenis_keuangan:
+    $ref: './paths/referensi.yaml#/jenis-keuangan'
+  /v1/referensi/jenis_lembaga:
+    $ref: './paths/referensi.yaml#/jenis-lembaga'
+  /v1/referensi/jenis_media_pub:
+    $ref: './paths/referensi.yaml#/jenis-media-pub'
+  /v1/referensi/jenis_mk:
+    $ref: './paths/referensi.yaml#/jenis-mk'
+  /v1/referensi/jenis_pendaftaran:
+    $ref: './paths/referensi.yaml#/jenis-pendaftaran'
+  /v1/referensi/jenis_penelitian:
+    $ref: './paths/referensi.yaml#/jenis-penelitian'
+  /v1/referensi/jenis_penghargaan:
+    $ref: './paths/referensi.yaml#/jenis-penghargaan'
+  /v1/referensi/jenis_prasarana:
+    $ref: './paths/referensi.yaml#/jenis-prasarana'
+  /v1/referensi/jenis_prestasi:
+    $ref: './paths/referensi.yaml#/jenis-prestasi'
+  /v1/referensi/jenis_publikasi:
+    $ref: './paths/referensi.yaml#/jenis-publikasi'
+  /v1/referensi/jenis_sarana:
+    $ref: './paths/referensi.yaml#/jenis-sarana'
+  /v1/referensi/jenis_sdm:
+    $ref: './paths/referensi.yaml#/jenis-sdm'
+  /v1/referensi/jenis_sert:
+    $ref: './paths/referensi.yaml#/jenis-sert'
+  /v1/referensi/jenis_sms:
+    $ref: './paths/referensi.yaml#/jenis-sms'
+  /v1/referensi/jenis_subst:
+    $ref: './paths/referensi.yaml#/jenis-subst'
+  /v1/referensi/jenis_tes:
+    $ref: './paths/referensi.yaml#/jenis-tes'
+  /v1/referensi/jenis_tinggal:
+    $ref: './paths/referensi.yaml#/jenis-tinggal'
+  /v1/referensi/jenis_tunjangan:
+    $ref: './paths/referensi.yaml#/jenis-tunjangan'
+  /v1/referensi/jenis_unit:
+    $ref: './paths/referensi.yaml#/jenis-unit'
+
+  # ==========================================================================
+  # KATEGORI ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/kategori_capaian_luaran:
+    $ref: './paths/referensi.yaml#/kategori-capaian-luaran'
+  /v1/referensi/kategori_kegiatan:
+    $ref: './paths/referensi.yaml#/kategori-kegiatan'
+  /v1/referensi/kategori_tabel:
+    $ref: './paths/referensi.yaml#/kategori-tabel'
+
+  # ==========================================================================
+  # KELOMPOK ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/kelompok_bidang:
+    $ref: './paths/referensi.yaml#/kelompok-bidang'
+  /v1/referensi/kelompok_mk:
+    $ref: './paths/referensi.yaml#/kelompok-mk'
+  /v1/referensi/kelompok_profesi:
+    $ref: './paths/referensi.yaml#/kelompok-profesi'
+  /v1/referensi/kelompok_usaha:
+    $ref: './paths/referensi.yaml#/kelompok-usaha'
+
+  # ==========================================================================
+  # LEMBAGA ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/lembaga_akred:
+    $ref: './paths/referensi.yaml#/lembaga-akred'
+  /v1/referensi/lembaga_pengangkat:
+    $ref: './paths/referensi.yaml#/lembaga-pengangkat'
+  /v1/referensi/lembaga_sertifikasi:
+    $ref: './paths/referensi.yaml#/lembaga-sertifikasi'
+
+  # ==========================================================================
+  # STATUS ENDPOINTS
+  # ==========================================================================
+  /v1/referensi/status_kepegawaian:
+    $ref: './paths/referensi.yaml#/status-kepegawaian'
+  /v1/referensi/status_kepemilikan:
+    $ref: './paths/referensi.yaml#/status-kepemilikan'
+  /v1/referensi/status_kerjasama:
+    $ref: './paths/referensi.yaml#/status-kerjasama'
+  /v1/referensi/status_mahasiswa:
+    $ref: './paths/referensi.yaml#/status-mahasiswa'
+  /v1/referensi/status_milik_sarpras:
+    $ref: './paths/referensi.yaml#/status-milik-sarpras'
+  /v1/referensi/status_anak:
+    $ref: './paths/referensi.yaml#/status-anak'
+  /v1/referensi/status_keaktifan_pegawai:
+    $ref: './paths/referensi.yaml#/status-keaktifan-pegawai'
+
+  # ==========================================================================
+  # SYSTEM ENDPOINTS
+  # ==========================================================================
+  /health:
+    $ref: './paths/system.yaml#/health'
+
+  # ==========================================================================
+  # PDRD ENDPOINTS
+  # ==========================================================================
+  /v1/pdrd/list_mahasiswa:
+    $ref: './paths/pdrd.yaml#/list-mahasiswa'
+  /v1/pdrd/detail_biodata_mahasiswa:
+    $ref: './paths/pdrd.yaml#/detail-biodata-mahasiswa'
+  /v1/pdrd/riwayat_pendidikan_mahasiswa:
+    $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
+  /v1/pdrd/status_kuliah_mahasiswa:
+    $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
+  /v1/pdrd/publikasi:
+    $ref: './paths/pdrd.yaml#/publikasi'
+  /v1/pdrd/litabmas:
+    $ref: './paths/pdrd.yaml#/litabmas'
+
+components:
+  schemas:
+    $ref: './schemas/_index.yaml'
+
+  responses:
+    $ref: './responses/_index.yaml'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Masukkan JWT token

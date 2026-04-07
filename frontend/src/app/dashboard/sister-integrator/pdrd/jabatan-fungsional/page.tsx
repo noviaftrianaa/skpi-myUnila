@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -36,6 +36,8 @@ import {
 import { toast } from "react-hot-toast";
 import SisterRiwayatFungsionalTable from "@/shared/components/sister-integrator/SisterRiwayatFungsionalTable";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function JabatanFungsionalPage() {
   useRequireAuth();
@@ -153,11 +155,12 @@ export default function JabatanFungsionalPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Jabatan Fungsional Dosen"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Jabatan Fungsional"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -471,6 +474,6 @@ export default function JabatanFungsionalPage() {
           )}
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

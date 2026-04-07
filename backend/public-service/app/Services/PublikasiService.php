@@ -3,10 +3,14 @@
 namespace App\Services;
 
 use App\Repositories\PublikasiRepository;
+use Illuminate\Support\Facades\Cache;
 
 class PublikasiService
 {
     protected $publikasiRepository;
+
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
 
     public function __construct(PublikasiRepository $publikasiRepository)
     {
@@ -14,7 +18,7 @@ class PublikasiService
     }
 
     /**
-     * Get publikasi statistics
+     * Get publikasi statistics with Redis caching
      *
      * @param int|null $startYear Start year for filtering
      * @param int|null $endYear End year for filtering
@@ -22,20 +26,24 @@ class PublikasiService
      */
     public function getPublikasiStatistics(?int $startYear = null, ?int $endYear = null): array
     {
-        $byJenis = $this->publikasiRepository->getPublikasiByJenis();
-        $byYear = $this->publikasiRepository->getPublikasiByYear();
-        $byKategoriCapaian = $this->publikasiRepository->getPublikasiByKategoriCapaian($startYear, $endYear);
-        $byPeran = $this->publikasiRepository->getPublikasiByPeran($startYear, $endYear);
-        $byFakultas = $this->publikasiRepository->getPublikasiByFakultas($startYear, $endYear);
-        $total = $this->publikasiRepository->getTotalPublikasi();
+        $cacheKey = 'publikasi:statistics:' . ($startYear ?? 'null') . ':' . ($endYear ?? 'null');
 
-        return [
-            'total' => $total,
-            'by_jenis' => $byJenis,
-            'by_year' => $byYear,
-            'by_kategori_capaian' => $byKategoriCapaian,
-            'by_peran' => $byPeran,
-            'by_fakultas' => $byFakultas,
-        ];
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($startYear, $endYear) {
+            $byJenis = $this->publikasiRepository->getPublikasiByJenis();
+            $byYear = $this->publikasiRepository->getPublikasiByYear();
+            $byKategoriCapaian = $this->publikasiRepository->getPublikasiByKategoriCapaian($startYear, $endYear);
+            $byPeran = $this->publikasiRepository->getPublikasiByPeran($startYear, $endYear);
+            $byFakultas = $this->publikasiRepository->getPublikasiByFakultas($startYear, $endYear);
+            $total = $this->publikasiRepository->getTotalPublikasi();
+
+            return [
+                'total' => $total,
+                'by_jenis' => $byJenis,
+                'by_year' => $byYear,
+                'by_kategori_capaian' => $byKategoriCapaian,
+                'by_peran' => $byPeran,
+                'by_fakultas' => $byFakultas,
+            ];
+        });
     }
 }

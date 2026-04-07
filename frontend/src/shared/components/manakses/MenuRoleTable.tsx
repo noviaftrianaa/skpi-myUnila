@@ -618,8 +618,8 @@ export default function MenuRoleTable({ onStatsLoaded }: MenuRoleTableProps) {
           return item.textValue || "Semua Aplikasi";
         }}
       >
-        <SelectItem key="all" value="all" textValue="Semua Aplikasi">
-          <span className="text-sm">Semua Aplikasi ({totalAllAplikasi})</span>
+        <SelectItem key="all" value="all" textValue="Semua Aplikasi Internal">
+          <span className="text-sm">Semua Aplikasi Internal ({totalAllAplikasi})</span>
         </SelectItem>
         {aplikasiOptions.map((app) => (
           <SelectItem key={app.id_aplikasi} value={app.id_aplikasi} textValue={app.nm_aplikasi}>
@@ -724,10 +724,10 @@ export default function MenuRoleTable({ onStatsLoaded }: MenuRoleTableProps) {
         <ModalContent>
           <ModalHeader className="flex flex-col gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Tambah Menu Role Assignment
+              Tambah Akses Menu
             </h3>
             <p className="text-sm font-normal text-gray-600 dark:text-slate-400">
-              Assign role ke menu untuk mengatur akses
+              Assign role ke menu aplikasi internal portal untuk mengatur siapa yang bisa mengakses menu tertentu
             </p>
           </ModalHeader>
           <ModalBody className="px-6 py-5">

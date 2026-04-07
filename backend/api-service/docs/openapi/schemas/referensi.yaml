@@ -1,0 +1,1757 @@
+# Referensi Schemas
+
+Semester:
+  type: object
+  properties:
+    id_smt:
+      type: string
+      example: "20241"
+    id_thn_ajaran:
+      type: integer
+      example: 2024
+    nm_smt:
+      type: string
+      example: "2024/2025 Ganjil"
+    smt:
+      type: integer
+      example: 1
+    a_periode_aktif:
+      type: integer
+      example: 1
+    tgl_mulai:
+      type: string
+      format: date-time
+    tgl_selesai:
+      type: string
+      format: date-time
+
+TahunAjaran:
+  type: object
+  properties:
+    id_thn_ajaran:
+      type: integer
+      example: 2024
+    nm_thn_ajaran:
+      type: string
+      example: "2024/2025"
+    a_periode_aktif:
+      type: integer
+      example: 1
+    tgl_mulai:
+      type: string
+      format: date-time
+    tgl_selesai:
+      type: string
+      format: date-time
+
+Agama:
+  type: object
+  properties:
+    id_agama:
+      type: integer
+      example: 1
+    nm_agama:
+      type: string
+      example: Islam
+
+Wilayah:
+  type: object
+  properties:
+    id_wil:
+      type: string
+      example: "180000"
+    id_negara:
+      type: string
+      example: "ID"
+    nm_wil:
+      type: string
+      example: Lampung
+    asal_wil:
+      type: string
+    kode_bps:
+      type: string
+    kode_dagri:
+      type: string
+    kode_keu:
+      type: string
+    id_induk_wilayah:
+      type: string
+      example: "000000"
+    id_level_wil:
+      type: integer
+      example: 1
+      description: "1=Provinsi, 2=Kab/Kota, 3=Kecamatan, 4=Kelurahan"
+
+# =============================================================================
+# BENTUK SCHEMAS
+# =============================================================================
+
+BentukKegiatanKerjasama:
+  type: object
+  properties:
+    id_bntk_giat_kerjasama:
+      type: integer
+      example: 1
+    nm_bntk_giat_kerjasama:
+      type: string
+      example: "Pengabdian Masyarakat"
+    ket:
+      type: string
+      nullable: true
+      example: "Keterangan kegiatan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BentukPendidikan:
+  type: object
+  properties:
+    id_bp:
+      type: integer
+      example: 1
+    nm_bp:
+      type: string
+      example: "Pendidikan Formal"
+    a_jenj_paud:
+      type: integer
+      example: 0
+      description: "Flag jenjang PAUD (0/1)"
+    a_jenj_tk:
+      type: integer
+      example: 0
+      description: "Flag jenjang TK (0/1)"
+    a_jenj_sd:
+      type: integer
+      example: 0
+      description: "Flag jenjang SD (0/1)"
+    a_jenj_smp:
+      type: integer
+      example: 0
+      description: "Flag jenjang SMP (0/1)"
+    a_jenj_sma:
+      type: integer
+      example: 0
+      description: "Flag jenjang SMA (0/1)"
+    a_jenj_tinggi:
+      type: integer
+      example: 1
+      description: "Flag jenjang Tinggi (0/1)"
+    dir_bina:
+      type: string
+      example: "Dikti"
+    a_aktif:
+      type: integer
+      example: 1
+      description: "Status aktif (0/1)"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# BIDANG SCHEMAS
+# =============================================================================
+
+BidangKerjasama:
+  type: object
+  properties:
+    id_bid_kerjasama:
+      type: integer
+      example: 1
+    nm_bid_kerjasama:
+      type: string
+      example: "Penelitian"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangPekerjaan:
+  type: object
+  properties:
+    id_bid_kerja:
+      type: integer
+      example: 1
+    nm_bid_kerja:
+      type: string
+      example: "Pendidikan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangStudi:
+  type: object
+  properties:
+    id_bid_studi:
+      type: integer
+      example: 1
+    id_induk_bidang_studi:
+      type: integer
+      nullable: true
+      example: null
+    kode_bid_studi:
+      type: string
+      example: "01"
+    nm_bid_studi:
+      type: string
+      example: "Teknik Informatika"
+    a_kel:
+      type: integer
+      example: 0
+    a_jenj_paud:
+      type: integer
+      example: 0
+    a_jenj_tk:
+      type: integer
+      example: 0
+    a_jenj_sd:
+      type: integer
+      example: 0
+    a_jenj_smp:
+      type: integer
+      example: 0
+    a_jenj_sma:
+      type: integer
+      example: 0
+    a_jenj_tinggi:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BidangUsaha:
+  type: object
+  properties:
+    id_bu:
+      type: string
+      example: "01"
+    nm_bu:
+      type: string
+      example: "Jasa Pendidikan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# TINGKAT SCHEMAS
+# =============================================================================
+
+TingkatKerjasama:
+  type: object
+  properties:
+    id_tingkat_kerjasama:
+      type: integer
+      example: 1
+    nm_tingkat_kerjasama:
+      type: string
+      example: "Internasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+TingkatPenghargaan:
+  type: object
+  properties:
+    id_tkt_penghargaan:
+      type: integer
+      example: 1
+    nm_tkt_penghargaan:
+      type: string
+      example: "Nasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+TingkatPrestasi:
+  type: object
+  properties:
+    id_tkt_prestasi:
+      type: integer
+      example: 1
+    nm_tkt_prestasi:
+      type: string
+      example: "Internasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# SUMBER SCHEMAS
+# =============================================================================
+
+SumberAir:
+  type: object
+  properties:
+    id_sumber_air:
+      type: integer
+      example: 1
+    nm_sumber_air:
+      type: string
+      example: "PDAM"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberDana:
+  type: object
+  properties:
+    id_sumber_dana:
+      type: integer
+      example: 1
+    nm_sumber_dana:
+      type: string
+      example: "APBN"
+    u_blockgrant:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk blockgrant (0/1)"
+    u_beasiswa:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk beasiswa (0/1)"
+    u_lit:
+      type: integer
+      example: 1
+      description: "Flag penggunaan untuk penelitian (0/1)"
+    u_unit_usaha:
+      type: integer
+      example: 0
+      description: "Flag penggunaan untuk unit usaha (0/1)"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberGaji:
+  type: object
+  properties:
+    id_sumber_gaji:
+      type: integer
+      example: 1
+    nm_sumber_gaji:
+      type: string
+      example: "APBN"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SumberListrik:
+  type: object
+  properties:
+    id_sumber_listrik:
+      type: integer
+      example: 1
+    nm_sumber_listrik:
+      type: string
+      example: "PLN"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# PETA SCHEMAS
+# =============================================================================
+
+PetaKatgiatJabfung:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jabfung:
+      type: integer
+      example: 1
+      description: "ID jabatan fungsional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+PetaKatgiatJnsdok:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jns_dok:
+      type: integer
+      example: 1
+      description: "ID jenis dokumen"
+    a_wajib:
+      type: integer
+      example: 1
+      description: "Flag dokumen wajib (0/1)"
+    no_urut:
+      type: integer
+      example: 1
+      description: "Nomor urut dokumen"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+PetaKatgiatJnspub:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+      description: "ID kategori kegiatan"
+    id_jns_pub:
+      type: integer
+      example: 1
+      description: "ID jenis publikasi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# COMMON SCHEMAS (ADDITIONAL)
+# =============================================================================
+
+AktifitasKerjasama:
+  type: object
+  properties:
+    id_akt_kerjasama:
+      type: integer
+      example: 1
+    nm_akt_kerjasama:
+      type: string
+      example: "Pertukaran Dosen"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+BasisEvaluasi:
+  type: object
+  properties:
+    id_basis_eval:
+      type: integer
+      example: 1
+    nm_basis_eval:
+      type: string
+      example: "Semester"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+FungsiLab:
+  type: object
+  properties:
+    id_fungsi_lab:
+      type: integer
+      example: 1
+    nm_fungsi_lab:
+      type: string
+      example: "Laboratorium Penelitian"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+GelarAkademik:
+  type: object
+  properties:
+    id_gelar:
+      type: integer
+      example: 1
+    kode_gelar:
+      type: string
+      example: "S.Kom"
+    nm_gelar:
+      type: string
+      example: "Sarjana Komputer"
+    posisi_gelar:
+      type: integer
+      example: 1
+      description: "1=Belakang, 0=Depan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+IkatanKerjaSdm:
+  type: object
+  properties:
+    id_kat_ker:
+      type: integer
+      example: 1
+    nm_kat_ker:
+      type: string
+      example: "Tetap"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JalurDaftar:
+  type: object
+  properties:
+    id_jalur_masuk:
+      type: integer
+      example: 1
+    nm_jalur_masuk:
+      type: string
+      example: "SNMPTN"
+    a_aktif:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenjangPendidikan:
+  type: object
+  properties:
+    id_jenjang_pendidikan:
+      type: integer
+      example: 1
+    nm_jenjang_pendidikan:
+      type: string
+      example: "S1"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Jurusan:
+  type: object
+  properties:
+    id_jurusan:
+      type: integer
+      example: 1
+    nm_jurusan:
+      type: string
+      example: "IPA"
+    untuk_sma:
+      type: integer
+      example: 1
+    untuk_smk:
+      type: integer
+      example: 0
+    untuk_pt:
+      type: integer
+      example: 0
+    untuk_slb:
+      type: integer
+      example: 0
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Kbli:
+  type: object
+  properties:
+    kbli:
+      type: string
+      example: "01"
+    nm_kbli:
+      type: string
+      example: "Pertanian"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KeahlianLab:
+  type: object
+  properties:
+    id_keahlian_lab:
+      type: integer
+      example: 1
+    nm_keahlian_lab:
+      type: string
+      example: "Analisis Kimia"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KebutuhanKhusus:
+  type: object
+  properties:
+    id_kk:
+      type: integer
+      example: 1
+    nm_kk:
+      type: string
+      example: "Tunanetra"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KriteriaMitra:
+  type: object
+  properties:
+    id_kriteria_mitra:
+      type: integer
+      example: 1
+    nm_kriteria_mitra:
+      type: string
+      example: "Mitra Utama"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+LevelWilayah:
+  type: object
+  properties:
+    id_level_wil:
+      type: integer
+      example: 1
+    nm_level_wil:
+      type: string
+      example: "Provinsi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+MediaPublikasi:
+  type: object
+  properties:
+    id_media_pub:
+      type: integer
+      example: 1
+    nm_media_pub:
+      type: string
+      example: "Jurnal Nasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Negara:
+  type: object
+  properties:
+    id_negara:
+      type: string
+      example: "ID"
+    nm_negara:
+      type: string
+      example: "Indonesia"
+    a_ln:
+      type: integer
+      example: 0
+      description: "Flag luar negeri (0/1)"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+NilaiAkred:
+  type: object
+  properties:
+    id_nilai_akred:
+      type: string
+      example: "A"
+    nm_nilai_akred:
+      type: string
+      example: "Akreditasi A"
+    nm_nilai_akred_eng:
+      type: string
+      nullable: true
+      example: "Accreditation A"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+PangkatGolongan:
+  type: object
+  properties:
+    id_pangkat_golongan:
+      type: string
+      example: "IIIA"
+    nm_pangkat_golongan:
+      type: string
+      example: "Penata Muda"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Pekerjaan:
+  type: object
+  properties:
+    id_pekerjaan:
+      type: integer
+      example: 1
+    nm_pekerjaan:
+      type: string
+      example: "Pegawai Negeri"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Pembiayaan:
+  type: object
+  properties:
+    id_pembiayaan:
+      type: integer
+      example: 1
+    nm_pembiayaan:
+      type: string
+      example: "Mandiri"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Penghasilan:
+  type: object
+  properties:
+    id_penghasilan:
+      type: integer
+      example: 1
+    nm_penghasilan:
+      type: string
+      example: "Kurang dari 1 Juta"
+    batas_bawah:
+      type: integer
+      example: 0
+    batas_atas:
+      type: integer
+      example: 1000000
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Satuan:
+  type: object
+  properties:
+    id_satuan:
+      type: integer
+      example: 1
+    nm_satuan:
+      type: string
+      example: "Unit"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+TahunAnggaran:
+  type: object
+  properties:
+    id_thn_anggaran:
+      type: integer
+      example: 2024
+    nm_thn_anggaran:
+      type: string
+      example: "2024"
+    a_aktif:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+Tse:
+  type: object
+  properties:
+    id_tse:
+      type: integer
+      example: 1
+    nm_tse:
+      type: string
+      example: "Pelayanan Publik"
+    kode_tse:
+      type: string
+      example: "PP"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+SkimKegiatan:
+  type: object
+  properties:
+    id_skim_kegiatan:
+      type: integer
+      example: 1
+    nm_skim_kegiatan:
+      type: string
+      example: "Hibah Penelitian"
+    id_sumber_dana:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# JAB SCHEMAS
+# =============================================================================
+
+JabTgs:
+  type: object
+  properties:
+    id_jab_tgs:
+      type: integer
+      example: 1
+    nm_jab_tgs:
+      type: string
+      example: "Ketua Jurusan"
+    id_kel_prof:
+      type: integer
+      nullable: true
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JabFung:
+  type: object
+  properties:
+    id_jabfung:
+      type: integer
+      example: 1
+    nm_jabfung:
+      type: string
+      example: "Guru Besar"
+    id_kel_prof:
+      type: integer
+      nullable: true
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# JENIS SCHEMAS
+# =============================================================================
+
+JenisAktMhs:
+  type: object
+  properties:
+    id_jns_akt_mhs:
+      type: integer
+      example: 1
+    nm_jns_akt_mhs:
+      type: string
+      example: "Magang Industri"
+    kel_akt:
+      type: integer
+      example: 1
+    kegiatan_kampus_merdeka:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisBahanAjar:
+  type: object
+  properties:
+    id_jns_ba:
+      type: integer
+      example: 1
+    nm_jns_ba:
+      type: string
+      example: "Modul"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisBeasiswa:
+  type: object
+  properties:
+    id_jns_bea:
+      type: integer
+      example: 1
+    nm_jns_bea:
+      type: string
+      example: "Beasiswa Prestasi"
+    id_sumber_dana:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisDiklat:
+  type: object
+  properties:
+    id_jns_diklat:
+      type: integer
+      example: 1
+    nm_jns_diklat:
+      type: string
+      example: "Diklat Teknis"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisDokumen:
+  type: object
+  properties:
+    id_jns_dok:
+      type: integer
+      example: 1
+    nm_jns_dok:
+      type: string
+      example: "SK"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisEvaluasi:
+  type: object
+  properties:
+    id_jns_eval:
+      type: integer
+      example: 1
+    nm_jns_eval:
+      type: string
+      example: "UTS"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisHapusBuku:
+  type: object
+  properties:
+    id_jns_hapus_buku:
+      type: integer
+      example: 1
+    nm_jns_hapus_buku:
+      type: string
+      example: "Rusak"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisJalurPekerjaan:
+  type: object
+  properties:
+    id_jns_jalur_pekerjaan:
+      type: integer
+      example: 1
+    nm_jns_jalur_pekerjaan:
+      type: string
+      example: "Wirausaha"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisKeluar:
+  type: object
+  properties:
+    id_jns_keluar:
+      type: string
+      example: "D"
+    ket_keluar:
+      type: string
+      example: "Mengundurkan Diri"
+    a_pd:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisKepanitiaan:
+  type: object
+  properties:
+    id_jns_kepanitiaan:
+      type: integer
+      example: 1
+    nm_jns_kepanitiaan:
+      type: string
+      example: "Panitia Ujian"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisKesejahteraan:
+  type: object
+  properties:
+    id_jns_kesejahteraan:
+      type: integer
+      example: 1
+    nm_jns_kesejahteraan:
+      type: string
+      example: "Asuransi Kesehatan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisKeuangan:
+  type: object
+  properties:
+    id_jns_keuangan:
+      type: integer
+      example: 1
+    nm_jns_keuangan:
+      type: string
+      example: "SPP"
+    id_sumber_dana:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisLembaga:
+  type: object
+  properties:
+    id_jns_lembaga:
+      type: integer
+      example: 1
+    nm_jns_lembaga:
+      type: string
+      example: "Perguruan Tinggi Negeri"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisMediaPub:
+  type: object
+  properties:
+    id_jns_media_pub:
+      type: integer
+      example: 1
+    nm_jns_media_pub:
+      type: string
+      example: "Jurnal Online"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisMk:
+  type: object
+  properties:
+    id_jns_mk:
+      type: integer
+      example: 1
+    nm_jns_mk:
+      type: string
+      example: "Mata Kuliah Wajib"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPendaftaran:
+  type: object
+  properties:
+    id_jns_daftar:
+      type: integer
+      example: 1
+    nm_jns_daftar:
+      type: string
+      example: "Reguler"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPenelitian:
+  type: object
+  properties:
+    id_jns_penelitian:
+      type: integer
+      example: 1
+    nm_jns_penelitian:
+      type: string
+      example: "Penelitian Dasar"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPenghargaan:
+  type: object
+  properties:
+    id_jns_penghargaan:
+      type: integer
+      example: 1
+    nm_jns_penghargaan:
+      type: string
+      example: "Satya Lencana"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPrasarana:
+  type: object
+  properties:
+    id_jns_prasarana:
+      type: integer
+      example: 1
+    nm_jns_prasarana:
+      type: string
+      example: "Gedung Kuliah"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPrestasi:
+  type: object
+  properties:
+    id_jns_prestasi:
+      type: integer
+      example: 1
+    nm_jns_prestasi:
+      type: string
+      example: "Akademik"
+    a_km:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisPublikasi:
+  type: object
+  properties:
+    id_jns_pub:
+      type: integer
+      example: 1
+    nm_jns_pub:
+      type: string
+      example: "Jurnal Internasional"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisSarana:
+  type: object
+  properties:
+    id_jns_sarana:
+      type: integer
+      example: 1
+    nm_jns_sarana:
+      type: string
+      example: "Komputer"
+    id_satuan:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisSdm:
+  type: object
+  properties:
+    id_jns_sdm:
+      type: integer
+      example: 1
+    nm_jns_sdm:
+      type: string
+      example: "Dosen Tetap"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisSert:
+  type: object
+  properties:
+    id_jns_sert:
+      type: integer
+      example: 1
+    nm_jns_sert:
+      type: string
+      example: "Sertifikat Pendidik"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisSms:
+  type: object
+  properties:
+    id_jns_sms:
+      type: integer
+      example: 1
+    nm_jns_sms:
+      type: string
+      example: "Fakultas"
+    id_tse:
+      type: integer
+      nullable: true
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisSubst:
+  type: object
+  properties:
+    id_jns_subst:
+      type: string
+      example: "01"
+    nm_jns_subst:
+      type: string
+      example: "Pendidikan"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisTes:
+  type: object
+  properties:
+    id_jns_tes:
+      type: integer
+      example: 1
+    nm_jns_tes:
+      type: string
+      example: "TOEFL"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisTinggal:
+  type: object
+  properties:
+    id_jns_tinggal:
+      type: integer
+      example: 1
+    nm_jns_tinggal:
+      type: string
+      example: "Tinggal dengan Orang Tua"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisTunjangan:
+  type: object
+  properties:
+    id_jns_tunjangan:
+      type: integer
+      example: 1
+    nm_jns_tunjangan:
+      type: string
+      example: "Tunjangan Kinerja"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+JenisUnit:
+  type: object
+  description: "Data jenis unit dari tabel SMS. Menggunakan soft_delete bukan expired_date."
+  properties:
+    id_sms:
+      type: string
+      format: uuid
+      example: "12345678-1234-1234-1234-123456789abc"
+    id_sp:
+      type: string
+      format: uuid
+      nullable: true
+    id_jns_sms:
+      type: integer
+      example: 1
+    nm_lemb:
+      type: string
+      example: "Fakultas Teknik"
+    singkatan:
+      type: string
+      nullable: true
+      example: "FT"
+    sk_pendirian:
+      type: string
+      nullable: true
+    kode_dikti:
+      type: string
+      nullable: true
+    soft_delete:
+      type: integer
+      example: 0
+      description: "0=aktif, 1=dihapus"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# KATEGORI SCHEMAS
+# =============================================================================
+
+KategoriCapaianLuaran:
+  type: object
+  properties:
+    id_kat_cl:
+      type: integer
+      example: 1
+    nm_kat_cl:
+      type: string
+      example: "Luaran Wajib"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KategoriKegiatan:
+  type: object
+  properties:
+    id_katgiat:
+      type: integer
+      example: 1
+    nm_katgiat:
+      type: string
+      example: "Penelitian"
+    kel_giat:
+      type: integer
+      example: 1
+    a_aktif:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KategoriTabel:
+  type: object
+  properties:
+    id_kat_tabel:
+      type: integer
+      example: 1
+    nm_kat_tabel:
+      type: string
+      example: "Tabel Referensi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# KELOMPOK SCHEMAS
+# =============================================================================
+
+KelompokBidang:
+  type: object
+  properties:
+    id_kel_bidang:
+      type: integer
+      example: 1
+    nm_kel_bidang:
+      type: string
+      example: "Sains dan Teknologi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KelompokMk:
+  type: object
+  properties:
+    id_kel_mk:
+      type: integer
+      example: 1
+    nm_kel_mk:
+      type: string
+      example: "Mata Kuliah Dasar Umum"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KelompokProfesi:
+  type: object
+  properties:
+    id_kel_prof:
+      type: integer
+      example: 1
+    nm_kel_prof:
+      type: string
+      example: "Dosen"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+KelompokUsaha:
+  type: object
+  properties:
+    id_kel_usaha:
+      type: integer
+      example: 1
+    nm_kel_usaha:
+      type: string
+      example: "Usaha Mikro"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# LEMBAGA SCHEMAS
+# =============================================================================
+
+LembagaAkred:
+  type: object
+  properties:
+    id_lmb_akred:
+      type: string
+      example: "BAN-PT"
+    nm_lmb_akred:
+      type: string
+      example: "Badan Akreditasi Nasional Perguruan Tinggi"
+    a_aktif:
+      type: integer
+      example: 1
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+LembagaPengangkat:
+  type: object
+  properties:
+    id_lembaga_angkat:
+      type: string
+      example: "LKPP"
+    nm_lembaga_angkat:
+      type: string
+      example: "Lembaga Kebijakan Pengadaan Pemerintah"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+LembagaSertifikasi:
+  type: object
+  properties:
+    id_lmb_sert:
+      type: string
+      example: "LSP"
+    nm_lmb_sert:
+      type: string
+      example: "Lembaga Sertifikasi Profesi"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+# =============================================================================
+# STATUS SCHEMAS
+# =============================================================================
+
+StatusKepegawaian:
+  type: object
+  properties:
+    id_stat_pegawai:
+      type: string
+      example: "PNS"
+    nm_stat_pegawai:
+      type: string
+      example: "Pegawai Negeri Sipil"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusKepemilikan:
+  type: object
+  properties:
+    id_stat_kepemilikan:
+      type: integer
+      example: 1
+    nm_stat_kepemilikan:
+      type: string
+      example: "Milik Sendiri"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusKerjasama:
+  type: object
+  properties:
+    id_stat_kerjasama:
+      type: integer
+      example: 1
+    nm_stat_kerjasama:
+      type: string
+      example: "Aktif"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusMahasiswa:
+  type: object
+  properties:
+    id_stat_mhs:
+      type: string
+      example: "A"
+    nm_stat_mhs:
+      type: string
+      example: "Aktif"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusMilikSarpras:
+  type: object
+  properties:
+    id_stat_milik:
+      type: integer
+      example: 1
+    nm_stat_milik:
+      type: string
+      example: "Milik Sendiri"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusAnak:
+  type: object
+  properties:
+    id_stat_anak:
+      type: integer
+      example: 1
+    nm_stat_anak:
+      type: string
+      example: "Anak Kandung"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time
+
+StatusKeaktifanPegawai:
+  type: object
+  properties:
+    id_stat_aktif:
+      type: integer
+      example: 1
+    nm_stat_aktif:
+      type: string
+      example: "Aktif"
+    waktu_ditambahkan:
+      type: string
+      format: date-time
+    terakhir_diubah:
+      type: string
+      format: date-time

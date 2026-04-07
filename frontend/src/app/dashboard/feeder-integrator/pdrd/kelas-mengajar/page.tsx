@@ -2,25 +2,25 @@
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody } from "@heroui/react";
-import { FiUsers, FiClock } from "react-icons/fi";
+import { FiUsers, FiClock, FiDatabase } from "react-icons/fi";
 import { MdConstruction } from "react-icons/md";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
+
+const APP_KEY = "feeder-integrator";
 
 export default function KelasMengajarPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   return (
-    <DashboardLayout
-      menuConfig={feederIntegratorMenuConfig}
-      userRole={user?.role || ""}
-      breadcrumbs={[
-        { label: "Feeder Integrator", href: "/dashboard/feeder-integrator" },
-        { label: "Data PDRD", href: "#" },
-        { label: "Kelas Mengajaran", href: "/dashboard/feeder-integrator/pdrd/kelas-mengajar" },
-      ]}
+    <DashboardLayoutWithDynamicMenu
+      appName="Feeder Integrator"
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
+      pageTitle="Kelas Mengajar"
     >
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-6">
@@ -77,6 +77,6 @@ export default function KelasMengajarPage() {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

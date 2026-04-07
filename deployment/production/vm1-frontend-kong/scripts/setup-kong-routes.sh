@@ -379,9 +379,9 @@ SISTER_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
   -d "{
     \"name\": \"sister-service\",
     \"url\": \"${SISTER_SERVICE_URL:-http://192.168.120.43:8083}\",
-    \"connect_timeout\": 300000,
-    \"write_timeout\": 300000,
-    \"read_timeout\": 300000,
+    \"connect_timeout\": 720000,
+    \"write_timeout\": 720000,
+    \"read_timeout\": 720000,
     \"retries\": 5
   }")
 
@@ -749,10 +749,89 @@ fi
 echo ""
 
 ###############################################################################
-# 6. JWT Consumer & Credentials Setup
+# 6. Keuangan Service (SIMPEDAM)
+###############################################################################
+echo -e "${GREEN}[6/9] Setting up Keuangan Service...${NC}"
+
+# Create Keuangan Service
+# Note: Upstream is at VM3 (e.g., 192.168.120.43:8088)
+# Keuangan service is a Go app for SIMPEDAM integration
+KEUANGAN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"keuangan-service\",
+    \"url\": \"${KEUANGAN_SERVICE_URL:-http://192.168.120.43:8088}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 5
+  }")
+
+KEUANGAN_SERVICE_ID=$(parse_json_id "$KEUANGAN_SERVICE")
+
+if [ -z "$KEUANGAN_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Keuangan service${NC}"
+else
+    echo -e "${GREEN}  ✓ Keuangan service created: $KEUANGAN_SERVICE_ID${NC}"
+
+    # Route: Protected /api/v1/* endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected /api/v1 route...${NC}"
+    KEUANGAN_API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-api-v1-route",
+        "paths": ["/keuangan-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    KEUANGAN_API_ROUTE_ID=$(parse_json_id "$KEUANGAN_API_ROUTE")
+
+    if [ -n "$KEUANGAN_API_ROUTE_ID" ]; then
+        # Add CORS plugin with extended headers for sync operations
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected /api/v1 route created with JWT${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 7. JWT Consumer & Credentials Setup
 ###############################################################################
 echo ""
-echo -e "${GREEN}[6/6] Setting up JWT Consumer & Credentials...${NC}"
+echo -e "${GREEN}[7/9] Setting up JWT Consumer & Credentials...${NC}"
 
 # Create consumer for auth service
 echo -e "${YELLOW}  → Creating consumer 'auth-service'...${NC}"
@@ -789,6 +868,994 @@ else
     echo -e "${RED}  ✗ Failed to create JWT credential${NC}"
 fi
 
+###############################################################################
+# 7. Dashboard Service (Laravel)
+###############################################################################
+echo -e "${GREEN}[7/8] Setting up Dashboard Service...${NC}"
+
+# Create Dashboard Service
+# Note: Upstream is at VM2 (e.g., 192.168.120.42:8086)
+DASHBOARD_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"dashboard-service\",
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8086}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000,
+    \"retries\": 3
+  }")
+
+DASHBOARD_SERVICE_ID=$(parse_json_id "$DASHBOARD_SERVICE")
+
+if [ -z "$DASHBOARD_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create Dashboard service${NC}"
+else
+    echo -e "${GREEN}  ✓ Dashboard service created: $DASHBOARD_SERVICE_ID${NC}"
+
+    # Route: Protected endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    DASHBOARD_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-service-route",
+        "paths": ["/dashboard-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    DASHBOARD_ROUTE_ID=$(parse_json_id "$DASHBOARD_ROUTE")
+
+    if [ -n "$DASHBOARD_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 8. API Service (Go - OneData)
+###############################################################################
+echo -e "${GREEN}[8/8] Setting up API Service (OneData)...${NC}"
+
+# Create API Service
+# Note: Upstream is at VM3 (e.g., 192.168.120.43:8085)
+API_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"api-service\",
+    \"url\": \"${API_SERVICE_URL:-http://192.168.120.43:8085}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000,
+    \"retries\": 3
+  }")
+
+API_SERVICE_ID=$(parse_json_id "$API_SERVICE")
+
+if [ -z "$API_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create API service${NC}"
+else
+    echo -e "${GREEN}  ✓ API service created: $API_SERVICE_ID${NC}"
+
+    # Route: Protected endpoints (with JWT)
+    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "api-service-route",
+        "paths": ["/api-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    API_ROUTE_ID=$(parse_json_id "$API_ROUTE")
+
+    if [ -n "$API_ROUTE_ID" ]; then
+        # Add CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "exposed_headers": ["X-Auth-Token"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "maximum_expiration": 0,
+              "header_names": ["authorization"],
+              "cookie_names": []
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+    fi
+fi
+
+###############################################################################
+# 9. MinIO Storage Service (Public - no auth, read-only)
+###############################################################################
+echo -e "${GREEN}[9/10] Setting up MinIO Storage Service...${NC}"
+
+# Create MinIO Storage Service
+# Note: Upstream is at MinIO VM (192.168.120.47:9000)
+MINIO_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"minio-storage\",
+    \"url\": \"${MINIO_STORAGE_URL:-http://192.168.120.47:9000}\",
+    \"connect_timeout\": 5000,
+    \"write_timeout\": 30000,
+    \"read_timeout\": 30000,
+    \"retries\": 2
+  }")
+
+MINIO_SERVICE_ID=$(parse_json_id "$MINIO_SERVICE")
+
+if [ -z "$MINIO_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create MinIO Storage service${NC}"
+else
+    echo -e "${GREEN}  ✓ MinIO Storage service created: $MINIO_SERVICE_ID${NC}"
+
+    # Route: Public read-only (no JWT, GET/HEAD only)
+    echo -e "${YELLOW}  → Creating public storage route...${NC}"
+    MINIO_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MINIO_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "minio-storage-route",
+        "paths": ["/storage"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "methods": ["GET", "HEAD"],
+        "regex_priority": 200
+      }')
+
+    MINIO_ROUTE_ID=$(parse_json_id "$MINIO_ROUTE")
+
+    if [ -n "$MINIO_ROUTE_ID" ]; then
+        # Add CORS plugin (SECURITY: restrict origins to known domains only)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["https://my.unila.ac.id", "https://unila.ac.id"],
+              "methods": ["GET", "HEAD", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Range"],
+              "exposed_headers": ["Content-Length", "Content-Type", "ETag"],
+              "credentials": false,
+              "max_age": 86400
+            }
+          }' > /dev/null
+
+        # Add rate limiting plugin (protect MinIO from abuse)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "rate-limiting",
+            "config": {
+              "minute": 300,
+              "hour": 5000,
+              "policy": "local"
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ Public storage route created (GET/HEAD, rate-limited, CORS restricted)${NC}"
+
+        # SECURITY: Block access to documents/ prefix via Kong (defence in depth)
+        # Documents are already private at MinIO bucket policy level,
+        # but this adds an extra layer of protection at the gateway.
+        echo -e "${YELLOW}  → Creating block route for documents (defence in depth)...${NC}"
+        MINIO_BLOCK_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MINIO_SERVICE_ID/routes" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "minio-storage-block-documents",
+            "paths": ["/storage/myunila-storage/documents"],
+            "strip_path": true,
+            "preserve_host": false,
+            "protocols": ["http", "https"],
+            "methods": ["GET", "HEAD"],
+            "regex_priority": 300
+          }')
+
+        MINIO_BLOCK_ROUTE_ID=$(parse_json_id "$MINIO_BLOCK_ROUTE")
+
+        if [ -n "$MINIO_BLOCK_ROUTE_ID" ]; then
+            # Terminate requests to documents path with 403
+            curl -s -X POST "$KONG_ADMIN_URL/routes/$MINIO_BLOCK_ROUTE_ID/plugins" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "name": "request-termination",
+                "config": {
+                  "status_code": 403,
+                  "message": "Access denied. Documents are not publicly accessible."
+                }
+              }' > /dev/null
+            echo -e "${GREEN}  ✓ Documents path blocked at gateway level${NC}"
+        fi
+    fi
+fi
+
+echo ""
+
+###############################################################################
+# 10. API Documentation Routes (Protected with JWT via header AND cookie)
+###############################################################################
+echo -e "${GREEN}[10/10] Setting up API Documentation Routes (Protected)...${NC}"
+
+# Note: JWT plugin configured to read token from BOTH header AND cookie
+# This allows browser access after login (token stored in cookie)
+# Cookie name: token (set by auth-service on login)
+
+# Auth Service Docs
+echo -e "${YELLOW}  → Creating auth-service-docs route...${NC}"
+AUTH_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"auth-service-docs\",
+    \"url\": \"${AUTH_SERVICE_URL:-http://192.168.120.42:8081}/docs\"
+  }")
+
+AUTH_DOCS_SERVICE_ID=$(parse_json_id "$AUTH_DOCS_SERVICE")
+
+if [ -n "$AUTH_DOCS_SERVICE_ID" ]; then
+    AUTH_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$AUTH_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "auth-service-docs-route",
+        "paths": ["/gateway/auth-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    AUTH_DOCS_ROUTE_ID=$(parse_json_id "$AUTH_DOCS_ROUTE")
+
+    if [ -n "$AUTH_DOCS_ROUTE_ID" ]; then
+        # Add CORS
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # Add JWT plugin (reads from header AND cookie)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$AUTH_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ auth-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# Public Service Docs
+echo -e "${YELLOW}  → Creating public-service-docs route...${NC}"
+PUBLIC_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"public-service-docs\",
+    \"url\": \"${PUBLIC_SERVICE_URL:-http://192.168.120.42:8082}/docs\"
+  }")
+
+PUBLIC_DOCS_SERVICE_ID=$(parse_json_id "$PUBLIC_DOCS_SERVICE")
+
+if [ -n "$PUBLIC_DOCS_SERVICE_ID" ]; then
+    PUBLIC_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$PUBLIC_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "public-service-docs-route",
+        "paths": ["/gateway/public-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    PUBLIC_DOCS_ROUTE_ID=$(parse_json_id "$PUBLIC_DOCS_ROUTE")
+
+    if [ -n "$PUBLIC_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PUBLIC_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ public-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# Sister Service Docs
+echo -e "${YELLOW}  → Creating sister-service-docs route...${NC}"
+SISTER_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"sister-service-docs\",
+    \"url\": \"${SISTER_SERVICE_URL:-http://192.168.120.43:8083}/docs\"
+  }")
+
+SISTER_DOCS_SERVICE_ID=$(parse_json_id "$SISTER_DOCS_SERVICE")
+
+if [ -n "$SISTER_DOCS_SERVICE_ID" ]; then
+    SISTER_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$SISTER_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "sister-service-docs-route",
+        "paths": ["/gateway/sister-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    SISTER_DOCS_ROUTE_ID=$(parse_json_id "$SISTER_DOCS_ROUTE")
+
+    if [ -n "$SISTER_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SISTER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ sister-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# Feeder Service Docs
+echo -e "${YELLOW}  → Creating feeder-service-docs route...${NC}"
+FEEDER_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"feeder-service-docs\",
+    \"url\": \"${FEEDER_SERVICE_URL:-http://192.168.120.43:8084}/docs\"
+  }")
+
+FEEDER_DOCS_SERVICE_ID=$(parse_json_id "$FEEDER_DOCS_SERVICE")
+
+if [ -n "$FEEDER_DOCS_SERVICE_ID" ]; then
+    FEEDER_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$FEEDER_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "feeder-service-docs-route",
+        "paths": ["/gateway/feeder-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    FEEDER_DOCS_ROUTE_ID=$(parse_json_id "$FEEDER_DOCS_ROUTE")
+
+    if [ -n "$FEEDER_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$FEEDER_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ feeder-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# MyUnila Service Docs
+echo -e "${YELLOW}  → Creating myunila-service-docs route...${NC}"
+MYUNILA_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"myunila-service-docs\",
+    \"url\": \"${MYUNILA_SERVICE_URL:-http://192.168.120.43:8086}/docs\"
+  }")
+
+MYUNILA_DOCS_SERVICE_ID=$(parse_json_id "$MYUNILA_DOCS_SERVICE")
+
+if [ -n "$MYUNILA_DOCS_SERVICE_ID" ]; then
+    MYUNILA_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$MYUNILA_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "myunila-service-docs-route",
+        "paths": ["/gateway/myunila-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    MYUNILA_DOCS_ROUTE_ID=$(parse_json_id "$MYUNILA_DOCS_ROUTE")
+
+    if [ -n "$MYUNILA_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MYUNILA_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ myunila-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# API Service Docs
+echo -e "${YELLOW}  → Creating api-service-docs route...${NC}"
+API_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"api-service-docs\",
+    \"url\": \"${API_SERVICE_URL:-http://192.168.120.43:8085}/docs\"
+  }")
+
+API_DOCS_SERVICE_ID=$(parse_json_id "$API_DOCS_SERVICE")
+
+if [ -n "$API_DOCS_SERVICE_ID" ]; then
+    API_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "api-service-docs-route",
+        "paths": ["/gateway/api-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    API_DOCS_ROUTE_ID=$(parse_json_id "$API_DOCS_ROUTE")
+
+    if [ -n "$API_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ api-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# Keuangan Service Docs
+echo -e "${YELLOW}  → Creating keuangan-service-docs route...${NC}"
+KEUANGAN_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"keuangan-service-docs\",
+    \"url\": \"${KEUANGAN_SERVICE_URL:-http://192.168.120.43:8088}/docs\"
+  }")
+
+KEUANGAN_DOCS_SERVICE_ID=$(parse_json_id "$KEUANGAN_DOCS_SERVICE")
+
+if [ -n "$KEUANGAN_DOCS_SERVICE_ID" ]; then
+    KEUANGAN_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$KEUANGAN_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "keuangan-service-docs-route",
+        "paths": ["/gateway/keuangan-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    KEUANGAN_DOCS_ROUTE_ID=$(parse_json_id "$KEUANGAN_DOCS_ROUTE")
+
+    if [ -n "$KEUANGAN_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$KEUANGAN_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ keuangan-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# Dashboard Service Docs
+echo -e "${YELLOW}  → Creating dashboard-service-docs route...${NC}"
+DASHBOARD_DOCS_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"dashboard-service-docs\",
+    \"url\": \"${DASHBOARD_SERVICE_URL:-http://192.168.120.42:8086}/docs\"
+  }")
+
+DASHBOARD_DOCS_SERVICE_ID=$(parse_json_id "$DASHBOARD_DOCS_SERVICE")
+
+if [ -n "$DASHBOARD_DOCS_SERVICE_ID" ]; then
+    DASHBOARD_DOCS_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$DASHBOARD_DOCS_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "dashboard-service-docs-route",
+        "paths": ["/gateway/dashboard-service/docs"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 500
+      }')
+
+    DASHBOARD_DOCS_ROUTE_ID=$(parse_json_id "$DASHBOARD_DOCS_ROUTE")
+
+    if [ -n "$DASHBOARD_DOCS_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$DASHBOARD_DOCS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "claims_to_verify": ["exp"],
+              "key_claim_name": "iss",
+              "secret_is_base64": false,
+              "anonymous": null,
+              "run_on_preflight": false,
+              "header_names": ["authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ dashboard-service-docs route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+###############################################################################
+# Web Monitoring Service (Go Fiber, port 8089)
+###############################################################################
+echo ""
+echo -e "${GREEN}[+] Setting up Web Monitoring Service...${NC}"
+
+WEBMON_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"webmon-service\",
+    \"url\": \"${WEBMON_SERVICE_URL:-http://192.168.120.43:8089}\",
+    \"connect_timeout\": 300000,
+    \"write_timeout\": 300000,
+    \"read_timeout\": 300000,
+    \"retries\": 3
+  }")
+
+WEBMON_SERVICE_ID=$(parse_json_id "$WEBMON_SERVICE")
+
+if [ -z "$WEBMON_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-service${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-service created: $WEBMON_SERVICE_ID${NC}"
+
+    # Single route: /webmon-service (strip_path=true, JWT required)
+    WEBMON_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-route",
+        "paths": ["/webmon-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 200
+      }')
+
+    WEBMON_ROUTE_ID=$(parse_json_id "$WEBMON_ROUTE")
+
+    if [ -n "$WEBMON_ROUTE_ID" ]; then
+        # CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+              "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "X-Auth-Token", "Authorization", "X-Requested-With", "X-User-ID"],
+              "exposed_headers": ["X-Auth-Token", "Content-Length"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        # JWT plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "jwt",
+            "config": {
+              "key_claim_name": "iss",
+              "claims_to_verify": ["exp"],
+              "header_names": ["Authorization"],
+              "cookie_names": ["token"]
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-service route created with JWT (header + cookie)${NC}"
+    fi
+fi
+
+# --- Service: public routes (v1/public/*) — no auth required ---
+WEBMON_PUBLIC_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"webmon-public-service\",
+    \"url\": \"${WEBMON_SERVICE_URL:-http://192.168.120.43:8089}/v1/public\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000,
+    \"retries\": 2
+  }")
+
+WEBMON_PUBLIC_SERVICE_ID=$(parse_json_id "$WEBMON_PUBLIC_SERVICE")
+
+if [ -z "$WEBMON_PUBLIC_SERVICE_ID" ]; then
+    echo -e "${RED}  ✗ Failed to create webmon-public-service${NC}"
+else
+    echo -e "${GREEN}  ✓ webmon-public-service created: $WEBMON_PUBLIC_SERVICE_ID${NC}"
+
+    WEBMON_PUBLIC_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$WEBMON_PUBLIC_SERVICE_ID/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "webmon-public-route",
+        "paths": ["/webmon-service/v1/public"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"],
+        "regex_priority": 300
+      }')
+
+    WEBMON_PUBLIC_ROUTE_ID=$(parse_json_id "$WEBMON_PUBLIC_ROUTE")
+
+    if [ -n "$WEBMON_PUBLIC_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WEBMON_PUBLIC_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "OPTIONS"],
+              "headers": ["Accept", "Content-Type"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ webmon-public-route created (no auth) for /v1/public/*${NC}"
+    fi
+fi
+
+###############################################################################
+# Project Service (VM3 - 192.168.120.43:8095)
+# JWT required for /project-service/* (authenticated endpoints)
+# Public endpoints at /project-service/api/v1/public/* (no auth)
+###############################################################################
+echo ""
+echo -e "${BLUE}=== Project Service ===${NC}"
+
+PROJECT_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"project-service\",
+    \"url\": \"${PROJECT_SERVICE_URL:-http://192.168.120.43:8095}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000
+  }")
+
+PROJECT_SERVICE_ID=$(parse_json_id "$PROJECT_SERVICE")
+
+if [ -n "$PROJECT_SERVICE_ID" ]; then
+    echo -e "${GREEN}  ✓ project-service created: $PROJECT_SERVICE_ID${NC}"
+
+    # Route: JWT-protected endpoints
+    echo -e "${YELLOW}  → Creating project-service route (JWT required)...${NC}"
+    PROJECT_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/project-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "project-service-route",
+        "paths": ["/project-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    PROJECT_ROUTE_ID=$(parse_json_id "$PROJECT_ROUTE")
+
+    if [ -n "$PROJECT_ROUTE_ID" ]; then
+        # CORS plugin
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$PROJECT_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Authorization", "X-User-ID", "X-User-Name"],
+              "exposed_headers": ["Content-Length"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ project-service-route created with CORS${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ Failed to create project-service${NC}"
+fi
+
+###############################################################################
+# Monitoring Services (VM4 - 192.168.120.44)
+# Proxied via Kong — no direct access needed from user network
+###############################################################################
+echo ""
+echo -e "${BLUE}=== Monitoring Services (VM4) ===${NC}"
+
+# Grafana
+GRAFANA_SVC=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"grafana\",
+    \"url\": \"${GRAFANA_URL:-http://192.168.120.44:3001}\",
+    \"connect_timeout\": 10000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000
+  }")
+GRAFANA_SVC_ID=$(parse_json_id "$GRAFANA_SVC")
+if [ -n "$GRAFANA_SVC_ID" ]; then
+    curl -s -X POST "$KONG_ADMIN_URL/services/grafana/routes" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"grafana-route","paths":["/grafana"],"strip_path":true,"protocols":["http","https"]}' > /dev/null
+    curl -s -X POST "$KONG_ADMIN_URL/routes/grafana-route/plugins" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"cors","config":{"origins":["*"],"methods":["GET","POST","PUT","DELETE","OPTIONS","PATCH"],"headers":["Accept","Content-Type","Authorization"],"max_age":3600}}' > /dev/null
+    echo -e "${GREEN}  ✓ grafana → /grafana/* (VM4:3001)${NC}"
+fi
+
+# Prometheus
+PROM_SVC=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"prometheus\",
+    \"url\": \"${PROMETHEUS_URL:-http://192.168.120.44:9090}\",
+    \"connect_timeout\": 10000,
+    \"read_timeout\": 60000
+  }")
+PROM_SVC_ID=$(parse_json_id "$PROM_SVC")
+if [ -n "$PROM_SVC_ID" ]; then
+    curl -s -X POST "$KONG_ADMIN_URL/services/prometheus/routes" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"prometheus-route","paths":["/prometheus"],"strip_path":true,"protocols":["http","https"]}' > /dev/null
+    curl -s -X POST "$KONG_ADMIN_URL/routes/prometheus-route/plugins" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"cors","config":{"origins":["*"],"methods":["GET","OPTIONS"],"headers":["Accept","Content-Type"],"max_age":3600}}' > /dev/null
+    echo -e "${GREEN}  ✓ prometheus → /prometheus/* (VM4:9090)${NC}"
+fi
+
+# Loki
+LOKI_SVC=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"loki\",
+    \"url\": \"${LOKI_URL:-http://192.168.120.44:3100}\",
+    \"connect_timeout\": 10000,
+    \"read_timeout\": 60000
+  }")
+LOKI_SVC_ID=$(parse_json_id "$LOKI_SVC")
+if [ -n "$LOKI_SVC_ID" ]; then
+    curl -s -X POST "$KONG_ADMIN_URL/services/loki/routes" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"loki-route","paths":["/loki"],"strip_path":true,"protocols":["http","https"]}' > /dev/null
+    echo -e "${GREEN}  ✓ loki → /loki/* (VM4:3100)${NC}"
+fi
+
+# cAdvisor (VM4)
+CADVISOR_SVC=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"cadvisor\",
+    \"url\": \"${CADVISOR_URL:-http://192.168.120.44:18080}\",
+    \"connect_timeout\": 10000,
+    \"read_timeout\": 60000
+  }")
+CADVISOR_SVC_ID=$(parse_json_id "$CADVISOR_SVC")
+if [ -n "$CADVISOR_SVC_ID" ]; then
+    curl -s -X POST "$KONG_ADMIN_URL/services/cadvisor/routes" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"cadvisor-route","paths":["/cadvisor"],"strip_path":true,"protocols":["http","https"]}' > /dev/null
+    echo -e "${GREEN}  ✓ cadvisor → /cadvisor/* (VM4:18080)${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}=========================================${NC}"
 echo -e "${GREEN}  Kong Routes Setup Complete!${NC}"
@@ -803,6 +1870,21 @@ echo "  Sister (public photo): /sister-service/public/* → backend/public/*"
 echo "  Feeder (JWT required): /feeder-service/* → backend/*"
 echo "  MyUnila (JWT req):     /myunila-service/* → backend/*"
 echo "  MyUnila (public):      /myunila-service/public/* → backend/*"
+echo "  Keuangan (JWT req):    /keuangan-service/* → backend/*"
+echo "  WebMon (JWT req):      /webmon-service/* → backend/*"
+echo "  Dashboard (JWT req):   /dashboard-service/* → backend/*"
+echo "  API/OneData (JWT req): /api-service/* → backend/*"
+echo "  MinIO Storage (public):/storage/* → MinIO:9000/* (GET/HEAD only)"
+echo ""
+echo -e "${YELLOW}API Documentation Routes (JWT + Developer role required):${NC}"
+echo "  Auth Docs:      /gateway/auth-service/docs/*"
+echo "  Public Docs:    /gateway/public-service/docs/*"
+echo "  Sister Docs:    /gateway/sister-service/docs/*"
+echo "  Feeder Docs:    /gateway/feeder-service/docs/*"
+echo "  MyUnila Docs:   /gateway/myunila-service/docs/*"
+echo "  Keuangan Docs:  /gateway/keuangan-service/docs/*"
+echo "  API Docs:       /gateway/api-service/docs/*"
+echo "  Dashboard Docs: /gateway/dashboard-service/docs/*"
 echo ""
 
 echo -e "${YELLOW}Example Test Commands:${NC}"
@@ -818,6 +1900,9 @@ echo "  curl http://localhost:9800/sister-service/public/api/v1/dosen/photo/YOUR
 echo ""
 echo "  # MyUnila SIKEP (requires JWT)"
 echo "  curl -H 'Authorization: Bearer <token>' http://localhost:9800/myunila-service/api/v1/sikep/referensi/metadata"
+echo ""
+echo "  # MinIO Storage (public, read-only)"
+echo "  curl http://localhost:9800/storage/myunila-photos/sdm/{id_sdm}.jpg"
 echo ""
 echo "  # Check Kong services and routes"
 echo "  curl $KONG_ADMIN_URL/services"

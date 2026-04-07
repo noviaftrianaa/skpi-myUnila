@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: myunila-postgres
+    environment:
+      POSTGRES_USER: "${PG_SUPERUSER:-postgres}"
+      POSTGRES_PASSWORD: "${PG_SUPERPASS:-postgres}"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: "${TZ:-Asia/Jakarta}"
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # Init scripts — auto-run on first start
+      - ../../../../data-model/script/postgresql/init-local.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  pg_data:
+    driver: local
+    name: myunila-pg-data

@@ -18,6 +18,8 @@ func flexibleIntToInt(fi *FlexibleInt) *int {
 }
 
 // TransformFeederToEntities transforms Feeder API responses to database entities
+// Uses regData.IDRegistrasiMahasiswa as the authoritative id_reg_pd source
+// to prevent cross-registration mismatch for multi-registration students
 func TransformFeederToEntities(
 	feederMhs *FeederMahasiswaData,
 	feederReg *FeederRiwayatPendidikan,
@@ -35,7 +37,8 @@ func TransformFeederToEntities(
 	regPd := transformRegPd(feederMhs, feederReg, feederLulusDO, idSP, systemUUID, now)
 
 	// Transform KuliahMhs (multiple records)
-	kuliahMhsList := transformKuliahMhs(feederKuliah, feederMhs.IDRegistrasiMahasiswa, systemUUID, now)
+	// Use regData.IDRegistrasiMahasiswa (authoritative) instead of mhsData.IDRegistrasiMahasiswa
+	kuliahMhsList := transformKuliahMhs(feederKuliah, feederReg.IDRegistrasiMahasiswa, systemUUID, now)
 
 	return pesertaDidik, regPd, kuliahMhsList, nil
 }
@@ -164,7 +167,10 @@ func transformRegPd(
 	now time.Time,
 ) *RegPd {
 	reg := &RegPd{
-		IDRegPd:         mhsData.IDRegistrasiMahasiswa,
+		// Use regData.IDRegistrasiMahasiswa (from RiwayatPendidikan filtered by specific id_reg_pd)
+		// NOT mhsData.IDRegistrasiMahasiswa (from DataLengkap which may return wrong registration
+		// for students with multiple registrations across different prodi)
+		IDRegPd:         regData.IDRegistrasiMahasiswa,
 		IDSP:            idSP,
 		IDSMS:           mhsData.IDProdi,
 		IDPD:            mhsData.IDMahasiswa,
@@ -245,7 +251,7 @@ func transformRegPd(
 
 	// Lulus/DO data (if available)
 	if lulusDOData != nil {
-		reg.IDJenisKeluar = lulusDOData.IDJenisKeluar
+		reg.IDJenisKeluar = flexibleIntToInt(lulusDOData.IDJenisKeluar)
 
 		if lulusDOData.TanggalKeluar != nil {
 			if tgl, err := parseDate(*lulusDOData.TanggalKeluar); err == nil {
@@ -262,13 +268,17 @@ func transformRegPd(
 			}
 		}
 
-		reg.IPK = lulusDOData.IPK
+		// Convert FlexibleFloat IPK to *float64
+		if lulusDOData.IPK != nil {
+			val := float64(*lulusDOData.IPK)
+			reg.IPK = &val
+		}
 		reg.NoSeriIjazah = lulusDOData.NomorIjazah
-		reg.JalurSkripsi = lulusDOData.JalurSkripsi
+		reg.JalurSkripsi = flexibleIntToInt(lulusDOData.JalurSkripsi)
 		reg.JudulSkripsi = lulusDOData.JudulSkripsi
 		reg.BlnAwalBimbingan = lulusDOData.BulanAwalBimbingan
 		reg.BlnAkhirBimbingan = lulusDOData.BulanAkhirBimbingan
-		reg.AsalDataIjazah = lulusDOData.AsalIjazah
+		reg.AsalDataIjazah = flexibleIntToInt(lulusDOData.AsalIjazah)
 	}
 
 	return reg
@@ -402,4 +412,61 @@ func IsSemesterPendek(idSemester string) bool {
 	}
 	lastChar := idSemester[len(idSemester)-1:]
 	return lastChar == "3"
+}
+
+// buildLulusDOFromExistingRegPd constructs a FeederMahasiswaLulusDO from existing
+// database RegPd data. This is used as a fallback when the Feeder API call to
+// GetDetailMahasiswaLulusDO fails, to prevent overwriting existing graduation
+// data with NULL values during the MERGE/upsert operation.
+func buildLulusDOFromExistingRegPd(reg *RegPd) *FeederMahasiswaLulusDO {
+	if reg == nil {
+		return nil
+	}
+
+	// Convert *int to *FlexibleInt and *float64 to *FlexibleFloat
+	var fiIDJenisKeluar, fiJalurSkripsi, fiAsalIjazah *FlexibleInt
+	var ffIPK *FlexibleFloat
+
+	if reg.IDJenisKeluar != nil {
+		val := FlexibleInt(*reg.IDJenisKeluar)
+		fiIDJenisKeluar = &val
+	}
+	if reg.JalurSkripsi != nil {
+		val := FlexibleInt(*reg.JalurSkripsi)
+		fiJalurSkripsi = &val
+	}
+	if reg.AsalDataIjazah != nil {
+		val := FlexibleInt(*reg.AsalDataIjazah)
+		fiAsalIjazah = &val
+	}
+	if reg.IPK != nil {
+		val := FlexibleFloat(*reg.IPK)
+		ffIPK = &val
+	}
+
+	lulusDO := &FeederMahasiswaLulusDO{
+		IDJenisKeluar:       fiIDJenisKeluar,
+		Keterangan:          reg.Keterangan,
+		NomorSKYudisium:     reg.SKYudisium,
+		IPK:                 ffIPK,
+		NomorIjazah:         reg.NoSeriIjazah,
+		JalurSkripsi:        fiJalurSkripsi,
+		JudulSkripsi:        reg.JudulSkripsi,
+		BulanAwalBimbingan:  reg.BlnAwalBimbingan,
+		BulanAkhirBimbingan: reg.BlnAkhirBimbingan,
+		AsalIjazah:          fiAsalIjazah,
+	}
+
+	// Convert time.Time back to string format for the DTO
+	if reg.TglKeluar != nil {
+		tglStr := reg.TglKeluar.Format("2006-01-02")
+		lulusDO.TanggalKeluar = &tglStr
+	}
+
+	if reg.TglSKYudisium != nil {
+		tglStr := reg.TglSKYudisium.Format("2006-01-02")
+		lulusDO.TanggalSKYudisium = &tglStr
+	}
+
+	return lulusDO
 }

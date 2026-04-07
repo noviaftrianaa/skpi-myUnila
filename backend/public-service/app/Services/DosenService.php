@@ -9,6 +9,9 @@ class DosenService
 {
     protected $repository;
 
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
+
     public function __construct(DosenRepository $repository)
     {
         $this->repository = $repository;
@@ -22,7 +25,7 @@ class DosenService
     public function getDosenByJenjangPendidikan(): array
     {
         $cacheKey = 'dosen_jenjang_pendidikan_v2';
-        $cacheDuration = 1800; // 30 minutes
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getDosenByJenjangPendidikan();
@@ -58,7 +61,7 @@ class DosenService
     public function getDosenByJabatanFungsional(): array
     {
         $cacheKey = 'dosen_jabatan_fungsional_v2';
-        $cacheDuration = 1800; // 30 minutes
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getDosenByJabatanFungsional();
@@ -107,7 +110,7 @@ class DosenService
     public function getStatistics(): array
     {
         $cacheKey = 'dosen_statistics_v2';
-        $cacheDuration = 1800; // 30 minutes
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $totalDosen = $this->repository->getTotalDosen();

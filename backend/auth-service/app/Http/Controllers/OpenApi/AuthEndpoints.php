@@ -13,7 +13,7 @@ class AuthEndpoints
 {
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/login",
+     *     path="/auth/login",
      *     tags={"Authentication"},
      *     summary="User Login",
      *     description="Authenticate user with username and password, returns JWT token",
@@ -87,7 +87,7 @@ class AuthEndpoints
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/logout",
+     *     path="/auth/logout",
      *     tags={"Authentication"},
      *     summary="Logout",
      *     description="Logout current user session",
@@ -115,7 +115,7 @@ class AuthEndpoints
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/logout-all",
+     *     path="/auth/logout-all",
      *     tags={"Authentication"},
      *     summary="Logout from all devices",
      *     description="Logout user from all devices and revoke all active tokens",
@@ -139,7 +139,7 @@ class AuthEndpoints
 
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/me",
+     *     path="/auth/me",
      *     tags={"User"},
      *     summary="Get current user information",
      *     description="Retrieve authenticated user information",
@@ -181,7 +181,7 @@ class AuthEndpoints
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/switch-role",
+     *     path="/auth/switch-role",
      *     tags={"User"},
      *     summary="Switch user role",
      *     description="Switch active role for users with multiple roles",
@@ -221,7 +221,7 @@ class AuthEndpoints
 
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/sessions",
+     *     path="/auth/sessions",
      *     tags={"User"},
      *     summary="Get active sessions",
      *     description="Retrieve active login sessions for current user",
@@ -241,7 +241,7 @@ class AuthEndpoints
 
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/token-info",
+     *     path="/auth/token-info",
      *     tags={"User"},
      *     summary="Get token information",
      *     description="Retrieve information about current JWT token",
@@ -278,7 +278,7 @@ class AuthEndpoints
 
     /**
      * @OA\Get(
-     *     path="/api/health",
+     *     path="/health",
      *     tags={"Health"},
      *     summary="Health check",
      *     description="Check if auth service is running and healthy",

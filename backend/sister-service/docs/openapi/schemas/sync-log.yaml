@@ -1,0 +1,31 @@
+SyncLog:
+  type: object
+  properties:
+    id:
+      type: integer
+    sync_id:
+      type: string
+    sync_type:
+      type: string
+    status:
+      type: string
+      enum: [running, completed, failed]
+    started_at:
+      type: string
+      format: date-time
+    finished_at:
+      type: string
+      format: date-time
+    duration_seconds:
+      type: integer
+    items_processed:
+      type: integer
+    items_created:
+      type: integer
+    items_updated:
+      type: integer
+    items_failed:
+      type: integer
+    error_message:
+      type: string
+      nullable: true

@@ -1,0 +1,117 @@
+list:
+  get:
+    tags:
+      - Nilai Perkuliahan
+    summary: Get List Nilai Perkuliahan
+    description: Mengambil daftar nilai perkuliahan dengan pagination dan filter
+    operationId: getNilaiPerkuliahanList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_kls
+        in: query
+        description: Filter berdasarkan ID kelas kuliah
+        schema:
+          type: string
+      - name: id_prodi
+        in: query
+        description: Filter berdasarkan ID program studi
+        schema:
+          type: string
+      - name: id_semester
+        in: query
+        description: Filter berdasarkan ID semester
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data nilai perkuliahan
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/nilai-perkuliahan.yaml#/NilaiPerkuliahan'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Nilai Perkuliahan
+    summary: Get Statistik Nilai Perkuliahan
+    description: Mengambil statistik data nilai perkuliahan
+    operationId: getNilaiPerkuliahanStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    by_semester:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Nilai Perkuliahan
+    summary: Sinkronisasi Nilai Perkuliahan
+    description: Melakukan sinkronisasi data nilai perkuliahan dari Feeder PDDIKTI
+    operationId: syncNilaiPerkuliahan
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_semester:
+                type: string
+                description: ID semester yang akan disinkronkan
+                example: "20241"
+              id_prodi:
+                type: string
+                description: ID program studi (opsional)
+              id_kls:
+                type: string
+                description: ID kelas kuliah (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully

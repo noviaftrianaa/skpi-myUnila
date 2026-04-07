@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import {
   Card,
   CardBody,
@@ -29,6 +29,8 @@ import { sisterPendidikanService, type PendidikanFormalStats } from "@/lib/servi
 import { toast } from "react-hot-toast";
 import SisterPendidikanTable from "@/shared/components/sister-integrator/SisterPendidikanTable";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function PendidikanFormalPage() {
   useRequireAuth();
@@ -146,11 +148,12 @@ export default function PendidikanFormalPage() {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Pendidikan Formal Dosen"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Pendidikan Formal"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -453,6 +456,6 @@ export default function PendidikanFormalPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

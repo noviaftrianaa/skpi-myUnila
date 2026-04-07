@@ -33,11 +33,36 @@ export const getToken = (key: keyof typeof TOKEN_KEYS): string | null => {
 };
 
 /**
+ * Set cookie with proper options
+ */
+const setCookie = (name: string, value: string, days: number = 7): void => {
+  if (typeof window === 'undefined') return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  // Set cookie with path=/ so it's accessible by all services on localhost
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+};
+
+/**
+ * Remove cookie
+ */
+const removeCookie = (name: string): void => {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+};
+
+/**
  * Set token to storage (client-side only)
+ * Also saves access_token to cookie for browser-based API docs access
  */
 export const setToken = (key: keyof typeof TOKEN_KEYS, value: string): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEYS[key], value);
+
+  // Also save access token to cookie for browser-based docs access
+  if (key === 'ACCESS') {
+    setCookie('access_token', value, 7); // 7 days expiry
+  }
 };
 
 /**
@@ -54,6 +79,29 @@ export const removeToken = (key: keyof typeof TOKEN_KEYS): void => {
 export const clearTokens = (): void => {
   if (typeof window === 'undefined') return;
   Object.values(TOKEN_KEYS).forEach(key => localStorage.removeItem(key));
+  // Also clear the access_token cookie
+  removeCookie('access_token');
+};
+
+/**
+ * Refresh token queue — prevents race condition when multiple
+ * requests get 401 simultaneously. Only the first triggers refresh,
+ * others wait for the result.
+ */
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onRefreshed = (token: string) => {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+};
+
+const onRefreshFailed = () => {
+  refreshSubscribers = [];
 };
 
 /**
@@ -110,42 +158,45 @@ const createApiClient = (): AxiosInstance => {
       if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
         originalRequest._retry = true;
 
+        // If already refreshing, queue this request
+        if (isRefreshing) {
+          return new Promise((resolve) => {
+            subscribeTokenRefresh((newToken: string) => {
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              }
+              resolve(instance(originalRequest));
+            });
+          });
+        }
+
+        isRefreshing = true;
+
         try {
-          // Get refresh token from localStorage
           const refreshToken = getToken('REFRESH');
 
           if (!refreshToken) {
             throw new Error('No refresh token available');
           }
 
-
-          // Call refresh token endpoint with refresh_token in body
           const response = await axios.post(
             `${API_URL}/auth/refresh`,
-            {
-              refresh_token: refreshToken,
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
+            { refresh_token: refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
           );
 
           if (response.data.success) {
             const { access_token, refresh_token: new_refresh_token } = response.data.data;
 
-            // Update access token
             setToken('ACCESS', access_token);
 
-            // Update refresh token if backend sent new one (token rotation)
             if (new_refresh_token) {
               setToken('REFRESH', new_refresh_token);
-            } else {
-              console.log('✅ Access token refreshed successfully');
             }
 
-            // Retry original request with new access token
+            isRefreshing = false;
+            onRefreshed(access_token);
+
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${access_token}`;
             }
@@ -155,7 +206,8 @@ const createApiClient = (): AxiosInstance => {
             throw new Error('Token refresh failed');
           }
         } catch (refreshError) {
-          // Refresh failed - logout user
+          isRefreshing = false;
+          onRefreshFailed();
           console.error('❌ Token refresh failed:', refreshError);
           clearTokens();
 

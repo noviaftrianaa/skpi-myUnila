@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckCrudPermission::class,
             'log.jwt.access' => \App\Http\Middleware\LogJwtAccess::class,
             'log.role.access' => \App\Http\Middleware\LogRoleAccess::class,
+            'require.developer' => \App\Http\Middleware\RequireDeveloper::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

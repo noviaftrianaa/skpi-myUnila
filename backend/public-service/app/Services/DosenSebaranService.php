@@ -9,6 +9,9 @@ class DosenSebaranService
 {
     protected $repository;
 
+    // Cache TTL: 12 jam
+    protected const CACHE_TTL = 43200;
+
     public function __construct(DosenSebaranRepository $repository)
     {
         $this->repository = $repository;
@@ -22,7 +25,7 @@ class DosenSebaranService
     public function getSebaranByFakultas(): array
     {
         $cacheKey = 'dosen_sebaran_fakultas';
-        $cacheDuration = 1800; // 30 minutes
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () {
             $data = $this->repository->getSebaranDosenByFakultas();
@@ -54,7 +57,7 @@ class DosenSebaranService
     public function getSebaranByProdiInFakultas(string $idFakultas): array
     {
         $cacheKey = "dosen_sebaran_prodi_{$idFakultas}";
-        $cacheDuration = 1800; // 30 minutes
+        $cacheDuration = self::CACHE_TTL;
 
         return Cache::remember($cacheKey, $cacheDuration, function () use ($idFakultas) {
             $data = $this->repository->getSebaranDosenByProdiInFakultas($idFakultas);

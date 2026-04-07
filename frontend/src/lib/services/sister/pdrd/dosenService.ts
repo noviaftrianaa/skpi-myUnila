@@ -239,6 +239,71 @@ export interface SisterDosenSyncResult {
   synced_at: string;
 }
 
+// Photo sync result
+export interface SisterDosenPhotoSyncResult {
+  total_processed: number;
+  total_success: number;
+  total_failed: number;
+  total_skipped: number;
+  duration: string;
+  synced_by: string;
+}
+
+// Dokumen sync result
+export interface SisterDosenDokumenSyncResult {
+  total_dosen: number;
+  total_dokumen: number;
+  total_success: number;
+  total_skipped: number;
+  total_failed: number;
+  duration: string;
+  synced_by: string;
+}
+
+// Dokumen list item (from dok.dok_sdm + dok.dokumen + pdrd.sdm)
+export interface SisterDokumenListItem {
+  id_sdm: string;
+  nama_sdm: string;
+  id_dok: string;
+  id_jns_dok: number;
+  nm_jns_dok: string | null;
+  nm_dok: string | null;
+  file_name: string | null;
+  media_type: string | null;
+  url: string | null;
+  wkt_unggah: string | null;
+  last_sync: string | null;
+}
+
+// Paginated dokumen list response
+export interface SisterDokumenListResult {
+  data: SisterDokumenListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
+
+// Photo statistics
+export interface SisterPhotoStats {
+  total_dosen: number;
+  total_photos: number;
+  total_missing: number;
+  last_sync: string | null;
+}
+
+// Dokumen statistics
+export interface SisterDokumenStats {
+  total_dokumen: number;
+  total_dosen_with_dokumen: number;
+  by_jenis_dok: Array<{
+    id_jns_dok: number;
+    nm_jns_dok: string;
+    total: number;
+  }>;
+  last_sync: string | null;
+}
+
 // SISTER API Response wrapper
 interface SisterApiResponse<T> {
   success: boolean;
@@ -315,6 +380,84 @@ export const sisterDosenService = {
       responseType: 'blob'
     });
     return response.data;
+  },
+
+  /**
+   * Trigger batch sync of dosen photos from SISTER API to MinIO storage
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncPhotosToMinIO(syncedBy: string): Promise<SisterDosenPhotoSyncResult> {
+    const response = await sisterClient.post<SisterApiResponse<SisterDosenPhotoSyncResult>>(
+      '/dosen/sync-photos',
+      null,
+      {
+        params: { synced_by: syncedBy },
+        timeout: 600000, // 10 minutes - photo sync takes longer
+      }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Trigger batch sync of dosen documents from SISTER API to MinIO storage
+   * @param syncedBy - Username of person who triggered the sync
+   */
+  async syncDokumenToMinIO(syncedBy: string): Promise<SisterDosenDokumenSyncResult> {
+    const response = await sisterClient.post<SisterApiResponse<SisterDosenDokumenSyncResult>>(
+      '/dosen/sync-dokumen',
+      null,
+      {
+        params: { synced_by: syncedBy },
+        timeout: 720000, // 12 minutes - dokumen sync can take very long
+      }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get paginated list of all synced documents (dok.dok_sdm)
+   */
+  async getDokumenList(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    id_jns_dok?: number;
+  }): Promise<SisterDokumenListResult> {
+    const response = await sisterClient.get<SisterApiResponse<SisterDokumenListResult>>(
+      '/dosen/dokumen/all',
+      { params }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get photo statistics (total dosen, with photo, missing, last sync)
+   */
+  async getPhotoStats(): Promise<SisterPhotoStats> {
+    const response = await sisterClient.get<SisterApiResponse<SisterPhotoStats>>(
+      '/dosen/photos/stats'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get dokumen statistics (total, by jenis, last sync)
+   */
+  async getDokumenStats(): Promise<SisterDokumenStats> {
+    const response = await sisterClient.get<SisterApiResponse<SisterDokumenStats>>(
+      '/dosen/dokumen/stats'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get jenis dokumen list for filter dropdown
+   */
+  async getJenisDokumenList(): Promise<Array<{ id_jns_dok: number; nm_jns_dok: string; total: number }>> {
+    const response = await sisterClient.get<SisterApiResponse<Array<{ id_jns_dok: number; nm_jns_dok: string; total: number }>>>(
+      '/dosen/dokumen/jenis'
+    );
+    return response.data.data;
   },
 
   /**

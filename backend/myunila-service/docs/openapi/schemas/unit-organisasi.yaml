@@ -1,0 +1,25 @@
+UnitOrganisasi:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    kode:
+      type: string
+      example: "FT"
+    nama:
+      type: string
+      example: "Fakultas Teknik"
+    level:
+      type: integer
+      example: 1
+    parent_id:
+      type: integer
+      nullable: true
+      example: null
+    is_active:
+      type: boolean
+      example: true
+    synced_at:
+      type: string
+      format: date-time

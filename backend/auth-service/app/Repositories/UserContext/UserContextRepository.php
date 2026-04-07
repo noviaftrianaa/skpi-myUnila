@@ -135,7 +135,8 @@ class UserContextRepository
                 a.url,
                 a.port,
                 CONVERT(VARCHAR(36), a.id_organisasi) as id_organisasi,
-                uo.nm_lemb as nm_organisasi
+                uo.nm_lemb as nm_organisasi,
+                ISNULL(a.a_filter_organisasi, 0) as a_filter_organisasi
             FROM man_akses.aplikasi a
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
             WHERE (a.expired_date IS NULL OR a.expired_date > GETDATE())
@@ -429,6 +430,98 @@ class UserContextRepository
               AND ISNULL(m.a_aktif, 1) = 1
               AND (m.id_group_menu IS NULL OR ISNULL(parent.a_aktif, 1) = 1)
             ORDER BY m.level_menu ASC, m.urutan_menu ASC, m.nm_menu ASC
+        ";
+
+        return DB::select($sql, [$idAplikasi]);
+    }
+
+    /**
+     * Get all menu permissions for a role across all applications
+     * Used to build a full permissions map cached per user
+     *
+     * @param int $idPeran Role ID
+     * @return array
+     */
+    public function getAllMenuPermissions(int $idPeran): array
+    {
+        $sql = "
+            SELECT
+                CONVERT(VARCHAR(36), m.id_aplikasi) AS app_id,
+                m.nm_file AS url_menu,
+                ISNULL(mr.a_boleh_show, 0) AS can_show,
+                ISNULL(mr.a_boleh_insert, 0) AS can_insert,
+                ISNULL(mr.a_boleh_update, 0) AS can_update,
+                ISNULL(mr.a_boleh_delete, 0) AS can_delete
+            FROM man_akses.menu_role mr
+            INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+            WHERE mr.id_peran = ?
+              AND ISNULL(mr.soft_delete, 0) = 0
+              AND m.a_aktif = 1
+            ORDER BY m.id_aplikasi, m.urutan_menu
+        ";
+        return DB::select($sql, [$idPeran]);
+    }
+
+    /**
+     * Check if a role is universal (bypass organisasi filter)
+     */
+    public function isUniversalRole(int $idPeran): bool
+    {
+        $result = DB::selectOne(
+            "SELECT a_universal FROM man_akses.peran WHERE id_peran = ? AND expired_date IS NULL",
+            [$idPeran]
+        );
+
+        return $result && $result->a_universal == 1;
+    }
+
+    /**
+     * Check if an organisation is whitelisted for an application
+     * Also checks parent organisations if a_include_children is enabled
+     */
+    public function isOrgWhitelisted(string $idAplikasi, ?string $idOrganisasi): bool
+    {
+        if (!$idOrganisasi) {
+            return false;
+        }
+
+        // Direct match
+        $direct = DB::selectOne(
+            "SELECT COUNT(*) as cnt FROM man_akses.aplikasi_organisasi
+             WHERE id_aplikasi = ? AND id_organisasi = ? AND ISNULL(soft_delete, 0) = 0",
+            [$idAplikasi, $idOrganisasi]
+        );
+
+        if ($direct && $direct->cnt > 0) {
+            return true;
+        }
+
+        // Check if user's org is a child of a whitelisted org (a_include_children = 1)
+        $parentMatch = DB::selectOne(
+            "SELECT COUNT(*) as cnt FROM man_akses.aplikasi_organisasi ao
+             INNER JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = ?
+             WHERE ao.id_aplikasi = ?
+               AND ao.a_include_children = 1
+               AND ISNULL(ao.soft_delete, 0) = 0
+               AND (uo.id_induk_organisasi = ao.id_organisasi)",
+            [$idOrganisasi, $idAplikasi]
+        );
+
+        return $parentMatch && $parentMatch->cnt > 0;
+    }
+
+    /**
+     * Get whitelisted organisations for an application
+     */
+    public function getAppOrganisations(string $idAplikasi): array
+    {
+        $sql = "
+            SELECT ao.id_app_org, ao.id_organisasi, ao.a_include_children, ao.ket,
+                   uo.nm_lemb as nm_organisasi
+            FROM man_akses.aplikasi_organisasi ao
+            LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = ao.id_organisasi
+            WHERE ao.id_aplikasi = ? AND ISNULL(ao.soft_delete, 0) = 0
+            ORDER BY uo.nm_lemb
         ";
 
         return DB::select($sql, [$idAplikasi]);

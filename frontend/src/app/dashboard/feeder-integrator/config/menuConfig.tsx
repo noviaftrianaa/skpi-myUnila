@@ -78,6 +78,11 @@ export const feederIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/feeder-integrator/pdrd/prestasi",
         roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
       },
+      {
+        title: "Dosen Pembimbing",
+        href: "/dashboard/feeder-integrator/pdrd/dosen-pembimbing",
+        roles: ["developer", "rektor", "wakilrektor1", "wakilrektor2", "wakilrektor3", "wakilrektor4", "lp3m"],
+      },
     ],
   },
   {

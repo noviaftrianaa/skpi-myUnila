@@ -1,0 +1,63 @@
+groups:
+  - name: myunila.database
+    interval: 30s
+    rules:
+      # Alert jika majority backend DB-connected containers serentak unhealthy/stopped
+      # Menggunakan cAdvisor container_running metric yang sudah di-scrape VM4
+      - alert: DatabaseServerDown
+        expr: |
+          (
+            count(
+              container_memory_usage_bytes{name=~"myunila-(auth|dashboard|sister|feeder|api|ws|keuangan|monitoring)-staging"} == 0
+              or
+              (time() - container_last_seen{name=~"myunila-(auth|dashboard|sister|feeder|api|ws|keuangan|monitoring)-staging"}) > 120
+            ) 
+            / 
+            count(container_last_seen{name=~"myunila-(auth|dashboard|sister|feeder|api|ws|keuangan|monitoring)-staging"})
+          ) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "🔴 DATABASE SERVER KEMUNGKINAN DOWN!"
+          description: |
+            Lebih dari 50% backend services gagal/stopped serentak.
+            Kemungkinan besar DB Server 192.168.123.119 tidak bisa diakses.
+            
+            TINDAKAN SEGERA:
+            1. Cek koneksi ke DB 119 via SSMS
+            2. Jika 119 confirmed DOWN, jalankan failover:
+               - SSMS 190: RESTORE DATABASE pdut WITH RECOVERY
+               - Update .env: sed -i 's/192.168.123.119/192.168.123.190/g' .env
+               - Restart semua services
+            
+            Services affected: {{ $value | humanizePercentage }}
+
+      # Alert jika container restart berkali-kali (DB connection timeout)
+      - alert: DatabaseConnectionIssue
+        expr: |
+          increase(container_start_time_seconds{name=~"myunila-(auth|dashboard|sister|api|ws|keuangan|feeder|monitoring)-staging"}[10m]) > 2
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "⚠️ {{ $labels.name }} restart loop — kemungkinan DB connection issue"
+          description: |
+            Container {{ $labels.name }} restart {{ $value }}x dalam 10 menit.
+            Cek koneksi database 192.168.123.119.
+
+      # Alert jika DB-connected container specific down
+      - alert: BackendServiceDown
+        expr: |
+          (time() - container_last_seen{name=~"myunila-(auth|dashboard|sister|api|ws|keuangan|feeder)-staging"}) > 300
+        for: 1m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "⚠️ {{ $labels.name }} DOWN lebih dari 5 menit"
+          description: |
+            Container {{ $labels.name }} tidak terdeteksi selama 5+ menit.
+            Cek docker logs dan status container.

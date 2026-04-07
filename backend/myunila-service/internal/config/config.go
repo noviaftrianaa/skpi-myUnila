@@ -10,9 +10,10 @@ import (
 )
 
 type Config struct {
-	App      AppConfig
-	Database DatabaseConfig
-	SikepAPI SikepAPIConfig
+	App       AppConfig
+	Database  DatabaseConfig
+	SikepAPI  SikepAPIConfig
+	SiakaduAPI SiakaduAPIConfig
 }
 
 type AppConfig struct {
@@ -35,6 +36,12 @@ type DatabaseConfig struct {
 }
 
 type SikepAPIConfig struct {
+	BaseURL  string
+	Username string
+	Password string
+}
+
+type SiakaduAPIConfig struct {
 	BaseURL  string
 	Username string
 	Password string
@@ -100,6 +107,11 @@ func LoadConfig() error {
 			BaseURL:  getEnv("SIKEP_API_BASE_URL", "https://sikep.unila.ac.id/2022/api/v1"),
 			Username: getEnv("SIKEP_API_USERNAME", ""),
 			Password: getEnv("SIKEP_API_PASSWORD", ""),
+		},
+		SiakaduAPI: SiakaduAPIConfig{
+			BaseURL:  getEnv("SIAKADU_API_BASE_URL", "http://192.168.120.37:4000/api/v1"),
+			Username: getEnv("SIAKADU_API_USERNAME", ""),
+			Password: getEnv("SIAKADU_API_PASSWORD", ""),
 		},
 	}
 

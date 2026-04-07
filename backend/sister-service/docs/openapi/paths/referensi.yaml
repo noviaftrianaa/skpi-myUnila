@@ -1,0 +1,70 @@
+metadata:
+  get:
+    tags:
+      - Referensi
+    summary: Get Referensi Metadata
+    description: Mengambil daftar tipe referensi yang tersedia
+    operationId: getReferensiMetadata
+    security: []
+    responses:
+      '200':
+        description: Berhasil mengambil metadata referensi
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "agama"
+                      name:
+                        type: string
+                        example: "Data Agama"
+                      count:
+                        type: integer
+                        example: 6
+                      last_sync:
+                        type: string
+                        format: date-time
+
+batch-sync:
+  post:
+    tags:
+      - Referensi
+    summary: Batch Sync Referensi
+    description: Melakukan sinkronisasi batch untuk semua atau beberapa tipe referensi
+    operationId: batchSyncReferensi
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              types:
+                type: array
+                description: Tipe referensi yang akan disync (kosong = semua)
+                items:
+                  type: string
+                example: ["agama", "negara", "jenjang-pendidikan"]
+    responses:
+      '200':
+        description: Batch sync berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Batch sync started for 3 reference types

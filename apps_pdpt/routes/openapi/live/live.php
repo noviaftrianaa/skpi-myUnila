@@ -72,6 +72,31 @@ Route::group([
                 Route::post('tambah', 'DiklatController@tambah');
                 Route::put('ubah', 'DiklatController@ubahDiklat');
                 Route::delete('hapus', 'DiklatController@destroy');
+                Route::get('detail', 'DiklatController@getDetail');
+            });
+
+            Route::prefix('rwy_pekerjaan')->group(function () {
+                Route::get('', 'RwyPekerjaanController@getData');
+            });
+
+            Route::prefix('rwy_sertifikasi')->group(function () {
+                Route::get('', 'RwySertifikasiController@getData');
+            });
+
+            Route::prefix('bimbing_mahasiswa')->group(function () {
+                Route::get('', 'BimbinganMahasiswaController@getData');
+            });
+
+            Route::prefix('uji_mahasiswa')->group(function () {
+                Route::get('', 'UjiMahasiswaController@getData');
+            });
+
+            Route::prefix('pembinaan')->group(function () {
+                Route::get('', 'PembinaanController@getData');
+            });
+
+            Route::prefix('tugas_tambahan')->group(function () {
+                Route::get('', 'TugasTambahanController@getData');
             });
 
             Route::prefix('penelitian')->group(function () {
@@ -146,6 +171,7 @@ Route::group([
                 Route::post('dosen_ajar/tambah', 'AktAjarDosenController@store');
                 Route::put('dosen_ajar/ubah', 'AktAjarDosenController@update');
                 Route::delete('dosen_ajar/hapus', 'AktAjarDosenController@destroy');
+                Route::get('list_kelas_ajar', 'AktAjarDosenController@getListKelas');
 
                 Route::get('list_jadwal', 'JadwalKelasController@index');
                 Route::post('jadwal/tambah', 'JadwalKelasController@store');
@@ -162,6 +188,40 @@ Route::group([
                 Route::put('profil_prodi/ubah', 'LembagaController@ubah');
                 Route::get('daftar_lembaga', 'LembagaController@listLembaga');
                 Route::get('daftar_satuan_pendidikan', 'LembagaController@listSp');
+            });
+
+            Route::prefix('visiting_scientist')->group(function () {
+                Route::get('daftar', 'VisitingScientistController@daftar');
+                Route::get('daftar_id', 'VisitingScientistController@daftar_id');
+            });
+
+            Route::prefix('detasering')->group(function () {
+                Route::get('daftar', 'DetaseringController@daftar');
+                Route::get('daftar_id', 'DetaseringController@daftar_id');
+            });
+
+            Route::prefix('bimbing_dosen')->group(function () {
+                Route::get('daftar', 'BimbingDosenController@daftar');
+            });
+
+            Route::prefix('pembicara')->group(function () {
+                Route::get('daftar', 'PembicaraController@daftar');
+                Route::get('daftar_id', 'PembicaraController@daftar_id');
+            });
+
+            Route::prefix('pengelola_jurnal')->group(function () {
+                Route::get('daftar', 'PengelolaJurnalController@daftar');
+                Route::get('daftar_id', 'PengelolaJurnalController@daftar_id');
+            });
+
+            Route::prefix('anggota_organisasi_profesi')->group(function () {
+                Route::get('daftar', 'AnggotaOrganisasiProfesiController@daftar');
+                Route::get('daftar_id', 'AnggotaOrganisasiProfesiController@daftar_id');
+            });
+
+            Route::prefix('penghargaan')->group(function () {
+                Route::get('daftar', 'PenghargaanController@daftar');
+                Route::get('daftar_id', 'PenghargaanController@daftar_id');
             });
         });
 

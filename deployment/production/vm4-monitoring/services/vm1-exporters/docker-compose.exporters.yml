@@ -1,0 +1,66 @@
+# Exporters untuk VM1 (192.168.120.41) — Frontend & Kong
+# Deploy ini di VM1, bukan di VM4
+# Command: docker compose -f docker-compose.exporters.yml up -d
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: myunila-node-exporter
+    restart: unless-stopped
+    pid: host
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth|br|docker|lo).*'
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "9100:9100"
+    networks:
+      - myunila-prod-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: myunila-cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "18080:8080"
+    networks:
+      - myunila-prod-network
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: myunila-nginx-exporter
+    restart: unless-stopped
+    command:
+      - '--nginx.scrape-uri=http://myunila-kong:8001/metrics'
+    ports:
+      - "9113:9113"
+    networks:
+      - myunila-prod-network
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: myunila-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+    networks:
+      - myunila-prod-network
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network

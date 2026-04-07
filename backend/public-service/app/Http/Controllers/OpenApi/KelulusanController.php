@@ -22,7 +22,7 @@ class KelulusanController extends Controller
      * @return JsonResponse
      */
     #[OA\Get(
-        path: '/api/v1/kelulusan/statistics',
+        path: '/kelulusan/statistics',
         tags: ['Kelulusan'],
         summary: 'Get graduation on-time statistics',
         description: 'Mendapatkan statistik kelulusan tepat waktu mahasiswa Universitas Lampung, termasuk total lulusan, persentase tepat waktu per tahun dan per jenjang (5 tahun terakhir)',

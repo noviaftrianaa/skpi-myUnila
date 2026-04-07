@@ -1,0 +1,45 @@
+Prestasi:
+  type: object
+  properties:
+    id:
+      type: string
+    id_pd:
+      type: string
+      description: ID Peserta Didik
+    nim:
+      type: string
+      example: "2011234567"
+    nama_mahasiswa:
+      type: string
+      example: "Budi Santoso"
+    nama_prestasi:
+      type: string
+      example: "Juara 1 Lomba Karya Tulis Ilmiah Nasional"
+    id_jenis_prestasi:
+      type: string
+    nama_jenis_prestasi:
+      type: string
+      example: "Akademik"
+    id_tingkat_prestasi:
+      type: string
+    nama_tingkat_prestasi:
+      type: string
+      example: "Nasional"
+    penyelenggara:
+      type: string
+      example: "Kementerian Pendidikan"
+    peringkat:
+      type: integer
+      example: 1
+    tahun:
+      type: string
+      example: "2024"
+    tanggal:
+      type: string
+      format: date
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

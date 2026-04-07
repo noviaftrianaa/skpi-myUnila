@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  monitoring-service:
+    build:
+      context: ../../../../../backend/monitoring
+      dockerfile: Dockerfile
+    image: myunila/monitoring-service:staging
+    container_name: myunila-monitoring-staging
+    ports:
+      - "8089:8089"
+    environment:
+      # App Configuration
+      APP_NAME: ${MONITORING_APP_NAME:-Monitoring Service}
+      APP_PORT: ${MONITORING_APP_PORT:-:8089}
+      APP_ENV: ${MONITORING_APP_ENV:-staging}
+
+      # Database Configuration (SQL Server)
+      DB_DRIVER: ${MONITORING_DB_DRIVER:-sqlserver}
+      DB_HOST: ${MONITORING_DB_HOST:-192.168.123.119}
+      DB_PORT: ${MONITORING_DB_PORT:-1433}
+      DB_USERNAME: ${MONITORING_DB_USERNAME}
+      DB_PASSWORD: ${MONITORING_DB_PASSWORD}
+      DB_DATABASE: ${MONITORING_DB_DATABASE}
+
+      # Database Connection Pool (tuned down for staging)
+      DB_MAX_OPEN_CONNS: ${MONITORING_DB_MAX_OPEN_CONNS:-10}
+      DB_MAX_IDLE_CONNS: ${MONITORING_DB_MAX_IDLE_CONNS:-3}
+      DB_CONN_MAX_LIFETIME: ${MONITORING_DB_CONN_MAX_LIFETIME:-5m}
+
+      # Redis (local container)
+      REDIS_HOST: ${REDIS_HOST:-myunila-redis-staging}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      # JWT (shared secret)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGO: ${JWT_ALGO:-HS256}
+
+      # Blogger API
+      BLOGGER_API_KEY: ${BLOGGER_API_KEY:-}
+
+      # Google Search Console
+      GSC_SERVICE_ACCOUNT_JSON: ${GSC_SERVICE_ACCOUNT_JSON:-/app/secrets/gsc-service-account.json}
+      GSC_SITE_URL: ${GSC_SITE_URL:-sc-domain:unila.ac.id}
+      GSC_AUTO_REMOVE_THRESHOLD: ${GSC_AUTO_REMOVE_THRESHOLD:-15}
+      GSC_ENABLED: ${GSC_ENABLED:-false}
+
+      # Crawler
+      CRAWLER_MAX_DEPTH: ${CRAWLER_MAX_DEPTH:-3}
+      CRAWLER_MAX_PAGES: ${CRAWLER_MAX_PAGES:-500}
+      CRAWLER_RATE_LIMIT_MS: ${CRAWLER_RATE_LIMIT_MS:-1000}
+      CRAWLER_CONCURRENT_SITES: ${CRAWLER_CONCURRENT_SITES:-3}
+      CRAWLER_TIMEOUT_SEC: ${CRAWLER_TIMEOUT_SEC:-30}
+
+      # Deep Scan
+      CRAWLER_CLOAKING_ENABLED: ${CRAWLER_CLOAKING_ENABLED:-true}
+      CRAWLER_CLOAKING_THRESHOLD: ${CRAWLER_CLOAKING_THRESHOLD:-0.7}
+      CRAWLER_AMP_SCAN_ENABLED: ${CRAWLER_AMP_SCAN_ENABLED:-true}
+
+      # Go runtime (reduced for staging)
+      GOMAXPROCS: 2
+      GOGC: 100
+
+      # Timezone
+      TZ: Asia/Jakarta
+
+    volumes:
+      # GSC service account JSON
+      - /var/www/my-unila/deployment/production/vm5-staging/secrets:/app/secrets:ro
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8089/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=monitoring,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

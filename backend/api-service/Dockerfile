@@ -30,6 +30,9 @@ RUN apk --no-cache add ca-certificates tzdata wget
 COPY --from=builder /app/server .
 COPY --from=builder /app/.env.example .env.example
 
+# Copy static assets for docs
+COPY --from=builder /app/docs/logo-unila.png ./docs/logo-unila.png
+
 # Expose port
 EXPOSE 8085
 

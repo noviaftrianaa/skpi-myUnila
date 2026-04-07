@@ -1,0 +1,84 @@
+list:
+  get:
+    tags:
+      - Radius
+    summary: Get List Pengguna
+    description: Mengambil daftar pengguna dari Radius SSO
+    operationId: getRadiusPenggunaList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: search
+        in: query
+        description: Cari berdasarkan username atau nama
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data pengguna
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/radius.yaml#/RadiusUser'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Radius
+    summary: Get Statistik Pengguna
+    description: Mengambil statistik data pengguna Radius
+    operationId: getRadiusPenggunaStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+
+sync:
+  post:
+    tags:
+      - Radius
+    summary: Sinkronisasi Radius
+    description: Melakukan sinkronisasi data pengguna dari Radius SSO
+    operationId: syncRadius
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully
+
+overall-stats:
+  get:
+    tags:
+      - Radius
+    summary: Get Overall Statistics
+    description: Mengambil statistik keseluruhan Radius
+    operationId: getRadiusOverallStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik

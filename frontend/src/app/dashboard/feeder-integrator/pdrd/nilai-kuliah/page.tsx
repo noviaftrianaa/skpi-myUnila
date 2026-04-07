@@ -1,20 +1,23 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { feederIntegratorMenuConfig } from "../../config/menuConfig";
 import { Card, CardBody } from "@heroui/react";
 import { RiGraduationCapFill } from "react-icons/ri";
-import { FiUsers } from "react-icons/fi";
+import { FiUsers, FiDatabase } from "react-icons/fi";
+
+const APP_KEY = "feeder-integrator";
 
 export default function NilaiKuliahPage() {
   useRequireAuth();
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Feeder Integrator"
-      appIcon={<RiGraduationCapFill className="w-6 h-6 text-white" />}
-      menuConfig={feederIntegratorMenuConfig}
+      appIcon={<FiDatabase className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={feederIntegratorMenuConfig}
       pageTitle="Nilai Kuliah"
     >
       <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -30,6 +33,6 @@ export default function NilaiKuliahPage() {
           </p>
         </CardBody>
       </Card>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

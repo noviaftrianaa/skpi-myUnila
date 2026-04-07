@@ -1,7 +1,7 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hoc/withAuth";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, Button, Input, Chip } from "@heroui/react";
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
@@ -35,10 +35,11 @@ export default function MahasiswaPage() {
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="Siakadu"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      menuConfig={siakaduMenuConfig}
+      appKey="siakadu"
+      fallbackMenus={siakaduMenuConfig}
       pageTitle="Data Mahasiswa"
     >
       <div className="space-y-6">
@@ -147,6 +148,6 @@ export default function MahasiswaPage() {
           </CardBody>
         </Card>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

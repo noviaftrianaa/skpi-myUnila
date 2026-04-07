@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: Sister Service API
+  description: |
+    API untuk mengakses data dari Sister Kemdikbud yang tersinkronisasi ke MyUnila/OneData PDDIKTI.
+
+    ## Fitur Utama
+    - Data dosen dari Sister Kemdikbud
+    - Data penugasan, penelitian, dan publikasi
+    - Riwayat pendidikan dan pekerjaan dosen
+    - Sertifikasi dan bidang ilmu
+    - Data referensi lengkap dari Sister
+
+    ## Authentication
+    Sebagian besar endpoint memerlukan JWT Bearer token yang divalidasi melalui Kong Gateway.
+  version: 1.0.0
+  contact:
+    name: Tim MyUnila
+    email: myunila@unila.ac.id
+    url: https://my.unila.ac.id
+  license:
+    name: Internal Use Only
+    url: https://unila.ac.id
+
+servers:
+  - url: http://localhost:8083
+    description: Local Development
+  - url: http://localhost:9800/sister
+    description: Via Kong Gateway (Local)
+  - url: https://api.unila.ac.id/sister
+    description: Production
+
+tags:
+  - name: Health
+    description: Health check endpoint
+  - name: Dosen
+    description: Data dosen dari Sister Kemdikbud
+  - name: Penugasan
+    description: Data penugasan dosen
+  - name: Penelitian
+    description: Data penelitian dan pengabdian
+  - name: Publikasi
+    description: Data publikasi dosen
+  - name: Pendidikan
+    description: Riwayat pendidikan formal dosen
+  - name: Riwayat Pekerjaan
+    description: Riwayat pekerjaan dosen
+  - name: Riwayat Fungsional
+    description: Riwayat jabatan fungsional
+  - name: Jabatan Struktural
+    description: Jabatan struktural dosen
+  - name: Tugas Tambahan
+    description: Tugas tambahan dosen
+  - name: Sertifikasi Dosen
+    description: Sertifikasi dosen
+  - name: Bidang Ilmu
+    description: Bidang ilmu dosen
+  - name: Referensi
+    description: Data referensi master dari Sister
+
+paths:
+  /health:
+    $ref: './paths/health.yaml#/health'
+
+  # Dosen
+  /api/v1/dosen:
+    $ref: './paths/dosen.yaml#/list'
+  /api/v1/dosen/stats:
+    $ref: './paths/dosen.yaml#/stats'
+  /api/v1/dosen/{id_sdm}:
+    $ref: './paths/dosen.yaml#/detail'
+
+  # Penugasan
+  /api/v1/penugasan:
+    $ref: './paths/penugasan.yaml#/list'
+  /api/v1/penugasan/stats:
+    $ref: './paths/penugasan.yaml#/stats'
+
+  # Penelitian
+  /api/v1/penelitian:
+    $ref: './paths/penelitian.yaml#/list'
+
+  # Publikasi
+  /api/v1/publikasi:
+    $ref: './paths/publikasi.yaml#/list'
+
+  # Pendidikan
+  /api/v1/pendidikan:
+    $ref: './paths/pendidikan.yaml#/list'
+
+  # Referensi
+  /api/v1/referensi/metadata:
+    $ref: './paths/referensi.yaml#/metadata'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token dari Kong Gateway
+
+  schemas:
+    $ref: './schemas/_index.yaml'
+
+  responses:
+    $ref: './responses/_index.yaml'
+
+security:
+  - bearerAuth: []

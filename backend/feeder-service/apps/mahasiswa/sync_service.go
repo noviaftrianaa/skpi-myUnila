@@ -388,7 +388,18 @@ func (s *service) syncSingleMahasiswa(idRegPd, nama, npm string) MahasiswaSyncRe
 	// Step 4: Fetch GetDetailMahasiswaLulusDO (if id_jns_keluar exists)
 	var feederLulusDO *FeederMahasiswaLulusDO
 	if feederReg.IDJenisKeluar != nil && *feederReg.IDJenisKeluar != 0 {
-		feederLulusDO, _ = s.fetchDetailLulusDO(idRegPd) // Ignore error
+		feederLulusDO, err = s.fetchDetailLulusDO(idRegPd)
+		if err != nil || feederLulusDO == nil {
+			log.Printf("⚠️  [Sync %s] Failed to fetch LulusDO from Feeder API: %v, using existing DB data as fallback", npm, err)
+			// Fallback: preserve existing graduation data from database
+			existingReg, dbErr := s.repo.GetRegPdByID(ctx, idRegPd)
+			if dbErr == nil && existingReg != nil && existingReg.TglKeluar != nil {
+				feederLulusDO = buildLulusDOFromExistingRegPd(existingReg)
+				log.Printf("ℹ️  [Sync %s] Preserved existing graduation data from DB (tgl_keluar: %v)", npm, existingReg.TglKeluar)
+			} else {
+				log.Printf("⚠️  [Sync %s] No existing graduation data in DB either, graduation fields will be NULL", npm)
+			}
+		}
 	}
 
 	// Step 5: Fetch GetListPerkuliahanMahasiswa (semester activities)
@@ -529,12 +540,23 @@ func (s *service) fetchRiwayatPendidikan(idRegPd string) (map[string]interface{}
 		return nil, fmt.Errorf("no riwayat pendidikan found")
 	}
 
+	// Find the matching record by id_registrasi_mahasiswa
+	// Neo Feeder API may return ALL registrations for the student, not just the filtered one
+	for _, reg := range regList {
+		if regID, ok := reg["id_registrasi_mahasiswa"].(string); ok && regID == idRegPd {
+			return reg, nil
+		}
+	}
+
+	// Fallback to first record if exact match not found (single-record response)
 	return regList[0], nil
 }
 
 // Helper: fetchDataLengkapMahasiswa fetches detailed mahasiswa data by id_mahasiswa
+// IMPORTANT: Must filter by both id_mahasiswa AND id_prodi to avoid cross-registration mismatch
+// when a student has multiple registrations (e.g., S1 + S2 in different prodi)
 func (s *service) fetchDataLengkapMahasiswa(idProdi, idPD string) (*FeederMahasiswaData, error) {
-	filter := fmt.Sprintf("id_mahasiswa='%s'", idPD)
+	filter := fmt.Sprintf("id_mahasiswa='%s' and id_prodi='%s'", idPD, idProdi)
 	rawData, err := s.feederAPI.GetDataLengkapMahasiswaProdi(idProdi, filter, 1, 0)
 	if err != nil {
 		return nil, err
@@ -568,26 +590,47 @@ func (s *service) fetchRiwayatPendidikanDetail(idRegPd string) (*FeederRiwayatPe
 		return nil, fmt.Errorf("no registration found")
 	}
 
+	// Find the matching record by IDRegistrasiMahasiswa
+	// Neo Feeder API may return ALL registrations for the student, not just the filtered one
+	for _, reg := range regList {
+		if reg.IDRegistrasiMahasiswa == idRegPd {
+			return reg, nil
+		}
+	}
+
+	// Fallback to first record if exact match not found
 	return regList[0], nil
 }
 
 // Helper: fetchDetailLulusDO fetches graduate/dropout data
+// Neo Feeder API "GetDetail" may return a single object OR an array,
+// so we handle both formats to prevent unmarshaling errors.
 func (s *service) fetchDetailLulusDO(idRegPd string) (*FeederMahasiswaLulusDO, error) {
 	rawData, err := s.feederAPI.GetDetailMahasiswaLulusDO(idRegPd)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(rawData) == 0 {
+		return nil, nil
+	}
+
+	// Try parsing as array first (GetList style response)
 	var lulusList []*FeederMahasiswaLulusDO
-	if err := json.Unmarshal(rawData, &lulusList); err != nil {
-		return nil, err
+	if err := json.Unmarshal(rawData, &lulusList); err == nil {
+		if len(lulusList) == 0 {
+			return nil, nil
+		}
+		return lulusList[0], nil
 	}
 
-	if len(lulusList) == 0 {
-		return nil, nil // Not lulus/DO yet, return nil
+	// Fallback: try parsing as single object (GetDetail style response)
+	var lulusSingle FeederMahasiswaLulusDO
+	if err := json.Unmarshal(rawData, &lulusSingle); err != nil {
+		return nil, fmt.Errorf("failed to parse LulusDO response (tried array and object): %w, raw: %s", err, string(rawData[:min(len(rawData), 200)]))
 	}
 
-	return lulusList[0], nil
+	return &lulusSingle, nil
 }
 
 // Helper: fetchPerkuliahanMahasiswa fetches semester activity data

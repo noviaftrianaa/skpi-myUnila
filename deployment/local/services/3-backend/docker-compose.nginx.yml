@@ -7,13 +7,13 @@ services:
     ports:
       - "8081:80"   # Auth Service
       - "8082:81"   # Public Service
-      - "8087:82"   # Executive Service
+      - "8087:82"   # Dashboard Service
+      - "9002:84"   # SIMBAK Service
     volumes:
       - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro
       - auth_public:/var/www/auth-service/public:ro
       - public_public:/var/www/public-service/public:ro
-      - executive_public:/var/www/executive-service/public:ro
     networks:
       - myunila-network
     restart: unless-stopped
@@ -40,6 +40,3 @@ volumes:
   public_public:
     external: true
     name: myunila-public-storage
-  executive_public:
-    external: true
-    name: myunila-executive-storage

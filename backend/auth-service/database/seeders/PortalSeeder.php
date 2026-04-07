@@ -9,7 +9,8 @@ use Illuminate\Database\Seeder;
  *
  * Runs all portal-related seeders in correct order:
  * 1. PortalAplikasiSeeder - Creates kategori_aplikasi and aplikasi
- * 2. PortalMenuSeeder - Creates menu and menu_role assignments
+ * 2. PortalMenuSeeder - Creates menu records (no RBAC)
+ * 3. PortalRbacSeeder - Creates menu_role assignments (RBAC)
  *
  * Usage:
  *   php artisan db:seed --class=PortalSeeder
@@ -28,13 +29,18 @@ class PortalSeeder extends Seeder
         $this->command->info('');
 
         // Step 1: Seed Kategori & Aplikasi
-        $this->command->info('Step 1/2: Seeding Kategori & Aplikasi...');
+        $this->command->info('Step 1/3: Seeding Kategori & Aplikasi...');
         $this->call(PortalAplikasiSeeder::class);
         $this->command->info('');
 
-        // Step 2: Seed Menu & Menu Role
-        $this->command->info('Step 2/2: Seeding Menu & Menu Role...');
+        // Step 2: Seed Menu (menu only, no RBAC)
+        $this->command->info('Step 2/3: Seeding Menu...');
         $this->call(PortalMenuSeeder::class);
+        $this->command->info('');
+
+        // Step 3: Seed RBAC (menu_role assignments)
+        $this->command->info('Step 3/3: Seeding RBAC (Menu Role Assignments)...');
+        $this->call(PortalRbacSeeder::class);
         $this->command->info('');
 
         $this->command->info('╔══════════════════════════════════════════════════════════════╗');

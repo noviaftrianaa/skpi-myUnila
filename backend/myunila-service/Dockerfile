@@ -29,6 +29,9 @@ COPY --from=builder /app/main .
 # Copy timezone data from builder
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
+# Copy static assets for docs
+COPY --from=builder /app/docs/logo-unila.png ./docs/logo-unila.png
+
 # Expose port
 EXPOSE 8086
 

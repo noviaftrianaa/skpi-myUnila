@@ -1,0 +1,46 @@
+Kurikulum:
+  type: object
+  properties:
+    id_kurikulum:
+      type: string
+    nama_kurikulum:
+      type: string
+      example: "Kurikulum 2020"
+    id_prodi:
+      type: string
+    nama_prodi:
+      type: string
+      example: "Teknik Informatika"
+    id_mk:
+      type: string
+      description: ID Matakuliah
+    kode_mk:
+      type: string
+      example: "IF1234"
+    nama_mk:
+      type: string
+      example: "Algoritma dan Pemrograman"
+    sks_mk:
+      type: integer
+      example: 3
+    sks_tm:
+      type: integer
+      description: SKS Tatap Muka
+      example: 2
+    sks_pr:
+      type: integer
+      description: SKS Praktikum
+      example: 1
+    semester:
+      type: integer
+      description: Semester dalam kurikulum
+      example: 1
+    is_wajib:
+      type: boolean
+      example: true
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time

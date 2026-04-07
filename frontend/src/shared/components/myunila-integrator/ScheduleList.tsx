@@ -32,7 +32,7 @@ import {
 import ScheduleModal from "./ScheduleModal";
 
 interface ScheduleListProps {
-  syncType?: "pegawai" | "radius" | "unit_organisasi";
+  syncType?: "pegawai" | "radius" | "unit_organisasi" | "daftar_ukt" | "spp_mhs";
   endpointKey?: string;
   showCreateButton?: boolean;
 }
@@ -142,6 +142,8 @@ export default function ScheduleList({
       pegawai: "Pegawai SIKEP",
       radius: "Radius SSO",
       unit_organisasi: "Unit Organisasi",
+      daftar_ukt: "Daftar UKT",
+      spp_mhs: "SPP Mahasiswa",
     };
     return labels[type] || type;
   };

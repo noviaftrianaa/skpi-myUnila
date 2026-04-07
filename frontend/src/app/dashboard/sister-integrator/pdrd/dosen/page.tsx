@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/shared/components/dashboard/DashboardLayout";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import SisterDosenTable from "@/shared/components/sister-integrator/SisterDosenTable";
 import {
   Card,
@@ -18,23 +18,21 @@ import {
   Progress,
 } from "@heroui/react";
 import {
-  FiUsers,
   FiRefreshCw,
   FiCheckCircle,
   FiXCircle,
   FiClock,
   FiDatabase,
-  FiArrowLeft,
   FiAlertCircle,
-  FiUser,
 } from "react-icons/fi";
 import { MdSync } from "react-icons/md";
 import { RiGovernmentFill } from "react-icons/ri";
 import { sisterIntegratorMenuConfig } from "../../config/menuConfig";
-import Link from "next/link";
 import { sisterDosenService, type SisterDosenStats } from "@/lib/services/sister/pdrd/dosenService";
 import { toast } from "react-hot-toast";
 import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
+
+const APP_KEY = "sister-integrator";
 
 export default function DosenManagementPage() {
   useRequireAuth();
@@ -143,25 +141,27 @@ export default function DosenManagementPage() {
 
   if (isLoadingStats) {
     return (
-      <DashboardLayout
+      <DashboardLayoutWithDynamicMenu
         appName="SISTER Integrator"
         appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-        menuConfig={sisterIntegratorMenuConfig}
-        pageTitle="Dosen Management"
+        fallbackMenus={sisterIntegratorMenuConfig}
+        appKey={APP_KEY}
+        pageTitle="Dosen"
       >
         <div className="flex justify-center items-center h-96">
           <Spinner size="lg" color="primary" />
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithDynamicMenu>
     );
   }
 
   return (
-    <DashboardLayout
+    <DashboardLayoutWithDynamicMenu
       appName="SISTER Integrator"
       appIcon={<RiGovernmentFill className="w-6 h-6 text-white" />}
-      menuConfig={sisterIntegratorMenuConfig}
-      pageTitle="Dosen Management"
+      fallbackMenus={sisterIntegratorMenuConfig}
+      appKey={APP_KEY}
+      pageTitle="Dosen"
     >
       <div className="space-y-6">
         {/* Header */}
@@ -494,6 +494,6 @@ export default function DosenManagementPage() {
           </ModalBody>
         </ModalContent>
       </Modal>
-    </DashboardLayout>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

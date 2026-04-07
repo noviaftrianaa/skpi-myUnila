@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  simbak-service:
+    build:
+      context: ../../../../../backend/simbak-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=staging
+    image: myunila/simbak-service:staging
+    container_name: myunila-simbak-staging
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-SIMBAK Service}"
+      APP_ENV: staging
+      APP_KEY: "${SIMBAK_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+      APP_TIMEZONE: "${TIMEZONE:-Asia/Jakarta}"
+
+      # PostgreSQL (simbak — primary, native on VM5)
+      DB_CONNECTION: pgsql
+      DB_HOST: "${SIMBAK_PG_HOST:-host.docker.internal}"
+      DB_PORT: "${SIMBAK_PG_PORT:-5432}"
+      DB_DATABASE: "${SIMBAK_PG_DATABASE:-simbak}"
+      DB_USERNAME: "${SIMBAK_PG_USERNAME:-myunila_bak}"
+      DB_PASSWORD: "${SIMBAK_PG_PASSWORD}"
+
+      # SQL Server (pdut — read only, same creds as project-service)
+      SQLSRV_HOST: "${DB_MSSQL_HOST:-192.168.123.119}"
+      SQLSRV_PORT: "${DB_MSSQL_PORT:-1433}"
+      SQLSRV_DATABASE: "${API_DB_DATABASE:-pdut_staging}"
+      SQLSRV_USERNAME: "${DB_MSSQL_USERNAME}"
+      SQLSRV_PASSWORD: "${DB_MSSQL_PASSWORD}"
+      SQLSRV_TRUST_SERVER_CERTIFICATE: "true"
+
+      # JWT (validation only)
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Redis (shared staging redis)
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      CACHE_PREFIX: bak_
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # File Storage
+      # Default: local disk (FILESYSTEM_DISK=simbak)
+      # Switch to MinIO: FILESYSTEM_DISK=minio
+      FILESYSTEM_DISK: "${SIMBAK_FILESYSTEM_DISK:-simbak}"
+      SIMBAK_STORAGE_PATH: "/data/simbak-storage"
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT:-http://192.168.120.47:9000}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_USE_SSL: "false"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    volumes:
+      - simbak-storage:/data/simbak-storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=simbak,vm=vm5-staging"
+
+volumes:
+  simbak-storage:
+    driver: local
+    name: simbak-storage
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

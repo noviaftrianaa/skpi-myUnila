@@ -52,14 +52,12 @@ class PublikasiSebaranRepository
                 ON sms_prodi.id_sms = ptk.id_sms
                 AND sms_prodi.soft_delete = 0
                 AND sms_prodi.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS jp
-                ON jp.id_jenj_didik = sms_prodi.id_jenj_didik
-                AND (jp.nm_jenj_didik LIKE 'D%' OR jp.nm_jenj_didik LIKE 'S%')
             -- Join to fakultas (sms lagi menggunakan id_fak_unila)
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = sms_prodi.id_fak_unila
                 AND fak.soft_delete = 0
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
                 AND p.tgl_terbit IS NOT NULL
                 AND YEAR(p.tgl_terbit) >= ?
                 AND YEAR(p.tgl_terbit) <= ?
@@ -130,8 +128,8 @@ class PublikasiSebaranRepository
             LEFT JOIN ref.jenjang_pendidikan AS jp
                 ON jp.id_jenj_didik = sms_prodi.id_jenj_didik
                 AND jp.expired_date IS NULL
-                AND (jp.nm_jenj_didik LIKE 'D%' OR jp.nm_jenj_didik LIKE 'S%')
             WHERE p.soft_delete = 0
+                AND p.id_jns_pub != 9999
                 AND p.tgl_terbit IS NOT NULL
                 AND YEAR(p.tgl_terbit) >= ?
                 AND YEAR(p.tgl_terbit) <= ?

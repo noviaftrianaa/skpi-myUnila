@@ -47,7 +47,7 @@ export function checkRoleAccess(
     // User not authenticated
     return {
       allowed: false,
-      redirectTo: "/auth/login",
+      redirectTo: "/login",
     };
   }
 

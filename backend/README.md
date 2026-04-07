@@ -54,9 +54,9 @@ Microservices architecture untuk backend Portal myUnila - Sistem informasi terin
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │ ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
-│ │   Auth     │  │ Dashboard  │  │   Sister   │                    │
+│ │   Auth     │  │ Public  │  │   Sister   │                    │
 │ │  Service   │  │  Service   │  │  Service   │                    │
-│ │ Port: 8081 │  │ Port: 8082 │  │ Port: 8083 │                    │
+│ │ Port: 8081 │  │ Port: 8082 │  │ Port: 8083 │             etc       │
 │ │            │  │            │  │            │                    │
 │ │ • Login    │  │ • Profile  │  │ • Sync     │                    │
 │ │ • JWT      │  │ • Dashboard│  │ • Sister   │                    │

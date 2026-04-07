@@ -83,14 +83,27 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: '/user/change-password',
   },
 
-  // Executive Service - Rasio endpoints
-  RASIO: {
-    FAKULTAS: '/rasio/fakultas',
-    FAKULTAS_PRODI: (idProdi: string) => `/rasio/fakultas/${idProdi}`,
-    DATA_MAHASISWA: '/rasio/data/mahasiswa',
-    DATA_DOSEN: '/rasio/data/dosen',
-    MASTER_FAKULTAS: '/rasio/master/fakultas',
-    MASTER_TAHUN_AJARAN: '/rasio/master/tahun-ajaran',
+  // Dashboard Pimpinan endpoints
+  DASHBOARD_PIMPINAN: {
+    BERANDA: '/dashboard/beranda',
+    MAHASISWA: '/dashboard/mahasiswa',
+    DOSEN: '/dashboard/dosen',
+    AKREDITASI: '/dashboard/akreditasi',
+    LULUSAN: '/dashboard/lulusan',
+    LITABMAS: '/dashboard/litabmas',
+    PUBLIKASI: '/dashboard/publikasi',
+    PEGAWAI: '/dashboard/pegawai',
+    KEUANGAN: '/dashboard/keuangan',
+    PRESTASI: '/dashboard/prestasi',
+    KERJASAMA: '/dashboard/kerjasama',
+    IKU: '/dashboard/iku',
+  },
+
+  // Reference data endpoints
+  REFERENCE: {
+    FAKULTAS: '/reference/fakultas',
+    PRODI: '/reference/prodi',
+    SEMESTER: '/reference/semester',
   },
 
   // Health check

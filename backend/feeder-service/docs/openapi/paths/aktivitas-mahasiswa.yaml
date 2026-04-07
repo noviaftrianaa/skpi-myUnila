@@ -1,0 +1,114 @@
+list:
+  get:
+    tags:
+      - Aktivitas Mahasiswa
+    summary: Get List Aktivitas Mahasiswa
+    description: Mengambil daftar aktivitas mahasiswa (KKN, PKL, dll) dengan pagination
+    operationId: getAktivitasMahasiswaList
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: id_prodi
+        in: query
+        description: Filter berdasarkan ID program studi
+        schema:
+          type: string
+      - name: id_semester
+        in: query
+        description: Filter berdasarkan ID semester
+        schema:
+          type: string
+      - name: id_jenis_aktivitas
+        in: query
+        description: Filter berdasarkan jenis aktivitas
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Berhasil mengambil data aktivitas mahasiswa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '../schemas/aktivitas-mahasiswa.yaml#/AktivitasMahasiswa'
+                pagination:
+                  $ref: '../schemas/common.yaml#/Pagination'
+
+stats:
+  get:
+    tags:
+      - Aktivitas Mahasiswa
+    summary: Get Statistik Aktivitas Mahasiswa
+    description: Mengambil statistik data aktivitas mahasiswa
+    operationId: getAktivitasMahasiswaStats
+    responses:
+      '200':
+        description: Berhasil mengambil statistik
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    by_jenis:
+                      type: object
+                      additionalProperties:
+                        type: integer
+
+sync:
+  post:
+    tags:
+      - Aktivitas Mahasiswa
+    summary: Sinkronisasi Aktivitas Mahasiswa
+    description: Melakukan sinkronisasi data aktivitas mahasiswa dari Feeder PDDIKTI
+    operationId: syncAktivitasMahasiswa
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_semester:
+                type: string
+                description: ID semester yang akan disinkronkan
+                example: "20241"
+              id_prodi:
+                type: string
+                description: ID program studi (opsional)
+    responses:
+      '200':
+        description: Sinkronisasi berhasil dimulai
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Sync started successfully

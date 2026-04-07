@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# VM2 - Deploy Backend Services 1 (Dashboard + Auth)
+# VM2 - Deploy Backend Services 1 (Public + Auth + Dashboard)
 # Server: 192.168.120.42
 # User: mybackend1
 ###############################################################################
@@ -19,7 +19,7 @@ DEPLOY_DIR="$APP_DIR/deployment/production/vm2-backend1"
 echo ""
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  Deploy Backend Services - VM2${NC}"
-echo -e "${BLUE}  Dashboard + Auth Services${NC}"
+echo -e "${BLUE}  Public + Auth + Dashboard${NC}"
 echo -e "${BLUE}=========================================${NC}"
 echo ""
 
@@ -50,33 +50,42 @@ echo -e "${GREEN}[4/7] Building services...${NC}"
 cd "$DEPLOY_DIR"
 
 echo "  → Building Public Service..."
-docker compose -f services/public/docker-compose.yml build --no-cache public-service
+docker compose --env-file .env -f services/public/docker-compose.yml build --no-cache public-service
 echo ""
 
 echo "  → Building Auth Service..."
-docker compose -f services/auth/docker-compose.yml build --no-cache auth-service
+docker compose --env-file .env -f services/auth/docker-compose.yml build --no-cache auth-service
+echo ""
+
+echo "  → Building Dashboard Service..."
+docker compose --env-file .env -f services/dashboard/docker-compose.yml build --no-cache dashboard-service
 echo ""
 
 # Step 5: Stop old containers
 echo -e "${GREEN}[5/7] Stopping old containers...${NC}"
-docker compose -f services/nginx/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/public/docker-compose.yml down 2>/dev/null || true
-docker compose -f services/auth/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/nginx/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/public/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/auth/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/dashboard/docker-compose.yml down 2>/dev/null || true
 echo ""
 
 # Step 6: Start services
 echo -e "${GREEN}[6/7] Starting services...${NC}"
 
 echo "  → Starting Public Service..."
-docker compose -f services/public/docker-compose.yml up -d
+docker compose --env-file .env -f services/public/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting Auth Service..."
-docker compose -f services/auth/docker-compose.yml up -d
+docker compose --env-file .env -f services/auth/docker-compose.yml up -d
+sleep 5
+
+echo "  → Starting Dashboard Service..."
+docker compose --env-file .env -f services/dashboard/docker-compose.yml up -d
 sleep 5
 
 echo "  → Starting Nginx..."
-docker compose -f services/nginx/docker-compose.yml up -d
+docker compose --env-file .env -f services/nginx/docker-compose.yml up -d
 sleep 3
 
 echo ""
@@ -95,11 +104,13 @@ echo ""
 echo -e "${YELLOW}Service URLs:${NC}"
 echo "  Auth Service:      http://192.168.120.42:8081"
 echo "  Public Service:    http://192.168.120.42:8082"
+echo "  Dashboard Service: http://192.168.120.42:8086"
 echo ""
 
 echo -e "${YELLOW}Check logs:${NC}"
 echo "  docker logs myunila-public-service --tail 50"
 echo "  docker logs myunila-auth-service --tail 50"
+echo "  docker logs myunila-dashboard-service --tail 50"
 echo "  docker logs myunila-nginx-vm2 --tail 50"
 echo ""
 

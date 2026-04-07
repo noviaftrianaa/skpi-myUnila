@@ -20,6 +20,7 @@ type Repository interface {
 	GetAktivitasList(ctx context.Context, page, limit int, search string, idSemester []string, idProdi *string, idJenisAktivitas *int, sortBy, sortOrder string) (*AktivitasListResult, error)
 	GetAktivitasByID(ctx context.Context, idAktMhs string) (*AktMhs, error)
 	GetAnggotaByAktivitas(ctx context.Context, idAktMhs string) ([]*AnggotaAktMhs, error)
+	GetAktivitasDetailByID(ctx context.Context, idAktMhs string) (*AktivitasDetailResponse, error)
 
 	// Utility - Get prodi list, semester list, and jenis aktivitas list
 	GetProdiList(ctx context.Context) ([]map[string]interface{}, error)
@@ -607,4 +608,108 @@ func (r *repository) GetStats(ctx context.Context) (*AktivitasStats, error) {
 	}
 
 	return &stats, nil
+}
+
+// GetAktivitasDetailByID retrieves complete aktivitas detail with anggota list
+func (r *repository) GetAktivitasDetailByID(ctx context.Context, idAktMhs string) (*AktivitasDetailResponse, error) {
+	// Query aktivitas with joins to get all related data
+	aktivitasQuery := `
+		SELECT
+			CAST(akt.id_akt_mhs AS VARCHAR(50)) AS id_akt_mhs,
+			akt.judul_akt_mhs,
+			ja.nm_jns_akt_mhs AS nama_jenis_aktivitas,
+			akt.id_smt AS id_semester,
+			sem.nm_smt AS nama_semester,
+			akt.lokasi_kegiatan,
+			akt.sk_tugas,
+			akt.tgl_sk_tugas,
+			akt.ket_akt,
+			akt.a_komunal,
+			CAST(akt.id_sms AS VARCHAR(50)) AS id_prodi,
+			sms.nm_lemb AS nama_prodi,
+			didik.nm_jenj_didik AS nama_jenjang
+		FROM pdrd.akt_mhs AS akt
+		LEFT JOIN ref.jenis_akt_mhs AS ja ON ja.id_jns_akt_mhs = akt.id_jns_akt_mhs
+		LEFT JOIN ref.semester AS sem ON sem.id_smt = akt.id_smt
+		LEFT JOIN pdrd.sms AS sms ON sms.id_sms = akt.id_sms AND sms.soft_delete = 0
+		LEFT JOIN ref.jenjang_pendidikan AS didik ON didik.id_jenj_didik = sms.id_jenj_didik AND didik.expired_date IS NULL
+		WHERE akt.id_akt_mhs = CAST(@p1 AS UNIQUEIDENTIFIER) AND akt.soft_delete = 0
+	`
+
+	// Struct to scan aktivitas data
+	type aktivitasScan struct {
+		IDAktMhs           string     `db:"id_akt_mhs"`
+		JudulAktMhs        *string    `db:"judul_akt_mhs"`
+		NamaJenisAktivitas *string    `db:"nama_jenis_aktivitas"`
+		IDSemester         *string    `db:"id_semester"`
+		NamaSemester       *string    `db:"nama_semester"`
+		LokasiKegiatan     *string    `db:"lokasi_kegiatan"`
+		SKTugas            *string    `db:"sk_tugas"`
+		TglSKTugas         *time.Time `db:"tgl_sk_tugas"`
+		KetAkt             *string    `db:"ket_akt"`
+		AKomunal           *int       `db:"a_komunal"`
+		IDProdi            *string    `db:"id_prodi"`
+		NamaProdi          *string    `db:"nama_prodi"`
+		NamaJenjang        *string    `db:"nama_jenjang"`
+	}
+
+	var akt aktivitasScan
+	err := r.db.GetContext(ctx, &akt, aktivitasQuery, idAktMhs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("aktivitas not found")
+		}
+		return nil, fmt.Errorf("failed to get aktivitas detail: %w", err)
+	}
+
+	// Query anggota list
+	anggotaQuery := `
+		SELECT
+			CAST(id_ang_akt_mhs AS VARCHAR(50)) AS id_ang_akt_mhs,
+			CAST(id_akt_mhs AS VARCHAR(50)) AS id_akt_mhs,
+			CAST(id_reg_pd AS VARCHAR(50)) AS id_reg_pd,
+			nm_pd, nipd, jns_peran_mhs
+		FROM pdrd.anggota_akt_mhs
+		WHERE id_akt_mhs = CAST(@p1 AS UNIQUEIDENTIFIER) AND soft_delete = 0
+		ORDER BY jns_peran_mhs ASC, nm_pd ASC
+	`
+
+	var anggotaList []*AnggotaListItem
+	err = r.db.SelectContext(ctx, &anggotaList, anggotaQuery, idAktMhs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get anggota list: %w", err)
+	}
+
+	// Add nama peran mhs to each anggota
+	for _, ang := range anggotaList {
+		ang.NamaPeranMhs = GetNamaPeranMhs(ang.JnsPeranMhs)
+	}
+
+	// Format tgl_sk_tugas
+	var tglSKTugasStr *string
+	if akt.TglSKTugas != nil {
+		formatted := convertToWIB(*akt.TglSKTugas).Format("2006-01-02")
+		tglSKTugasStr = &formatted
+	}
+
+	// Build response
+	response := &AktivitasDetailResponse{
+		IDAktMhs:           akt.IDAktMhs,
+		JudulAktMhs:        akt.JudulAktMhs,
+		NamaJenisAktivitas: akt.NamaJenisAktivitas,
+		IDSemester:         akt.IDSemester,
+		NamaSemester:       akt.NamaSemester,
+		LokasiKegiatan:     akt.LokasiKegiatan,
+		SKTugas:            akt.SKTugas,
+		TglSKTugas:         tglSKTugasStr,
+		KetAkt:             akt.KetAkt,
+		AKomunal:           akt.AKomunal,
+		IDProdi:            akt.IDProdi,
+		NamaProdi:          akt.NamaProdi,
+		NamaJenjang:        akt.NamaJenjang,
+		JumlahAnggota:      len(anggotaList),
+		Anggota:            anggotaList,
+	}
+
+	return response, nil
 }

@@ -477,4 +477,102 @@ class PenggunaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Create new pengguna
+     */
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'username' => 'required|string|max:60',
+                'password' => 'required|string|min:6',
+                'nm_pengguna' => 'required|string|max:200',
+                'email' => 'nullable|string|max:60',
+                'tempat_lahir' => 'nullable|string|max:60',
+                'tgl_lahir' => 'nullable|date',
+                'jenis_kelamin' => 'required|string|in:L,P',
+                'alamat' => 'nullable|string|max:255',
+                'no_tel' => 'nullable|string|max:20',
+                'no_hp' => 'nullable|string|max:20',
+                'jabatan' => 'nullable|string|max:80',
+                'id_peran' => 'nullable|integer',
+            ]);
+
+            $username = $request->input('username');
+
+            // Check username uniqueness
+            $existing = \Illuminate\Support\Facades\DB::selectOne(
+                "SELECT id_pengguna FROM man_akses.pengguna WHERE username = ? AND soft_delete = 0",
+                [$username]
+            );
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Username sudah terdaftar',
+                ], 422);
+            }
+
+            $idPengguna = strtoupper(\Illuminate\Support\Str::uuid()->toString());
+            $now = now()->format('Y-m-d H:i:s');
+
+            // Insert pengguna using raw SQL
+            \Illuminate\Support\Facades\DB::insert("
+                INSERT INTO man_akses.pengguna (
+                    id_pengguna, username, password, nm_pengguna, email,
+                    tempat_lahir, tgl_lahir, jenis_kelamin, alamat, no_tel, no_hp,
+                    jabatan, approval_pengguna, a_aktif, disable, 
+                    tgl_create, last_update, soft_delete, last_sync, id_updater,
+                    google2fa_enabled, failed_login_attempts
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 0, ?, ?, 0, ?, ?, 0, 0)
+            ", [
+                $idPengguna,
+                $username,
+                sha1($request->input('password')),
+                $request->input('nm_pengguna'),
+                $request->input('email'),
+                $request->input('tempat_lahir'),
+                $request->input('tgl_lahir'),
+                $request->input('jenis_kelamin', 'L'),
+                $request->input('alamat'),
+                $request->input('no_tel'),
+                $request->input('no_hp'),
+                $request->input('jabatan'),
+                $now, $now, $now,
+                $idPengguna,
+            ]);
+
+            // Auto-assign role if provided
+            $idPeran = $request->input('id_peran');
+            if ($idPeran) {
+                $idRolePengguna = strtoupper(\Illuminate\Support\Str::uuid()->toString());
+                \Illuminate\Support\Facades\DB::insert("
+                    INSERT INTO man_akses.role_pengguna (
+                        id_role_pengguna, id_pengguna, id_peran, approval_peran,
+                        tgl_create, last_update, soft_delete, last_sync, id_updater
+                    ) VALUES (?, ?, ?, 1, ?, ?, 0, ?, ?)
+                ", [$idRolePengguna, $idPengguna, $idPeran, $now, $now, $now, $idPengguna]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengguna berhasil ditambahkan',
+                'data' => [
+                    'id_pengguna' => $idPengguna,
+                    'username' => $username,
+                    'nm_pengguna' => $request->input('nm_pengguna'),
+                ]
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan pengguna: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

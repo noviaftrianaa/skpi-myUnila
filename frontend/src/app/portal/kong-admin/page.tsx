@@ -9,7 +9,8 @@ import {
   Chip,
   Spinner,
 } from "@heroui/react";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import {
   FiArrowLeft,
@@ -18,11 +19,12 @@ import {
   FiRefreshCw,
   FiExternalLink,
   FiBook,
+  FiLock,
 } from "react-icons/fi";
 import {
   MdCheckCircle,
 } from "react-icons/md";
-import { SiKong, SiSwagger } from "react-icons/si";
+import { FiZap, FiFileText } from "react-icons/fi";
 
 interface KongService {
   id: string;
@@ -58,20 +60,87 @@ interface KongInfo {
   };
 }
 
-// Mapping service to documentation URL
-// All services use consistent /api/documentation path
-const serviceDocsMap: Record<string, string> = {
-  "auth-service": "http://localhost:8081/api/documentation",
-  "public-service": "http://localhost:8082/api/documentation",
-  "sister-service": "http://localhost:8083/api/documentation",
+// Get base URL for Kong gateway (from env or default to production)
+const getKongBaseUrl = () => {
+  // In production: https://my.unila.ac.id (Kong behind reverse proxy on port 443)
+  // In staging/dev: http://{host}:9800 (Kong exposed on port 9800)
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "my.unila.ac.id") {
+      return "https://my.unila.ac.id";
+    }
+    // Staging / local: Kong is at port 9800
+    return `${window.location.protocol}//${host}:9800`;
+  }
+  return "https://my.unila.ac.id";
+};
+
+// Get Kong Admin API URL
+const getKongAdminUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "my.unila.ac.id") {
+      // Production: Kong Admin via internal IP
+      return "http://192.168.120.41:9801";
+    }
+    // Staging / local: Kong Admin at port 9801
+    return `http://${host}:9801`;
+  }
+  return "http://localhost:9801";
+};
+
+// Mapping service to documentation URL (via Kong gateway)
+// Route pattern: /{serviceName}/docs (strip_path=true di Kong)
+const getServiceDocsUrl = (serviceName: string): string => {
+  const baseUrl = getKongBaseUrl();
+  return `${baseUrl}/${serviceName}/docs`;
+};
+
+
+// Service display names for better UX
+const serviceDisplayNames: Record<string, string> = {
+  "auth-service": "Auth Service",
+  "public-service": "Public Service",
+  "sister-service": "Sister Service",
+  "feeder-service": "Feeder Service",
+  "myunila-service": "myUnila Integrator",
+  "ws-service": "myUnila Web Service (API)",
+  "dashboard-service": "Dashboard Service",
+};
+
+// Main services to display (filter out docs/public variants)
+const mainServices = [
+  "auth-service",
+  "public-service",
+  "sister-service",
+  "feeder-service",
+  "myunila-service",
+  "ws-service",
+  "dashboard-service",
+];
+
+// Filter function to only show main services
+const isMainService = (serviceName: string): boolean => {
+  return mainServices.includes(serviceName);
 };
 
 export default function KongAdminPage() {
-  // Require authentication and Developer, Rektor, Wakil Rektor, or LP3M role
-  const { user, isLoading: authLoading } = useRequireAuth({
-    requireRole: ["Developer", "Rektor", "Wakil Rektor 1", "Wakil Rektor 2", "Wakil Rektor 3", "Wakil Rektor 4", "LP3M UNILA"]
-  });
+  // Use auth and user context for role-based access control
+  // Developer role is from manakses system (activeContext.nm_peran), not from auth user.role
+  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
+  const { activeContext, isLoadingContext } = useUserContext();
   const router = useRouter();
+
+  // Check if user has Developer role from manakses context
+  // Developer can be the nm_peran from activeContext
+  const hasAccess = isAuthenticated && activeContext?.nm_peran === "Developer";
+  const accessMessage = !isAuthenticated
+    ? "Silakan login terlebih dahulu"
+    : !activeContext
+      ? "Silakan pilih peran terlebih dahulu"
+      : !hasAccess
+        ? `Halaman ini hanya dapat diakses oleh Developer. Peran Anda saat ini: ${activeContext.nm_peran}`
+        : "";
 
   const [services, setServices] = useState<KongService[]>([]);
   const [routes, setRoutes] = useState<KongRoute[]>([]);
@@ -86,20 +155,22 @@ export default function KongAdminPage() {
     setError(null);
 
     try {
+      const kongAdminUrl = getKongAdminUrl();
+
       // Fetch Services
-      const servicesRes = await fetch("http://localhost:9801/services");
+      const servicesRes = await fetch(`${kongAdminUrl}/services`);
       if (!servicesRes.ok) throw new Error("Failed to fetch services");
       const servicesData = await servicesRes.json();
       setServices(servicesData.data || []);
 
       // Fetch Routes
-      const routesRes = await fetch("http://localhost:9801/routes");
+      const routesRes = await fetch(`${kongAdminUrl}/routes`);
       if (!routesRes.ok) throw new Error("Failed to fetch routes");
       const routesData = await routesRes.json();
       setRoutes(routesData.data || []);
 
       // Fetch Kong Info
-      const infoRes = await fetch("http://localhost:9801/");
+      const infoRes = await fetch(`${kongAdminUrl}/`);
       if (!infoRes.ok) throw new Error("Failed to fetch Kong info");
       const infoData = await infoRes.json();
       setKongInfo(infoData);
@@ -113,10 +184,10 @@ export default function KongAdminPage() {
   };
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && hasAccess) {
       fetchKongData();
     }
-  }, [authLoading, user]);
+  }, [authLoading, hasAccess]);
 
   // Get routes for a service
   const getServiceRoutes = (serviceId: string) => {
@@ -124,12 +195,50 @@ export default function KongAdminPage() {
   };
 
   // Loading state
-  if (authLoading || isLoading) {
+  if (authLoading || isLoadingContext || (hasAccess && isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mb-4" color="primary" />
           <p className="text-gray-600">Loading Kong Admin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Access denied state
+  if (hasAccess === false) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <Button
+            startContent={<FiArrowLeft />}
+            variant="light"
+            onPress={() => router.push("/portal")}
+            className="mb-6"
+          >
+            Back to Portal
+          </Button>
+          <Card className="bg-amber-50 border border-amber-200">
+            <CardBody className="p-8 text-center">
+              <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiLock className="w-10 h-10 text-amber-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-amber-800 mb-2">
+                Akses Tidak Diizinkan
+              </h2>
+              <p className="text-amber-700 mb-6">
+                {accessMessage || "Anda tidak memiliki akses ke halaman ini."}
+              </p>
+              <Button
+                color="warning"
+                variant="flat"
+                onPress={() => router.push("/portal")}
+              >
+                Kembali ke Portal
+              </Button>
+            </CardBody>
+          </Card>
         </div>
       </div>
     );
@@ -169,8 +278,9 @@ export default function KongAdminPage() {
     );
   }
 
-  // Stats calculations
-  const enabledServices = services.filter((s) => s.enabled !== false).length;
+  // Stats calculations - only count main services (not docs/public variants)
+  const filteredServices = services.filter(s => isMainService(s.name));
+  const enabledServices = filteredServices.filter((s) => s.enabled !== false).length;
   const totalRoutes = routes.length;
 
   return (
@@ -191,7 +301,7 @@ export default function KongAdminPage() {
               <div className="h-8 w-px bg-white/20"></div>
               <div className="flex items-center gap-3">
                 <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
-                  <SiKong className="w-8 h-8" />
+                  <FiZap className="w-8 h-8" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold">Kong API Gateway</h1>
@@ -257,7 +367,8 @@ export default function KongAdminPage() {
           </p>
         </div>
 
-        {services.length === 0 ? (
+        {/* Filter to only show main services (not docs/public variants) */}
+        {services.filter(s => isMainService(s.name)).length === 0 ? (
           <Card className="bg-white shadow-lg border border-gray-100">
             <CardBody className="p-12 text-center">
               <FiServer className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -271,9 +382,9 @@ export default function KongAdminPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {services.map((service, index) => {
+            {services.filter(s => isMainService(s.name)).map((service, index) => {
               const serviceRoutes = getServiceRoutes(service.id);
-              const docsUrl = serviceDocsMap[service.name];
+              const docsUrl = mainServices.includes(service.name) ? getServiceDocsUrl(service.name) : null;
 
               return (
                 <motion.div
@@ -383,7 +494,7 @@ export default function KongAdminPage() {
                             className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 shadow-md hover:shadow-lg hover:shadow-emerald-500/30 font-semibold transition-all duration-300"
                             size="sm"
                           >
-                            <SiSwagger className="w-3.5 h-3.5" />
+                            <FiFileText className="w-3.5 h-3.5" />
                             <span className="text-xs">View API Documentation</span>
                             <FiExternalLink className="w-3.5 h-3.5" />
                           </Button>
@@ -411,14 +522,18 @@ export default function KongAdminPage() {
                 About API Documentation
               </h4>
               <p className="text-sm text-blue-700 mb-2">
-                Each service provides Swagger/OpenAPI documentation for developers.
-                Click the "API Documentation" button to explore endpoints, parameters,
+                Each service provides Scalar/OpenAPI documentation for developers.
+                Click the &quot;API Documentation&quot; button to explore endpoints, parameters,
                 and test API calls directly.
               </p>
+              <p className="text-xs text-blue-600 mb-2">
+                <strong>Protected Access:</strong> All documentation endpoints are protected
+                via Kong Gateway with JWT authentication. Only users with &quot;Developer&quot; role
+                can access the documentation.
+              </p>
               <p className="text-xs text-blue-600">
-                <strong>Note:</strong> Documentation is only available for services
-                that have Swagger UI configured (e.g., auth-service,
-                public-service, sister-service).
+                <strong>Available Services:</strong> auth-service, public-service,
+                sister-service, feeder-service, myunila-service, ws-service.
               </p>
             </div>
           </div>

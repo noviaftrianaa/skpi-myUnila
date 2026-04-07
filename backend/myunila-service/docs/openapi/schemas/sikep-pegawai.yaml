@@ -1,0 +1,62 @@
+Pegawai:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    nip:
+      type: string
+      example: "197501012000121001"
+    nama:
+      type: string
+      example: "Dr. Ahmad Fauzi, M.Si."
+    email:
+      type: string
+      example: "ahmad.fauzi@unila.ac.id"
+    unit_kerja:
+      type: string
+      example: "Fakultas Teknik"
+    jabatan:
+      type: string
+      example: "Dosen"
+    status:
+      type: string
+      enum:
+        - aktif
+        - pensiun
+        - cuti
+      example: aktif
+    synced_at:
+      type: string
+      format: date-time
+
+PegawaiDetail:
+  allOf:
+    - $ref: '#/Pegawai'
+    - type: object
+      properties:
+        tempat_lahir:
+          type: string
+          example: "Bandar Lampung"
+        tanggal_lahir:
+          type: string
+          format: date
+          example: "1975-01-01"
+        golongan:
+          type: string
+          example: "IV/a"
+        jenis_kelamin:
+          type: string
+          enum:
+            - L
+            - P
+          example: L
+        pendidikan_terakhir:
+          type: string
+          example: "S3"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

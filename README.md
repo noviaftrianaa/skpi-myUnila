@@ -34,7 +34,7 @@ Portal terpadu Universitas Lampung - Sistem Informasi terintegrasi berbasis micr
         ┌──────────────────┼──────────┬──────────┬──────────┐
         ▼                  ▼          ▼          ▼          ▼
 ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│Auth Service │  │Dashboard Svc│  │ Sister Svc  │  │Feeder Svc   │  │myUnila Svc  │
+│Auth Service │  Public Svc│  │ Sister Svc  │  │Feeder Svc   │  │myUnila Svc  │
 │Laravel 11   │  │Laravel 11   │  │Go + Fiber   │  │Go + Fiber   │  │Go + Fiber   │
 │Port: 8081   │  │Port: 8082   │  │Port: 8083   │  │Port: 8084   │  │Port: 8085   │
 └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘

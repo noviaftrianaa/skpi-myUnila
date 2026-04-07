@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  kong-postgres:
+    image: postgres:15-alpine
+    container_name: myunila-kong-postgres-staging
+    restart: unless-stopped
+
+    env_file:
+      - ../../.env
+    environment:
+      POSTGRES_DB: "${KONG_PG_DATABASE}"
+      POSTGRES_USER: "${KONG_PG_USER}"
+      POSTGRES_PASSWORD: "${KONG_PG_PASSWORD}"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - myunila-staging-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KONG_PG_USER} -d ${KONG_PG_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network
+
+volumes:
+  postgres-data:
+    driver: local
+    name: myunila-kong-postgres-data-staging
