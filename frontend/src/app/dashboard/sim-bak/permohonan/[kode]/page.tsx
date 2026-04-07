@@ -7,9 +7,9 @@ import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo } from "react-icons/fi";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
+import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan } from "@/lib/services/sim-bak/types";
 
 const steps = [
@@ -22,10 +22,13 @@ export default function PermohonanFormPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const kode = params.kode as string;
+  const editId = searchParams.get("edit");
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(editId ? 2 : 1);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File | null>>({});
+  const [existingDokumen, setExistingDokumen] = useState<Array<Record<string, unknown>>>([]);
   const [layanan, setLayanan] = useState<JenisLayanan | null>(null);
   const [persyaratan, setPersyaratan] = useState<PersyaratanLayanan[]>([]);
   const [tahapan, setTahapan] = useState<TahapanLayanan[]>([]);
@@ -33,14 +36,26 @@ export default function PermohonanFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [alasan, setAlasan] = useState("");
   const [catatan, setCatatan] = useState("");
+  const [profileData, setProfileData] = useState<Record<string, unknown> | null>(null);
   // Cuti-specific
   const [jumlahSemesterCuti, setJumlahSemesterCuti] = useState<number>(1);
+  const [semesterMulaiCuti, setSemesterMulaiCuti] = useState("");
+  const [semesterList, setSemesterList] = useState<Array<{ id_smt: string; nm_smt: string; a_periode_aktif: boolean }>>([]);
+  // Alih Program-specific
+  const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
+  const [prodiList, setProdiList] = useState<Array<{ id_prodi: string; nm_prodi: string; nm_jenjang: string }>>([]);
+  const [selectedFakultas, setSelectedFakultas] = useState("");
+  const [selectedProdi, setSelectedProdi] = useState("");
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const allLayanan = await getJenisLayananPublic();
+        const [allLayanan, profile] = await Promise.all([
+          getJenisLayananPublic(),
+          getMyProfile().catch(() => null),
+        ]);
+        setProfileData(profile);
         const found = allLayanan.find(j => j.kode_layanan === kode);
         setLayanan(found ?? null);
         if (found) {
@@ -51,11 +66,35 @@ export default function PermohonanFormPage() {
           setPersyaratan((p ?? []).sort((a, b) => a.urutan - b.urutan));
           setTahapan(t ?? []);
         }
+        // Load referensi untuk PM-CUTI dan PM-ALIH
+        if (kode === "PM-CUTI") {
+          getRefSemester().then(setSemesterList).catch(() => {});
+        }
+        if (kode === "PM-ALIH") {
+          getRefFakultas().then(setFakultasList).catch(() => {});
+        }
+        // Mode edit: load dokumen existing
+        if (editId) {
+          const { getPengajuanDetail } = await import("@/lib/services/sim-bak/simBakService");
+          const detail = await getPengajuanDetail(editId).catch(() => null);
+          if (detail?.dokumen) setExistingDokumen(detail.dokumen as Array<Record<string, unknown>>);
+          if (detail?.alasan) setAlasan(String(detail.alasan));
+          if (detail?.catatan_pemohon) setCatatan(String(detail.catatan_pemohon));
+        }
       } catch { /* fallback */ }
       finally { setLoading(false); }
     };
     fetchData();
-  }, [user, kode]);
+  }, [user, kode, editId]);
+
+  // Cascading: load prodi saat fakultas dipilih
+  useEffect(() => {
+    if (kode === "PM-ALIH" && selectedFakultas) {
+      setProdiList([]);
+      setSelectedProdi("");
+      getRefProdi(selectedFakultas).then(setProdiList).catch(() => {});
+    }
+  }, [selectedFakultas, kode]);
 
   if (!user || loading) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
@@ -72,19 +111,64 @@ export default function PermohonanFormPage() {
   }
 
   const isCuti = kode === "PM-CUTI";
-  const dataPemohon = { nama: user?.nm_pengguna ?? "-", npm: user?.username ?? "-", prodi: "-", fakultas: "-", semester: "-", ipk: "-" };
+  const isAlih = kode === "PM-ALIH";
+  const isUndur = kode === "PM-UNDUR";
+  const dataPemohon = {
+    nama: String(profileData?.nm_mahasiswa ?? user?.name ?? "-"),
+    npm: String(profileData?.nim ?? user?.username ?? "-"),
+    prodi: String(profileData?.nm_prodi ?? "-"),
+    fakultas: String(profileData?.nm_fakultas ?? "-"),
+    jenjang: String(profileData?.nm_jenjang ?? "-"),
+    semester: String(profileData?.semester_aktif ?? "-"),
+    ipk: String(profileData?.ipk ?? "-"),
+    sks_lulus: String(profileData?.sks_lulus ?? "-"),
+  };
+
+  // Syarat akademik untuk Alih Program
+  const ipk = Number(profileData?.ipk ?? 0);
+  const sks = Number(profileData?.sks_lulus ?? 0);
+  const sem = Number(profileData?.semester_aktif ?? 0);
+  const jenjang = String(profileData?.nm_jenjang ?? "").toLowerCase();
+  const syaratAlih = isAlih && profileData ? (() => {
+    const isS1 = ["s1", "sarjana"].includes(jenjang);
+    const isD3 = ["d3", "diploma"].includes(jenjang);
+    const isS2S3 = ["s2", "s3", "magister", "doktor"].includes(jenjang);
+    const rules = isS1 ? [
+      { label: "IPK >= 2.75", pass: ipk >= 2.75, detail: `IPK Anda: ${ipk}` },
+      { label: "SKS Lulus >= 40", pass: sks >= 40, detail: `SKS Anda: ${sks}` },
+      { label: "Semester <= 5", pass: sem <= 5, detail: `Semester Anda: ${sem}` },
+    ] : isD3 ? [
+      { label: "IPK >= 2.50", pass: ipk >= 2.50, detail: `IPK Anda: ${ipk}` },
+      { label: "SKS Lulus >= 36", pass: sks >= 36, detail: `SKS Anda: ${sks}` },
+      { label: "Semester <= 5", pass: sem <= 5, detail: `Semester Anda: ${sem}` },
+    ] : isS2S3 ? [
+      { label: "IPK >= 3.00", pass: ipk >= 3.00, detail: `IPK Anda: ${ipk}` },
+      { label: "SKS Lulus >= 12", pass: sks >= 12, detail: `SKS Anda: ${sks}` },
+      { label: "Semester <= 3", pass: sem <= 3, detail: `Semester Anda: ${sem}` },
+    ] : [];
+    return { rules, allPass: rules.every(r => r.pass) };
+  })() : null;
 
   const handleSubmit = async (isDraft: boolean) => {
     if (!isDraft && !alasan.trim()) { toast.error("Alasan permohonan wajib diisi"); return; }
+    if (!isDraft && isAlih && !selectedProdi) { toast.error("Prodi tujuan wajib dipilih"); return; }
+    if (!isDraft && isAlih && syaratAlih && !syaratAlih.allPass) { toast.error("Anda belum memenuhi syarat akademik untuk Alih Program"); return; }
     setSubmitting(true);
     try {
-      const pengajuan = await createPengajuan({
-        id_jenis_layanan: layanan.id_jenis_layanan,
-        alasan,
-        catatan_pemohon: catatan || undefined,
-        jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
-      });
+      // 1. Create pengajuan (skip jika mode edit)
+      const pengajuanId = editId
+        ? editId
+        : (await createPengajuan({
+            id_jenis_layanan: layanan.id_jenis_layanan,
+            alasan,
+            catatan_pemohon: catatan || undefined,
+            jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
+            id_smt_mulai_cuti: isCuti ? semesterMulaiCuti || undefined : undefined,
+            id_prodi_tujuan: isAlih ? selectedProdi || undefined : undefined,
+            id_fakultas_tujuan: isAlih ? selectedFakultas || undefined : undefined,
+          })).id_pengajuan;
 
+      // 2. Upload dokumen baru
       for (const [kodeDok, file] of Object.entries(uploadedFiles)) {
         if (!file) continue;
         const formData = new FormData();
@@ -92,11 +176,11 @@ export default function PermohonanFormPage() {
         formData.append("nm_dokumen", persyaratan.find(p => p.kode_dokumen === kodeDok)?.nm_dokumen ?? file.name);
         const match = persyaratan.find(p => p.kode_dokumen === kodeDok);
         if (match) formData.append("id_persyaratan", match.id_persyaratan);
-        await uploadDokumen(pengajuan.id_pengajuan, formData);
+        await uploadDokumen(pengajuanId, formData);
       }
 
       if (!isDraft) {
-        await ajukanPengajuan(pengajuan.id_pengajuan);
+        await ajukanPengajuan(pengajuanId);
         toast.success("Permohonan berhasil diajukan!");
       } else {
         toast.success("Draft disimpan");
@@ -107,15 +191,18 @@ export default function PermohonanFormPage() {
     } finally { setSubmitting(false); }
   };
 
-  const allRequiredUploaded = persyaratan.filter(p => p.a_wajib).every(p => uploadedFiles[p.kode_dokumen]);
+  const allRequiredUploaded = persyaratan.filter(p => p.a_wajib).every(p =>
+    uploadedFiles[p.kode_dokumen] ||
+    (editId && existingDokumen.some(d => d.id_persyaratan === p.id_persyaratan))
+  );
 
   return (
     <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Permohonan ${layanan.nm_layanan}`}>
       <Toaster position="top-right" />
       <div className="space-y-6 max-w-4xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Permohonan {layanan.nm_layanan}</h1>
-          <p className="text-sm text-gray-500 mt-1">{layanan.deskripsi}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{editId ? "Lanjutkan" : "Permohonan"} {layanan.nm_layanan}</h1>
+          <p className="text-sm text-gray-500 mt-1">{editId ? "Lengkapi dokumen dan ajukan permohonan Anda" : layanan.deskripsi}</p>
         </div>
 
         {/* Step Indicator */}
@@ -159,38 +246,110 @@ export default function PermohonanFormPage() {
 
             <Card className="shadow-md rounded-xl"><CardBody className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Pemohon</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 {Object.entries(dataPemohon).map(([label, value]) => (
                   <div key={label} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                    <p className="text-xs text-gray-500 mb-0.5 capitalize">{label}</p>
+                    <p className="text-xs text-gray-500 mb-0.5 capitalize">{label.replace('_', ' ')}</p>
                     <p className="font-semibold text-sm text-gray-900 dark:text-white">{value}</p>
                   </div>
                 ))}
               </div>
 
+              {/* Syarat Akademik Card — khusus Alih Program */}
+              {isAlih && syaratAlih && (
+                <div className={`rounded-lg p-4 mb-6 border ${syaratAlih.allPass ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+                  <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
+                    Syarat Akademik Alih Program ({dataPemohon.jenjang})
+                  </h3>
+                  <div className="space-y-1.5">
+                    {syaratAlih.rules.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs ${r.pass ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                          {r.pass ? '✓' : '✗'}
+                        </span>
+                        <span className={r.pass ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
+                          {r.label} — {r.detail}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {!syaratAlih.allPass && (
+                    <p className="text-xs text-red-600 mt-2 font-medium">Anda belum memenuhi semua syarat untuk mengajukan alih program.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Konfirmasi Undur Diri */}
+              {isUndur && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Perhatian: Pengunduran Diri</h3>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">Pengunduran diri bersifat permanen. Setelah SK terbit, Anda tidak dapat mendaftar kembali di program studi yang sama. Pastikan keputusan ini sudah dipertimbangkan dengan matang.</p>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Permohonan *</label>
                   <textarea value={alasan} onChange={e => setAlasan(e.target.value)} rows={4}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder="Jelaskan alasan permohonan Anda..." />
                 </div>
 
+                {/* PM-CUTI: Semester mulai cuti + jumlah */}
                 {isCuti && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah Semester Cuti</label>
-                    <select value={jumlahSemesterCuti} onChange={e => setJumlahSemesterCuti(Number(e.target.value))}
-                      className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      <option value={1}>1 Semester</option>
-                      <option value={2}>2 Semester</option>
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester Mulai Cuti</label>
+                      <select value={semesterMulaiCuti} onChange={e => setSemesterMulaiCuti(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih Semester</option>
+                        {semesterList.map(s => (
+                          <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah Semester Cuti</label>
+                      <select value={jumlahSemesterCuti} onChange={e => setJumlahSemesterCuti(Number(e.target.value))}
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value={1}>1 Semester</option>
+                        <option value={2}>2 Semester</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* PM-ALIH: Fakultas + Prodi tujuan (cascading) */}
+                {isAlih && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fakultas Tujuan *</label>
+                      <select value={selectedFakultas} onChange={e => setSelectedFakultas(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih Fakultas</option>
+                        {fakultasList.map(f => (
+                          <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Program Studi Tujuan *</label>
+                      <select value={selectedProdi} onChange={e => setSelectedProdi(e.target.value)}
+                        disabled={!selectedFakultas}
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
+                        <option value="">{selectedFakultas ? (prodiList.length ? 'Pilih Prodi' : 'Memuat...') : 'Pilih fakultas terlebih dahulu'}</option>
+                        {prodiList.map(p => (
+                          <option key={p.id_prodi} value={p.id_prodi}>{p.nm_prodi} ({p.nm_jenjang})</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan Tambahan</label>
                   <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={2}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder="Catatan tambahan (opsional)..." />
                 </div>
               </div>
@@ -202,7 +361,23 @@ export default function PermohonanFormPage() {
         {currentStep === 2 && (
           <Card className="shadow-md rounded-xl"><CardBody className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Upload Dokumen Persyaratan</h2>
-            <p className="text-sm text-gray-500 mb-6">{persyaratan.length} dokumen diperlukan</p>
+            <p className="text-sm text-gray-500 mb-4">{persyaratan.length} dokumen diperlukan</p>
+
+            {editId && existingDokumen.length > 0 && (
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Dokumen yang sudah diupload sebelumnya:</p>
+                <div className="space-y-1.5">
+                  {existingDokumen.map((doc, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                      <FiFile className="w-3.5 h-3.5" />
+                      <span>{String(doc.nm_dokumen)} — {String(doc.nama_file_asli)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-blue-500 dark:text-blue-400 mt-2">Upload ulang di bawah untuk mengganti dokumen tertentu.</p>
+              </div>
+            )}
+
             <div className="space-y-4">
               {persyaratan.map(req => (
                 <div key={req.id_persyaratan} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
@@ -268,7 +443,29 @@ export default function PermohonanFormPage() {
         {/* Nav */}
         <div className="flex justify-between pt-2">
           <Button variant="flat" startContent={<FiChevronLeft className="w-4 h-4" />} isDisabled={currentStep === 1} onPress={() => setCurrentStep(s => Math.max(1, s - 1))}>Sebelumnya</Button>
-          {currentStep < 3 && <Button color="primary" endContent={<FiChevronRight className="w-4 h-4" />} onPress={() => setCurrentStep(s => Math.min(3, s + 1))}>Selanjutnya</Button>}
+          {currentStep < 3 && <Button color="primary" endContent={<FiChevronRight className="w-4 h-4" />} onPress={() => {
+            // Validasi step 1: alasan wajib diisi
+            if (currentStep === 1 && !alasan.trim()) {
+              toast.error("Alasan permohonan wajib diisi");
+              return;
+            }
+            // Validasi step 1 PM-ALIH: prodi tujuan wajib dipilih
+            if (currentStep === 1 && isAlih && !selectedProdi) {
+              toast.error("Program studi tujuan wajib dipilih");
+              return;
+            }
+            // Validasi step 1 PM-ALIH: syarat akademik
+            if (currentStep === 1 && isAlih && syaratAlih && !syaratAlih.allPass) {
+              toast.error("Anda belum memenuhi syarat akademik untuk Alih Program");
+              return;
+            }
+            // Validasi step 2: dokumen wajib harus diupload
+            if (currentStep === 2 && !allRequiredUploaded) {
+              toast.error("Semua dokumen wajib harus diupload sebelum melanjutkan");
+              return;
+            }
+            setCurrentStep(s => Math.min(3, s + 1));
+          }}>Selanjutnya</Button>}
         </div>
       </div>
     </DashboardLayoutWithDynamicMenu>

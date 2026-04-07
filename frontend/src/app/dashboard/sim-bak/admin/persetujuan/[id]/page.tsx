@@ -9,9 +9,11 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiArrowLeft, FiCheck, FiX, FiUser, FiAlertCircle } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
-import { getPengajuanDetail, approvePengajuan, rejectPengajuan } from "@/lib/services/sim-bak/simBakService";
+import { getPengajuanDetail, approvePengajuan, rejectPengajuan, getWorkflowProgress } from "@/lib/services/sim-bak/simBakService";
+import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { StatusPengajuan, PersetujuanPengajuan } from "@/lib/services/sim-bak/types";
 import ApprovalTimeline from "../../../components/ApprovalTimeline";
+import WorkflowStepper from "../../../components/WorkflowStepper";
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
@@ -33,10 +35,12 @@ export default function PersetujuanDetailPage() {
   const [showPanel, setShowPanel] = useState<"approve" | "reject" | null>(null);
   const [actionCatatan, setActionCatatan] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [progress, setProgress] = useState<WorkflowProgress | null>(null);
 
   useEffect(() => {
     if (!user || !id) return;
     getPengajuanDetail(id).then(setDetail).catch(() => setDetail(null)).finally(() => setLoading(false));
+    getWorkflowProgress(id).then(setProgress).catch(() => {});
   }, [user, id]);
 
   if (!user || loading) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
@@ -85,10 +89,21 @@ export default function PersetujuanDetailPage() {
           <Chip size="sm" variant="flat" color={statusChipColor[status] || "default"}>{statusLabelMap[status] || status}</Chip>
         </div>
 
+        {/* Workflow Progress Stepper */}
+        {progress && (
+          <Card className="shadow-md rounded-xl"><CardBody className="p-5">
+            <WorkflowStepper
+              tahapanList={progress.tahapan_list}
+              currentStep={progress.current}
+              totalSteps={progress.total}
+            />
+          </CardBody></Card>
+        )}
+
         {/* Approval Timeline */}
         {persetujuan.length > 0 && (
           <Card className="shadow-md rounded-xl"><CardBody className="p-5">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-5">Rantai Persetujuan</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-5">Riwayat Persetujuan</h2>
             <ApprovalTimeline approvals={persetujuan} />
           </CardBody></Card>
         )}
@@ -139,7 +154,7 @@ export default function PersetujuanDetailPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan {showPanel === "reject" && <span className="text-red-500">*</span>}</label>
                   <textarea rows={4} value={actionCatatan} onChange={e => setActionCatatan(e.target.value)}
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder={showPanel === "approve" ? "Catatan (opsional)..." : "Alasan penolakan (wajib)..."} />
                 </div>
                 <div className="flex gap-3">

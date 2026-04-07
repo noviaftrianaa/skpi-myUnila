@@ -42,7 +42,7 @@ export default function PermohonanAkademikPage() {
     const fetchData = async () => {
       try {
         const allLayanan = await getJenisLayananPublic();
-        const filtered = allLayanan.filter(j => j.kategori === "permohonan_akademik" && j.a_aktif);
+        const filtered = allLayanan.filter(j => j.kategori === "permohonan_akademik");
         setPermohonan(filtered);
 
         const pCounts: Record<string, number> = {};

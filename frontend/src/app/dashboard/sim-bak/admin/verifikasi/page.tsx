@@ -129,12 +129,12 @@ export default function VerifikasiPengajuanPage() {
             searchPlaceholder="Cari no. pengajuan, pemohon, layanan..." defaultRowsPerPage={10}
             filterSlot={
               <div className="flex flex-wrap gap-3">
-                <select className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
+                <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
                   value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
                   <option value="">Semua Status</option>
                   {verifikasiStatuses.map(s => <option key={s} value={s}>{statusLabel[s]}</option>)}
                 </select>
-                <select className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]"
+                <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]"
                   value={filterLayanan} onChange={(e) => { setFilterLayanan(e.target.value); setPage(1); }}>
                   <option value="">Semua Layanan</option>
                   {layananList.filter(l => l.a_aktif).map(l => <option key={l.kode_layanan} value={l.kode_layanan}>{l.nm_layanan}</option>)}

@@ -127,7 +127,7 @@ export default function BatchVerifikasiPage() {
         <select
           value={item.localStatus}
           onChange={(e) => updateKandidatStatus(batchId, item.id_kandidat, e.target.value as VerifikasiStatus)}
-          className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+          className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
         >
           <option value="belum_dicek">Belum Dicek</option>
           <option value="valid">Valid</option>
@@ -145,7 +145,7 @@ export default function BatchVerifikasiPage() {
           value={item.localCatatan}
           onChange={(e) => updateKandidatCatatan(batchId, item.id_kandidat, e.target.value)}
           placeholder="Catatan..."
-          className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 w-full min-w-[150px] focus:ring-2 focus:ring-blue-500"
+          className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 w-full min-w-[150px] focus:ring-2 focus:ring-blue-500"
         />
       ),
     },
