@@ -85,6 +85,7 @@ class BatchRepository extends BaseRepository
         $limit = $params['limit'] ?? 100;
         $statusKandidat = $params['status_kandidat'] ?? null;
         $idFakultas = $params['id_fakultas'] ?? null;
+        $search = $params['search'] ?? null;
         $bindings = [$idBatch];
 
         $where = "WHERE k.id_batch_penetapan = ? AND k.soft_delete = false";
@@ -95,6 +96,11 @@ class BatchRepository extends BaseRepository
         if ($idFakultas) {
             $where .= " AND k.id_fakultas = ?";
             $bindings[] = $idFakultas;
+        }
+        if ($search) {
+            $where .= " AND (LOWER(k.nim) LIKE ? OR LOWER(k.nm_mahasiswa) LIKE ? OR LOWER(k.nm_prodi) LIKE ? OR LOWER(k.nm_fakultas) LIKE ?)";
+            $s = '%' . strtolower($search) . '%';
+            array_push($bindings, $s, $s, $s, $s);
         }
 
         $countSql = "SELECT COUNT(*) as total FROM batch.kandidat_batch k {$where}";
