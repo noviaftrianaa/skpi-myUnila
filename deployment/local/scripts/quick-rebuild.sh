@@ -168,6 +168,12 @@ case "$SERVICE" in
     monitoring)
         rebuild_service "monitoring"
         ;;
+    simbak)
+        rebuild_service "simbak"
+        # SIMBAK uses nginx as reverse proxy, need to restart nginx too
+        echo -e "${YELLOW}Restarting nginx to reconnect to simbak-service...${NC}"
+        docker restart myunila-nginx 2>/dev/null || true
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -221,6 +227,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh myunila      # Rebuild myunila only"
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
         echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
+        echo "  bash quick-rebuild.sh simbak       # Rebuild simbak only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -272,5 +279,8 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "dashboard" ]; then
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "monitoring" ]; then
     echo "  Monitoring:  curl http://localhost:8089/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "simbak" ]; then
+    echo "  SIMBAK:      curl http://localhost:8090/api/health"
 fi
 echo ""

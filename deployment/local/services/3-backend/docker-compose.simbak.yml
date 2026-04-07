@@ -64,6 +64,8 @@ services:
       BYPASS_PERMISSION_CHECK: "${BYPASS_PERMISSION_CHECK:-false}"
 
       TZ: "${TZ:-Asia/Jakarta}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - bak_storage:/var/www/storage
       - bak_logs:/var/www/storage/logs
@@ -113,8 +115,8 @@ services:
     container_name: myunila-pg-check-bak
     command: >
       sh -c "
-      until pg_isready -h postgres -U postgres; do
-        echo 'Waiting for PostgreSQL...';
+      until pg_isready -h ${BAK_DB_HOST:-postgres} -p ${BAK_DB_PORT:-5432} -U ${BAK_DB_USERNAME:-postgres}; do
+        echo 'Waiting for PostgreSQL at ${BAK_DB_HOST:-postgres}...';
         sleep 2;
       done;
       echo 'PostgreSQL is ready!';
