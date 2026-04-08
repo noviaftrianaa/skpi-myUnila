@@ -153,6 +153,50 @@ export default function DetailPengajuanPage() {
           </CardBody>
         </Card>
 
+        {/* Dokumen Hasil — lihat + download */}
+        {status === "terbit" && (
+          <Card className="shadow-md rounded-xl border-2 border-green-200 dark:border-green-800">
+            <CardBody className="p-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                    <FiCheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-green-700 dark:text-green-400">Surat Telah Terbit</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                      {detail.nomor_dokumen_hasil ? `No. ${detail.nomor_dokumen_hasil}` : "Surat sudah dapat diunduh"}
+                      {detail.tgl_dokumen_hasil ? ` — ${new Date(String(detail.tgl_dokumen_hasil)).toLocaleDateString("id-ID", {day:"2-digit",month:"long",year:"numeric"})}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {dokumenHasil.length > 0 && (
+                    <Button variant="flat" color="primary" startContent={<FiEye className="w-4 h-4" />}
+                      onPress={async () => {
+                        try {
+                          const resp = await bakClient.get(`/layanan/dokumen-hasil/${dokumenHasil[0].id_dokumen_hasil}/download?preview=1`, { responseType: "blob" });
+                          const blob = new Blob([resp.data], { type: String(dokumenHasil[0].tipe_file || "application/pdf") });
+                          setPreviewUrl({ url: URL.createObjectURL(blob), name: String(dokumenHasil[0].nm_dokumen || "Surat"), type: String(dokumenHasil[0].tipe_file || "application/pdf") });
+                        } catch { toast.error("Gagal memuat preview surat"); }
+                      }}>
+                      Lihat Surat
+                    </Button>
+                  )}
+                  <Button color="success" startContent={<FiDownload className="w-4 h-4" />}
+                    onPress={() => {
+                      if (dokumenHasil[0]?.id_dokumen_hasil) {
+                        window.open(getAuthUrl(downloadDokumenHasilUrl(String(dokumenHasil[0].id_dokumen_hasil))), "_blank");
+                      }
+                    }}>
+                    Download Surat
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
         {/* Data Pemohon */}
         {pemohon && (
           <Card className="shadow-md rounded-xl">
@@ -302,49 +346,7 @@ export default function DetailPengajuanPage() {
           </Card>
         )}
 
-        {/* Dokumen Hasil — lihat + download */}
-        {status === "terbit" && (
-          <Card className="shadow-md rounded-xl border-2 border-green-200 dark:border-green-800">
-            <CardBody className="p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                    <FiCheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-green-700 dark:text-green-400">Surat Telah Terbit</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                      {detail.nomor_dokumen_hasil ? `No. ${detail.nomor_dokumen_hasil}` : "Surat sudah dapat diunduh"}
-                      {detail.tgl_dokumen_hasil ? ` — ${new Date(String(detail.tgl_dokumen_hasil)).toLocaleDateString("id-ID", {day:"2-digit",month:"long",year:"numeric"})}` : ""}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {dokumenHasil.length > 0 && (
-                    <Button variant="flat" color="primary" startContent={<FiEye className="w-4 h-4" />}
-                      onPress={async () => {
-                        try {
-                          const resp = await bakClient.get(`/layanan/dokumen-hasil/${dokumenHasil[0].id_dokumen_hasil}/download?preview=1`, { responseType: "blob" });
-                          const blob = new Blob([resp.data], { type: String(dokumenHasil[0].tipe_file || "application/pdf") });
-                          setPreviewUrl({ url: URL.createObjectURL(blob), name: String(dokumenHasil[0].nm_dokumen || "Surat"), type: String(dokumenHasil[0].tipe_file || "application/pdf") });
-                        } catch { toast.error("Gagal memuat preview surat"); }
-                      }}>
-                      Lihat Surat
-                    </Button>
-                  )}
-                  <Button color="success" startContent={<FiDownload className="w-4 h-4" />}
-                    onPress={() => {
-                      if (dokumenHasil[0]?.id_dokumen_hasil) {
-                        window.open(getAuthUrl(downloadDokumenHasilUrl(String(dokumenHasil[0].id_dokumen_hasil))), "_blank");
-                      }
-                    }}>
-                    Download Surat
-                  </Button>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        )}
+        {/* (card Surat Telah Terbit dipindahkan ke atas Data Pemohon) */}
       </div>
 
       {/* Modal Preview Dokumen */}

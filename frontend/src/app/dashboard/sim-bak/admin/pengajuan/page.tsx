@@ -17,7 +17,6 @@ import EmptyState from "../../components/EmptyState";
 import toast, { Toaster } from "react-hot-toast";
 
 const allStatuses = [
-  { value: "draft", label: "Draft" },
   { value: "diajukan", label: "Diajukan" },
   { value: "perlu_perbaikan", label: "Perlu Perbaikan" },
   { value: "diverifikasi", label: "Diverifikasi" },
@@ -58,9 +57,9 @@ export default function SemuaPengajuanPage() {
         status: filterStatus || undefined,
         kode_layanan: filterLayanan || undefined,
       });
-      const items = result.data ?? [];
+      const items = (result.data ?? []).filter(p => p.status !== "draft");
       setData(items);
-      setTotal(result.pagination?.total ?? items.length);
+      setTotal(items.length);
 
       // Hitung stats dari data (halaman pertama)
       if (page === 1 && !filterStatus && !filterLayanan && !search) {

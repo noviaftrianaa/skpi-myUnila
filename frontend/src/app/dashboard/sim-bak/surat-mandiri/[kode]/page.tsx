@@ -129,7 +129,8 @@ export default function SuratMandiriFormPage() {
 
       setTimeout(() => router.push("/dashboard/sim-bak/riwayat"), 1500);
     } catch (e) {
-      toast.error("Gagal mengajukan: " + (e instanceof Error ? e.message : "Unknown error"));
+      const msg = (e as any)?.response?.data?.message || (e instanceof Error ? e.message : "Gagal mengajukan");
+      toast.error(msg, { duration: 5000 });
     } finally {
       setSubmitting(false);
     }

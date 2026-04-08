@@ -6,7 +6,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo } from "react-icons/fi";
+import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo, FiEye } from "react-icons/fi";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
@@ -46,6 +46,7 @@ export default function PermohonanFormPage() {
   const [prodiList, setProdiList] = useState<Array<{ id_prodi: string; nm_prodi: string; nm_jenjang: string }>>([]);
   const [selectedFakultas, setSelectedFakultas] = useState("");
   const [selectedProdi, setSelectedProdi] = useState("");
+  const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -187,7 +188,8 @@ export default function PermohonanFormPage() {
       }
       setTimeout(() => router.push("/dashboard/sim-bak/riwayat"), 1500);
     } catch (e) {
-      toast.error("Gagal: " + (e instanceof Error ? e.message : "Error"));
+      const msg = (e as any)?.response?.data?.message || (e instanceof Error ? e.message : "Gagal mengajukan");
+      toast.error(msg, { duration: 5000 });
     } finally { setSubmitting(false); }
   };
 
@@ -421,16 +423,50 @@ export default function PermohonanFormPage() {
                 <p className="text-sm text-gray-900 dark:text-white">{alasan || "-"}</p>
               </div>
               {isCuti && <p className="text-sm text-gray-600 mb-4">Jumlah semester cuti: <strong>{jumlahSemesterCuti}</strong></p>}
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dokumen ({Object.values(uploadedFiles).filter(Boolean).length}/{persyaratan.length})</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dokumen ({Object.values(uploadedFiles).filter(Boolean).length + existingDokumen.length}/{persyaratan.length})</h3>
               <div className="space-y-2">
-                {persyaratan.map(req => (
-                  <div key={req.id_persyaratan} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{req.nm_dokumen}</span>
-                    <Chip color={uploadedFiles[req.kode_dokumen] ? "success" : req.a_wajib ? "danger" : "default"} variant="flat" size="sm">
-                      {uploadedFiles[req.kode_dokumen] ? "✓" : req.a_wajib ? "!" : "-"}
-                    </Chip>
-                  </div>
-                ))}
+                {persyaratan.map(req => {
+                  const file = uploadedFiles[req.kode_dokumen];
+                  const existingDoc = existingDokumen.find(d => d.id_persyaratan === req.id_persyaratan);
+                  const hasFile = !!file || !!existingDoc;
+                  const fileName = file ? file.name : existingDoc ? String(existingDoc.nama_file_asli) : "";
+                  const fileSize = file ? `${(file.size / 1024).toFixed(0)} KB` : existingDoc?.ukuran_byte ? `${Math.round(Number(existingDoc.ukuran_byte) / 1024)} KB` : "";
+                  return (
+                    <div key={req.id_persyaratan} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <FiFile className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{req.nm_dokumen}</p>
+                          {hasFile && <p className="text-xs text-gray-500">{fileName} {fileSize && `· ${fileSize}`}</p>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {file && (
+                          <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                            onPress={() => setPreviewFile({ name: file.name, url: URL.createObjectURL(file), type: file.type })}>
+                            Lihat
+                          </Button>
+                        )}
+                        {!file && existingDoc && (
+                          <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                            onPress={async () => {
+                              try {
+                                const bakClient = (await import("@/lib/api/bakClient")).default;
+                                const resp = await bakClient.get(`/layanan/dokumen/${existingDoc.id_dokumen}/download?preview=1`, { responseType: "blob" });
+                                const blob = new Blob([resp.data], { type: String(existingDoc.tipe_file || "application/pdf") });
+                                setPreviewFile({ name: String(existingDoc.nama_file_asli), url: URL.createObjectURL(blob), type: String(existingDoc.tipe_file || "") });
+                              } catch { /* ignore */ }
+                            }}>
+                            Lihat
+                          </Button>
+                        )}
+                        <Chip color={hasFile ? "success" : req.a_wajib ? "danger" : "default"} variant="flat" size="sm">
+                          {hasFile ? (file ? "File Baru" : "Sudah Upload") : req.a_wajib ? "Belum Upload" : "Opsional"}
+                        </Chip>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardBody></Card>
             <div className="flex gap-3 justify-end">
@@ -468,6 +504,36 @@ export default function PermohonanFormPage() {
           }}>Selanjutnya</Button>}
         </div>
       </div>
+
+      {/* Modal Preview Dokumen */}
+      {previewFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => { URL.revokeObjectURL(previewFile.url); setPreviewFile(null); }} />
+          <div className="relative w-full max-w-4xl mx-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3 min-w-0">
+                <FiFile className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{previewFile.name}</p>
+              </div>
+              <Button isIconOnly variant="light" size="sm" onPress={() => { URL.revokeObjectURL(previewFile.url); setPreviewFile(null); }}>
+                <FiX className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto p-1 bg-gray-100 dark:bg-gray-800">
+              {previewFile.type.startsWith("image/") ? (
+                <img src={previewFile.url} alt={previewFile.name} className="max-w-full max-h-[75vh] mx-auto rounded" />
+              ) : previewFile.type === "application/pdf" ? (
+                <iframe src={previewFile.url} className="w-full h-[75vh] rounded" title={previewFile.name} />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                  <FiFile className="w-12 h-12 mb-3" />
+                  <p className="text-sm">Preview tidak tersedia untuk tipe file ini</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayoutWithDynamicMenu>
   );
 

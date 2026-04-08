@@ -9,7 +9,7 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
-import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, getWorkflowProgress, downloadDokumenUrl } from "@/lib/services/sim-bak/simBakService";
+import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { StatusPengajuan } from "@/lib/services/sim-bak/types";
@@ -51,6 +51,8 @@ export default function VerifikasiDetailPage() {
 
   // Terbitkan form state
   const [showTerbitkanForm, setShowTerbitkanForm] = useState(false);
+  const [showTolakForm, setShowTolakForm] = useState(false);
+  const [alasanTolak, setAlasanTolak] = useState("");
   const [nomorDokumen, setNomorDokumen] = useState("");
   const [tglDokumen, setTglDokumen] = useState(new Date().toISOString().split("T")[0]);
   const [fileSK, setFileSK] = useState<File | null>(null);
@@ -79,6 +81,10 @@ export default function VerifikasiDetailPage() {
   const pemohon = detail.data_pemohon as Record<string, unknown> | null;
   const dokumen = (detail.dokumen as Array<Record<string, unknown>>) ?? [];
   const riwayat = (detail.riwayat as Array<Record<string, unknown>>) ?? [];
+
+  // Tahapan aktif dari progress (untuk judul dan tombol)
+  const activeTahapan = progress?.tahapan_list?.find(t => t.stage_status === "active") ?? null;
+  const isLastStage = activeTahapan?.status_selesai === "terbit";
 
   const handleAction = async (action: "verifikasi" | "perbaikan" | "terbitkan") => {
     if (action === "perbaikan" && !catatan.trim()) { toast.error("Catatan wajib diisi untuk perbaikan"); return; }
@@ -125,9 +131,8 @@ export default function VerifikasiDetailPage() {
               {status === "terbit" ? "Detail Pengajuan (Terbit)" :
                status === "ditolak" ? "Detail Pengajuan (Ditolak)" :
                status === "perlu_perbaikan" ? "Detail Pengajuan (Perbaikan)" :
-               status === "disetujui" ? "Penerbitan Dokumen" :
-               status === "diverifikasi" ? "Penerbitan Dokumen" :
-               "Verifikasi Pengajuan"}
+               activeTahapan ? activeTahapan.nm_tahapan :
+               "Detail Pengajuan"}
             </h1>
             <p className="text-sm text-gray-500">{String(detail.nomor_permohonan)} · {String(detail.nm_layanan)}</p>
           </div>
@@ -321,16 +326,20 @@ export default function VerifikasiDetailPage() {
         {/* Action Bar — hanya untuk status yang bisa diproses */}
         {["diajukan", "diverifikasi", "menunggu_persetujuan", "disetujui"].includes(status) && (
           <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-wrap gap-3 justify-end shadow-lg">
-            {/* Minta Perbaikan — saat diajukan atau diverifikasi */}
-            {["diajukan", "diverifikasi"].includes(status) && (
+            {/* Tolak */}
+            <Button color="danger" variant="flat" startContent={<FiX className="w-4 h-4" />} onPress={() => setShowTolakForm(true)}>Tolak</Button>
+            {/* Minta Perbaikan — bukan di tahap terakhir */}
+            {!isLastStage && (
               <Button color="warning" variant="flat" startContent={<FiAlertTriangle className="w-4 h-4" />} isLoading={actionLoading} onPress={() => handleAction("perbaikan")}>Minta Perbaikan</Button>
             )}
-            {/* Verifikasi — saat diajukan */}
-            {status === "diajukan" && (
-              <Button color="primary" variant="flat" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading} onPress={() => handleAction("verifikasi")}>Verifikasi</Button>
+            {/* Verifikasi/Proses — jika bukan tahap terakhir */}
+            {!isLastStage && (
+              <Button color="primary" variant="flat" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading} onPress={() => handleAction("verifikasi")}>
+                {activeTahapan ? `Proses (${activeTahapan.nm_tahapan})` : "Verifikasi"}
+              </Button>
             )}
-            {/* Terbitkan — saat diverifikasi atau disetujui */}
-            {["diverifikasi", "disetujui"].includes(status) && (
+            {/* Terbitkan — hanya di tahap terakhir (status_selesai = terbit) */}
+            {isLastStage && (
               <Button color="success" variant="solid" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading} onPress={() => handleAction("terbitkan")}>Terbitkan</Button>
             )}
           </div>
@@ -361,6 +370,48 @@ export default function VerifikasiDetailPage() {
                     <p className="text-sm">Preview tidak tersedia untuk tipe file ini</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Form Tolak */}
+        {showTolakForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowTolakForm(false)} />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Tolak Pengajuan</h2>
+                  <Button isIconOnly variant="light" size="sm" onPress={() => setShowTolakForm(false)}><FiX className="w-5 h-5" /></Button>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm text-red-700 dark:text-red-300">Pengajuan yang ditolak tidak dapat diproses kembali. Pastikan alasan penolakan sudah jelas.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Penolakan <span className="text-red-500">*</span></label>
+                  <textarea rows={4} value={alasanTolak} onChange={e => setAlasanTolak(e.target.value)}
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                    placeholder="Jelaskan alasan penolakan pengajuan..." />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button variant="flat" className="flex-1" onPress={() => setShowTolakForm(false)}>Batal</Button>
+                  <Button color="danger" className="flex-1" isLoading={actionLoading} isDisabled={!alasanTolak.trim()}
+                    startContent={<FiX className="w-4 h-4" />}
+                    onPress={async () => {
+                      setActionLoading(true);
+                      try {
+                        await rejectPengajuan(id, { catatan: alasanTolak });
+                        toast.success("Pengajuan berhasil ditolak");
+                        setShowTolakForm(false);
+                        setAlasanTolak("");
+                        fetchDetail();
+                      } catch { toast.error("Gagal menolak pengajuan"); }
+                      finally { setActionLoading(false); }
+                    }}>
+                    Tolak Pengajuan
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
