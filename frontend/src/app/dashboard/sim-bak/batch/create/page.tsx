@@ -8,7 +8,7 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Button, Chip } from "@heroui/react";
 import { FiArrowLeft, FiUsers, FiAlertCircle, FiSearch, FiCheck } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { createBatch, getJenisLayananPublic, getRefSemester, previewBatchCandidates } from "@/lib/services/sim-bak/simBakService";
+import { createBatch, getJenisLayananPublic, getRefSemester, getRefFakultas, previewBatchCandidates } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan } from "@/lib/services/sim-bak/types";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -17,6 +17,8 @@ export default function CreateBatchPage() {
   const router = useRouter();
   const [batchLayanan, setBatchLayanan] = useState<JenisLayanan[]>([]);
   const [semesterList, setSemesterList] = useState<Array<{ id_smt: string; nm_smt: string; a_periode_aktif: boolean }>>([]);
+  const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
+  const [filterFakultas, setFilterFakultas] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     id_jenis_layanan: "",
@@ -39,6 +41,7 @@ export default function CreateBatchPage() {
     Promise.all([
       getJenisLayananPublic().then(data => setBatchLayanan(data.filter(j => j.kategori === "batch_administrasi"))),
       getRefSemester().then(setSemesterList),
+      getRefFakultas().then(setFakultasList),
     ]).catch(() => {});
   }, [user]);
 
@@ -53,6 +56,7 @@ export default function CreateBatchPage() {
       const data = await previewBatchCandidates({
         jenis_batch: form.jenis_batch,
         id_smt: form.id_smt,
+        id_fakultas: filterFakultas || undefined,
       });
       setPreviewData(data);
     } catch {
@@ -60,7 +64,7 @@ export default function CreateBatchPage() {
     } finally {
       setPreviewing(false);
     }
-  }, [form.jenis_batch, form.id_smt]);
+  }, [form.jenis_batch, form.id_smt, filterFakultas]);
 
   const handleSubmit = async () => {
     if (!form.id_jenis_layanan || !form.nm_batch || !form.id_smt) {
@@ -134,6 +138,17 @@ export default function CreateBatchPage() {
                   <option value="">Pilih Semester</option>
                   {semesterList.map(s => (
                     <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fakultas (opsional)</label>
+                <select value={filterFakultas} onChange={(e) => { setFilterFakultas(e.target.value); setPreviewData(null); }}
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Semua Fakultas</option>
+                  {fakultasList.map(f => (
+                    <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
                   ))}
                 </select>
               </div>

@@ -7,11 +7,12 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, exportBatchKandidatUrl, getRefFakultas } from "@/lib/services/sim-bak/simBakService";
+import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
 const statusConfig: Record<string, { label: string; color: "default" | "primary" | "warning" | "success" }> = {
@@ -39,6 +40,8 @@ export default function BatchDetailPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterFakultas, setFilterFakultas] = useState("");
+  const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
   const [actionLoading, setActionLoading] = useState(false);
 
   // Exclude modal
@@ -61,16 +64,26 @@ export default function BatchDetailPage() {
     try {
       const [b, k] = await Promise.all([
         getBatchDetail(id),
-        getBatchKandidat(id, { page, limit: 50, status_kandidat: filterStatus || undefined }),
+        getBatchKandidat(id, { page, limit: 50, status_kandidat: filterStatus || undefined, id_fakultas: filterFakultas || undefined }),
       ]);
       setBatch(b);
       setKandidatList(k.data ?? []);
       setTotal(k.pagination?.total ?? 0);
     } catch { setBatch(null); }
     finally { setLoading(false); }
-  }, [id, page, filterStatus]);
+  }, [id, page, filterStatus, filterFakultas]);
 
   useEffect(() => { if (user && id) fetchData(); }, [user, id, fetchData]);
+  useEffect(() => { getRefFakultas().then(setFakultasList).catch(() => {}); }, []);
+
+  const handleExport = () => {
+    const url = exportBatchKandidatUrl(id, {
+      status_kandidat: filterStatus || undefined,
+      id_fakultas: filterFakultas || undefined,
+    });
+    const token = getToken("ACCESS");
+    window.open(token ? `${url}${url.includes("?") ? "&" : "?"}token=${token}` : url, "_blank");
+  };
 
   if (!user || loading) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
@@ -207,13 +220,26 @@ export default function BatchDetailPage() {
         <DataTable data={kandidatList} columns={columns} searchable searchKeys={["nim", "nm_mahasiswa", "nm_prodi", "nm_fakultas"]}
           searchPlaceholder="Cari kandidat..." defaultRowsPerPage={50}
           filterSlot={
-            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Semua Status</option>
-              <option value="masuk">Masuk</option>
-              <option value="dikonfirmasi">Dikonfirmasi</option>
-              <option value="dikeluarkan">Dikeluarkan</option>
-            </select>
+            <div className="flex flex-wrap gap-2 items-center">
+              <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Status</option>
+                <option value="masuk">Masuk</option>
+                <option value="dikonfirmasi">Dikonfirmasi</option>
+                <option value="dikeluarkan">Dikeluarkan</option>
+              </select>
+              <select value={filterFakultas} onChange={e => { setFilterFakultas(e.target.value); setPage(1); }}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Fakultas</option>
+                {fakultasList.map(f => (
+                  <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
+                ))}
+              </select>
+              <Button size="sm" color="primary" variant="flat" startContent={<FiDownload className="w-3.5 h-3.5" />}
+                onPress={handleExport}>
+                Export CSV
+              </Button>
+            </div>
           }
         />
 

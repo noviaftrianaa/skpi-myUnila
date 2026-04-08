@@ -130,6 +130,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/preview-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'previewCandidates']);
             Route::get('/{id}', [\App\Http\Controllers\Api\Batch\BatchController::class, 'show']);
             Route::get('/{id}/kandidat', [\App\Http\Controllers\Api\Batch\BatchController::class, 'candidates']);
+            Route::get('/{id}/export-kandidat', [\App\Http\Controllers\Api\Batch\BatchController::class, 'exportKandidat']);
 
             Route::post('/', [\App\Http\Controllers\Api\Batch\BatchController::class, 'store'])->middleware('permission:insert,sim-bak');
             Route::post('/{id}/pull-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'pullCandidates'])->middleware('permission:insert,sim-bak');

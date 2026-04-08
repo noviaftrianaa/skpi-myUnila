@@ -314,6 +314,16 @@ export const finalizeBatchWithSK = async (idBatch: string, data: {
   });
 };
 
+export const exportBatchKandidatUrl = (idBatch: string, params?: {
+  status_kandidat?: string; id_fakultas?: string;
+}): string => {
+  const baseUrl = bakClient.defaults.baseURL || '';
+  const query = new URLSearchParams();
+  if (params?.status_kandidat) query.set('status_kandidat', params.status_kandidat);
+  if (params?.id_fakultas) query.set('id_fakultas', params.id_fakultas);
+  return `${baseUrl}/batch/${idBatch}/export-kandidat${query.toString() ? '?' + query.toString() : ''}`;
+};
+
 export const getApprovalQueue = async (params?: {
   page?: number; limit?: number;
 }): Promise<PaginatedResponse<Pengajuan>> => {

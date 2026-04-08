@@ -420,4 +420,56 @@ class BatchController extends Controller
             return $this->serverErrorResponse();
         }
     }
+
+    /**
+     * Export kandidat batch ke CSV.
+     */
+    public function exportKandidat(Request $request, string $id)
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+
+            $params = [
+                'page' => 1,
+                'limit' => 10000,
+                'status_kandidat' => $request->get('status_kandidat'),
+                'id_fakultas' => $request->get('id_fakultas'),
+                'search' => $request->get('search'),
+            ];
+            $result = $this->repository->getKandidatList($id, $params);
+            $data = $result['data'];
+
+            $jenis = $batch->jenis_batch === 'habis_masa_mukim' ? 'HMM' : 'Putus_Studi';
+            $filename = "kandidat_{$jenis}_{$batch->kode_batch}_" . date('Ymd_His') . '.csv';
+
+            return response()->streamDownload(function () use ($data) {
+                $handle = fopen('php://output', 'w');
+                fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                fputcsv($handle, ['No', 'NIM', 'Nama', 'Prodi', 'Fakultas', 'Jenjang', 'Angkatan', 'Semester', 'IPK', 'SKS Lulus', 'Status', 'Alasan Exclusion', 'Verifikator', 'Tgl Verifikasi']);
+                foreach ($data as $i => $row) {
+                    fputcsv($handle, [
+                        $i + 1,
+                        $row->nim ?? '',
+                        $row->nm_mahasiswa ?? '',
+                        $row->nm_prodi ?? '',
+                        $row->nm_fakultas ?? '',
+                        $row->nm_jenjang ?? '',
+                        $row->angkatan ?? '',
+                        $row->semester_aktif ?? $row->masa_studi_semester ?? '',
+                        $row->ipk ?? '',
+                        $row->sks_lulus ?? '',
+                        $row->status_kandidat ?? '',
+                        $row->alasan_exclusion ?? '',
+                        $row->nm_verifikator ?? '',
+                        $row->tgl_verifikasi ?? '',
+                    ]);
+                }
+                fclose($handle);
+            }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        } catch (\Exception $e) {
+            Log::error('Batch.exportKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
 }
