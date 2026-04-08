@@ -241,3 +241,82 @@ Tipe `User` di `lib/types/authTypes.ts`:
 - `user.id` — UUID
 - `user.username` — NIM
 - `user.name` — nama lengkap (BUKAN `nm_pengguna` atau `nama`)
+
+---
+
+## 9. [PERLU DIBAHAS] Alur Tahapan PM-ALIH (Alih Program / Pindah Studi)
+
+### Masalah
+
+Status `diverifikasi` dipakai ulang di 2 tahapan berbeda pada seed data `ref.tahapan_layanan` untuk layanan PM-ALIH:
+
+```
+Tahap 1: Mahasiswa              → draft → diajukan
+Tahap 2: Admin Fak. Asal        → diajukan → diverifikasi        ← pertama kali
+Tahap 3: Admin Fak. Tujuan      → diverifikasi → menunggu_persetujuan
+Tahap 4: Admin BAK              → menunggu_persetujuan → diverifikasi  ← DUPLIKAT!
+Tahap 5: Pejabat                → diverifikasi → disetujui             ← AMBIGU!
+Tahap 6: Admin BAK (terbit)     → disetujui → terbit
+```
+
+### Dampak
+
+1. Setelah **tahap 4** (Admin BAK verifikasi), status kembali ke `diverifikasi`
+2. `getCurrentTahapan()` mencari tahapan dengan `status_masuk = diverifikasi` → menemukan **tahap 3** (Admin Fak. Tujuan), bukan **tahap 5** (Pejabat)
+3. Akibatnya: setelah Admin BAK verifikasi, sistem **kembali ke tahap 3** (loop) — bukan lanjut ke tahap 5
+4. Progress stepper juga kacau karena `statusOrder` tidak bisa membedakan `diverifikasi` tahap 2 vs tahap 4
+
+### Opsi Solusi (Perlu Dibahas dengan Tim BAK)
+
+**Opsi A: Status unik per tahapan**
+```
+Tahap 4: menunggu_persetujuan → diverifikasi_bak
+Tahap 5: diverifikasi_bak → disetujui
+```
+- Perlu tambah status baru `diverifikasi_bak` di database + frontend
+- Paling bersih tapi perlu update banyak tempat
+
+**Opsi B: Tracking posisi berbasis urutan (bukan status)**
+- Tambah kolom `tahapan_saat_ini` (urutan number) di tabel `layanan.pengajuan`
+- Transisi berdasarkan urutan, bukan cocokkan status
+- Lebih fleksibel tapi perlu refactor `WorkflowService`
+
+**Opsi C: Sederhanakan alur PM-ALIH**
+- Gabung tahap 3 (Fak. Tujuan) dan 4 (Admin BAK) jadi satu tahapan
+- Kurangi kompleksitas tapi mungkin tidak sesuai SOP
+
+### Status Saat Ini
+
+- PM-ALIH **belum bisa digunakan secara penuh** karena bug loop di tahap 4→5
+- PM-CUTI dan PM-UNDUR (5 tahapan) **berfungsi normal** karena tidak ada status duplikat
+- Semua layanan surat mandiri (3 tahapan) **berfungsi normal**
+
+### Layanan yang Perlu Perhatian
+
+| Layanan | Tahapan | Status |
+|---------|---------|--------|
+| SK-LOA, SK-KTM, SK-PKKMB, SK-HERREG | 3 tahapan | **OK** |
+| PM-CUTI | 5 tahapan | **OK** |
+| PM-UNDUR | 5 tahapan | **OK** |
+| PM-ALIH | 6 tahapan | **BUG** — perlu dibahas |
+| BA-HMM, BA-PUTUS | 5 tahapan | Belum ditest |
+
+---
+
+## 10. Auth Service — APLIKASI_ID Config
+
+### Masalah
+
+Login loop (portal → login → portal) karena `APLIKASI_ID` di auth service bernilai `1` (bukan UUID).
+
+### Penyebab
+
+Docker compose auth service: `APLIKASI_ID: "${AUTH_APLIKASI_ID:-1}"` — fallback ke `1`.
+Kolom `id_aplikasi` di SQL Server bertipe `uniqueidentifier` → error convert.
+
+### Fix
+
+Tambah di `deployment/local/.env`:
+```env
+AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832
+```
