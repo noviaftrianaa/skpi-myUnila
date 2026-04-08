@@ -160,7 +160,12 @@ class WorkflowService
         $currentOrder = $statusOrder[$pengajuan->status] ?? 0;
         $stageEndOrder = $statusOrder[$tahapan->status_selesai] ?? 0;
 
-        return $currentOrder > $stageEndOrder;
+        // Tahapan selesai jika status saat ini >= status_selesai tahapan
+        // DAN tahapan ini bukan tahapan yang sedang aktif (status_masuk != status saat ini)
+        if ($currentOrder > $stageEndOrder) return true;
+        if ($currentOrder === $stageEndOrder && $tahapan->status_masuk !== $pengajuan->status) return true;
+
+        return false;
     }
 
     /**

@@ -47,10 +47,13 @@ class VerifikasiController extends Controller
             // Cari tahapan yang cocok untuk aktor ini
             $tahapan = $this->workflow->findTahapanForActor($pengajuan, $kodeRole);
 
-            // Fallback: jika role user admin_bak dan tidak ditemukan, coba cari tanpa filter role
-            // (untuk backward compatibility)
+            // Developer/admin bisa proses tahapan apapun (sesuai urutan, bukan skip)
             if (!$tahapan && in_array($kodeRole, ['admin_bak', 'admin'])) {
                 $tahapan = $this->workflow->getCurrentTahapan($pengajuan);
+                // Override kodeRole dengan role tahapan aktif agar riwayat tercatat benar
+                if ($tahapan) {
+                    $kodeRole = $tahapan->kode_role;
+                }
             }
 
             if (!$tahapan) {
@@ -179,6 +182,7 @@ class VerifikasiController extends Controller
             $tahapan = $this->workflow->findTahapanForActor($pengajuan, $kodeRole);
             if (!$tahapan && in_array($kodeRole, ['admin_bak', 'admin'])) {
                 $tahapan = $this->workflow->getCurrentTahapan($pengajuan);
+                if ($tahapan) $kodeRole = $tahapan->kode_role;
             }
 
             // Tentukan jenis output berdasarkan kategori

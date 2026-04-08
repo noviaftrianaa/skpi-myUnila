@@ -91,6 +91,29 @@ class PengajuanController extends Controller
             $jenisLayanan = $this->jenisLayananRepo->findById($data['id_jenis_layanan']);
             if (!$jenisLayanan) return $this->notFoundResponse('Jenis layanan tidak ditemukan');
 
+            // Cek apakah ada pengajuan layanan yang sama yang masih aktif (belum selesai/ditolak)
+            $existing = $this->repository->pgSelectOne("
+                SELECT id_pengajuan, nomor_permohonan, status
+                FROM layanan.pengajuan
+                WHERE id_pemohon = ? AND id_jenis_layanan = ?
+                  AND status NOT IN ('terbit', 'ditolak')
+                  AND soft_delete = false
+                ORDER BY created_at DESC
+            ", [$user->id_pengguna, $data['id_jenis_layanan']]);
+
+            if ($existing) {
+                $statusLabel = [
+                    'draft' => 'draft', 'diajukan' => 'sedang diverifikasi',
+                    'perlu_perbaikan' => 'menunggu perbaikan', 'diverifikasi' => 'sedang diproses',
+                    'menunggu_persetujuan' => 'menunggu persetujuan', 'disetujui' => 'menunggu penerbitan',
+                ];
+                $label = $statusLabel[$existing->status] ?? $existing->status;
+                return $this->errorResponse(
+                    "Anda sudah memiliki pengajuan {$jenisLayanan->nm_layanan} yang masih {$label} (No. {$existing->nomor_permohonan}). Selesaikan atau hapus pengajuan tersebut sebelum membuat yang baru.",
+                    422
+                );
+            }
+
             // Validasi khusus per jenis layanan
             $nim = $user->username ?? '';
             $pdutData = $this->pdutRepository->getStudentByNim($nim);
@@ -115,7 +138,7 @@ class PengajuanController extends Controller
                 if (empty($data['jumlah_semester_cuti'])) {
                     return $this->errorResponse('Jumlah semester cuti wajib diisi (1 atau 2)', 422);
                 }
-                if ($pdutData && ($pdutData['semester_aktif'] ?? 0) <= 1) {
+                if ($pdutData && !empty($pdutData['semester_aktif']) && (int)$pdutData['semester_aktif'] <= 1) {
                     return $this->errorResponse('Cuti akademik tidak dapat diajukan pada semester 1', 422);
                 }
             }
