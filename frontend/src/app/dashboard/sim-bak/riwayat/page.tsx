@@ -14,6 +14,7 @@ import toast, { Toaster } from "react-hot-toast";
 import type { Pengajuan, StatusPengajuan, JenisLayanan } from "@/lib/services/sim-bak/types";
 import { StatusBadge, getStatusLabel } from "../components";
 import EmptyState from "../components/EmptyState";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { SkeletonStatCards, SkeletonTable } from "../components/SkeletonCard";
 const allStatuses: StatusPengajuan[] = ["draft","diajukan","perlu_perbaikan","diverifikasi","menunggu_persetujuan","disetujui","ditolak","terbit"];
 const statusLabelMap: Record<string, string> = { draft:"Draft", diajukan:"Diajukan", perlu_perbaikan:"Perlu Perbaikan", diverifikasi:"Diverifikasi", menunggu_persetujuan:"Menunggu Persetujuan", disetujui:"Disetujui", ditolak:"Ditolak", terbit:"Terbit" };
@@ -38,12 +39,13 @@ export default function RiwayatPengajuanPage() {
   }, [page, filterStatus]);
 
   const [deleting, setDeleting] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   useEffect(() => { getJenisLayananPublic().then(setLayananList).catch(() => {}); }, []);
   useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
 
   const handleDeleteDraft = async (id: string) => {
-    if (!confirm("Hapus pengajuan draft ini? Semua dokumen yang sudah diupload juga akan dihapus.")) return;
+    setDeleteConfirmId("");
     setDeleting(id);
     try {
       await deletePengajuanDraft(id);
@@ -106,7 +108,7 @@ export default function RiwayatPengajuanPage() {
             {item.status === "draft" ? (
               <DropdownItem key="delete" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
                 className="text-danger text-xs py-1.5" color="danger"
-                onPress={() => handleDeleteDraft(item.id_pengajuan)}>
+                onPress={() => setDeleteConfirmId(item.id_pengajuan)}>
                 Hapus Draft
               </DropdownItem>
             ) : null}
@@ -183,6 +185,9 @@ export default function RiwayatPengajuanPage() {
           />
         )}
       </div>
+      <ConfirmDialog open={!!deleteConfirmId} title="Hapus Draft" message="Hapus pengajuan draft ini? Semua dokumen yang sudah diupload juga akan dihapus."
+        confirmLabel="Hapus" confirmColor="danger" loading={!!deleting}
+        onConfirm={() => handleDeleteDraft(deleteConfirmId)} onCancel={() => setDeleteConfirmId("")} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

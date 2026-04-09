@@ -49,7 +49,9 @@ export default function VerifikasiDetailPage() {
     finally { setPreviewLoading(""); }
   };
 
-  // Terbitkan form state
+  // Modal states
+  const [showVerifikasiConfirm, setShowVerifikasiConfirm] = useState(false);
+  const [showPerbaikanConfirm, setShowPerbaikanConfirm] = useState(false);
   const [showTerbitkanForm, setShowTerbitkanForm] = useState(false);
   const [showTolakForm, setShowTolakForm] = useState(false);
   const [alasanTolak, setAlasanTolak] = useState("");
@@ -87,18 +89,24 @@ export default function VerifikasiDetailPage() {
   const isLastStage = activeTahapan?.status_selesai === "terbit";
 
   const handleAction = async (action: "verifikasi" | "perbaikan" | "terbitkan") => {
-    if (action === "perbaikan" && !catatan.trim()) { toast.error("Catatan wajib diisi untuk perbaikan"); return; }
-    if (action === "terbitkan") {
-      setShowTerbitkanForm(true);
-      return;
+    if (action === "terbitkan") { setShowTerbitkanForm(true); return; }
+    if (action === "verifikasi") { setShowVerifikasiConfirm(true); return; }
+    if (action === "perbaikan") {
+      if (!catatan.trim()) { toast.error("Catatan wajib diisi untuk perbaikan"); return; }
+      setShowPerbaikanConfirm(true); return;
     }
+  };
+
+  const executeAction = async (action: "verifikasi" | "perbaikan") => {
     setActionLoading(true);
     try {
       if (action === "verifikasi") await verifikasiPengajuan(id, { catatan: catatan || undefined });
       else await mintaPerbaikan(id, { catatan });
       toast.success(action === "verifikasi" ? "Berhasil diverifikasi" : "Permintaan perbaikan dikirim");
       setCatatan("");
-      fetchDetail(); // refresh data + progress
+      setShowVerifikasiConfirm(false);
+      setShowPerbaikanConfirm(false);
+      fetchDetail();
     } catch { toast.error("Gagal memproses"); }
     finally { setActionLoading(false); }
   };
@@ -370,6 +378,62 @@ export default function VerifikasiDetailPage() {
                     <p className="text-sm">Preview tidak tersedia untuk tipe file ini</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Konfirmasi Verifikasi */}
+        {showVerifikasiConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowVerifikasiConfirm(false)} />
+            <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-4">
+                  <FiCheck className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  {activeTahapan ? activeTahapan.nm_tahapan : "Verifikasi Pengajuan"}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Proses pengajuan ini ke tahapan berikutnya?
+                  {activeTahapan && <span className="block mt-1 text-xs text-gray-400">Status akan berubah: {activeTahapan.status_masuk} → {activeTahapan.status_selesai}</span>}
+                </p>
+              </div>
+              <div className="flex border-t border-gray-200 dark:border-gray-700">
+                <button onClick={() => setShowVerifikasiConfirm(false)} disabled={actionLoading}
+                  className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Batal</button>
+                <div className="w-px bg-gray-200 dark:bg-gray-700" />
+                <button onClick={() => executeAction("verifikasi")} disabled={actionLoading}
+                  className="flex-1 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
+                  {actionLoading ? "Memproses..." : "Ya, Proses"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Konfirmasi Minta Perbaikan */}
+        {showPerbaikanConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowPerbaikanConfirm(false)} />
+            <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mx-auto mb-4">
+                  <FiAlertTriangle className="w-6 h-6 text-amber-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Minta Perbaikan</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Kembalikan pengajuan ke mahasiswa untuk diperbaiki?</p>
+                {catatan && <p className="mt-2 text-xs text-gray-400 italic bg-gray-50 dark:bg-gray-800 rounded-lg p-2">Catatan: {catatan}</p>}
+              </div>
+              <div className="flex border-t border-gray-200 dark:border-gray-700">
+                <button onClick={() => setShowPerbaikanConfirm(false)} disabled={actionLoading}
+                  className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Batal</button>
+                <div className="w-px bg-gray-200 dark:bg-gray-700" />
+                <button onClick={() => executeAction("perbaikan")} disabled={actionLoading}
+                  className="flex-1 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors disabled:opacity-50">
+                  {actionLoading ? "Memproses..." : "Ya, Minta Perbaikan"}
+                </button>
               </div>
             </div>
           </div>

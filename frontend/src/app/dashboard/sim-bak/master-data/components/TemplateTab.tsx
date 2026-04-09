@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Chip, Button } from "@heroui/react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import { getTemplate, createTemplate, updateTemplate, deleteTemplate, getJenisLayananPublic } from "@/lib/services/sim-bak/simBakService";
@@ -20,6 +21,7 @@ export default function TemplateTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -49,9 +51,9 @@ export default function TemplateTab() {
     } catch { toast.error("Gagal menyimpan"); } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus template ini?")) return;
-    try { await deleteTemplate(id); toast.success("Berhasil dihapus"); fetchData(); } catch { toast.error("Gagal menghapus"); }
+  const handleDelete = (id: string) => setDeleteConfirmId(id);
+  const executeDelete = async () => {
+    try { await deleteTemplate(deleteConfirmId); toast.success("Berhasil dihapus"); setDeleteConfirmId(""); fetchData(); } catch { toast.error("Gagal menghapus"); }
   };
 
   const columns: Column<TemplateDokumen>[] = [
@@ -86,6 +88,7 @@ export default function TemplateTab() {
   ];
 
   return (
+    <>
     <div className="relative">
       <Toaster position="top-right" />
       <DataTable data={data} columns={columns} searchable searchPlaceholder="Cari template..." searchKeys={["nm_template"]} defaultRowsPerPage={10}
@@ -154,5 +157,7 @@ export default function TemplateTab() {
         </div>
       )}
     </div>
+    <ConfirmDialog open={!!deleteConfirmId} title="Hapus Template" message="Hapus template dokumen ini?" confirmLabel="Hapus" confirmColor="danger" onConfirm={executeDelete} onCancel={() => setDeleteConfirmId("")} />
+    </>
   );
 }

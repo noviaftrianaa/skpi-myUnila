@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Chip, Button } from "@heroui/react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import { getJenisLayanan, createJenisLayanan, updateJenisLayanan, deleteJenisLayanan } from "@/lib/services/sim-bak/simBakService";
@@ -28,6 +29,7 @@ export default function JenisLayananTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -79,11 +81,12 @@ export default function JenisLayananTab() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus jenis layanan ini?")) return;
+  const handleDelete = (id: string) => setDeleteConfirmId(id);
+  const executeDelete = async () => {
     try {
-      await deleteJenisLayanan(id);
+      await deleteJenisLayanan(deleteConfirmId);
       toast.success("Jenis layanan berhasil dihapus");
+      setDeleteConfirmId("");
       fetchData();
     } catch {
       toast.error("Gagal menghapus data");
@@ -139,6 +142,7 @@ export default function JenisLayananTab() {
   ];
 
   return (
+    <>
     <div className="relative">
       <Toaster position="top-right" />
       <DataTable
@@ -245,5 +249,7 @@ export default function JenisLayananTab() {
         </div>
       )}
     </div>
+    <ConfirmDialog open={!!deleteConfirmId} title="Hapus Data" message="Hapus jenis layanan ini? Persyaratan dan tahapan terkait juga akan terhapus." confirmLabel="Hapus" confirmColor="danger" onConfirm={executeDelete} onCancel={() => setDeleteConfirmId("")} />
+    </>
   );
 }

@@ -11,7 +11,7 @@ import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, Fi
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, exportBatchKandidatUrl, getRefFakultas } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas } from "@/lib/services/sim-bak/simBakService";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
@@ -44,9 +44,13 @@ export default function BatchDetailPage() {
   const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Konfirmasi kandidat modal
+  const [confirmKandidat, setConfirmKandidat] = useState<{ id: string; nama: string } | null>(null);
   // Exclude modal
   const [excludeModal, setExcludeModal] = useState<{ id: string; nama: string } | null>(null);
   const [excludeAlasan, setExcludeAlasan] = useState("");
+  // Finalisasi verifikasi modal
+  const [showFinalisasiVerifModal, setShowFinalisasiVerifModal] = useState(false);
 
   // Upload SK Dekan
   const [showSkDekanForm, setShowSkDekanForm] = useState(false);
@@ -153,10 +157,10 @@ export default function BatchDetailPage() {
     { key: "status_kandidat", label: "Status", render: (item) => (
       <Chip size="sm" color={kandidatStatusColor[item.status_kandidat] || "default"} variant="flat">{item.status_kandidat}</Chip>
     )},
-    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => item.status_kandidat === "masuk" ? (
+    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") ? (
       <div className="flex gap-1">
         <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
-          onPress={() => handleVerifikasi(item.id_kandidat, "dikonfirmasi")}><FiCheck className="w-3.5 h-3.5" /></Button>
+          onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiCheck className="w-3.5 h-3.5" /></Button>
         <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
           onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiX className="w-3.5 h-3.5" /></Button>
       </div>
@@ -207,14 +211,24 @@ export default function BatchDetailPage() {
                   : "Belum diupload"}
               </p>
             </div>
-            {batch.path_sk_dekan ? (
-              <Chip color="success" variant="flat" size="sm" startContent={<FiFile className="w-3 h-3" />}>Tersedia</Chip>
-            ) : (
-              <Button size="sm" color="primary" variant="flat" startContent={<FiUpload className="w-3.5 h-3.5" />}
-                onPress={() => setShowSkDekanForm(true)}>Upload SK Dekan</Button>
-            )}
+            <div className="flex items-center gap-2">
+              {batch.path_sk_dekan ? (
+                <Chip color="success" variant="flat" size="sm" startContent={<FiFile className="w-3 h-3" />}>Tersedia</Chip>
+              ) : (
+                <Button size="sm" color="primary" variant="flat" startContent={<FiUpload className="w-3.5 h-3.5" />}
+                  isDisabled={["sk_dekan_terbit", "terbit"].includes(batch.status)}
+                  onPress={() => setShowSkDekanForm(true)}>Upload SK Dekan</Button>
+              )}
+            </div>
           </div>
         </CardBody></Card>
+
+        {/* Info: Verifikasi Terkunci */}
+        {["sk_dekan_terbit", "terbit"].includes(batch.status) && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <p className="text-sm text-blue-700 dark:text-blue-300">Verifikasi fakultas sudah difinalisasi. Data kandidat terkunci dan tidak dapat diubah.</p>
+          </div>
+        )}
 
         {/* Kandidat Table */}
         <DataTable data={kandidatList} columns={columns} searchable searchKeys={["nim", "nm_mahasiswa", "nm_prodi", "nm_fakultas"]}
@@ -243,16 +257,102 @@ export default function BatchDetailPage() {
           }
         />
 
-        {/* Finalize Button */}
-        {batch.status !== "terbit" && (
-          <div className="flex justify-end">
+        {/* Action Buttons berdasarkan status */}
+        <div className="flex flex-wrap gap-3 justify-end">
+          {/* Finalisasi Verifikasi Fakultas — hanya saat masih tahap verifikasi */}
+          {["kandidat_ditarik", "verifikasi_fakultas"].includes(batch.status) && (
             <Button color="primary" size="lg" startContent={<FiCheck className="w-5 h-5" />}
+              isLoading={actionLoading}
+              onPress={() => setShowFinalisasiVerifModal(true)}>
+              Finalisasi Verifikasi Fakultas
+            </Button>
+          )}
+
+          {/* Finalkan & Terbitkan SK Rektor — hanya setelah verifikasi fakultas selesai */}
+          {batch.status === "sk_dekan_terbit" && (
+            <Button color="success" size="lg" startContent={<FiCheck className="w-5 h-5" />}
               onPress={() => setShowFinalizeModal(true)}>
               Finalkan & Terbitkan SK Rektor
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Modal: Konfirmasi Kandidat */}
+      {confirmKandidat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmKandidat(null)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-4">
+                <FiCheck className="w-6 h-6 text-green-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Konfirmasi Kandidat</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Konfirmasi <span className="font-semibold">{confirmKandidat.nama}</span> sebagai kandidat yang valid?
+              </p>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setConfirmKandidat(null)} disabled={actionLoading}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Batal</button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={async () => {
+                await handleVerifikasi(confirmKandidat.id, "dikonfirmasi");
+                setConfirmKandidat(null);
+              }} disabled={actionLoading}
+                className="flex-1 py-3 text-sm font-semibold text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors disabled:opacity-50">
+                {actionLoading ? "Memproses..." : "Ya, Konfirmasi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Finalisasi Verifikasi Fakultas */}
+      {showFinalisasiVerifModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowFinalisasiVerifModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-4">
+                <FiCheck className="w-6 h-6 text-blue-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Finalisasi Verifikasi</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Setelah difinalisasi, data kandidat akan <span className="font-semibold text-red-600">terkunci</span> dan tidak bisa diubah lagi.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-left">
+                <p className="text-xs text-amber-700 dark:text-amber-300">Pastikan:</p>
+                <ul className="text-xs text-amber-600 dark:text-amber-400 mt-1 space-y-0.5 list-disc list-inside">
+                  <li>Semua kandidat sudah diverifikasi</li>
+                  <li>SK Dekan sudah diupload</li>
+                  <li>Data sudah diperiksa dan benar</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowFinalisasiVerifModal(false)} disabled={actionLoading}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Batal</button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={async () => {
+                setActionLoading(true);
+                try {
+                  await finalizeVerifikasiFakultas(id);
+                  toast.success("Verifikasi fakultas difinalisasi. Data terkunci.");
+                  setShowFinalisasiVerifModal(false);
+                  fetchData();
+                } catch (e) {
+                  const msg = (e as any)?.response?.data?.message || "Gagal memfinalisasi verifikasi";
+                  toast.error(msg, { duration: 5000 });
+                } finally { setActionLoading(false); }
+              }} disabled={actionLoading}
+                className="flex-1 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
+                {actionLoading ? "Memproses..." : "Ya, Finalisasi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Exclude Kandidat */}
       {excludeModal && (

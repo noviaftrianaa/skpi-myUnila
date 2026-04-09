@@ -28,6 +28,7 @@ export default function TahapanTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,9 +58,9 @@ export default function TahapanTab() {
     } catch { toast.error("Gagal menyimpan"); } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus tahapan ini?")) return;
-    try { await deleteTahapan(id); toast.success("Berhasil dihapus"); fetchData(); } catch { toast.error("Gagal menghapus"); }
+  const handleDelete = (id: string) => setDeleteConfirmId(id);
+  const executeDelete = async () => {
+    try { await deleteTahapan(deleteConfirmId); toast.success("Berhasil dihapus"); setDeleteConfirmId(""); fetchData(); } catch { toast.error("Gagal menghapus"); }
   };
 
   const columns: Column<TahapanLayanan>[] = [
@@ -90,6 +91,7 @@ export default function TahapanTab() {
   ];
 
   return (
+    <>
     <div className="relative">
       <Toaster position="top-right" />
       <DataTable data={data} columns={columns} searchable searchPlaceholder="Cari tahapan..." searchKeys={["nm_tahapan", "kode_role"]} defaultRowsPerPage={20}
@@ -169,5 +171,7 @@ export default function TahapanTab() {
         </div>
       )}
     </div>
+    <ConfirmDialog open={!!deleteConfirmId} title="Hapus Tahapan" message="Hapus tahapan workflow ini?" confirmLabel="Hapus" confirmColor="danger" onConfirm={executeDelete} onCancel={() => setDeleteConfirmId("")} />
+    </>
   );
 }

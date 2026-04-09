@@ -10,7 +10,7 @@ import { Spinner, Card, CardBody, Chip } from "@heroui/react";
 import { FiFileText, FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiClipboard, FiUsers, FiArrowRight, FiAlertCircle, FiAlertTriangle, FiEye } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity, getMyPengajuan, getMyProfile } from "@/lib/services/sim-bak/simBakService";
-import { dummyDashboardStats, dummyTrendData, dummyRecentActivity } from "@/lib/services/sim-bak/dummyData";
+// dummy data removed — dashboard uses real API only
 import type { DashboardStats, Pengajuan } from "@/lib/services/sim-bak/types";
 import { StatusBadge } from "./components";
 
@@ -246,10 +246,10 @@ const statusColorMap: Record<string, string> = {
 function AdminDashboard() {
   const { user } = useAuth();
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats>(dummyDashboardStats);
+  const [stats, setStats] = useState<DashboardStats>({ total_pengajuan: 0, pengajuan_baru: 0, pengajuan_proses: 0, pengajuan_selesai: 0, pengajuan_ditolak: 0 } as DashboardStats);
   const [slaPercent, setSlaPercent] = useState(0);
-  const [trendData, setTrendData] = useState(dummyTrendData);
-  const [recentActivity, setRecentActivity] = useState(dummyRecentActivity);
+  const [trendData, setTrendData] = useState<Array<{ bulan: string; surat_mandiri: number; permohonan: number; batch: number }>>([]);
+  const [recentActivity, setRecentActivity] = useState<Array<{ id: string; aksi: string; aktor: string; waktu: string; tipe: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

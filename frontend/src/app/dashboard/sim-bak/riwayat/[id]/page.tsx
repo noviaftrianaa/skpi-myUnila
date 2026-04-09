@@ -13,6 +13,7 @@ import { getPengajuanDetail, downloadDokumenUrl, downloadDokumenHasilUrl, upload
 import bakClient from "@/lib/api/bakClient";
 import { getToken } from "@/lib/api/client";
 import type { StatusPengajuan } from "@/lib/services/sim-bak/types";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const statusColorMap: Record<StatusPengajuan, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
@@ -36,6 +37,7 @@ export default function DetailPengajuanPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getAuthUrl = (baseUrl: string) => {
     const token = getToken("ACCESS");
@@ -322,14 +324,7 @@ export default function DetailPengajuanPage() {
                 <div className="flex gap-2">
                   {status === "draft" && (
                     <Button color="danger" variant="flat" startContent={<FiTrash2 className="w-4 h-4" />}
-                      onPress={async () => {
-                        if (!confirm("Hapus pengajuan draft ini? Semua dokumen yang sudah diupload juga akan dihapus.")) return;
-                        try {
-                          await deletePengajuanDraft(id);
-                          toast.success("Pengajuan draft berhasil dihapus");
-                          router.push("/dashboard/sim-bak/riwayat");
-                        } catch { toast.error("Gagal menghapus pengajuan"); }
-                      }}>
+                      onPress={() => setShowDeleteConfirm(true)}>
                       Hapus Draft
                     </Button>
                   )}
@@ -348,6 +343,18 @@ export default function DetailPengajuanPage() {
 
         {/* (card Surat Telah Terbit dipindahkan ke atas Data Pemohon) */}
       </div>
+
+      <ConfirmDialog open={showDeleteConfirm} title="Hapus Draft" message="Hapus pengajuan draft ini? Semua dokumen yang sudah diupload juga akan dihapus."
+        confirmLabel="Hapus" confirmColor="danger"
+        onConfirm={async () => {
+          try {
+            await deletePengajuanDraft(id);
+            toast.success("Pengajuan draft berhasil dihapus");
+            router.push("/dashboard/sim-bak/riwayat");
+          } catch { toast.error("Gagal menghapus pengajuan"); }
+          finally { setShowDeleteConfirm(false); }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)} />
 
       {/* Modal Preview Dokumen */}
       {previewUrl && (
