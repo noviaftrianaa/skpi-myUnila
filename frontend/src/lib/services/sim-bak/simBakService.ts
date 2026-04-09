@@ -324,6 +324,10 @@ export const exportBatchKandidatUrl = (idBatch: string, params?: {
   return `${baseUrl}/batch/${idBatch}/export-kandidat${query.toString() ? '?' + query.toString() : ''}`;
 };
 
+export const finalizeVerifikasiFakultas = async (idBatch: string): Promise<void> => {
+  await bakClient.post(`/batch/${idBatch}/finalize-verifikasi`);
+};
+
 export const getApprovalQueue = async (params?: {
   page?: number; limit?: number;
 }): Promise<PaginatedResponse<Pengajuan>> => {

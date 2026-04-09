@@ -173,7 +173,7 @@ class PengajuanRepository extends BaseRepository
         ) >= 0;
     }
 
-    public function updateStatus(string $id, string $status, ?string $userId = null): bool
+    public function updateStatus(string $id, string $status, ?string $userId = null, ?string $expectedStatus = null): bool
     {
         $extra = '';
         $bindings = [$status, $userId, $id];
@@ -182,10 +182,16 @@ class PengajuanRepository extends BaseRepository
         } elseif (in_array($status, ['terbit', 'ditolak'])) {
             $extra = ", tgl_selesai = NOW()";
         }
-        return $this->pgUpdate(
-            "UPDATE layanan.pengajuan SET status = ?, id_updater = ? {$extra} WHERE id_pengajuan = ? AND soft_delete = false",
+        $whereExtra = '';
+        if ($expectedStatus) {
+            $whereExtra = ' AND status = ?';
+            $bindings[] = $expectedStatus;
+        }
+        $affected = $this->pgUpdate(
+            "UPDATE layanan.pengajuan SET status = ?, id_updater = ? {$extra} WHERE id_pengajuan = ? AND soft_delete = false{$whereExtra}",
             $bindings
-        ) > 0;
+        );
+        return $affected > 0;
     }
 
     public function createDataPemohon(array $data): ?object

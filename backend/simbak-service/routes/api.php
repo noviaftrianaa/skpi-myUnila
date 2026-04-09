@@ -135,6 +135,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [\App\Http\Controllers\Api\Batch\BatchController::class, 'store'])->middleware('permission:insert,sim-bak');
             Route::post('/{id}/pull-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'pullCandidates'])->middleware('permission:insert,sim-bak');
             Route::post('/{id}/upload-sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'uploadSkDekan'])->middleware('permission:approve,sim-bak');
+            Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalize'])->middleware('permission:approve,sim-bak');
         });

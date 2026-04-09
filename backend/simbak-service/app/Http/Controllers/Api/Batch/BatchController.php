@@ -304,6 +304,14 @@ class BatchController extends Controller
             );
 
             if ($kandidat) {
+                // Cek apakah sudah pernah diverifikasi (race condition protection)
+                $existingVerif = $this->repository->pgSelectOne(
+                    "SELECT id_verifikasi FROM batch.verifikasi_batch WHERE id_kandidat = ?", [$id]
+                );
+                if ($existingVerif) {
+                    return $this->errorResponse('Kandidat ini sudah diverifikasi sebelumnya', 409);
+                }
+
                 $this->repository->createVerifikasi([
                     'id_batch_penetapan' => $kandidat->id_batch_penetapan,
                     'id_kandidat' => $id,
@@ -360,6 +368,48 @@ class BatchController extends Controller
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
             Log::error('Batch.uploadSkDekan: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Finalisasi verifikasi oleh admin fakultas.
+     * Mengunci data kandidat — tidak bisa diubah lagi.
+     * Status batch → sk_dekan_terbit.
+     */
+    public function finalizeVerifikasiFakultas(Request $request, string $id): JsonResponse
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+
+            if (!in_array($batch->status, ['kandidat_ditarik', 'verifikasi_fakultas'])) {
+                return $this->errorResponse('Batch tidak dalam status yang bisa difinalisasi verifikasi', 422);
+            }
+
+            // Cek apakah SK Dekan sudah diupload
+            if (empty($batch->path_sk_dekan)) {
+                return $this->errorResponse('Upload SK Dekan terlebih dahulu sebelum memfinalisasi verifikasi', 422);
+            }
+
+            // Cek apakah masih ada kandidat yang belum diverifikasi
+            $belumVerifikasi = $this->repository->pgSelectOne(
+                "SELECT COUNT(*) as total FROM batch.kandidat_batch WHERE id_batch_penetapan = ? AND status_kandidat = 'masuk' AND soft_delete = false",
+                [$id]
+            );
+            if ($belumVerifikasi && (int)$belumVerifikasi->total > 0) {
+                return $this->errorResponse("Masih ada {$belumVerifikasi->total} kandidat yang belum diverifikasi", 422);
+            }
+
+            $user = $request->user();
+            $this->repository->pgUpdate(
+                "UPDATE batch.batch_penetapan SET status = 'sk_dekan_terbit', id_updater = ? WHERE id_batch_penetapan = ?",
+                [$user->id_pengguna, $id]
+            );
+
+            return $this->successResponse(null, 'Verifikasi fakultas berhasil difinalisasi. Data kandidat sudah terkunci.');
+        } catch (\Exception $e) {
+            Log::error('Batch.finalizeVerifikasiFakultas: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }

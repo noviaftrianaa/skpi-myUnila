@@ -67,7 +67,12 @@ class VerifikasiController extends Controller
 
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
-            $this->repository->updateStatus($id, $statusTujuan, $user->id_pengguna);
+            // Update status dengan expected status check (race condition protection)
+            $updated = $this->repository->updateStatus($id, $statusTujuan, $user->id_pengguna, $pengajuan->status);
+            if (!$updated) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Status pengajuan sudah berubah. Silakan refresh halaman.', 409);
+            }
 
             $riwayatCount = count($this->repository->getRiwayat($id));
             $this->repository->createRiwayat([

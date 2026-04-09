@@ -10,7 +10,7 @@ abstract class BaseRepository
     // PostgreSQL (simbak) - READ/WRITE
     // =========================================
 
-    protected function pgSelect(string $query, array $bindings = []): array
+    public function pgSelect(string $query, array $bindings = []): array
     {
         return DB::connection('pgsql')->select($query, $bindings);
     }

@@ -129,9 +129,7 @@ class PengajuanController extends Controller
                 }
             }
 
-            if ($pdutData && $jenisLayanan->kode_layanan === 'SK-PKKMB') {
-                Log::info("SK-PKKMB: validasi status PKKMB belum tersedia di PDUT untuk NIM: {$nim}");
-            }
+            // SK-PKKMB: validasi manual oleh admin via dokumen "SK Lulus PKKMB dari Fakultas"
 
             if ($jenisLayanan->kode_layanan === 'PM-CUTI') {
                 // Cuti: wajib jumlah_semester_cuti (1-2), tidak boleh di semester 1
@@ -192,8 +190,20 @@ class PengajuanController extends Controller
             $data['status'] = 'draft';
             $data['id_creator'] = $user->id_pengguna;
 
-            // Begin transaction + set audit context
+            // Begin transaction + re-check duplikat dengan lock (race condition protection)
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            $existingLocked = $this->repository->pgSelectOne("
+                SELECT id_pengajuan FROM layanan.pengajuan
+                WHERE id_pemohon = ? AND id_jenis_layanan = ?
+                  AND status NOT IN ('terbit', 'ditolak') AND soft_delete = false
+                FOR UPDATE
+            ", [$user->id_pengguna, $data['id_jenis_layanan']]);
+
+            if ($existingLocked) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Pengajuan sedang diproses, silakan coba lagi', 409);
+            }
 
             // Create pengajuan
             $pengajuan = $this->repository->create($data);
@@ -422,10 +432,8 @@ class PengajuanController extends Controller
         try {
             $user = $request->user();
             $nim = $user->username ?? '';
-            Log::info("myProfile: user={$user->id_pengguna}, username={$nim}");
 
             $pdutData = $this->pdutRepository->getStudentByNim($nim);
-            Log::info("myProfile: pdutData=" . ($pdutData ? 'found' : 'null'));
 
             if (!$pdutData) {
                 return $this->successResponse([
@@ -456,11 +464,35 @@ class PengajuanController extends Controller
                 return $this->errorResponse('Pengajuan tidak dalam status yang bisa diajukan', 422);
             }
 
+            // Cek dokumen wajib sudah diupload
+            $dokumen = $this->repository->getDokumen($id);
+            $jenisLayanan = $this->jenisLayananRepo->findById($pengajuan->id_jenis_layanan);
+            if ($jenisLayanan) {
+                $persyaratanWajib = $this->repository->pgSelect(
+                    "SELECT id_persyaratan, nm_dokumen FROM ref.persyaratan_layanan WHERE id_jenis_layanan = ? AND a_wajib = true AND soft_delete = false",
+                    [$pengajuan->id_jenis_layanan]
+                );
+                foreach ($persyaratanWajib as $req) {
+                    $found = false;
+                    foreach ($dokumen as $doc) {
+                        if ($doc->id_persyaratan === $req->id_persyaratan) { $found = true; break; }
+                    }
+                    if (!$found) {
+                        return $this->errorResponse("Dokumen wajib \"{$req->nm_dokumen}\" belum diupload", 422);
+                    }
+                }
+            }
+
             $user = $request->user();
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
             $statusDari = $pengajuan->status;
-            $this->repository->updateStatus($id, 'diajukan', $user->id_pengguna);
+            // Update status dengan expected status (race condition protection)
+            $updated = $this->repository->updateStatus($id, 'diajukan', $user->id_pengguna, $pengajuan->status);
+            if (!$updated) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Status pengajuan sudah berubah. Silakan refresh halaman.', 409);
+            }
 
             $riwayatCount = count($this->repository->getRiwayat($id));
             $this->repository->createRiwayat([

@@ -16,11 +16,6 @@ const rawUrl = process.env.NEXT_PUBLIC_BAK_API_URL || 'http://localhost:9002';
 // Avoid double /api/v1 — append only if not already present
 const BAK_API_URL = rawUrl.includes('/api/v1') ? rawUrl : `${rawUrl}/api/v1`;
 
-// Debug: log the resolved URL (remove after confirming)
-if (typeof window !== 'undefined') {
-  console.log('[bakClient] NEXT_PUBLIC_BAK_API_URL:', process.env.NEXT_PUBLIC_BAK_API_URL);
-  console.log('[bakClient] Resolved BAK_API_URL:', BAK_API_URL);
-}
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
 
 /**
