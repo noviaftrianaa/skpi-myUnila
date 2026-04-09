@@ -320,3 +320,71 @@ Tambah di `deployment/local/.env`:
 ```env
 AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832
 ```
+
+---
+
+## 11. [PERLU DITAMBAHKAN] Monitoring KTW (Kelulusan Tepat Waktu) + Exclusion Jalur Masuk
+
+### Kebutuhan (dari docs `02-alur-layanan-simba-revisi.md` poin 2.10)
+
+Admin BAK perlu:
+- Memantau indikator **kelulusan tepat waktu (KTW)**
+- **Meng-exclude** mahasiswa jalur tertentu dari perhitungan KTW agar analisis lebih akurat:
+  - Jalur **Rekognisi Pembelajaran Lampau (RPL)**
+  - Jalur **Studi Lanjut** (D3 ke S1 — transfer SKS, masa studi lebih pendek)
+
+### Kriteria KTW
+| Jenjang | Tepat Waktu |
+|---------|-------------|
+| D3 | ≤ 3 tahun (≤ 6 semester) |
+| S1 | ≤ 4 tahun (≤ 8 semester) |
+| S2 | ≤ 2 tahun (≤ 4 semester) |
+| S3 | ≤ 3 tahun (≤ 6 semester) |
+
+### Status Implementasi Saat Ini
+
+| Fitur | Status |
+|-------|--------|
+| Indikator tepat waktu per mahasiswa (badge hijau/merah) | **Sudah** |
+| Persentase tepat waktu di stat card | **Sudah** |
+| Kriteria per jenjang di backend query | **Sudah** |
+| Filter fakultas, prodi, jenjang, tahun lulus | **Sudah** |
+| Export CSV | **Sudah** |
+| **Filter exclusion jalur masuk** | **Belum** |
+| **Mekanisme tandai/exclude dari perhitungan** | **Belum** |
+
+### Blocker: Data Jalur Masuk Tidak Tersedia
+
+Kolom `siakadu.reg_pd.id_jalur_daftar` → **kosong** (NULL untuk semua mahasiswa)
+Tabel `siakadu.ref_jalur_daftar` → **kosong** (belum di-sync dari sumber data)
+
+```sql
+-- Kolom ada tapi data kosong
+SELECT DISTINCT id_jalur_daftar FROM siakadu.reg_pd WHERE id_jalur_daftar IS NOT NULL;
+-- Result: 0 rows
+
+SELECT * FROM siakadu.ref_jalur_daftar;
+-- Result: 0 rows
+```
+
+### Opsi Solusi
+
+**Opsi A: Tunggu data jalur masuk di-sync ke PDUT**
+- Koordinasi dengan tim SIAKADU agar `ref_jalur_daftar` dan `reg_pd.id_jalur_daftar` diisi
+- Setelah data tersedia, tambah:
+  - Dropdown filter jalur masuk di halaman monitoring
+  - Checkbox "Exclude dari KTW" per jalur
+  - Query backend yang filter `WHERE id_jalur_daftar NOT IN (...excluded...)`
+
+**Opsi B: Filter berdasarkan jenjang (sementara)**
+- Exclude jenjang Profesi (id_jenj_didik tertentu) dari perhitungan
+- Tidak bisa exclude RPL/alih program karena jenjangnya sama (S1/S2)
+
+**Opsi C: Tandai manual dari admin**
+- Admin BAK bisa tandai mahasiswa tertentu sebagai "exclude KTW"
+- Perlu tabel baru di PostgreSQL simbak: `monitoring_exclusion`
+- Lebih fleksibel tapi operasional lebih berat
+
+### Rekomendasi
+
+Gunakan **Opsi A** sebagai solusi utama (tunggu data PDUT). Sementara menunggu, bisa implementasi **Opsi B** (filter jenjang Profesi) sebagai interim.
