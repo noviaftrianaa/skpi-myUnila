@@ -156,7 +156,6 @@ class DosenService
                 JOIN pdrd.peserta_didik AS pd
                     ON pd.id_pd = reg.id_pd
                     AND pd.soft_delete = 0
-                    AND pd.id_stat_mhs = 'A'
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = reg.id_sms
                     AND sms.soft_delete = 0

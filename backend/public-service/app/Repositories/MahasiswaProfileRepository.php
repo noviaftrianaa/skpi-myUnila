@@ -58,7 +58,7 @@ class MahasiswaProfileRepository
                 jur.nm_lemb AS nama_jurusan,
                 CASE
                     WHEN CAST(reg.id_jns_keluar AS VARCHAR(10)) = '1' THEN 'Lulus'
-                    WHEN pd.id_stat_mhs = 'A' THEN 'Aktif'
+                    WHEN reg.id_jns_keluar IS NULL THEN 'Aktif'
                     ELSE 'Tidak Aktif'
                 END AS status
             FROM pdrd.reg_pd AS reg

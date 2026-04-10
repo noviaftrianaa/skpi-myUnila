@@ -313,12 +313,14 @@ func (r *repository) GetQuickStats(ctx context.Context) (*QuickStats, error) {
 		return nil, err
 	}
 
-	// Total Mahasiswa Aktif (status aktif based on peserta_didik.id_stat_mhs = 'A')
+	// Total Mahasiswa Aktif (belum keluar/lulus berdasarkan reg.id_jns_keluar IS NULL)
+	// NOTE: pd.id_stat_mhs = 'A' tidak dipakai karena master status tidak selalu konsisten
+	// dengan reg.id_jns_keluar (lihat LAPORAN_VERIFIKASI_MHS_AKTIF.md)
 	err = r.db.QueryRowContext(ctx, `
 		SELECT COUNT(*)
 		FROM pdrd.reg_pd AS reg WITH(NOLOCK)
 		INNER JOIN pdrd.peserta_didik AS pd WITH(NOLOCK) ON pd.id_pd = reg.id_pd AND pd.soft_delete = 0
-		WHERE reg.soft_delete = 0 AND pd.id_stat_mhs = 'A'
+		WHERE reg.soft_delete = 0 AND reg.id_jns_keluar IS NULL
 	`).Scan(&stats.TotalMahasiswaAktif)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err

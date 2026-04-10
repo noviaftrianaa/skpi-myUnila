@@ -85,10 +85,10 @@ class Prodi extends Model
             LEFT JOIN pdrd.reg_pd AS reg
                 ON reg.id_sms = sms.id_sms
                 AND reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
             LEFT JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-                AND pd.id_stat_mhs = 'A'
             WHERE sms.soft_delete = 0
                 AND sms.id_sp = '{$unilaIdSp}'
             GROUP BY

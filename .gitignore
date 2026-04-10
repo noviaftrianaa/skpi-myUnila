@@ -12,6 +12,7 @@ dashboard/.env
 # Claude Code settings & docs (local only)
 .claude/
 docs/claude/
+docs/CLAUDE-CODE-CHANNELS-SETUP.md
 .mcp.json
 
 # VSCode workspace settings (local only)
@@ -61,6 +62,9 @@ deployment/local/secrets/
 
 # Root-level plan/temp docs
 MINIO_SETUP_PLAN.md
+
+# Local scratch/ignore folder (reports, data exports, helper scripts)
+docs/ignore/
 
 # Monitoring & internal deployment plans (local only)
 deployment/docs/

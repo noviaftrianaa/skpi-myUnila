@@ -37,7 +37,7 @@ class SearchRepository
                 jenj.nm_jenj_didik AS jenjang,
                 CASE
                     WHEN CAST(reg.id_jns_keluar AS VARCHAR(10)) = '1' THEN 'Lulus'
-                    WHEN pd.id_stat_mhs = 'A' AND kmh.id_stat_mhs = 'A' THEN 'Aktif'
+                    WHEN reg.id_jns_keluar IS NULL THEN 'Aktif'
                     ELSE 'Tidak Aktif'
                 END AS status,
                 pd.jk AS jenis_kelamin

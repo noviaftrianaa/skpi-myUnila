@@ -28,7 +28,6 @@ class RasioRepository
                 AND kmh.soft_delete = 0
                 AND kmh.id_stat_mhs = 'A'
             WHERE peserta.soft_delete = 0
-                AND peserta.id_stat_mhs = 'A'
             GROUP BY fak.id_sms, fak.nm_lemb
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -100,7 +99,6 @@ class RasioRepository
                 AND kmh.id_stat_mhs = 'A'
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = psms.id_jenj_didik
             WHERE peserta.soft_delete = 0
-                AND peserta.id_stat_mhs = 'A'
                 AND psms.id_fak_unila = ?
             GROUP BY psms.id_sms, psms.nm_lemb, jenjang.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
@@ -170,7 +168,6 @@ class RasioRepository
                 AND kmh.id_stat_mhs = 'A'
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = psms.id_jenj_didik
             WHERE peserta.soft_delete = 0
-                AND peserta.id_stat_mhs = 'A'
         ";
 
         $bindings = [$id_smt];
@@ -223,7 +220,6 @@ class RasioRepository
                 AND kmh.id_stat_mhs = 'A'
                 JOIN ref.jenjang_pendidikan AS jenjang ON jenjang.id_jenj_didik = psms.id_jenj_didik
             WHERE peserta.soft_delete = 0
-                AND peserta.id_stat_mhs = 'A'
         ";
 
         $bindings_data = [$id_smt];
