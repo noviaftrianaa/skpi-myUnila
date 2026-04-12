@@ -440,11 +440,15 @@ Tahap 2 — Admin Fakultas: Verifikasi Kandidat
     - Per kandidat, keputusan:
       a. Konfirmasi (centang) -> kandidat tetap masuk
       b. Keluarkan (X) -> kandidat dikeluarkan + alasan wajib
-    - Alasan exclude HANYA 2:
-      a. "Sudah mengajukan undur diri"
-      b. "Meninggal dunia"
-    - Input alasan: text input (diketik manual, BUKAN dropdown/select)
-      agar admin bisa menjelaskan detail tambahan jika perlu
+    - Input alasan: select dropdown (berbeda per jenis batch)
+      Opsi untuk BA-HMM:
+        1. "Sudah mengajukan undur diri"
+        2. "Meninggal dunia"
+        3. "Lainnya" -> muncul text input untuk mengetik alasan
+    - Rule khusus:
+      Jika pilih "Meninggal dunia" -> WAJIB upload dokumen:
+        "Surat Keterangan Meninggal Dunia dari RS / Aparat Desa" (PDF)
+      Upload muncul otomatis saat opsi tersebut dipilih
     - Data verifikasi tersimpan per kandidat
 
 ----------------------------------------------------------------------
@@ -500,13 +504,17 @@ ALUR:
   Sama dengan BA-HMM (tahap 1-5), dengan perbedaan:
 
   Tahap 2 — Verifikasi Kandidat:
-    - Alasan exclude lebih beragam (diketik pada input text, BUKAN select):
-      a. "Mahasiswa double degree"
-      b. "Jalur RPL (Rekognisi Pembelajaran Lampau)"
-      c. "Diberi kesempatan lanjut studi"
-      d. Alasan lain yang relevan (admin mengetik sendiri)
-    - Input alasan: text input (diketik manual, BUKAN dropdown/select)
-      agar admin bisa menjelaskan alasan sesuai kondisi spesifik mahasiswa
+    - Input alasan: select dropdown (berbeda dari BA-HMM)
+      Opsi untuk BA-PUTUS:
+        1. "Mahasiswa double degree"
+        2. "Jalur RPL (Rekognisi Pembelajaran Lampau)"
+        3. "Diberi kesempatan lanjut studi"
+        4. "Sudah mengajukan undur diri"
+        5. "Meninggal dunia"
+        6. "Lainnya" -> muncul text input untuk mengetik alasan
+    - Rule khusus (sama dengan BA-HMM):
+      Jika pilih "Meninggal dunia" -> WAJIB upload dokumen:
+        "Surat Keterangan Meninggal Dunia dari RS / Aparat Desa" (PDF)
 
   Tahap 1 — Tarik Data Kandidat:
     - Kriteria: mahasiswa semester IV atau VIII dengan IPK < 2.00 atau SKS < syarat
