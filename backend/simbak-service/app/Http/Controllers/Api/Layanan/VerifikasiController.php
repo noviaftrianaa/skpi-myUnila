@@ -178,7 +178,9 @@ class VerifikasiController extends Controller
                 'nomor_dokumen' => 'nullable|string|max:100',
                 'tgl_dokumen' => 'nullable|date',
                 'catatan' => 'nullable|string',
-                'file' => 'nullable|file|mimes:pdf|max:20480', // max 20MB PDF
+                'file' => 'nullable|file|mimes:pdf|max:20480',
+                'file_penolakan' => 'nullable|file|mimes:pdf|max:20480',
+                'nomor_penolakan' => 'nullable|string|max:100',
             ]);
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
@@ -227,6 +229,27 @@ class VerifikasiController extends Controller
                     'id_penerbit' => $user->id_pengguna,
                     'a_final' => true,
                     'keterangan' => $data['catatan'] ?? null,
+                    'id_creator' => $user->id_pengguna,
+                ]);
+            }
+
+            // Upload surat penolakan (khusus PM-ALIH yang ditolak)
+            if ($request->hasFile('file_penolakan')) {
+                $filePenolakan = $request->file('file_penolakan');
+                $pathPenolakan = $this->minioService->uploadDokumenHasil($id, 'surat_penolakan', $filePenolakan);
+
+                $this->repository->createDokumenHasil([
+                    'id_pengajuan' => $id,
+                    'jenis_output' => 'surat_penolakan',
+                    'nomor_dokumen' => $data['nomor_penolakan'] ?? null,
+                    'tgl_dokumen' => $tglDokumen,
+                    'nm_dokumen' => 'Surat Penolakan — ' . ($data['nomor_penolakan'] ?? $pengajuan->nm_layanan),
+                    'path_file' => $pathPenolakan,
+                    'tipe_file' => $filePenolakan->getMimeType(),
+                    'ukuran_byte' => $filePenolakan->getSize(),
+                    'id_penerbit' => $user->id_pengguna,
+                    'a_final' => true,
+                    'keterangan' => 'Surat penolakan bagi mahasiswa yang tidak diterima',
                     'id_creator' => $user->id_pengguna,
                 ]);
             }

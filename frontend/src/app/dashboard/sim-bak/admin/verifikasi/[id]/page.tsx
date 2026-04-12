@@ -58,6 +58,8 @@ export default function VerifikasiDetailPage() {
   const [nomorDokumen, setNomorDokumen] = useState("");
   const [tglDokumen, setTglDokumen] = useState(new Date().toISOString().split("T")[0]);
   const [fileSK, setFileSK] = useState<File | null>(null);
+  const [filePenolakan, setFilePenolakan] = useState<File | null>(null);
+  const [nomorPenolakan, setNomorPenolakan] = useState("");
 
   const fetchDetail = () => {
     if (!user || !id) return;
@@ -119,6 +121,8 @@ export default function VerifikasiDetailPage() {
         tgl_dokumen: tglDokumen || undefined,
         catatan: catatan || undefined,
         file: fileSK || undefined,
+        file_penolakan: filePenolakan || undefined,
+        nomor_penolakan: nomorPenolakan || undefined,
       });
       toast.success("Surat berhasil diterbitkan");
       setShowTerbitkanForm(false);
@@ -522,10 +526,33 @@ export default function VerifikasiDetailPage() {
                   </div>
                 </div>
 
+                {/* Surat Penolakan — khusus PM-ALIH */}
+                {detail.kode_layanan === "PM-ALIH" && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Surat Penolakan (jika ada yang ditolak)</p>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Nomor Surat Penolakan</label>
+                        <input type="text" value={nomorPenolakan} onChange={e => setNomorPenolakan(e.target.value)}
+                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Nomor surat penolakan (opsional)" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">File Surat Penolakan (PDF)</label>
+                        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center">
+                          <input type="file" accept=".pdf" onChange={e => setFilePenolakan(e.target.files?.[0] || null)}
+                            className="w-full text-sm text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700 file:font-medium file:text-xs file:cursor-pointer" />
+                          {filePenolakan && <p className="mt-1 text-xs text-red-600">{filePenolakan.name} ({Math.round(filePenolakan.size / 1024)} KB)</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan (opsional)</label>
                   <textarea rows={2} value={catatan} onChange={e => setCatatan(e.target.value)}
-                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder="Catatan penerbitan..." />
                 </div>
 

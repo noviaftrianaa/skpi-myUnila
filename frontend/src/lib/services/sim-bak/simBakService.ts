@@ -269,12 +269,16 @@ export const terbitkanPengajuan = async (id: string, data: {
   tgl_dokumen?: string;
   catatan?: string;
   file?: File;
+  file_penolakan?: File;
+  nomor_penolakan?: string;
 }): Promise<void> => {
   const formData = new FormData();
   if (data.nomor_dokumen) formData.append('nomor_dokumen', data.nomor_dokumen);
   if (data.tgl_dokumen) formData.append('tgl_dokumen', data.tgl_dokumen);
   if (data.catatan) formData.append('catatan', data.catatan);
   if (data.file) formData.append('file', data.file);
+  if (data.file_penolakan) formData.append('file_penolakan', data.file_penolakan);
+  if (data.nomor_penolakan) formData.append('nomor_penolakan', data.nomor_penolakan);
   await bakClient.post(`/admin/pengajuan/${id}/terbitkan`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
