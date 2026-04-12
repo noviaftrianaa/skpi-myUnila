@@ -7,6 +7,7 @@ use App\Repositories\Batch\BatchRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
 use App\Repositories\PdutRepository;
 use App\Services\MinioService;
+use App\Services\NotificationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -167,6 +168,48 @@ class BatchController extends Controller
 
             $this->repository->pgCommit();
 
+            // Trigger notifikasi batch early warning (non-blocking)
+            try {
+                $kodeEvent = $data['jenis_batch'] === 'putus_studi'
+                    ? 'batch_putus_studi_warning'
+                    : 'batch_hmm_warning';
+                $kandidatAll = $this->repository->getKandidatList($batch->id_batch_penetapan, ['limit' => 9999]);
+                $notifService = new NotificationService();
+                $recipients = [];
+                foreach ($kandidatAll['data'] as $k) {
+                    // Resolve email dari PDUT
+                    $email = null;
+                    if ($k->id_mahasiswa) {
+                        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                            "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$k->id_mahasiswa]
+                        );
+                        $email = $row->email ?? null;
+                    }
+                    if ($email) {
+                        $recipients[] = [
+                            'email' => $email,
+                            'nama' => $k->nm_mahasiswa ?? '',
+                            'data' => [
+                                'nama' => $k->nm_mahasiswa ?? '',
+                                'npm' => $k->nim ?? '',
+                                'prodi' => $k->nm_prodi ?? '',
+                                'fakultas' => $k->nm_fakultas ?? '',
+                                'semester' => $data['id_smt'] ?? '',
+                                'jenjang' => $k->nm_jenjang ?? '',
+                                'angkatan' => $k->angkatan ?? '',
+                                'batas_semester' => $this->getBatasSemester($k->nm_jenjang ?? ''),
+                            ],
+                        ];
+                    }
+                }
+                if (!empty($recipients)) {
+                    $sent = $notifService->send($kodeEvent, $recipients, [], ['id_batch' => $batch->id_batch_penetapan]);
+                    Log::info("Batch notification: {$sent} email(s) dispatched for {$kodeEvent}");
+                }
+            } catch (\Exception $e) {
+                Log::warning("Batch notification failed: {$e->getMessage()}");
+            }
+
             return $this->createdResponse([
                 'batch' => $batch,
                 'jumlah_kandidat' => $inserted,
@@ -178,6 +221,13 @@ class BatchController extends Controller
             Log::error('Batch.store: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
+    }
+
+    private function getBatasSemester(string $jenjang): string
+    {
+        return match (strtolower($jenjang)) {
+            'd3' => '12', 's1' => '16', 's2' => '8', 's3' => '12', default => '-',
+        };
     }
 
     /**

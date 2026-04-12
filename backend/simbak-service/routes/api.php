@@ -159,5 +159,19 @@ Route::prefix('v1')->group(function () {
             Route::get('/lulusan', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'lulusan']);
             Route::get('/export', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'export']);
         });
+
+        // -----------------------------------------
+        // Notifikasi (Settings, Templates, Logs)
+        // -----------------------------------------
+        Route::prefix('notifikasi')->group(function () {
+            Route::get('/settings', [\App\Http\Controllers\Api\NotificationController::class, 'getSettings']);
+            Route::put('/settings', [\App\Http\Controllers\Api\NotificationController::class, 'updateSettings']);
+            Route::post('/test-email', [\App\Http\Controllers\Api\NotificationController::class, 'testEmail']);
+            Route::get('/templates', [\App\Http\Controllers\Api\NotificationController::class, 'getTemplates']);
+            Route::put('/templates/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'updateTemplate']);
+            Route::get('/templates/{id}/preview', [\App\Http\Controllers\Api\NotificationController::class, 'previewTemplate']);
+            Route::get('/logs', [\App\Http\Controllers\Api\NotificationController::class, 'getLogs']);
+            Route::get('/logs/stats', [\App\Http\Controllers\Api\NotificationController::class, 'getLogStats']);
+        });
     });
 });

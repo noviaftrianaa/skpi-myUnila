@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Layanan;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
+use App\Services\NotificationService;
 use App\Services\WorkflowService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -187,6 +188,34 @@ class PersetujuanController extends Controller
             ]);
 
             $this->repository->pgCommit();
+
+            // Trigger notifikasi: ditolak
+            try {
+                if (!($pengajuan->a_dari_luar ?? false)) {
+                    $dataPemohon = $this->repository->getDataPemohon($pengajuan->id_pengajuan);
+                    $email = null;
+                    if ($pengajuan->id_pemohon) {
+                        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                            "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$pengajuan->id_pemohon]
+                        );
+                        $email = $row->email ?? null;
+                    }
+                    if ($email && $dataPemohon) {
+                        (new NotificationService())->send('status_ditolak', [
+                            ['email' => $email, 'nama' => $dataPemohon->nm_mahasiswa ?? '', 'data' => []],
+                        ], [
+                            'nama' => $dataPemohon->nm_mahasiswa ?? '',
+                            'npm' => $dataPemohon->nim ?? '',
+                            'layanan' => $pengajuan->nm_layanan ?? '',
+                            'nomor' => $pengajuan->nomor_permohonan ?? '',
+                            'catatan' => $data['catatan'] ?? '-',
+                        ], ['id_pengajuan' => $pengajuan->id_pengajuan]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning("Notifikasi ditolak gagal: {$e->getMessage()}");
+            }
+
             return $this->successResponse(null, 'Pengajuan berhasil ditolak');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());

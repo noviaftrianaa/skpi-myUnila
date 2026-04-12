@@ -455,6 +455,46 @@ export const exportMonitoring = async (params?: Record<string, unknown>): Promis
   return response.data.data.url;
 };
 
+// ============ Notifikasi ============
+
+export const getNotifSettings = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/settings');
+  return response.data.data ?? [];
+};
+
+export const updateNotifSettings = async (settings: Array<{ kode: string; nilai: string }>): Promise<void> => {
+  await bakClient.put('/notifikasi/settings', { settings });
+};
+
+export const testNotifEmail = async (email: string): Promise<{ message: string }> => {
+  const response = await bakClient.post('/notifikasi/test-email', { email });
+  return response.data;
+};
+
+export const getNotifTemplates = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/templates');
+  return response.data.data ?? [];
+};
+
+export const updateNotifTemplate = async (id: string, data: Record<string, unknown>): Promise<void> => {
+  await bakClient.put(`/notifikasi/templates/${id}`, data);
+};
+
+export const previewNotifTemplate = async (id: string): Promise<{ subject: string; body_email: string; body_whatsapp: string }> => {
+  const response = await bakClient.get(`/notifikasi/templates/${id}/preview`);
+  return response.data.data;
+};
+
+export const getNotifLogs = async (params?: { page?: number; limit?: number; status?: string; channel?: string; kode_event?: string }): Promise<{ data: Record<string, unknown>[]; pagination: { total: number } }> => {
+  const response = await bakClient.get('/notifikasi/logs', { params });
+  return response.data;
+};
+
+export const getNotifLogStats = async (): Promise<{ total: number; sent: number; failed: number; pending: number }> => {
+  const response = await bakClient.get('/notifikasi/logs/stats');
+  return response.data.data;
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -485,6 +525,10 @@ const simBakService = {
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring
   getMonitoringStats, getMahasiswaAktif, getLulusan, exportMonitoring,
+  // Notifikasi
+  getNotifSettings, updateNotifSettings, testNotifEmail,
+  getNotifTemplates, updateNotifTemplate, previewNotifTemplate,
+  getNotifLogs, getNotifLogStats,
 };
 
 export default simBakService;

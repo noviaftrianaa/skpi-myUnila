@@ -5,7 +5,7 @@
  * Untuk role: mahasiswa, admin_bak, admin_fakultas, pejabat
  */
 
-import { FiFileText, FiGrid, FiSettings, FiBarChart2, FiUsers, FiLayers, FiCheckSquare, FiClipboard, FiList } from "react-icons/fi";
+import { FiFileText, FiGrid, FiSettings, FiBarChart2, FiUsers, FiLayers, FiCheckSquare, FiClipboard, FiList, FiBell } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
@@ -67,6 +67,12 @@ export const simBakMenuConfig: MenuItem[] = [
     title: "Monitoring",
     icon: <FiBarChart2 className="w-5 h-5" />,
     href: "/dashboard/sim-bak/monitoring",
+    roles: adminRoles,
+  },
+  {
+    title: "Notifikasi",
+    icon: <FiBell className="w-5 h-5" />,
+    href: "/dashboard/sim-bak/notifikasi",
     roles: adminRoles,
   },
   {
