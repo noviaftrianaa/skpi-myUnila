@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Chip, Button } from "@heroui/react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import { getJenisLayanan, createJenisLayanan, updateJenisLayanan, deleteJenisLayanan } from "@/lib/services/sim-bak/simBakService";
@@ -28,6 +29,7 @@ export default function JenisLayananTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -79,11 +81,12 @@ export default function JenisLayananTab() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus jenis layanan ini?")) return;
+  const handleDelete = (id: string) => setDeleteConfirmId(id);
+  const executeDelete = async () => {
     try {
-      await deleteJenisLayanan(id);
+      await deleteJenisLayanan(deleteConfirmId);
       toast.success("Jenis layanan berhasil dihapus");
+      setDeleteConfirmId("");
       fetchData();
     } catch {
       toast.error("Gagal menghapus data");
@@ -139,6 +142,7 @@ export default function JenisLayananTab() {
   ];
 
   return (
+    <>
     <div className="relative">
       <Toaster position="top-right" />
       <DataTable
@@ -152,7 +156,7 @@ export default function JenisLayananTab() {
           <select
             value={filterKategori}
             onChange={(e) => { setFilterKategori(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Semua Kategori</option>
             <option value="surat_mandiri">Surat Mandiri</option>
@@ -185,19 +189,19 @@ export default function JenisLayananTab() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kode Layanan *</label>
                 <input type="text" value={form.kode_layanan} onChange={(e) => setForm({ ...form, kode_layanan: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="cth: SK-LOA" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Layanan *</label>
                 <input type="text" value={form.nm_layanan} onChange={(e) => setForm({ ...form, nm_layanan: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="cth: Surat Keterangan Diterima" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
                 <select value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value as JenisLayanan["kategori"] })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="surat_mandiri">Surat Mandiri</option>
                   <option value="permohonan_akademik">Permohonan Akademik</option>
                   <option value="batch_administrasi">Batch Administrasi</option>
@@ -207,19 +211,19 @@ export default function JenisLayananTab() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi</label>
                 <textarea value={form.deskripsi} onChange={(e) => setForm({ ...form, deskripsi: e.target.value })} rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   placeholder="Deskripsi layanan..." />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Urutan</label>
                   <input type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SLA (hari)</label>
                   <input type="number" value={form.sla_hari ?? ""} onChange={(e) => setForm({ ...form, sla_hari: e.target.value ? parseInt(e.target.value) : null })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="-" />
                 </div>
                 <div>
@@ -233,7 +237,7 @@ export default function JenisLayananTab() {
               </div>
             </div>
             <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex gap-3">
-              <button onClick={() => setShowPanel(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <button onClick={() => setShowPanel(false)} className="flex-1 px-4 py-2.5 rounded-lg ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Batal
               </button>
               <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
@@ -245,5 +249,7 @@ export default function JenisLayananTab() {
         </div>
       )}
     </div>
+    <ConfirmDialog open={!!deleteConfirmId} title="Hapus Data" message="Hapus jenis layanan ini? Persyaratan dan tahapan terkait juga akan terhapus." confirmLabel="Hapus" confirmColor="danger" onConfirm={executeDelete} onCancel={() => setDeleteConfirmId("")} />
+    </>
   );
 }

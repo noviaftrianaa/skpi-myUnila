@@ -76,6 +76,9 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
       const data = await userContextService.getUserContext();
       setRoles(data.roles);
       setActiveContext(data.active_context);
+      if (data.active_context) {
+        try { localStorage.setItem('myunila_active_context', JSON.stringify(data.active_context)); } catch {}
+      }
 
       // If user has only one approved role, auto-select it
       const approvedRoles = data.roles.filter(r => r.approval_peran);
@@ -129,6 +132,11 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
 
       const result = await userContextService.selectContext(idRolePengguna);
       setActiveContext(result.active_context);
+
+      // Persist active context for API headers (X-Active-Role)
+      if (result.active_context) {
+        try { localStorage.setItem('myunila_active_context', JSON.stringify(result.active_context)); } catch {}
+      }
 
       // Reload portal apps after context change
       await loadPortalApps();

@@ -111,13 +111,13 @@ export default function BatchPage() {
           <DataTable data={data} columns={columns} searchable searchKeys={["kode_batch", "nm_batch"]} searchPlaceholder="Cari batch..."
             filterSlot={
               <div className="flex gap-2">
-                <select className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={filterJenis} onChange={(e) => { setFilterJenis(e.target.value); setPage(1); }}>
                   <option value="">Semua Jenis</option>
                   <option value="habis_masa_mukim">HMM</option>
                   <option value="putus_studi">Putus Studi</option>
                 </select>
-                <select className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
                   <option value="">Semua Status</option>
                   <option value="draft">Draft</option>

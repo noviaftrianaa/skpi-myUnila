@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Layanan;
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
+use App\Repositories\PdutRepository;
 use App\Services\MinioService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -17,12 +18,14 @@ class PengajuanController extends Controller
 
     protected PengajuanRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
+    protected PdutRepository $pdutRepository;
     protected MinioService $minioService;
 
     public function __construct()
     {
         $this->repository = new PengajuanRepository();
         $this->jenisLayananRepo = new JenisLayananRepository();
+        $this->pdutRepository = new PdutRepository();
         $this->minioService = new MinioService();
     }
 
@@ -88,27 +91,163 @@ class PengajuanController extends Controller
             $jenisLayanan = $this->jenisLayananRepo->findById($data['id_jenis_layanan']);
             if (!$jenisLayanan) return $this->notFoundResponse('Jenis layanan tidak ditemukan');
 
+            // Cek apakah ada pengajuan layanan yang sama yang masih aktif (belum selesai/ditolak)
+            $existing = $this->repository->pgSelectOne("
+                SELECT id_pengajuan, nomor_permohonan, status
+                FROM layanan.pengajuan
+                WHERE id_pemohon = ? AND id_jenis_layanan = ?
+                  AND status NOT IN ('terbit', 'ditolak')
+                  AND soft_delete = false
+                ORDER BY created_at DESC
+            ", [$user->id_pengguna, $data['id_jenis_layanan']]);
+
+            if ($existing) {
+                $statusLabel = [
+                    'draft' => 'draft', 'diajukan' => 'sedang diverifikasi',
+                    'perlu_perbaikan' => 'menunggu perbaikan', 'diverifikasi' => 'sedang diproses',
+                    'menunggu_persetujuan' => 'menunggu persetujuan', 'disetujui' => 'menunggu penerbitan',
+                ];
+                $label = $statusLabel[$existing->status] ?? $existing->status;
+                return $this->errorResponse(
+                    "Anda sudah memiliki pengajuan {$jenisLayanan->nm_layanan} yang masih {$label} (No. {$existing->nomor_permohonan}). Selesaikan atau hapus pengajuan tersebut sebelum membuat yang baru.",
+                    422
+                );
+            }
+
+            // Validasi khusus per jenis layanan
+            $nim = $user->username ?? '';
+            $pdutData = $this->pdutRepository->getStudentByNim($nim);
+
+            if ($pdutData && $jenisLayanan->kode_layanan === 'SK-HERREG') {
+                // Herregistrasi: tolak jika status bukan aktif
+                $statusReg = strtolower($pdutData['status_registrasi'] ?? '');
+                if ($statusReg && !in_array($statusReg, ['aktif', 'active', 'a'])) {
+                    return $this->errorResponse(
+                        "Pengajuan Surat Herregistrasi ditolak: status registrasi Anda saat ini adalah \"{$pdutData['status_registrasi']}\". Layanan ini hanya untuk mahasiswa yang sudah herregistrasi pada semester berjalan.",
+                        422
+                    );
+                }
+            }
+
+            // SK-PKKMB: validasi manual oleh admin via dokumen "SK Lulus PKKMB dari Fakultas"
+
+            if ($jenisLayanan->kode_layanan === 'PM-CUTI') {
+                // Cuti: wajib jumlah_semester_cuti (1-2), tidak boleh di semester 1
+                if (empty($data['jumlah_semester_cuti'])) {
+                    return $this->errorResponse('Jumlah semester cuti wajib diisi (1 atau 2)', 422);
+                }
+                if ($pdutData && !empty($pdutData['semester_aktif']) && (int)$pdutData['semester_aktif'] <= 1) {
+                    return $this->errorResponse('Cuti akademik tidak dapat diajukan pada semester 1', 422);
+                }
+            }
+
+            if ($jenisLayanan->kode_layanan === 'PM-ALIH') {
+                // Alih Program: wajib prodi tujuan
+                if (empty($data['id_prodi_tujuan']) || empty($data['id_fakultas_tujuan'])) {
+                    return $this->errorResponse('Program studi tujuan dan fakultas tujuan wajib dipilih', 422);
+                }
+                // Validasi syarat akademik dari PDUT
+                if ($pdutData) {
+                    $ipk = (float) ($pdutData['ipk'] ?? 0);
+                    $sks = (int) ($pdutData['sks_lulus'] ?? 0);
+                    $semester = (int) ($pdutData['semester_aktif'] ?? 0);
+                    $jenjang = strtolower($pdutData['nm_jenjang'] ?? '');
+
+                    $errors = [];
+                    if (in_array($jenjang, ['s1', 'sarjana'])) {
+                        if ($ipk < 2.75) $errors[] = "IPK minimal 2.75 (IPK Anda: {$ipk})";
+                        if ($sks < 40) $errors[] = "SKS lulus minimal 40 (SKS Anda: {$sks})";
+                        if ($semester > 5) $errors[] = "Maksimal semester 5 (semester Anda: {$semester})";
+                    } elseif (in_array($jenjang, ['d3', 'diploma'])) {
+                        if ($ipk < 2.50) $errors[] = "IPK minimal 2.50 (IPK Anda: {$ipk})";
+                        if ($sks < 36) $errors[] = "SKS lulus minimal 36 (SKS Anda: {$sks})";
+                        if ($semester > 5) $errors[] = "Maksimal semester 5 (semester Anda: {$semester})";
+                    } elseif (in_array($jenjang, ['s2', 's3', 'magister', 'doktor'])) {
+                        if ($ipk < 3.00) $errors[] = "IPK minimal 3.00 (IPK Anda: {$ipk})";
+                        if ($sks < 12) $errors[] = "SKS lulus minimal 12 (SKS Anda: {$sks})";
+                        if ($semester > 3) $errors[] = "Maksimal semester 3 (semester Anda: {$semester})";
+                    }
+
+                    if (!empty($errors)) {
+                        return $this->errorResponse(
+                            "Anda belum memenuhi syarat Alih Program: " . implode('; ', $errors),
+                            422
+                        );
+                    }
+                }
+            }
+
+            if ($jenisLayanan->kode_layanan === 'PM-UNDUR') {
+                // Undur diri: alasan wajib
+                if (empty($data['alasan'])) {
+                    return $this->errorResponse('Alasan pengunduran diri wajib diisi', 422);
+                }
+            }
+
             // Generate nomor
             $data['nomor_permohonan'] = $this->repository->generateNomor($jenisLayanan->kode_layanan);
             $data['id_pemohon'] = $user->id_pengguna;
             $data['status'] = 'draft';
             $data['id_creator'] = $user->id_pengguna;
 
-            // Begin transaction + set audit context
+            // Begin transaction + re-check duplikat dengan lock (race condition protection)
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            $existingLocked = $this->repository->pgSelectOne("
+                SELECT id_pengajuan FROM layanan.pengajuan
+                WHERE id_pemohon = ? AND id_jenis_layanan = ?
+                  AND status NOT IN ('terbit', 'ditolak') AND soft_delete = false
+                FOR UPDATE
+            ", [$user->id_pengguna, $data['id_jenis_layanan']]);
+
+            if ($existingLocked) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Pengajuan sedang diproses, silakan coba lagi', 409);
+            }
 
             // Create pengajuan
             $pengajuan = $this->repository->create($data);
 
-            // Create data pemohon snapshot dari pdut user data
-            $this->repository->createDataPemohon([
+            // Create data pemohon snapshot — enrich dari PDUT (SQL Server)
+            $nim = $user->username ?? '';
+            $pdutData = $this->pdutRepository->getStudentByNim($nim);
+
+            $dataPemohon = [
                 'id_pengajuan' => $pengajuan->id_pengajuan,
                 'id_mahasiswa' => $user->id_pengguna,
-                'nim' => $user->username ?? '',
+                'nim' => $nim,
                 'nm_mahasiswa' => $user->nm_pengguna ?? $user->nama ?? '',
                 'id_creator' => $user->id_pengguna,
-                // Fields lain akan di-enrich dari pdut nanti
-            ]);
+            ];
+
+            if ($pdutData) {
+                // Enrich dengan data akademik dari PDUT
+                $dataPemohon = array_merge($dataPemohon, [
+                    'nm_mahasiswa' => $pdutData['nm_mahasiswa'] ?? $dataPemohon['nm_mahasiswa'],
+                    'tempat_lahir' => $pdutData['tempat_lahir'] ?? null,
+                    'tgl_lahir' => $pdutData['tgl_lahir'] ?? null,
+                    'jenis_kelamin' => $pdutData['jenis_kelamin'] ?? null,
+                    'id_fakultas' => $pdutData['id_fakultas'] ?? null,
+                    'nm_fakultas' => $pdutData['nm_fakultas'] ?? null,
+                    'id_prodi' => $pdutData['id_prodi'] ?? null,
+                    'nm_prodi' => $pdutData['nm_prodi'] ?? null,
+                    'id_jenj_didik' => $pdutData['id_jenj_didik'] ?? null,
+                    'nm_jenjang' => $pdutData['nm_jenjang'] ?? null,
+                    'angkatan' => $pdutData['angkatan'] ?? null,
+                    'semester_aktif' => $pdutData['semester_aktif'] ?? null,
+                    'id_smt' => $pdutData['id_smt'] ?? null,
+                    'ipk' => $pdutData['ipk'] ?? null,
+                    'sks_lulus' => $pdutData['sks_lulus'] ?? null,
+                    'masa_studi_semester' => $pdutData['masa_studi_semester'] ?? null,
+                    'status_mahasiswa' => $pdutData['status_registrasi'] ?? null,
+                    'status_registrasi' => $pdutData['status_registrasi'] ?? null,
+                    'status_pembayaran' => $pdutData['status_pembayaran'] ?? null,
+                ]);
+            } else {
+                Log::warning("PDUT enrichment gagal untuk NIM: {$nim} — data_pemohon disimpan dengan data minimal");
+            }
+
+            $this->repository->createDataPemohon($dataPemohon);
 
             // Create riwayat: draft
             $this->repository->createRiwayat([
@@ -157,6 +296,44 @@ class PengajuanController extends Controller
         }
     }
 
+    // =========================================
+    // Referensi dari PDUT (untuk dropdown)
+    // =========================================
+
+    public function refFakultas(): JsonResponse
+    {
+        try {
+            $data = $this->pdutRepository->getFakultasList();
+            return $this->successResponse($data);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.refFakultas: ' . $e->getMessage());
+            return $this->successResponse([]);
+        }
+    }
+
+    public function refProdi(Request $request): JsonResponse
+    {
+        try {
+            $idFakultas = $request->get('id_fakultas');
+            $data = $this->pdutRepository->getProdiByFakultas($idFakultas);
+            return $this->successResponse($data);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.refProdi: ' . $e->getMessage());
+            return $this->successResponse([]);
+        }
+    }
+
+    public function refSemester(): JsonResponse
+    {
+        try {
+            $data = $this->pdutRepository->getSemesterList(20);
+            return $this->successResponse($data);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.refSemester: ' . $e->getMessage());
+            return $this->successResponse([]);
+        }
+    }
+
     /**
      * Upload dokumen persyaratan.
      */
@@ -201,6 +378,81 @@ class PengajuanController extends Controller
     }
 
     /**
+     * Hapus pengajuan draft beserta semua dokumen yang sudah diupload.
+     * Hanya bisa dihapus jika status masih draft dan oleh pemohon sendiri.
+     */
+    public function destroy(Request $request, string $id): JsonResponse
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            if ($pengajuan->status !== 'draft') {
+                return $this->errorResponse('Hanya pengajuan berstatus draft yang dapat dihapus', 422);
+            }
+
+            $user = $request->user();
+            if ($pengajuan->id_pemohon !== $user->id_pengguna) {
+                return $this->errorResponse('Anda tidak memiliki akses untuk menghapus pengajuan ini', 403);
+            }
+
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            // Hapus file dokumen dari storage
+            $dokumenList = $this->repository->getDokumen($id);
+            foreach ($dokumenList as $doc) {
+                if (!empty($doc->path_file)) {
+                    try { $this->minioService->delete($doc->path_file); } catch (\Exception $e) {
+                        Log::warning("Gagal hapus file: {$doc->path_file} — {$e->getMessage()}");
+                    }
+                }
+            }
+
+            // Soft delete semua data terkait
+            $this->repository->pgUpdate("UPDATE layanan.dokumen_pengajuan SET soft_delete = true WHERE id_pengajuan = ?", [$id]);
+            $this->repository->pgUpdate("UPDATE layanan.riwayat_pengajuan SET soft_delete = true WHERE id_pengajuan = ?", [$id]);
+            $this->repository->pgUpdate("UPDATE layanan.data_pemohon SET soft_delete = true WHERE id_pengajuan = ?", [$id]);
+            $this->repository->pgUpdate("UPDATE layanan.pengajuan SET soft_delete = true, id_updater = ? WHERE id_pengajuan = ?", [$user->id_pengguna, $id]);
+
+            $this->repository->pgCommit();
+
+            return $this->successResponse(null, 'Pengajuan draft berhasil dihapus');
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Pengajuan.destroy: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Preview data akademik mahasiswa dari PDUT (sebelum submit pengajuan).
+     */
+    public function myProfile(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $nim = $user->username ?? '';
+
+            $pdutData = $this->pdutRepository->getStudentByNim($nim);
+
+            if (!$pdutData) {
+                return $this->successResponse([
+                    'nim' => $nim,
+                    'nm_mahasiswa' => $user->nm_pengguna ?? $user->nama ?? '',
+                    '_pdut_connected' => false,
+                    '_message' => 'Data akademik tidak tersedia dari sistem PDUT',
+                ]);
+            }
+
+            $pdutData['_pdut_connected'] = true;
+            return $this->successResponse($pdutData);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.myProfile: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Ajukan pengajuan (draft → diajukan).
      */
     public function ajukan(Request $request, string $id): JsonResponse
@@ -212,11 +464,35 @@ class PengajuanController extends Controller
                 return $this->errorResponse('Pengajuan tidak dalam status yang bisa diajukan', 422);
             }
 
+            // Cek dokumen wajib sudah diupload
+            $dokumen = $this->repository->getDokumen($id);
+            $jenisLayanan = $this->jenisLayananRepo->findById($pengajuan->id_jenis_layanan);
+            if ($jenisLayanan) {
+                $persyaratanWajib = $this->repository->pgSelect(
+                    "SELECT id_persyaratan, nm_dokumen FROM ref.persyaratan_layanan WHERE id_jenis_layanan = ? AND a_wajib = true AND soft_delete = false",
+                    [$pengajuan->id_jenis_layanan]
+                );
+                foreach ($persyaratanWajib as $req) {
+                    $found = false;
+                    foreach ($dokumen as $doc) {
+                        if ($doc->id_persyaratan === $req->id_persyaratan) { $found = true; break; }
+                    }
+                    if (!$found) {
+                        return $this->errorResponse("Dokumen wajib \"{$req->nm_dokumen}\" belum diupload", 422);
+                    }
+                }
+            }
+
             $user = $request->user();
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
             $statusDari = $pengajuan->status;
-            $this->repository->updateStatus($id, 'diajukan', $user->id_pengguna);
+            // Update status dengan expected status (race condition protection)
+            $updated = $this->repository->updateStatus($id, 'diajukan', $user->id_pengguna, $pengajuan->status);
+            if (!$updated) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Status pengajuan sudah berubah. Silakan refresh halaman.', 409);
+            }
 
             $riwayatCount = count($this->repository->getRiwayat($id));
             $this->repository->createRiwayat([

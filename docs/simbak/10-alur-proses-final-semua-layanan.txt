@@ -1,0 +1,627 @@
+================================================================================
+ALUR PROSES FINAL SEMUA LAYANAN SIMBAK (SI MBAK)
+Universitas Lampung — Biro Akademik dan Kemahasiswaan
+Tanggal: 9 April 2026
+================================================================================
+
+DAFTAR LAYANAN:
+  A. Surat Mandiri (4 layanan)
+     1. SK-LOA   — Surat Keterangan Diterima sebagai Mahasiswa Baru (LoA)
+     2. SK-KTM   — Surat Keterangan Pengganti KTM
+     3. SK-PKKMB — Surat Keterangan Pengganti Sertifikat PKKMB
+     4. SK-HERREG — Surat Keterangan Herregistrasi
+
+  B. Permohonan Akademik (3 layanan)
+     5. PM-CUTI  — Cuti Akademik
+     6. PM-UNDUR — Undur Diri
+     7. PM-ALIH  — Alih Program / Pindah Studi
+
+  C. Batch Administrasi (2 layanan)
+     8. BA-HMM   — Penetapan Habis Masa Mukim
+     9. BA-PUTUS — Penetapan Putus Studi Akademik
+
+  D. Monitoring (1 layanan)
+     10. MO-AKTIF — Monitoring Mahasiswa Aktif & Lulusan
+
+
+================================================================================
+A. SURAT MANDIRI
+================================================================================
+Berlaku untuk: SK-LOA, SK-KTM, SK-PKKMB, SK-HERREG
+Inisiator: Mahasiswa
+Tahapan: 3 tahap
+SLA: SK-LOA/KTM/PKKMB = 3 hari, SK-HERREG = 2 hari
+
+ALUR:
+----------------------------------------------------------------------
+Tahap 1 — Mahasiswa: Pengajuan
+  Status: draft -> diajukan
+  Aktor: Mahasiswa
+  Proses:
+    - Mahasiswa membuka halaman Surat Mandiri
+    - Memilih jenis surat yang akan diajukan
+    - Melihat data akademik (dari PDUT: nama, NIM, prodi, fakultas, IPK)
+    - Mengisi formulir (alasan permohonan)
+    - Mengunggah dokumen persyaratan sesuai jenis layanan
+    - Review ringkasan pengajuan
+    - Klik "Ajukan Pengajuan" atau "Simpan Draft"
+  Validasi:
+    - Semua dokumen wajib harus diupload
+    - Tidak boleh ada pengajuan sama yang masih aktif (duplikat)
+    - SK-HERREG: status registrasi harus "Aktif" (auto-reject jika cuti/non-aktif)
+    - SK-PKKMB: validasi manual oleh admin via dokumen "SK Lulus PKKMB dari Fakultas"
+  Dokumen Persyaratan:
+    SK-LOA   : Surat Permohonan Mahasiswa dan Wali, KTM Sementara, Slip UKT
+    SK-KTM   : KTM Sementara, SK Mahasiswa Aktif/Lulus PKKMB, Surat Kehilangan Polisi
+    SK-PKKMB : Scan KTM Asli, SK Lulus PKKMB dari Fakultas, Surat Kehilangan Polisi
+    SK-HERREG: Bukti Pembayaran UKT Semester Berjalan
+
+----------------------------------------------------------------------
+Tahap 2 — Admin BAK: Verifikasi
+  Status: diajukan -> diverifikasi
+  Aktor: Admin BAK
+  Proses:
+    - Admin BAK melihat daftar pengajuan masuk (queue)
+    - Membuka detail pengajuan
+    - Memeriksa kelengkapan dan kebenaran dokumen (preview/download)
+    - Memberikan catatan verifikasi (opsional)
+    - Keputusan:
+      a. Verifikasi -> lanjut ke tahap 3
+      b. Minta Perbaikan -> dikembalikan ke mahasiswa
+      c. Tolak -> pengajuan ditolak (alasan wajib)
+  [PLAN] Notifikasi:
+    - Jika "Perlu Perbaikan" -> email ke mahasiswa:
+      "Pengajuan Anda perlu diperbaiki. Catatan: {{catatan}}"
+    - Jika "Ditolak" -> email ke mahasiswa:
+      "Pengajuan Anda ditolak. Alasan: {{catatan}}"
+
+----------------------------------------------------------------------
+Tahap 3 — Admin BAK: Penerbitan Surat
+  Status: diverifikasi -> terbit
+  Aktor: Admin BAK
+  Proses:
+    - Admin BAK membuat draf surat keterangan
+    - Surat ditandatangani (proses di luar sistem)
+    - Admin membuka modal "Terbitkan Surat"
+    - Mengisi nomor surat dan tanggal surat
+    - Mengunggah file surat yang sudah ditandatangani (PDF)
+    - Klik "Terbitkan Surat"
+    - Status berubah menjadi "Terbit"
+    - Mahasiswa dapat mengunduh surat dari halaman Riwayat
+  [PLAN] Notifikasi:
+    - Email ke mahasiswa:
+      "Surat/SK Anda telah terbit. Silakan download di portal SIMBAK"
+  Output:
+    - Surat Keterangan dalam format PDF
+
+
+================================================================================
+B. PERMOHONAN AKADEMIK — CUTI & UNDUR DIRI
+================================================================================
+Berlaku untuk: PM-CUTI, PM-UNDUR
+Inisiator: Mahasiswa
+Tahapan: 5 tahap
+SLA: 14 hari
+
+ALUR:
+----------------------------------------------------------------------
+Tahap 1 — Mahasiswa: Pengajuan
+  Status: draft -> diajukan
+  Aktor: Mahasiswa
+  Proses:
+    - Mahasiswa membuka halaman Permohonan Akademik
+    - Memilih jenis permohonan (Cuti / Undur Diri)
+    - Melihat data akademik (dari PDUT)
+    - Mengisi formulir:
+      PM-CUTI  : alasan, semester mulai cuti, jumlah semester cuti (1-2)
+      PM-UNDUR : alasan pengunduran diri
+    - Mengunggah dokumen persyaratan
+    - Review ringkasan pengajuan
+    - Klik "Ajukan"
+  Validasi:
+    - Semua dokumen wajib harus diupload
+    - Tidak boleh ada pengajuan sama yang masih aktif
+    - PM-CUTI: jumlah semester cuti wajib (1-2), tidak boleh di semester 1
+    - PM-UNDUR: alasan wajib diisi, muncul warning konsekuensi
+  Dokumen Persyaratan:
+    PM-CUTI  : Surat Permohonan & Wali, KTM Asli, Slip UKT, Surat Pengantar Prodi
+    PM-UNDUR : Surat Permohonan & Wali, KTM Asli, Slip UKT, Surat Pengantar Prodi
+
+----------------------------------------------------------------------
+Tahap 2 — Admin Fakultas: Verifikasi
+  Status: diajukan -> diverifikasi
+  Aktor: Admin Fakultas
+  Proses:
+    - Admin Fakultas memeriksa kelengkapan dokumen
+    - Cek kesesuaian data akademik
+    - Mengunggah surat pengantar dari Dekan/WD I
+    - Keputusan: Verifikasi / Minta Perbaikan / Tolak
+  [PLAN] Notifikasi (jika perbaikan/tolak): email ke mahasiswa
+
+----------------------------------------------------------------------
+Tahap 3 — Admin BAK: Verifikasi Akhir
+  Status: diverifikasi -> menunggu_persetujuan
+  Aktor: Admin BAK
+  Proses:
+    - Admin BAK verifikasi akhir terhadap seluruh dokumen
+    - Keputusan: Verifikasi / Minta Perbaikan / Tolak
+
+----------------------------------------------------------------------
+Tahap 4 — Pejabat: Persetujuan
+  Status: menunggu_persetujuan -> disetujui
+  Aktor: Pejabat (Rektor/Wakil Rektor)
+  Proses:
+    - Pejabat melihat daftar pengajuan yang menunggu persetujuan
+    - Memeriksa ringkasan dan dokumen
+    - Keputusan: Setujui / Tolak (alasan wajib jika tolak)
+  [PLAN] Notifikasi (jika ditolak): email ke mahasiswa
+
+----------------------------------------------------------------------
+Tahap 5 — Admin BAK: Penerbitan Dokumen
+  Status: disetujui -> terbit
+  Aktor: Admin BAK
+  Proses:
+    - Admin BAK membuat draf SK / Surat Keterangan
+    - Upload file yang sudah ditandatangani (PDF)
+    - Mengisi nomor dokumen dan tanggal
+    - Klik "Terbitkan"
+    - PM-UNDUR: satu SK bisa memuat lebih dari satu mahasiswa (batch)
+  [PLAN] Notifikasi:
+    - Email ke mahasiswa: "Surat/SK Anda telah terbit"
+  Output:
+    PM-CUTI  : Surat Keterangan Cuti Akademik Mahasiswa
+    PM-UNDUR : Surat Keputusan Rektor tentang Pengunduran Diri
+
+
+================================================================================
+B. PERMOHONAN AKADEMIK — ALIH PROGRAM / PINDAH STUDI
+================================================================================
+Berlaku untuk: PM-ALIH
+Inisiator: Mahasiswa
+Tahapan: 5 tahap (revisi 9 April 2026 — tahap Pejabat dihilangkan)
+SLA: 30 hari
+
+SYARAT AKADEMIK:
+  S1 -> S1 (internal Unila) : IPK >= 2.75, SKS >= 40, maks semester 5
+  S1 -> D3                  : IPK >= 2.00, SKS >= 30, maks semester 5
+  D3 -> D3 (internal Unila) : IPK >= 2.50, SKS >= 36, maks semester 5
+  D3 -> D3 (luar Unila)     : IPK >= 3.00, SKS >= 36, maks semester 5
+  S2/S3 (internal Unila)    : IPK >= 3.00, SKS >= 12, maks semester 3
+  S2/S3 (luar Unila)        : IPK >= 3.25, SKS >= 12, maks semester 3
+
+ALUR:
+----------------------------------------------------------------------
+Tahap 1 — Mahasiswa: Pengajuan
+  Status: draft -> diajukan
+  Aktor: Mahasiswa
+  Proses:
+    - Memilih fakultas tujuan dan prodi tujuan (dropdown cascading)
+    - Sistem menampilkan card syarat akademik (hijau/merah per syarat)
+    - Mengisi alasan pindah studi
+    - Mengunggah 6 dokumen persyaratan
+    - Review dan submit
+  Validasi:
+    - Prodi tujuan wajib dipilih
+    - Syarat IPK/SKS/semester harus terpenuhi (block submit jika gagal)
+    - Tidak boleh ada pengajuan sama yang masih aktif
+  Dokumen Persyaratan:
+    - Surat Permohonan Mahasiswa dan Wali
+    - Surat Keterangan Tidak Melanggar Tata Tertib
+    - Surat Keterangan Tidak Diputus Studi
+    - Transkrip Akademik
+    - Surat Keterangan Berkelakuan Baik dari Fakultas
+    - Bukti Pembayaran UKT Terakhir
+
+----------------------------------------------------------------------
+Tahap 2 — Admin Fakultas Asal: Verifikasi
+  Status: diajukan -> diverifikasi
+  Aktor: Admin Fakultas Asal
+  Proses:
+    - Verifikasi kelengkapan dokumen
+    - Cek kesesuaian data akademik mahasiswa
+    - Upload surat pengantar dari Dekan/WD I kepada Rektor/WR I ke SIMBAK
+    - Jika tidak lengkap -> minta perbaikan
+    - [Di luar sistem]: Kirim surat pengantar dan dokumen melalui SAP ke Rektor/WR1
+    - [Di luar sistem]: WR1 mendisposisikan surat ke fakultas tujuan via SAP
+  [PLAN] Notifikasi (jika perbaikan/tolak): email ke mahasiswa
+
+----------------------------------------------------------------------
+Tahap 3 — Admin Fakultas Tujuan: Proses Penerimaan
+  Status: diverifikasi -> menunggu_persetujuan
+  Aktor: Admin Fakultas Tujuan
+  Proses:
+    - Menerima disposisi (di luar sistem — sudah via SAP)
+    - Verifikasi semua dokumen pengajuan
+    - Wawancara (jika diperlukan) -> hasil dicatat
+    - Keputusan: diterima atau ditolak
+    - Jika diterima:
+      - Upload daftar konversi SKS (mata kuliah asal -> tujuan -> SKS diakui)
+    - Jika ditolak:
+      - Pengajuan ditolak + alasan
+    - Buat surat balasan dari WR1 bahwa mahasiswa diterima/ditolak
+    - Upload ke SIMBAK:
+      - Disposisi
+      - Dokumen penilaian / hasil wawancara
+      - Dokumen konversi SKS (jika diterima)
+      - Surat pengantar bahwa mahasiswa diterima/ditolak
+    - [Di luar sistem]: Upload juga ke SAP
+  Endpoint khusus: POST /approval/{id}/terima-tujuan
+  Data disimpan: a_diterima_tujuan, hasil_wawancara, daftar_konversi_sks
+  [PLAN] Notifikasi (jika ditolak): email ke mahasiswa
+
+----------------------------------------------------------------------
+Tahap 4 — Admin BAK: Verifikasi Akhir
+  Status: menunggu_persetujuan -> disetujui
+  Aktor: Admin BAK
+  Proses:
+    - Verifikasi seluruh dokumen dan hasil proses lintas fakultas
+    - Pastikan semua persyaratan administratif terpenuhi
+    - Jika diterima -> buat SK Rektor
+    - Jika ditolak -> buat Surat Penolakan Wakil Rektor
+
+----------------------------------------------------------------------
+Tahap 5 — Admin BAK: Penerbitan SK Rektor / Surat Penolakan
+  Status: disetujui -> terbit
+  Aktor: Admin BAK
+  Proses:
+    Jika disetujui:
+      - Buat draf SK Rektor tentang Alih Program / Pindah Studi
+      - Nama yang ditolak TIDAK masuk ke SK
+      - Upload SK yang sudah ditandatangani (PDF)
+    Jika ditolak:
+      - Buat surat penolakan
+      - Upload surat penolakan (PDF)
+    - Status -> terbit
+    - Mahasiswa dapat mengunduh dari portal
+  [PLAN] Notifikasi:
+    - Jika terbit: email ke mahasiswa "SK/Surat telah terbit"
+    - Jika ditolak: email ke mahasiswa "Pengajuan ditolak"
+  Output:
+    - SK Rektor tentang Alih Program / Pindah Studi (untuk yang diterima)
+    - Surat Penolakan Wakil Rektor (untuk yang ditolak)
+
+  Catatan:
+    - Integrasi SAP tidak masuk scope SIMBAK
+
+
+================================================================================
+[PLAN] B. PERMOHONAN AKADEMIK — ALIH PROGRAM DARI LUAR UNILA
+================================================================================
+Berlaku untuk: PM-ALIH dengan flag a_dari_luar = TRUE
+Inisiator: Admin BAK (calon mahasiswa tidak punya akun SSO Unila)
+Tahapan: 4 tahap (skip Fakultas Asal, tanpa tahap Pejabat — sama dengan internal)
+SLA: 30 hari
+Pendekatan: Opsi B — satu jenis layanan ALIH_PROGRAM + flag a_dari_luar
+
+PROSES DI LUAR SISTEM (SEBELUM MASUK SIMBAK):
+  1. Calon mahasiswa mengirimkan surat permohonan pindah ke Rektor/WR I
+  2. Rektor/WR I mendisposisikan surat ke BAK (melalui SAP)
+  3. BAK menerima disposisi → mulai input ke SIMBAK
+
+PERBEDAAN DENGAN PM-ALIH INTERNAL:
+  - Inisiator bukan mahasiswa, melainkan Admin BAK
+  - Data pemohon diinput manual (tidak ada di PDUT)
+  - Validasi syarat akademik manual (dari transkrip PT asal)
+  - Tidak ada tahap Fakultas Asal — langsung ke Fakultas Tujuan
+  - Tahap Pejabat TIDAK ada (sama dengan internal — approval via SAP di luar sistem)
+  - Perlu ALTER tabel (lihat docs/simbak/09-catatan-teknis-development.md bagian 14)
+
+ALUR:
+----------------------------------------------------------------------
+Tahap 1 — Admin BAK: Input Pengajuan (Atas Nama Pemohon)
+  Status: draft -> diajukan
+  Aktor: Admin BAK
+  Proses:
+    - Admin BAK menerima disposisi dari Rektor/WR I (di luar sistem)
+    - Admin BAK membuat pengajuan di SIMBAK:
+      - Centang flag "Dari Luar Unila"
+      - Input data pemohon manual:
+        - Nama lengkap, NIM asal, nama PT asal, prodi asal, jenjang
+        - Tempat/tanggal lahir, jenis kelamin
+        - IPK, SKS lulus, semester aktif (dari transkrip)
+      - Pilih fakultas tujuan dan prodi tujuan di Unila (dropdown cascading)
+      - Mengisi alasan pindah studi
+      - Scan & upload dokumen persyaratan
+    - Status: draft -> diajukan
+  Validasi:
+    - Semua dokumen wajib harus diupload
+    - Data pemohon wajib diisi lengkap (nama, NIM asal, PT asal)
+    - Prodi tujuan wajib dipilih
+    - Validasi syarat akademik TIDAK otomatis (admin menilai dari transkrip)
+  Dokumen Persyaratan:
+    - Surat permohonan mahasiswa dan wali
+    - Transkrip akademik dari PT asal (legalisir)
+    - Surat keterangan pindah dari PT asal
+    - Surat keterangan berkelakuan baik dari PT asal
+    - Bukti akreditasi prodi asal (minimal B / Baik Sekali)
+    - Fotokopi KTP / identitas
+    - Disposisi dari Rektor/WR I
+
+----------------------------------------------------------------------
+Tahap 2 — Admin Fakultas Tujuan: Verifikasi & Proses Penerimaan
+  Status: diajukan -> diverifikasi  (atau: diajukan -> menunggu_persetujuan)
+  Aktor: Admin Fakultas Tujuan
+  Proses:
+    - Menerima disposisi dari WR I (di luar sistem — via SAP)
+    - Verifikasi kelengkapan dan keabsahan dokumen di SIMBAK
+    - Koordinasi dengan Kaprodi untuk penilaian akademik:
+      - Wawancara (jika diperlukan) — hasil dicatat
+      - Evaluasi transkrip — buat daftar konversi SKS
+    - Keputusan: diterima / ditolak
+    - Jika diterima:
+      - Upload daftar konversi SKS
+      - Upload surat rekomendasi dari Dekan
+      - Upload surat balasan dari WR I (diterima)
+    - Jika ditolak:
+      - Alasan wajib diisi
+      - Upload surat balasan dari WR I (ditolak)
+    - [Di luar sistem]: Upload juga ke SAP
+  Catatan:
+    - TIDAK ada tahap "Admin Fakultas Asal" karena PT asal di luar Unila
+    - Langsung masuk ke fakultas tujuan
+    - Proses sama dengan Tahap 3 PM-ALIH Internal (Proses Penerimaan)
+  Endpoint khusus: POST /approval/{id}/terima-tujuan (sama dengan internal)
+
+----------------------------------------------------------------------
+Tahap 3 — Admin BAK: Verifikasi Akhir
+  Status: menunggu_persetujuan -> disetujui
+  Aktor: Admin BAK
+  Proses:
+    - Review hasil proses dari fakultas tujuan
+    - Pastikan persyaratan administratif lengkap
+    - Jika diterima -> siapkan SK Rektor
+    - Jika ditolak -> siapkan Surat Penolakan
+
+----------------------------------------------------------------------
+Tahap 4 — Admin BAK: Penerbitan SK Rektor / Surat Penolakan
+  Status: disetujui -> terbit
+  Aktor: Admin BAK
+  Proses:
+    Jika diterima:
+      - Buat SK Rektor tentang Penerimaan Pindah Studi
+      - Upload SK yang sudah ditandatangani (PDF)
+    Jika ditolak:
+      - Buat surat penolakan
+      - Upload surat penolakan (PDF)
+    - Status -> terbit
+  [PLAN] Notifikasi:
+    - Tidak ada notifikasi otomatis (pemohon tidak punya akun di sistem)
+    - Admin BAK menghubungi pemohon secara manual (telepon/email)
+  Output:
+    - SK Rektor tentang Penerimaan Pindah Studi (jika diterima)
+    - Surat Penolakan Wakil Rektor (jika ditolak)
+
+  Tindak lanjut di luar sistem (jika diterima):
+    - Mahasiswa daftar ulang di Unila
+    - Dibuatkan NIM baru
+    - Data dimasukkan ke SIAKADU
+    - Konversi SKS diproses oleh prodi tujuan
+
+
+================================================================================
+C. BATCH ADMINISTRASI — HABIS MASA MUKIM (BA-HMM)
+================================================================================
+Inisiator: Admin BAK
+Tahapan: 5 tahap
+SLA: 60 hari
+Dasar aturan: Pertor No. 12 Tahun 2025 tentang PA Pasal 24
+
+KRITERIA:
+  D3 : >= 13 semester (batas 6 tahun / 12 semester)
+  S1 : >= 17 semester (batas 8 tahun / 16 semester)
+  S2 : >= 9 semester  (batas 4 tahun / 8 semester)
+  S3 : >= 13 semester (batas 6 tahun / 12 semester)
+
+ALUR:
+----------------------------------------------------------------------
+Tahap 1 — Admin BAK: Tarik Data Kandidat
+  Status: draft -> kandidat_ditarik
+  Aktor: Admin BAK
+  Proses:
+    - Admin memilih jenis penetapan (HMM) dan semester
+    - Opsional: filter per fakultas
+    - Klik "Preview Kandidat" -> sistem query PDUT berdasarkan kriteria
+    - Menampilkan tabel preview kandidat sebelum konfirmasi
+    - Mengisi nama batch dan catatan
+    - Klik "Buat Batch & Tarik Data"
+    - Sistem otomatis:
+      - Query mahasiswa aktif yang masa studi >= batas per jenjang
+      - Menyimpan snapshot data akademik per kandidat
+      - Menyimpan kriteria seleksi sebagai bukti audit
+    - [PLAN] Notifikasi (tidak ada untuk HMM)
+
+----------------------------------------------------------------------
+Tahap 2 — Admin Fakultas: Verifikasi Kandidat
+  Status: kandidat_ditarik -> verifikasi_fakultas
+  Aktor: Admin Fakultas
+  Proses:
+    - Admin Fakultas melihat daftar batch yang menunggu verifikasi
+    - Filter kandidat per fakultas
+    - Per kandidat, keputusan:
+      a. Konfirmasi (centang) -> kandidat tetap masuk
+      b. Keluarkan (X) -> kandidat dikeluarkan + alasan wajib
+    - Alasan exclude HANYA 2:
+      a. "Sudah mengajukan undur diri"
+      b. "Meninggal dunia"
+    - Input alasan: text input (diketik manual, BUKAN dropdown/select)
+      agar admin bisa menjelaskan detail tambahan jika perlu
+    - Data verifikasi tersimpan per kandidat
+
+----------------------------------------------------------------------
+Tahap 3 — Admin Fakultas: Upload SK Dekan + Finalisasi Verifikasi
+  Status: verifikasi_fakultas -> sk_dekan_terbit
+  Aktor: Admin Fakultas
+  Proses:
+    - Semua kandidat harus sudah diverifikasi (tidak boleh ada status "masuk")
+    - Upload file SK Dekan (PDF) + nomor SK + tanggal
+    - Klik "Finalisasi Verifikasi Fakultas"
+    - Data kandidat TERKUNCI — tidak bisa diubah lagi
+    - Export CSV kandidat tersedia (untuk pembuatan SK)
+  Validasi:
+    - SK Dekan harus sudah diupload
+    - Semua kandidat harus sudah diverifikasi
+
+----------------------------------------------------------------------
+Tahap 4 — Admin BAK: Review & Finalisasi
+  Status: sk_dekan_terbit -> (proses internal)
+  Aktor: Admin BAK
+  Proses:
+    - Review hasil verifikasi semua fakultas
+    - Compile daftar final dari semua fakultas
+    - Susun draf SK Rektor tentang Penetapan Habis Masa Mukim
+
+----------------------------------------------------------------------
+Tahap 5 — Admin BAK: Penerbitan SK Rektor
+  Status: -> terbit
+  Aktor: Admin BAK
+  Proses:
+    - Upload file SK Rektor (PDF) + nomor SK + tanggal
+    - Klik "Finalkan & Terbitkan SK Rektor"
+    - Status batch -> terbit
+  Output:
+    - SK Dekan tentang Penetapan Habis Masa Mukim (per fakultas)
+    - SK Rektor tentang Penetapan Habis Masa Mukim (gabungan semua fakultas)
+
+
+================================================================================
+C. BATCH ADMINISTRASI — PUTUS STUDI AKADEMIK (BA-PUTUS)
+================================================================================
+Inisiator: Admin BAK
+Tahapan: 5 tahap (sama dengan HMM)
+SLA: 60 hari
+Dasar aturan: Pertor No. 12 Tahun 2025 tentang PA Pasal 48
+
+KRITERIA:
+  Mahasiswa S1/D4 akhir semester IV : IPK < 2.00 ATAU SKS lulus < 40
+  Mahasiswa S1/D4 akhir semester VIII: IPK < 2.00 ATAU SKS lulus < 80
+
+ALUR:
+----------------------------------------------------------------------
+  Sama dengan BA-HMM (tahap 1-5), dengan perbedaan:
+
+  Tahap 2 — Verifikasi Kandidat:
+    - Alasan exclude lebih beragam (diketik pada input text, BUKAN select):
+      a. "Mahasiswa double degree"
+      b. "Jalur RPL (Rekognisi Pembelajaran Lampau)"
+      c. "Diberi kesempatan lanjut studi"
+      d. Alasan lain yang relevan (admin mengetik sendiri)
+    - Input alasan: text input (diketik manual, BUKAN dropdown/select)
+      agar admin bisa menjelaskan alasan sesuai kondisi spesifik mahasiswa
+
+  Tahap 1 — Tarik Data Kandidat:
+    - Kriteria: mahasiswa semester IV atau VIII dengan IPK < 2.00 atau SKS < syarat
+    - [PLAN] Notifikasi email + WhatsApp ke kandidat:
+      "Anda masuk dalam daftar evaluasi akademik semester {{semester}}.
+       Mohon TIDAK melakukan pembayaran UKT sampai ada keputusan resmi.
+       Silakan hubungi Biro Akademik dan Kemahasiswaan untuk informasi lebih lanjut."
+
+  Tahap 5 — Penerbitan SK Rektor:
+    - Catatan khusus: notifikasi harus mencantumkan peringatan agar
+      tidak melakukan pembayaran UKT jika sudah masuk penetapan final
+
+  Output:
+    - SK Dekan tentang Penetapan Putus Studi Akademik (per fakultas)
+    - SK Rektor tentang Penetapan Putus Studi Akademik (gabungan)
+
+
+================================================================================
+D. MONITORING MAHASISWA AKTIF & LULUSAN (MO-AKTIF)
+================================================================================
+Inisiator: Admin BAK
+Tidak ada tahapan workflow — dashboard read-only
+
+FUNGSI:
+----------------------------------------------------------------------
+  1. Tab Mahasiswa Aktif
+     - Daftar mahasiswa berstatus aktif dari PDUT
+     - Filter: fakultas, prodi (cascading), jenjang, angkatan, search
+     - Data: NIM, nama, prodi, fakultas, jenjang, angkatan, semester, IPK
+     - Export CSV
+
+  2. Tab Lulusan
+     - Daftar mahasiswa yang sudah lulus dari PDUT
+     - Filter: fakultas, prodi, jenjang, tahun lulus, search
+     - Data: NIM, nama, prodi, fakultas, jenjang, angkatan, tahun lulus,
+             masa studi, IPK, indikator tepat waktu (hijau/merah)
+     - Export CSV
+
+  3. Stat Cards
+     - Total Mahasiswa Aktif
+     - Total Lulusan
+     - Persentase Tepat Waktu (%)
+     - Rata-rata Masa Studi (semester)
+
+  4. Kriteria Kelulusan Tepat Waktu (KTW)
+     D3 : <= 3 tahun (<= 6 semester)
+     S1 : <= 4 tahun (<= 8 semester)
+     S2 : <= 2 tahun (<= 4 semester)
+     S3 : <= 3 tahun (<= 6 semester)
+
+  5. [PLAN] Exclusion dari Perhitungan KTW
+     - Jalur RPL (Rekognisi Pembelajaran Lampau)
+     - Jalur Studi Lanjut (D3 ke S1)
+     - Status: menunggu data jalur masuk di PDUT (kolom id_jalur_daftar kosong)
+
+
+================================================================================
+RINGKASAN STATUS NOTIFIKASI [PLAN]
+================================================================================
+Semua notifikasi di bawah ini masih dalam tahap perencanaan (belum diimplementasi).
+Implementasi menunggu: SMTP config, WhatsApp API provider, Redis queue worker.
+
+  Channel   : Email + WhatsApp (bertahap)
+  Framework : Adopsi dari SI Registrasi (SMTP dinamis dari DB, template DB, Redis queue)
+
+  NOTIFIKASI PERUBAHAN STATUS (berlaku semua layanan):
+  +---------------------+----------+--------------------------------------------+
+  | Status              | Kirim?   | Isi Notifikasi                             |
+  +---------------------+----------+--------------------------------------------+
+  | perlu_perbaikan     | Ya       | Pengajuan perlu diperbaiki + catatan        |
+  | ditolak             | Ya       | Pengajuan ditolak + alasan                 |
+  | terbit              | Ya       | Surat/SK telah terbit, silakan download     |
+  | diajukan            | Tidak    | -                                          |
+  | diverifikasi        | Tidak    | -                                          |
+  | menunggu_persetujuan| Tidak    | -                                          |
+  | disetujui           | Tidak    | -                                          |
+  +---------------------+----------+--------------------------------------------+
+
+  NOTIFIKASI KHUSUS BATCH:
+  +---------------------+----------+--------------------------------------------+
+  | Event               | Kirim?   | Isi Notifikasi                             |
+  +---------------------+----------+--------------------------------------------+
+  | BA-PUTUS kandidat   | Ya       | Peringatan JANGAN bayar UKT                |
+  | BA-HMM kandidat     | Tidak    | -                                          |
+  +---------------------+----------+--------------------------------------------+
+
+  PRIORITAS IMPLEMENTASI:
+  Fase 1 (Tinggi)  : Email BA-PUTUS early warning UKT
+  Fase 2 (Tinggi)  : Email BA-HMM early warning masa studi
+  Fase 3 (Sedang)  : Email perubahan status (perbaikan/ditolak/terbit)
+  Fase 4 (Rendah)  : Integrasi WhatsApp untuk semua notifikasi
+
+
+================================================================================
+CATATAN UMUM
+================================================================================
+  1. Semua layanan menggunakan WorkflowService yang membaca tahapan dari
+     database (ref.tahapan_layanan) — tidak hardcode di kode
+
+  2. Role "Developer" bisa memproses tahapan manapun (untuk testing)
+     tapi tetap sesuai urutan — riwayat tercatat dengan kode_role yang benar
+
+  3. Setiap transisi status dilindungi race condition:
+     - Duplikat pengajuan: SELECT ... FOR UPDATE
+     - Status overwrite: WHERE status = expected_status
+     - Verifikasi kandidat ganda: cek existing sebelum insert
+     - Ajukan: validasi dokumen wajib di backend
+
+  4. Integrasi SAP tidak masuk scope SIMBAK — proses disposisi surat
+     untuk PM-ALIH dilakukan di luar sistem
+
+  5. [PLAN] PM-ALIH Luar Unila menggunakan Opsi B (flag a_dari_luar pada
+     tabel pengajuan, bukan jenis layanan terpisah). Perlu ALTER tabel.
+     Detail implementasi: docs/simbak/09-catatan-teknis-development.md bagian 14
+
+  6. PM-ALIH: tahap Pejabat dihilangkan baik internal maupun luar Unila
+     (proses persetujuan Rektor/WR I dilakukan via SAP di luar sistem)
+     Perbedaan luar Unila: tahap 1 oleh Admin BAK, skip Fakultas Asal

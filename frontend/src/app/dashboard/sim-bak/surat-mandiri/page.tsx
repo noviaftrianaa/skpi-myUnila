@@ -6,7 +6,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody } from "@heroui/react";
-import { FiFileText, FiCreditCard, FiAward, FiBookOpen, FiArrowRight, FiAlertCircle } from "react-icons/fi";
+import { FiFileText, FiCreditCard, FiAward, FiBookOpen, FiArrowRight } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { getJenisLayananPublic, getPersyaratanByLayanan } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan } from "@/lib/services/sim-bak/types";
@@ -37,7 +37,7 @@ export default function SuratMandiriPage() {
     const fetchData = async () => {
       try {
         const allLayanan = await getJenisLayananPublic();
-        const filtered = allLayanan.filter(j => j.kategori === "surat_mandiri" && j.a_aktif);
+        const filtered = allLayanan.filter(j => j.kategori === "surat_mandiri");
         setSuratMandiri(filtered);
 
         // Fetch persyaratan count per layanan
@@ -69,26 +69,39 @@ export default function SuratMandiriPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20"><Spinner size="lg" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="animate-pulse rounded-xl bg-white dark:bg-gray-800 shadow-md overflow-hidden">
+                <div className="h-32 bg-gray-200 dark:bg-gray-700" />
+                <div className="p-4 space-y-2">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-700/50 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : suratMandiri.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <FiAlertCircle className="w-12 h-12 mb-3" />
-            <p>Belum ada layanan surat mandiri tersedia</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-300 mb-4">
+              <FiFileText className="w-10 h-10" />
+            </div>
+            <p className="text-base font-medium text-gray-700 dark:text-gray-300">Belum ada layanan surat mandiri</p>
+            <p className="text-sm text-gray-500 mt-1">Hubungi admin untuk mengaktifkan layanan</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {suratMandiri.map((layanan) => (
-              <Card key={layanan.id_jenis_layanan} className="border-none shadow-lg rounded-xl overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group" isPressable
+              <Card key={layanan.id_jenis_layanan} className="border-none shadow-lg rounded-xl overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group flex flex-col h-full" isPressable
                 onPress={() => router.push(`/dashboard/sim-bak/surat-mandiri/${layanan.kode_layanan}`)}>
-                <CardBody className="p-0">
-                  <div className={`p-5 bg-gradient-to-br ${colorMap[layanan.kode_layanan] || "from-gray-500 to-gray-600"} text-white`}>
-                    <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      {iconMap[layanan.kode_layanan] || <FiFileText className="w-8 h-8" />}
+                <CardBody className="p-0 flex flex-col h-full">
+                  <div className={`p-5 bg-gradient-to-br ${colorMap[layanan.kode_layanan] || "from-gray-500 to-gray-600"} text-white h-[180px] flex flex-col`}>
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-auto group-hover:scale-110 transition-transform">
+                      {iconMap[layanan.kode_layanan] || <FiFileText className="w-7 h-7" />}
                     </div>
-                    <h3 className="font-bold text-lg">{layanan.nm_layanan}</h3>
+                    <h3 className="font-bold text-base leading-snug">{layanan.nm_layanan}</h3>
                   </div>
-                  <div className="p-4 bg-white dark:bg-gray-800">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{layanan.deskripsi}</p>
+                  <div className="p-4 bg-white dark:bg-gray-800 flex flex-col flex-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 flex-1">{layanan.deskripsi}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         {persyaratanCount[layanan.id_jenis_layanan] ?? 0} persyaratan

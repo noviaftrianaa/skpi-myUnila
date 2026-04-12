@@ -5,22 +5,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
-import { Spinner, Chip, Button, Card, CardBody } from "@heroui/react";
-import { FiEye, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiRotateCcw, FiAlertCircle } from "react-icons/fi";
+import { Spinner, Chip, Button, Card, CardBody, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
+import { FiEye, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiRotateCcw, FiEdit, FiTrash2, FiMoreVertical } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
-import { getMyPengajuan, getJenisLayananPublic } from "@/lib/services/sim-bak/simBakService";
+import { getMyPengajuan, getJenisLayananPublic, deletePengajuanDraft } from "@/lib/services/sim-bak/simBakService";
+import toast, { Toaster } from "react-hot-toast";
 import type { Pengajuan, StatusPengajuan, JenisLayanan } from "@/lib/services/sim-bak/types";
-
-const statusColorMap: Record<StatusPengajuan, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
-  draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
-  menunggu_persetujuan: "warning", disetujui: "success", ditolak: "danger", terbit: "success",
-};
-const statusLabelMap: Record<StatusPengajuan, string> = {
-  draft: "Draft", diajukan: "Diajukan", perlu_perbaikan: "Perlu Perbaikan", diverifikasi: "Diverifikasi",
-  menunggu_persetujuan: "Menunggu Persetujuan", disetujui: "Disetujui", ditolak: "Ditolak", terbit: "Terbit",
-};
+import { StatusBadge, getStatusLabel } from "../components";
+import EmptyState from "../components/EmptyState";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { SkeletonStatCards, SkeletonTable } from "../components/SkeletonCard";
 const allStatuses: StatusPengajuan[] = ["draft","diajukan","perlu_perbaikan","diverifikasi","menunggu_persetujuan","disetujui","ditolak","terbit"];
+const statusLabelMap: Record<string, string> = { draft:"Draft", diajukan:"Diajukan", perlu_perbaikan:"Perlu Perbaikan", diverifikasi:"Diverifikasi", menunggu_persetujuan:"Menunggu Persetujuan", disetujui:"Disetujui", ditolak:"Ditolak", terbit:"Terbit" };
 
 export default function RiwayatPengajuanPage() {
   const { user } = useAuth();
@@ -41,8 +38,25 @@ export default function RiwayatPengajuanPage() {
     finally { setLoading(false); }
   }, [page, filterStatus]);
 
+  const [deleting, setDeleting] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
+
   useEffect(() => { getJenisLayananPublic().then(setLayananList).catch(() => {}); }, []);
   useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+
+  const handleDeleteDraft = async (id: string) => {
+    setDeleteConfirmId("");
+    setDeleting(id);
+    try {
+      await deletePengajuanDraft(id);
+      toast.success("Pengajuan draft berhasil dihapus");
+      fetchData();
+    } catch {
+      toast.error("Gagal menghapus pengajuan");
+    } finally {
+      setDeleting("");
+    }
+  };
 
   const filteredData = useMemo(() => {
     if (!filterLayanan) return data;
@@ -66,10 +80,41 @@ export default function RiwayatPengajuanPage() {
     { key: "tgl_diajukan", label: "Tanggal", sortable: true,
       render: (item) => <span className="text-sm text-gray-600 dark:text-gray-400">{item.tgl_diajukan ? new Date(item.tgl_diajukan).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) : "-"}</span> },
     { key: "status", label: "Status", sortable: true,
-      render: (item) => <Chip color={statusColorMap[item.status]} variant="flat" size="sm">{statusLabelMap[item.status]}</Chip> },
-    { key: "aksi", label: "Aksi", align: "center" as const,
-      render: (item) => <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
-        onPress={() => router.push(`/dashboard/sim-bak/riwayat/${item.id_pengajuan}`)}>Detail</Button> },
+      render: (item) => <StatusBadge status={item.status} /> },
+    { key: "aksi", label: "Aksi", align: "center" as const, width: "80px",
+      render: (item) => (
+        <Dropdown>
+          <DropdownTrigger>
+            <Button isIconOnly size="sm" variant="light" className="text-gray-500 hover:text-gray-700">
+              <FiMoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu aria-label="Aksi Pengajuan" className="min-w-[160px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg text-sm">
+            <DropdownItem key="detail" startContent={<FiEye className="w-3.5 h-3.5" />}
+              className="text-gray-700 dark:text-gray-300 text-xs py-1.5"
+              onPress={() => router.push(`/dashboard/sim-bak/riwayat/${item.id_pengajuan}`)}>
+              Lihat Detail
+            </DropdownItem>
+            {["draft", "perlu_perbaikan"].includes(item.status) ? (
+              <DropdownItem key="edit" startContent={<FiEdit className="w-3.5 h-3.5" />}
+                className="text-warning text-xs py-1.5"
+                onPress={() => {
+                  const kategori = item.kategori === "permohonan_akademik" ? "permohonan" : "surat-mandiri";
+                  router.push(`/dashboard/sim-bak/${kategori}/${item.kode_layanan}?edit=${item.id_pengajuan}`);
+                }}>
+                Lanjutkan
+              </DropdownItem>
+            ) : null}
+            {item.status === "draft" ? (
+              <DropdownItem key="delete" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+                className="text-danger text-xs py-1.5" color="danger"
+                onPress={() => setDeleteConfirmId(item.id_pengajuan)}>
+                Hapus Draft
+              </DropdownItem>
+            ) : null}
+          </DropdownMenu>
+        </Dropdown>
+      ) },
   ];
 
   const statCards = [
@@ -81,6 +126,7 @@ export default function RiwayatPengajuanPage() {
 
   return (
     <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Riwayat Pengajuan">
+      <Toaster position="top-right" />
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Riwayat Pengajuan</h1>
@@ -103,24 +149,28 @@ export default function RiwayatPengajuanPage() {
           ))}
         </div>
 
-        {filteredData.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <FiAlertCircle className="w-12 h-12 mb-3" />
-            <p className="text-lg font-medium">Belum ada pengajuan</p>
-            <p className="text-sm mt-1">Ajukan surat atau permohonan dari menu Surat Mandiri / Permohonan Akademik</p>
-          </div>
+        {loading ? (
+          <SkeletonTable rows={5} cols={5} />
+        ) : filteredData.length === 0 ? (
+          <EmptyState
+            variant="document"
+            title="Belum ada pengajuan"
+            description="Ajukan surat atau permohonan dari menu Surat Mandiri / Permohonan Akademik"
+            actionLabel="Ajukan Surat Mandiri"
+            onAction={() => router.push("/dashboard/sim-bak/surat-mandiri")}
+          />
         ) : (
           <DataTable data={filteredData} columns={columns} searchable searchKeys={["nomor_permohonan","nm_layanan"]}
             searchPlaceholder="Cari no. pengajuan atau layanan..." defaultRowsPerPage={10}
             filterSlot={
               <div className="flex flex-wrap items-center gap-2">
                 <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
-                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Status</option>
                   {allStatuses.map(s => <option key={s} value={s}>{statusLabelMap[s]}</option>)}
                 </select>
                 <select value={filterLayanan} onChange={e => setFilterLayanan(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Layanan</option>
                   {layananList.filter(l => l.kategori !== "monitoring" && l.kategori !== "batch_administrasi").map(l => <option key={l.kode_layanan} value={l.kode_layanan}>{l.nm_layanan}</option>)}
                 </select>
@@ -135,6 +185,9 @@ export default function RiwayatPengajuanPage() {
           />
         )}
       </div>
+      <ConfirmDialog open={!!deleteConfirmId} title="Hapus Draft" message="Hapus pengajuan draft ini? Semua dokumen yang sudah diupload juga akan dihapus."
+        confirmLabel="Hapus" confirmColor="danger" loading={!!deleting}
+        onConfirm={() => handleDeleteDraft(deleteConfirmId)} onCancel={() => setDeleteConfirmId("")} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

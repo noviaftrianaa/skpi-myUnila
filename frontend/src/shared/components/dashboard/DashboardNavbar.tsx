@@ -40,49 +40,12 @@ interface DashboardNavbarProps {
   onMenuClick?: () => void;
 }
 
-// Dummy notifications
-const dummyNotifications = [
-  {
-    id: 1,
-    title: "Pengumuman UTS",
-    message: "UTS akan dilaksanakan pada tanggal 15-20 November 2024",
-    time: "1 jam yang lalu",
-    isRead: false,
-    type: "alert" as const,
-    icon: <FiAlertCircle className="w-4 h-4" />,
-    color: "text-red-600 bg-red-100",
-  },
-  {
-    id: 2,
-    title: "Nilai Quiz Tersedia",
-    message: "Nilai quiz Basis Data telah diupload oleh dosen",
-    time: "3 jam yang lalu",
-    isRead: false,
-    type: "success" as const,
-    icon: <FiCheckCircle className="w-4 h-4" />,
-    color: "text-green-600 bg-green-100",
-  },
-  {
-    id: 3,
-    title: "Perubahan Jadwal",
-    message: "Kuliah Pemrograman Web dipindah ke ruang IF-301",
-    time: "5 jam yang lalu",
-    isRead: true,
-    type: "info" as const,
-    icon: <FiInfo className="w-4 h-4" />,
-    color: "text-blue-600 bg-blue-100",
-  },
-  {
-    id: 4,
-    title: "Reminder Tugas",
-    message: "Deadline tugas Struktur Data H-2 hari lagi",
-    time: "1 hari yang lalu",
-    isRead: true,
-    type: "warning" as const,
-    icon: <FiClock className="w-4 h-4" />,
-    color: "text-orange-600 bg-orange-100",
-  },
-];
+// Notifikasi kosong — akan diisi saat notification service tersedia
+const dummyNotifications: Array<{
+  id: number; title: string; message: string; time: string;
+  isRead: boolean; type: "alert" | "success" | "info" | "warning";
+  icon: React.ReactNode; color: string;
+}> = [];
 
 export default function DashboardNavbar({
   title,

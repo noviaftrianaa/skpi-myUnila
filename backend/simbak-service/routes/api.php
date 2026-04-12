@@ -76,9 +76,19 @@ Route::prefix('v1')->group(function () {
         });
 
         // -----------------------------------------
+        // Referensi: data dari PDUT (dropdown)
+        // -----------------------------------------
+        Route::prefix('layanan/referensi')->group(function () {
+            Route::get('/fakultas', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refFakultas']);
+            Route::get('/prodi', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refProdi']);
+            Route::get('/semester', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refSemester']);
+        });
+
+        // -----------------------------------------
         // Layanan: Pengajuan (mahasiswa)
         // -----------------------------------------
         Route::prefix('layanan')->group(function () {
+            Route::get('/my-profile', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'myProfile']);
             Route::get('/my-pengajuan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'myPengajuan']);
             Route::get('/pengajuan/{id}', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'show']);
             Route::get('/dokumen/{id}/download', [\App\Http\Controllers\Api\Layanan\DokumenController::class, 'download']);
@@ -88,6 +98,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/pengajuan/{id}/upload', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'uploadDokumen'])->middleware('permission:insert,sim-bak');
             Route::post('/pengajuan/{id}/ajukan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'ajukan'])->middleware('permission:insert,sim-bak');
             Route::delete('/dokumen/{id}', [\App\Http\Controllers\Api\Layanan\DokumenController::class, 'destroy'])->middleware('permission:delete,sim-bak');
+            Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
         // -----------------------------------------
@@ -95,6 +106,7 @@ Route::prefix('v1')->group(function () {
         // -----------------------------------------
         Route::prefix('admin')->group(function () {
             Route::get('/pengajuan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'index']);
+            Route::get('/pengajuan/{id}/progress', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'progress']);
             Route::post('/pengajuan/{id}/verifikasi', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'verifikasi'])->middleware('permission:approve,sim-bak');
             Route::post('/pengajuan/{id}/perbaikan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'mintaPerbaikan'])->middleware('permission:reject,sim-bak');
             Route::post('/pengajuan/{id}/terbitkan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'terbitkan'])->middleware('permission:approve,sim-bak');
@@ -107,6 +119,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/queue', [\App\Http\Controllers\Api\Layanan\PersetujuanController::class, 'queue']);
             Route::post('/{id}/approve', [\App\Http\Controllers\Api\Layanan\PersetujuanController::class, 'approve'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/reject', [\App\Http\Controllers\Api\Layanan\PersetujuanController::class, 'reject'])->middleware('permission:reject,sim-bak');
+            Route::post('/{id}/terima-tujuan', [\App\Http\Controllers\Api\Layanan\PersetujuanController::class, 'terimaTujuan'])->middleware('permission:approve,sim-bak');
         });
 
         // -----------------------------------------
@@ -114,10 +127,15 @@ Route::prefix('v1')->group(function () {
         // -----------------------------------------
         Route::prefix('batch')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\Batch\BatchController::class, 'index']);
+            Route::get('/preview-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'previewCandidates']);
             Route::get('/{id}', [\App\Http\Controllers\Api\Batch\BatchController::class, 'show']);
             Route::get('/{id}/kandidat', [\App\Http\Controllers\Api\Batch\BatchController::class, 'candidates']);
+            Route::get('/{id}/export-kandidat', [\App\Http\Controllers\Api\Batch\BatchController::class, 'exportKandidat']);
 
             Route::post('/', [\App\Http\Controllers\Api\Batch\BatchController::class, 'store'])->middleware('permission:insert,sim-bak');
+            Route::post('/{id}/pull-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'pullCandidates'])->middleware('permission:insert,sim-bak');
+            Route::post('/{id}/upload-sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'uploadSkDekan'])->middleware('permission:approve,sim-bak');
+            Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalize'])->middleware('permission:approve,sim-bak');
         });
@@ -136,6 +154,7 @@ Route::prefix('v1')->group(function () {
         // Monitoring Mahasiswa
         // -----------------------------------------
         Route::prefix('monitoring')->group(function () {
+            Route::get('/stats', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'stats']);
             Route::get('/mahasiswa-aktif', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'mahasiswaAktif']);
             Route::get('/lulusan', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'lulusan']);
             Route::get('/export', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'export']);

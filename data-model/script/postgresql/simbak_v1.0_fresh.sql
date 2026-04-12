@@ -1193,8 +1193,7 @@ BEGIN
     END;
 
     IF TG_OP = 'INSERT' THEN
-        -- Ambil PK dari kolom pertama (id_xxx)
-        v_id_record := NEW.id_pengajuan;  -- fallback, akan di-override
+        -- Ambil PK secara dinamis dari nama kolom yang dikirim via TG_ARGV[0]
         EXECUTE format('SELECT ($1).%I', TG_ARGV[0]) INTO v_id_record USING NEW;
         v_data_baru := row_to_json(NEW)::TEXT;
 

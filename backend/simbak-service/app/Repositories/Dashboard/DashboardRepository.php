@@ -74,8 +74,9 @@ class DashboardRepository extends BaseRepository
         return $this->pgSelect("
             SELECT r.*, p.nomor_permohonan, jl.nm_layanan
             FROM layanan.riwayat_pengajuan r
-            JOIN layanan.pengajuan p ON p.id_pengajuan = r.id_pengajuan
+            JOIN layanan.pengajuan p ON p.id_pengajuan = r.id_pengajuan AND p.soft_delete = false
             JOIN ref.jenis_layanan jl ON jl.id_jenis_layanan = p.id_jenis_layanan
+            WHERE r.status_ke != 'draft'
             ORDER BY r.created_at DESC
             LIMIT ?
         ", [$limit]);

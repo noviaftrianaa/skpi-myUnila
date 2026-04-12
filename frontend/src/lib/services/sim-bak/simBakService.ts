@@ -135,6 +135,62 @@ export const deleteTemplate = async (id: string): Promise<void> => {
   await bakClient.delete(`/master-data/template-dokumen/${id}`);
 };
 
+// ============ Profil Akademik (dari PDUT) ============
+
+export const getMyProfile = async (): Promise<Record<string, unknown>> => {
+  const response = await bakClient.get<ApiResponse<Record<string, unknown>>>('/layanan/my-profile');
+  return response.data.data;
+};
+
+// ============ Workflow Progress ============
+
+export interface WorkflowProgress {
+  current: number;
+  total: number;
+  tahapan_list: Array<{
+    id_tahapan: string;
+    urutan: number;
+    nm_tahapan: string;
+    kode_role: string;
+    status_masuk: string;
+    status_selesai: string;
+    stage_status: 'completed' | 'active' | 'pending';
+  }>;
+}
+
+export const getWorkflowProgress = async (idPengajuan: string): Promise<WorkflowProgress> => {
+  const response = await bakClient.get<ApiResponse<WorkflowProgress>>(`/admin/pengajuan/${idPengajuan}/progress`);
+  return response.data.data;
+};
+
+// ============ Referensi PDUT (Dropdown) ============
+
+export const getRefFakultas = async (): Promise<Array<{ id_fakultas: string; nm_fakultas: string }>> => {
+  const response = await bakClient.get<ApiResponse<Array<{ id_fakultas: string; nm_fakultas: string }>>>('/layanan/referensi/fakultas');
+  return response.data.data;
+};
+
+export const getRefProdi = async (idFakultas?: string): Promise<Array<{ id_prodi: string; nm_prodi: string; kode_prodi: string; id_fakultas: string; nm_jenjang: string }>> => {
+  const response = await bakClient.get<ApiResponse<Array<{ id_prodi: string; nm_prodi: string; kode_prodi: string; id_fakultas: string; nm_jenjang: string }>>>('/layanan/referensi/prodi', {
+    params: idFakultas ? { id_fakultas: idFakultas } : undefined,
+  });
+  return response.data.data;
+};
+
+export const getRefSemester = async (): Promise<Array<{ id_smt: string; nm_smt: string; a_periode_aktif: boolean }>> => {
+  const response = await bakClient.get<ApiResponse<Array<{ id_smt: string; nm_smt: string; a_periode_aktif: boolean }>>>('/layanan/referensi/semester');
+  return response.data.data;
+};
+
+export const terimaTujuanAlihProgram = async (id: string, data: {
+  a_diterima_tujuan: boolean;
+  hasil_wawancara?: string;
+  daftar_konversi_sks?: string;
+  catatan?: string;
+}): Promise<void> => {
+  await bakClient.post(`/approval/${id}/terima-tujuan`, data);
+};
+
 // ============ Pengajuan (Mahasiswa) ============
 
 export const getMyPengajuan = async (params?: {
@@ -179,6 +235,10 @@ export const deleteDokumen = async (idDokumen: string): Promise<void> => {
   await bakClient.delete(`/layanan/dokumen/${idDokumen}`);
 };
 
+export const deletePengajuanDraft = async (idPengajuan: string): Promise<void> => {
+  await bakClient.delete(`/layanan/pengajuan/${idPengajuan}`);
+};
+
 export const downloadDokumenUrl = (idDokumen: string): string => {
   return `${bakClient.defaults.baseURL}/layanan/dokumen/${idDokumen}/download`;
 };
@@ -204,11 +264,73 @@ export const mintaPerbaikan = async (id: string, data: { catatan: string }): Pro
   await bakClient.post(`/admin/pengajuan/${id}/perbaikan`, data);
 };
 
-export const terbitkanPengajuan = async (id: string, data?: { nomor_dokumen?: string; catatan?: string }): Promise<void> => {
-  await bakClient.post(`/admin/pengajuan/${id}/terbitkan`, data);
+export const terbitkanPengajuan = async (id: string, data: {
+  nomor_dokumen?: string;
+  tgl_dokumen?: string;
+  catatan?: string;
+  file?: File;
+  file_penolakan?: File;
+  nomor_penolakan?: string;
+}): Promise<void> => {
+  const formData = new FormData();
+  if (data.nomor_dokumen) formData.append('nomor_dokumen', data.nomor_dokumen);
+  if (data.tgl_dokumen) formData.append('tgl_dokumen', data.tgl_dokumen);
+  if (data.catatan) formData.append('catatan', data.catatan);
+  if (data.file) formData.append('file', data.file);
+  if (data.file_penolakan) formData.append('file_penolakan', data.file_penolakan);
+  if (data.nomor_penolakan) formData.append('nomor_penolakan', data.nomor_penolakan);
+  await bakClient.post(`/admin/pengajuan/${id}/terbitkan`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 };
 
 // ============ Approval ============
+
+// ============ Batch (extended) ============
+
+export const previewBatchCandidates = async (params: {
+  jenis_batch: string; id_smt: string; id_fakultas?: string;
+}): Promise<{ total: number; candidates: Array<Record<string, unknown>>; kriteria: string }> => {
+  const response = await bakClient.get<ApiResponse<{ total: number; candidates: Array<Record<string, unknown>>; kriteria: string }>>('/batch/preview-candidates', { params });
+  return response.data.data;
+};
+
+export const pullBatchCandidates = async (idBatch: string): Promise<{ jumlah_kandidat: number }> => {
+  const response = await bakClient.post<ApiResponse<{ jumlah_kandidat: number }>>(`/batch/${idBatch}/pull-candidates`);
+  return response.data.data;
+};
+
+export const uploadSkDekan = async (idBatch: string, formData: FormData): Promise<void> => {
+  await bakClient.post(`/batch/${idBatch}/upload-sk-dekan`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const finalizeBatchWithSK = async (idBatch: string, data: {
+  nomor_sk_rektor?: string; tgl_sk_rektor?: string; file?: File;
+}): Promise<void> => {
+  const formData = new FormData();
+  if (data.nomor_sk_rektor) formData.append('nomor_sk_rektor', data.nomor_sk_rektor);
+  if (data.tgl_sk_rektor) formData.append('tgl_sk_rektor', data.tgl_sk_rektor);
+  if (data.file) formData.append('file', data.file);
+  await bakClient.post(`/batch/${idBatch}/finalize`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const exportBatchKandidatUrl = (idBatch: string, params?: {
+  status_kandidat?: string; id_fakultas?: string;
+}): string => {
+  const baseUrl = bakClient.defaults.baseURL || '';
+  const query = new URLSearchParams();
+  if (params?.status_kandidat) query.set('status_kandidat', params.status_kandidat);
+  if (params?.id_fakultas) query.set('id_fakultas', params.id_fakultas);
+  return `${baseUrl}/batch/${idBatch}/export-kandidat${query.toString() ? '?' + query.toString() : ''}`;
+};
+
+export const finalizeVerifikasiFakultas = async (idBatch: string): Promise<void> => {
+  await bakClient.post(`/batch/${idBatch}/finalize-verifikasi`);
+};
 
 export const getApprovalQueue = async (params?: {
   page?: number; limit?: number;
@@ -302,6 +424,15 @@ export const getDashboardActivity = async (limit?: number): Promise<RiwayatPenga
 
 // ============ Monitoring ============
 
+export const getMonitoringStats = async (): Promise<{
+  total_aktif: number; total_lulus: number; persen_tepat_waktu: number; rata_masa_studi: number;
+}> => {
+  const response = await bakClient.get<ApiResponse<{
+    total_aktif: number; total_lulus: number; persen_tepat_waktu: number; rata_masa_studi: number;
+  }>>('/monitoring/stats');
+  return response.data.data;
+};
+
 export const getMahasiswaAktif = async (params?: {
   page?: number; limit?: number; fakultas?: string;
 }): Promise<PaginatedResponse<Record<string, unknown>>> => {
@@ -332,6 +463,10 @@ const simBakService = {
   getPersyaratan, createPersyaratan, updatePersyaratan, deletePersyaratan,
   getTahapan, createTahapan, updateTahapan, deleteTahapan,
   getTemplate, createTemplate, updateTemplate, deleteTemplate,
+  // Profil & Workflow
+  getMyProfile, getWorkflowProgress,
+  // Referensi PDUT
+  getRefFakultas, getRefProdi, getRefSemester, terimaTujuanAlihProgram,
   // Pengajuan
   getMyPengajuan, createPengajuan, getPengajuanDetail,
   uploadDokumen, ajukanPengajuan, deleteDokumen,
@@ -342,10 +477,11 @@ const simBakService = {
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
   getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
+  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring
-  getMahasiswaAktif, getLulusan, exportMonitoring,
+  getMonitoringStats, getMahasiswaAktif, getLulusan, exportMonitoring,
 };
 
 export default simBakService;

@@ -25,9 +25,10 @@ class DokumenController extends Controller
     }
 
     /**
-     * Download dokumen pengajuan.
+     * Download atau preview dokumen pengajuan.
+     * Tambah ?preview=1 di URL untuk menampilkan inline (bukan download).
      */
-    public function download(string $id): StreamedResponse|JsonResponse
+    public function download(Request $request, string $id): StreamedResponse|JsonResponse|\Illuminate\Http\Response
     {
         try {
             $dokumen = $this->repository->pgSelectOne(
@@ -40,6 +41,17 @@ class DokumenController extends Controller
                 return $this->notFoundResponse('File tidak ditemukan di storage');
             }
 
+            $isPreview = $request->query('preview') === '1';
+
+            if ($isPreview) {
+                $response = $this->minioService->inline($dokumen->path_file, $dokumen->nama_file_asli);
+                // Izinkan iframe cross-origin untuk preview
+                $response->headers->set('X-Frame-Options', 'ALLOWALL');
+                $response->headers->set('Content-Security-Policy', 'frame-ancestors *');
+                $response->headers->set('Access-Control-Allow-Origin', '*');
+                return $response;
+            }
+
             return $this->minioService->download($dokumen->path_file, $dokumen->nama_file_asli);
         } catch (\Exception $e) {
             Log::error('Dokumen.download: ' . $e->getMessage());
@@ -48,9 +60,9 @@ class DokumenController extends Controller
     }
 
     /**
-     * Download dokumen hasil layanan.
+     * Download atau preview dokumen hasil layanan.
      */
-    public function downloadHasil(string $id): StreamedResponse|JsonResponse
+    public function downloadHasil(Request $request, string $id): StreamedResponse|JsonResponse|\Illuminate\Http\Response
     {
         try {
             $dokumen = $this->repository->pgSelectOne(
@@ -63,7 +75,18 @@ class DokumenController extends Controller
                 return $this->notFoundResponse('File tidak ditemukan di storage');
             }
 
-            $downloadName = ($dokumen->nomor_dokumen ?? 'dokumen') . '.' . pathinfo($dokumen->path_file, PATHINFO_EXTENSION);
+            $nomorClean = str_replace(['/', '\\'], '-', $dokumen->nomor_dokumen ?? 'dokumen');
+            $downloadName = $nomorClean . '.' . pathinfo($dokumen->path_file, PATHINFO_EXTENSION);
+
+            $isPreview = $request->query('preview') === '1';
+            if ($isPreview) {
+                $response = $this->minioService->inline($dokumen->path_file, $downloadName);
+                $response->headers->set('X-Frame-Options', 'ALLOWALL');
+                $response->headers->set('Content-Security-Policy', 'frame-ancestors *');
+                $response->headers->set('Access-Control-Allow-Origin', '*');
+                return $response;
+            }
+
             return $this->minioService->download($dokumen->path_file, $downloadName);
         } catch (\Exception $e) {
             Log::error('Dokumen.downloadHasil: ' . $e->getMessage());

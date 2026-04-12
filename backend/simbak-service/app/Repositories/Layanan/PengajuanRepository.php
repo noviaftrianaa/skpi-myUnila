@@ -165,7 +165,15 @@ class PengajuanRepository extends BaseRepository
         ]);
     }
 
-    public function updateStatus(string $id, string $status, ?string $userId = null): bool
+    public function updateDokumenHasil(string $id, string $nomorDokumen, ?string $tglDokumen = null): bool
+    {
+        return $this->pgUpdate(
+            "UPDATE layanan.pengajuan SET nomor_dokumen_hasil = ?, tgl_dokumen_hasil = ? WHERE id_pengajuan = ?",
+            [$nomorDokumen, $tglDokumen ?? date('Y-m-d'), $id]
+        ) >= 0;
+    }
+
+    public function updateStatus(string $id, string $status, ?string $userId = null, ?string $expectedStatus = null): bool
     {
         $extra = '';
         $bindings = [$status, $userId, $id];
@@ -174,10 +182,16 @@ class PengajuanRepository extends BaseRepository
         } elseif (in_array($status, ['terbit', 'ditolak'])) {
             $extra = ", tgl_selesai = NOW()";
         }
-        return $this->pgUpdate(
-            "UPDATE layanan.pengajuan SET status = ?, id_updater = ? {$extra} WHERE id_pengajuan = ? AND soft_delete = false",
+        $whereExtra = '';
+        if ($expectedStatus) {
+            $whereExtra = ' AND status = ?';
+            $bindings[] = $expectedStatus;
+        }
+        $affected = $this->pgUpdate(
+            "UPDATE layanan.pengajuan SET status = ?, id_updater = ? {$extra} WHERE id_pengajuan = ? AND soft_delete = false{$whereExtra}",
             $bindings
-        ) > 0;
+        );
+        return $affected > 0;
     }
 
     public function createDataPemohon(array $data): ?object
@@ -319,17 +333,57 @@ class PengajuanRepository extends BaseRepository
     }
 
     /**
-     * Approval queue — menunggu_persetujuan.
+     * Approval queue — menunggu_persetujuan (legacy, backward compat).
      */
     public function getApprovalQueue(array $params = []): array
     {
+        $params['kode_role'] = null;
+        return $this->getApprovalQueueByRole($params);
+    }
+
+    /**
+     * Approval queue filtered by role — hanya tampilkan pengajuan
+     * yang ada di tahapan milik kode_role tertentu.
+     *
+     * Logika: JOIN ke ref.tahapan_layanan, cocokkan status pengajuan
+     * dengan status_masuk tahapan yang punya kode_role = :role.
+     */
+    public function getApprovalQueueByRole(array $params = []): array
+    {
         $page = $params['page'] ?? 1;
         $limit = $params['limit'] ?? 10;
+        $search = $params['search'] ?? null;
+        $kodeRole = $params['kode_role'] ?? null;
         $bindings = [];
 
-        $where = "WHERE p.soft_delete = false AND p.status = 'menunggu_persetujuan'";
+        $where = "WHERE p.soft_delete = false AND p.status NOT IN ('draft', 'terbit', 'ditolak')";
 
-        $countSql = "SELECT COUNT(*) as total FROM layanan.pengajuan p {$where}";
+        if ($kodeRole) {
+            // Hanya tampilkan pengajuan yang ada tahapan dengan kode_role ini pada status saat ini
+            $where .= "
+                AND EXISTS (
+                    SELECT 1 FROM ref.tahapan_layanan t
+                    WHERE t.id_jenis_layanan = p.id_jenis_layanan
+                      AND t.status_masuk = p.status
+                      AND t.kode_role = ?
+                      AND t.soft_delete = false
+                )
+            ";
+            $bindings[] = $kodeRole;
+        }
+
+        if ($search) {
+            $where .= " AND (LOWER(p.nomor_permohonan) LIKE ? OR LOWER(dp.nm_mahasiswa) LIKE ? OR LOWER(dp.nim) LIKE ?)";
+            $s = '%' . strtolower($search) . '%';
+            array_push($bindings, $s, $s, $s);
+        }
+
+        $countSql = "
+            SELECT COUNT(*) as total
+            FROM layanan.pengajuan p
+            LEFT JOIN layanan.data_pemohon dp ON dp.id_pengajuan = p.id_pengajuan AND dp.soft_delete = false
+            {$where}
+        ";
         $total = $this->pgCount($countSql, $bindings);
 
         $dataSql = "

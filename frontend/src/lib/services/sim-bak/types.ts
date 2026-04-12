@@ -221,7 +221,7 @@ export interface BatchPenetapan {
   nm_batch: string;
   jenis_batch: 'habis_masa_mukim' | 'putus_studi';
   id_smt: string;
-  status: 'draft' | 'verifikasi_fakultas' | 'finalisasi' | 'terbit';
+  status: 'draft' | 'kandidat_ditarik' | 'verifikasi_fakultas' | 'sk_dekan_terbit' | 'finalisasi' | 'terbit';
   id_pembuat: string;
   kriteria_snapshot: string;
   jumlah_kandidat: number;
