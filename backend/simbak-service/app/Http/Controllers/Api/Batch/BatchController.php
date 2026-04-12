@@ -283,7 +283,7 @@ class BatchController extends Controller
 
     /**
      * Verifikasi kandidat oleh Admin Fakultas.
-     * Mendukung catatan/alasan exclusion.
+     * Mendukung select dropdown alasan + upload dokumen meninggal dunia.
      */
     public function verifikasiKandidat(Request $request, string $id): JsonResponse
     {
@@ -291,12 +291,34 @@ class BatchController extends Controller
             $data = $request->validate([
                 'hasil' => 'required|string|in:dikonfirmasi,dikeluarkan',
                 'catatan' => 'nullable|string',
+                'alasan_exclude' => 'required_if:hasil,dikeluarkan|nullable|string',
+                'alasan_exclude_lainnya' => 'nullable|string',
+                'dokumen_exclude' => 'nullable|file|mimes:pdf|max:10240',
             ]);
 
             $user = $request->user();
 
+            // Tentukan alasan final
+            $alasanFinal = null;
+            if ($data['hasil'] === 'dikeluarkan') {
+                $alasanExclude = $data['alasan_exclude'] ?? '';
+                if ($alasanExclude === 'Lainnya') {
+                    if (empty($data['alasan_exclude_lainnya'])) {
+                        return $this->errorResponse('Keterangan alasan wajib diisi jika memilih "Lainnya"', 422);
+                    }
+                    $alasanFinal = $data['alasan_exclude_lainnya'];
+                } else {
+                    $alasanFinal = $alasanExclude;
+                }
+
+                // Validasi: jika meninggal dunia, wajib upload dokumen
+                if (str_contains(strtolower($alasanExclude), 'meninggal dunia') && !$request->hasFile('dokumen_exclude')) {
+                    return $this->errorResponse('Surat Keterangan Meninggal Dunia dari RS/Aparat Desa wajib diupload', 422);
+                }
+            }
+
             $statusKandidat = $data['hasil'] === 'dikeluarkan' ? 'dikeluarkan' : 'dikonfirmasi';
-            $this->repository->updateKandidatStatus($id, $statusKandidat, $data['catatan'] ?? null, $user->id_pengguna);
+            $this->repository->updateKandidatStatus($id, $statusKandidat, $alasanFinal, $user->id_pengguna);
 
             $kandidat = $this->repository->pgSelectOne(
                 "SELECT * FROM batch.kandidat_batch WHERE id_kandidat = ? AND soft_delete = false",
@@ -312,6 +334,14 @@ class BatchController extends Controller
                     return $this->errorResponse('Kandidat ini sudah diverifikasi sebelumnya', 409);
                 }
 
+                // Upload dokumen exclude jika ada
+                $pathDokumenExclude = null;
+                if ($request->hasFile('dokumen_exclude')) {
+                    $pathDokumenExclude = $this->minioService->uploadDokumenExclude(
+                        $kandidat->id_batch_penetapan, $id, $request->file('dokumen_exclude')
+                    );
+                }
+
                 $this->repository->createVerifikasi([
                     'id_batch_penetapan' => $kandidat->id_batch_penetapan,
                     'id_kandidat' => $id,
@@ -319,7 +349,8 @@ class BatchController extends Controller
                     'nm_verifikator' => $user->nm_pengguna ?? $user->nama ?? '',
                     'id_fakultas' => $kandidat->id_fakultas,
                     'hasil' => $data['hasil'],
-                    'catatan' => $data['catatan'] ?? null,
+                    'catatan' => $alasanFinal ?? ($data['catatan'] ?? null),
+                    'path_dokumen_exclude' => $pathDokumenExclude,
                 ]);
                 $this->repository->updateBatchCounts($kandidat->id_batch_penetapan);
             }

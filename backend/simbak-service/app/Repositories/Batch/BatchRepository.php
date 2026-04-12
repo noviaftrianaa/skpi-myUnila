@@ -155,13 +155,14 @@ class BatchRepository extends BaseRepository
     {
         return $this->pgInsertReturning("
             INSERT INTO batch.verifikasi_batch (
-                id_batch_penetapan, id_kandidat, id_verifikator, nm_verifikator, id_fakultas, hasil, catatan
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                id_batch_penetapan, id_kandidat, id_verifikator, nm_verifikator, id_fakultas, hasil, catatan, path_dokumen_exclude
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_batch_penetapan'], $data['id_kandidat'],
             $data['id_verifikator'], $data['nm_verifikator'] ?? null,
             $data['id_fakultas'] ?? null, $data['hasil'], $data['catatan'] ?? null,
+            $data['path_dokumen_exclude'] ?? null,
         ]);
     }
 

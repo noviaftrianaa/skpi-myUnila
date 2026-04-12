@@ -72,6 +72,15 @@ class MinioService
     }
 
     /**
+     * Upload dokumen pendukung exclude kandidat batch (misal: surat keterangan meninggal).
+     */
+    public function uploadDokumenExclude(string $idBatch, string $idKandidat, UploadedFile $file): string
+    {
+        $directory = "simbak/batch/{$idBatch}/kandidat/{$idKandidat}";
+        return $this->upload($directory, $file);
+    }
+
+    /**
      * Upload template dokumen.
      */
     public function uploadTemplate(string $kodeLayanan, UploadedFile $file): string

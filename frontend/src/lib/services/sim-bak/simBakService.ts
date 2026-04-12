@@ -380,11 +380,14 @@ export const getBatchKandidat = async (id: string, params?: {
   return response.data;
 };
 
-export const verifikasiKandidat = async (idKandidat: string, data: {
-  hasil: 'valid' | 'dikeluarkan';
+export const verifikasiKandidat = async (idKandidat: string, data: FormData | {
+  hasil: 'dikonfirmasi' | 'dikeluarkan';
   catatan?: string;
+  alasan_exclude?: string;
+  alasan_exclude_lainnya?: string;
 }): Promise<void> => {
-  await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data);
+  const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+  await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data, { headers });
 };
 
 export const finalizeBatch = async (id: string, data?: {

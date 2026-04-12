@@ -147,13 +147,13 @@ class PengajuanRepository extends BaseRepository
             INSERT INTO layanan.pengajuan (
                 id_jenis_layanan, nomor_permohonan, id_pemohon, status, alasan, catatan_pemohon,
                 id_smt_mulai_cuti, jumlah_semester_cuti, id_prodi_tujuan, id_fakultas_tujuan,
-                id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                a_dari_luar, nm_pt_asal, id_creator
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_jenis_layanan'],
             $data['nomor_permohonan'],
-            $data['id_pemohon'],
+            $data['id_pemohon'] ?? null,
             $data['status'] ?? 'draft',
             $data['alasan'] ?? null,
             $data['catatan_pemohon'] ?? null,
@@ -161,6 +161,8 @@ class PengajuanRepository extends BaseRepository
             $data['jumlah_semester_cuti'] ?? null,
             $data['id_prodi_tujuan'] ?? null,
             $data['id_fakultas_tujuan'] ?? null,
+            $data['a_dari_luar'] ?? false,
+            $data['nm_pt_asal'] ?? null,
             $data['id_creator'] ?? null,
         ]);
     }
@@ -201,11 +203,12 @@ class PengajuanRepository extends BaseRepository
                 id_pengajuan, id_mahasiswa, nim, nm_mahasiswa, tempat_lahir, tgl_lahir, jenis_kelamin,
                 id_fakultas, nm_fakultas, id_prodi, nm_prodi, id_jenj_didik, nm_jenjang,
                 angkatan, semester_aktif, id_smt, ipk, sks_lulus, masa_studi_semester,
-                status_mahasiswa, status_registrasi, status_pembayaran, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status_mahasiswa, status_registrasi, status_pembayaran,
+                nm_pt_asal, akreditasi_prodi_asal, id_creator
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
-            $data['id_pengajuan'], $data['id_mahasiswa'], $data['nim'], $data['nm_mahasiswa'],
+            $data['id_pengajuan'], $data['id_mahasiswa'] ?? null, $data['nim'] ?? null, $data['nm_mahasiswa'] ?? '',
             $data['tempat_lahir'] ?? null, $data['tgl_lahir'] ?? null, $data['jenis_kelamin'] ?? null,
             $data['id_fakultas'] ?? null, $data['nm_fakultas'] ?? null,
             $data['id_prodi'] ?? null, $data['nm_prodi'] ?? null,
@@ -213,6 +216,7 @@ class PengajuanRepository extends BaseRepository
             $data['angkatan'] ?? null, $data['semester_aktif'] ?? null, $data['id_smt'] ?? null,
             $data['ipk'] ?? null, $data['sks_lulus'] ?? null, $data['masa_studi_semester'] ?? null,
             $data['status_mahasiswa'] ?? null, $data['status_registrasi'] ?? null, $data['status_pembayaran'] ?? null,
+            $data['nm_pt_asal'] ?? null, $data['akreditasi_prodi_asal'] ?? null,
             $data['id_creator'] ?? null,
         ]);
     }
