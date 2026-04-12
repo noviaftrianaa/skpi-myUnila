@@ -628,3 +628,203 @@ Log ke setting.smtp_log / tabel log SIMBAK
 | SMTP config tersedia | **Perlu dicek** — apakah `setting.smtp_config` sudah ada di pdut_staging |
 | WhatsApp API tersedia | **Belum** — perlu setup provider |
 | Implementasi | **Belum** |
+
+---
+
+## 14. [PLAN] PM-ALIH Dari Luar Unila — Implementasi Opsi B (Flag `a_dari_luar`)
+
+### Keputusan Desain (12 April 2026)
+
+**Opsi yang dipilih: Opsi B** — Satu jenis layanan `ALIH_PROGRAM` + flag `a_dari_luar` di tabel `layanan.pengajuan`.
+
+**Alasan:**
+- Alur PM-ALIH internal dan luar Unila substansinya hampir identik
+- Yang berbeda hanya tahap 1 (siapa yang input) dan skip Fakultas Asal
+- Proses persetujuan sama — tahap Pejabat dihilangkan (via SAP di luar sistem)
+- Tidak perlu duplikasi konfigurasi persyaratan & tahapan di `ref.*`
+- Maintenance lebih mudah (update 1 tempat)
+- Reporting lebih sederhana (query 1 tabel, filter by flag)
+
+### Proses di Luar Sistem (Sebelum Masuk SIMBAK)
+
+1. Calon mahasiswa mengirimkan surat permohonan pindah ke Rektor/WR I
+2. Rektor/WR I mendisposisikan surat ke BAK (melalui SAP)
+3. BAK menerima disposisi → mulai input ke SIMBAK
+
+### Perbedaan Alur Internal vs Luar Unila
+
+| Aspek | Internal (5 tahap) | Luar Unila (4 tahap) |
+|-------|----------|------------|
+| Proses sebelum SIMBAK | - | Surat ke Rektor → disposisi ke BAK via SAP |
+| Inisiator tahap 1 | Mahasiswa (punya SSO) | Admin BAK (pemohon tidak punya SSO) |
+| Data pemohon | Otomatis dari PDUT | Input manual oleh Admin BAK |
+| Validasi syarat akademik | Auto-check IPK/SKS/semester | Manual (dari transkrip PT asal) |
+| Tahap Fakultas Asal | Ada (tahap 2) | Tidak ada — skip, langsung Fak Tujuan |
+| Tahap Pejabat | Tidak ada (via SAP) | Tidak ada (sama — via SAP) |
+| Notifikasi ke pemohon | Email otomatis | Manual (pemohon tidak punya akun) |
+| Output | SK Alih Program | SK Penerimaan Pindah Studi |
+
+### ALTER Tabel yang Dibutuhkan
+
+#### 1. `layanan.pengajuan` — flag + data PT asal
+
+```sql
+-- Flag penanda pengajuan dari luar Unila
+ALTER TABLE layanan.pengajuan
+  ADD COLUMN a_dari_luar BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Nama PT asal (untuk kasus luar Unila)
+ALTER TABLE layanan.pengajuan
+  ADD COLUMN nm_pt_asal VARCHAR(200) NULL;
+
+-- id_pemohon nullable (pemohon luar tidak ada di man_akses.pengguna)
+ALTER TABLE layanan.pengajuan
+  ALTER COLUMN id_pemohon DROP NOT NULL;
+
+COMMENT ON COLUMN layanan.pengajuan.a_dari_luar
+  IS 'TRUE jika pengajuan alih program dari luar Unila (pemohon tidak punya SSO)';
+COMMENT ON COLUMN layanan.pengajuan.nm_pt_asal
+  IS 'Nama perguruan tinggi asal (khusus alih program dari luar Unila)';
+```
+
+#### 2. `layanan.data_pemohon` — data manual untuk pemohon luar
+
+```sql
+-- id_mahasiswa nullable (pemohon luar belum terdaftar di PDUT)
+ALTER TABLE layanan.data_pemohon
+  ALTER COLUMN id_mahasiswa DROP NOT NULL;
+
+-- nim nullable (NIM asal dari PT luar, format berbeda)
+ALTER TABLE layanan.data_pemohon
+  ALTER COLUMN nim DROP NOT NULL;
+
+-- Nama PT asal + akreditasi
+ALTER TABLE layanan.data_pemohon
+  ADD COLUMN nm_pt_asal VARCHAR(200) NULL;
+
+ALTER TABLE layanan.data_pemohon
+  ADD COLUMN akreditasi_prodi_asal VARCHAR(50) NULL;
+
+COMMENT ON COLUMN layanan.data_pemohon.nm_pt_asal
+  IS 'Nama PT asal pemohon (khusus alih program dari luar Unila)';
+COMMENT ON COLUMN layanan.data_pemohon.akreditasi_prodi_asal
+  IS 'Akreditasi prodi asal: A, B, Unggul, Baik Sekali, Baik, dll';
+```
+
+#### 3. `ref.tahapan_layanan` — strategi tahapan
+
+Tidak perlu ALTER tabel. Satu `id_jenis_layanan` (ALIH_PROGRAM) punya 2 varian alur. Strategi: **branching di WorkflowService** (bukan duplikasi seed).
+
+- Tetap 5 tahapan ALIH_PROGRAM yang ada di database
+- WorkflowService branching berdasarkan `a_dari_luar`:
+  - Tahap 1: skip validasi `kode_role = 'mahasiswa'`, allow `admin_bak` sebagai inisiator
+  - Tahap 2 (Fakultas Asal): **di-skip**, langsung ke tahap 3 (Fakultas Tujuan)
+  - Tahap Pejabat: tetap tidak ada (sama dengan internal — approval via SAP)
+- Pro: tidak perlu duplikasi seed data, flow approval konsisten
+- Con: logic WorkflowService sedikit lebih kompleks (1 branching point: skip fak asal)
+
+### Perubahan Backend
+
+#### `WorkflowService.php`
+
+```php
+// Tambah method untuk detect alur luar Unila
+public function isFromExternalUniversity($pengajuan): bool
+{
+    return $pengajuan->a_dari_luar ?? false;
+}
+
+// Modifikasi findTahapanForActor() — allow admin_bak di tahap 1
+// jika a_dari_luar = true
+public function findTahapanForActor($pengajuan, $kodeRole)
+{
+    // Existing logic...
+
+    // Tambahan: jika dari luar Unila dan tahap 1, admin_bak = inisiator
+    if ($this->isFromExternalUniversity($pengajuan)
+        && $kodeRole === 'admin_bak'
+        && $pengajuan->status === 'draft') {
+        // Return tahapan pertama (yang normalnya untuk mahasiswa)
+        return $this->getFirstTahapan($pengajuan);
+    }
+}
+
+// Modifikasi getNextTahapan() — skip fakultas asal untuk luar Unila
+// Setelah tahap 1 (diajukan), langsung ke tahap 3 (Fakultas Tujuan)
+// bukan tahap 2 (Fakultas Asal)
+public function getNextTahapan($pengajuan, $currentTahapan)
+{
+    // Existing logic...
+
+    // Jika dari luar Unila dan tahap berikutnya = admin_fakultas_asal
+    // maka skip ke tahap setelahnya (admin_fakultas_tujuan)
+    if ($this->isFromExternalUniversity($pengajuan)
+        && $nextTahapan->kode_role === 'admin_fakultas_asal') {
+        return $this->getTahapanAfter($pengajuan, $nextTahapan);
+    }
+}
+```
+
+#### `PengajuanController.php`
+
+```php
+// Modifikasi store() untuk kasus a_dari_luar = true:
+//   - Tidak query PDUT untuk data pemohon
+//   - Data pemohon dari request body (input manual admin)
+//   - Skip validasi syarat akademik otomatis
+
+public function store(Request $request): JsonResponse
+{
+    $isDariLuar = $request->boolean('a_dari_luar', false);
+
+    if ($isDariLuar) {
+        // Validate manual input: nama, nim_asal, nm_pt_asal, dll
+        $data = $request->validate([
+            'nm_mahasiswa' => 'required|string|max:200',
+            'nim_asal' => 'required|string|max:20',
+            'nm_pt_asal' => 'required|string|max:200',
+            'nm_prodi_asal' => 'required|string|max:200',
+            'akreditasi_prodi_asal' => 'nullable|string|max:50',
+            'ipk' => 'required|numeric|min:0|max:4',
+            'sks_lulus' => 'required|integer|min:0',
+            // ... field lain
+        ]);
+        // Simpan ke data_pemohon manual (tanpa query PDUT)
+        // id_pemohon = NULL (pemohon tidak ada di man_akses.pengguna)
+        // a_dari_luar = TRUE
+        // nm_pt_asal = dari input
+    } else {
+        // Existing flow: query PDUT, auto-populate data_pemohon
+    }
+}
+```
+
+### Perubahan Frontend
+
+#### `frontend/src/app/dashboard/sim-bak/permohonan/[kode]/page.tsx`
+
+- Tambah toggle/checkbox "Pengajuan dari Luar Unila" (hanya visible untuk role Admin BAK)
+- Jika dicentang:
+  - Sembunyikan card "Data Akademik Pemohon" (yang dari PDUT)
+  - Tampilkan form input manual: nama, NIM asal, PT asal, prodi asal, akreditasi, IPK, SKS
+  - Sembunyikan card "Syarat Akademik" (validasi auto)
+  - Tampilkan info: "Validasi syarat akademik dilakukan manual berdasarkan transkrip"
+  - Tambah field upload "Disposisi dari Rektor/WR I"
+
+#### `frontend/src/app/dashboard/sim-bak/admin/verifikasi/[id]/page.tsx`
+
+- Tampilkan badge "Dari Luar Unila" di header jika `a_dari_luar = true`
+- Data pemohon card menampilkan PT asal + akreditasi prodi asal
+- WorkflowStepper menyesuaikan (skip tahap Fakultas Asal, langsung Fakultas Tujuan)
+
+### Status Implementasi
+
+| Aspek | Status |
+|-------|--------|
+| Plan & alur dicatat | **Ya** (12 April 2026) |
+| Keputusan desain (Opsi B + tanpa Pejabat) | **Ya** |
+| ALTER tabel | **Belum** |
+| Backend WorkflowService branching (skip fak asal) | **Belum** |
+| Backend PengajuanController manual input | **Belum** |
+| Frontend toggle "Dari Luar Unila" | **Belum** |
+| Testing end-to-end | **Belum** |
