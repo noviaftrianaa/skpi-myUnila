@@ -244,61 +244,106 @@ Tipe `User` di `lib/types/authTypes.ts`:
 
 ---
 
-## 9. [PERLU DIBAHAS] Alur Tahapan PM-ALIH (Alih Program / Pindah Studi)
+## 9. [REVISI] Alur Tahapan PM-ALIH (Alih Program / Pindah Studi)
 
-### Masalah
-
-Status `diverifikasi` dipakai ulang di 2 tahapan berbeda pada seed data `ref.tahapan_layanan` untuk layanan PM-ALIH:
+### Alur Lama (Bug — Status Duplikat)
 
 ```
 Tahap 1: Mahasiswa              → draft → diajukan
-Tahap 2: Admin Fak. Asal        → diajukan → diverifikasi        ← pertama kali
+Tahap 2: Admin Fak. Asal        → diajukan → diverifikasi
 Tahap 3: Admin Fak. Tujuan      → diverifikasi → menunggu_persetujuan
 Tahap 4: Admin BAK              → menunggu_persetujuan → diverifikasi  ← DUPLIKAT!
 Tahap 5: Pejabat                → diverifikasi → disetujui             ← AMBIGU!
 Tahap 6: Admin BAK (terbit)     → disetujui → terbit
 ```
 
-### Dampak
+Bug: status `diverifikasi` duplikat → loop di tahap 4→5.
 
-1. Setelah **tahap 4** (Admin BAK verifikasi), status kembali ke `diverifikasi`
-2. `getCurrentTahapan()` mencari tahapan dengan `status_masuk = diverifikasi` → menemukan **tahap 3** (Admin Fak. Tujuan), bukan **tahap 5** (Pejabat)
-3. Akibatnya: setelah Admin BAK verifikasi, sistem **kembali ke tahap 3** (loop) — bukan lanjut ke tahap 5
-4. Progress stepper juga kacau karena `statusOrder` tidak bisa membedakan `diverifikasi` tahap 2 vs tahap 4
+### Alur Revisi (Disederhanakan — Tahap 5 Dihapus)
 
-### Opsi Solusi (Perlu Dibahas dengan Tim BAK)
+Tahap 5 (Persetujuan Pejabat) **dihilangkan** karena proses persetujuan dilakukan di fakultas tujuan (tahap 3) dan melalui SAP (di luar sistem SIMBAK).
 
-**Opsi A: Status unik per tahapan**
 ```
-Tahap 4: menunggu_persetujuan → diverifikasi_bak
-Tahap 5: diverifikasi_bak → disetujui
+Tahap 1: Mahasiswa           → draft → diajukan
+Tahap 2: Admin Fak. Asal     → diajukan → diverifikasi
+Tahap 3: Admin Fak. Tujuan   → diverifikasi → menunggu_persetujuan
+Tahap 4: Admin BAK            → menunggu_persetujuan → disetujui
+Tahap 5: Admin BAK (terbit)   → disetujui → terbit
 ```
-- Perlu tambah status baru `diverifikasi_bak` di database + frontend
-- Paling bersih tapi perlu update banyak tempat
 
-**Opsi B: Tracking posisi berbasis urutan (bukan status)**
-- Tambah kolom `tahapan_saat_ini` (urutan number) di tabel `layanan.pengajuan`
-- Transisi berdasarkan urutan, bukan cocokkan status
-- Lebih fleksibel tapi perlu refactor `WorkflowService`
+**5 tahapan** — tidak ada status duplikat, sama dengan PM-CUTI/PM-UNDUR.
 
-**Opsi C: Sederhanakan alur PM-ALIH**
-- Gabung tahap 3 (Fak. Tujuan) dan 4 (Admin BAK) jadi satu tahapan
-- Kurangi kompleksitas tapi mungkin tidak sesuai SOP
+### Detail Per Tahap
 
-### Status Saat Ini
+**Tahap 1 — Mahasiswa: Pengajuan**
+- Pilih prodi tujuan + fakultas tujuan
+- Validasi syarat akademik (IPK, SKS, semester)
+- Upload 6 dokumen persyaratan
+- Isi alasan pindah studi
 
-- PM-ALIH **belum bisa digunakan secara penuh** karena bug loop di tahap 4→5
-- PM-CUTI dan PM-UNDUR (5 tahapan) **berfungsi normal** karena tidak ada status duplikat
-- Semua layanan surat mandiri (3 tahapan) **berfungsi normal**
+**Tahap 2 — Admin Fakultas Asal: Verifikasi**
+- Verifikasi kelengkapan dokumen
+- Cek kesesuaian data akademik
+- Upload surat pengantar dari Dekan/WD I kepada Rektor/WR I ke SIMBAK
+- Jika tidak lengkap → minta perbaikan
+- **Di luar sistem**: kirim surat pengantar dan dokumen melalui SAP ke Rektor/WR1
+- **Di luar sistem**: WR1 mendisposisikan surat ke fakultas tujuan via SAP
 
-### Layanan yang Perlu Perhatian
+**Tahap 3 — Admin Fakultas Tujuan: Proses Penerimaan**
+- Menerima disposisi (di luar sistem, sudah via SAP)
+- Verifikasi semua dokumen pengajuan
+- Proses:
+  - Wawancara (jika diperlukan) → hasil dicatat
+  - **Keputusan**: diterima atau ditolak
+  - Jika diterima: upload daftar konversi SKS
+  - Jika ditolak: pengajuan ditolak + alasan
+  - Buat surat balasan dari WR1 bahwa diterima/ditolak
+- Upload ke SIMBAK:
+  - Disposisi
+  - Dokumen penilaian/hasil wawancara
+  - Dokumen konversi SKS (jika diterima)
+  - Surat pengantar bahwa mahasiswa diterima/ditolak
+- Upload juga ke SAP (di luar sistem)
+- Endpoint: `POST /approval/{id}/terima-tujuan`
+- Data: `a_diterima_tujuan`, `hasil_wawancara`, `daftar_konversi_sks`
 
-| Layanan | Tahapan | Status |
-|---------|---------|--------|
-| SK-LOA, SK-KTM, SK-PKKMB, SK-HERREG | 3 tahapan | **OK** |
-| PM-CUTI | 5 tahapan | **OK** |
-| PM-UNDUR | 5 tahapan | **OK** |
-| PM-ALIH | 6 tahapan | **BUG** — perlu dibahas |
+**Tahap 4 — Admin BAK: Verifikasi Akhir**
+- Verifikasi seluruh dokumen dan hasil proses lintas fakultas
+- Pastikan semua persyaratan administratif terpenuhi
+- Jika diterima → buat SK Rektor
+- Jika ditolak → buat Surat Penolakan Wakil Rektor
+
+**Tahap 5 — Admin BAK: Penerbitan SK Rektor / Surat Penolakan**
+- Jika disetujui:
+  - Buat draf SK Rektor tentang Alih Program / Pindah Studi
+  - Nama yang ditolak **tidak masuk** ke SK
+  - Upload SK yang sudah ditandatangani (PDF)
+- Jika ditolak:
+  - Buat surat penolakan
+  - Upload surat penolakan (PDF)
+- Status → terbit, mahasiswa bisa download
+
+### Output
+- SK Rektor tentang Alih Program / Pindah Studi (untuk yang diterima)
+- Surat Penolakan Wakil Rektor (untuk yang ditolak)
+
+### Yang Perlu Diubah (Implementasi)
+
+1. **Update seed data** `ref.tahapan_layanan` PM-ALIH → 5 tahapan (hapus tahap Pejabat)
+2. **Tidak ada status duplikat** → bug loop sudah teratasi
+3. **Endpoint `terima-tujuan`** perlu support upload multi-dokumen (disposisi, wawancara, konversi SKS, surat balasan)
+4. **Halaman terbitkan** perlu support 2 jenis output: SK Rektor (diterima) dan Surat Penolakan (ditolak)
+5. **Integrasi SAP** tidak masuk scope SIMBAK — hanya catatan bahwa proses disposisi dilakukan di luar sistem
+
+### Status
+
+| Aspek | Status |
+|-------|--------|
+| Alur sudah direvisi | **Ya** (9 April 2026) |
+| Seed data diupdate | **Belum** |
+| Implementasi backend | **Belum** |
+| Implementasi frontend | **Belum** |
+| Bug status duplikat | **Teratasi** (alur baru tidak ada duplikat) |
 | BA-HMM, BA-PUTUS | 5 tahapan | Belum ditest |
 
 ---
@@ -388,3 +433,198 @@ SELECT * FROM siakadu.ref_jalur_daftar;
 ### Rekomendasi
 
 Gunakan **Opsi A** sebagai solusi utama (tunggu data PDUT). Sementara menunggu, bisa implementasi **Opsi B** (filter jenjang Profesi) sebagai interim.
+
+---
+
+## 12. [PLAN] Notifikasi Kandidat Putus Studi — Peringatan UKT
+
+### Kebutuhan (dari docs `02-alur-layanan-simba-revisi.md` poin 2.9)
+
+Mahasiswa yang masuk daftar kandidat Putus Studi harus diberitahu **agar tidak melakukan pembayaran UKT** selama proses evaluasi berjalan.
+
+### Tahap Notifikasi
+
+**Saat kandidat ditarik (batch dibuat)** — setelah Admin BAK create batch dan kandidat muncul.
+
+### Isi Notifikasi
+
+> *"Anda masuk dalam daftar evaluasi akademik semester [semester]. Mohon TIDAK melakukan pembayaran UKT sampai ada keputusan resmi. Silakan hubungi BAK untuk informasi lebih lanjut."*
+
+### Mekanisme (Plan)
+
+- Notifikasi dikirim otomatis ke mahasiswa yang masuk `batch.kandidat_batch`
+- Channel: email / portal notification (tergantung notification service yang tersedia)
+- Trigger: setelah `BatchController::store()` selesai insert kandidat
+- Hanya untuk jenis batch `putus_studi`
+
+### Blocker
+
+Notification service **belum tersedia** di MyUnila (fitur global). Implementasi ditunda sampai notification service ready.
+
+### Referensi Implementasi: SI Registrasi (`E:\laragon\www\si-registrasi`)
+
+SI Registrasi sudah punya framework notifikasi yang bisa diadopsi:
+
+#### Email
+- **Provider**: SMTP dinamis dari database (`setting.smtp_config`)
+- **Template**: Disimpan di database (`setting.template_pesan`) dengan placeholder `{{nama}}`, `{{npm}}`, dll
+- **View**: Blade template HTML responsive (`resources/views/emails/reminder-registrasi.blade.php`)
+- **Queue**: Redis-based job (`ProcessEmailNotifJob.php`) dengan delay 200ms per email
+- **Logging**: `setting.smtp_log` — tracking status sent/failed per email
+- **Rate limiting**: `daily_limit`, `monthly_limit`, `usage_today` per SMTP config
+
+#### WhatsApp
+- **Framework ada** tapi belum fully implemented
+- Toggle `a_whatsapp` di `setting.notifikasi_config`
+- API config generic di `setting.api_config` — support berbagai auth (bearer, api_key, oauth2)
+- Bisa diintegrasikan dengan provider WA API (Fonnte, Wablas, dll)
+
+#### Channel yang Tersedia
+| Channel | Status di SI Registrasi |
+|---------|------------------------|
+| `a_email` | Sudah implementasi |
+| `a_whatsapp` / `a_sms` | Framework ada, belum implementasi |
+| `a_push` | Framework ada |
+| `a_in_app` | Framework ada |
+
+---
+
+## 13. [PLAN] Notifikasi SIMBAK — Email & WhatsApp
+
+### Layanan yang Perlu Notifikasi
+
+#### A. Penetapan Putus Studi (BA-PUTUS) — Early Warning
+
+**Trigger**: Setelah batch dibuat dan kandidat ditarik
+**Penerima**: Mahasiswa yang masuk `batch.kandidat_batch` dengan `jenis_batch = putus_studi`
+**Channel**: Email + WhatsApp
+
+**Template Email**:
+```
+Subject: [PENTING] Evaluasi Akademik Semester {{semester}} — Universitas Lampung
+
+Yth. {{nama}} (NPM: {{npm}})
+Program Studi {{prodi}}, {{fakultas}}
+
+Anda masuk dalam daftar evaluasi akademik semester {{semester}} berdasarkan
+kriteria evaluasi yang berlaku (Pertor No. 12 Tahun 2025 tentang PA Pasal 48).
+
+⚠️ MOHON TIDAK MELAKUKAN PEMBAYARAN UKT sampai ada keputusan resmi.
+
+Silakan hubungi Biro Akademik dan Kemahasiswaan (BAK) untuk informasi
+lebih lanjut atau klarifikasi.
+
+Hormat kami,
+Biro Akademik dan Kemahasiswaan
+Universitas Lampung
+```
+
+**Template WhatsApp**:
+```
+[PENTING] Evaluasi Akademik — Universitas Lampung
+
+Yth. {{nama}} ({{npm}})
+
+Anda masuk daftar evaluasi akademik semester {{semester}}.
+
+⚠️ MOHON TIDAK BAYAR UKT sampai ada keputusan resmi.
+
+Hubungi BAK untuk info lebih lanjut.
+```
+
+#### B. Penetapan Habis Masa Mukim (BA-HMM) — Early Warning
+
+**Trigger**: Setelah batch dibuat dan kandidat ditarik
+**Penerima**: Mahasiswa yang masuk `batch.kandidat_batch` dengan `jenis_batch = habis_masa_mukim`
+**Channel**: Email + WhatsApp
+
+**Template Email**:
+```
+Subject: [PENTING] Evaluasi Masa Studi — Universitas Lampung
+
+Yth. {{nama}} (NPM: {{npm}})
+Program Studi {{prodi}}, {{fakultas}}
+
+Anda masuk dalam daftar evaluasi masa studi berdasarkan
+Pertor No. 12 Tahun 2025 tentang PA Pasal 24.
+
+Data akademik Anda:
+- Jenjang: {{jenjang}}
+- Angkatan: {{angkatan}}
+- Semester saat ini: {{semester}}
+- Batas masa studi: {{batas_semester}} semester
+
+Silakan hubungi Biro Akademik dan Kemahasiswaan (BAK) atau
+fakultas Anda untuk informasi lebih lanjut.
+
+Hormat kami,
+Biro Akademik dan Kemahasiswaan
+Universitas Lampung
+```
+
+**Template WhatsApp**:
+```
+[PENTING] Evaluasi Masa Studi — Universitas Lampung
+
+Yth. {{nama}} ({{npm}})
+Jenjang: {{jenjang}} | Semester: {{semester}}
+
+Anda masuk daftar evaluasi masa studi (batas: {{batas_semester}} smt).
+
+Hubungi BAK atau fakultas untuk info lebih lanjut.
+```
+
+#### C. Perubahan Status Pengajuan Layanan (Semua Layanan)
+
+**Trigger**: Setiap kali status pengajuan berubah
+**Penerima**: Mahasiswa pemohon
+**Channel**: Email (opsional WhatsApp)
+
+| Status Baru | Notifikasi | Kirim? |
+|-------------|-----------|:------:|
+| `diajukan` | - | Tidak |
+| `perlu_perbaikan` | "Pengajuan Anda perlu diperbaiki. Catatan: {{catatan}}" | **Ya** |
+| `diverifikasi` | - | Tidak |
+| `menunggu_persetujuan` | - | Tidak |
+| `disetujui` | - | Tidak |
+| `ditolak` | "Pengajuan Anda ditolak. Alasan: {{catatan}}" | **Ya** |
+| `terbit` | "Surat/SK Anda telah terbit. Silakan download di portal SIMBAK" | **Ya** |
+
+### Arsitektur (Adopsi dari SI Registrasi)
+
+```
+SIMBAK Backend
+  ↓ (trigger event)
+Notification Job (Redis Queue)
+  ↓
+Email: SMTP dari setting.smtp_config
+WhatsApp: API dari setting.api_config
+  ↓
+Log ke setting.smtp_log / tabel log SIMBAK
+```
+
+### Implementasi (Bertahap)
+
+| Fase | Scope | Prioritas |
+|------|-------|-----------|
+| Fase 1 | Notifikasi email BA-PUTUS (early warning UKT) | **Tinggi** |
+| Fase 2 | Notifikasi email BA-HMM (early warning masa studi) | **Tinggi** |
+| Fase 3 | Notifikasi email perubahan status pengajuan | Sedang |
+| Fase 4 | Integrasi WhatsApp untuk semua notifikasi | Rendah |
+
+### Prasyarat
+
+1. Tabel `setting.smtp_config` sudah diisi (SMTP server Unila)
+2. Template disimpan di `setting.template_pesan` atau tabel khusus SIMBAK
+3. Redis queue worker berjalan di container SIMBAK
+4. Untuk WhatsApp: API provider sudah dikonfigurasi di `setting.api_config`
+
+### Status
+
+| Aspek | Status |
+|-------|--------|
+| Plan dicatat | **Ya** (9 April 2026) |
+| Referensi framework (SI Registrasi) | **Tersedia** |
+| SMTP config tersedia | **Perlu dicek** — apakah `setting.smtp_config` sudah ada di pdut_staging |
+| WhatsApp API tersedia | **Belum** — perlu setup provider |
+| Implementasi | **Belum** |
