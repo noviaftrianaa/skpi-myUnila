@@ -828,3 +828,113 @@ public function store(Request $request): JsonResponse
 | Backend PengajuanController manual input | **Belum** |
 | Frontend toggle "Dari Luar Unila" | **Belum** |
 | Testing end-to-end | **Belum** |
+
+---
+
+## 15. [PLAN] Alasan Exclude Kandidat Batch — Select Dropdown + Upload Dokumen Meninggal
+
+### Keputusan Desain (12 April 2026)
+
+Alasan exclude kandidat batch menggunakan **select dropdown** (bukan text input bebas), dengan opsi **berbeda per jenis batch**. Opsi "Lainnya" menampilkan text input tambahan.
+
+### Opsi Alasan Per Jenis Batch
+
+#### BA-HMM (Habis Masa Mukim)
+| # | Opsi | Dokumen Wajib |
+|---|------|---------------|
+| 1 | Sudah mengajukan undur diri | - |
+| 2 | Meninggal dunia | **Surat Keterangan Meninggal Dunia dari RS / Aparat Desa** (PDF) |
+| 3 | Lainnya → text input | - |
+
+#### BA-PUTUS (Putus Studi)
+| # | Opsi | Dokumen Wajib |
+|---|------|---------------|
+| 1 | Mahasiswa double degree | - |
+| 2 | Jalur RPL (Rekognisi Pembelajaran Lampau) | - |
+| 3 | Diberi kesempatan lanjut studi | - |
+| 4 | Sudah mengajukan undur diri | - |
+| 5 | Meninggal dunia | **Surat Keterangan Meninggal Dunia dari RS / Aparat Desa** (PDF) |
+| 6 | Lainnya → text input | - |
+
+### Rule Khusus: Upload Dokumen Meninggal Dunia
+
+- Berlaku untuk **BA-HMM dan BA-PUTUS**
+- Trigger: saat admin memilih opsi "Meninggal dunia" dari dropdown
+- Muncul field upload wajib di bawah select
+- Validasi: tidak bisa konfirmasi exclude tanpa upload dokumen
+- File disimpan di MinIO: `simbak/batch/{id_batch}/kandidat/{id_kandidat}/surat_meninggal.pdf`
+
+### Perubahan Database
+
+```sql
+-- Tambah kolom untuk menyimpan path dokumen pendukung exclude
+ALTER TABLE batch.verifikasi_batch
+  ADD COLUMN path_dokumen_exclude VARCHAR(1000) NULL;
+
+COMMENT ON COLUMN batch.verifikasi_batch.path_dokumen_exclude
+  IS 'Path file dokumen pendukung exclude (misal: surat keterangan meninggal dunia)';
+```
+
+### Perubahan Backend
+
+#### `BatchController::verifikasiKandidat()`
+
+```php
+// Tambah validasi: jika alasan = "Meninggal dunia", file wajib
+$rules = [
+    'hasil' => 'required|in:dikonfirmasi,dikeluarkan',
+    'catatan' => 'nullable|string',
+    'alasan_exclude' => 'required_if:hasil,dikeluarkan|string',
+    'alasan_exclude_lainnya' => 'required_if:alasan_exclude,Lainnya|string',
+    'dokumen_exclude' => 'required_if:alasan_exclude,Meninggal dunia|file|mimes:pdf|max:10240',
+];
+
+// Simpan alasan final
+$alasanFinal = $data['alasan_exclude'] === 'Lainnya'
+    ? $data['alasan_exclude_lainnya']
+    : $data['alasan_exclude'];
+
+// Upload dokumen jika ada
+if ($request->hasFile('dokumen_exclude')) {
+    $path = $this->minioService->uploadDokumenExclude($idBatch, $idKandidat, $file);
+    // Simpan path ke verifikasi_batch
+}
+```
+
+### Perubahan Frontend
+
+#### `frontend/src/app/dashboard/sim-bak/batch/[id]/page.tsx`
+
+Modal exclude kandidat:
+```
+┌─────────────────────────────────────────┐
+│ Keluarkan Kandidat                       │
+│                                          │
+│ Alasan: [▼ Pilih alasan           ]     │
+│                                          │
+│ (jika "Lainnya" dipilih:)               │
+│ Keterangan: [________________]           │
+│                                          │
+│ (jika "Meninggal dunia" dipilih:)       │
+│ ⚠️ Wajib upload Surat Keterangan        │
+│    Meninggal Dunia dari RS/Aparat Desa   │
+│ [📎 Upload PDF _______________]          │
+│                                          │
+│            [Batal] [Konfirmasi]           │
+└─────────────────────────────────────────┘
+```
+
+- Opsi dropdown di-populate berdasarkan `jenis_batch` (HMM vs PUTUS)
+- State conditional: `alasan === "Lainnya"` → tampil text input
+- State conditional: `alasan === "Meninggal dunia"` → tampil file upload + warning
+- Tombol "Konfirmasi" disabled jika meninggal dunia tapi belum upload
+
+### Status Implementasi
+
+| Aspek | Status |
+|-------|--------|
+| Plan dicatat | **Ya** (12 April 2026) |
+| ALTER tabel verifikasi_batch | **Belum** |
+| Backend validasi + upload | **Belum** |
+| Frontend select dropdown + conditional upload | **Belum** |
+| Testing | **Belum** |
