@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\BaseRepository;
+use App\Repositories\NotificationRepository;
 use App\Services\NotificationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -14,38 +14,29 @@ class NotificationController extends Controller
 {
     use ApiResponse;
 
-    protected BaseRepository $repository;
+    protected NotificationRepository $repository;
     protected NotificationService $notificationService;
 
     public function __construct()
     {
-        $this->repository = new BaseRepository();
+        $this->repository = new NotificationRepository();
         $this->notificationService = new NotificationService();
     }
 
     // =========================================
-    // Pengaturan Notifikasi (SMTP, WA, Umum)
+    // Pengaturan Notifikasi (Umum)
     // =========================================
 
-    /**
-     * List semua pengaturan, grouped by grup.
-     */
     public function getSettings(): JsonResponse
     {
         try {
-            $data = $this->repository->pgSelect(
-                "SELECT id_pengaturan, kode, CASE WHEN a_rahasia THEN '********' ELSE nilai END as nilai, deskripsi, grup, a_rahasia FROM ref.pengaturan_notifikasi ORDER BY grup, kode"
-            );
-            return $this->successResponse($data);
+            return $this->successResponse($this->repository->getSettings());
         } catch (\Exception $e) {
             Log::error('Notification.getSettings: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }
 
-    /**
-     * Update satu atau banyak pengaturan.
-     */
     public function updateSettings(Request $request): JsonResponse
     {
         try {
@@ -56,15 +47,9 @@ class NotificationController extends Controller
             ]);
 
             $user = $request->user();
-
             foreach ($data['settings'] as $item) {
-                // Jangan update jika value = '********' (masked password — tidak diubah)
                 if ($item['nilai'] === '********') continue;
-
-                $this->repository->pgUpdate(
-                    "UPDATE ref.pengaturan_notifikasi SET nilai = ?, id_updater = ?, updated_at = NOW() WHERE kode = ?",
-                    [$item['nilai'] ?? '', $user->id_pengguna, $item['kode']]
-                );
+                $this->repository->updateSetting($item['kode'], $item['nilai'] ?? '', $user->id_pengguna);
             }
 
             return $this->successResponse(null, 'Pengaturan berhasil disimpan');
@@ -76,9 +61,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Test kirim email.
-     */
     public function testEmail(Request $request): JsonResponse
     {
         try {
@@ -96,28 +78,164 @@ class NotificationController extends Controller
     }
 
     // =========================================
+    // SMTP Config (multi-config)
+    // =========================================
+
+    public function getSmtpList(): JsonResponse
+    {
+        try {
+            $data = $this->repository->getSmtpList();
+
+            // Auto-reset counters jika hari/bulan berubah
+            $today = date('Y-m-d');
+            $thisMonth = date('Y-m');
+            foreach ($data as $smtp) {
+                if ($smtp->tgl_reset_hari !== $today) {
+                    $this->repository->resetSmtpDailyCounter($smtp->id_smtp, $today);
+                    $smtp->terkirim_hari = 0;
+                }
+                if (substr($smtp->tgl_reset_bulan, 0, 7) !== $thisMonth) {
+                    $this->repository->resetSmtpMonthlyCounter($smtp->id_smtp, $today);
+                    $smtp->terkirim_bulan = 0;
+                }
+            }
+
+            return $this->successResponse($data);
+        } catch (\Exception $e) {
+            Log::error('Notification.getSmtpList: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function createSmtp(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'nm_config' => 'required|string|max:200',
+                'smtp_host' => 'required|string|max:200',
+                'smtp_port' => 'required|integer',
+                'smtp_encryption' => 'required|string|in:tls,ssl,none',
+                'smtp_username' => 'required|string|max:200',
+                'smtp_password' => 'nullable|string|max:500',
+                'from_name' => 'required|string|max:200',
+                'from_address' => 'required|string|max:200',
+                'reply_to' => 'nullable|string|max:200',
+                'limit_harian' => 'nullable|integer|min:1',
+                'limit_bulanan' => 'nullable|integer|min:1',
+                'prioritas' => 'nullable|integer|min:1',
+                'a_aktif' => 'nullable|boolean',
+                'a_default' => 'nullable|boolean',
+            ]);
+
+            $user = $request->user();
+            if (!empty($data['a_default'])) {
+                $this->repository->resetSmtpDefaults();
+            }
+
+            $data['id_creator'] = $user->id_pengguna;
+            $row = $this->repository->createSmtp($data);
+
+            return $this->createdResponse(['id_smtp' => $row->id_smtp], 'SMTP berhasil ditambahkan');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Notification.createSmtp: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function updateSmtp(Request $request, string $id): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'nm_config' => 'nullable|string|max:200',
+                'smtp_host' => 'nullable|string|max:200',
+                'smtp_port' => 'nullable|integer',
+                'smtp_encryption' => 'nullable|string|in:tls,ssl,none',
+                'smtp_username' => 'nullable|string|max:200',
+                'smtp_password' => 'nullable|string|max:500',
+                'from_name' => 'nullable|string|max:200',
+                'from_address' => 'nullable|string|max:200',
+                'reply_to' => 'nullable|string|max:200',
+                'limit_harian' => 'nullable|integer|min:1',
+                'limit_bulanan' => 'nullable|integer|min:1',
+                'prioritas' => 'nullable|integer|min:1',
+                'a_aktif' => 'nullable|boolean',
+                'a_default' => 'nullable|boolean',
+            ]);
+
+            $user = $request->user();
+
+            if (isset($data['smtp_password']) && $data['smtp_password'] === '********') {
+                unset($data['smtp_password']);
+            }
+
+            if (!empty($data['a_default'])) {
+                $this->repository->resetSmtpDefaults();
+            }
+
+            $sets = [];
+            $bindings = [];
+            foreach ($data as $key => $value) {
+                $sets[] = "{$key} = ?";
+                $bindings[] = $value;
+            }
+            $sets[] = "id_updater = ?";
+            $bindings[] = $user->id_pengguna;
+            $sets[] = "updated_at = NOW()";
+
+            $this->repository->updateSmtp($id, $sets, $bindings);
+
+            return $this->successResponse(null, 'SMTP berhasil diupdate');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Notification.updateSmtp: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function deleteSmtp(string $id): JsonResponse
+    {
+        try {
+            $this->repository->deleteSmtp($id);
+            return $this->successResponse(null, 'SMTP berhasil dihapus');
+        } catch (\Exception $e) {
+            Log::error('Notification.deleteSmtp: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function testSmtp(Request $request, string $id): JsonResponse
+    {
+        try {
+            $data = $request->validate(['email' => 'required|email']);
+            $result = $this->notificationService->sendTestEmailWithConfig($id, $data['email']);
+            return $result['success']
+                ? $this->successResponse(null, $result['message'])
+                : $this->errorResponse($result['message'], 422);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Notification.testSmtp: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    // =========================================
     // Template Notifikasi
     // =========================================
 
-    /**
-     * List semua template.
-     */
     public function getTemplates(): JsonResponse
     {
         try {
-            $data = $this->repository->pgSelect(
-                "SELECT * FROM ref.template_notifikasi ORDER BY kode_event"
-            );
-            return $this->successResponse($data);
+            return $this->successResponse($this->repository->getTemplates());
         } catch (\Exception $e) {
             Log::error('Notification.getTemplates: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }
 
-    /**
-     * Update template.
-     */
     public function updateTemplate(Request $request, string $id): JsonResponse
     {
         try {
@@ -149,12 +267,8 @@ class NotificationController extends Controller
             $sets[] = "id_updater = ?";
             $bindings[] = $user->id_pengguna;
             $sets[] = "updated_at = NOW()";
-            $bindings[] = $id;
 
-            $this->repository->pgUpdate(
-                "UPDATE ref.template_notifikasi SET " . implode(', ', $sets) . " WHERE id_template = ?",
-                $bindings
-            );
+            $this->repository->updateTemplate($id, $sets, $bindings);
 
             return $this->successResponse(null, 'Template berhasil diupdate');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -165,15 +279,10 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Preview template — render placeholder dengan data dummy.
-     */
     public function previewTemplate(string $id): JsonResponse
     {
         try {
-            $template = $this->repository->pgSelectOne(
-                "SELECT * FROM ref.template_notifikasi WHERE id_template = ?", [$id]
-            );
+            $template = $this->repository->findTemplateById($id);
             if (!$template) return $this->notFoundResponse();
 
             $sampleData = [
@@ -190,14 +299,10 @@ class NotificationController extends Controller
                 'batas_semester' => '16',
             ];
 
-            $renderedEmail = $this->notificationService->renderTemplate($template->body_email ?? '', $sampleData);
-            $renderedWa = $this->notificationService->renderTemplate($template->body_whatsapp ?? '', $sampleData);
-            $renderedSubject = $this->notificationService->renderTemplate($template->subject_email ?? '', $sampleData);
-
             return $this->successResponse([
-                'subject' => $renderedSubject,
-                'body_email' => $renderedEmail,
-                'body_whatsapp' => $renderedWa,
+                'subject' => $this->notificationService->renderTemplate($template->subject_email ?? '', $sampleData),
+                'body_email' => $this->notificationService->renderTemplate($template->body_email ?? '', $sampleData),
+                'body_whatsapp' => $this->notificationService->renderTemplate($template->body_whatsapp ?? '', $sampleData),
             ]);
         } catch (\Exception $e) {
             Log::error('Notification.previewTemplate: ' . $e->getMessage());
@@ -209,9 +314,6 @@ class NotificationController extends Controller
     // Log Notifikasi
     // =========================================
 
-    /**
-     * List log notifikasi dengan pagination.
-     */
     public function getLogs(Request $request): JsonResponse
     {
         try {
@@ -227,13 +329,9 @@ class NotificationController extends Controller
             if ($channel) { $where .= " AND channel = ?"; $bindings[] = $channel; }
             if ($kodeEvent) { $where .= " AND kode_event = ?"; $bindings[] = $kodeEvent; }
 
-            $total = $this->repository->pgCount("SELECT COUNT(*) as total FROM log.notifikasi {$where}", $bindings);
+            $total = $this->repository->getLogCount($where, $bindings);
             $offset = ($page - 1) * $limit;
-            $data = $this->repository->pgSelect(
-                "SELECT id_notifikasi, kode_event, channel, penerima, nm_penerima, subject, status, error_message, retry_count, sent_at, created_at
-                 FROM log.notifikasi {$where} ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}",
-                $bindings
-            );
+            $data = $this->repository->getLogs($where, $bindings, $limit, $offset);
 
             return $this->paginatedResponse($data, $total, $page, $limit);
         } catch (\Exception $e) {
@@ -242,21 +340,10 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Statistik log notifikasi.
-     */
     public function getLogStats(): JsonResponse
     {
         try {
-            $stats = $this->repository->pgSelectOne("
-                SELECT
-                    COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE status = 'sent') as sent,
-                    COUNT(*) FILTER (WHERE status = 'failed') as failed,
-                    COUNT(*) FILTER (WHERE status = 'pending') as pending
-                FROM log.notifikasi
-            ");
-            return $this->successResponse($stats);
+            return $this->successResponse($this->repository->getLogStats());
         } catch (\Exception $e) {
             Log::error('Notification.getLogStats: ' . $e->getMessage());
             return $this->serverErrorResponse();

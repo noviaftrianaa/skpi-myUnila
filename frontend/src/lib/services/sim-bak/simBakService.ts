@@ -457,6 +457,40 @@ export const exportMonitoring = async (params?: Record<string, unknown>): Promis
 
 // ============ Notifikasi ============
 
+// Batch: Kirim Email/WA manual per kandidat
+export const sendEmailKandidat = async (idKandidat: string): Promise<{ email: string }> => {
+  const response = await bakClient.post(`/batch/kandidat/${idKandidat}/send-email`);
+  return response.data.data;
+};
+
+export const getWhatsAppLinkKandidat = async (idKandidat: string): Promise<{ telepon: string; wa_url: string; pesan: string }> => {
+  const response = await bakClient.get(`/batch/kandidat/${idKandidat}/wa-link`);
+  return response.data.data;
+};
+
+// SMTP Config CRUD
+export const getSmtpList = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/smtp');
+  return response.data.data ?? [];
+};
+
+export const createSmtp = async (data: Record<string, unknown>): Promise<void> => {
+  await bakClient.post('/notifikasi/smtp', data);
+};
+
+export const updateSmtp = async (id: string, data: Record<string, unknown>): Promise<void> => {
+  await bakClient.put(`/notifikasi/smtp/${id}`, data);
+};
+
+export const deleteSmtp = async (id: string): Promise<void> => {
+  await bakClient.delete(`/notifikasi/smtp/${id}`);
+};
+
+export const testSmtp = async (id: string, email: string): Promise<{ message: string }> => {
+  const response = await bakClient.post(`/notifikasi/smtp/${id}/test`, { email });
+  return response.data;
+};
+
 export const getNotifSettings = async (): Promise<Record<string, unknown>[]> => {
   const response = await bakClient.get('/notifikasi/settings');
   return response.data.data ?? [];

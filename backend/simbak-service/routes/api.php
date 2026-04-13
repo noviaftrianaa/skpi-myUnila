@@ -137,6 +137,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/{id}/upload-sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'uploadSkDekan'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
+            Route::post('/kandidat/{id}/send-email', [\App\Http\Controllers\Api\Batch\BatchController::class, 'sendEmailKandidat']);
+            Route::get('/kandidat/{id}/wa-link', [\App\Http\Controllers\Api\Batch\BatchController::class, 'getWhatsAppLink']);
             Route::post('/{id}/finalize', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalize'])->middleware('permission:approve,sim-bak');
         });
 
@@ -167,6 +169,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/settings', [\App\Http\Controllers\Api\NotificationController::class, 'getSettings']);
             Route::put('/settings', [\App\Http\Controllers\Api\NotificationController::class, 'updateSettings']);
             Route::post('/test-email', [\App\Http\Controllers\Api\NotificationController::class, 'testEmail']);
+            // SMTP Config CRUD
+            Route::get('/smtp', [\App\Http\Controllers\Api\NotificationController::class, 'getSmtpList']);
+            Route::post('/smtp', [\App\Http\Controllers\Api\NotificationController::class, 'createSmtp']);
+            Route::put('/smtp/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'updateSmtp']);
+            Route::delete('/smtp/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'deleteSmtp']);
+            Route::post('/smtp/{id}/test', [\App\Http\Controllers\Api\NotificationController::class, 'testSmtp']);
+            // Templates
             Route::get('/templates', [\App\Http\Controllers\Api\NotificationController::class, 'getTemplates']);
             Route::put('/templates/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'updateTemplate']);
             Route::get('/templates/{id}/preview', [\App\Http\Controllers\Api\NotificationController::class, 'previewTemplate']);

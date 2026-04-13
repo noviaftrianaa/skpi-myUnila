@@ -2,9 +2,10 @@
 -- ALTER Script: Infrastruktur Notifikasi SIMBAK
 -- Date: 2026-04-12
 -- Description:
---   1. ref.pengaturan_notifikasi — SMTP config + WA API config
+--   1. ref.pengaturan_notifikasi — WA API config + general settings
 --   2. ref.template_notifikasi — template email/WA per event
 --   3. log.notifikasi — log pengiriman notifikasi
+--   4. ref.smtp_config — konfigurasi SMTP multi-config (mirip SI Registrasi)
 -- =====================================================
 
 -- =====================================================
@@ -41,9 +42,10 @@ INSERT INTO ref.pengaturan_notifikasi (kode, nilai, deskripsi, grup, a_rahasia) 
     ('smtp_encryption', 'tls', 'Enkripsi: tls / ssl / none', 'smtp', false),
     ('smtp_from_address', '', 'Alamat email pengirim', 'smtp', false),
     ('smtp_from_name', 'SIMBAK Universitas Lampung', 'Nama pengirim email', 'smtp', false),
-    ('wa_api_url', '', 'URL API WhatsApp (Fonnte/Wablas/dll)', 'whatsapp', false),
-    ('wa_api_key', '', 'API Key WhatsApp', 'whatsapp', true),
-    ('wa_sender_number', '', 'Nomor pengirim WhatsApp', 'whatsapp', false)
+    -- WhatsApp tidak perlu API config — dikirim manual via wa.me link
+    -- ('wa_api_url', '', 'URL API WhatsApp', 'whatsapp', false),
+    -- ('wa_api_key', '', 'API Key WhatsApp', 'whatsapp', true),
+    -- ('wa_sender_number', '', 'Nomor pengirim WhatsApp', 'whatsapp', false)
 ON CONFLICT (kode) DO NOTHING;
 
 
@@ -169,3 +171,36 @@ COMMENT ON TABLE log.notifikasi IS 'Log pengiriman notifikasi email dan WhatsApp
 CREATE INDEX IF NOT EXISTS idx_notifikasi_kode_event ON log.notifikasi(kode_event);
 CREATE INDEX IF NOT EXISTS idx_notifikasi_status ON log.notifikasi(status);
 CREATE INDEX IF NOT EXISTS idx_notifikasi_created_at ON log.notifikasi(created_at DESC);
+
+
+-- =====================================================
+-- 4. ref.smtp_config — Konfigurasi SMTP multi-config
+-- =====================================================
+-- Mirip SI Registrasi: support multi SMTP, limit harian/bulanan, prioritas
+CREATE TABLE IF NOT EXISTS ref.smtp_config (
+    id_smtp         UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    nm_config       VARCHAR(200)    NOT NULL,
+    smtp_host       VARCHAR(200)    NOT NULL,
+    smtp_port       INT             NOT NULL DEFAULT 587,
+    smtp_encryption VARCHAR(10)     NOT NULL DEFAULT 'tls',
+    smtp_username   VARCHAR(200)    NOT NULL,
+    smtp_password   VARCHAR(500)    NOT NULL,
+    from_name       VARCHAR(200)    NOT NULL,
+    from_address    VARCHAR(200)    NOT NULL,
+    reply_to        VARCHAR(200)    NULL,
+    limit_harian    INT             NOT NULL DEFAULT 2000,
+    limit_bulanan   INT             NOT NULL DEFAULT 10000,
+    terkirim_hari   INT             NOT NULL DEFAULT 0,
+    terkirim_bulan  INT             NOT NULL DEFAULT 0,
+    tgl_reset_hari  DATE            NOT NULL DEFAULT CURRENT_DATE,
+    tgl_reset_bulan DATE            NOT NULL DEFAULT CURRENT_DATE,
+    prioritas       INT             NOT NULL DEFAULT 1,
+    a_aktif         BOOLEAN         NOT NULL DEFAULT TRUE,
+    a_default       BOOLEAN         NOT NULL DEFAULT FALSE,
+    id_creator      UUID            NULL,
+    id_updater      UUID            NULL,
+    created_at      TIMESTAMP       NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP       NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE ref.smtp_config IS 'Konfigurasi SMTP multi-config untuk pengiriman email (mirip SI Registrasi)';

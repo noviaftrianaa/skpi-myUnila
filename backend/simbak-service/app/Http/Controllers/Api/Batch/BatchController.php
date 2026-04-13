@@ -168,48 +168,6 @@ class BatchController extends Controller
 
             $this->repository->pgCommit();
 
-            // Trigger notifikasi batch early warning (non-blocking)
-            try {
-                $kodeEvent = $data['jenis_batch'] === 'putus_studi'
-                    ? 'batch_putus_studi_warning'
-                    : 'batch_hmm_warning';
-                $kandidatAll = $this->repository->getKandidatList($batch->id_batch_penetapan, ['limit' => 9999]);
-                $notifService = new NotificationService();
-                $recipients = [];
-                foreach ($kandidatAll['data'] as $k) {
-                    // Resolve email dari PDUT
-                    $email = null;
-                    if ($k->id_mahasiswa) {
-                        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
-                            "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$k->id_mahasiswa]
-                        );
-                        $email = $row->email ?? null;
-                    }
-                    if ($email) {
-                        $recipients[] = [
-                            'email' => $email,
-                            'nama' => $k->nm_mahasiswa ?? '',
-                            'data' => [
-                                'nama' => $k->nm_mahasiswa ?? '',
-                                'npm' => $k->nim ?? '',
-                                'prodi' => $k->nm_prodi ?? '',
-                                'fakultas' => $k->nm_fakultas ?? '',
-                                'semester' => $data['id_smt'] ?? '',
-                                'jenjang' => $k->nm_jenjang ?? '',
-                                'angkatan' => $k->angkatan ?? '',
-                                'batas_semester' => $this->getBatasSemester($k->nm_jenjang ?? ''),
-                            ],
-                        ];
-                    }
-                }
-                if (!empty($recipients)) {
-                    $sent = $notifService->send($kodeEvent, $recipients, [], ['id_batch' => $batch->id_batch_penetapan]);
-                    Log::info("Batch notification: {$sent} email(s) dispatched for {$kodeEvent}");
-                }
-            } catch (\Exception $e) {
-                Log::warning("Batch notification failed: {$e->getMessage()}");
-            }
-
             return $this->createdResponse([
                 'batch' => $batch,
                 'jumlah_kandidat' => $inserted,
@@ -228,6 +186,122 @@ class BatchController extends Controller
         return match (strtolower($jenjang)) {
             'd3' => '12', 's1' => '16', 's2' => '8', 's3' => '12', default => '-',
         };
+    }
+
+    /**
+     * Kirim email notifikasi ke kandidat batch (manual per kandidat).
+     */
+    public function sendEmailKandidat(Request $request, string $idKandidat): JsonResponse
+    {
+        try {
+            $kandidat = $this->repository->pgSelectOne(
+                "SELECT k.*, b.jenis_batch, b.id_smt FROM batch.kandidat_batch k JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                [$idKandidat]
+            );
+            if (!$kandidat) return $this->notFoundResponse('Kandidat tidak ditemukan');
+
+            // Resolve email dari PDUT
+            $email = null;
+            if ($kandidat->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$kandidat->id_mahasiswa]
+                );
+                $email = $row->email ?? null;
+            }
+            if (!$email) {
+                return $this->errorResponse('Email mahasiswa tidak ditemukan di sistem', 422);
+            }
+
+            $kodeEvent = $kandidat->jenis_batch === 'putus_studi'
+                ? 'batch_putus_studi_warning'
+                : 'batch_hmm_warning';
+
+            $notifService = new NotificationService();
+            $sent = $notifService->send($kodeEvent, [
+                [
+                    'email' => $email,
+                    'nama' => $kandidat->nm_mahasiswa ?? '',
+                    'data' => [
+                        'nama' => $kandidat->nm_mahasiswa ?? '',
+                        'npm' => $kandidat->nim ?? '',
+                        'prodi' => $kandidat->nm_prodi ?? '',
+                        'fakultas' => $kandidat->nm_fakultas ?? '',
+                        'semester' => $kandidat->id_smt ?? '',
+                        'jenjang' => $kandidat->nm_jenjang ?? '',
+                        'angkatan' => $kandidat->angkatan ?? '',
+                        'batas_semester' => $this->getBatasSemester($kandidat->nm_jenjang ?? ''),
+                    ],
+                ],
+            ], [], [
+                'id_batch' => $kandidat->id_batch_penetapan,
+                'id_kandidat' => $idKandidat,
+            ]);
+
+            return $sent > 0
+                ? $this->successResponse(['email' => $email], "Email berhasil dikirim ke {$email}")
+                : $this->errorResponse('Gagal mengirim email. Periksa konfigurasi SMTP.', 422);
+        } catch (\Exception $e) {
+            Log::error('Batch.sendEmailKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Generate WhatsApp link untuk kandidat batch.
+     * Frontend akan open wa.me link di tab baru.
+     */
+    public function getWhatsAppLink(string $idKandidat): JsonResponse
+    {
+        try {
+            $kandidat = $this->repository->pgSelectOne(
+                "SELECT k.*, b.jenis_batch, b.id_smt FROM batch.kandidat_batch k JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                [$idKandidat]
+            );
+            if (!$kandidat) return $this->notFoundResponse('Kandidat tidak ditemukan');
+
+            // Resolve telepon dari PDUT
+            $telepon = null;
+            if ($kandidat->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT no_hp_1 FROM siakadu.peserta_didik WHERE id_pd = ?", [$kandidat->id_mahasiswa]
+                );
+                $telepon = $row->no_hp_1 ?? null;
+            }
+            if (!$telepon) {
+                return $this->errorResponse('Nomor telepon mahasiswa tidak ditemukan', 422);
+            }
+
+            // Format nomor: hapus 0 di depan, ganti +62
+            $telepon = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $telepon));
+
+            $kodeEvent = $kandidat->jenis_batch === 'putus_studi'
+                ? 'batch_putus_studi_warning'
+                : 'batch_hmm_warning';
+
+            $notifService = new NotificationService();
+            $template = $notifService->getTemplate($kodeEvent);
+            $bodyWa = $template ? $notifService->renderTemplate($template->body_whatsapp ?? '', [
+                'nama' => $kandidat->nm_mahasiswa ?? '',
+                'npm' => $kandidat->nim ?? '',
+                'prodi' => $kandidat->nm_prodi ?? '',
+                'fakultas' => $kandidat->nm_fakultas ?? '',
+                'semester' => $kandidat->id_smt ?? '',
+                'jenjang' => $kandidat->nm_jenjang ?? '',
+                'angkatan' => $kandidat->angkatan ?? '',
+                'batas_semester' => $this->getBatasSemester($kandidat->nm_jenjang ?? ''),
+            ]) : 'Silakan hubungi BAK Universitas Lampung.';
+
+            $waUrl = 'https://wa.me/' . $telepon . '?text=' . urlencode($bodyWa);
+
+            return $this->successResponse([
+                'telepon' => $telepon,
+                'wa_url' => $waUrl,
+                'pesan' => $bodyWa,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Batch.getWhatsAppLink: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
     }
 
     /**

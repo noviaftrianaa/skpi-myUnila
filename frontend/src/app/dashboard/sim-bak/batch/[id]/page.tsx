@@ -7,11 +7,11 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat } from "@/lib/services/sim-bak/simBakService";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
@@ -81,6 +81,29 @@ export default function BatchDetailPage() {
 
   useEffect(() => { if (user && id) fetchData(); }, [user, id, fetchData]);
   useEffect(() => { getRefFakultas().then(setFakultasList).catch(() => {}); }, []);
+
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+
+  const handleSendEmail = async (idKandidat: string) => {
+    setSendingEmail(idKandidat);
+    try {
+      const result = await sendEmailKandidat(idKandidat);
+      toast.success(`Email berhasil dikirim ke ${result.email}`);
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal mengirim email";
+      toast.error(msg);
+    } finally { setSendingEmail(null); }
+  };
+
+  const handleSendWA = async (idKandidat: string) => {
+    try {
+      const result = await getWhatsAppLinkKandidat(idKandidat);
+      window.open(result.wa_url, "_blank");
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal membuat link WhatsApp";
+      toast.error(msg);
+    }
+  };
 
   const handleExport = () => {
     const url = exportBatchKandidatUrl(id, {
@@ -179,16 +202,29 @@ export default function BatchDetailPage() {
     { key: "status_kandidat", label: "Status", render: (item) => (
       <Chip size="sm" color={kandidatStatusColor[item.status_kandidat] || "default"} variant="flat">{item.status_kandidat}</Chip>
     )},
-    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") ? (
-      <div className="flex gap-1">
-        <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
-          onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiCheck className="w-3.5 h-3.5" /></Button>
-        <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
-          onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiX className="w-3.5 h-3.5" /></Button>
+    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => (
+      <div className="flex gap-1 items-center">
+        {/* Verifikasi buttons */}
+        {item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") && (
+          <>
+            <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
+              onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Konfirmasi"><FiCheck className="w-3.5 h-3.5" /></Button>
+            <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
+              onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Keluarkan"><FiX className="w-3.5 h-3.5" /></Button>
+          </>
+        )}
+        {/* Kirim Email / WA buttons */}
+        <Button size="sm" color="primary" variant="flat" isIconOnly
+          isLoading={sendingEmail === item.id_kandidat}
+          onPress={() => handleSendEmail(item.id_kandidat)} title="Kirim Email"><FiMail className="w-3.5 h-3.5" /></Button>
+        <Button size="sm" color="success" variant="flat" isIconOnly
+          onPress={() => handleSendWA(item.id_kandidat)} title="Kirim WhatsApp"><FiMessageSquare className="w-3.5 h-3.5" /></Button>
+        {/* Alasan exclusion */}
+        {item.alasan_exclusion && (
+          <span className="text-xs text-red-500 italic ml-1" title={item.alasan_exclusion}>({item.alasan_exclusion.substring(0, 20)}...)</span>
+        )}
       </div>
-    ) : item.alasan_exclusion ? (
-      <span className="text-xs text-red-500 italic" title={item.alasan_exclusion}>Alasan: {item.alasan_exclusion.substring(0, 30)}...</span>
-    ) : null },
+    )},
   ];
 
   return (

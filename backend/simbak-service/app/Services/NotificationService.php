@@ -116,15 +116,22 @@ class NotificationService
         $logId = $this->createLog($kodeEvent, 'email', $to, $nmPenerima, $subject, $body, $context);
 
         try {
-            // Set SMTP config dari database
-            $this->configureSMTP();
+            $smtpConfig = $this->getActiveSmtpConfig();
+            if (!$smtpConfig) {
+                $this->updateLogStatus($logId, 'failed', 'Tidak ada konfigurasi SMTP aktif atau limit tercapai');
+                return false;
+            }
 
-            Mail::html($body, function (Message $message) use ($to, $subject) {
-                $fromAddress = $this->getSetting('smtp_from_address') ?? config('mail.from.address');
-                $fromName = $this->getSetting('smtp_from_name') ?? config('mail.from.name');
-                $message->to($to)->subject($subject)->from($fromAddress, $fromName);
+            $this->configureSMTP($smtpConfig);
+
+            Mail::html($body, function (Message $message) use ($to, $subject, $smtpConfig) {
+                $message->to($to)->subject($subject)->from($smtpConfig->from_address, $smtpConfig->from_name);
+                if ($smtpConfig->reply_to) {
+                    $message->replyTo($smtpConfig->reply_to);
+                }
             });
 
+            $this->incrementSmtpCounter($smtpConfig);
             $this->updateLogStatus($logId, 'sent');
             return true;
         } catch (\Exception $e) {
@@ -173,25 +180,59 @@ class NotificationService
     }
 
     /**
-     * Override SMTP config dari database (runtime).
+     * Ambil SMTP config terbaik dari ref.smtp_config.
+     * Prioritas: a_default=true > prioritas terendah > limit belum penuh.
      */
-    private function configureSMTP(): void
+    public function getActiveSmtpConfig(): ?object
     {
-        $host = $this->getSetting('smtp_host');
-        $port = $this->getSetting('smtp_port');
-        $username = $this->getSetting('smtp_username');
-        $password = $this->getSetting('smtp_password');
-        $encryption = $this->getSetting('smtp_encryption');
+        return DB::connection('pgsql')->selectOne("
+            SELECT * FROM ref.smtp_config
+            WHERE a_aktif = true
+              AND terkirim_hari < limit_harian
+              AND terkirim_bulan < limit_bulanan
+            ORDER BY a_default DESC, prioritas ASC
+            LIMIT 1
+        ");
+    }
 
-        if ($host) {
+    /**
+     * Ambil SMTP config berdasarkan ID.
+     */
+    public function getSmtpConfigById(string $id): ?object
+    {
+        return DB::connection('pgsql')->selectOne(
+            "SELECT * FROM ref.smtp_config WHERE id_smtp = ?", [$id]
+        );
+    }
+
+    /**
+     * Override Laravel SMTP config dari database (runtime).
+     */
+    private function configureSMTP(?object $smtpConfig = null): void
+    {
+        $smtp = $smtpConfig ?? $this->getActiveSmtpConfig();
+
+        if ($smtp) {
             config([
-                'mail.mailers.smtp.host' => $host,
-                'mail.mailers.smtp.port' => (int) ($port ?: 587),
-                'mail.mailers.smtp.username' => $username,
-                'mail.mailers.smtp.password' => $password,
-                'mail.mailers.smtp.encryption' => $encryption === 'none' ? null : ($encryption ?: 'tls'),
+                'mail.mailers.smtp.host' => $smtp->smtp_host,
+                'mail.mailers.smtp.port' => (int) $smtp->smtp_port,
+                'mail.mailers.smtp.username' => $smtp->smtp_username,
+                'mail.mailers.smtp.password' => $smtp->smtp_password,
+                'mail.mailers.smtp.encryption' => $smtp->smtp_encryption === 'none' ? null : $smtp->smtp_encryption,
             ]);
         }
+    }
+
+    /**
+     * Increment counter terkirim pada SMTP config.
+     */
+    private function incrementSmtpCounter(?object $smtpConfig): void
+    {
+        if (!$smtpConfig) return;
+        DB::connection('pgsql')->update(
+            "UPDATE ref.smtp_config SET terkirim_hari = terkirim_hari + 1, terkirim_bulan = terkirim_bulan + 1 WHERE id_smtp = ?",
+            [$smtpConfig->id_smtp]
+        );
     }
 
     /**
@@ -227,22 +268,44 @@ class NotificationService
     /**
      * Kirim test email untuk verifikasi konfigurasi SMTP.
      */
+    /**
+     * Test email dengan SMTP default (config aktif pertama).
+     */
     public function sendTestEmail(string $to): array
     {
-        try {
-            $this->configureSMTP();
+        $smtpConfig = $this->getActiveSmtpConfig();
+        if (!$smtpConfig) {
+            return ['success' => false, 'message' => 'Tidak ada konfigurasi SMTP aktif. Tambahkan SMTP terlebih dahulu.'];
+        }
+        return $this->sendTestEmailWithConfig($smtpConfig->id_smtp, $to);
+    }
 
-            $fromAddress = $this->getSetting('smtp_from_address') ?? config('mail.from.address');
-            $fromName = $this->getSetting('smtp_from_name') ?? config('mail.from.name');
+    /**
+     * Test email dengan SMTP config tertentu.
+     */
+    public function sendTestEmailWithConfig(string $idSmtp, string $to): array
+    {
+        try {
+            $smtpConfig = $this->getSmtpConfigById($idSmtp);
+            if (!$smtpConfig) {
+                return ['success' => false, 'message' => 'Konfigurasi SMTP tidak ditemukan'];
+            }
+
+            $this->configureSMTP($smtpConfig);
 
             Mail::html(
-                '<p>Ini adalah email test dari <strong>SIMBAK</strong>.</p><p>Jika Anda menerima email ini, konfigurasi SMTP sudah benar.</p><br><p>' . now()->format('d M Y H:i:s') . '</p>',
-                function (Message $message) use ($to, $fromAddress, $fromName) {
-                    $message->to($to)->subject('[SIMBAK] Test Email Notifikasi')->from($fromAddress, $fromName);
+                '<p>Ini adalah email test dari <strong>SIMBAK — Universitas Lampung</strong>.</p>'
+                . '<p>Konfigurasi: <strong>' . $smtpConfig->nm_config . '</strong></p>'
+                . '<p>SMTP: ' . $smtpConfig->smtp_host . ':' . $smtpConfig->smtp_port . ' (' . $smtpConfig->smtp_encryption . ')</p>'
+                . '<p>Jika Anda menerima email ini, konfigurasi SMTP sudah benar.</p>'
+                . '<br><p style="color:#888">' . now()->format('d M Y H:i:s') . '</p>',
+                function (Message $message) use ($to, $smtpConfig) {
+                    $message->to($to)->subject('[SIMBAK] Test Email — ' . $smtpConfig->nm_config)->from($smtpConfig->from_address, $smtpConfig->from_name);
+                    if ($smtpConfig->reply_to) $message->replyTo($smtpConfig->reply_to);
                 }
             );
 
-            return ['success' => true, 'message' => 'Email test berhasil dikirim ke ' . $to];
+            return ['success' => true, 'message' => 'Email test berhasil dikirim ke ' . $to . ' via ' . $smtpConfig->nm_config];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => 'Gagal kirim email: ' . $e->getMessage()];
         }
