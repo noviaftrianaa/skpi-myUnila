@@ -6,17 +6,15 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody } from "@heroui/react";
-import { FiDatabase, FiList, FiGitBranch, FiFileText } from "react-icons/fi";
+import { FiDatabase, FiList, FiGitBranch } from "react-icons/fi";
 import JenisLayananTab from "./components/JenisLayananTab";
 import PersyaratanTab from "./components/PersyaratanTab";
 import TahapanTab from "./components/TahapanTab";
-import TemplateTab from "./components/TemplateTab";
 
 const tabs = [
   { key: "jenis", label: "Jenis Layanan", icon: <FiDatabase className="w-4 h-4" /> },
   { key: "persyaratan", label: "Persyaratan", icon: <FiList className="w-4 h-4" /> },
   { key: "tahapan", label: "Tahapan", icon: <FiGitBranch className="w-4 h-4" /> },
-  { key: "template", label: "Template", icon: <FiFileText className="w-4 h-4" /> },
 ];
 
 export default function MasterDataPage() {
@@ -74,7 +72,6 @@ export default function MasterDataPage() {
             {activeTab === "jenis" && <JenisLayananTab />}
             {activeTab === "persyaratan" && <PersyaratanTab />}
             {activeTab === "tahapan" && <TahapanTab />}
-            {activeTab === "template" && <TemplateTab />}
           </CardBody>
         </Card>
       </div>
