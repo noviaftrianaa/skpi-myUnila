@@ -380,11 +380,14 @@ export const getBatchKandidat = async (id: string, params?: {
   return response.data;
 };
 
-export const verifikasiKandidat = async (idKandidat: string, data: {
-  hasil: 'valid' | 'dikeluarkan';
+export const verifikasiKandidat = async (idKandidat: string, data: FormData | {
+  hasil: 'dikonfirmasi' | 'dikeluarkan';
   catatan?: string;
+  alasan_exclude?: string;
+  alasan_exclude_lainnya?: string;
 }): Promise<void> => {
-  await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data);
+  const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+  await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data, { headers });
 };
 
 export const finalizeBatch = async (id: string, data?: {
@@ -452,6 +455,80 @@ export const exportMonitoring = async (params?: Record<string, unknown>): Promis
   return response.data.data.url;
 };
 
+// ============ Notifikasi ============
+
+// Batch: Kirim Email/WA manual per kandidat
+export const sendEmailKandidat = async (idKandidat: string): Promise<{ email: string }> => {
+  const response = await bakClient.post(`/batch/kandidat/${idKandidat}/send-email`);
+  return response.data.data;
+};
+
+export const getWhatsAppLinkKandidat = async (idKandidat: string): Promise<{ telepon: string; wa_url: string; pesan: string }> => {
+  const response = await bakClient.get(`/batch/kandidat/${idKandidat}/wa-link`);
+  return response.data.data;
+};
+
+// SMTP Config CRUD
+export const getSmtpList = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/smtp');
+  return response.data.data ?? [];
+};
+
+export const createSmtp = async (data: Record<string, unknown>): Promise<void> => {
+  await bakClient.post('/notifikasi/smtp', data);
+};
+
+export const updateSmtp = async (id: string, data: Record<string, unknown>): Promise<void> => {
+  await bakClient.put(`/notifikasi/smtp/${id}`, data);
+};
+
+export const deleteSmtp = async (id: string): Promise<void> => {
+  await bakClient.delete(`/notifikasi/smtp/${id}`);
+};
+
+export const testSmtp = async (id: string, email: string): Promise<{ message: string }> => {
+  const response = await bakClient.post(`/notifikasi/smtp/${id}/test`, { email });
+  return response.data;
+};
+
+export const getNotifSettings = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/settings');
+  return response.data.data ?? [];
+};
+
+export const updateNotifSettings = async (settings: Array<{ kode: string; nilai: string }>): Promise<void> => {
+  await bakClient.put('/notifikasi/settings', { settings });
+};
+
+export const testNotifEmail = async (email: string): Promise<{ message: string }> => {
+  const response = await bakClient.post('/notifikasi/test-email', { email });
+  return response.data;
+};
+
+export const getNotifTemplates = async (): Promise<Record<string, unknown>[]> => {
+  const response = await bakClient.get('/notifikasi/templates');
+  return response.data.data ?? [];
+};
+
+export const updateNotifTemplate = async (id: string, data: Record<string, unknown>): Promise<void> => {
+  await bakClient.put(`/notifikasi/templates/${id}`, data);
+};
+
+export const previewNotifTemplate = async (id: string): Promise<{ subject: string; body_email: string; body_whatsapp: string }> => {
+  const response = await bakClient.get(`/notifikasi/templates/${id}/preview`);
+  return response.data.data;
+};
+
+export const getNotifLogs = async (params?: { page?: number; limit?: number; status?: string; channel?: string; kode_event?: string }): Promise<{ data: Record<string, unknown>[]; pagination: { total: number } }> => {
+  const response = await bakClient.get('/notifikasi/logs', { params });
+  return response.data;
+};
+
+export const getNotifLogStats = async (): Promise<{ total: number; sent: number; failed: number; pending: number }> => {
+  const response = await bakClient.get('/notifikasi/logs/stats');
+  return response.data.data;
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -482,6 +559,10 @@ const simBakService = {
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring
   getMonitoringStats, getMahasiswaAktif, getLulusan, exportMonitoring,
+  // Notifikasi
+  getNotifSettings, updateNotifSettings, testNotifEmail,
+  getNotifTemplates, updateNotifTemplate, previewNotifTemplate,
+  getNotifLogs, getNotifLogStats,
 };
 
 export default simBakService;

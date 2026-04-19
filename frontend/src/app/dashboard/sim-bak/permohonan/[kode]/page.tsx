@@ -9,6 +9,7 @@ import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo, FiEye } from "react-icons/fi";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { useUserContext } from "@/contexts/UserContextContext";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan } from "@/lib/services/sim-bak/types";
 
@@ -20,13 +21,26 @@ const steps = [
 
 export default function PermohonanFormPage() {
   const { user } = useAuth();
+  const { activeContext } = useUserContext();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const kode = params.kode as string;
   const editId = searchParams.get("edit");
 
+  const isAdminRole = (() => {
+    const role = (activeContext?.nm_peran ?? "").toLowerCase();
+    return role.includes("developer") || role.includes("admin");
+  })();
+
   const [currentStep, setCurrentStep] = useState(editId ? 2 : 1);
+  // PM-ALIH dari luar Unila (hanya visible untuk admin)
+  const [isDariLuar, setIsDariLuar] = useState(false);
+  const [manualData, setManualData] = useState({
+    nm_mahasiswa: "", nim_asal: "", nm_pt_asal: "", nm_prodi_asal: "",
+    nm_jenjang: "", akreditasi_prodi_asal: "", tempat_lahir: "", tgl_lahir: "",
+    jenis_kelamin: "", ipk: "", sks_lulus: "", semester_aktif: "",
+  });
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File | null>>({});
   const [existingDokumen, setExistingDokumen] = useState<Array<Record<string, unknown>>>([]);
   const [layanan, setLayanan] = useState<JenisLayanan | null>(null);
@@ -153,21 +167,40 @@ export default function PermohonanFormPage() {
   const handleSubmit = async (isDraft: boolean) => {
     if (!isDraft && !alasan.trim()) { toast.error("Alasan permohonan wajib diisi"); return; }
     if (!isDraft && isAlih && !selectedProdi) { toast.error("Prodi tujuan wajib dipilih"); return; }
-    if (!isDraft && isAlih && syaratAlih && !syaratAlih.allPass) { toast.error("Anda belum memenuhi syarat akademik untuk Alih Program"); return; }
+    if (!isDraft && isAlih && !isDariLuar && syaratAlih && !syaratAlih.allPass) { toast.error("Anda belum memenuhi syarat akademik untuk Alih Program"); return; }
+    if (!isDraft && isDariLuar && (!manualData.nm_mahasiswa.trim() || !manualData.nim_asal.trim() || !manualData.nm_pt_asal.trim())) {
+      toast.error("Data pemohon (nama, NIM asal, PT asal) wajib diisi"); return;
+    }
     setSubmitting(true);
     try {
       // 1. Create pengajuan (skip jika mode edit)
+      const createPayload: Record<string, unknown> = {
+        id_jenis_layanan: layanan.id_jenis_layanan,
+        alasan,
+        catatan_pemohon: catatan || undefined,
+        jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
+        id_smt_mulai_cuti: isCuti ? semesterMulaiCuti || undefined : undefined,
+        id_prodi_tujuan: isAlih ? selectedProdi || undefined : undefined,
+        id_fakultas_tujuan: isAlih ? selectedFakultas || undefined : undefined,
+      };
+      if (isDariLuar) {
+        createPayload.a_dari_luar = true;
+        createPayload.nm_mahasiswa = manualData.nm_mahasiswa;
+        createPayload.nim_asal = manualData.nim_asal;
+        createPayload.nm_pt_asal = manualData.nm_pt_asal;
+        createPayload.nm_prodi_asal = manualData.nm_prodi_asal || undefined;
+        createPayload.nm_jenjang = manualData.nm_jenjang || undefined;
+        createPayload.akreditasi_prodi_asal = manualData.akreditasi_prodi_asal || undefined;
+        createPayload.tempat_lahir = manualData.tempat_lahir || undefined;
+        createPayload.tgl_lahir = manualData.tgl_lahir || undefined;
+        createPayload.jenis_kelamin = manualData.jenis_kelamin || undefined;
+        createPayload.ipk = manualData.ipk ? Number(manualData.ipk) : undefined;
+        createPayload.sks_lulus = manualData.sks_lulus ? Number(manualData.sks_lulus) : undefined;
+        createPayload.semester_aktif = manualData.semester_aktif ? Number(manualData.semester_aktif) : undefined;
+      }
       const pengajuanId = editId
         ? editId
-        : (await createPengajuan({
-            id_jenis_layanan: layanan.id_jenis_layanan,
-            alasan,
-            catatan_pemohon: catatan || undefined,
-            jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
-            id_smt_mulai_cuti: isCuti ? semesterMulaiCuti || undefined : undefined,
-            id_prodi_tujuan: isAlih ? selectedProdi || undefined : undefined,
-            id_fakultas_tujuan: isAlih ? selectedFakultas || undefined : undefined,
-          })).id_pengajuan;
+        : (await createPengajuan(createPayload as Parameters<typeof createPengajuan>[0])).id_pengajuan;
 
       // 2. Upload dokumen baru
       for (const [kodeDok, file] of Object.entries(uploadedFiles)) {
@@ -246,19 +279,122 @@ export default function PermohonanFormPage() {
               </Card>
             )}
 
-            <Card className="shadow-md rounded-xl"><CardBody className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Pemohon</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                {Object.entries(dataPemohon).map(([label, value]) => (
-                  <div key={label} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                    <p className="text-xs text-gray-500 mb-0.5 capitalize">{label.replace('_', ' ')}</p>
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{value}</p>
-                  </div>
-                ))}
-              </div>
+            {/* Toggle: Dari Luar Unila (hanya admin, hanya PM-ALIH) */}
+            {isAlih && isAdminRole && (
+              <Card className="shadow-sm rounded-xl border border-violet-100 dark:border-violet-900">
+                <CardBody className="p-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" checked={isDariLuar} onChange={e => setIsDariLuar(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+                    <div>
+                      <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Pengajuan dari Luar Unila</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Calon mahasiswa tidak memiliki akun SSO — data diinput manual oleh Admin BAK</p>
+                    </div>
+                  </label>
+                </CardBody>
+              </Card>
+            )}
 
-              {/* Syarat Akademik Card — khusus Alih Program */}
-              {isAlih && syaratAlih && (
+            <Card className="shadow-md rounded-xl"><CardBody className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {isDariLuar ? "Data Pemohon (Input Manual)" : "Data Pemohon"}
+              </h2>
+
+              {isDariLuar ? (
+                /* Form input manual untuk pemohon dari luar Unila */
+                <div className="space-y-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nama Lengkap *</label>
+                      <input type="text" value={manualData.nm_mahasiswa} onChange={e => setManualData(d => ({ ...d, nm_mahasiswa: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nama lengkap pemohon" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">NIM Asal *</label>
+                      <input type="text" value={manualData.nim_asal} onChange={e => setManualData(d => ({ ...d, nim_asal: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="NIM dari PT asal" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Perguruan Tinggi Asal *</label>
+                      <input type="text" value={manualData.nm_pt_asal} onChange={e => setManualData(d => ({ ...d, nm_pt_asal: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nama perguruan tinggi asal" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Program Studi Asal</label>
+                      <input type="text" value={manualData.nm_prodi_asal} onChange={e => setManualData(d => ({ ...d, nm_prodi_asal: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Prodi di PT asal" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jenjang</label>
+                      <select value={manualData.nm_jenjang} onChange={e => setManualData(d => ({ ...d, nm_jenjang: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih</option>
+                        <option value="D3">D3</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Akreditasi Prodi Asal</label>
+                      <input type="text" value={manualData.akreditasi_prodi_asal} onChange={e => setManualData(d => ({ ...d, akreditasi_prodi_asal: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="A / B / Unggul" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jenis Kelamin</label>
+                      <select value={manualData.jenis_kelamin} onChange={e => setManualData(d => ({ ...d, jenis_kelamin: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih</option>
+                        <option value="L">Laki-laki</option>
+                        <option value="P">Perempuan</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">IPK</label>
+                      <input type="number" step="0.01" min="0" max="4" value={manualData.ipk} onChange={e => setManualData(d => ({ ...d, ipk: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0.00" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">SKS Lulus</label>
+                      <input type="number" min="0" value={manualData.sks_lulus} onChange={e => setManualData(d => ({ ...d, sks_lulus: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Semester Aktif</label>
+                      <input type="number" min="1" value={manualData.semester_aktif} onChange={e => setManualData(d => ({ ...d, semester_aktif: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="1" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 italic">Validasi syarat akademik dilakukan manual berdasarkan transkrip PT asal</p>
+                </div>
+              ) : (
+                /* Data dari PDUT (existing) */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                  {Object.entries(dataPemohon).map(([label, value]) => (
+                    <div key={label} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 mb-0.5 capitalize">{label.replace('_', ' ')}</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Syarat Akademik Card — khusus Alih Program internal */}
+              {isAlih && !isDariLuar && syaratAlih && (
                 <div className={`rounded-lg p-4 mb-6 border ${syaratAlih.allPass ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
                   <h3 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
                     Syarat Akademik Alih Program ({dataPemohon.jenjang})

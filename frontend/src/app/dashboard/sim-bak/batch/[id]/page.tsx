@@ -7,11 +7,11 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat } from "@/lib/services/sim-bak/simBakService";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
@@ -49,6 +49,8 @@ export default function BatchDetailPage() {
   // Exclude modal
   const [excludeModal, setExcludeModal] = useState<{ id: string; nama: string } | null>(null);
   const [excludeAlasan, setExcludeAlasan] = useState("");
+  const [excludeAlasanLainnya, setExcludeAlasanLainnya] = useState("");
+  const [excludeDokumen, setExcludeDokumen] = useState<File | null>(null);
   // Finalisasi verifikasi modal
   const [showFinalisasiVerifModal, setShowFinalisasiVerifModal] = useState(false);
 
@@ -80,6 +82,29 @@ export default function BatchDetailPage() {
   useEffect(() => { if (user && id) fetchData(); }, [user, id, fetchData]);
   useEffect(() => { getRefFakultas().then(setFakultasList).catch(() => {}); }, []);
 
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+
+  const handleSendEmail = async (idKandidat: string) => {
+    setSendingEmail(idKandidat);
+    try {
+      const result = await sendEmailKandidat(idKandidat);
+      toast.success(`Email berhasil dikirim ke ${result.email}`);
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal mengirim email";
+      toast.error(msg);
+    } finally { setSendingEmail(null); }
+  };
+
+  const handleSendWA = async (idKandidat: string) => {
+    try {
+      const result = await getWhatsAppLinkKandidat(idKandidat);
+      window.open(result.wa_url, "_blank");
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal membuat link WhatsApp";
+      toast.error(msg);
+    }
+  };
+
   const handleExport = () => {
     const url = exportBatchKandidatUrl(id, {
       status_kandidat: filterStatus || undefined,
@@ -103,15 +128,35 @@ export default function BatchDetailPage() {
 
   const cfg = statusConfig[batch.status] ?? statusConfig.draft;
 
-  const handleVerifikasi = async (idKandidat: string, hasil: "dikonfirmasi" | "dikeluarkan", catatan?: string) => {
+  const handleVerifikasi = async (idKandidat: string, hasil: "dikonfirmasi" | "dikeluarkan") => {
     setActionLoading(true);
     try {
-      await verifikasiKandidat(idKandidat, { hasil, catatan });
+      if (hasil === "dikeluarkan") {
+        const formData = new FormData();
+        formData.append("hasil", "dikeluarkan");
+        formData.append("alasan_exclude", excludeAlasan);
+        if (excludeAlasan === "Lainnya") {
+          formData.append("alasan_exclude_lainnya", excludeAlasanLainnya);
+        }
+        if (excludeDokumen) {
+          formData.append("dokumen_exclude", excludeDokumen);
+        }
+        await verifikasiKandidat(idKandidat, formData);
+      } else {
+        await verifikasiKandidat(idKandidat, { hasil: "dikonfirmasi" });
+      }
       toast.success(hasil === "dikonfirmasi" ? "Kandidat dikonfirmasi" : "Kandidat dikeluarkan");
       setExcludeModal(null);
       setExcludeAlasan("");
+      setExcludeAlasanLainnya("");
+      setExcludeDokumen(null);
       fetchData();
-    } catch { toast.error("Gagal memproses"); }
+    } catch (e) {
+      const msg = (e as Record<string, unknown>)?.response
+        ? ((e as Record<string, Record<string, Record<string, string>>>).response?.data?.message) || "Gagal memproses"
+        : "Gagal memproses";
+      toast.error(msg);
+    }
     finally { setActionLoading(false); }
   };
 
@@ -157,16 +202,29 @@ export default function BatchDetailPage() {
     { key: "status_kandidat", label: "Status", render: (item) => (
       <Chip size="sm" color={kandidatStatusColor[item.status_kandidat] || "default"} variant="flat">{item.status_kandidat}</Chip>
     )},
-    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") ? (
-      <div className="flex gap-1">
-        <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
-          onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiCheck className="w-3.5 h-3.5" /></Button>
-        <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
-          onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })}><FiX className="w-3.5 h-3.5" /></Button>
+    { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => (
+      <div className="flex gap-1 items-center">
+        {/* Verifikasi buttons */}
+        {item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") && (
+          <>
+            <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
+              onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Konfirmasi"><FiCheck className="w-3.5 h-3.5" /></Button>
+            <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
+              onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Keluarkan"><FiX className="w-3.5 h-3.5" /></Button>
+          </>
+        )}
+        {/* Kirim Email / WA buttons */}
+        <Button size="sm" color="primary" variant="flat" isIconOnly
+          isLoading={sendingEmail === item.id_kandidat}
+          onPress={() => handleSendEmail(item.id_kandidat)} title="Kirim Email"><FiMail className="w-3.5 h-3.5" /></Button>
+        <Button size="sm" color="success" variant="flat" isIconOnly
+          onPress={() => handleSendWA(item.id_kandidat)} title="Kirim WhatsApp"><FiMessageSquare className="w-3.5 h-3.5" /></Button>
+        {/* Alasan exclusion */}
+        {item.alasan_exclusion && (
+          <span className="text-xs text-red-500 italic ml-1" title={item.alasan_exclusion}>({item.alasan_exclusion.substring(0, 20)}...)</span>
+        )}
       </div>
-    ) : item.alasan_exclusion ? (
-      <span className="text-xs text-red-500 italic" title={item.alasan_exclusion}>Alasan: {item.alasan_exclusion.substring(0, 30)}...</span>
-    ) : null },
+    )},
   ];
 
   return (
@@ -299,6 +357,7 @@ export default function BatchDetailPage() {
               <button onClick={async () => {
                 await handleVerifikasi(confirmKandidat.id, "dikonfirmasi");
                 setConfirmKandidat(null);
+                setExcludeAlasan(""); setExcludeAlasanLainnya(""); setExcludeDokumen(null);
               }} disabled={actionLoading}
                 className="flex-1 py-3 text-sm font-semibold text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors disabled:opacity-50">
                 {actionLoading ? "Memproses..." : "Ya, Konfirmasi"}
@@ -355,35 +414,77 @@ export default function BatchDetailPage() {
       )}
 
       {/* Modal: Exclude Kandidat */}
-      {excludeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setExcludeModal(null)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4">
-            <div className="p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Keluarkan Kandidat</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Keluarkan <span className="font-semibold">{excludeModal.nama}</span> dari batch ini?
-              </p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Alasan Pengeluaran <span className="text-red-500">*</span>
-                </label>
-                <textarea rows={3} value={excludeAlasan} onChange={e => setExcludeAlasan(e.target.value)}
-                  className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                  placeholder="Jelaskan alasan mengeluarkan mahasiswa dari batch..." />
-              </div>
-              <div className="flex gap-3">
-                <Button variant="flat" className="flex-1" onPress={() => { setExcludeModal(null); setExcludeAlasan(""); }}>Batal</Button>
-                <Button color="danger" className="flex-1" isLoading={actionLoading}
-                  isDisabled={!excludeAlasan.trim()}
-                  onPress={() => handleVerifikasi(excludeModal.id, "dikeluarkan", excludeAlasan)}>
-                  Keluarkan
-                </Button>
+      {excludeModal && (() => {
+        const isHMM = batch?.jenis_batch === "habis_masa_mukim";
+        const opsiAlasan = isHMM
+          ? ["Sudah mengajukan undur diri", "Meninggal dunia", "Lainnya"]
+          : ["Mahasiswa double degree", "Jalur RPL (Rekognisi Pembelajaran Lampau)", "Diberi kesempatan lanjut studi", "Sudah mengajukan undur diri", "Meninggal dunia", "Lainnya"];
+        const isMeninggal = excludeAlasan.toLowerCase().includes("meninggal dunia");
+        const isLainnya = excludeAlasan === "Lainnya";
+        const isValid = excludeAlasan && (!isLainnya || excludeAlasanLainnya.trim()) && (!isMeninggal || excludeDokumen);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setExcludeModal(null)} />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6 space-y-4">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Keluarkan Kandidat</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Keluarkan <span className="font-semibold">{excludeModal.nama}</span> dari batch ini?
+                </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Alasan Pengeluaran <span className="text-red-500">*</span>
+                  </label>
+                  <select value={excludeAlasan} onChange={e => { setExcludeAlasan(e.target.value); setExcludeAlasanLainnya(""); setExcludeDokumen(null); }}
+                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <option value="">-- Pilih Alasan --</option>
+                    {opsiAlasan.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+
+                {isLainnya && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Keterangan <span className="text-red-500">*</span>
+                    </label>
+                    <textarea rows={3} value={excludeAlasanLainnya} onChange={e => setExcludeAlasanLainnya(e.target.value)}
+                      className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                      placeholder="Jelaskan alasan mengeluarkan mahasiswa..." />
+                  </div>
+                )}
+
+                {isMeninggal && (
+                  <div>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-2">
+                      <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                        Wajib upload Surat Keterangan Meninggal Dunia dari RS / Aparat Desa
+                      </p>
+                    </div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Dokumen Pendukung (PDF) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center">
+                      <input type="file" accept=".pdf" onChange={e => setExcludeDokumen(e.target.files?.[0] || null)}
+                        className="w-full text-sm text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-red-50 file:text-red-700 file:font-medium file:text-xs file:cursor-pointer" />
+                      {excludeDokumen && <p className="mt-1 text-xs text-green-600">{excludeDokumen.name} ({Math.round(excludeDokumen.size / 1024)} KB)</p>}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="flat" className="flex-1" onPress={() => { setExcludeModal(null); setExcludeAlasan(""); setExcludeAlasanLainnya(""); setExcludeDokumen(null); }}>Batal</Button>
+                  <Button color="danger" className="flex-1" isLoading={actionLoading}
+                    isDisabled={!isValid}
+                    onPress={() => handleVerifikasi(excludeModal.id, "dikeluarkan")}>
+                    Keluarkan
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Modal: Upload SK Dekan */}
       {showSkDekanForm && (

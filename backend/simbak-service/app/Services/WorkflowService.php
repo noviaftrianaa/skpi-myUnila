@@ -49,14 +49,22 @@ class WorkflowService
 
     /**
      * Cari tahapan selanjutnya setelah tahapan saat ini.
+     * Jika pengajuan dari luar Unila (a_dari_luar), skip tahap admin_fakultas_asal.
      */
     public function getNextTahapan(object $pengajuan, object $currentTahapan): ?object
     {
         $tahapanList = $this->getTahapanByJenisLayanan($pengajuan->id_jenis_layanan);
+        $isDariLuar = $pengajuan->a_dari_luar ?? false;
 
         $found = false;
         foreach ($tahapanList as $tahapan) {
-            if ($found) return $tahapan;
+            if ($found) {
+                // Skip tahap fakultas asal untuk pengajuan dari luar Unila
+                if ($isDariLuar && $tahapan->kode_role === 'admin_fakultas_asal') {
+                    continue;
+                }
+                return $tahapan;
+            }
             if ($tahapan->id_tahapan === $currentTahapan->id_tahapan) {
                 $found = true;
             }
@@ -77,13 +85,30 @@ class WorkflowService
      * Cari tahapan yang cocok untuk aktor tertentu pada pengajuan ini.
      * Digunakan untuk kasus di mana status_masuk bisa sama tapi kode_role berbeda
      * (contoh: PM-ALIH tahap 2 dan 3 sama-sama admin_fakultas tapi beda urutan).
+     *
+     * Khusus PM-ALIH dari luar Unila (a_dari_luar):
+     * - admin_bak bisa memproses tahap 1 (yang normalnya untuk mahasiswa)
+     * - tahap admin_fakultas_asal di-skip
      */
     public function findTahapanForActor(object $pengajuan, string $kodeRoleAktor): ?object
     {
         $tahapanList = $this->getTahapanByJenisLayanan($pengajuan->id_jenis_layanan);
+        $isDariLuar = $pengajuan->a_dari_luar ?? false;
 
         foreach ($tahapanList as $tahapan) {
+            // Skip tahap fakultas asal untuk pengajuan dari luar Unila
+            if ($isDariLuar && $tahapan->kode_role === 'admin_fakultas_asal') {
+                continue;
+            }
+
             if ($tahapan->status_masuk === $pengajuan->status && $tahapan->kode_role === $kodeRoleAktor) {
+                return $tahapan;
+            }
+
+            // Dari luar Unila: admin_bak bisa proses tahap mahasiswa (tahap 1)
+            if ($isDariLuar && $kodeRoleAktor === 'admin_bak'
+                && $tahapan->status_masuk === $pengajuan->status
+                && $tahapan->kode_role === 'mahasiswa') {
                 return $tahapan;
             }
         }
@@ -98,6 +123,15 @@ class WorkflowService
     public function getProgress(object $pengajuan): array
     {
         $tahapanList = $this->getTahapanByJenisLayanan($pengajuan->id_jenis_layanan);
+        $isDariLuar = $pengajuan->a_dari_luar ?? false;
+
+        // Filter out skipped stages for luar Unila
+        if ($isDariLuar) {
+            $tahapanList = array_values(array_filter($tahapanList, function ($t) {
+                return $t->kode_role !== 'admin_fakultas_asal';
+            }));
+        }
+
         $total = count($tahapanList);
         $current = 0;
 

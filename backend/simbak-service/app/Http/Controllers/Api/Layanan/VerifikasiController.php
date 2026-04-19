@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Layanan;
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
 use App\Services\MinioService;
+use App\Services\NotificationService;
 use App\Services\WorkflowService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -18,12 +19,14 @@ class VerifikasiController extends Controller
     protected PengajuanRepository $repository;
     protected WorkflowService $workflow;
     protected MinioService $minioService;
+    protected NotificationService $notificationService;
 
     public function __construct()
     {
         $this->repository = new PengajuanRepository();
         $this->workflow = new WorkflowService();
         $this->minioService = new MinioService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -150,6 +153,10 @@ class VerifikasiController extends Controller
             ]);
 
             $this->repository->pgCommit();
+
+            // Trigger notifikasi: perlu_perbaikan
+            $this->triggerStatusNotification($pengajuan, 'status_perlu_perbaikan', $data['catatan']);
+
             return $this->successResponse(null, 'Permintaan perbaikan berhasil dikirim');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -269,6 +276,10 @@ class VerifikasiController extends Controller
             ]);
 
             $this->repository->pgCommit();
+
+            // Trigger notifikasi: terbit
+            $this->triggerStatusNotification($pengajuan, 'status_terbit', $data['catatan'] ?? null);
+
             return $this->successResponse(null, 'Surat berhasil diterbitkan');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
@@ -295,6 +306,60 @@ class VerifikasiController extends Controller
         } catch (\Exception $e) {
             Log::error('Verifikasi.progress: ' . $e->getMessage());
             return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Helper: trigger notifikasi status ke pemohon.
+     * Non-blocking — error notifikasi tidak menggagalkan proses utama.
+     */
+    private function triggerStatusNotification(object $pengajuan, string $kodeEvent, ?string $catatan = null): void
+    {
+        try {
+            // Skip jika dari luar Unila (pemohon tidak punya akun/email di sistem)
+            if ($pengajuan->a_dari_luar ?? false) return;
+
+            $dataPemohon = $this->repository->getDataPemohon($pengajuan->id_pengajuan);
+            if (!$dataPemohon) return;
+
+            $email = $this->resolveEmail($pengajuan->id_pemohon);
+            if (!$email) return;
+
+            $this->notificationService->send($kodeEvent, [
+                [
+                    'email' => $email,
+                    'nama' => $dataPemohon->nm_mahasiswa ?? '',
+                    'data' => [],
+                ],
+            ], [
+                'nama' => $dataPemohon->nm_mahasiswa ?? '',
+                'npm' => $dataPemohon->nim ?? '',
+                'prodi' => $dataPemohon->nm_prodi ?? '',
+                'fakultas' => $dataPemohon->nm_fakultas ?? '',
+                'layanan' => $pengajuan->nm_layanan ?? '',
+                'nomor' => $pengajuan->nomor_permohonan ?? '',
+                'catatan' => $catatan ?? '-',
+            ], [
+                'id_pengajuan' => $pengajuan->id_pengajuan,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning("triggerStatusNotification failed: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Resolve email mahasiswa dari PDUT.
+     */
+    private function resolveEmail(?string $idPengguna): ?string
+    {
+        if (!$idPengguna) return null;
+        try {
+            $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$idPengguna]
+            );
+            return $row->email ?? null;
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }

@@ -85,7 +85,7 @@ export interface Pengajuan {
   id_pengajuan: string;
   id_jenis_layanan: string;
   nomor_permohonan: string;
-  id_pemohon: string;
+  id_pemohon: string | null;
   status: StatusPengajuan;
   alasan: string | null;
   catatan_pemohon: string | null;
@@ -93,6 +93,8 @@ export interface Pengajuan {
   jumlah_semester_cuti: number | null;
   id_prodi_tujuan: string | null;
   id_fakultas_tujuan: string | null;
+  a_dari_luar?: boolean;
+  nm_pt_asal?: string | null;
   tgl_diajukan: string | null;
   tgl_selesai: string | null;
   nomor_dokumen_hasil: string | null;
@@ -121,8 +123,8 @@ export interface Pengajuan {
 export interface DataPemohon {
   id_data_pemohon: string;
   id_pengajuan: string;
-  id_mahasiswa: string;
-  nim: string;
+  id_mahasiswa: string | null;
+  nim: string | null;
   nm_mahasiswa: string;
   tempat_lahir: string | null;
   tgl_lahir: string | null;
@@ -141,6 +143,8 @@ export interface DataPemohon {
   status_mahasiswa: string | null;
   status_registrasi: string | null;
   status_pembayaran: string | null;
+  nm_pt_asal?: string | null;
+  akreditasi_prodi_asal?: string | null;
   tgl_snapshot: string;
 }
 

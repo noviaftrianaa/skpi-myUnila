@@ -148,7 +148,10 @@ export default function VerifikasiDetailPage() {
             </h1>
             <p className="text-sm text-gray-500">{String(detail.nomor_permohonan)} · {String(detail.nm_layanan)}</p>
           </div>
-          <Chip size="sm" variant="flat" color={statusChipColor[status] || "default"}>{statusLabel[status] || status}</Chip>
+          <div className="flex items-center gap-2">
+            <Chip size="sm" variant="flat" color={statusChipColor[status] || "default"}>{statusLabel[status] || status}</Chip>
+            {detail.a_dari_luar && <Chip size="sm" variant="flat" color="secondary">Dari Luar Unila</Chip>}
+          </div>
         </div>
 
         {/* Workflow Stepper */}
@@ -169,7 +172,15 @@ export default function VerifikasiDetailPage() {
               <Card className="shadow-md rounded-xl border-none"><CardBody className="p-5">
                 <div className="flex items-center gap-2 mb-4"><FiUser className="w-5 h-5 text-blue-500" /><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Data Pemohon</h2></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  {[["Nama", pemohon.nm_mahasiswa], ["NIM", pemohon.nim], ["Prodi", pemohon.nm_prodi], ["Fakultas", pemohon.nm_fakultas], ["Semester", pemohon.semester_aktif], ["IPK", pemohon.ipk]].map(([label, value]) => (
+                  {[
+                    ["Nama", pemohon.nm_mahasiswa],
+                    ["NIM", pemohon.nim],
+                    ...(detail.a_dari_luar ? [["PT Asal", pemohon.nm_pt_asal], ["Akreditasi Prodi Asal", pemohon.akreditasi_prodi_asal]] : []),
+                    ["Prodi", pemohon.nm_prodi],
+                    ["Fakultas", pemohon.nm_fakultas],
+                    ["Semester", pemohon.semester_aktif],
+                    ["IPK", pemohon.ipk],
+                  ].map(([label, value]) => (
                     <div key={String(label)}>
                       <p className="text-gray-500 dark:text-gray-400">{String(label)}</p>
                       <p className="font-medium text-gray-900 dark:text-white">{String(value ?? "-")}</p>

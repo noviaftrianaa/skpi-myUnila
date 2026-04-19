@@ -7,6 +7,7 @@ use App\Repositories\Batch\BatchRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
 use App\Repositories\PdutRepository;
 use App\Services\MinioService;
+use App\Services\NotificationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -180,6 +181,129 @@ class BatchController extends Controller
         }
     }
 
+    private function getBatasSemester(string $jenjang): string
+    {
+        return match (strtolower($jenjang)) {
+            'd3' => '12', 's1' => '16', 's2' => '8', 's3' => '12', default => '-',
+        };
+    }
+
+    /**
+     * Kirim email notifikasi ke kandidat batch (manual per kandidat).
+     */
+    public function sendEmailKandidat(Request $request, string $idKandidat): JsonResponse
+    {
+        try {
+            $kandidat = $this->repository->pgSelectOne(
+                "SELECT k.*, b.jenis_batch, b.id_smt FROM batch.kandidat_batch k JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                [$idKandidat]
+            );
+            if (!$kandidat) return $this->notFoundResponse('Kandidat tidak ditemukan');
+
+            // Resolve email dari PDUT
+            $email = null;
+            if ($kandidat->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT email FROM man_akses.pengguna WHERE id_pengguna = ?", [$kandidat->id_mahasiswa]
+                );
+                $email = $row->email ?? null;
+            }
+            if (!$email) {
+                return $this->errorResponse('Email mahasiswa tidak ditemukan di sistem', 422);
+            }
+
+            $kodeEvent = $kandidat->jenis_batch === 'putus_studi'
+                ? 'batch_putus_studi_warning'
+                : 'batch_hmm_warning';
+
+            $notifService = new NotificationService();
+            $sent = $notifService->send($kodeEvent, [
+                [
+                    'email' => $email,
+                    'nama' => $kandidat->nm_mahasiswa ?? '',
+                    'data' => [
+                        'nama' => $kandidat->nm_mahasiswa ?? '',
+                        'npm' => $kandidat->nim ?? '',
+                        'prodi' => $kandidat->nm_prodi ?? '',
+                        'fakultas' => $kandidat->nm_fakultas ?? '',
+                        'semester' => $kandidat->id_smt ?? '',
+                        'jenjang' => $kandidat->nm_jenjang ?? '',
+                        'angkatan' => $kandidat->angkatan ?? '',
+                        'batas_semester' => $this->getBatasSemester($kandidat->nm_jenjang ?? ''),
+                    ],
+                ],
+            ], [], [
+                'id_batch' => $kandidat->id_batch_penetapan,
+                'id_kandidat' => $idKandidat,
+            ]);
+
+            return $sent > 0
+                ? $this->successResponse(['email' => $email], "Email berhasil dikirim ke {$email}")
+                : $this->errorResponse('Gagal mengirim email. Periksa konfigurasi SMTP.', 422);
+        } catch (\Exception $e) {
+            Log::error('Batch.sendEmailKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Generate WhatsApp link untuk kandidat batch.
+     * Frontend akan open wa.me link di tab baru.
+     */
+    public function getWhatsAppLink(string $idKandidat): JsonResponse
+    {
+        try {
+            $kandidat = $this->repository->pgSelectOne(
+                "SELECT k.*, b.jenis_batch, b.id_smt FROM batch.kandidat_batch k JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                [$idKandidat]
+            );
+            if (!$kandidat) return $this->notFoundResponse('Kandidat tidak ditemukan');
+
+            // Resolve telepon dari PDUT
+            $telepon = null;
+            if ($kandidat->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT no_hp_1 FROM siakadu.peserta_didik WHERE id_pd = ?", [$kandidat->id_mahasiswa]
+                );
+                $telepon = $row->no_hp_1 ?? null;
+            }
+            if (!$telepon) {
+                return $this->errorResponse('Nomor telepon mahasiswa tidak ditemukan', 422);
+            }
+
+            // Format nomor: hapus 0 di depan, ganti +62
+            $telepon = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $telepon));
+
+            $kodeEvent = $kandidat->jenis_batch === 'putus_studi'
+                ? 'batch_putus_studi_warning'
+                : 'batch_hmm_warning';
+
+            $notifService = new NotificationService();
+            $template = $notifService->getTemplate($kodeEvent);
+            $bodyWa = $template ? $notifService->renderTemplate($template->body_whatsapp ?? '', [
+                'nama' => $kandidat->nm_mahasiswa ?? '',
+                'npm' => $kandidat->nim ?? '',
+                'prodi' => $kandidat->nm_prodi ?? '',
+                'fakultas' => $kandidat->nm_fakultas ?? '',
+                'semester' => $kandidat->id_smt ?? '',
+                'jenjang' => $kandidat->nm_jenjang ?? '',
+                'angkatan' => $kandidat->angkatan ?? '',
+                'batas_semester' => $this->getBatasSemester($kandidat->nm_jenjang ?? ''),
+            ]) : 'Silakan hubungi BAK Universitas Lampung.';
+
+            $waUrl = 'https://wa.me/' . $telepon . '?text=' . urlencode($bodyWa);
+
+            return $this->successResponse([
+                'telepon' => $telepon,
+                'wa_url' => $waUrl,
+                'pesan' => $bodyWa,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Batch.getWhatsAppLink: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
     /**
      * Re-pull kandidat dari PDUT (jika data berubah).
      */
@@ -283,7 +407,7 @@ class BatchController extends Controller
 
     /**
      * Verifikasi kandidat oleh Admin Fakultas.
-     * Mendukung catatan/alasan exclusion.
+     * Mendukung select dropdown alasan + upload dokumen meninggal dunia.
      */
     public function verifikasiKandidat(Request $request, string $id): JsonResponse
     {
@@ -291,12 +415,34 @@ class BatchController extends Controller
             $data = $request->validate([
                 'hasil' => 'required|string|in:dikonfirmasi,dikeluarkan',
                 'catatan' => 'nullable|string',
+                'alasan_exclude' => 'required_if:hasil,dikeluarkan|nullable|string',
+                'alasan_exclude_lainnya' => 'nullable|string',
+                'dokumen_exclude' => 'nullable|file|mimes:pdf|max:10240',
             ]);
 
             $user = $request->user();
 
+            // Tentukan alasan final
+            $alasanFinal = null;
+            if ($data['hasil'] === 'dikeluarkan') {
+                $alasanExclude = $data['alasan_exclude'] ?? '';
+                if ($alasanExclude === 'Lainnya') {
+                    if (empty($data['alasan_exclude_lainnya'])) {
+                        return $this->errorResponse('Keterangan alasan wajib diisi jika memilih "Lainnya"', 422);
+                    }
+                    $alasanFinal = $data['alasan_exclude_lainnya'];
+                } else {
+                    $alasanFinal = $alasanExclude;
+                }
+
+                // Validasi: jika meninggal dunia, wajib upload dokumen
+                if (str_contains(strtolower($alasanExclude), 'meninggal dunia') && !$request->hasFile('dokumen_exclude')) {
+                    return $this->errorResponse('Surat Keterangan Meninggal Dunia dari RS/Aparat Desa wajib diupload', 422);
+                }
+            }
+
             $statusKandidat = $data['hasil'] === 'dikeluarkan' ? 'dikeluarkan' : 'dikonfirmasi';
-            $this->repository->updateKandidatStatus($id, $statusKandidat, $data['catatan'] ?? null, $user->id_pengguna);
+            $this->repository->updateKandidatStatus($id, $statusKandidat, $alasanFinal, $user->id_pengguna);
 
             $kandidat = $this->repository->pgSelectOne(
                 "SELECT * FROM batch.kandidat_batch WHERE id_kandidat = ? AND soft_delete = false",
@@ -312,6 +458,14 @@ class BatchController extends Controller
                     return $this->errorResponse('Kandidat ini sudah diverifikasi sebelumnya', 409);
                 }
 
+                // Upload dokumen exclude jika ada
+                $pathDokumenExclude = null;
+                if ($request->hasFile('dokumen_exclude')) {
+                    $pathDokumenExclude = $this->minioService->uploadDokumenExclude(
+                        $kandidat->id_batch_penetapan, $id, $request->file('dokumen_exclude')
+                    );
+                }
+
                 $this->repository->createVerifikasi([
                     'id_batch_penetapan' => $kandidat->id_batch_penetapan,
                     'id_kandidat' => $id,
@@ -319,7 +473,8 @@ class BatchController extends Controller
                     'nm_verifikator' => $user->nm_pengguna ?? $user->nama ?? '',
                     'id_fakultas' => $kandidat->id_fakultas,
                     'hasil' => $data['hasil'],
-                    'catatan' => $data['catatan'] ?? null,
+                    'catatan' => $alasanFinal ?? ($data['catatan'] ?? null),
+                    'path_dokumen_exclude' => $pathDokumenExclude,
                 ]);
                 $this->repository->updateBatchCounts($kandidat->id_batch_penetapan);
             }
