@@ -16,7 +16,31 @@ type KelasListItem struct {
 	IdMK       *string    `db:"id_mk" json:"id_mk"`
 	NamaMK     *string    `db:"nama_mk" json:"nama_mk"`
 	SKSMK      *float64   `db:"sks_mk" json:"sks_mk"`
+	NmProdi    *string    `db:"nm_prodi" json:"nm_prodi"`
 	LastSync   *time.Time `db:"last_sync" json:"last_sync"`
+}
+
+// KelasListFilter - Filter params for kelas list
+type KelasListFilter struct {
+	Page      int
+	Limit     int
+	Search    string
+	IdSmt     string
+	IdUnit    string
+	SortBy    string
+	SortOrder string
+}
+
+// KelasStats - Stats for kelas
+type KelasStats struct {
+	TotalRecords int        `json:"total_records"`
+	LastSync     *time.Time `json:"last_sync"`
+}
+
+// KelasFilterOptions - Available filter options for kelas
+type KelasFilterOptions struct {
+	Semester []string               `json:"semester"`
+	Prodi    []KurikulumProdiOption `json:"prodi"`
 }
 
 // ========================================
@@ -26,12 +50,44 @@ type KelasListItem struct {
 // KurikulumListItem - Kurikulum for list view
 type KurikulumListItem struct {
 	IDKurikulum    *string    `db:"id_kurikulum" json:"id_kurikulum"`
+	ThnKurikulum   *int       `db:"thn_kurikulum" json:"thn_kurikulum"`
 	Semester       *int       `db:"semester" json:"semester"`
 	IdMataKuliah   *string    `db:"id_mata_kuliah" json:"id_mata_kuliah"`
 	NamaMataKuliah *string    `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
 	KodeMK         *string    `db:"kode_mk" json:"kode_mk"`
 	SKS            *float64   `db:"sks" json:"sks"`
+	JenisMK        *string    `db:"jenis_mk" json:"jenis_mk"`
+	NmProdi        *string    `db:"nm_prodi" json:"nm_prodi"`
 	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
+}
+
+// KurikulumListFilter - Filter params for kurikulum list
+type KurikulumListFilter struct {
+	Page      int
+	Limit     int
+	Search    string
+	JenisMK   string
+	IdUnit    string // prodi filter (id_unit from ref_unit)
+	SortBy    string
+	SortOrder string
+}
+
+// KurikulumStats - Stats for kurikulum
+type KurikulumStats struct {
+	TotalRecords int        `json:"total_records"`
+	LastSync     *time.Time `json:"last_sync"`
+}
+
+// KurikulumProdiOption - Prodi option for kurikulum filter
+type KurikulumProdiOption struct {
+	IdUnit  string `db:"id_unit" json:"id_unit"`
+	NmProdi string `db:"nm_prodi" json:"nm_prodi"`
+}
+
+// KurikulumFilterOptions - Available filter options for kurikulum
+type KurikulumFilterOptions struct {
+	Prodi   []KurikulumProdiOption `json:"prodi"`
+	JenisMK []string               `json:"jenis_mk"`
 }
 
 // ========================================
@@ -44,7 +100,32 @@ type MatakuliahListItem struct {
 	NamaMataKuliah string     `db:"nama_mata_kuliah" json:"nama_mata_kuliah"`
 	KodeMK         string     `db:"kode_mk" json:"kode_mk"`
 	SKS            *float64   `db:"sks" json:"sks"`
+	JenisMK        *string    `db:"jenis_mk" json:"jenis_mk"`
+	NmProdi        *string    `db:"nm_prodi" json:"nm_prodi"`
 	LastSync       *time.Time `db:"last_sync" json:"last_sync"`
+}
+
+// MatakuliahListFilter - Filter params for matakuliah list
+type MatakuliahListFilter struct {
+	Page      int
+	Limit     int
+	Search    string
+	JenisMK   string
+	IdUnit    string
+	SortBy    string
+	SortOrder string
+}
+
+// MatakuliahStats - Stats for matakuliah
+type MatakuliahStats struct {
+	TotalRecords int        `json:"total_records"`
+	LastSync     *time.Time `json:"last_sync"`
+}
+
+// MatakuliahFilterOptions - Available filter options for matakuliah
+type MatakuliahFilterOptions struct {
+	Prodi   []KurikulumProdiOption `json:"prodi"`
+	JenisMK []string               `json:"jenis_mk"`
 }
 
 // ========================================

@@ -13,15 +13,21 @@ import (
 // Service interface for akademik business logic
 type Service interface {
 	// Kelas
-	GetKelasList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error)
+	GetKelasList(ctx context.Context, filter *KelasListFilter) (*PaginatedResult, error)
+	GetKelasStats(ctx context.Context) (*KelasStats, error)
+	GetKelasFilterOptions(ctx context.Context) (*KelasFilterOptions, error)
 	SyncKelas(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 
 	// Kurikulum
-	GetKurikulumList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error)
+	GetKurikulumList(ctx context.Context, filter *KurikulumListFilter) (*PaginatedResult, error)
+	GetKurikulumStats(ctx context.Context) (*KurikulumStats, error)
+	GetKurikulumFilterOptions(ctx context.Context) (*KurikulumFilterOptions, error)
 	SyncKurikulum(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 
 	// MataKuliah
-	GetMatakuliahList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error)
+	GetMatakuliahList(ctx context.Context, filter *MatakuliahListFilter) (*PaginatedResult, error)
+	GetMatakuliahStats(ctx context.Context) (*MatakuliahStats, error)
+	GetMatakuliahFilterOptions(ctx context.Context) (*MatakuliahFilterOptions, error)
 	SyncMatakuliah(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 
 	// Jadwal
@@ -60,16 +66,40 @@ func NewService(repo Repository, siakaduAPI SiakaduAPIClient) Service {
 // List Operations
 // ========================================
 
-func (s *service) GetKelasList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error) {
-	return s.repo.GetKelasList(ctx, page, limit, search, idSemester)
+func (s *service) GetKelasList(ctx context.Context, filter *KelasListFilter) (*PaginatedResult, error) {
+	return s.repo.GetKelasList(ctx, filter)
 }
 
-func (s *service) GetKurikulumList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error) {
-	return s.repo.GetKurikulumList(ctx, page, limit, search)
+func (s *service) GetKelasStats(ctx context.Context) (*KelasStats, error) {
+	return s.repo.GetKelasStats(ctx)
 }
 
-func (s *service) GetMatakuliahList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error) {
-	return s.repo.GetMatakuliahList(ctx, page, limit, search)
+func (s *service) GetKelasFilterOptions(ctx context.Context) (*KelasFilterOptions, error) {
+	return s.repo.GetKelasFilterOptions(ctx)
+}
+
+func (s *service) GetKurikulumList(ctx context.Context, filter *KurikulumListFilter) (*PaginatedResult, error) {
+	return s.repo.GetKurikulumList(ctx, filter)
+}
+
+func (s *service) GetKurikulumStats(ctx context.Context) (*KurikulumStats, error) {
+	return s.repo.GetKurikulumStats(ctx)
+}
+
+func (s *service) GetKurikulumFilterOptions(ctx context.Context) (*KurikulumFilterOptions, error) {
+	return s.repo.GetKurikulumFilterOptions(ctx)
+}
+
+func (s *service) GetMatakuliahList(ctx context.Context, filter *MatakuliahListFilter) (*PaginatedResult, error) {
+	return s.repo.GetMatakuliahList(ctx, filter)
+}
+
+func (s *service) GetMatakuliahStats(ctx context.Context) (*MatakuliahStats, error) {
+	return s.repo.GetMatakuliahStats(ctx)
+}
+
+func (s *service) GetMatakuliahFilterOptions(ctx context.Context) (*MatakuliahFilterOptions, error) {
+	return s.repo.GetMatakuliahFilterOptions(ctx)
 }
 
 func (s *service) GetJadwalList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error) {

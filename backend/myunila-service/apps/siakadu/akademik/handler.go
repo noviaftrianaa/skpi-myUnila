@@ -23,10 +23,18 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) GetKelasList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
-	idSemester := c.Query("id_semester", "")
 
-	result, err := h.service.GetKelasList(c.Context(), page, limit, search, idSemester)
+	filter := &KelasListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		IdSmt:     c.Query("id_smt", c.Query("id_semester", "")),
+		IdUnit:    c.Query("id_unit", ""),
+		SortBy:    c.Query("sort_by", ""),
+		SortOrder: c.Query("sort_order", ""),
+	}
+
+	result, err := h.service.GetKelasList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -44,6 +52,36 @@ func (h *Handler) GetKelasList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetKelasStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetKelasStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetKelasFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetKelasFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 
@@ -77,9 +115,18 @@ func (h *Handler) SyncKelas(c *fiber.Ctx) error {
 func (h *Handler) GetKurikulumList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
 
-	result, err := h.service.GetKurikulumList(c.Context(), page, limit, search)
+	filter := &KurikulumListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		JenisMK:   c.Query("jenis_mk", ""),
+		IdUnit:    c.Query("id_unit", ""),
+		SortBy:    c.Query("sort_by", ""),
+		SortOrder: c.Query("sort_order", ""),
+	}
+
+	result, err := h.service.GetKurikulumList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -97,6 +144,36 @@ func (h *Handler) GetKurikulumList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetKurikulumStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetKurikulumStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetKurikulumFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetKurikulumFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 
@@ -130,9 +207,18 @@ func (h *Handler) SyncKurikulum(c *fiber.Ctx) error {
 func (h *Handler) GetMatakuliahList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
 
-	result, err := h.service.GetMatakuliahList(c.Context(), page, limit, search)
+	filter := &MatakuliahListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		JenisMK:   c.Query("jenis_mk", ""),
+		IdUnit:    c.Query("id_unit", ""),
+		SortBy:    c.Query("sort_by", ""),
+		SortOrder: c.Query("sort_order", ""),
+	}
+
+	result, err := h.service.GetMatakuliahList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -150,6 +236,36 @@ func (h *Handler) GetMatakuliahList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetMatakuliahStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetMatakuliahStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetMatakuliahFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetMatakuliahFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 

@@ -17,15 +17,21 @@ type Repository interface {
 
 	// Kelas
 	UpsertKelasKuliah(ctx context.Context, data map[string]interface{}) (bool, error)
-	GetKelasList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error)
+	GetKelasList(ctx context.Context, filter *KelasListFilter) (*PaginatedResult, error)
+	GetKelasStats(ctx context.Context) (*KelasStats, error)
+	GetKelasFilterOptions(ctx context.Context) (*KelasFilterOptions, error)
 
 	// Kurikulum
 	UpsertKurikulum(ctx context.Context, data map[string]interface{}) (bool, error)
-	GetKurikulumList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error)
+	GetKurikulumList(ctx context.Context, filter *KurikulumListFilter) (*PaginatedResult, error)
+	GetKurikulumStats(ctx context.Context) (*KurikulumStats, error)
+	GetKurikulumFilterOptions(ctx context.Context) (*KurikulumFilterOptions, error)
 
 	// MataKuliah
 	UpsertMatakuliah(ctx context.Context, data map[string]interface{}) (bool, error)
-	GetMatakuliahList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error)
+	GetMatakuliahList(ctx context.Context, filter *MatakuliahListFilter) (*PaginatedResult, error)
+	GetMatakuliahStats(ctx context.Context) (*MatakuliahStats, error)
+	GetMatakuliahFilterOptions(ctx context.Context) (*MatakuliahFilterOptions, error)
 
 	// Jadwal
 	UpsertJadwalKelas(ctx context.Context, data map[string]interface{}) (bool, error)
@@ -331,39 +337,87 @@ func (r *repository) UpsertMatakuliah(ctx context.Context, data map[string]inter
 	return true, nil
 }
 
-func (r *repository) GetMatakuliahList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error) {
+func (r *repository) GetMatakuliahList(ctx context.Context, filter *MatakuliahListFilter) (*PaginatedResult, error) {
+	page := filter.Page
+	limit := filter.Limit
 	offset := (page - 1) * limit
 	whereConditions := []string{}
 	args := []interface{}{}
 	paramIndex := 1
 
-	if search != "" {
+	if filter.Search != "" {
 		whereConditions = append(whereConditions, fmt.Sprintf(
-			"(nm_mk LIKE @p%d OR kode_mk LIKE @p%d)", paramIndex, paramIndex))
-		args = append(args, "%"+search+"%")
+			"(mk.nm_mk LIKE @p%d OR mk.kode_mk LIKE @p%d)", paramIndex, paramIndex))
+		args = append(args, "%"+filter.Search+"%")
 		paramIndex++
 	}
+	if filter.JenisMK != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("mk.id_jns_mk = @p%d", paramIndex))
+		args = append(args, filter.JenisMK)
+		paramIndex++
+	}
+	if filter.IdUnit != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("mm.id_unit_siakadu = @p%d", paramIndex))
+		args = append(args, filter.IdUnit)
+		paramIndex++
+	}
+
 	whereClause := ""
 	if len(whereConditions) > 0 {
 		whereClause = "WHERE " + strings.Join(whereConditions, " AND ")
 	}
 
+	// Validate sort_by against whitelist
+	sortColumn := "mk.nm_mk"
+	allowedSorts := map[string]string{
+		"kode_mk":          "mk.kode_mk",
+		"nama_mata_kuliah": "mk.nm_mk",
+		"sks":              "mk.sks_mk",
+		"nm_prodi":         "s.nm_lemb",
+		"jenis_mk":         "mk.id_jns_mk",
+	}
+	if col, ok := allowedSorts[filter.SortBy]; ok {
+		sortColumn = col
+	}
+	sortOrder := "ASC"
+	if strings.ToLower(filter.SortOrder) == "desc" {
+		sortOrder = "DESC"
+	}
+
 	var total int
-	err := r.db.GetContext(ctx, &total, fmt.Sprintf("SELECT COUNT(*) FROM siakadu.matkul %s", whereClause), args...)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM siakadu.matkul mk
+		LEFT JOIN siakadu.mapping_matkul mm ON mm.id_mk = mk.id_mk
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		LEFT JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		%s`, whereClause)
+	err := r.db.GetContext(ctx, &total, countQ, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count matakuliah: %w", err)
 	}
 
 	dataQuery := fmt.Sprintf(`
-		SELECT CAST(id_mk AS VARCHAR(36)) AS id_mata_kuliah,
-			ISNULL(nm_mk, '') AS nama_mata_kuliah,
-			ISNULL(kode_mk, '') AS kode_mk,
-			sks_mk AS sks,
-			last_sync
-		FROM siakadu.matkul
-		%s ORDER BY nm_mk ASC
+		SELECT CAST(mk.id_mk AS VARCHAR(36)) AS id_mata_kuliah,
+			ISNULL(mk.nm_mk, '') AS nama_mata_kuliah,
+			ISNULL(mk.kode_mk, '') AS kode_mk,
+			mk.sks_mk AS sks,
+			CASE mk.id_jns_mk WHEN 'A' THEN 'Wajib' WHEN 'B' THEN 'Pilihan' WHEN 'P' THEN 'Pilihan' WHEN 'S' THEN 'Peminatan' WHEN 'KP' THEN 'Kerja Praktik' WHEN 'PS' THEN 'Praktik/Skripsi' ELSE ISNULL(mk.id_jns_mk, '-') END AS jenis_mk,
+			ISNULL(jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END, '') AS nm_prodi,
+			mk.last_sync
+		FROM siakadu.matkul mk
+		LEFT JOIN siakadu.mapping_matkul mm ON mm.id_mk = mk.id_mk
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		LEFT JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+		%s ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
-	`, whereClause, paramIndex, paramIndex+1)
+	`, whereClause, sortColumn, sortOrder, paramIndex, paramIndex+1)
 
 	dataArgs := append(args, offset, limit)
 	var list []*MatakuliahListItem
@@ -376,6 +430,61 @@ func (r *repository) GetMatakuliahList(ctx context.Context, page, limit int, sea
 		Data: list, Total: total, Page: page, Limit: limit,
 		TotalPages: (total + limit - 1) / limit,
 	}, nil
+}
+
+// GetMatakuliahStats returns total records and last sync time
+func (r *repository) GetMatakuliahStats(ctx context.Context) (*MatakuliahStats, error) {
+	var stats MatakuliahStats
+	err := r.db.GetContext(ctx, &stats.TotalRecords, "SELECT COUNT(*) FROM siakadu.matkul")
+	if err != nil {
+		return nil, fmt.Errorf("failed to count matakuliah: %w", err)
+	}
+	_ = r.db.GetContext(ctx, &stats.LastSync, "SELECT MAX(last_sync) FROM siakadu.matkul")
+	return &stats, nil
+}
+
+// GetMatakuliahFilterOptions returns available prodi and jenis_mk for filtering
+func (r *repository) GetMatakuliahFilterOptions(ctx context.Context) (*MatakuliahFilterOptions, error) {
+	opts := &MatakuliahFilterOptions{}
+
+	// Distinct prodi from mapping_matkul -> mapping_unit -> sms
+	var prodi []KurikulumProdiOption
+	err := r.db.SelectContext(ctx, &prodi, `
+		SELECT DISTINCT mm.id_unit_siakadu AS id_unit,
+			jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END AS nm_prodi
+		FROM siakadu.matkul mk
+		JOIN siakadu.mapping_matkul mm ON mm.id_mk = mk.id_mk
+		JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+		ORDER BY 2`)
+	if err != nil {
+		log.Printf("[GetMatakuliahFilterOptions] prodi query error: %v", err)
+	} else {
+		opts.Prodi = prodi
+	}
+
+	// Distinct jenis_mk from id_jns_mk
+	var jenisList []string
+	err = r.db.SelectContext(ctx, &jenisList, `
+		SELECT DISTINCT mk.id_jns_mk
+		FROM siakadu.matkul mk
+		WHERE mk.id_jns_mk IS NOT NULL AND mk.id_jns_mk != ''
+		ORDER BY mk.id_jns_mk`)
+	if err != nil {
+		log.Printf("[GetMatakuliahFilterOptions] jenis_mk query error: %v", err)
+	} else {
+		opts.JenisMK = jenisList
+	}
+
+	return opts, nil
 }
 
 // ========================================
@@ -458,26 +567,61 @@ func (r *repository) UpsertKurikulum(ctx context.Context, data map[string]interf
 	return true, nil
 }
 
-func (r *repository) GetKurikulumList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error) {
+func (r *repository) GetKurikulumList(ctx context.Context, filter *KurikulumListFilter) (*PaginatedResult, error) {
+	page := filter.Page
+	limit := filter.Limit
 	offset := (page - 1) * limit
 	whereConditions := []string{}
 	args := []interface{}{}
 	paramIndex := 1
 
-	if search != "" {
+	if filter.Search != "" {
 		whereConditions = append(whereConditions, fmt.Sprintf(
 			"(mk.nm_mk LIKE @p%d OR mk.kode_mk LIKE @p%d)", paramIndex, paramIndex))
-		args = append(args, "%"+search+"%")
+		args = append(args, "%"+filter.Search+"%")
 		paramIndex++
 	}
+	if filter.JenisMK != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("mk.id_jns_mk = @p%d", paramIndex))
+		args = append(args, filter.JenisMK)
+		paramIndex++
+	}
+	if filter.IdUnit != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("mm.id_unit_siakadu = @p%d", paramIndex))
+		args = append(args, filter.IdUnit)
+		paramIndex++
+	}
+
 	whereClause := ""
 	if len(whereConditions) > 0 {
 		whereClause = "WHERE " + strings.Join(whereConditions, " AND ")
 	}
 
+	// Validate sort_by against whitelist
+	sortColumn := "mk.nm_mk"
+	allowedSorts := map[string]string{
+		"kode_mk":         "mk.kode_mk",
+		"nama_mata_kuliah": "mk.nm_mk",
+		"sks":             "k.sks_mk",
+		"semester":        "k.smt",
+		"nm_prodi":        "s.nm_lemb",
+		"jenis_mk":        "mk.id_jns_mk",
+	}
+	if col, ok := allowedSorts[filter.SortBy]; ok {
+		sortColumn = col
+	}
+	sortOrder := "ASC"
+	if strings.ToLower(filter.SortOrder) == "desc" {
+		sortOrder = "DESC"
+	}
+
 	var total int
 	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM siakadu.matkul_kurikulum k
-		LEFT JOIN siakadu.matkul mk ON k.id_mk = mk.id_mk %s`, whereClause)
+		LEFT JOIN siakadu.matkul mk ON k.id_mk = mk.id_mk
+		LEFT JOIN siakadu.mapping_matkul mm ON mm.id_mk = k.id_mk
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		LEFT JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		%s`, whereClause)
 	err := r.db.GetContext(ctx, &total, countQ, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count kurikulum: %w", err)
@@ -485,17 +629,32 @@ func (r *repository) GetKurikulumList(ctx context.Context, page, limit int, sear
 
 	dataQuery := fmt.Sprintf(`
 		SELECT CAST(k.id_kurikulum_sp AS VARCHAR(36)) AS id_kurikulum,
+			mk2.thn_kurikulum AS thn_kurikulum,
 			k.smt AS semester,
 			CAST(k.id_mk AS VARCHAR(36)) AS id_mata_kuliah,
 			ISNULL(mk.nm_mk, '') AS nama_mata_kuliah,
 			ISNULL(mk.kode_mk, '') AS kode_mk,
 			k.sks_mk AS sks,
+			CASE mk.id_jns_mk WHEN 'A' THEN 'Wajib' WHEN 'B' THEN 'Pilihan' WHEN 'P' THEN 'Pilihan' WHEN 'S' THEN 'Peminatan' WHEN 'KP' THEN 'Kerja Praktik' WHEN 'PS' THEN 'Praktik/Skripsi' ELSE ISNULL(mk.id_jns_mk, '-') END AS jenis_mk,
+			ISNULL(jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END, '') AS nm_prodi,
 			k.last_sync
 		FROM siakadu.matkul_kurikulum k
 		LEFT JOIN siakadu.matkul mk ON k.id_mk = mk.id_mk
-		%s ORDER BY mk.nm_mk ASC
+		LEFT JOIN siakadu.mapping_matkul mm ON mm.id_mk = k.id_mk
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		LEFT JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+		LEFT JOIN siakadu.mapping_kurikulum mk2 ON mk2.id_kurikulum_sp = k.id_kurikulum_sp
+		%s ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
-	`, whereClause, paramIndex, paramIndex+1)
+	`, whereClause, sortColumn, sortOrder, paramIndex, paramIndex+1)
 
 	dataArgs := append(args, offset, limit)
 	var list []*KurikulumListItem
@@ -508,6 +667,62 @@ func (r *repository) GetKurikulumList(ctx context.Context, page, limit int, sear
 		Data: list, Total: total, Page: page, Limit: limit,
 		TotalPages: (total + limit - 1) / limit,
 	}, nil
+}
+
+// GetKurikulumStats returns total records and last sync time
+func (r *repository) GetKurikulumStats(ctx context.Context) (*KurikulumStats, error) {
+	var stats KurikulumStats
+	err := r.db.GetContext(ctx, &stats.TotalRecords, "SELECT COUNT(*) FROM siakadu.matkul_kurikulum")
+	if err != nil {
+		return nil, fmt.Errorf("failed to count kurikulum: %w", err)
+	}
+	_ = r.db.GetContext(ctx, &stats.LastSync, "SELECT MAX(last_sync) FROM siakadu.matkul_kurikulum")
+	return &stats, nil
+}
+
+// GetKurikulumFilterOptions returns available prodi and jenis_mk for filtering
+func (r *repository) GetKurikulumFilterOptions(ctx context.Context) (*KurikulumFilterOptions, error) {
+	opts := &KurikulumFilterOptions{}
+
+	// Distinct prodi from mapping_matkul → mapping_unit → sms (consistent with mahasiswa)
+	var prodi []KurikulumProdiOption
+	err := r.db.SelectContext(ctx, &prodi, `
+		SELECT DISTINCT mm.id_unit_siakadu AS id_unit,
+			jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END AS nm_prodi
+		FROM siakadu.matkul_kurikulum k
+		JOIN siakadu.mapping_matkul mm ON mm.id_mk = k.id_mk
+		JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+		ORDER BY 2`)
+	if err != nil {
+		log.Printf("[GetKurikulumFilterOptions] prodi query error: %v", err)
+	} else {
+		opts.Prodi = prodi
+	}
+
+	// Distinct jenis_mk from id_jns_mk
+	var jenisList []string
+	err = r.db.SelectContext(ctx, &jenisList, `
+		SELECT DISTINCT mk.id_jns_mk
+		FROM siakadu.matkul_kurikulum k
+		JOIN siakadu.matkul mk ON k.id_mk = mk.id_mk
+		WHERE mk.id_jns_mk IS NOT NULL AND mk.id_jns_mk != ''
+		ORDER BY mk.id_jns_mk`)
+	if err != nil {
+		log.Printf("[GetKurikulumFilterOptions] jenis_mk query error: %v", err)
+	} else {
+		opts.JenisMK = jenisList
+	}
+
+	return opts, nil
 }
 
 // ========================================
@@ -605,30 +820,63 @@ func (r *repository) UpsertKelasKuliah(ctx context.Context, data map[string]inte
 	return true, nil
 }
 
-func (r *repository) GetKelasList(ctx context.Context, page, limit int, search, idSemester string) (*PaginatedResult, error) {
+func (r *repository) GetKelasList(ctx context.Context, filter *KelasListFilter) (*PaginatedResult, error) {
+	page := filter.Page
+	limit := filter.Limit
 	offset := (page - 1) * limit
 	whereConditions := []string{}
 	args := []interface{}{}
 	paramIndex := 1
 
-	if search != "" {
+	if filter.Search != "" {
 		whereConditions = append(whereConditions, fmt.Sprintf(
-			"(kk.nm_kls LIKE @p%d OR mk.nm_mk LIKE @p%d)", paramIndex, paramIndex))
-		args = append(args, "%"+search+"%")
+			"(kk.nm_kls LIKE @p%d OR mk.nm_mk LIKE @p%d OR mk.kode_mk LIKE @p%d)", paramIndex, paramIndex, paramIndex))
+		args = append(args, "%"+filter.Search+"%")
 		paramIndex++
 	}
-	if idSemester != "" {
+	if filter.IdSmt != "" {
 		whereConditions = append(whereConditions, fmt.Sprintf("kk.id_smt = @p%d", paramIndex))
-		args = append(args, idSemester)
+		args = append(args, filter.IdSmt)
 		paramIndex++
 	}
+	if filter.IdUnit != "" {
+		whereConditions = append(whereConditions, fmt.Sprintf("mu.kode_siakad = @p%d", paramIndex))
+		args = append(args, filter.IdUnit)
+		paramIndex++
+	}
+
 	whereClause := ""
 	if len(whereConditions) > 0 {
 		whereClause = "WHERE " + strings.Join(whereConditions, " AND ")
 	}
 
+	// Validate sort_by against whitelist
+	sortColumn := "kk.id_smt"
+	allowedSorts := map[string]string{
+		"nama_kelas":  "kk.nm_kls",
+		"nama_mk":     "mk.nm_mk",
+		"sks_mk":      "mk.sks_mk",
+		"id_semester":  "kk.id_smt",
+		"nm_prodi":     "s.nm_lemb",
+	}
+	if col, ok := allowedSorts[filter.SortBy]; ok {
+		sortColumn = col
+	}
+	sortOrder := "DESC"
+	if strings.ToLower(filter.SortOrder) == "asc" {
+		sortOrder = "ASC"
+	}
+
+	joinClause := `FROM siakadu.kelas_kuliah kk
+		LEFT JOIN siakadu.matkul mk ON kk.id_mk = mk.id_mk
+		LEFT JOIN siakadu.mapping_matkul mm ON mm.id_mk = kk.id_mk
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		LEFT JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik`
+
 	var total int
-	err := r.db.GetContext(ctx, &total, fmt.Sprintf("SELECT COUNT(*) FROM siakadu.kelas_kuliah kk LEFT JOIN siakadu.matkul mk ON kk.id_mk = mk.id_mk %s", whereClause), args...)
+	countQ := fmt.Sprintf("SELECT COUNT(*) %s %s", joinClause, whereClause)
+	err := r.db.GetContext(ctx, &total, countQ, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count kelas: %w", err)
 	}
@@ -640,12 +888,19 @@ func (r *repository) GetKelasList(ctx context.Context, page, limit int, search, 
 			CAST(kk.id_mk AS VARCHAR(36)) AS id_mk,
 			ISNULL(mk.nm_mk, '') AS nama_mk,
 			mk.sks_mk,
+			ISNULL(jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %%'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END, '') AS nm_prodi,
 			kk.last_sync
-		FROM siakadu.kelas_kuliah kk
-		LEFT JOIN siakadu.matkul mk ON kk.id_mk = mk.id_mk
-		%s ORDER BY kk.id_smt DESC, kk.nm_kls ASC
+		%s
+		%s ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY
-	`, whereClause, paramIndex, paramIndex+1)
+	`, joinClause, whereClause, sortColumn, sortOrder, paramIndex, paramIndex+1)
 
 	dataArgs := append(args, offset, limit)
 	var list []*KelasListItem
@@ -658,6 +913,61 @@ func (r *repository) GetKelasList(ctx context.Context, page, limit int, search, 
 		Data: list, Total: total, Page: page, Limit: limit,
 		TotalPages: (total + limit - 1) / limit,
 	}, nil
+}
+
+// GetKelasStats returns total records and last sync time for kelas
+func (r *repository) GetKelasStats(ctx context.Context) (*KelasStats, error) {
+	var stats KelasStats
+	err := r.db.GetContext(ctx, &stats.TotalRecords, "SELECT COUNT(*) FROM siakadu.kelas_kuliah")
+	if err != nil {
+		return nil, fmt.Errorf("failed to count kelas: %w", err)
+	}
+	_ = r.db.GetContext(ctx, &stats.LastSync, "SELECT MAX(last_sync) FROM siakadu.kelas_kuliah")
+	return &stats, nil
+}
+
+// GetKelasFilterOptions returns available semesters and prodi for filtering
+func (r *repository) GetKelasFilterOptions(ctx context.Context) (*KelasFilterOptions, error) {
+	opts := &KelasFilterOptions{}
+
+	// Distinct semesters from kelas_kuliah DESC
+	var semesters []string
+	err := r.db.SelectContext(ctx, &semesters, `
+		SELECT DISTINCT kk.id_smt
+		FROM siakadu.kelas_kuliah kk
+		WHERE kk.id_smt IS NOT NULL AND kk.id_smt != ''
+		ORDER BY kk.id_smt DESC`)
+	if err != nil {
+		log.Printf("[GetKelasFilterOptions] semester query error: %v", err)
+	} else {
+		opts.Semester = semesters
+	}
+
+	// Distinct prodi from kelas_kuliah.id_sms → sms
+	var prodi []KurikulumProdiOption
+	err = r.db.SelectContext(ctx, &prodi, `
+		SELECT DISTINCT mm.id_unit_siakadu AS id_unit,
+			jp.nm_jenj_didik + ' - ' +
+				CASE
+					WHEN s.nm_lemb LIKE 'Program Studi ' + jp.nm_jenj_didik + ' %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ' + jp.nm_jenj_didik + ' ') + 1, 999))
+					WHEN s.nm_lemb LIKE 'Program Studi %'
+						THEN LTRIM(SUBSTRING(s.nm_lemb, LEN('Program Studi ') + 1, 999))
+					ELSE s.nm_lemb
+				END AS nm_prodi
+		FROM siakadu.kelas_kuliah kk
+		JOIN siakadu.mapping_matkul mm ON mm.id_mk = kk.id_mk
+		JOIN siakadu.mapping_unit mu ON mu.kode_siakad = mm.id_unit_siakadu
+		JOIN pdrd.sms s ON s.id_sms = mu.id_sms AND s.soft_delete = 0
+		JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+		ORDER BY 2`)
+	if err != nil {
+		log.Printf("[GetKelasFilterOptions] prodi query error: %v", err)
+	} else {
+		opts.Prodi = prodi
+	}
+
+	return opts, nil
 }
 
 // ========================================
