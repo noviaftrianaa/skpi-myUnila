@@ -197,7 +197,12 @@ class TokenService
             }
 
             // Check token exists in database (fallback if Redis not available)
-            $tokenInDb = $this->tokenRepo->getActiveToken($decoded->sub, config('app.aplikasi_id'));
+            try {
+                $tokenInDb = $this->tokenRepo->getActiveToken($decoded->sub, config('app.aplikasi_id'));
+            } catch (\Exception $e) {
+                // DB check failed, skip — allow stateless JWT
+                \Log::warning('Token DB check failed (non-blocking): ' . $e->getMessage());
+            }
 
             // If token not found in DB or expired, still allow if JWT is valid
             // This allows stateless JWT without Redis dependency
