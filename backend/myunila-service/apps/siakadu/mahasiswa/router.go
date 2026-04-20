@@ -15,10 +15,13 @@ func Init(router fiber.Router, db *sqlx.DB, siakaduAPI *siakadu_api.SiakaduClien
 	group := router.Group("/siakadu/mahasiswa")
 	{
 		group.Get("/", handler.GetList)
+		group.Get("/filters", handler.GetFilters)
 		group.Get("/stats", handler.GetStats)
 		group.Get("/:nim", handler.GetByNIM)
 		group.Post("/sync", handler.Sync)
 		group.Post("/sync-all", handler.SyncAll)
+		group.Post("/sync-detail", handler.SyncDetailEnrichment)
+		group.Post("/sync-full", handler.SyncFull)
 	}
 
 	return svc

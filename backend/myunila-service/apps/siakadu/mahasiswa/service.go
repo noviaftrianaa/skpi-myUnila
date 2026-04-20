@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/myunila/myunila-service/apps/logger"
@@ -12,11 +13,14 @@ import (
 
 // Service interface for mahasiswa business logic
 type Service interface {
-	GetMahasiswaList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error)
+	GetMahasiswaList(ctx context.Context, filter *MahasiswaListFilter) (*PaginatedResult, error)
 	GetMahasiswaByNIM(ctx context.Context, nim string) (*MahasiswaDetail, error)
 	GetStats(ctx context.Context) (*SyncStats, error)
+	GetFilterOptions(ctx context.Context) (*FilterOptions, error)
 	SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 	SyncAllProdi(ctx context.Context, syncedBy string) ([]*ProdiSyncResult, error)
+	SyncDetailEnrichment(ctx context.Context, limit int, syncedBy string) (*SyncResult, error)
+	SyncFull(ctx context.Context, detailLimit int, syncedBy string) (*SyncFullResult, error)
 }
 
 // SiakaduAPIClient interface for SIAKADU API operations
@@ -47,8 +51,13 @@ func NewService(repo Repository, siakaduAPI SiakaduAPIClient) Service {
 }
 
 // GetMahasiswaList retrieves paginated list of mahasiswa
-func (s *service) GetMahasiswaList(ctx context.Context, page, limit int, search string) (*PaginatedResult, error) {
-	return s.repo.GetMahasiswaList(ctx, page, limit, search)
+func (s *service) GetMahasiswaList(ctx context.Context, filter *MahasiswaListFilter) (*PaginatedResult, error) {
+	return s.repo.GetMahasiswaList(ctx, filter)
+}
+
+// GetFilterOptions retrieves available filter options for mahasiswa list
+func (s *service) GetFilterOptions(ctx context.Context) (*FilterOptions, error) {
+	return s.repo.GetFilterOptions(ctx)
 }
 
 // GetMahasiswaByNIM retrieves a single mahasiswa by NIM
@@ -149,35 +158,21 @@ func (s *service) SyncMahasiswa(ctx context.Context, filter *SyncFilter, syncedB
 	allErrors := make([]string, 0)
 
 	for i, item := range allData {
-		// Upsert peserta_didik
-		isNew, err := s.repo.UpsertPesertaDidik(ctx, item)
+		// v2.0: Single UpsertMahasiswa replaces UpsertPesertaDidik + UpsertRegPd
+		isNew, err := s.repo.UpsertMahasiswa(ctx, item)
 		if err != nil {
 			totalErrors++
 			nim := ""
 			if v, ok := item["nim"].(string); ok {
 				nim = v
 			}
-			errMsg := fmt.Sprintf("peserta_didik %s: %v", nim, err)
+			errMsg := fmt.Sprintf("mahasiswa %s: %v", nim, err)
 			allErrors = append(allErrors, errMsg)
 			log.Printf("⚠️  [Mahasiswa Sync] %s", errMsg)
 			continue
 		}
 
-		// Upsert reg_pd
-		isNewReg, err := s.repo.UpsertRegPd(ctx, item)
-		if err != nil {
-			totalErrors++
-			nim := ""
-			if v, ok := item["nim"].(string); ok {
-				nim = v
-			}
-			errMsg := fmt.Sprintf("reg_pd %s: %v", nim, err)
-			allErrors = append(allErrors, errMsg)
-			log.Printf("⚠️  [Mahasiswa Sync] %s", errMsg)
-			continue
-		}
-
-		if isNew || isNewReg {
+		if isNew {
 			totalInserted++
 		} else {
 			totalUpdated++
@@ -284,6 +279,159 @@ func (s *service) SyncAllProdi(ctx context.Context, syncedBy string) ([]*ProdiSy
 
 	log.Printf("✅ [SyncAllProdi] Done — %d prodi synced", len(results))
 	return results, nil
+}
+
+// SyncDetailEnrichment - Pass 2: Fetch detail for stale NIMs and enrich all 131 fields + keluarga
+func (s *service) SyncDetailEnrichment(ctx context.Context, limit int, syncedBy string) (*SyncResult, error) {
+	startTime := time.Now()
+
+	if limit <= 0 {
+		limit = 100
+	}
+
+	log.Printf("🔄 [Detail Enrichment] Starting — fetching up to %d stale NIMs", limit)
+
+	// Get NIMs that haven't been detail-synced in 168 hours (7 days)
+	nims, err := s.repo.GetStaleNIMs(ctx, 168, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stale NIMs: %w", err)
+	}
+
+	if len(nims) == 0 {
+		log.Printf("✅ [Detail Enrichment] No stale NIMs found — all up to date")
+		return &SyncResult{Duration: time.Since(startTime).String(), SyncedBy: syncedBy}, nil
+	}
+
+	log.Printf("📊 [Detail Enrichment] Found %d stale NIMs to enrich", len(nims))
+
+	totalUpdated := 0
+	totalErrors := 0
+	consecutiveErrors := 0
+
+	for i, nim := range nims {
+		// Rate limiting: 200ms between requests to avoid 429
+		if i > 0 {
+			time.Sleep(200 * time.Millisecond)
+		}
+
+		// Retry with backoff on 429
+		var detail map[string]interface{}
+		var fetchErr error
+		for attempt := 0; attempt < 3; attempt++ {
+			detail, fetchErr = s.siakaduAPI.GetMahasiswaDetail(nim)
+			if fetchErr == nil {
+				break
+			}
+			// Check if 429 rate limit
+			if strings.Contains(fetchErr.Error(), "429") {
+				backoff := time.Duration(2<<attempt) * time.Second // 2s, 4s, 8s
+				log.Printf("⏳ [Detail Enrichment] Rate limited, waiting %v before retry...", backoff)
+				time.Sleep(backoff)
+				continue
+			}
+			break // Non-429 error, don't retry
+		}
+
+		if fetchErr != nil {
+			totalErrors++
+			consecutiveErrors++
+			log.Printf("⚠️  [Detail Enrichment] [%d/%d] Failed to fetch detail for %s: %v", i+1, len(nims), nim, fetchErr)
+			// If too many consecutive errors, pause longer
+			if consecutiveErrors >= 10 {
+				log.Printf("⏳ [Detail Enrichment] Too many consecutive errors, pausing 30s...")
+				time.Sleep(30 * time.Second)
+				consecutiveErrors = 0
+			}
+			continue
+		}
+		consecutiveErrors = 0
+
+		// Upsert full detail into siakadu.mahasiswa
+		_, err = s.repo.UpsertMahasiswa(ctx, detail)
+		if err != nil {
+			totalErrors++
+			log.Printf("⚠️  [Detail Enrichment] [%d/%d] Failed to upsert %s: %v", i+1, len(nims), nim, err)
+			continue
+		}
+
+		// Upsert keluarga if present
+		if keluargaRaw, ok := detail["keluarga"]; ok && keluargaRaw != nil {
+			if keluargaSlice, ok := keluargaRaw.([]interface{}); ok {
+				if err := s.repo.UpsertKeluargaMhs(ctx, nim, keluargaSlice); err != nil {
+					log.Printf("⚠️  [Detail Enrichment] [%d/%d] keluarga upsert failed for %s: %v", i+1, len(nims), nim, err)
+				}
+			}
+		}
+
+		totalUpdated++
+
+		if (i+1)%50 == 0 {
+			log.Printf("📊 [Detail Enrichment] Progress: %d/%d enriched, %d errors", i+1, len(nims), totalErrors)
+		}
+	}
+
+	duration := time.Since(startTime)
+	result := &SyncResult{
+		TotalFetched:  len(nims),
+		TotalUpdated:  totalUpdated,
+		TotalErrors:   totalErrors,
+		Duration:      duration.String(),
+		SyncedBy:      syncedBy,
+	}
+
+	log.Printf("✅ [Detail Enrichment] Done — %d enriched, %d errors, duration: %s",
+		totalUpdated, totalErrors, duration)
+
+	return result, nil
+}
+
+// SyncFull - Full sync: list all prodi first, then detail enrichment in parallel
+func (s *service) SyncFull(ctx context.Context, detailLimit int, syncedBy string) (*SyncFullResult, error) {
+	startTime := time.Now()
+
+	if detailLimit <= 0 {
+		detailLimit = 500
+	}
+
+	log.Printf("🚀 [SyncFull] Starting full sync (list + detail enrichment)")
+
+	// Step 1: Sync all prodi (list sync)
+	prodiResults, err := s.SyncAllProdi(ctx, syncedBy)
+	if err != nil {
+		return nil, fmt.Errorf("list sync failed: %w", err)
+	}
+
+	// Aggregate list sync results
+	listResult := &SyncResult{SyncedBy: syncedBy}
+	for _, pr := range prodiResults {
+		if pr.SyncResult != nil {
+			listResult.TotalFetched += pr.TotalFetched
+			listResult.TotalInserted += pr.TotalInserted
+			listResult.TotalUpdated += pr.TotalUpdated
+			listResult.TotalErrors += pr.TotalErrors
+		}
+	}
+	listResult.Duration = time.Since(startTime).String()
+
+	log.Printf("📊 [SyncFull] List sync done — fetched: %d, inserted: %d, updated: %d",
+		listResult.TotalFetched, listResult.TotalInserted, listResult.TotalUpdated)
+
+	// Step 2: Detail enrichment (runs after list sync completes)
+	detailResult, err := s.SyncDetailEnrichment(ctx, detailLimit, syncedBy)
+	if err != nil {
+		log.Printf("⚠️  [SyncFull] Detail enrichment failed: %v", err)
+		// Don't fail the whole operation, return partial result
+		detailResult = &SyncResult{SyncedBy: syncedBy, Duration: "failed"}
+	}
+
+	totalDuration := time.Since(startTime)
+	log.Printf("✅ [SyncFull] Complete — total duration: %s", totalDuration)
+
+	return &SyncFullResult{
+		ListSync:      listResult,
+		DetailSync:    detailResult,
+		TotalDuration: totalDuration.String(),
+	}, nil
 }
 
 func joinErrors(errors []string) string {
