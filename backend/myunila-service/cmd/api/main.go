@@ -21,6 +21,7 @@ import (
 	siakadu_mahasiswa "github.com/myunila/myunila-service/apps/siakadu/mahasiswa"
 	siakadu_nilai "github.com/myunila/myunila-service/apps/siakadu/nilai"
 	siakadu_referensi "github.com/myunila/myunila-service/apps/siakadu/referensi"
+	siakadu_wisuda "github.com/myunila/myunila-service/apps/siakadu/wisuda"
 	"github.com/myunila/myunila-service/apps/sikep/pegawai"
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
 	"github.com/myunila/myunila-service/docs"
@@ -180,6 +181,10 @@ func main() {
 	siakadu_nilai.Init(apiV1, db.DB, siakaduAPI)
 	siakadu_referensi.Init(apiV1, db.DB, siakaduAPI)
 	log.Println("✅ SIAKADU Nilai module initialized")
+
+	// Initialize SIAKADU Wisuda module
+	siakadu_wisuda.Init(apiV1, db.DB, siakaduAPI)
+	log.Println("✅ SIAKADU Wisuda module initialized")
 
 	// Initialize ManAkses Unit Organisasi module
 	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
