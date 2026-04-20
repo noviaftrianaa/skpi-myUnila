@@ -13,16 +13,22 @@ import (
 // Service interface for nilai business logic
 type Service interface {
 	// KHS
-	GetKHSList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error)
+	GetKHSList(ctx context.Context, filter *KHSListFilter) (*PaginatedResult, error)
+	GetKHSStats(ctx context.Context) (*KHSStats, error)
+	GetKHSFilterOptions(ctx context.Context) (*KHSFilterOptions, error)
 	SyncKHS(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 
 	// Transkrip
-	GetTranskripList(ctx context.Context, page, limit int, search, nim string) (*PaginatedResult, error)
+	GetTranskripList(ctx context.Context, filter *TranskripListFilter) (*PaginatedResult, error)
+	GetTranskripStats(ctx context.Context) (*TranskripStats, error)
+	GetTranskripFilterOptions(ctx context.Context) (*TranskripFilterOptions, error)
 	SyncTranskrip(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 	SyncTranskripBatch(ctx context.Context, syncedBy string) (*SyncResult, error)
 
 	// Kuliah
-	GetKuliahList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error)
+	GetKuliahList(ctx context.Context, filter *KuliahListFilter) (*PaginatedResult, error)
+	GetKuliahStats(ctx context.Context) (*KuliahStats, error)
+	GetKuliahFilterOptions(ctx context.Context) (*KuliahFilterOptions, error)
 	SyncKuliah(ctx context.Context, filter *SyncFilter, syncedBy string) (*SyncResult, error)
 }
 
@@ -53,16 +59,40 @@ func NewService(repo Repository, siakaduAPI SiakaduAPIClient) Service {
 // List Operations
 // ========================================
 
-func (s *service) GetKHSList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error) {
-	return s.repo.GetKHSList(ctx, page, limit, search, idSemester, nim)
+func (s *service) GetKHSList(ctx context.Context, filter *KHSListFilter) (*PaginatedResult, error) {
+	return s.repo.GetKHSList(ctx, filter)
 }
 
-func (s *service) GetTranskripList(ctx context.Context, page, limit int, search, nim string) (*PaginatedResult, error) {
-	return s.repo.GetTranskripList(ctx, page, limit, search, nim)
+func (s *service) GetKHSStats(ctx context.Context) (*KHSStats, error) {
+	return s.repo.GetKHSStats(ctx)
 }
 
-func (s *service) GetKuliahList(ctx context.Context, page, limit int, search, idSemester, nim string) (*PaginatedResult, error) {
-	return s.repo.GetKuliahList(ctx, page, limit, search, idSemester, nim)
+func (s *service) GetKHSFilterOptions(ctx context.Context) (*KHSFilterOptions, error) {
+	return s.repo.GetKHSFilterOptions(ctx)
+}
+
+func (s *service) GetTranskripList(ctx context.Context, filter *TranskripListFilter) (*PaginatedResult, error) {
+	return s.repo.GetTranskripList(ctx, filter)
+}
+
+func (s *service) GetTranskripStats(ctx context.Context) (*TranskripStats, error) {
+	return s.repo.GetTranskripStats(ctx)
+}
+
+func (s *service) GetTranskripFilterOptions(ctx context.Context) (*TranskripFilterOptions, error) {
+	return s.repo.GetTranskripFilterOptions(ctx)
+}
+
+func (s *service) GetKuliahList(ctx context.Context, filter *KuliahListFilter) (*PaginatedResult, error) {
+	return s.repo.GetKuliahList(ctx, filter)
+}
+
+func (s *service) GetKuliahStats(ctx context.Context) (*KuliahStats, error) {
+	return s.repo.GetKuliahStats(ctx)
+}
+
+func (s *service) GetKuliahFilterOptions(ctx context.Context) (*KuliahFilterOptions, error) {
+	return s.repo.GetKuliahFilterOptions(ctx)
 }
 
 // ========================================

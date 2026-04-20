@@ -15,11 +15,17 @@ func Init(router fiber.Router, db *sqlx.DB, siakaduAPI *siakadu_api.SiakaduClien
 	group := router.Group("/siakadu/nilai")
 	{
 		group.Get("/khs", handler.GetKHSList)
+		group.Get("/khs/stats", handler.GetKHSStats)
+		group.Get("/khs/filters", handler.GetKHSFilters)
 		group.Post("/khs/sync", handler.SyncKHS)
 		group.Get("/transkrip", handler.GetTranskripList)
+		group.Get("/transkrip/stats", handler.GetTranskripStats)
+		group.Get("/transkrip/filters", handler.GetTranskripFilters)
 		group.Post("/transkrip/sync", handler.SyncTranskrip)
 		group.Post("/transkrip/sync-batch", handler.SyncTranskripBatch)
 		group.Get("/kuliah", handler.GetKuliahList)
+		group.Get("/kuliah/stats", handler.GetKuliahStats)
+		group.Get("/kuliah/filters", handler.GetKuliahFilters)
 		group.Post("/kuliah/sync", handler.SyncKuliah)
 	}
 

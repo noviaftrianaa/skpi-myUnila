@@ -23,11 +23,20 @@ func NewHandler(service Service) *Handler {
 func (h *Handler) GetKHSList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
-	idSemester := c.Query("id_semester", "")
-	nim := c.Query("nim", "")
 
-	result, err := h.service.GetKHSList(c.Context(), page, limit, search, idSemester, nim)
+	filter := &KHSListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		IdSmt:     c.Query("id_smt", ""),
+		NIM:       c.Query("nim", ""),
+		IdUnit:    c.Query("id_unit", ""),
+		Angkatan:  c.Query("angkatan", ""),
+		SortBy:    c.Query("sort_by", "nim"),
+		SortOrder: c.Query("sort_order", "asc"),
+	}
+
+	result, err := h.service.GetKHSList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -45,6 +54,36 @@ func (h *Handler) GetKHSList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetKHSStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetKHSStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetKHSFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetKHSFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 
@@ -78,10 +117,19 @@ func (h *Handler) SyncKHS(c *fiber.Ctx) error {
 func (h *Handler) GetTranskripList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
-	nim := c.Query("nim", "")
 
-	result, err := h.service.GetTranskripList(c.Context(), page, limit, search, nim)
+	filter := &TranskripListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		NIM:       c.Query("nim", ""),
+		IdUnit:    c.Query("id_unit", ""),
+		Angkatan:  c.Query("angkatan", ""),
+		SortBy:    c.Query("sort_by", "nim"),
+		SortOrder: c.Query("sort_order", "asc"),
+	}
+
+	result, err := h.service.GetTranskripList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -99,6 +147,36 @@ func (h *Handler) GetTranskripList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetTranskripStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetTranskripStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetTranskripFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetTranskripFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 
@@ -150,11 +228,20 @@ func (h *Handler) SyncTranskripBatch(c *fiber.Ctx) error {
 func (h *Handler) GetKuliahList(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
-	search := c.Query("search", "")
-	idSemester := c.Query("id_semester", "")
-	nim := c.Query("nim", "")
 
-	result, err := h.service.GetKuliahList(c.Context(), page, limit, search, idSemester, nim)
+	filter := &KuliahListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search", ""),
+		IdSmt:     c.Query("id_smt", ""),
+		IdUnit:    c.Query("id_unit", ""),
+		Angkatan:  c.Query("angkatan", ""),
+		Status:    c.Query("status", ""),
+		SortBy:    c.Query("sort_by", "nim"),
+		SortOrder: c.Query("sort_order", "asc"),
+	}
+
+	result, err := h.service.GetKuliahList(c.Context(), filter)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -172,6 +259,36 @@ func (h *Handler) GetKuliahList(c *fiber.Ctx) error {
 			"limit":       result.Limit,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+func (h *Handler) GetKuliahStats(c *fiber.Ctx) error {
+	stats, err := h.service.GetKuliahStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    stats,
+	})
+}
+
+func (h *Handler) GetKuliahFilters(c *fiber.Ctx) error {
+	opts, err := h.service.GetKuliahFilterOptions(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    opts,
 	})
 }
 
