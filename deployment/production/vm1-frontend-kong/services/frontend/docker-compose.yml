@@ -46,11 +46,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '6'
-          memory: 8G
+          cpus: '4'
+          memory: 4G
         reservations:
-          cpus: '2'
-          memory: 2G
+          cpus: '1'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     ports:
       - "${FRONTEND_PORT}:3000"

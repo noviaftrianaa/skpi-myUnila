@@ -27,9 +27,10 @@ services:
       DB_MAX_OPEN_CONNS: ${FEEDER_DB_MAX_OPEN_CONNS:-100}
       DB_MAX_IDLE_CONNS: ${FEEDER_DB_MAX_IDLE_CONNS:-20}
       DB_CONN_MAX_LIFETIME: ${FEEDER_DB_CONN_MAX_LIFETIME:-5m}
-      # Go runtime settings
+      # Go runtime settings (tune-up 2026-04-20: GOMEMLIMIT biar Go runtime aware container limit)
       GOMAXPROCS: 8
-      GOGC: 100
+      GOGC: 75
+      GOMEMLIMIT: 3750MiB
 
       # Feeder API Configuration (Fallback - Priority: Database > Environment)
       FEEDER_API_BASE_URL: ${FEEDER_API_BASE_URL}
@@ -48,11 +49,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '8'
-          memory: 12G
-        reservations:
           cpus: '4'
           memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     networks:
       - myunila-prod-network

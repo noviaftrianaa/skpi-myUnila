@@ -57,10 +57,15 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 6G
+          memory: 3G
         reservations:
-          cpus: '2'
-          memory: 2G
+          cpus: '1'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     networks:
       - myunila-prod-network
@@ -130,10 +135,15 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
           memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     networks:
       - myunila-prod-network

@@ -15,6 +15,19 @@ services:
       MEILI_HTTP_ADDR: "0.0.0.0:7700"
     volumes:
       - meilisearch_data:/meili_data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
     networks:
       - myunila-prod-network
     healthcheck:

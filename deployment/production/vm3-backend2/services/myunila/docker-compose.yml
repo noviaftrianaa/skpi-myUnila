@@ -38,6 +38,11 @@ services:
       # JWT
       JWT_SECRET: ${JWT_SECRET}
 
+      # Go runtime (tune-up 2026-04-20)
+      GOMAXPROCS: 2
+      GOGC: 100
+      GOMEMLIMIT: 900MiB
+
       # Timezone
       TZ: ${TZ:-Asia/Jakarta}
 
@@ -45,10 +50,15 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 2G
+          memory: 1G
         reservations:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     networks:
       - myunila-prod-network

@@ -12,7 +12,20 @@ services:
       - redis_data:/data
     networks:
       - myunila-prod-network
-    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass} ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --maxmemory 800mb --maxmemory-policy allkeys-lru ${REDIS_PASSWORD:+--requirepass} ${REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

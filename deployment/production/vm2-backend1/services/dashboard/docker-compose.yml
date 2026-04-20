@@ -44,6 +44,19 @@ services:
       QUEUE_CONNECTION: redis
 
       TZ: "${TIMEZONE:-Asia/Jakarta}"
+    deploy:
+      resources:
+        limits:
+          cpus: '3'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
     networks:
       - myunila-prod-network
     restart: unless-stopped

@@ -50,7 +50,7 @@ services:
       CRAWLER_MAX_DEPTH: ${CRAWLER_MAX_DEPTH:-3}
       CRAWLER_MAX_PAGES: ${CRAWLER_MAX_PAGES:-500}
       CRAWLER_RATE_LIMIT_MS: ${CRAWLER_RATE_LIMIT_MS:-1000}
-      CRAWLER_CONCURRENT_SITES: ${CRAWLER_CONCURRENT_SITES:-3}
+      CRAWLER_CONCURRENT_SITES: ${CRAWLER_CONCURRENT_SITES:-2}
       CRAWLER_TIMEOUT_SEC: ${CRAWLER_TIMEOUT_SEC:-30}
 
       # Deep Scan: Cloaking & AMP
@@ -58,9 +58,10 @@ services:
       CRAWLER_CLOAKING_THRESHOLD: ${CRAWLER_CLOAKING_THRESHOLD:-0.7}
       CRAWLER_AMP_SCAN_ENABLED: ${CRAWLER_AMP_SCAN_ENABLED:-true}
 
-      # Go runtime — VM3 has 8 CPU / 16GB RAM
+      # Go runtime (tune-up 2026-04-20: GOMEMLIMIT + reduce crawler concurrent supaya tidak OOM VM)
       GOMAXPROCS: 4
       GOGC: 100
+      GOMEMLIMIT: 1800MiB
 
       # Timezone
       TZ: Asia/Jakarta
@@ -72,11 +73,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 4G
+          cpus: '2'
+          memory: 2G
         reservations:
-          cpus: '1'
-          memory: 512M
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     networks:
       - myunila-prod-network

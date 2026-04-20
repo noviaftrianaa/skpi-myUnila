@@ -45,6 +45,11 @@ services:
       TELEGRAM_CHAT_ID: "${PROJECT_TELEGRAM_CHAT_ID:-}"
       TELEGRAM_NOTIFY_ENABLED: "${PROJECT_TELEGRAM_NOTIFY_ENABLED:-false}"
 
+      # Go runtime (tune-up 2026-04-20)
+      GOMAXPROCS: 1
+      GOGC: 100
+      GOMEMLIMIT: 450MiB
+
     deploy:
       resources:
         limits:
@@ -53,6 +58,11 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8095/health"]

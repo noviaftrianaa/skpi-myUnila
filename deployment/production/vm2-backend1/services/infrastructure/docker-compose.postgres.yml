@@ -19,6 +19,20 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+
     networks:
       - myunila-prod-network
 

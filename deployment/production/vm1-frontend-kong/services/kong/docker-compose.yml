@@ -48,11 +48,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '6'
-          memory: 6G
+          cpus: '4'
+          memory: 3G
         reservations:
-          cpus: '2'
-          memory: 1G
+          cpus: '1'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
     ports:
       - "${KONG_PROXY_PORT}:8000"
