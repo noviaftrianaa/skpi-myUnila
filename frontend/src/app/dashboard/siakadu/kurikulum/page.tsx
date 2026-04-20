@@ -5,10 +5,8 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import siakaduService, { SiakaduKelas, KelasFilterOptions } from "@/lib/services/siakadu/siakaduService";
-import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
-
-const APP_KEY = "myunila-integrator";
+import siakaduService, { SiakaduKurikulum, KurikulumFilterOptions } from "@/lib/services/siakadu/siakaduService";
+import { siakaduMenuConfig } from "../config/menuConfig";
 
 import {
   Card, CardBody, Spinner, Progress,
@@ -22,13 +20,13 @@ import { toast } from "react-hot-toast";
 
 interface StatsData { total_records: number; last_sync: string | null; }
 
-export default function SiakaduKelasPage() {
+export default function KurikulumPage() {
   useRequireAuth();
   const { user } = useAuth();
 
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [data, setData] = useState<SiakaduKelas[]>([]);
+  const [data, setData] = useState<SiakaduKurikulum[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,14 +34,14 @@ export default function SiakaduKelasPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filters
-  const [filterOptions, setFilterOptions] = useState<KelasFilterOptions | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState("");
+  const [filterOptions, setFilterOptions] = useState<KurikulumFilterOptions | null>(null);
   const [selectedProdi, setSelectedProdi] = useState("");
+  const [selectedJenisMK, setSelectedJenisMK] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   // Sorting
-  const [sortBy, setSortBy] = useState("id_semester");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState("nama_mata_kuliah");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Sync
   const [isSyncing, setIsSyncing] = useState(false);
@@ -56,7 +54,7 @@ export default function SiakaduKelasPage() {
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
-      const response = await siakaduService.getKelasStats();
+      const response = await siakaduService.getKurikulumStats();
       if (response.success) setStats(response.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -67,7 +65,7 @@ export default function SiakaduKelasPage() {
 
   const fetchFilters = useCallback(async () => {
     try {
-      const response = await siakaduService.getKelasFilters();
+      const response = await siakaduService.getKurikulumFilters();
       if (response.success) setFilterOptions(response.data);
     } catch (error) {
       console.error("Error fetching filters:", error);
@@ -77,12 +75,12 @@ export default function SiakaduKelasPage() {
   const fetchData = useCallback(async () => {
     try {
       setIsLoadingData(true);
-      const response = await siakaduService.getKelasList({
+      const response = await siakaduService.getKurikulumList({
         page: currentPage,
         limit: rowsPerPage,
         search: searchQuery || undefined,
-        id_smt: selectedSemester || undefined,
-        id_unit: selectedProdi || undefined,
+        id_sms: selectedProdi || undefined,
+        jenis_mk: selectedJenisMK || undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
       });
@@ -95,7 +93,7 @@ export default function SiakaduKelasPage() {
     } finally {
       setIsLoadingData(false);
     }
-  }, [currentPage, rowsPerPage, searchQuery, selectedSemester, selectedProdi, sortBy, sortOrder]);
+  }, [currentPage, rowsPerPage, searchQuery, selectedProdi, selectedJenisMK, sortBy, sortOrder]);
 
   useEffect(() => { fetchStats(); fetchFilters(); }, [fetchStats, fetchFilters]);
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -116,10 +114,7 @@ export default function SiakaduKelasPage() {
         });
       }, 1000);
 
-      const response = await siakaduService.syncKelas(
-        selectedSemester ? { id_semester: selectedSemester } : undefined,
-        user?.name || "system"
-      );
+      const response = await siakaduService.syncKurikulum(undefined, user?.name || "system");
       clearInterval(progressInterval);
 
       if (response.success) {
@@ -129,7 +124,7 @@ export default function SiakaduKelasPage() {
         setSyncMessage(
           `Inserted: ${d?.total_inserted || d?.inserted || 0}, Updated: ${d?.total_updated || d?.updated || 0}`
         );
-        toast.success("Sinkronisasi kelas berhasil!");
+        toast.success("Sinkronisasi kurikulum berhasil!");
         setTimeout(async () => {
           await fetchStats(); await fetchData();
           setShowProgressModal(false); setSyncProgress(0); setSyncStatus("idle");
@@ -148,12 +143,12 @@ export default function SiakaduKelasPage() {
   };
 
   const clearFilters = () => {
-    setSelectedSemester(""); setSelectedProdi("");
+    setSelectedProdi(""); setSelectedJenisMK("");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = selectedSemester || selectedProdi;
-  const activeFilterCount = [selectedSemester, selectedProdi].filter(Boolean).length;
+  const hasActiveFilters = selectedProdi || selectedJenisMK;
+  const activeFilterCount = [selectedProdi, selectedJenisMK].filter(Boolean).length;
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Belum pernah";
@@ -162,22 +157,37 @@ export default function SiakaduKelasPage() {
     });
   };
 
-  const columns: Column<SiakaduKelas>[] = [
+  const getJenisMKStyle = (jenis?: string | null) => {
+    if (!jenis || jenis === "-") return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
+    if (jenis === "Wajib") return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+    if (jenis === "Pilihan") return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+    return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
+  };
+
+  const columns: Column<SiakaduKurikulum>[] = [
     {
-      key: "nama_kelas", label: "Kelas", align: "center",
-      render: (item) => <span className="font-mono text-sm font-semibold">{item.nama_kelas || "-"}</span>,
+      key: "kode_mk", label: "Kode MK", sortable: true,
+      render: (item) => <span className="font-mono text-sm">{item.kode_mk || "-"}</span>,
     },
     {
-      key: "nama_mk", label: "Mata Kuliah", sortable: true,
-      render: (item) => <span className="font-medium text-gray-900 dark:text-white">{item.nama_mk || "-"}</span>,
+      key: "nama_mata_kuliah", label: "Nama MK", sortable: true,
+      render: (item) => <span className="font-medium text-gray-900 dark:text-white">{item.nama_mata_kuliah || "-"}</span>,
     },
     {
-      key: "sks_mk", label: "SKS", align: "center", sortable: true,
-      render: (item) => <span className="font-mono text-sm font-semibold">{item.sks_mk ?? "-"}</span>,
+      key: "sks", label: "SKS", align: "center", sortable: true,
+      render: (item) => <span className="font-mono text-sm font-semibold">{item.sks ?? "-"}</span>,
     },
     {
-      key: "id_semester", label: "Semester", align: "center", sortable: true,
-      render: (item) => <span className="font-mono text-sm">{item.id_semester || "-"}</span>,
+      key: "semester", label: "Semester", align: "center", sortable: true,
+      render: (item) => <span className="font-mono text-sm">{item.semester ?? "-"}</span>,
+    },
+    {
+      key: "jenis_mk", label: "Jenis", align: "center",
+      render: (item) => (
+        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${getJenisMKStyle(item.jenis_mk)}`}>
+          {item.jenis_mk || "-"}
+        </span>
+      ),
     },
     {
       key: "nm_prodi", label: "Prodi", sortable: true,
@@ -191,21 +201,21 @@ export default function SiakaduKelasPage() {
 
   return (
     <DashboardLayoutWithDynamicMenu
-      appName="MyUnila Integrator"
+      appName="Siakadu"
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      appKey={APP_KEY}
-      fallbackMenus={myunilaIntegratorMenuConfig}
-      pageTitle="Data Kelas SIAKADU"
+      appKey="siakadu"
+      fallbackMenus={siakaduMenuConfig}
+      pageTitle="Data Kurikulum"
     >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Data Kelas Perkuliahan
+              Data Kurikulum
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Sinkronisasi data kelas dari SIAKADU
+              Data kurikulum dari Sistem Akademik UNILA
             </p>
           </div>
           <button
@@ -220,7 +230,7 @@ export default function SiakaduKelasPage() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
+          <Card className="bg-gradient-to-br from-violet-500 via-violet-600 to-purple-600 border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative rounded-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
             <CardBody className="p-5 relative z-10">
               <div className="flex items-center gap-4">
@@ -228,7 +238,7 @@ export default function SiakaduKelasPage() {
                   <FiBookOpen className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-blue-100 mb-1">Total Kelas</p>
+                  <p className="text-sm font-medium text-violet-100 mb-1">Total Kurikulum</p>
                   {isLoadingStats ? <Spinner size="sm" color="white" /> : (
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-none">{(stats?.total_records ?? 0).toLocaleString("id-ID")}</h3>
                   )}
@@ -291,22 +301,6 @@ export default function SiakaduKelasPage() {
           {showFilters && (
             <div className="px-5 pb-4 border-t border-gray-100 dark:border-gray-700">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                {/* Semester */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Semester</label>
-                  <select
-                    value={selectedSemester}
-                    onChange={(e) => { setSelectedSemester(e.target.value); setCurrentPage(1); }}
-                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="">Semua Semester</option>
-                    {(filterOptions?.semester || []).map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Prodi */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Program Studi</label>
                   <select
@@ -316,7 +310,21 @@ export default function SiakaduKelasPage() {
                   >
                     <option value="">Semua Prodi</option>
                     {(filterOptions?.prodi || []).map((p) => (
-                      <option key={p.id_unit} value={p.id_unit}>{p.nm_prodi}</option>
+                      <option key={p.id_sms} value={p.id_sms}>{p.nm_prodi}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Jenis Mata Kuliah</label>
+                  <select
+                    value={selectedJenisMK}
+                    onChange={(e) => { setSelectedJenisMK(e.target.value); setCurrentPage(1); }}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Semua Jenis</option>
+                    {(filterOptions?.jenis_mk || []).map((j) => (
+                      <option key={j} value={j}>{j}</option>
                     ))}
                   </select>
                 </div>
@@ -339,11 +347,11 @@ export default function SiakaduKelasPage() {
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
-            <DataTable<SiakaduKelas>
+            <DataTable<SiakaduKurikulum>
               data={data}
               columns={columns}
               searchable
-              searchPlaceholder="Cari nama kelas/mata kuliah..."
+              searchPlaceholder="Cari kode/nama mata kuliah..."
               loading={isLoadingData}
               serverSide
               totalRecords={totalRecords}
@@ -370,13 +378,13 @@ export default function SiakaduKelasPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">Sinkronisasi Data</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Data Kelas SIAKADU</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Data Kurikulum SIAKADU</p>
                 </div>
               </div>
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl mb-6">
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">Proses ini akan:</p>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
-                  <li>Mengambil data kelas perkuliahan terbaru dari SIAKADU</li>
+                  <li>Mengambil data kurikulum terbaru dari SIAKADU</li>
                   <li>Data yang sudah ada akan diperbarui</li>
                   <li>Data baru akan ditambahkan</li>
                 </ul>
