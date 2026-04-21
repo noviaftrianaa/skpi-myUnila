@@ -197,14 +197,18 @@ CREATE TABLE siakadu.bentuk_pendidikan (
 );
 GO
 
--- Referensi unit/prodi (pengganti external lookup)
+-- Referensi unit/prodi (disinkronkan via /siakadu/referensi/unit/sync)
 IF OBJECT_ID('siakadu.ref_unit','U') IS NULL
 CREATE TABLE siakadu.ref_unit (
     id_unit             varchar(20)   NOT NULL,
+    id_parent_unit      varchar(20)   NULL,        -- parent unit (F=fakultas)
+    jns_unit            varchar(5)    NULL,        -- P=Prodi, F=Fakultas, dll
     nm_unit             nvarchar(200) NULL,
-    jns_unit            varchar(20)   NULL,   -- P=Prodi, F=Fakultas
-    id_induk            varchar(20)   NULL,
+    nm_singkat          nvarchar(50)  NULL,
+    id_jenjang          varchar(10)   NULL,        -- ref jenjang siakadu (S1, D3, dll)
+    akreditasi          varchar(5)    NULL,
     is_aktif            varchar(5)    NULL,
+    pimpinan_json       nvarchar(max) NULL,        -- denormalized pimpinan data
     create_date         datetime      NOT NULL DEFAULT GETDATE(),
     last_update         datetime      NOT NULL DEFAULT GETDATE(),
     last_sync           datetime      NULL,
