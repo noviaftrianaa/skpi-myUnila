@@ -1,0 +1,112 @@
+strata,prodi,ktw,maba,pct
+S1,Akuntansi,72.0,140.0,0.5142857142857142
+S1,Ekonomi Pembangunan,62.0,127.0,0.4881889763779528
+S1,Manajemen,90.0,150.0,0.6
+S1,Ilmu Hukum,518.0,779.0,0.6649550706033376
+S1,Hubungan Internasional,62.0,144.0,0.4305555555555556
+S1,Ilmu Administrasi Bisnis,114.0,155.0,0.7354838709677419
+S1,Ilmu Administrasi Negara,73.0,151.0,0.48344370860927155
+S1,Ilmu Komunikasi,83.0,146.0,0.5684931506849316
+S1,Ilmu Pemerintahan,82.0,125.0,0.656
+S1,Sosiologi,57.0,120.0,0.475
+S1,Farmasi,47.0,66.0,0.7121212121212122
+S1,Pendidikan Dokter,187.0,207.0,0.9033816425120773
+S1,Bimbingan dan Konseling,45.0,100.0,0.45
+S1,Pendidikan Bahasa dan Sastra Indonesia,70.0,101.0,0.693069306930693
+S1,Pendidikan Bahasa Inggris,64.0,102.0,0.6274509803921569
+S1,Pendidikan Bahasa Lampung,34.0,94.0,0.3617021276595745
+S1,Pendidikan Bahasa Perancis,28.0,44.0,0.6363636363636364
+S1,Pendidikan Biologi,60.0,88.0,0.6818181818181818
+S1,Pendidikan Ekonomi,81.0,97.0,0.8350515463917526
+S1,Pendidikan Fisika,59.0,80.0,0.7375
+S1,Pendidikan Geografi,54.0,90.0,0.6
+S1,Pendidikan Guru Pendidikan Anak Usia Dini,39.0,66.0,0.5909090909090909
+S1,Pendidikan Guru Sekolah Dasar,273.0,355.0,0.7690140845070422
+S1,Pendidikan Jasmani,64.0,105.0,0.6095238095238096
+S1,Pendidikan Kimia,41.0,84.0,0.4880952380952381
+S1,Pendidikan Matematika,61.0,96.0,0.6354166666666666
+S1,Pendidikan Musik,8.0,41.0,0.1951219512195122
+S1,Pendidikan Pancasila dan Kewarganegaraan,57.0,88.0,0.6477272727272727
+S1,Pendidikan Sejarah,37.0,84.0,0.44047619047619047
+S1,Pendidikan Tari,46.0,56.0,0.8214285714285714
+S1,Pendidikan Teknologi Informasi,25.0,43.0,0.5813953488372093
+S1,Biologi,86.0,133.0,0.6466165413533834
+S1,Biologi Terapan,31.0,57.0,0.543859649122807
+S1,Fisika,51.0,94.0,0.5425531914893617
+S1,Ilmu Komputer,63.0,110.0,0.5727272727272728
+S1,Kimia,91.0,125.0,0.728
+S1,Matematika,107.0,135.0,0.7925925925925926
+S1,Agribisnis,57.0,105.0,0.5428571428571428
+S1,Agronomi,36.0,85.0,0.4235294117647059
+S1,Agroteknologi,31.0,81.0,0.38271604938271603
+S1,Budidaya Perairan,21.0,57.0,0.3684210526315789
+S1,Ilmu Kelautan,11.0,40.0,0.275
+S1,Ilmu Tanah,22.0,69.0,0.3188405797101449
+S1,Kehutanan,64.0,92.0,0.6956521739130435
+S1,Nutrisi dan Teknologi Pakan Ternak,36.0,59.0,0.6101694915254238
+S1,Penyuluhan Pertanian,16.0,67.0,0.23880597014925373
+S1,Peternakan,39.0,77.0,0.5064935064935064
+S1,Proteksi Tanaman,20.0,40.0,0.5
+S1,Sumberdaya Akuatik,16.0,37.0,0.43243243243243246
+S1,Teknik Pertanian,41.0,84.0,0.4880952380952381
+S1,Teknologi Hasil Pertanian,59.0,87.0,0.6781609195402298
+S1,Teknologi Industri Pertanian,51.0,73.0,0.6986301369863014
+S1,Arsitektur,32.0,85.0,0.3764705882352941
+S1,Teknik Elektro,79.0,135.0,0.5851851851851851
+S1,Teknik Geodesi,14.0,86.0,0.16279069767441862
+S1,Teknik Geofisika,34.0,74.0,0.4594594594594595
+S1,Teknik Informatika,40.0,144.0,0.2777777777777778
+S1,Teknik Kimia,3.0,131.0,0.022900763358778626
+S1,Teknik Lingkungan,5.0,13.0,0.38461538461538464
+S1,Teknik Mesin,22.0,138.0,0.15942028985507245
+S1,Teknik Sipil,67.0,147.0,0.4557823129251701
+S2,Magister Ilmu Akuntansi,18.0,44.0,0.4090909090909091
+S2,Magister Ilmu Ekonomi,5.0,13.0,0.38461538461538464
+S2,Magister Manajemen,28.0,63.0,0.4444444444444444
+S2,Magister Ilmu Hukum,80.0,117.0,0.6837606837606838
+S2,Magister Ilmu Administrasi,5.0,13.0,0.38461538461538464
+S2,Magister Ilmu Komunikasi,13.0,33.0,0.3939393939393939
+S2,Magister Ilmu Pemerintahan,5.0,18.0,0.2777777777777778
+S2,Magister Kesehatan Masyarakat,10.0,18.0,0.5555555555555556
+S2,Magister Administrasi Pendidikan,15.0,17.0,0.8823529411764706
+S2,Magister Keguruan Guru Sekolah Dasar,22.0,33.0,0.6666666666666666
+S2,Magister Pendidikan Bahasa dan Kebudayaan Lampung,9.0,10.0,0.9
+S2,Magister Pendidikan Bahasa dan Sastra Indonesia,8.0,10.0,0.8
+S2,Magister Pendidikan Bahasa Inggris,19.0,27.0,0.7037037037037037
+S2,Magister Pendidikan Fisika,8.0,9.0,0.8888888888888888
+S2,Magister Pendidikan Ilmu Pengetahuan Alam,2.0,6.0,0.3333333333333333
+S2,Magister Pendidikan IPS,9.0,7.0,1.2857142857142858
+S2,Magister Pendidikan Matematika,12.0,33.0,0.36363636363636365
+S2,Magister Teknologi Pendidikan,9.0,14.0,0.6428571428571429
+S2,Magister Biologi,2.0,8.0,0.25
+S2,Magister Fisika,1.0,2.0,0.5
+S2,Magister Ilmu Komputer,5.0,12.0,0.4166666666666667
+S2,Magister Kimia,4.0,7.0,0.5714285714285714
+S2,Magister Matematika,4.0,5.0,0.8
+S2,Magister Agribisnis,6.0,16.0,0.375
+S2,Magister Agronomi,12.0,19.0,0.631578947368421
+S2,Magister Kehutanan,2.0,6.0,0.3333333333333333
+S2,Magister Penyuluh dan Komunikasi Pertanian,1.0,6.0,0.16666666666666666
+S2,Magister Teknologi Industri Pertanian,5.0,12.0,0.4166666666666667
+S2,Magister Teknik Elektro,1.0,12.0,0.08333333333333333
+S2,Magister Teknik Mesin,1.0,8.0,0.125
+S2,Magister Teknik Sipil,10.0,25.0,0.4
+S2,Magister Ilmu Lingkungan,2.0,14.0,0.14285714285714285
+S2,Magister Ilmu Penyuluhan Pembangunan/Pemberdayaan Masyarakat,1.0,4.0,0.25
+S2,Magister Manajemen Wilayah Pesisir dan Laut,19.0,27.0,0.7037037037037037
+S3,S3 Ilmu Ekonomi,6.0,17.0,0.35294117647058826
+S3,S3 Ilmu Hukum,9.0,18.0,0.5
+S3,S3 Studi Pembangunan,3.0,10.0,0.3
+S3,S3 Pendidikan,7.0,20.0,0.35
+S3,S3 Ilmu Pertanian,1.0,8.0,0.125
+S3,S3 Ilmu Lingkungan,3.0,13.0,0.23076923076923078
+S3,S3 ILMU MIPA,1.0,6.0,0
+D3,D3 Akuntansi,27.0,37.0,0.7297297297297297
+D3,D3 Keuangan dan Perbankan,12.0,16.0,0.75
+D3,D3 Manajemen Pemasaran,9.0,14.0,0.6428571428571429
+D3,D3 Perpajakan,26.0,38.0,0.6842105263157895
+D3,D3 Administrasi Perkantoran,14.0,18.0,0.7777777777777778
+D3,D3 Perpustakaan,7.0,11.0,0.6363636363636364
+D3,D3 Hubungan Masyarakat,5.0,14.0,0.35714285714285715
+D3,D3 Manajemen Informatika,12.0,34.0,0.35294117647058826
+D3,D3 Teknik Mesin,6.0,12.0,0.5

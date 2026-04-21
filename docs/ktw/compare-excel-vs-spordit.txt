@@ -1,0 +1,161 @@
+strata | prodi                                    | ex_ktw | sp_ktw |  dktw | ex_maba | sp_maba |  dmaba | ex_pct | sp_pct
+--------------------------------------------------------------------------------------------------------------------------
+D3     | administrasi perkantoran                 |      - |     13 |     - |       - |      18 |      - |      - |  72.2%  [only spordit]
+D3     | akuntansi                                |      - |     26 |     - |       - |      37 |      - |      - |  70.3%  [only spordit]
+D3     | d3 administrasi perkantoran              |     14 |      - |     - |      18 |       - |      - |  77.8% |      -  [only excel]
+D3     | d3 akuntansi                             |     27 |      - |     - |      37 |       - |      - |  73.0% |      -  [only excel]
+D3     | d3 hubungan masyarakat                   |      5 |      - |     - |      14 |       - |      - |  35.7% |      -  [only excel]
+D3     | d3 keuangan dan perbankan                |     12 |      - |     - |      16 |       - |      - |  75.0% |      -  [only excel]
+D3     | d3 manajemen informatika                 |     12 |      - |     - |      34 |       - |      - |  35.3% |      -  [only excel]
+D3     | d3 manajemen pemasaran                   |      9 |      - |     - |      14 |       - |      - |  64.3% |      -  [only excel]
+D3     | d3 perpajakan                            |     26 |      - |     - |      38 |       - |      - |  68.4% |      -  [only excel]
+D3     | d3 perpustakaan                          |      7 |      - |     - |      11 |       - |      - |  63.6% |      -  [only excel]
+D3     | d3 teknik mesin                          |      6 |      - |     - |      12 |       - |      - |  50.0% |      -  [only excel]
+D3     | hubungan masyarakat                      |      - |      1 |     - |       - |      14 |      - |      - |   7.1%  [only spordit]
+D3     | keuangan  dan  perbankan                 |      - |     12 |     - |       - |      16 |      - |      - |  75.0%  [only spordit]
+D3     | manajemen informatika                    |      - |     11 |     - |       - |      34 |      - |      - |  32.4%  [only spordit]
+D3     | manajemen pemasaran                      |      - |      8 |     - |       - |      14 |      - |      - |  57.1%  [only spordit]
+D3     | perpajakan                               |      - |     26 |     - |       - |      39 |      - |      - |  66.7%  [only spordit]
+D3     | perpustakaan                             |      - |      5 |     - |       - |      11 |      - |      - |  45.5%  [only spordit]
+D3     | survey dan pemetaan                      |      - |      0 |     - |       - |      17 |      - |      - |   0.0%  [only spordit]
+D3     | teknik mesin                             |      - |      5 |     - |       - |      12 |      - |      - |  41.7%  [only spordit]
+D3     | teknik sipil                             |      - |      4 |     - |       - |      17 |      - |      - |  23.5%  [only spordit]
+S1     | agribisnis                               |     57 |     52 |    +5 |     105 |     105 |     +0 |  54.3% |  49.5%
+S1     | akuntansi                                |     72 |     65 |    +7 |     140 |     141 |     -1 |  51.4% |  46.1%
+S1     | arsitektur                               |     32 |      9 |   +23 |      85 |      85 |     +0 |  37.6% |  10.6%
+S1     | biologi                                  |     86 |     65 |   +21 |     133 |     133 |     +0 |  64.7% |  48.9%
+S1     | biologi terapan                          |     31 |     26 |    +5 |      57 |      57 |     +0 |  54.4% |  45.6%
+S1     | budidaya perairan                        |     21 |     17 |    +4 |      57 |      57 |     +0 |  36.8% |  29.8%
+S1     | ekonomi pembangunan                      |     62 |     48 |   +14 |     127 |     127 |     +0 |  48.8% |  37.8%
+S1     | farmasi                                  |     47 |     39 |    +8 |      66 |      66 |     +0 |  71.2% |  59.1%
+S1     | fisika                                   |     51 |     28 |   +23 |      94 |      94 |     +0 |  54.3% |  29.8%
+S1     | geofisika                                |      - |     15 |     - |       - |      74 |      - |      - |  20.3%  [only spordit]
+S1     | hubungan internasional                   |     62 |     54 |    +8 |     144 |     145 |     -1 |  43.1% |  37.2%
+S1     | ilmu administrasi bisnis                 |    114 |      - |     - |     155 |       - |      - |  73.5% |      -  [only excel]
+S1     | ilmu administrasi negara                 |     73 |     43 |   +30 |     151 |     151 |     +0 |  48.3% |  28.5%
+S1     | ilmu administrasi niaga                  |      - |     96 |     - |       - |     156 |      - |      - |  61.5%  [only spordit]
+S1     | ilmu hukum                               |    518 |    420 |   +98 |     779 |     779 |     +0 |  66.5% |  53.9%
+S1     | ilmu komputer                            |     63 |     47 |   +16 |     110 |     111 |     -1 |  57.3% |  42.3%
+S1     | ilmu komunikasi                          |     83 |     72 |   +11 |     146 |     146 |     +0 |  56.8% |  49.3%
+S1     | ilmu pemerintahan                        |     82 |     59 |   +23 |     125 |     125 |     +0 |  65.6% |  47.2%
+S1     | ilmu tanah                               |     22 |     18 |    +4 |      69 |      69 |     +0 |  31.9% |  26.1%
+S1     | kehutanan                                |     64 |     56 |    +8 |      92 |      92 |     +0 |  69.6% |  60.9%
+S1     | kimia                                    |     91 |     55 |   +36 |     125 |     125 |     +0 |  72.8% |  44.0%
+S1     | manajemen                                |     90 |     78 |   +12 |     150 |     150 |     +0 |  60.0% |  52.0%
+S1     | matematika                               |    107 |    102 |    +5 |     135 |     135 |     +0 |  79.3% |  75.6%
+S1     | nutrisi dan teknologi pakan              |      - |     30 |     - |       - |      59 |      - |      - |  50.9%  [only spordit]
+S1     | nutrisi dan teknologi pakan ternak       |     36 |      - |     - |      59 |       - |      - |  61.0% |      -  [only excel]
+S1     | pendidikan bahasa dan sastra indonesia   |     70 |      - |     - |     101 |       - |      - |  69.3% |      -  [only excel]
+S1     | pendidikan bahasa inggris                |     64 |     58 |    +6 |     102 |     102 |     +0 |  62.7% |  56.9%
+S1     | pendidikan bahasa lampung                |     34 |     20 |   +14 |      94 |      94 |     +0 |  36.2% |  21.3%
+S1     | pendidikan bahasa sastra indonesia & dae |      - |     56 |     - |       - |     101 |      - |      - |  55.5%  [only spordit]
+S1     | pendidikan dokter                        |    187 |    180 |    +7 |     207 |     207 |     +0 |  90.3% |  87.0%
+S1     | pendidikan ekonomi                       |     81 |     70 |   +11 |      97 |      97 |     +0 |  83.5% |  72.2%
+S1     | pendidikan fisika                        |     59 |     53 |    +6 |      80 |      80 |     +0 |  73.8% |  66.2%
+S1     | pendidikan geografi                      |     54 |     46 |    +8 |      90 |      90 |     +0 |  60.0% |  51.1%
+S1     | pendidikan guru pendidikan anak usia din |     39 |      - |     - |      66 |       - |      - |  59.1% |      -  [only excel]
+S1     | pendidikan guru sekolah dasar            |    273 |    220 |   +53 |     355 |     355 |     +0 |  76.9% |  62.0%
+S1     | pendidikan jasmani                       |     64 |     43 |   +21 |     105 |     105 |     +0 |  61.0% |  41.0%
+S1     | pendidikan kimia                         |     41 |     34 |    +7 |      84 |      84 |     +0 |  48.8% |  40.5%
+S1     | pendidikan matematika                    |     61 |     52 |    +9 |      96 |      96 |     +0 |  63.5% |  54.2%
+S1     | pendidikan pancasila dan kewarganegaraan |     57 |     46 |   +11 |      88 |      88 |     +0 |  64.8% |  52.3%
+S1     | pendidikan sejarah                       |     37 |     29 |    +8 |      84 |      84 |     +0 |  44.0% |  34.5%
+S1     | pendidikan tari                          |     46 |     41 |    +5 |      56 |      56 |     +0 |  82.1% |  73.2%
+S1     | penyuluhan pertanian                     |     16 |     26 |   -10 |      67 |      67 |     +0 |  23.9% |  38.8%
+S1     | peternakan                               |     39 |     35 |    +4 |      77 |      77 |     +0 |  50.6% |  45.5%
+S1     | pg paud                                  |      - |     36 |     - |       - |      66 |      - |      - |  54.5%  [only spordit]
+S1     | sosiologi                                |     57 |     24 |   +33 |     120 |     120 |     +0 |  47.5% |  20.0%
+S1     | teknik elektro                           |     79 |     43 |   +36 |     135 |     138 |     -3 |  58.5% |  31.2%
+S1     | teknik geodesi                           |     14 |      8 |    +6 |      86 |      86 |     +0 |  16.3% |   9.3%
+S1     | teknik geofisika                         |     34 |      - |     - |      74 |       - |      - |  45.9% |      -  [only excel]
+S1     | teknik informatika                       |     40 |     16 |   +24 |     144 |     146 |     -2 |  27.8% |  11.0%
+S1     | teknik mesin                             |     22 |     13 |    +9 |     138 |     138 |     +0 |  15.9% |   9.4%
+S1     | teknik pertanian                         |     41 |     28 |   +13 |      84 |      85 |     -1 |  48.8% |  32.9%
+S1     | teknik sipil                             |     67 |     39 |   +28 |     147 |     147 |     +0 |  45.6% |  26.5%
+S1     | teknologi hasil pertanian                |     59 |     53 |    +6 |      87 |      87 |     +0 |  67.8% |  60.9%
+S1     | teknologi industri pertanian             |     51 |     41 |   +10 |      73 |      73 |     +0 |  69.9% |  56.2%
+S2     | administrasi pendidikan                  |      - |     15 |     - |       - |      17 |      - |      - |  88.2%  [only spordit]
+S2     | agrobisnis                               |      - |      6 |     - |       - |      16 |      - |      - |  37.5%  [only spordit]
+S2     | agronomi                                 |      - |      6 |     - |       - |      19 |      - |      - |  31.6%  [only spordit]
+S2     | biologi                                  |      - |      2 |     - |       - |       8 |      - |      - |  25.0%  [only spordit]
+S2     | fisika                                   |      - |      2 |     - |       - |       2 |      - |      - | 100.0%  [only spordit]
+S2     | ilmu administrasi                        |      - |      2 |     - |       - |      14 |      - |      - |  14.3%  [only spordit]
+S2     | ilmu akuntansi                           |      - |     10 |     - |       - |      44 |      - |      - |  22.7%  [only spordit]
+S2     | ilmu ekonomi                             |      - |      3 |     - |       - |      14 |      - |      - |  21.4%  [only spordit]
+S2     | ilmu hukum                               |      - |     72 |     - |       - |     117 |      - |      - |  61.5%  [only spordit]
+S2     | ilmu komputer                            |      - |      5 |     - |       - |      12 |      - |      - |  41.7%  [only spordit]
+S2     | ilmu komunikasi                          |      - |      9 |     - |       - |      33 |      - |      - |  27.3%  [only spordit]
+S2     | ilmu lingkungan                          |      - |      1 |     - |       - |      14 |      - |      - |   7.1%  [only spordit]
+S2     | ilmu pemerintahan                        |      - |      5 |     - |       - |      18 |      - |      - |  27.8%  [only spordit]
+S2     | ilmu penyuluhan pembangunan              |      - |      1 |     - |       - |       4 |      - |      - |  25.0%  [only spordit]
+S2     | keguruan guru sekolah dasar              |      - |     13 |     - |       - |      33 |      - |      - |  39.4%  [only spordit]
+S2     | kehutanan                                |      - |      2 |     - |       - |       6 |      - |      - |  33.3%  [only spordit]
+S2     | kesehatan masyarakat                     |      - |      7 |     - |       - |      18 |      - |      - |  38.9%  [only spordit]
+S2     | kimia                                    |      - |      2 |     - |       - |       7 |      - |      - |  28.6%  [only spordit]
+S2     | magister administrasi pendidikan         |     15 |      - |     - |      17 |       - |      - |  88.2% |      -  [only excel]
+S2     | magister agribisnis                      |      6 |      - |     - |      16 |       - |      - |  37.5% |      -  [only excel]
+S2     | magister agronomi                        |     12 |      - |     - |      19 |       - |      - |  63.2% |      -  [only excel]
+S2     | magister biologi                         |      2 |      - |     - |       8 |       - |      - |  25.0% |      -  [only excel]
+S2     | magister fisika                          |      1 |      - |     - |       2 |       - |      - |  50.0% |      -  [only excel]
+S2     | magister ilmu administrasi               |      5 |      - |     - |      13 |       - |      - |  38.5% |      -  [only excel]
+S2     | magister ilmu akuntansi                  |     18 |      - |     - |      44 |       - |      - |  40.9% |      -  [only excel]
+S2     | magister ilmu ekonomi                    |      5 |      - |     - |      13 |       - |      - |  38.5% |      -  [only excel]
+S2     | magister ilmu hukum                      |     80 |      - |     - |     117 |       - |      - |  68.4% |      -  [only excel]
+S2     | magister ilmu komputer                   |      5 |      - |     - |      12 |       - |      - |  41.7% |      -  [only excel]
+S2     | magister ilmu komunikasi                 |     13 |      - |     - |      33 |       - |      - |  39.4% |      -  [only excel]
+S2     | magister ilmu lingkungan                 |      2 |      - |     - |      14 |       - |      - |  14.3% |      -  [only excel]
+S2     | magister ilmu pemerintahan               |      5 |      - |     - |      18 |       - |      - |  27.8% |      -  [only excel]
+S2     | magister ilmu penyuluhan pembangunan/pem |      1 |      - |     - |       4 |       - |      - |  25.0% |      -  [only excel]
+S2     | magister keguruan guru sekolah dasar     |     22 |      - |     - |      33 |       - |      - |  66.7% |      -  [only excel]
+S2     | magister kehutanan                       |      2 |      - |     - |       6 |       - |      - |  33.3% |      -  [only excel]
+S2     | magister kesehatan masyarakat            |     10 |      - |     - |      18 |       - |      - |  55.6% |      -  [only excel]
+S2     | magister kimia                           |      4 |      - |     - |       7 |       - |      - |  57.1% |      -  [only excel]
+S2     | magister manajemen                       |     28 |      - |     - |      63 |       - |      - |  44.4% |      -  [only excel]
+S2     | magister manajemen wilayah pesisir dan l |     19 |      - |     - |      27 |       - |      - |  70.4% |      -  [only excel]
+S2     | magister matematika                      |      4 |      - |     - |       5 |       - |      - |  80.0% |      -  [only excel]
+S2     | magister pendidikan bahasa dan kebudayaa |      9 |      - |     - |      10 |       - |      - |  90.0% |      -  [only excel]
+S2     | magister pendidikan bahasa dan sastra in |      8 |      - |     - |      10 |       - |      - |  80.0% |      -  [only excel]
+S2     | magister pendidikan bahasa inggris       |     19 |      - |     - |      27 |       - |      - |  70.4% |      -  [only excel]
+S2     | magister pendidikan fisika               |      8 |      - |     - |       9 |       - |      - |  88.9% |      -  [only excel]
+S2     | magister pendidikan ilmu pengetahuan ala |      2 |      - |     - |       6 |       - |      - |  33.3% |      -  [only excel]
+S2     | magister pendidikan ips                  |      9 |      - |     - |       7 |       - |      - | 128.6% |      -  [only excel]
+S2     | magister pendidikan matematika           |     12 |      - |     - |      33 |       - |      - |  36.4% |      -  [only excel]
+S2     | magister penyuluh dan komunikasi pertani |      1 |      - |     - |       6 |       - |      - |  16.7% |      -  [only excel]
+S2     | magister teknik elektro                  |      1 |      - |     - |      12 |       - |      - |   8.3% |      -  [only excel]
+S2     | magister teknik mesin                    |      1 |      - |     - |       8 |       - |      - |  12.5% |      -  [only excel]
+S2     | magister teknik sipil                    |     10 |      - |     - |      25 |       - |      - |  40.0% |      -  [only excel]
+S2     | magister teknologi industri pertanian    |      5 |      - |     - |      12 |       - |      - |  41.7% |      -  [only excel]
+S2     | magister teknologi pendidikan            |      9 |      - |     - |      14 |       - |      - |  64.3% |      -  [only excel]
+S2     | manajemen                                |      - |     15 |     - |       - |      63 |      - |      - |  23.8%  [only spordit]
+S2     | manajemen wilayah pesisir dan laut       |      - |     22 |     - |       - |      27 |      - |      - |  81.5%  [only spordit]
+S2     | matematika                               |      - |      4 |     - |       - |       5 |      - |      - |  80.0%  [only spordit]
+S2     | pendidikan bahasa dan kebudayaan lampung |      - |      9 |     - |       - |      10 |      - |      - |  90.0%  [only spordit]
+S2     | pendidikan bahasa dan sastra indonesia   |      - |      8 |     - |       - |      10 |      - |      - |  80.0%  [only spordit]
+S2     | pendidikan bahasa inggris                |      - |     19 |     - |       - |      27 |      - |      - |  70.4%  [only spordit]
+S2     | pendidikan fisika                        |      - |      6 |     - |       - |       9 |      - |      - |  66.7%  [only spordit]
+S2     | pendidikan ilmu pengetahuan alam         |      - |      1 |     - |       - |       6 |      - |      - |  16.7%  [only spordit]
+S2     | pendidikan ips                           |      - |      2 |     - |       - |       8 |      - |      - |  25.0%  [only spordit]
+S2     | pendidikan matematika                    |      - |     11 |     - |       - |      33 |      - |      - |  33.3%  [only spordit]
+S2     | penyuluhan dan komunikasi pertanian      |      - |      0 |     - |       - |       6 |      - |      - |   0.0%  [only spordit]
+S2     | perencanaan wilayah dan kota             |      - |      0 |     - |       - |      16 |      - |      - |   0.0%  [only spordit]
+S2     | teknik elektro                           |      - |      0 |     - |       - |      13 |      - |      - |   0.0%  [only spordit]
+S2     | teknik mesin                             |      - |      1 |     - |       - |       9 |      - |      - |  11.1%  [only spordit]
+S2     | teknik sipil                             |      - |      8 |     - |       - |      25 |      - |      - |  32.0%  [only spordit]
+S2     | teknologi industri pertanian             |      - |      3 |     - |       - |      12 |      - |      - |  25.0%  [only spordit]
+S2     | teknologi pendidikan                     |      - |      7 |     - |       - |      14 |      - |      - |  50.0%  [only spordit]
+S3     | ilmu ekonomi                             |      - |      1 |     - |       - |      19 |      - |      - |   5.3%  [only spordit]
+S3     | ilmu hukum                               |      - |      2 |     - |       - |      18 |      - |      - |  11.1%  [only spordit]
+S3     | ilmu lingkungan                          |      - |      0 |     - |       - |      13 |      - |      - |   0.0%  [only spordit]
+S3     | ilmu pertanian                           |      - |      4 |     - |       - |       8 |      - |      - |  50.0%  [only spordit]
+S3     | matematika dan ilmu pengetahuan alam s3  |      - |      0 |     - |       - |       6 |      - |      - |   0.0%  [only spordit]
+S3     | pendidikan                               |      - |      2 |     - |       - |      20 |      - |      - |  10.0%  [only spordit]
+S3     | s3 ilmu ekonomi                          |      6 |      - |     - |      17 |       - |      - |  35.3% |      -  [only excel]
+S3     | s3 ilmu hukum                            |      9 |      - |     - |      18 |       - |      - |  50.0% |      -  [only excel]
+S3     | s3 ilmu lingkungan                       |      3 |      - |     - |      13 |       - |      - |  23.1% |      -  [only excel]
+S3     | s3 ilmu mipa                             |      1 |      - |     - |       6 |       - |      - |   0.0% |      -  [only excel]
+S3     | s3 ilmu pertanian                        |      1 |      - |     - |       8 |       - |      - |  12.5% |      -  [only excel]
+S3     | s3 pendidikan                            |      7 |      - |     - |      20 |       - |      - |  35.0% |      -  [only excel]
+S3     | s3 studi pembangunan                     |      3 |      - |     - |      10 |       - |      - |  30.0% |      -  [only excel]
+S3     | studi pembangunan                        |      - |      0 |     - |       - |      10 |      - |      - |   0.0%  [only spordit]
+
+TOTAL matched=56, big_drift(>=3)=44, only_excel=55, only_spordit=58
