@@ -15,6 +15,7 @@ export const dataUnilaMenuConfig = [
     children: [
       { title: "Daftar Mahasiswa", href: "/dashboard/data-unila/mahasiswa" },
       { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
+      { title: "KTW", href: "/dashboard/data-unila/mahasiswa/ktw" },
       { title: "Aktivitas Mahasiswa", href: "/dashboard/data-unila/mahasiswa/aktivitas" },
     ],
   },
