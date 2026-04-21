@@ -126,6 +126,22 @@ return [
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
 
+        // Spordit = dashboard internal PDDIKTI mirror (PostgreSQL, read-only)
+        // Dipakai KelulusanReconcileService untuk recheck angka KTW vs pdut realtime.
+        'spordit' => [
+            'driver' => 'pgsql',
+            'host' => env('SPORDIT_DB_HOST', '192.168.123.39'),
+            'port' => env('SPORDIT_DB_PORT', '5432'),
+            'database' => env('SPORDIT_DB_DATABASE', 'spordit'),
+            'username' => env('SPORDIT_DB_USERNAME', ''),
+            'password' => env('SPORDIT_DB_PASSWORD', ''),
+            'charset' => env('SPORDIT_DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('SPORDIT_DB_SSLMODE', 'prefer'),
+        ],
+
     ],
 
     /*

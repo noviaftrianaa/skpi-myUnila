@@ -21,6 +21,7 @@ use App\Http\Controllers\PenelitianDetailController;
 use App\Http\Controllers\PengabdianDetailController;
 use App\Http\Controllers\PublikasiDetailController;
 use App\Http\Controllers\OpenApi\KelulusanController;
+use App\Http\Controllers\OpenApi\KtwController;
 use App\Http\Controllers\OpenApi\CapaianLulusanController;
 use App\Http\Controllers\OpenApi\BidangIlmuController;
 use App\Http\Controllers\BidangIlmuDetailController;
@@ -194,6 +195,25 @@ Route::prefix('v1')->group(function () {
     // Kelulusan
     Route::prefix('kelulusan')->group(function () {
         Route::get('/statistics', [KelulusanController::class, 'getStatistics']);
+    });
+
+    // KTW (Kelulusan Tepat Waktu) — new endpoints per 2026-04-20
+    // Source of truth: pdut (SQL Server realtime). Reconcile: spordit.
+    Route::prefix('ktw')->group(function () {
+        Route::get('/overview',              [KtwController::class, 'overview']);
+        Route::get('/fakultas',              [KtwController::class, 'fakultas']);
+        Route::get('/prodi',                 [KtwController::class, 'prodiList']);
+        Route::get('/prodi/{idSms}',         [KtwController::class, 'prodiDetail']);
+        Route::get('/prodi/{idSms}/mahasiswa', [KtwController::class, 'prodiMahasiswa']);
+        Route::get('/trend',                 [KtwController::class, 'trend']);
+        Route::get('/status-breakdown',      [KtwController::class, 'statusBreakdown']);
+        Route::get('/gender-breakdown',      [KtwController::class, 'genderBreakdown']);
+        Route::get('/jalur-breakdown',       [KtwController::class, 'jalurBreakdown']);
+        Route::get('/masa-mukim-stats',      [KtwController::class, 'masaMukimStats']);
+        Route::get('/presets',               [KtwController::class, 'presets']);
+        Route::get('/top-prodi',             [KtwController::class, 'topProdi']);
+        Route::post('/refresh',              [KtwController::class, 'refresh']);
+        Route::get('/reconcile',             [KtwController::class, 'reconcile']);
     });
 
     // Capaian Lulusan (Tracer Study)

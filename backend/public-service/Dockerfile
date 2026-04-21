@@ -17,6 +17,8 @@ RUN apk add --no-cache \
     libzip-dev \
     zip \
     unzip \
+    # PostgreSQL client libraries (pdo_pgsql — dipakai untuk reconcile ke spordit)
+    postgresql-dev \
     # SQL Server ODBC dependencies - MUST be installed first
     unixodbc \
     unixodbc-dev \
@@ -26,8 +28,8 @@ RUN apk add --no-cache \
     g++ \
     make
 
-# Install basic PHP extensions (no SQL Server yet)
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+# Install basic PHP extensions + PostgreSQL driver (pdo_pgsql + pgsql)
+RUN docker-php-ext-install pdo_mysql pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Install Microsoft SQL Server ODBC Driver 18 for Alpine
 RUN apk add --no-cache ca-certificates \
