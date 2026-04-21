@@ -37,6 +37,30 @@ class MahasiswaStatisticsRepository
     }
 
     /**
+     * Nama semester dari ref.semester (e.g. "2025/2026 Ganjil")
+     */
+    private function getSemesterName(string $idSmt): ?string
+    {
+        $row = DB::connection('sqlsrv')->selectOne(
+            "SELECT TOP 1 nm_smt FROM ref.semester WHERE id_smt = ?",
+            [$idSmt]
+        );
+        return $row->nm_smt ?? null;
+    }
+
+    /**
+     * Timestamp data terakhir di-sync ke pdut untuk semester tsb
+     */
+    private function getLastUpdate(string $idSmt): ?string
+    {
+        $row = DB::connection('sqlsrv')->selectOne(
+            "SELECT MAX(last_update) AS last_update FROM pdrd.kuliah_mhs WHERE id_smt = ? AND soft_delete = 0",
+            [$idSmt]
+        );
+        return $row->last_update ?? null;
+    }
+
+    /**
      * Get active year from period
      *
      * @param string $period
@@ -550,6 +574,11 @@ class MahasiswaStatisticsRepository
             'total_mahasiswa_lokal' => $totalMahasiswa - $totalAsing,
             'total_mahasiswa_asing' => $totalAsing,
             'periode' => $activePeriod,
+            'periode_nama' => $this->getSemesterName($activePeriod),
+            'last_update' => $this->getLastUpdate($activePeriod),
+            'formula' => "COUNT(DISTINCT id_pd) WHERE id_stat_mhs='A' AND id_smt={$activePeriod} AND sms.stat_prodi='A'",
+            'sumber' => 'pdut (pdrd.kuliah_mhs) — sumber utama realtime',
+            'note' => 'Semester aktif ditentukan dari ref.semester.a_periode_aktif=1. Semester berikutnya akan muncul setelah admin pdut flip flag.',
         ];
     }
 }

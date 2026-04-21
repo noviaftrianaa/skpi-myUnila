@@ -49,6 +49,7 @@ interface SebaranStatistics {
 export default function StatistikMahasiswaAktif() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<MahasiswaStatisticsSummary | null>(null);
+  const [showPeriodInfo, setShowPeriodInfo] = useState(false);
   const [trendData, setTrendData] = useState<MahasiswaTrendYearItem[]>([]);
   const [jenjangData, setJenjangData] = useState<JenjangDistributionItem[]>([]);
   const [statusData, setStatusData] = useState<StatusDistributionItem[]>([]);
@@ -1068,6 +1069,48 @@ export default function StatistikMahasiswaAktif() {
           <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base max-w-2xl mx-auto">
             Tahun Ajaran {summary?.periode ? getTahunAjaran(summary.periode) : ""}
           </p>
+
+          {/* Badge: Periode + Last Update + Info tooltip */}
+          {summary && (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-medium">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
+                Periode: {summary.periode_nama ?? summary.periode}
+              </span>
+
+              {summary.last_update && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 font-medium">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/></svg>
+                  Terakhir diupdate: {new Date(summary.last_update).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowPeriodInfo(v => !v)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 font-medium hover:bg-amber-200 dark:hover:bg-amber-800/60 transition-colors"
+                title="Info sumber data"
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-.293V10a1 1 0 00-1-1H9z" clipRule="evenodd"/></svg>
+                Info sumber
+              </button>
+            </div>
+          )}
+
+          {summary && showPeriodInfo && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 mx-auto max-w-2xl text-left text-xs sm:text-sm bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-2"
+            >
+              <p><strong>Sumber:</strong> {summary.sumber ?? "pdut (pdrd.kuliah_mhs)"}</p>
+              {summary.formula && <p><strong>Formula:</strong> <code className="text-[11px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">{summary.formula}</code></p>}
+              {summary.note && <p className="text-slate-600 dark:text-slate-400 italic">{summary.note}</p>}
+              <p className="text-slate-500 dark:text-slate-400">
+                Semester berjalan berikutnya akan ditampilkan secara otomatis setelah data registrasi pdut lengkap (admin pdut flip <code>ref.semester.a_periode_aktif</code>).
+              </p>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Summary Cards - 2 Cards: Total Seluruh & Total Aktif */}
