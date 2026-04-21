@@ -1,15 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import {
   FiUsers,
   FiUserPlus,
   FiUserCheck,
   FiUserX,
   FiAward,
+  FiRefreshCw,
+  FiMapPin,
+  FiGlobe,
+  FiBookOpen,
+  FiDollarSign,
+  FiActivity,
+  FiPieChart,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { pimpinanMenuConfig } from "../config/menuConfig";
 import {
@@ -18,7 +25,6 @@ import {
   PieChart,
   BarChart,
   DrilldownBarChart,
-  FilterPanel,
   DashboardSkeleton,
   ErrorAlert,
 } from "../components";
@@ -27,6 +33,47 @@ import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { MahasiswaData } from "../types";
 
 const APP_KEY = "dashboard-pimpinan";
+
+// ===== Reusable tailwind UI blocks =====
+
+function SectionCard({
+  title,
+  subtitle,
+  icon,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 ${className}`}>
+      <div className="flex items-start gap-3 border-b border-slate-200 px-5 py-3 dark:border-slate-700">
+        {icon && <div className="mt-0.5 text-slate-500 dark:text-slate-400">{icon}</div>}
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+          {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+        </div>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function EmptyChartPlaceholder({ message = "Data tidak tersedia pada filter ini", height = 260 }: { message?: string; height?: number }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/50 text-center dark:border-slate-700 dark:bg-slate-900/30"
+      style={{ height }}
+    >
+      <FiPieChart className="mb-2 h-8 w-8 text-slate-300 dark:text-slate-600" />
+      <p className="text-xs text-slate-500 dark:text-slate-400">{message}</p>
+    </div>
+  );
+}
 
 export default function DashboardMahasiswaPage() {
   useRequireAuth();
@@ -64,6 +111,26 @@ export default function DashboardMahasiswaPage() {
     setSelectedProdi("");
   };
 
+  const availableProdi = useMemo(
+    () => (selectedFakultas ? getProdiByFakultas(selectedFakultas) : []),
+    [selectedFakultas, getProdiByFakultas]
+  );
+
+  const isFilterDirty =
+    !!selectedFakultas ||
+    !!selectedProdi ||
+    (activeSemesters.length > 0 && [...selectedSemesters].sort().join() !== [...activeSemesters].sort().join());
+
+  // Summary active semester label for header
+  const activeSemesterLabel = useMemo(() => {
+    if (selectedSemesters.size === 0) return "-";
+    const ids = Array.from(selectedSemesters);
+    const first = semester.find(s => String(s.id_smt) === ids[0]);
+    return ids.length === 1
+      ? (first?.nm_smt ?? ids[0])
+      : `${ids.length} semester terpilih`;
+  }, [selectedSemesters, semester]);
+
   return (
     <DashboardLayoutWithDynamicMenu
       appName="Dashboard Pimpinan"
@@ -73,38 +140,137 @@ export default function DashboardMahasiswaPage() {
     >
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <FiUsers className="w-8 h-8 text-blue-600" />
-            Dashboard Mahasiswa
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Data akademik dan kemahasiswaan Universitas Lampung
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-900 dark:text-white">
+              <FiUsers className="h-8 w-8 text-blue-600" />
+              Dashboard Mahasiswa
+            </h1>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Potret mahasiswa aktif Universitas Lampung — demografi, akademik, geografis, warning masa studi.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                <FiActivity className="h-3 w-3" /> Periode: {activeSemesterLabel}
+              </span>
+              {selectedFakultas && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-200">
+                  Fakultas: {fakultas.find(f => f.id_fakultas === selectedFakultas)?.nm_fakultas ?? selectedFakultas.slice(0, 8)}
+                </span>
+              )}
+              {selectedProdi && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2.5 py-1 font-medium text-pink-800 dark:bg-pink-900/40 dark:text-pink-200">
+                  Prodi: {availableProdi.find(p => p.id_sms === selectedProdi)?.nm_prodi ?? selectedProdi.slice(0, 8)}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={refetch}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            <FiRefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </button>
         </div>
 
-        {/* Filter */}
-        <FilterPanel
-          semester={semester}
-          selectedSemesters={selectedSemesters}
-          onSemesterChange={setSelectedSemesters}
-          fakultas={fakultas}
-          selectedFakultas={selectedFakultas}
-          onFakultasChange={handleFakultasChange}
-          prodi={selectedFakultas ? getProdiByFakultas(selectedFakultas) : []}
-          selectedProdi={selectedProdi}
-          onProdiChange={setSelectedProdi}
-          showProdi={true}
-          onReset={handleReset}
-        />
+        {/* Filter — pure tailwind, no HeroUI */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Filter</h2>
+            {isFilterDirty && (
+              <button
+                onClick={handleReset}
+                className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {/* Semester (multi-select via checkbox list) */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                Semester {selectedSemesters.size > 0 && <span className="font-normal text-slate-400">({selectedSemesters.size} dipilih)</span>}
+              </label>
+              <details className="group rounded-lg border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900">
+                <summary className="cursor-pointer list-none px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 flex items-center justify-between">
+                  <span className="truncate">
+                    {selectedSemesters.size === 0
+                      ? "Pilih semester..."
+                      : selectedSemesters.size === 1
+                        ? (semester.find(s => String(s.id_smt) === Array.from(selectedSemesters)[0])?.nm_smt ?? "-")
+                        : `${selectedSemesters.size} semester`}
+                  </span>
+                  <svg className="h-4 w-4 transition-transform group-open:rotate-180" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd"/></svg>
+                </summary>
+                <div className="max-h-60 overflow-y-auto border-t border-slate-200 p-2 dark:border-slate-700">
+                  {semester.length === 0 && <p className="px-2 py-3 text-xs text-slate-400">Memuat...</p>}
+                  {semester.map(s => {
+                    const key = String(s.id_smt);
+                    const checked = selectedSemesters.has(key);
+                    return (
+                      <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={e => {
+                            const next = new Set(selectedSemesters);
+                            if (e.target.checked) next.add(key);
+                            else next.delete(key);
+                            setSelectedSemesters(next);
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-slate-700 dark:text-slate-200">{s.nm_smt}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </details>
+            </div>
+
+            {/* Fakultas */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">Fakultas</label>
+              <select
+                value={selectedFakultas}
+                onChange={e => handleFakultasChange(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              >
+                <option value="">Seluruh Fakultas</option>
+                {fakultas.map(f => (
+                  <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Prodi (cascading) */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                Prodi {!selectedFakultas && <span className="font-normal text-slate-400">(pilih fakultas dulu)</span>}
+              </label>
+              <select
+                value={selectedProdi}
+                onChange={e => setSelectedProdi(e.target.value)}
+                disabled={!selectedFakultas}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:disabled:bg-slate-800"
+              >
+                <option value="">Seluruh Prodi</option>
+                {availableProdi.map(p => (
+                  <option key={p.id_sms} value={p.id_sms}>{p.nm_prodi}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
 
         {loading && <DashboardSkeleton />}
         {error && <ErrorAlert message={error} onRetry={refetch} />}
 
-        {data && (
+        {!loading && !error && data && (
           <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Stats Grid — KPI utama */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
               <StatCard
                 title="Mahasiswa Aktif"
                 value={data.stats.aktif.total}
@@ -134,7 +300,7 @@ export default function DashboardMahasiswaPage() {
                 trend={{ value: data.stats.cuti.trend ?? 0, label: "YoY" }}
               />
               <StatCard
-                title="Drop Out (DO)"
+                title="Drop Out"
                 value={data.stats.do.total}
                 icon={<FiUserX className="w-6 h-6 text-white" />}
                 color="red"
@@ -142,314 +308,131 @@ export default function DashboardMahasiswaPage() {
               />
             </div>
 
-            {/* Row 1: Trends & Sebaran */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Trend Mahasiswa Aktif</h2>
-                    <p className="text-sm text-gray-500">5 tahun terakhir</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <LineChart data={data.trendMahasiswa} height={280} showArea={true} color="#2563eb" />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Trend Mahasiswa Baru</h2>
-                    <p className="text-sm text-gray-500">Penerimaan per tahun</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <LineChart data={data.trendMahasiswaBaru || []} height={280} showArea={true} color="#10b981" />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sebaran per Fakultas</h2>
-                    <p className="text-sm text-gray-500">Klik untuk detail prodi</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <DrilldownBarChart data={data.sebaranFakultas} title="Mahasiswa per Fakultas" height={280} color="#3b82f6" />
-                </CardBody>
-              </Card>
+            {/* ROW — Trend & Sebaran */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <SectionCard title="Trend Mahasiswa Aktif" subtitle="5 tahun terakhir" icon={<FiActivity className="h-4 w-4" />}>
+                {data.trendMahasiswa?.length ? <LineChart data={data.trendMahasiswa} height={260} showArea color="#2563eb" /> : <EmptyChartPlaceholder />}
+              </SectionCard>
+              <SectionCard title="Trend Mahasiswa Baru" subtitle="Penerimaan per tahun" icon={<FiUserPlus className="h-4 w-4" />}>
+                {data.trendMahasiswaBaru?.length ? <LineChart data={data.trendMahasiswaBaru} height={260} showArea color="#10b981" /> : <EmptyChartPlaceholder />}
+              </SectionCard>
+              <SectionCard title="Sebaran Fakultas" subtitle="Klik untuk drilldown prodi" icon={<FiUsers className="h-4 w-4" />}>
+                {data.sebaranFakultas?.length ? <DrilldownBarChart data={data.sebaranFakultas} title="Mahasiswa per Fakultas" height={260} color="#3b82f6" /> : <EmptyChartPlaceholder />}
+              </SectionCard>
             </div>
 
-            {/* Row 2: Demografi & Akademik */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <h2 className="text-base font-semibold">Distribusi Jenjang</h2>
-                </CardHeader>
-                <CardBody>
-                  <PieChart data={data.distribusiJenjang} donut={true} height={250} showLegend={false} />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <h2 className="text-base font-semibold">Jalur Masuk</h2>
-                </CardHeader>
-                <CardBody>
-                  <PieChart data={data.jalurMasuk} donut={true} height={250} showLegend={false} colors={["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"]} />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <h2 className="text-base font-semibold">Sistem Pembiayaan</h2>
-                </CardHeader>
-                <CardBody>
-                  <PieChart data={data.pembiayaan} donut={false} height={250} showLegend={false} colors={["#6366f1", "#14b8a6", "#f97316"]} />
-                </CardBody>
-              </Card>
+            {/* ROW — Demografi & Profil Pendaftaran */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+              <SectionCard title="Distribusi Jenjang" icon={<FiBookOpen className="h-4 w-4" />}>
+                {data.distribusiJenjang?.length ? <PieChart data={data.distribusiJenjang} donut height={250} /> : <EmptyChartPlaceholder height={250} />}
+              </SectionCard>
+              <SectionCard title="Jalur Masuk" icon={<FiUserPlus className="h-4 w-4" />}>
+                {data.jalurMasuk?.length ? <PieChart data={data.jalurMasuk} donut height={250} colors={["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"]} /> : <EmptyChartPlaceholder height={250} />}
+              </SectionCard>
+              <SectionCard title="Sistem Pembiayaan" icon={<FiDollarSign className="h-4 w-4" />}>
+                {data.pembiayaan?.length ? <PieChart data={data.pembiayaan} height={250} colors={["#6366f1", "#14b8a6", "#f97316"]} /> : <EmptyChartPlaceholder height={250} />}
+              </SectionCard>
+              <SectionCard title="Distribusi Gender" icon={<FiUsers className="h-4 w-4" />}>
+                {data.genderDistribusi?.length ? <PieChart data={data.genderDistribusi} donut height={250} colors={["#3b82f6", "#ec4899"]} /> : <EmptyChartPlaceholder height={250} />}
+              </SectionCard>
             </div>
 
-            {/* Gender & Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <h2 className="text-base font-semibold">Distribusi Gender</h2>
-                </CardHeader>
-                <CardBody>
-                  <PieChart data={data.genderDistribusi} donut={true} height={250} colors={["#3b82f6", "#ec4899"]} />
-                </CardBody>
-              </Card>
-
-              {data.statusMahasiswa && data.statusMahasiswa.length > 0 && (
-                <Card className="bg-white dark:bg-gray-800 shadow-md">
-                  <CardHeader>
-                    <div>
-                      <h2 className="text-base font-semibold">Status Mahasiswa</h2>
-                      <p className="text-sm text-gray-500">Berdasarkan data kuliah_mhs semester terpilih</p>
-                    </div>
-                  </CardHeader>
-                  <CardBody>
-                    <BarChart data={data.statusMahasiswa} horizontal={true} height={250} colors={["#10b981"]} />
-                  </CardBody>
-                </Card>
-              )}
+            {/* ROW — Status Mahasiswa & Rasio Dosen */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <SectionCard
+                title="Status Mahasiswa Semester Terpilih"
+                subtitle="Berdasarkan kuliah_mhs.id_stat_mhs (A/N/U/C/M)"
+                icon={<FiUserCheck className="h-4 w-4" />}
+              >
+                {data.statusMahasiswa?.length ? (
+                  <BarChart data={data.statusMahasiswa} horizontal height={280} colors={["#10b981", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444"]} />
+                ) : (
+                  <EmptyChartPlaceholder message="Tidak ada data status pada semester ini" height={280} />
+                )}
+              </SectionCard>
+              <SectionCard
+                title="Rasio Dosen : Mahasiswa"
+                subtitle="Dosen aktif dibanding mahasiswa aktif per fakultas"
+                icon={<FiActivity className="h-4 w-4" />}
+              >
+                {data.rasioDosenMahasiswa?.length ? (
+                  <BarChart data={data.rasioDosenMahasiswa} horizontal height={280} colors={["#6366f1"]} xAxisLabel="Rasio (mhs : dosen)" />
+                ) : (
+                  <EmptyChartPlaceholder message="Data rasio belum tersedia" height={280} />
+                )}
+              </SectionCard>
             </div>
 
-            {/* Row 3: Distribusi IPK */}
-            <Card className="bg-white dark:bg-gray-800 shadow-md">
-              <CardHeader>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Distribusi IPK Mahasiswa
-                  </h2>
-                  <p className="text-sm text-gray-500">Sebaran Indeks Prestasi Kumulatif</p>
+            {/* ROW — Akademik */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <SectionCard title="Distribusi IPK" subtitle="Sebaran IPK seluruh mahasiswa" icon={<FiBookOpen className="h-4 w-4" />}>
+                {data.distribusiIPK?.length ? <BarChart data={data.distribusiIPK} height={300} colors={["#10b981", "#3b82f6", "#f59e0b", "#f97316", "#ef4444"]} /> : <EmptyChartPlaceholder height={300} />}
+              </SectionCard>
+              <SectionCard title="Rata-rata IPK per Fakultas" icon={<FiAward className="h-4 w-4" />}>
+                {data.ipkPerFakultas?.length ? <BarChart data={data.ipkPerFakultas} horizontal height={300} colors={["#8b5cf6"]} xAxisLabel="IPK" /> : <EmptyChartPlaceholder height={300} />}
+              </SectionCard>
+            </div>
+
+            {/* ROW — Studi & Beasiswa */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <SectionCard title="Masa Studi Lulusan" subtitle="Distribusi lama studi" icon={<FiActivity className="h-4 w-4" />}>
+                {data.masaStudi?.length ? <PieChart data={data.masaStudi} donut height={260} colors={["#10b981", "#3b82f6", "#ef4444"]} /> : <EmptyChartPlaceholder height={260} />}
+              </SectionCard>
+              <SectionCard title="Status Penerima Beasiswa" icon={<FiAward className="h-4 w-4" />}>
+                {data.beasiswa?.length ? <BarChart data={data.beasiswa} horizontal height={260} colors={["#f59e0b"]} xAxisLabel="Penerima" /> : <EmptyChartPlaceholder height={260} />}
+              </SectionCard>
+              <SectionCard title="Mahasiswa Tugas Akhir" subtitle="Sedang skripsi/tesis" icon={<FiBookOpen className="h-4 w-4" />}>
+                {data.tugasAkhir?.length ? <BarChart data={data.tugasAkhir} height={260} colors={["#ec4899"]} xAxisLabel="Mahasiswa" /> : <EmptyChartPlaceholder height={260} />}
+              </SectionCard>
+            </div>
+
+            {/* ROW — Geografis */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <SectionCard title="Top 5 Asal Provinsi" subtitle="Domisili mahasiswa" icon={<FiMapPin className="h-4 w-4" />}>
+                {data.asalProvinsi?.length ? <BarChart data={data.asalProvinsi} horizontal height={280} colors={["#3b82f6"]} /> : <EmptyChartPlaceholder height={280} />}
+              </SectionCard>
+              <SectionCard title="Mahasiswa Asing" subtitle="Sebaran negara asal" icon={<FiGlobe className="h-4 w-4" />}>
+                {data.mahasiswaAsing?.length ? <BarChart data={data.mahasiswaAsing} height={280} colors={["#ec4899"]} /> : <EmptyChartPlaceholder message="Tidak ada mahasiswa asing pada filter ini" height={280} />}
+              </SectionCard>
+            </div>
+
+            {/* ROW — Early Warning */}
+            {data.warningMasaStudi?.length ? (
+              <div className="rounded-xl border border-red-200 bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 shadow-sm dark:border-red-900 dark:from-red-900/20 dark:via-orange-900/20 dark:to-yellow-900/20">
+                <div className="flex items-start gap-3 border-b border-red-200 px-5 py-3 dark:border-red-900">
+                  <div className="rounded-lg bg-gradient-to-br from-red-500 to-orange-500 p-2">
+                    <FiAlertTriangle className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold text-red-900 dark:text-red-100">Early Warning — Masa Studi Melebihi Batas</h3>
+                    <p className="text-xs text-red-700 dark:text-red-200">Mahasiswa melampaui masa normatif PDDIKTI — perlu intervensi prodi</p>
+                  </div>
                 </div>
-              </CardHeader>
-              <Divider />
-              <CardBody>
-                <BarChart
-                  data={data.distribusiIPK}
-                  height={300}
-                  colors={["#10b981", "#3b82f6", "#f59e0b", "#f97316", "#ef4444"]}
-                />
-              </CardBody>
-            </Card>
-
-            {/* Row 4: IPK & Masa Studi */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Rata-rata IPK Mahasiswa
-                    </h2>
-                    <p className="text-sm text-gray-500">Rata-rata IPK per Fakultas</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.ipkPerFakultas}
-                    height={300}
-                    colors={["#8b5cf6"]}
-                    xAxisLabel="IPK"
-                  />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Masa Studi Lulusan
-                    </h2>
-                    <p className="text-sm text-gray-500">Distribusi lama masa studi</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <PieChart
-                    data={data.masaStudi}
-                    donut={true}
-                    height={300}
-                    colors={["#10b981", "#3b82f6", "#ef4444"]}
-                  />
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Rasio Dosen : Mahasiswa */}
-            {data.rasioDosenMahasiswa && data.rasioDosenMahasiswa.length > 0 && (
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Rasio Dosen : Mahasiswa
-                    </h2>
-                    <p className="text-sm text-gray-500">Perbandingan jumlah dosen aktif terhadap mahasiswa per fakultas</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart data={data.rasioDosenMahasiswa} horizontal={true} height={350} colors={["#6366f1"]} xAxisLabel="Rasio" />
-                </CardBody>
-              </Card>
-            )}
-
-            {/* Row 5: Beasiswa & Tugas Akhir */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Status Penerima Beasiswa
-                    </h2>
-                    <p className="text-sm text-gray-500">Jumlah penerima beasiswa aktif</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.beasiswa}
-                    horizontal={true}
-                    height={300}
-                    colors={["#f59e0b"]}
-                    xAxisLabel="Jumlah Penerima"
-                  />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Mahasiswa Tugas Akhir
-                    </h2>
-                    <p className="text-sm text-gray-500">Mahasiswa sedang skripsi/tesis</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.tugasAkhir}
-                    height={300}
-                    colors={["#ec4899"]}
-                    xAxisLabel="Mahasiswa"
-                  />
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Row 6: Geografis */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Top 5 Asal Provinsi
-                    </h2>
-                    <p className="text-sm text-gray-500">Domisili asal mahasiswa</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.asalProvinsi}
-                    height={300}
-                    horizontal={true}
-                    colors={["#3b82f6"]}
-                  />
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Mahasiswa Asing
-                    </h2>
-                    <p className="text-sm text-gray-500">Sebaran negara asal mahasiswa internasional</p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.mahasiswaAsing}
-                    height={300}
-                    colors={["#ec4899"]}
-                  />
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Row 7: Warning Status */}
-            {data.warningMasaStudi && data.warningMasaStudi.length > 0 && (
-              <Card className="bg-white dark:bg-gray-800 shadow-md border-l-4 border-l-red-500">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg">
-                      <FiUserX className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Early Warning: Masa Studi Maksimal
-                      </h2>
-                      <p className="text-sm text-gray-500">Mahasiswa yang telah melebihi batas masa studi normal</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     {data.warningMasaStudi.map((item, idx) => {
                       const total = data.warningMasaStudi.reduce((sum, i) => sum + i.value, 0);
                       const pct = total > 0 ? Math.round((item.value / total) * 100) : 0;
-                      const colors = ['from-red-500 to-red-600', 'from-orange-500 to-orange-600', 'from-yellow-500 to-yellow-600'];
-                      const bgColors = ['bg-red-50 dark:bg-red-900/20', 'bg-orange-50 dark:bg-orange-900/20', 'bg-yellow-50 dark:bg-yellow-900/20'];
-                      const textColors = ['text-red-700 dark:text-red-300', 'text-orange-700 dark:text-orange-300', 'text-yellow-700 dark:text-yellow-300'];
-
+                      const gradient = ["from-red-500 to-red-600", "from-orange-500 to-orange-600", "from-yellow-500 to-yellow-600"][idx % 3];
+                      const bg = ["bg-red-50 dark:bg-red-900/30", "bg-orange-50 dark:bg-orange-900/30", "bg-yellow-50 dark:bg-yellow-900/30"][idx % 3];
+                      const text = ["text-red-700 dark:text-red-200", "text-orange-700 dark:text-orange-200", "text-yellow-700 dark:text-yellow-200"][idx % 3];
                       return (
-                        <div key={idx} className={`p-4 rounded-xl ${bgColors[idx % 3]} border border-gray-200 dark:border-gray-700`}>
-                          <div className="flex justify-between items-start mb-3">
-                            <span className={`text-sm font-semibold ${textColors[idx % 3]}`}>{item.name}</span>
-                            <span className={`text-2xl font-bold ${textColors[idx % 3]}`}>{item.value.toLocaleString('id-ID')}</span>
+                        <div key={idx} className={`rounded-xl border border-slate-200 p-4 dark:border-slate-700 ${bg}`}>
+                          <div className="mb-3 flex items-start justify-between">
+                            <span className={`text-sm font-semibold ${text}`}>{item.name}</span>
+                            <span className={`text-2xl font-bold ${text}`}>{item.value.toLocaleString("id-ID")}</span>
                           </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div className={`bg-gradient-to-r ${colors[idx % 3]} h-2 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }}></div>
+                          <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+                            <div className={`h-2 rounded-full bg-gradient-to-r ${gradient} transition-all duration-500`} style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="text-xs text-gray-500 mt-1 block">{pct}% dari total warning</span>
+                          <span className="mt-1 block text-xs text-slate-500">{pct}% dari total warning</span>
                         </div>
                       );
                     })}
                   </div>
-                </CardBody>
-              </Card>
-            )}
+                </div>
+              </div>
+            ) : null}
           </>
         )}
       </div>

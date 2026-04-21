@@ -11,23 +11,30 @@ class MahasiswaRepository extends BaseRepository
     // =========================================
 
     /**
-     * Count mahasiswa aktif (masih terdaftar, belum keluar)
+     * Count mahasiswa aktif — konsisten dengan infografis public:
+     * mahasiswa yang tercatat di kuliah_mhs semester terpilih dengan id_stat_mhs='A'.
+     * Definisi ini match infografis /mahasiswa-statistics + SIMBAK.
      */
     public function countAktif(array $semesters, ?string $fakultas = null): int
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        if (empty($semesters)) {
+            return 0;
+        }
+
+        $bindings = [self::UNILA_ID_SP];
+        $inClause = $this->buildInClause($semesters, $bindings);
         $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
 
         $sql = "
-            SELECT COUNT(rp.id_reg_pd)
-            FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
+            SELECT COUNT(DISTINCT pd.id_pd)
+            FROM pdrd.kuliah_mhs kmh
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = kmh.id_reg_pd AND rp.soft_delete = 0
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
             WHERE rp.id_sp = ?
-              AND rp.soft_delete = 0
-              AND s.soft_delete = 0
-              AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND kmh.soft_delete = 0
+              AND kmh.id_stat_mhs = 'A'
+              AND CAST(kmh.id_smt AS VARCHAR(10)) IN {$inClause}
               {$fakFilter}
         ";
 
@@ -83,25 +90,29 @@ class MahasiswaRepository extends BaseRepository
     }
 
     /**
-     * Count mahasiswa cuti
-     * Cuti dicek dari id_jns_keluar = 3 atau status non-aktif sementara
+     * Count mahasiswa cuti — dari kuliah_mhs.id_stat_mhs='C' pada semester terpilih.
+     * Konsisten dengan public-service.
      */
     public function countCuti(array $semesters, ?string $fakultas = null): int
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        if (empty($semesters)) {
+            return 0;
+        }
+
+        $bindings = [self::UNILA_ID_SP];
+        $inClause = $this->buildInClause($semesters, $bindings);
         $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
 
         $sql = "
-            SELECT COUNT(rp.id_reg_pd)
-            FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
-            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+            SELECT COUNT(DISTINCT pd.id_pd)
+            FROM pdrd.kuliah_mhs kmh
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = kmh.id_reg_pd AND rp.soft_delete = 0
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
             WHERE rp.id_sp = ?
-              AND rp.soft_delete = 0
-              AND s.soft_delete = 0
-              AND pd.id_stat_mhs = 'C'
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND kmh.soft_delete = 0
+              AND kmh.id_stat_mhs = 'C'
+              AND CAST(kmh.id_smt AS VARCHAR(10)) IN {$inClause}
               {$fakFilter}
         ";
 
