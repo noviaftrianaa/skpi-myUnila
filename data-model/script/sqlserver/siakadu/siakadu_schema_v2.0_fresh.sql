@@ -1200,10 +1200,12 @@ GO
 
 IF OBJECT_ID('siakadu.mapping_unit','U') IS NULL
 CREATE TABLE siakadu.mapping_unit (
-    kode_siakad                 varchar(20)      NOT NULL,
-    id_sms                      uniqueidentifier NOT NULL,
-    nm_unit                     nvarchar(200)    NULL,
+    kode_siakad                 varchar(20)      NOT NULL,    -- kode prodi di SIAKADU
+    id_sms                      uniqueidentifier NOT NULL,    -- UUID prodi di pdrd.sms (PDDIKTI)
+    nm_unit                     varchar(200)     NULL,        -- nama prodi (denormalized)
+    jenjang                     varchar(10)      NULL,        -- akreditasi prodi (A/B/C/baik sekali/unggul)
     create_date                 datetime         NOT NULL DEFAULT GETDATE(),
+    last_update                 datetime         NULL,
     CONSTRAINT pk_mapping_unit PRIMARY KEY (kode_siakad)
 );
 GO

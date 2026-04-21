@@ -79,5 +79,42 @@ ORDER BY ORDINAL_POSITION;
 GO
 
 PRINT ''
-PRINT 'DONE. Sekarang bisa POST /siakadu/referensi/unit/sync dari aplikasi.'
+PRINT '=== FIX siakadu.mapping_unit — add jenjang + last_update columns ==='
+GO
+
+-- mapping_unit: tambah kolom jenjang (akreditasi) + last_update
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('siakadu.mapping_unit') AND name = 'jenjang')
+BEGIN
+    ALTER TABLE siakadu.mapping_unit ADD jenjang varchar(10) NULL;
+    PRINT '  Added: mapping_unit.jenjang';
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('siakadu.mapping_unit') AND name = 'last_update')
+BEGIN
+    ALTER TABLE siakadu.mapping_unit ADD last_update datetime NULL;
+    PRINT '  Added: mapping_unit.last_update';
+END
+GO
+
+-- Verify
+PRINT ''
+PRINT '=== siakadu.mapping_unit columns ==='
+SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'siakadu' AND TABLE_NAME = 'mapping_unit'
+ORDER BY ORDINAL_POSITION;
+GO
+
+PRINT ''
+PRINT 'DONE. Sekarang bisa export mapping_unit dari staging → pdut pakai script di bawah.'
+PRINT ''
+PRINT 'Export manual dari staging (jalankan di SQL Server):'
+PRINT '  1. Di pdut_staging: bcp siakadu.mapping_unit out C:\temp\mapping_unit.dat -c -T -S 192.168.123.119'
+PRINT '  2. Di pdut (production): bcp siakadu.mapping_unit in C:\temp\mapping_unit.dat -c -T -S 192.168.123.119'
+PRINT ''
+PRINT 'Atau INSERT SELECT antar-database:'
+PRINT '  INSERT INTO pdut.siakadu.mapping_unit (kode_siakad, id_sms, nm_unit, jenjang, create_date, last_update)'
+PRINT '  SELECT kode_siakad, id_sms, nm_unit, jenjang, create_date, last_update'
+PRINT '  FROM pdut_staging.siakadu.mapping_unit;'
 GO
