@@ -16,7 +16,8 @@
       "children": [
         {"nm_menu": "Daftar Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa", "urutan": 1},
         {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "urutan": 2},
-        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 3}
+        {"nm_menu": "KTW", "nm_file": "/dashboard/data-unila/mahasiswa/ktw", "urutan": 3},
+        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 4}
       ]
     },
     {
