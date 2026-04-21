@@ -32,18 +32,96 @@
           ============================================
       run_once: false
 
-    - name: Pull latest code from git
-      shell: git pull origin {{ branch }}
+    # =========================================================================
+    # Git sync — handles force-push scenario + auto-backup untuk no-code-loss
+    # =========================================================================
+    # Strategi:
+    # 1. Fetch origin
+    # 2. Buat branch backup dari HEAD saat ini (kalau HEAD != origin/{{ branch }})
+    # 3. Stash uncommitted changes (kalau ada)
+    # 4. Hard reset ke origin/{{ branch }} — pickup remote state (termasuk force-push)
+    # 5. Report backup branch name + stash ref (bisa di-cherry-pick manual kalau perlu)
+    #
+    # Result: guaranteed no-code-loss — semua local state disimpan di branch backup
+    # + reflog. User bisa SSH ke VM + cherry-pick atau checkout backup branch kapan saja.
+    - name: Fetch origin
+      shell: git fetch origin {{ branch }} --prune
       args:
         chdir: "{{ app_dir }}"
       become_user: "{{ ansible_user }}"
-      register: git_pull_result
-      changed_when: "'Already up to date' not in git_pull_result.stdout"
+      changed_when: false
 
-    - name: Display git pull result
+    - name: Check if HEAD matches origin/{{ branch }}
+      shell: |
+        local=$(git rev-parse HEAD)
+        remote=$(git rev-parse origin/{{ branch }})
+        if [ "$local" = "$remote" ]; then
+          echo "IN_SYNC"
+        else
+          echo "DIVERGED"
+        fi
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_sync_status
+      changed_when: false
+
+    - name: Count uncommitted changes
+      shell: git status --porcelain | wc -l
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_uncommitted
+      changed_when: false
+
+    - name: Auto-backup HEAD to branch (before reset) — only if diverged
+      shell: |
+        BACKUP_NAME="auto-backup-{{ inventory_hostname }}-{{ ansible_date_time.iso8601_basic_short }}"
+        git branch "$BACKUP_NAME" HEAD
+        echo "$BACKUP_NAME"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_backup_branch
+      when: git_sync_status.stdout == "DIVERGED"
+
+    - name: Auto-stash uncommitted changes — only if any
+      shell: git stash push -u -m "auto-stash-{{ inventory_hostname }}-{{ ansible_date_time.iso8601_basic_short }}"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_stash_result
+      when: (git_uncommitted.stdout | int) > 0
+      changed_when: true
+
+    - name: Hard reset to origin/{{ branch }}
+      shell: git reset --hard origin/{{ branch }}
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_reset_result
+      when: git_sync_status.stdout == "DIVERGED"
+
+    - name: Display current HEAD
+      shell: git log --oneline -3
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: "{{ ansible_user }}"
+      register: git_log_after
+      changed_when: false
+
+    - name: Show git state after sync
       debug:
-        msg: "{{ git_pull_result.stdout_lines }}"
-      when: git_pull_result.stdout_lines is defined
+        msg: |
+          ============================================
+          VM: {{ inventory_hostname }}
+          Sync status sebelum: {{ git_sync_status.stdout }}
+          {% if git_sync_status.stdout == "DIVERGED" %}Backup branch: {{ git_backup_branch.stdout }}
+          {% endif %}{% if (git_uncommitted.stdout | int) > 0 %}Uncommitted di-stash (lihat git stash list){% endif %}
+
+          HEAD sekarang:
+          {{ git_log_after.stdout_lines | join('\n') }}
+          ============================================
 
 # ============================================
 # VM1 - Frontend & Kong Gateway
