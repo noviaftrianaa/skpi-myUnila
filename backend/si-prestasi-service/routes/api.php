@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LookupController;
+use App\Http\Controllers\Api\PrestasiMandiriController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,11 +45,17 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::get('fakultas',           [LookupController::class, 'listFakultas']);
     });
 
-    // Placeholder untuk Phase 1 batch 3 — CRUD + sync
-    // Route::prefix('v1')->group(function () {
-    //     Route::apiResource('prestasi-mandiri', PrestasiMandiriController::class);
-    //     Route::apiResource('sertifikasi',       SertifikasiController::class);
-    //     Route::apiResource('rekognisi',         RekognisiController::class);
-    //     ...
-    // });
+    Route::prefix('v1')->group(function () {
+        // Prestasi Mandiri — CRUD + workflow transition
+        Route::get('prestasi-mandiri',              [PrestasiMandiriController::class, 'index']);
+        Route::get('prestasi-mandiri/{id}',         [PrestasiMandiriController::class, 'show']);
+        Route::post('prestasi-mandiri',             [PrestasiMandiriController::class, 'store']);
+        Route::put('prestasi-mandiri/{id}',         [PrestasiMandiriController::class, 'update']);
+        Route::delete('prestasi-mandiri/{id}',      [PrestasiMandiriController::class, 'destroy']);
+        Route::post('prestasi-mandiri/{id}/transition', [PrestasiMandiriController::class, 'transition']);
+
+        // Phase 1 batch 3 berikutnya — Sertifikasi, Rekognisi, Master Data, Files, Sync:
+        //   Route::apiResource('sertifikasi', SertifikasiController::class);
+        //   Route::apiResource('rekognisi',   RekognisiController::class);
+    });
 });
