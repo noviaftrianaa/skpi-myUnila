@@ -1043,7 +1043,7 @@ IF OBJECT_ID('siakadu.spp_mhs','U') IS NULL
 CREATE TABLE siakadu.spp_mhs (
     id_spp_mhs                  uniqueidentifier NOT NULL,
     id_kelas_ukt                uniqueidentifier NULL,
-    id_smt                      nvarchar(10)     NOT NULL,
+    id_smt                      char(5)          NOT NULL,
     id_daftar_ukt               uniqueidentifier NULL,
     id_reg_pd                   uniqueidentifier NOT NULL,
     nim                         varchar(24)      NULL,       -- v2: bridging ke siakadu.mahasiswa
