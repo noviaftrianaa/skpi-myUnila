@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\PrestasiMandiriController;
 use App\Http\Controllers\Api\SertifikasiController;
 use App\Http\Controllers\Api\RekognisiController;
 use App\Http\Controllers\Api\FileUploadController;
+use App\Http\Controllers\Api\MasterDataController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,5 +77,16 @@ Route::middleware(['jwt.auth'])->group(function () {
         // File upload (bukti prestasi — sertifikat/foto_upp/undangan/surat_tugas)
         Route::post('files/upload',   [FileUploadController::class, 'upload']);
         Route::delete('files',        [FileUploadController::class, 'delete']);
+
+        // Master Data — referensi SIMKATMAWA (read-only)
+        Route::prefix('master-data')->group(function () {
+            Route::get('/',                    [MasterDataController::class, 'all']);
+            Route::get('level-prestasi',       [MasterDataController::class, 'levels']);
+            Route::get('kategori-prestasi',    [MasterDataController::class, 'kategori']);
+            Route::get('peringkat',            [MasterDataController::class, 'peringkat']);
+            Route::get('kelompok-prestasi',    [MasterDataController::class, 'kelompok']);
+            Route::get('bentuk-pelaksanaan',   [MasterDataController::class, 'bentuk']);
+            Route::get('jenis-rekognisi',      [MasterDataController::class, 'jenisRekognisi']);
+        });
     });
 });
