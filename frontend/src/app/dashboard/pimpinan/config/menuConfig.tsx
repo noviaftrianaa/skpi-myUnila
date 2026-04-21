@@ -16,6 +16,7 @@ import {
   FiTarget,
   FiMap,
   FiStar,
+  FiClock,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -63,6 +64,12 @@ export const pimpinanMenuConfig: MenuItem[] = [
     title: "Lulusan",
     icon: <FiAward className="w-5 h-5" />,
     href: "/dashboard/pimpinan/lulusan",
+    roles: defaultRoles,
+  },
+  {
+    title: "KTW",
+    icon: <FiClock className="w-5 h-5" />,
+    href: "/dashboard/pimpinan/ktw",
     roles: defaultRoles,
   },
   {
