@@ -433,6 +433,153 @@ class KtwRepository
     }
 
     /**
+     * Flat list mahasiswa angkatan lintas semua prodi, paginated, untuk raw-data export.
+     * Filter fleksibel: id_fakultas, id_prodi, status_keluar, search by NIM/nama.
+     * Field lengkap untuk audit KTW — termasuk jalur daftar, gender, IPK, masa mukim, flag KTW.
+     */
+    public function getMahasiswaFlat(
+        int $cohortYear,
+        string $jenjang = 'S1',
+        ?string $cutoffDate = null,
+        ?string $idFakultas = null,
+        ?string $idProdi = null,
+        ?string $statusKeluar = null,
+        ?string $search = null,
+        int $page = 1,
+        int $limit = 50
+    ): array {
+        $idJenj = array_search($jenjang, self::JENJANG_MAP, true);
+        if ($idJenj === false) return ['data' => [], 'total' => 0];
+
+        $normatif = self::MASA_NORMATIF[$jenjang] ?? 4.0;
+        $tolerant = $normatif + self::TOLERANCE_YEARS;
+        $cutoff = $this->normalizeCutoff($cutoffDate);
+        $offset = max(0, ($page - 1) * $limit);
+
+        $where = "reg.soft_delete = 0
+            AND CAST(reg.id_sp AS VARCHAR(50)) = ?
+            AND reg.id_jns_daftar = ?
+            AND YEAR(reg.tgl_masuk_sp) = ? AND MONTH(reg.tgl_masuk_sp) >= 7
+            AND sms.id_jenj_didik = ?
+            AND sms.soft_delete = 0";
+
+        $whereBindings = [$this->unilaIdSp(), self::JNS_DAFTAR_MABA, $cohortYear, $idJenj];
+
+        if ($idFakultas) {
+            $where .= " AND CAST(sms.id_fak_unila AS VARCHAR(50)) = ?";
+            $whereBindings[] = $idFakultas;
+        }
+        if ($idProdi) {
+            $where .= " AND CAST(reg.id_sms AS VARCHAR(50)) = ?";
+            $whereBindings[] = $idProdi;
+        }
+        if ($statusKeluar) {
+            if ($statusKeluar === 'aktif') {
+                $where .= " AND reg.id_jns_keluar IS NULL";
+            } else {
+                $where .= " AND reg.id_jns_keluar = ?";
+                $whereBindings[] = $statusKeluar;
+            }
+        }
+        if ($search) {
+            $where .= " AND (reg.nipd LIKE ? OR pd.nm_pd LIKE ?)";
+            $whereBindings[] = "%{$search}%";
+            $whereBindings[] = "%{$search}%";
+        }
+
+        try {
+            $totalRow = DB::connection('sqlsrv')->selectOne("
+                SELECT COUNT(*) AS total
+                FROM pdrd.reg_pd reg
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = reg.id_pd
+                INNER JOIN pdrd.sms sms ON sms.id_sms = reg.id_sms
+                WHERE {$where}
+            ", $whereBindings);
+            $total = (int) ($totalRow->total ?? 0);
+
+            $dataBindings = array_merge(
+                [$cutoff, $normatif, $cutoff, $tolerant], // for CASE expressions
+                $whereBindings,
+                [$offset, $limit]
+            );
+
+            $rows = DB::connection('sqlsrv')->select("
+                SELECT
+                    reg.nipd AS nim,
+                    pd.nm_pd AS nama,
+                    pd.jk AS jenis_kelamin,
+                    YEAR(reg.tgl_masuk_sp) AS angkatan,
+                    CAST(reg.id_sms AS VARCHAR(50)) AS id_prodi,
+                    sms.nm_lemb AS nm_prodi,
+                    sms.kode_prodi AS kode_dikti,
+                    CAST(sms.id_fak_unila AS VARCHAR(50)) AS id_fakultas,
+                    ISNULL(uo.nm_lemb, '-') AS nm_fakultas,
+                    ISNULL(jenjang.nm_jenj_didik, '-') AS nm_jenjang,
+                    reg.id_jalur_daftar,
+                    ISNULL(jd.nm_jalur_daftar, '-') AS nm_jalur_daftar,
+                    reg.tgl_masuk_sp,
+                    reg.tgl_keluar,
+                    reg.ipk,
+                    reg.id_jns_keluar,
+                    CASE reg.id_jns_keluar
+                        WHEN '1' THEN 'Lulus'
+                        WHEN '2' THEN 'Mutasi'
+                        WHEN '3' THEN 'Dikeluarkan'
+                        WHEN '4' THEN 'Mengundurkan Diri'
+                        WHEN '5' THEN 'Putus Studi'
+                        WHEN '6' THEN 'Wafat'
+                        WHEN '7' THEN 'Hilang'
+                        ELSE 'Aktif'
+                    END AS status_keluar,
+                    CASE WHEN reg.tgl_keluar IS NULL THEN NULL
+                         ELSE ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar) / 365.25, 2)
+                    END AS masa_mukim_tahun,
+                    CASE
+                        WHEN reg.id_jns_keluar = '1'
+                         AND reg.tgl_keluar IS NOT NULL AND reg.tgl_keluar <= ?
+                         AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar) / 365.25, 2) <= ?
+                        THEN 1 ELSE 0
+                    END AS is_ktw_strict,
+                    CASE
+                        WHEN reg.id_jns_keluar = '1'
+                         AND reg.tgl_keluar IS NOT NULL AND reg.tgl_keluar <= ?
+                         AND ROUND(DATEDIFF(DAY, reg.tgl_masuk_sp, reg.tgl_keluar) / 365.25, 2) <= ?
+                        THEN 1 ELSE 0
+                    END AS is_ktw_tolerant
+                FROM pdrd.reg_pd reg
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = reg.id_pd
+                INNER JOIN pdrd.sms sms ON sms.id_sms = reg.id_sms
+                LEFT JOIN ref.jenjang_pendidikan jenjang ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                LEFT JOIN man_akses.unit_organisasi uo ON CAST(uo.id_organisasi AS VARCHAR(50)) = CAST(sms.id_fak_unila AS VARCHAR(50))
+                LEFT JOIN ref.jalur_daftar jd ON jd.id_jalur_daftar = reg.id_jalur_daftar
+                WHERE {$where}
+                ORDER BY sms.nm_lemb, reg.nipd
+                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+            ", $dataBindings);
+
+            $mapped = array_map(function ($r) {
+                $a = (array) $r;
+                $a['is_ktw_strict'] = (bool) $a['is_ktw_strict'];
+                $a['is_ktw_tolerant'] = (bool) $a['is_ktw_tolerant'];
+                $a['ipk'] = $a['ipk'] !== null ? (float) $a['ipk'] : null;
+                $a['masa_mukim_tahun'] = $a['masa_mukim_tahun'] !== null ? (float) $a['masa_mukim_tahun'] : null;
+                return $a;
+            }, $rows);
+
+            return [
+                'data' => $mapped,
+                'total' => $total,
+                'masa_normatif_tahun' => $normatif,
+                'tolerance_tahun' => self::TOLERANCE_YEARS,
+                'jenjang' => $jenjang,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('KtwRepository.getMahasiswaFlat: ' . $e->getMessage());
+            return ['data' => [], 'total' => 0];
+        }
+    }
+
+    /**
      * Dynamic cutoff presets dari ref.semester pdut.
      * Return list tanggal cut-off relevan (akhir semester akademik, awal semester baru, wisuda tipikal).
      */

@@ -129,6 +129,27 @@ class KtwController extends Controller
         ));
     }
 
+    /**
+     * GET /ktw/mahasiswa — flat list lintas semua prodi untuk raw-data export.
+     * Filter: cohort, jenjang, cutoff, id_fakultas, id_prodi, status_keluar, search, page, per_page.
+     */
+    public function mahasiswaFlat(Request $request): JsonResponse
+    {
+        $v = $request->validate([
+            'cohort' => 'required|integer|min:2000|max:2100',
+            'jenjang' => 'nullable|in:D3,D4,S1,S2,S3',
+            'cutoff' => 'nullable|date_format:Y-m-d',
+            'id_fakultas' => 'nullable|string|max:50',
+            'id_prodi' => 'nullable|string|max:50',
+            'status_keluar' => 'nullable|string|max:10',
+            'search' => 'nullable|string|max:100',
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:2000',
+        ]);
+
+        return response()->json($this->service->getMahasiswaFlat($v));
+    }
+
     /** GET /ktw/jalur-breakdown?cohort=2021&jenjang=S1&cutoff=... */
     public function jalurBreakdown(Request $request): JsonResponse
     {

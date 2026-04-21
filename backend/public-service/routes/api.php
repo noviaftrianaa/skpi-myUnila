@@ -205,6 +205,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/prodi',                 [KtwController::class, 'prodiList']);
         Route::get('/prodi/{idSms}',         [KtwController::class, 'prodiDetail']);
         Route::get('/prodi/{idSms}/mahasiswa', [KtwController::class, 'prodiMahasiswa']);
+        Route::get('/mahasiswa',              [KtwController::class, 'mahasiswaFlat']);
         Route::get('/trend',                 [KtwController::class, 'trend']);
         Route::get('/status-breakdown',      [KtwController::class, 'statusBreakdown']);
         Route::get('/gender-breakdown',      [KtwController::class, 'genderBreakdown']);

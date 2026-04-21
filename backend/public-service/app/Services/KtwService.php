@@ -250,6 +250,48 @@ class KtwService
     }
 
     /**
+     * Flat mahasiswa list lintas semua prodi untuk raw-data export.
+     * Filter fleksibel: fakultas/prodi/status/search. Max 2000 rows per halaman untuk export all.
+     */
+    public function getMahasiswaFlat(array $params): array
+    {
+        $cohortYear = (int) ($params['cohort'] ?? (int) date('Y') - 5);
+        $jenjang = $params['jenjang'] ?? 'S1';
+        $cutoff = $params['cutoff'] ?? null;
+        $idFakultas = $params['id_fakultas'] ?? null;
+        $idProdi = $params['id_prodi'] ?? null;
+        $statusKeluar = $params['status_keluar'] ?? null;
+        $search = $params['search'] ?? null;
+        $page = max(1, (int) ($params['page'] ?? 1));
+        $limit = min(2000, max(1, (int) ($params['per_page'] ?? 50)));
+
+        $result = $this->pdut->getMahasiswaFlat(
+            $cohortYear, $jenjang, $cutoff, $idFakultas, $idProdi, $statusKeluar, $search, $page, $limit
+        );
+
+        return [
+            'scope' => 'mahasiswa_flat_export',
+            'cohort_year' => $cohortYear,
+            'jenjang' => $jenjang,
+            'filters' => [
+                'id_fakultas' => $idFakultas,
+                'id_prodi' => $idProdi,
+                'status_keluar' => $statusKeluar,
+                'search' => $search,
+                'cutoff' => $cutoff,
+            ],
+            'data' => $result['data'],
+            'pagination' => [
+                'total' => $result['total'],
+                'per_page' => $limit,
+                'current_page' => $page,
+                'last_page' => max(1, (int) ceil(($result['total'] ?? 0) / max($limit, 1))),
+            ],
+            'meta' => $this->baseMeta($jenjang),
+        ];
+    }
+
+    /**
      * Breakdown status mahasiswa (Lulus/Aktif/DO/PS/Undur/Mutasi/etc.) per angkatan.
      */
     public function getStatusBreakdown(int $cohortYear, string $jenjang = 'S1', ?string $cutoffDate = null): array
