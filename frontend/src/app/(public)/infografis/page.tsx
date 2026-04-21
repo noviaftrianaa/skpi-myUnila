@@ -36,7 +36,7 @@ export default function InfografisPage() {
       {/* Penelitian & Publikasi Section - Data publikasi, HAKI, penelitian */}
       <PenelitianPublikasi />
 
-      {/* Kelulusan Tepat Waktu Section - Statistik kelulusan */}
+      {/* Kelulusan Tepat Waktu Section — rangkuman + CTA detail (already includes its own CTA) */}
       <KelulusanTepatWaktu />
 
       {/* Capaian Lulusan Section - Data lulusan dan IPK */}
