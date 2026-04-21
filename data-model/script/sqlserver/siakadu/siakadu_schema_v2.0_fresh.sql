@@ -28,6 +28,10 @@ SET NOCOUNT ON;
 GO
 
 PRINT '=== SIAKADU Schema v2.0 Fresh Deploy — START ==='
+PRINT ''
+PRINT 'CATATAN: Kalau schema siakadu sudah ada isinya dan mau reset total,'
+PRINT '         jalankan dulu siakadu_drop_all.sql sebelum script ini.'
+PRINT ''
 GO
 
 -- ============================================================================
