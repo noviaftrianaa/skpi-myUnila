@@ -7,15 +7,15 @@ return [
     | Default Filesystem Disk
     |--------------------------------------------------------------------------
     |
-    | Opsi: 'simbak' (local storage, default) atau 'minio' (S3-compatible)
-    | Local storage: file disimpan di /data/simbak-storage (volume mount)
+    | Opsi: 'siprestasi' (local storage, default) atau 'minio' (S3-compatible)
+    | Local storage: file disimpan di /data/siprestasi-storage (volume mount)
     | MinIO: file disimpan di MinIO server (VM7 atau remote)
     |
-    | Ganti via env: FILESYSTEM_DISK=minio (kalau sudah ada MinIO server)
+    | Ganti via env: FILESYSTEM_DISK=minio (kalau MinIO server ready)
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'simbak'),
+    'default' => env('FILESYSTEM_DISK', 'siprestasi'),
 
     'disks' => [
 
@@ -34,16 +34,20 @@ return [
             'throw' => false,
         ],
 
-        // Local file storage — mounted volume di /data/simbak-storage
+        // Local file storage — mounted volume di /data/siprestasi-storage
         // Aman saat rebuild karena di-mount dari host filesystem
         // Path convention:
-        //   simbak/pengajuan/{id_pengajuan}/{kode_dokumen}/{filename}
-        //   simbak/hasil/{id_pengajuan}/{jenis_output}/{filename}
-        //   simbak/batch/{id_batch}/{jenis_sk}/{filename}
-        //   simbak/template/{kode_layanan}/{filename}
-        'simbak' => [
+        //   prestasi-mandiri/{id}/{jenis}/{uuid}.{ext}
+        //   sertifikasi/{id}/{jenis}/{uuid}.{ext}
+        //   rekognisi/{id}/{jenis}/{uuid}.{ext}
+        //   surat-tugas/{id_peserta_dosen}/{uuid}.{ext}
+        //
+        // jenis dokumen: peserta, sertifikat, foto_upp, undangan, surat_tugas
+        'siprestasi' => [
             'driver' => 'local',
-            'root' => env('SIMBAK_STORAGE_PATH', '/data/simbak-storage'),
+            'root' => env('SIPRESTASI_STORAGE_PATH', '/data/siprestasi-storage'),
+            'url' => env('APP_URL') . '/files',
+            'visibility' => 'public',
             'throw' => true,
         ],
 

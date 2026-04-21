@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LookupController;
 use App\Http\Controllers\Api\PrestasiMandiriController;
+use App\Http\Controllers\Api\SertifikasiController;
+use App\Http\Controllers\Api\RekognisiController;
+use App\Http\Controllers\Api\FileUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,8 +57,24 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::delete('prestasi-mandiri/{id}',      [PrestasiMandiriController::class, 'destroy']);
         Route::post('prestasi-mandiri/{id}/transition', [PrestasiMandiriController::class, 'transition']);
 
-        // Phase 1 batch 3 berikutnya — Sertifikasi, Rekognisi, Master Data, Files, Sync:
-        //   Route::apiResource('sertifikasi', SertifikasiController::class);
-        //   Route::apiResource('rekognisi',   RekognisiController::class);
+        // Sertifikasi
+        Route::get('sertifikasi',                   [SertifikasiController::class, 'index']);
+        Route::get('sertifikasi/{id}',              [SertifikasiController::class, 'show']);
+        Route::post('sertifikasi',                  [SertifikasiController::class, 'store']);
+        Route::put('sertifikasi/{id}',              [SertifikasiController::class, 'update']);
+        Route::delete('sertifikasi/{id}',           [SertifikasiController::class, 'destroy']);
+        Route::post('sertifikasi/{id}/transition',  [SertifikasiController::class, 'transition']);
+
+        // Rekognisi
+        Route::get('rekognisi',                   [RekognisiController::class, 'index']);
+        Route::get('rekognisi/{id}',              [RekognisiController::class, 'show']);
+        Route::post('rekognisi',                  [RekognisiController::class, 'store']);
+        Route::put('rekognisi/{id}',              [RekognisiController::class, 'update']);
+        Route::delete('rekognisi/{id}',           [RekognisiController::class, 'destroy']);
+        Route::post('rekognisi/{id}/transition',  [RekognisiController::class, 'transition']);
+
+        // File upload (bukti prestasi — sertifikat/foto_upp/undangan/surat_tugas)
+        Route::post('files/upload',   [FileUploadController::class, 'upload']);
+        Route::delete('files',        [FileUploadController::class, 'delete']);
     });
 });
