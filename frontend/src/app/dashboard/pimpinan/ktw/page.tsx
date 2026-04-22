@@ -158,13 +158,27 @@ export default function DashboardKtwPage() {
     const rows = prodiRows
       .map(r => `"${r.nm_prodi}";"${fakultasRows.find(f => f.id_fakultas === r.id_fakultas)?.nm_fakultas ?? ""}";${r.maba};${r.sudah_lulus};${r.ktw_strict};${r.pct_ktw_strict.toFixed(2)};${r.pct_survival.toFixed(2)}`)
       .join("\n");
-    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob(["\uFEFF" + header + rows], { type: "text/csv;charset=utf-8" });
+    const filename = `KTW_${jenjang}_${cohort}${selectedFakultas ? `_${selectedFakultas.nama.replace(/\s+/g, "_")}` : ""}.csv`;
+
+    const nav = window.navigator as unknown as { msSaveBlob?: (b: Blob, n: string) => void };
+    if (typeof nav.msSaveBlob === "function") {
+      nav.msSaveBlob(blob, filename);
+      return;
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `KTW_${jenjang}_${cohort}${selectedFakultas ? `_${selectedFakultas.nama.replace(/\s+/g, "_")}` : ""}.csv`;
+    a.setAttribute("download", filename);
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
   };
 
   // ===== Chart data =====

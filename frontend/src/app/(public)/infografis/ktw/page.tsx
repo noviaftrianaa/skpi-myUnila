@@ -69,13 +69,30 @@ function downloadCSV(filename: string, rows: Array<Array<string | number>>): voi
     const s = String(c ?? "");
     return s.includes(",") || s.includes("\"") || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
   }).join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+
+  // IE / legacy Edge fallback (beberapa client kampus masih pakai)
+  const nav = window.navigator as unknown as { msSaveBlob?: (b: Blob, n: string) => void };
+  if (typeof nav.msSaveBlob === "function") {
+    nav.msSaveBlob(blob, filename);
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
+  link.href = url;
+  // setAttribute lebih reliable daripada property assignment di beberapa browser
+  link.setAttribute("download", filename);
+  link.rel = "noopener";
+  link.style.display = "none";
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+
+  // Delay cleanup supaya browser sempat mulai download sebelum URL di-revoke
+  setTimeout(() => {
+    if (link.parentNode) link.parentNode.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 200);
 }
 
 // ECharts instance type (partial)
