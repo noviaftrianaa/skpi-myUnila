@@ -20,7 +20,7 @@ Stack dan konvensi **identik SIMBAK** (`../simbak-service/`) — PHP 8.2-fpm-alp
 - Master data + setting.api_config admin UI endpoints
 - SubmitToSimkatmawaJob (queue) + state machine
 - Upload file + nginx static
-- Frontend `sim-prestasi/admin/`
+- Frontend `si-prestasi/admin/`
 
 ## Struktur
 

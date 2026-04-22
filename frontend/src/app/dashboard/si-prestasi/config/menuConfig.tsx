@@ -13,40 +13,40 @@ export const simPrestasiMenuConfig: MenuItem[] = [
   {
     title: "Dashboard",
     icon: <MdDashboard className="w-5 h-5" />,
-    href: "/dashboard/sim-prestasi",
+    href: "/dashboard/si-prestasi",
     roles: allRoles,
   },
   {
     title: "Prestasi Mandiri",
     icon: <FiTrophy className="w-5 h-5" />,
-    href: "/dashboard/sim-prestasi/prestasi-mandiri",
+    href: "/dashboard/si-prestasi/prestasi-mandiri",
     roles: allRoles,
   },
   {
     title: "Sertifikasi",
     icon: <FiAward className="w-5 h-5" />,
-    href: "/dashboard/sim-prestasi/sertifikasi",
+    href: "/dashboard/si-prestasi/sertifikasi",
     roles: allRoles,
   },
   {
     title: "Rekognisi",
     icon: <FiStar className="w-5 h-5" />,
-    href: "/dashboard/sim-prestasi/rekognisi",
+    href: "/dashboard/si-prestasi/rekognisi",
     roles: allRoles,
   },
   {
     title: "Master Data",
     icon: <FiBookmark className="w-5 h-5" />,
     children: [
-      { title: "Referensi SIMKATMAWA", href: "/dashboard/sim-prestasi/master-data" },
-      { title: "API Configuration", href: "/dashboard/sim-prestasi/master-data/api-config" },
+      { title: "Referensi SIMKATMAWA", href: "/dashboard/si-prestasi/master-data" },
+      { title: "API Configuration", href: "/dashboard/si-prestasi/master-data/api-config" },
     ],
     roles: adminRoles,
   },
   {
     title: "Sync Log",
     icon: <FiClock className="w-5 h-5" />,
-    href: "/dashboard/sim-prestasi/sync-log",
+    href: "/dashboard/si-prestasi/sync-log",
     roles: adminRoles,
   },
 ];

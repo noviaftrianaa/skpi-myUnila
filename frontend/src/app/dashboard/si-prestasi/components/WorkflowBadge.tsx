@@ -1,6 +1,6 @@
 "use client";
 
-import type { WorkflowStatus } from "@/lib/services/sim-prestasi/types";
+import type { WorkflowStatus } from "@/lib/services/si-prestasi/types";
 
 const styleMap: Record<WorkflowStatus, string> = {
   draft: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:ring-slate-600",

@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { FiBookmark, FiRefreshCw, FiInfo } from "react-icons/fi";
 import { simPrestasiMenuConfig } from "../config/menuConfig";
-import { refService } from "@/lib/services/sim-prestasi/prestasiService";
-import type { RefBentuk, RefJenisRekognisi, RefKategori, RefKelompok, RefLevel, RefPeringkat } from "@/lib/services/sim-prestasi/types";
+import { refService } from "@/lib/services/si-prestasi/prestasiService";
+import type { RefBentuk, RefJenisRekognisi, RefKategori, RefKelompok, RefLevel, RefPeringkat } from "@/lib/services/si-prestasi/types";
 
 const APP_KEY = "si-prestasi";
 

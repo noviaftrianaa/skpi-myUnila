@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { FiPlus, FiRefreshCw, FiSearch, FiTrophy, FiEdit2, FiTrash2, FiEye, FiSend, FiArrowLeft, FiX, FiUpload } from "react-icons/fi";
 import { simPrestasiMenuConfig } from "../config/menuConfig";
-import { prestasiMandiriService, refService, fileService } from "@/lib/services/sim-prestasi/prestasiService";
+import { prestasiMandiriService, refService, fileService } from "@/lib/services/si-prestasi/prestasiService";
 import type {
   PrestasiMandiri,
   PesertaMhs,
@@ -12,7 +12,7 @@ import type {
   WorkflowStatus,
   RefLevel, RefKategori, RefPeringkat, RefKelompok, RefBentuk,
   MahasiswaLookup,
-} from "@/lib/services/sim-prestasi/types";
+} from "@/lib/services/si-prestasi/types";
 import { WorkflowBadge } from "../components/WorkflowBadge";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";

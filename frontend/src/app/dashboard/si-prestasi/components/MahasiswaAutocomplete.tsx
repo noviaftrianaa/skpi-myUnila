@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FiSearch, FiUser } from "react-icons/fi";
-import { lookupService } from "@/lib/services/sim-prestasi/prestasiService";
-import type { MahasiswaLookup } from "@/lib/services/sim-prestasi/types";
+import { lookupService } from "@/lib/services/si-prestasi/prestasiService";
+import type { MahasiswaLookup } from "@/lib/services/si-prestasi/types";
 
 export function MahasiswaAutocomplete({
   onSelect,

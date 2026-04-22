@@ -5,7 +5,7 @@ import Link from "next/link";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { FiTrophy, FiAward, FiStar, FiClock, FiArrowRight, FiInbox, FiSend, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import { simPrestasiMenuConfig } from "./config/menuConfig";
-import { prestasiMandiriService, sertifikasiService, rekognisiService } from "@/lib/services/sim-prestasi/prestasiService";
+import { prestasiMandiriService, sertifikasiService, rekognisiService } from "@/lib/services/si-prestasi/prestasiService";
 
 const APP_KEY = "si-prestasi";
 
@@ -106,9 +106,9 @@ export default function SimPrestasiDashboardPage() {
 
   const quickActions = useMemo(
     () => [
-      { href: "/dashboard/sim-prestasi/prestasi-mandiri?new=1", label: "+ Prestasi Mandiri", color: "bg-amber-500 hover:bg-amber-600" },
-      { href: "/dashboard/sim-prestasi/sertifikasi?new=1", label: "+ Sertifikasi", color: "bg-blue-500 hover:bg-blue-600" },
-      { href: "/dashboard/sim-prestasi/rekognisi?new=1", label: "+ Rekognisi", color: "bg-violet-500 hover:bg-violet-600" },
+      { href: "/dashboard/si-prestasi/prestasi-mandiri?new=1", label: "+ Prestasi Mandiri", color: "bg-amber-500 hover:bg-amber-600" },
+      { href: "/dashboard/si-prestasi/sertifikasi?new=1", label: "+ Sertifikasi", color: "bg-blue-500 hover:bg-blue-600" },
+      { href: "/dashboard/si-prestasi/rekognisi?new=1", label: "+ Rekognisi", color: "bg-violet-500 hover:bg-violet-600" },
     ],
     []
   );
@@ -162,7 +162,7 @@ export default function SimPrestasiDashboardPage() {
             total={prestasi.total}
             icon={<FiTrophy className="h-6 w-6" />}
             gradient="from-amber-500 to-orange-500"
-            href="/dashboard/sim-prestasi/prestasi-mandiri"
+            href="/dashboard/si-prestasi/prestasi-mandiri"
             breakdown={prestasi.byStatus}
           />
           <StatTile
@@ -171,7 +171,7 @@ export default function SimPrestasiDashboardPage() {
             total={sertifikasi.total}
             icon={<FiAward className="h-6 w-6" />}
             gradient="from-blue-500 to-indigo-500"
-            href="/dashboard/sim-prestasi/sertifikasi"
+            href="/dashboard/si-prestasi/sertifikasi"
             breakdown={sertifikasi.byStatus}
           />
           <StatTile
@@ -180,7 +180,7 @@ export default function SimPrestasiDashboardPage() {
             total={rekognisi.total}
             icon={<FiStar className="h-6 w-6" />}
             gradient="from-violet-500 to-purple-600"
-            href="/dashboard/sim-prestasi/rekognisi"
+            href="/dashboard/si-prestasi/rekognisi"
             breakdown={rekognisi.byStatus}
           />
         </div>

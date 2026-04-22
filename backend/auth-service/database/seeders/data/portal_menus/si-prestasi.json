@@ -1,32 +1,32 @@
 {
-  "_comment": "SIM-Prestasi menus. Roles: admin=[1,107], admin_fakultas=[106] (akses terbatas fakultasnya), admin_kemahasiswaan=[112 TBD]. Sementara pakai admin_fakultas untuk scope fakultas.",
+  "_comment": "SI-Prestasi menus. Roles: admin=[1,107], admin_fakultas=[106] (akses terbatas fakultasnya), admin_kemahasiswaan=[112 TBD]. Sementara pakai admin_fakultas untuk scope fakultas.",
   "app_slug": "si-prestasi",
   "roles": [1, 107, 106],
   "menus": [
     {
       "nm_menu": "Dashboard",
-      "nm_file": "/dashboard/sim-prestasi",
+      "nm_file": "/dashboard/si-prestasi",
       "icon": "heroicons:squares-2x2",
       "urutan": 1,
       "roles": [1, 107, 106]
     },
     {
       "nm_menu": "Prestasi Mandiri",
-      "nm_file": "/dashboard/sim-prestasi/prestasi-mandiri",
+      "nm_file": "/dashboard/si-prestasi/prestasi-mandiri",
       "icon": "heroicons:trophy",
       "urutan": 2,
       "roles": [1, 107, 106]
     },
     {
       "nm_menu": "Sertifikasi",
-      "nm_file": "/dashboard/sim-prestasi/sertifikasi",
+      "nm_file": "/dashboard/si-prestasi/sertifikasi",
       "icon": "heroicons:academic-cap",
       "urutan": 3,
       "roles": [1, 107, 106]
     },
     {
       "nm_menu": "Rekognisi",
-      "nm_file": "/dashboard/sim-prestasi/rekognisi",
+      "nm_file": "/dashboard/si-prestasi/rekognisi",
       "icon": "heroicons:sparkles",
       "urutan": 4,
       "roles": [1, 107, 106]
@@ -38,13 +38,13 @@
       "urutan": 5,
       "roles": [1, 107],
       "children": [
-        {"nm_menu": "Referensi SIMKATMAWA", "nm_file": "/dashboard/sim-prestasi/master-data", "urutan": 1, "roles": [1, 107]},
-        {"nm_menu": "API Configuration", "nm_file": "/dashboard/sim-prestasi/master-data/api-config", "urutan": 2, "roles": [1, 107]}
+        {"nm_menu": "Referensi SIMKATMAWA", "nm_file": "/dashboard/si-prestasi/master-data", "urutan": 1, "roles": [1, 107]},
+        {"nm_menu": "API Configuration", "nm_file": "/dashboard/si-prestasi/master-data/api-config", "urutan": 2, "roles": [1, 107]}
       ]
     },
     {
       "nm_menu": "Sync Log",
-      "nm_file": "/dashboard/sim-prestasi/sync-log",
+      "nm_file": "/dashboard/si-prestasi/sync-log",
       "icon": "heroicons:clock",
       "urutan": 6,
       "roles": [1, 107]
