@@ -417,7 +417,7 @@ status-kuliah-mahasiswa:
 publikasi:
   get:
     tags:
-      - Penelitian
+      - Publikasi
     summary: Get list publikasi
     description: |
       Mengambil daftar publikasi ilmiah dengan pagination dan filter.
@@ -519,7 +519,7 @@ publikasi:
 litabmas:
   get:
     tags:
-      - Penelitian
+      - Penelitian & Pengabdian
     summary: Get list litabmas (penelitian & pengabdian)
     description: |
       Mengambil daftar data penelitian/pengabdian masyarakat (litabmas) dengan pagination dan filter.
@@ -1027,6 +1027,120 @@ list-kurikulum:
       - name: a_digunakan
         in: query
         description: 1 = kurikulum aktif
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+# =============================================================================
+# MAHASISWA — Batch 2 (nilai + kehadiran + aktivitas)
+# =============================================================================
+
+list-nilai-smt:
+  get:
+    tags: [Mahasiswa]
+    summary: List nilai per semester per mahasiswa
+    description: Nilai per kelas dari `pdrd.nilai_smt_mhs` + join kelas/matkul/semester.
+    operationId: getNilaiSmtMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_reg_pd
+        in: query
+        schema: { type: string, format: uuid }
+      - name: nipd
+        in: query
+        description: NIM mahasiswa
+        schema: { type: string }
+      - name: id_kls
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: integer, example: 20251 }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+list-nilai-transkrip:
+  get:
+    tags: [Mahasiswa]
+    summary: Transkrip nilai mahasiswa
+    description: |
+      Transkrip dari `pdrd.nilai_transkrip` — join matkul + kelas.
+      **Wajib:** `id_reg_pd` atau `nipd`.
+    operationId: getNilaiTranskrip
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_reg_pd
+        in: query
+        schema: { type: string, format: uuid }
+      - name: nipd
+        in: query
+        schema: { type: string }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: smt_ke
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+      '400': { $ref: '../responses/errors.yaml#/BadRequest' }
+
+list-kehadiran-mhs:
+  get:
+    tags: [Mahasiswa]
+    summary: Kehadiran mahasiswa
+    description: |
+      Kehadiran dari `siakadu.kehadiran_mhs` (per tanggal per kelas).
+      Join ke kelas + matkul + reg_ptk + sdm (dosen pengajar).
+    operationId: getKehadiranMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_kls
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_reg_ptk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: stat_hadir
+        in: query
+        schema: { type: string, enum: [H,I,S,A] }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+list-aktivitas-mhs:
+  get:
+    tags: [Mahasiswa]
+    summary: Aktivitas mahasiswa (KKN, magang, MBKM)
+    description: |
+      Aktivitas non-akademik terstruktur dari `pdrd.akt_mhs`. Filter via
+      `id_jns_akt_mhs` (lihat `ref.jenis_akt_mhs`), `a_komunal`, `a_flagship`.
+    operationId: getAktMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_jns_akt_mhs
+        in: query
+        schema: { type: integer }
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: integer }
+      - name: a_komunal
+        in: query
+        schema: { type: integer, enum: [0,1] }
+      - name: a_flagship
+        in: query
         schema: { type: integer, enum: [0,1] }
       - $ref: '../schemas/common.yaml#/parameters/search'
       - $ref: '../schemas/common.yaml#/parameters/page'
