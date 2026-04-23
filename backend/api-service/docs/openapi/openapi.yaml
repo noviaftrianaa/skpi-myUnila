@@ -12,7 +12,12 @@ info:
     - Production (docs publik): `https://my.unila.ac.id/gateway/api-service/docs`
 
     **Endpoint publik (tanpa JWT):**
-    - `GET /v1/dashboard/ktw/*` — statistik Kelulusan Tepat Waktu (untuk BAN-PT, aplikasi fakultas, dll). Lihat tag `Dashboard · KTW`.
+    - `GET /v1/dashboard/ktw/*` — statistik Kelulusan Tepat Waktu. Lihat tag `Dashboard · KTW`.
+
+    **Grouping (best practice):**
+    Mulai Apr 2026, endpoint di-group per domain:
+    `/v1/mahasiswa`, `/v1/sdm`, `/v1/pegawai`, `/v1/akademik`, `/v1/penelitian`.
+    URL lama `/v1/pdrd/*` tetap jalan (backward compat) tapi dianggap **deprecated**.
 
     Untuk permintaan penambahan endpoint atau akses API, hubungi PJ Aplikasi terkait atau tim pengembang.
   version: 1.0.0
@@ -32,10 +37,30 @@ tags:
       dashboard eksekutif, dan integrasi pihak ketiga.
   - name: Auth
     description: Autentikasi dan manajemen token
+  - name: Mahasiswa
+    description: |
+      Data peserta didik / mahasiswa — biodata, registrasi, riwayat pendidikan,
+      status kuliah per semester. Source: `pdrd.peserta_didik`, `pdrd.reg_pd`,
+      `pdrd.kuliah_mhs`.
+  - name: Akademik
+    description: |
+      Master mata kuliah, kurikulum, kelas kuliah, jadwal kelas.
+      Source: `pdrd.matkul`, `pdrd.kurikulum_sp`, `pdrd.kelas_kuliah`, `pdrd.jadwal_kelas`.
+  - name: SDM
+    description: |
+      Data SDM (dosen + tendik) dari SISTER — biodata, penugasan/homebase,
+      riwayat pendidikan/fungsional/kepangkatan/tugas tambahan/sertifikasi.
+      Source: `pdrd.sdm`, `pdrd.reg_ptk`, `pdrd.rwy_*`.
+  - name: Pegawai
+    description: |
+      Data pegawai dari sistem SIKEP (tendik + struktural). Berbeda source
+      dengan SDM (SISTER). Source: `sikep.pegawai`.
+  - name: Penelitian
+    description: |
+      Publikasi ilmiah dan penelitian/pengabdian (litabmas).
+      Source: `pdrd.publikasi`, `pdrd.litabmas`.
   - name: Referensi
-    description: Data referensi master (semester, tahun ajaran, agama, wilayah)
-  - name: PDRD
-    description: Data peserta didik (mahasiswa) dan registrasi pendidikan
+    description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
     description: System endpoints
 
@@ -66,14 +91,70 @@ paths:
   /v1/dashboard/ktw/presets:
     $ref: './paths/dashboard.yaml#/ktw-presets'
 
-  # Auth endpoints
+  # ==========================================================================
+  # AUTH
+  # ==========================================================================
   /v1/auth/login:
     $ref: './paths/auth.yaml#/login'
   /v1/auth/check-token:
     $ref: './paths/auth.yaml#/check-token'
 
   # ==========================================================================
-  # COMMON ENDPOINTS
+  # MAHASISWA (peserta didik) — dulu /v1/pdrd/* masih jalan alias
+  # ==========================================================================
+  /v1/mahasiswa/list_mahasiswa:
+    $ref: './paths/pdrd.yaml#/list-mahasiswa'
+  /v1/mahasiswa/detail_biodata_mahasiswa:
+    $ref: './paths/pdrd.yaml#/detail-biodata-mahasiswa'
+  /v1/mahasiswa/riwayat_pendidikan_mahasiswa:
+    $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
+  /v1/mahasiswa/status_kuliah_mahasiswa:
+    $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
+
+  # ==========================================================================
+  # AKADEMIK (matkul, kelas kuliah, jadwal, kurikulum)
+  # ==========================================================================
+  /v1/akademik/list_matkul:
+    $ref: './paths/pdrd.yaml#/list-matkul'
+  /v1/akademik/detail_matkul:
+    $ref: './paths/pdrd.yaml#/detail-matkul'
+  /v1/akademik/list_kelas_kuliah:
+    $ref: './paths/pdrd.yaml#/list-kelas-kuliah'
+  /v1/akademik/list_jadwal_kelas:
+    $ref: './paths/pdrd.yaml#/list-jadwal-kelas'
+  /v1/akademik/list_kurikulum:
+    $ref: './paths/pdrd.yaml#/list-kurikulum'
+
+  # ==========================================================================
+  # SDM (Dosen + Tendik) — source SISTER
+  # ==========================================================================
+  /v1/sdm/list_sdm:
+    $ref: './paths/pdrd.yaml#/list-sdm'
+  /v1/sdm/detail_sdm:
+    $ref: './paths/pdrd.yaml#/detail-sdm'
+  /v1/sdm/penugasan_sdm:
+    $ref: './paths/pdrd.yaml#/penugasan-sdm'
+  /v1/sdm/riwayat_sdm:
+    $ref: './paths/pdrd.yaml#/riwayat-sdm'
+
+  # ==========================================================================
+  # PEGAWAI — source SIKEP
+  # ==========================================================================
+  /v1/pegawai/list_pegawai:
+    $ref: './paths/pdrd.yaml#/list-pegawai'
+  /v1/pegawai/detail_pegawai:
+    $ref: './paths/pdrd.yaml#/detail-pegawai'
+
+  # ==========================================================================
+  # PENELITIAN (publikasi + litabmas)
+  # ==========================================================================
+  /v1/penelitian/publikasi:
+    $ref: './paths/pdrd.yaml#/publikasi'
+  /v1/penelitian/litabmas:
+    $ref: './paths/pdrd.yaml#/litabmas'
+
+  # ==========================================================================
+  # REFERENSI (ref.*)
   # ==========================================================================
   /v1/referensi/semester:
     $ref: './paths/referensi.yaml#/semester'
@@ -131,18 +212,10 @@ paths:
     $ref: './paths/referensi.yaml#/tse'
   /v1/referensi/skim_kegiatan:
     $ref: './paths/referensi.yaml#/skim-kegiatan'
-
-  # ==========================================================================
-  # BENTUK ENDPOINTS
-  # ==========================================================================
   /v1/referensi/bentuk_kegiatan_kerjasama:
     $ref: './paths/referensi.yaml#/bentuk-kegiatan-kerjasama'
   /v1/referensi/bentuk_pendidikan:
     $ref: './paths/referensi.yaml#/bentuk-pendidikan'
-
-  # ==========================================================================
-  # BIDANG ENDPOINTS
-  # ==========================================================================
   /v1/referensi/bidang_kerjasama:
     $ref: './paths/referensi.yaml#/bidang-kerjasama'
   /v1/referensi/bidang_pekerjaan:
@@ -151,20 +224,12 @@ paths:
     $ref: './paths/referensi.yaml#/bidang-studi'
   /v1/referensi/bidang_usaha:
     $ref: './paths/referensi.yaml#/bidang-usaha'
-
-  # ==========================================================================
-  # TINGKAT ENDPOINTS
-  # ==========================================================================
   /v1/referensi/tingkat_kerjasama:
     $ref: './paths/referensi.yaml#/tingkat-kerjasama'
   /v1/referensi/tingkat_penghargaan:
     $ref: './paths/referensi.yaml#/tingkat-penghargaan'
   /v1/referensi/tingkat_prestasi:
     $ref: './paths/referensi.yaml#/tingkat-prestasi'
-
-  # ==========================================================================
-  # SUMBER ENDPOINTS
-  # ==========================================================================
   /v1/referensi/sumber_air:
     $ref: './paths/referensi.yaml#/sumber-air'
   /v1/referensi/sumber_dana:
@@ -173,28 +238,16 @@ paths:
     $ref: './paths/referensi.yaml#/sumber-gaji'
   /v1/referensi/sumber_listrik:
     $ref: './paths/referensi.yaml#/sumber-listrik'
-
-  # ==========================================================================
-  # PETA ENDPOINTS
-  # ==========================================================================
   /v1/referensi/peta_katgiat_jabfung:
     $ref: './paths/referensi.yaml#/peta-katgiat-jabfung'
   /v1/referensi/peta_katgiat_jnsdok:
     $ref: './paths/referensi.yaml#/peta-katgiat-jnsdok'
   /v1/referensi/peta_katgiat_jnspub:
     $ref: './paths/referensi.yaml#/peta-katgiat-jnspub'
-
-  # ==========================================================================
-  # JAB ENDPOINTS
-  # ==========================================================================
   /v1/referensi/jab_tgs:
     $ref: './paths/referensi.yaml#/jab-tgs'
   /v1/referensi/jabfung:
     $ref: './paths/referensi.yaml#/jabfung'
-
-  # ==========================================================================
-  # JENIS ENDPOINTS
-  # ==========================================================================
   /v1/referensi/jenis_akt_mhs:
     $ref: './paths/referensi.yaml#/jenis-akt-mhs'
   /v1/referensi/jenis_bahan_ajar:
@@ -255,20 +308,12 @@ paths:
     $ref: './paths/referensi.yaml#/jenis-tunjangan'
   /v1/referensi/jenis_unit:
     $ref: './paths/referensi.yaml#/jenis-unit'
-
-  # ==========================================================================
-  # KATEGORI ENDPOINTS
-  # ==========================================================================
   /v1/referensi/kategori_capaian_luaran:
     $ref: './paths/referensi.yaml#/kategori-capaian-luaran'
   /v1/referensi/kategori_kegiatan:
     $ref: './paths/referensi.yaml#/kategori-kegiatan'
   /v1/referensi/kategori_tabel:
     $ref: './paths/referensi.yaml#/kategori-tabel'
-
-  # ==========================================================================
-  # KELOMPOK ENDPOINTS
-  # ==========================================================================
   /v1/referensi/kelompok_bidang:
     $ref: './paths/referensi.yaml#/kelompok-bidang'
   /v1/referensi/kelompok_mk:
@@ -277,20 +322,12 @@ paths:
     $ref: './paths/referensi.yaml#/kelompok-profesi'
   /v1/referensi/kelompok_usaha:
     $ref: './paths/referensi.yaml#/kelompok-usaha'
-
-  # ==========================================================================
-  # LEMBAGA ENDPOINTS
-  # ==========================================================================
   /v1/referensi/lembaga_akred:
     $ref: './paths/referensi.yaml#/lembaga-akred'
   /v1/referensi/lembaga_pengangkat:
     $ref: './paths/referensi.yaml#/lembaga-pengangkat'
   /v1/referensi/lembaga_sertifikasi:
     $ref: './paths/referensi.yaml#/lembaga-sertifikasi'
-
-  # ==========================================================================
-  # STATUS ENDPOINTS
-  # ==========================================================================
   /v1/referensi/status_kepegawaian:
     $ref: './paths/referensi.yaml#/status-kepegawaian'
   /v1/referensi/status_kepemilikan:
@@ -307,42 +344,10 @@ paths:
     $ref: './paths/referensi.yaml#/status-keaktifan-pegawai'
 
   # ==========================================================================
-  # SYSTEM ENDPOINTS
+  # SYSTEM
   # ==========================================================================
   /health:
     $ref: './paths/system.yaml#/health'
-
-  # ==========================================================================
-  # PDRD ENDPOINTS
-  # ==========================================================================
-  /v1/pdrd/list_mahasiswa:
-    $ref: './paths/pdrd.yaml#/list-mahasiswa'
-  /v1/pdrd/detail_biodata_mahasiswa:
-    $ref: './paths/pdrd.yaml#/detail-biodata-mahasiswa'
-  /v1/pdrd/riwayat_pendidikan_mahasiswa:
-    $ref: './paths/pdrd.yaml#/riwayat-pendidikan-mahasiswa'
-  /v1/pdrd/status_kuliah_mahasiswa:
-    $ref: './paths/pdrd.yaml#/status-kuliah-mahasiswa'
-  /v1/pdrd/publikasi:
-    $ref: './paths/pdrd.yaml#/publikasi'
-  /v1/pdrd/litabmas:
-    $ref: './paths/pdrd.yaml#/litabmas'
-
-  # PDRD · SDM (source: SISTER)
-  /v1/pdrd/list_sdm:
-    $ref: './paths/pdrd.yaml#/list-sdm'
-  /v1/pdrd/detail_sdm:
-    $ref: './paths/pdrd.yaml#/detail-sdm'
-  /v1/pdrd/penugasan_sdm:
-    $ref: './paths/pdrd.yaml#/penugasan-sdm'
-  /v1/pdrd/riwayat_sdm:
-    $ref: './paths/pdrd.yaml#/riwayat-sdm'
-
-  # PDRD · Pegawai (source: SIKEP)
-  /v1/pdrd/list_pegawai:
-    $ref: './paths/pdrd.yaml#/list-pegawai'
-  /v1/pdrd/detail_pegawai:
-    $ref: './paths/pdrd.yaml#/detail-pegawai'
 
 components:
   schemas:

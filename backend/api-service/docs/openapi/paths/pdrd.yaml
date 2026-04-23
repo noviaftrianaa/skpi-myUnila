@@ -7,7 +7,7 @@
 list-mahasiswa:
   get:
     tags:
-      - PDRD
+      - Mahasiswa
     summary: Get list mahasiswa
     description: |
       Mengambil daftar peserta didik dengan pagination dan pencarian.
@@ -61,7 +61,7 @@ list-mahasiswa:
 detail-biodata-mahasiswa:
   get:
     tags:
-      - PDRD
+      - Mahasiswa
     summary: Get detail biodata mahasiswa
     description: |
       Mengambil daftar peserta didik beserta nama-nama dari tabel lookup (referensi).
@@ -196,7 +196,7 @@ detail-biodata-mahasiswa:
 riwayat-pendidikan-mahasiswa:
   get:
     tags:
-      - PDRD
+      - Mahasiswa
     summary: Get riwayat pendidikan mahasiswa
     description: |
       Mengambil riwayat pendidikan mahasiswa (`reg_pd`) beserta data peserta didik
@@ -336,7 +336,7 @@ riwayat-pendidikan-mahasiswa:
 status-kuliah-mahasiswa:
   get:
     tags:
-      - PDRD
+      - Mahasiswa
     summary: Get status kuliah mahasiswa
     description: |
       Mengambil data status kuliah mahasiswa dari tabel `pdrd.kuliah_mhs`.
@@ -417,7 +417,7 @@ status-kuliah-mahasiswa:
 publikasi:
   get:
     tags:
-      - PDRD
+      - Penelitian
     summary: Get list publikasi
     description: |
       Mengambil daftar publikasi ilmiah dengan pagination dan filter.
@@ -519,7 +519,7 @@ publikasi:
 litabmas:
   get:
     tags:
-      - PDRD
+      - Penelitian
     summary: Get list litabmas (penelitian & pengabdian)
     description: |
       Mengambil daftar data penelitian/pengabdian masyarakat (litabmas) dengan pagination dan filter.
@@ -657,7 +657,7 @@ litabmas:
 list-sdm:
   get:
     tags:
-      - PDRD · SDM
+      - SDM
     summary: List SDM (dosen/tendik) — ringkas
     description: |
       Daftar SDM dari `pdrd.sdm`. Response ringkas (FK id saja tanpa nama ref)
@@ -711,7 +711,7 @@ list-sdm:
 detail-sdm:
   get:
     tags:
-      - PDRD
+      - SDM
     summary: Detail SDM (dengan FK+nama ref)
     description: |
       Detail biodata SDM. Join ke `ref.jenis_sdm`, `ref.status_keaktifan_pegawai`,
@@ -746,7 +746,7 @@ detail-sdm:
 penugasan-sdm:
   get:
     tags:
-      - PDRD
+      - SDM
     summary: Penugasan SDM (homebase reg_ptk)
     description: |
       Penugasan/homebase SDM di prodi / satuan pendidikan — dari `pdrd.reg_ptk`.
@@ -783,7 +783,7 @@ penugasan-sdm:
 riwayat-sdm:
   get:
     tags:
-      - PDRD
+      - SDM
     summary: Riwayat SDM (pendidikan/fungsional/kepangkatan/tugas/sertifikasi)
     description: |
       Endpoint generic untuk riwayat SDM. Tentukan jenis via `?type=`:
@@ -822,7 +822,7 @@ riwayat-sdm:
 list-pegawai:
   get:
     tags:
-      - PDRD
+      - Pegawai
     summary: List pegawai (SIKEP)
     description: |
       Daftar pegawai dari schema `sikep.pegawai`. Berbeda sumber dengan
@@ -872,7 +872,7 @@ list-pegawai:
 detail-pegawai:
   get:
     tags:
-      - PDRD
+      - Pegawai
     summary: Detail pegawai (SIKEP) — dengan FK+nama ref
     description: |
       Detail 1 atau lebih pegawai dengan JOIN ke:
@@ -900,3 +900,136 @@ detail-pegawai:
         description: OK
       '400': { $ref: '../responses/errors.yaml#/BadRequest' }
       '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+# =============================================================================
+# AKADEMIK (matkul, kelas_kuliah, jadwal_kelas, kurikulum_sp)
+# =============================================================================
+
+list-matkul:
+  get:
+    tags: [Akademik]
+    summary: List mata kuliah (ringkas)
+    description: Daftar master matkul dari `pdrd.matkul`. Tanpa join ref.
+    operationId: getMatkulList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jenj_didik
+        in: query
+        schema: { type: integer }
+      - name: id_jns_mk
+        in: query
+        schema: { type: integer }
+      - name: id_kel_mk
+        in: query
+        schema: { type: integer }
+      - name: kode_mk
+        in: query
+        schema: { type: string }
+    responses:
+      '200': { description: OK }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+detail-matkul:
+  get:
+    tags: [Akademik]
+    summary: Detail mata kuliah (FK + nama)
+    description: Detail matkul — join ke `ref.jenis_mk`, `ref.kelompok_mk`, `ref.jenjang_pendidikan`, `pdrd.sms`.
+    operationId: getMatkulDetail
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: kode_mk
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+list-kelas-kuliah:
+  get:
+    tags: [Akademik]
+    summary: List kelas kuliah
+    description: Kelas kuliah per semester per prodi. Join matkul + semester + prodi.
+    operationId: getKelasKuliahList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_smt
+        in: query
+        description: Filter semester (cth 20241 = Ganjil 2024/2025)
+        schema: { type: integer, example: 20251 }
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_kls
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+list-jadwal-kelas:
+  get:
+    tags: [Akademik]
+    summary: List jadwal kelas
+    description: Jadwal per kelas kuliah (pertemuan/tanggal/waktu/lokasi).
+    operationId: getJadwalKelasList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_kls
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: integer }
+      - name: status
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
+
+list-kurikulum:
+  get:
+    tags: [Akademik]
+    summary: List kurikulum prodi
+    description: Kurikulum per prodi per semester (pdrd.kurikulum_sp).
+    operationId: getKurikulumList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: integer }
+      - name: id_jenj_didik
+        in: query
+        schema: { type: integer }
+      - name: a_digunakan
+        in: query
+        description: 1 = kurikulum aktif
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200': { description: OK }
