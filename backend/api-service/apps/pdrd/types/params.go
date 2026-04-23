@@ -81,6 +81,63 @@ type PublikasiParams struct {
 	IDLitabmas   *string `query:"id_litabmas"`    // Filter by ID litabmas
 }
 
+// ============================================================================
+// SDM (Sumber Daya Manusia) — dosen + tendik dari pdrd.sdm (sync dari SISTER)
+// ============================================================================
+type SDMParams struct {
+	PaginationParams
+	IDSDM    *string `query:"id_sdm"`      // Filter by ID SDM
+	IDJnsSDM *int    `query:"id_jns_sdm"`  // 12=Dosen, 13=Tendik, dst
+	Nidn     *string `query:"nidn"`
+	Nuptk    *string `query:"nuptk"`
+	Nip      *string `query:"nip"`
+	Jk       *string `query:"jk"`
+}
+
+type SDMDetailParams struct {
+	PaginationParams
+	IDSDM    *string `query:"id_sdm"`
+	IDJnsSDM *int    `query:"id_jns_sdm"`
+	Nidn     *string `query:"nidn"`
+	Nuptk    *string `query:"nuptk"`
+}
+
+// Penugasan SDM (reg_ptk) — homebase dosen/tendik ke prodi/sekolah
+type RegPtkParams struct {
+	PaginationParams
+	IDRegPtk      *string `query:"id_reg_ptk"`
+	IDSDM         *string `query:"id_sdm"`
+	IDSp          *string `query:"id_sp"`
+	IDSms         *string `query:"id_sms"`
+	IDJnsKeluar   *string `query:"id_jns_keluar"`   // null = aktif
+	IDStatPegawai *int    `query:"id_stat_pegawai"`
+	IDIkatanKerja *int    `query:"id_ikatan_kerja"`
+	OnlyAktif     *bool   `query:"only_aktif"`      // short-circuit id_jns_keluar IS NULL
+}
+
+// Riwayat SDM generic — pakai ?type=pend|fungsional|pangkat|tugas_tambahan|sertifikasi
+type RiwayatSDMParams struct {
+	PaginationParams
+	IDSDM string `query:"id_sdm"` // Wajib
+	Type  string `query:"type"`   // pend_formal|fungsional|kepangkatan|tugas_tambahan|sertifikasi
+}
+
+// ============================================================================
+// Pegawai (schema sikep) — tendik + pegawai struktural
+// ============================================================================
+type PegawaiParams struct {
+	PaginationParams
+	IDPegawai  *string `query:"id_pegawai"`
+	JnsPegawai *string `query:"jns_pegawai"` // PNS / PPPK / Honorer / dst
+	JnsTenaga  *string `query:"jns_tenaga"`  // Dosen / Tendik / Fungsional / Struktural
+	Nip        *string `query:"nip"`
+	IDGol      *int    `query:"id_gol"`
+	IDJabfung  *int    `query:"id_jabfung"`
+	IDJabstruk *int    `query:"id_jabstruk"`
+	IDUnitOrga *int    `query:"id_unit_orga"`
+	Status     *string `query:"status"`
+}
+
 type LitabmasParams struct {
 	PaginationParams
 	IDLitabmas    string  `query:"id_litabmas"`     // Filter by ID litabmas
