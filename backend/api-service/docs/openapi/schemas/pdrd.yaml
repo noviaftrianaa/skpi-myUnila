@@ -726,3 +726,256 @@ Litabmas:
     last_sync:
       type: string
       format: date-time
+
+# =============================================================================
+# SDM Schemas (sumber: SISTER → pdrd.sdm)
+# =============================================================================
+
+SDM:
+  type: object
+  description: SDM (dosen/tendik) — list ringkas dari `pdrd.sdm`. FK id saja tanpa nama.
+  properties:
+    id_sdm:            { type: string, format: uuid, example: "A7F3C228-CC10-49FA-9F27-000007A88A6D" }
+    nm_sdm:            { type: string, example: "ERNA IRAWAN" }
+    jk:                { type: string, nullable: true, enum: ["L","P"], example: "P" }
+    tmpt_lahir:        { type: string, nullable: true, example: "Bandar Lampung" }
+    tgl_lahir:         { type: string, format: date-time, nullable: true }
+    nik:               { type: string, nullable: true, example: "1801012501910001" }
+    nuptk:             { type: string, nullable: true, example: "1234567890123456" }
+    nidn:              { type: string, nullable: true, example: "0430019101" }
+    nsdmi:             { type: string, nullable: true }
+    nip:               { type: string, nullable: true, example: "198912012019031001" }
+    niy_nigk:          { type: string, nullable: true }
+    email:             { type: string, nullable: true, example: "dosen@unila.ac.id" }
+    no_hp:             { type: string, nullable: true }
+    id_jns_sdm:        { type: integer, description: "12=Dosen, 13=Tendik (lihat ref.jenis_sdm)", example: 12 }
+    id_stat_aktif:     { type: integer, nullable: true, description: "Status keaktifan (dari ref.status_keaktifan_pegawai)" }
+    id_agama:          { type: integer, nullable: true }
+    id_wil:            { type: string, nullable: true }
+    last_sync:         { type: string, format: date-time }
+
+SDMDetail:
+  type: object
+  description: SDM detail — biodata lengkap + FK id **dan** nama ref (JOIN `ref.jenis_sdm`, `status_keaktifan_pegawai`, `agama`, `wilayah`, `sumber_gaji`).
+  properties:
+    id_sdm:            { type: string, format: uuid }
+    nm_sdm:            { type: string }
+    jk:                { type: string, nullable: true, enum: ["L","P"] }
+    tmpt_lahir:        { type: string, nullable: true }
+    tgl_lahir:         { type: string, format: date-time, nullable: true }
+    nik:               { type: string, nullable: true }
+    nuptk:             { type: string, nullable: true }
+    nidn:              { type: string, nullable: true }
+    nsdmi:             { type: string, nullable: true }
+    nip:               { type: string, nullable: true }
+    niy_nigk:          { type: string, nullable: true }
+    npwp:              { type: string, nullable: true }
+    nm_wp:             { type: string, nullable: true }
+    stat_kawin:        { type: string, nullable: true }
+    jln:               { type: string, nullable: true }
+    rt:                { type: integer, nullable: true }
+    rw:                { type: integer, nullable: true }
+    nm_dsn:            { type: string, nullable: true }
+    ds_kel:            { type: string, nullable: true }
+    kode_pos:          { type: string, nullable: true }
+    no_tel_rmh:        { type: string, nullable: true }
+    no_hp:             { type: string, nullable: true }
+    email:             { type: string, nullable: true }
+    tmt_pns:           { type: string, format: date-time, nullable: true }
+    sk_cpns:           { type: string, nullable: true }
+    tgl_sk_cpns:       { type: string, format: date-time, nullable: true }
+    sk_angkat:         { type: string, nullable: true }
+    tmt_sk_angkat:     { type: string, format: date-time, nullable: true }
+    kewarganegaraan:   { type: string, nullable: true }
+    id_jns_sdm:        { type: integer }
+    nm_jns_sdm:        { type: string, example: "Dosen" }
+    id_stat_aktif:     { type: integer, nullable: true }
+    nm_stat_aktif:     { type: string, nullable: true, example: "Aktif" }
+    id_agama:          { type: integer, nullable: true }
+    nm_agama:          { type: string, nullable: true, example: "Islam" }
+    id_wil:            { type: string, nullable: true }
+    nm_wil:            { type: string, nullable: true }
+    id_sumber_gaji:    { type: integer, nullable: true }
+    nm_sumber_gaji:    { type: string, nullable: true }
+    last_sync:         { type: string, format: date-time }
+
+RegPtk:
+  type: object
+  description: Penugasan/homebase SDM (dari `pdrd.reg_ptk`). FK id + nama ref terikait.
+  properties:
+    id_reg_ptk:        { type: string, format: uuid }
+    id_sdm:            { type: string, format: uuid }
+    nm_sdm:            { type: string }
+    nidn:              { type: string, nullable: true }
+    id_sp:             { type: string, nullable: true }
+    nm_sp:             { type: string, nullable: true, example: "Universitas Lampung" }
+    id_sms:            { type: string, nullable: true }
+    nm_sms:            { type: string, nullable: true, example: "Program Studi S1 Teknik Informatika" }
+    id_stat_pegawai:   { type: integer, nullable: true }
+    nm_stat_pegawai:   { type: string, nullable: true, example: "PNS" }
+    id_ikatan_kerja:   { type: integer, nullable: true }
+    nm_ikatan_kerja:   { type: string, nullable: true }
+    id_jns_keluar:     { type: string, nullable: true, description: "null=aktif" }
+    nm_jns_keluar:     { type: string, nullable: true }
+    no_srt_tgs:        { type: string, nullable: true }
+    tgl_srt_tgs:       { type: string, format: date-time, nullable: true }
+    tmt_srt_tgs:       { type: string, format: date-time, nullable: true }
+    tgl_ptk_keluar:    { type: string, format: date-time, nullable: true }
+    jns_reg:           { type: string, nullable: true }
+    last_sync:         { type: string, format: date-time }
+
+RiwayatPendFormal:
+  type: object
+  description: Riwayat pendidikan formal (`pdrd.rwy_pend_formal`) + join ref.
+  properties:
+    id_rwy_pend_formal: { type: string, format: uuid }
+    id_sdm:             { type: string, format: uuid }
+    id_jenj_didik:      { type: integer, nullable: true }
+    nm_jenj_didik:      { type: string, nullable: true, example: "S3" }
+    id_bid_studi:       { type: string, nullable: true }
+    nm_bid_studi:       { type: string, nullable: true, example: "Ilmu Komputer" }
+    id_gelar_akad:      { type: integer, nullable: true }
+    nm_gelar_akad:      { type: string, nullable: true, example: "Dr." }
+    nm_sp_formal:       { type: string, nullable: true, example: "Universitas Indonesia" }
+    fak:                { type: string, nullable: true }
+    a_kependidikan:     { type: integer, nullable: true }
+    thn_masuk:          { type: integer, nullable: true, example: 2015 }
+    thn_lulus:          { type: integer, nullable: true, example: 2020 }
+    nipd:               { type: string, nullable: true }
+    ipk:                { type: number, format: double, nullable: true, example: 3.85 }
+    sks_lulus:          { type: integer, nullable: true }
+    no_ijazah:          { type: string, nullable: true }
+    judul_tesis:        { type: string, nullable: true }
+    tgl_lulus:          { type: string, format: date-time, nullable: true }
+
+RiwayatFungsional:
+  type: object
+  description: Riwayat jabatan fungsional (`pdrd.rwy_fungsional`).
+  properties:
+    id_rwy_jabfung:     { type: string, format: uuid }
+    id_sdm:             { type: string, format: uuid }
+    id_jabfung:         { type: integer, nullable: true }
+    nm_jabfung:         { type: string, nullable: true, example: "Lektor Kepala" }
+    id_kel_bidang:      { type: string, nullable: true }
+    nm_kel_bidang:      { type: string, nullable: true }
+    sk_jabfung:         { type: string, nullable: true }
+    tmt_sk_jabfung:     { type: string, format: date-time, nullable: true }
+    angka_kredit:       { type: number, format: double, nullable: true }
+    bidang_ilmu:        { type: string, nullable: true }
+
+RiwayatKepangkatan:
+  type: object
+  description: Riwayat kepangkatan (`pdrd.rwy_kepangkatan`).
+  properties:
+    id_rwy_pangkat:     { type: string, format: uuid }
+    id_sdm:             { type: string, format: uuid }
+    id_pangkat_gol:     { type: integer, nullable: true }
+    nm_pangkat_gol:     { type: string, nullable: true, example: "Pembina (IV/a)" }
+    sk_pangkat:         { type: string, nullable: true }
+    tgl_sk_pangkat:     { type: string, format: date-time, nullable: true }
+    tmt_sk_pangkat:     { type: string, format: date-time, nullable: true }
+    masa_kerja_gol_thn: { type: integer, nullable: true }
+    masa_kerja_gol_bln: { type: integer, nullable: true }
+
+RiwayatTugasTambahan:
+  type: object
+  description: Riwayat tugas tambahan (`pdrd.tugas_tambahan`).
+  properties:
+    id_tgs_tambah:      { type: string, format: uuid }
+    id_sdm:             { type: string, format: uuid }
+    id_jab_tgs:         { type: integer, nullable: true }
+    nm_jab_tgs:         { type: string, nullable: true, example: "Kepala Departemen" }
+    id_sp:              { type: string, nullable: true }
+    nm_sp:              { type: string, nullable: true }
+    id_sms:             { type: string, nullable: true }
+    nm_sms:             { type: string, nullable: true }
+    jml_jam:            { type: integer, nullable: true }
+    sk_tugas_tambah:    { type: string, nullable: true }
+    tmt_sk_tambah:      { type: string, format: date-time, nullable: true }
+    tst_sk_tambah:      { type: string, format: date-time, nullable: true }
+
+RiwayatSertifikasi:
+  type: object
+  description: Riwayat sertifikasi dosen/pendidik (`pdrd.rwy_sertifikasi`).
+  properties:
+    id_rwy_sert:        { type: string, format: uuid }
+    id_sdm:             { type: string, format: uuid }
+    id_jns_sert:        { type: integer, nullable: true }
+    nm_jns_sert:        { type: string, nullable: true, example: "Sertifikasi Dosen" }
+    id_bid_studi:       { type: string, nullable: true }
+    nm_bid_studi:       { type: string, nullable: true }
+    id_lemb_sert:       { type: integer, nullable: true }
+    nm_lemb_sert:       { type: string, nullable: true }
+    thn_sert:           { type: integer, nullable: true, example: 2022 }
+    sk_sert:            { type: string, nullable: true }
+    nrg:                { type: string, nullable: true }
+    no_peserta:         { type: string, nullable: true }
+    tmt_sert:           { type: string, format: date-time, nullable: true }
+    tst_sert:           { type: string, format: date-time, nullable: true }
+
+# =============================================================================
+# PEGAWAI Schemas (sumber: SIKEP → sikep.pegawai)
+# =============================================================================
+
+Pegawai:
+  type: object
+  description: Pegawai — list ringkas dari `sikep.pegawai`.
+  properties:
+    id_pegawai:   { type: string, format: uuid }
+    nm_pegawai:   { type: string, example: "DR. BUDI SANTOSO, S.KOM., M.KOM." }
+    jk:           { type: string, nullable: true, enum: ["L","P"] }
+    nip:          { type: string, nullable: true }
+    nidn:         { type: string, nullable: true }
+    tmp_lahir:    { type: string, nullable: true }
+    tgl_lahir:    { type: string, format: date-time, nullable: true }
+    jns_pegawai:  { type: string, nullable: true, example: "PNS" }
+    jns_tenaga:   { type: string, nullable: true, example: "Dosen" }
+    status:       { type: string, nullable: true, example: "Aktif" }
+    id_gol:       { type: integer, nullable: true }
+    id_jabfung:   { type: integer, nullable: true }
+    id_jabstruk:  { type: integer, nullable: true }
+    id_pend:      { type: integer, nullable: true }
+    id_unit_orga: { type: integer, nullable: true }
+    last_sync:    { type: string, format: date-time }
+
+PegawaiDetail:
+  type: object
+  description: Pegawai detail — join ke semua ref SIKEP (golongan/jabfung/jabstruk/pendidikan/unit_orga).
+  properties:
+    id_pegawai:    { type: string, format: uuid }
+    nm_pegawai:    { type: string }
+    jk:            { type: string, nullable: true, enum: ["L","P"] }
+    nip:           { type: string, nullable: true }
+    nidn:          { type: string, nullable: true }
+    tmp_lahir:     { type: string, nullable: true }
+    tgl_lahir:     { type: string, format: date-time, nullable: true }
+    alamat:        { type: string, nullable: true }
+    jns_pegawai:   { type: string, nullable: true }
+    jns_tenaga:    { type: string, nullable: true }
+    tmt_cpns:      { type: string, format: date-time, nullable: true }
+    tmt_pns:       { type: string, format: date-time, nullable: true }
+    status:        { type: string, nullable: true }
+    tmt_pensiun:   { type: string, format: date-time, nullable: true }
+
+    id_gol:        { type: integer, nullable: true }
+    nm_gol:        { type: string, nullable: true, example: "IV/a" }
+    nm_pangkat:    { type: string, nullable: true, example: "Pembina" }
+    kd_gol:        { type: string, nullable: true }
+    tmt_gol:       { type: string, format: date-time, nullable: true }
+
+    id_jabfung:    { type: integer, nullable: true }
+    nm_jabfung:    { type: string, nullable: true, example: "Lektor Kepala" }
+    tmt_jabfung:   { type: string, format: date-time, nullable: true }
+
+    id_jabstruk:   { type: integer, nullable: true }
+    nm_jabstruk:   { type: string, nullable: true }
+    kd_jabstruk:   { type: string, nullable: true }
+
+    id_pend:       { type: integer, nullable: true }
+    nm_pend:       { type: string, nullable: true, example: "S3" }
+
+    id_unit_orga:  { type: integer, nullable: true }
+    nm_unit_orga:  { type: string, nullable: true, example: "Fakultas Teknik" }
+    kd_unit_orga:  { type: string, nullable: true }
+
+    last_sync:     { type: string, format: date-time }

@@ -43,3 +43,23 @@ RegPd:
   $ref: './pdrd.yaml#/RegPd'
 StatusKuliahMahasiswa:
   $ref: './pdrd.yaml#/StatusKuliahMahasiswa'
+SDM:
+  $ref: './pdrd.yaml#/SDM'
+SDMDetail:
+  $ref: './pdrd.yaml#/SDMDetail'
+RegPtk:
+  $ref: './pdrd.yaml#/RegPtk'
+RiwayatPendFormal:
+  $ref: './pdrd.yaml#/RiwayatPendFormal'
+RiwayatFungsional:
+  $ref: './pdrd.yaml#/RiwayatFungsional'
+RiwayatKepangkatan:
+  $ref: './pdrd.yaml#/RiwayatKepangkatan'
+RiwayatTugasTambahan:
+  $ref: './pdrd.yaml#/RiwayatTugasTambahan'
+RiwayatSertifikasi:
+  $ref: './pdrd.yaml#/RiwayatSertifikasi'
+Pegawai:
+  $ref: './pdrd.yaml#/Pegawai'
+PegawaiDetail:
+  $ref: './pdrd.yaml#/PegawaiDetail'

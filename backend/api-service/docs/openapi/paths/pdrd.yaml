@@ -657,15 +657,18 @@ litabmas:
 list-sdm:
   get:
     tags:
-      - PDRD
-    summary: List SDM (dosen/tendik)
+      - PDRD · SDM
+    summary: List SDM (dosen/tendik) — ringkas
     description: |
-      Daftar SDM dari `pdrd.sdm`. Filter `id_jns_sdm`:
-      - `12` = Dosen
-      - `13` = Tenaga Kependidikan
-      - lihat `ref.jenis_sdm` untuk kode lengkap
+      Daftar SDM dari `pdrd.sdm`. Response ringkas (FK id saja tanpa nama ref)
+      — gunakan `/detail_sdm` kalau butuh nama jenis/status/agama/wilayah.
 
-      **Sumber data:** SISTER (di-sync via sister-service).
+      Filter `id_jns_sdm`:
+      - `12` = Dosen (`a_dosen=1`)
+      - `13` = Tenaga Kependidikan
+      - `99` = Lainnya
+
+      **Sumber data:** SISTER (di-sync ke `pdrd.sdm` via sister-service).
     operationId: getSDMList
     security: [{ BearerAuth: [] }]
     parameters:
@@ -685,10 +688,25 @@ list-sdm:
       - name: nip
         in: query
         schema: { type: string }
+      - name: jk
+        in: query
+        schema: { type: string, enum: ["L","P"] }
     responses:
       '200':
-        description: OK
+        description: Berhasil mengambil daftar SDM
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../schemas/pdrd.yaml#/SDM'
       '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+      '500': { $ref: '../responses/errors.yaml#/InternalServerError' }
 
 detail-sdm:
   get:
