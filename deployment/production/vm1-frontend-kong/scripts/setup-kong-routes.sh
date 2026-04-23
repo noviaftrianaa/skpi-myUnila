@@ -1464,21 +1464,11 @@ if [ -n "$API_DOCS_SERVICE_ID" ]; then
             }
           }' > /dev/null
 
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_DOCS_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "jwt",
-            "config": {
-              "claims_to_verify": ["exp"],
-              "key_claim_name": "iss",
-              "secret_is_base64": false,
-              "anonymous": null,
-              "run_on_preflight": false,
-              "header_names": ["authorization"],
-              "cookie_names": ["token"]
-            }
-          }' > /dev/null
-        echo -e "${GREEN}  ✓ api-service-docs route created with JWT (header + cookie)${NC}"
+        # NOTE: Docs route sengaja PUBLIC (tanpa JWT) — supaya dokumentasi
+        # OpenAPI KTW & endpoint publik lain bisa diakses pihak ketiga
+        # (BAN-PT, aplikasi fakultas) tanpa auth. API endpoint-nya sendiri
+        # tetap public/private sesuai routing masing-masing.
+        echo -e "${GREEN}  ✓ api-service-docs route created (PUBLIC — no JWT)${NC}"
     fi
 fi
 
