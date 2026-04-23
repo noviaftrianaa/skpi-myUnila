@@ -1,13 +1,22 @@
 # API Publik KTW (Kelulusan Tepat Waktu)
 
-Dokumentasi endpoint publik KTW di MyUnila — endpoint yang dipakai infografis publik `/infografis/ktw`.
+Dokumentasi endpoint publik KTW di MyUnila — endpoint yang dipakai infografis publik `/infografis/ktw` dan bisa dikonsumsi pihak ketiga (dashboard BAN-PT, aplikasi fakultas, dll).
 
-**Base URL:** `https://my.unila.ac.id/api/public-service/api/v1`
-(Base URL staging: `http://192.168.120.45:9800/public-service/api/v1`)
+## Base URL (resmi via ws-service)
 
-**Autentikasi:** TIDAK PERLU (public endpoint). CORS enabled untuk domain universitas.
+**Production:** `https://my.unila.ac.id/gateway/ws-service/v1/dashboard/ktw`
+**Staging:** `http://192.168.120.45:9800/ws-service/v1/dashboard/ktw`
 
-**Format response:** JSON, UTF-8. Semua request GET (kecuali `/refresh` yang POST).
+Endpoint ini **proxy** ke public-service internal, di-wrap oleh ws-service:
+- Response envelope konsisten `{success, message, data, timestamp}`
+- Cache Redis 5 menit di ws-service (+ 10 menit di public-service)
+- Rate limit: 60 req/menit per IP (soft throttle)
+- Zero-auth (publik), data agregat saja (tidak ada data personal)
+
+> **Note:** Endpoint internal public-service (`/public-service/api/v1/ktw/*`) masih bisa diakses, tapi format response beda (tanpa envelope). Untuk integrasi eksternal, **gunakan `/ws-service/v1/dashboard/ktw/*`**.
+
+**Autentikasi:** TIDAK PERLU. CORS enabled untuk domain universitas.
+**Format:** JSON, UTF-8. Semua request GET.
 
 ---
 
@@ -26,9 +35,36 @@ Dokumentasi endpoint publik KTW di MyUnila — endpoint yang dipakai infografis 
 
 ---
 
+## Response Envelope
+
+Semua endpoint ws-service mengembalikan struktur konsisten:
+
+```json
+{
+  "success": true,
+  "message": "Berhasil mengambil overview KTW",
+  "data": { ... /* payload dari upstream, apa adanya */ },
+  "timestamp": "2026-04-23T07:53:25+07:00"
+}
+```
+
+Kalau error:
+```json
+{
+  "success": false,
+  "message": "Upstream error | Parameter tidak valid | dsb",
+  "error": { "code": "UPSTREAM_ERROR | BAD_REQUEST | RATE_LIMITED" },
+  "timestamp": "..."
+}
+```
+
+HTTP status: `200` sukses · `400` validation · `429` rate-limited · `500` upstream/internal error.
+
+---
+
 ## 1. Overview Angkatan Univ-Wide
 
-**GET** `/ktw/overview`
+**GET** `/dashboard/ktw/overview`
 
 ### Query Parameters
 | Param | Tipe | Wajib | Contoh | Catatan |
@@ -40,7 +76,7 @@ Dokumentasi endpoint publik KTW di MyUnila — endpoint yang dipakai infografis 
 
 ### Contoh Request
 ```
-GET /ktw/overview?cohort=2020&jenjang=S1
+GET /dashboard/ktw/overview?cohort=2020&jenjang=S1
 ```
 
 ### Contoh Response
@@ -91,7 +127,7 @@ GET /ktw/overview?cohort=2020&jenjang=S1
 
 ## 2. Breakdown Per Fakultas
 
-**GET** `/ktw/fakultas`
+**GET** `/dashboard/ktw/fakultas`
 
 Sama parameter dgn `/overview`, return list per fakultas + summary univ-wide.
 
@@ -128,7 +164,7 @@ Sama parameter dgn `/overview`, return list per fakultas + summary univ-wide.
 
 ## 3. Breakdown Per Prodi
 
-**GET** `/ktw/prodi`
+**GET** `/dashboard/ktw/prodi`
 
 ### Query Parameters
 Sama dengan `/fakultas`, tambah opsional `id_fakultas` untuk drilldown.
@@ -165,13 +201,13 @@ Sama dengan `/fakultas`, tambah opsional `id_fakultas` untuk drilldown.
 
 ## 4. Detail Prodi (dengan reconcile opsional)
 
-**GET** `/ktw/prodi/{id_sms}`
+**GET** `/dashboard/ktw/prodi/{id_sms}`
 
 Path param `{id_sms}` = UUID prodi (dari `/prodi`).
 
 ### Contoh
 ```
-GET /ktw/prodi/3E6CC468-DB99-4135-B09F-5E05F527AE51?cohort=2020&reconcile=true
+GET /dashboard/ktw/prodi/3E6CC468-DB99-4135-B09F-5E05F527AE51?cohort=2020&reconcile=true
 ```
 
 Return: info prodi + overview data + (optional) reconcile dari spordit.
@@ -180,7 +216,7 @@ Return: info prodi + overview data + (optional) reconcile dari spordit.
 
 ## 5. Trend Angkatan
 
-**GET** `/ktw/trend`
+**GET** `/dashboard/ktw/trend`
 
 Time-series KTW 6+ angkatan untuk chart trend.
 
@@ -209,7 +245,7 @@ Time-series KTW 6+ angkatan untuk chart trend.
 
 ## 6. Breakdown Status Keluar
 
-**GET** `/ktw/status-breakdown?cohort=2020&jenjang=S1`
+**GET** `/dashboard/ktw/status-breakdown?cohort=2020&jenjang=S1`
 
 ### Contoh Response
 ```json
@@ -226,7 +262,7 @@ Time-series KTW 6+ angkatan untuk chart trend.
 
 ## 7. Breakdown Gender
 
-**GET** `/ktw/gender-breakdown?cohort=2020&jenjang=S1`
+**GET** `/dashboard/ktw/gender-breakdown?cohort=2020&jenjang=S1`
 
 ```json
 {
@@ -241,7 +277,7 @@ Time-series KTW 6+ angkatan untuk chart trend.
 
 ## 8. Breakdown Jalur Daftar
 
-**GET** `/ktw/jalur-breakdown?cohort=2020&jenjang=S1`
+**GET** `/dashboard/ktw/jalur-breakdown?cohort=2020&jenjang=S1`
 
 ```json
 {
@@ -257,7 +293,7 @@ Time-series KTW 6+ angkatan untuk chart trend.
 
 ## 9. Statistik Masa Mukim
 
-**GET** `/ktw/masa-mukim-stats?cohort=2020&jenjang=S1`
+**GET** `/dashboard/ktw/masa-mukim-stats?cohort=2020&jenjang=S1`
 
 Return statistik agregat masa studi (tahun):
 
@@ -278,7 +314,7 @@ Return statistik agregat masa studi (tahun):
 
 ## 10. Top 10 Prodi
 
-**GET** `/ktw/top-prodi?cohort=2020&jenjang=S1&limit=10`
+**GET** `/dashboard/ktw/top-prodi?cohort=2020&jenjang=S1&limit=10`
 
 Prodi dgn `pct_ktw_strict` tertinggi. Format sama dengan `/prodi` (10 row teratas).
 
@@ -286,7 +322,7 @@ Prodi dgn `pct_ktw_strict` tertinggi. Format sama dengan `/prodi` (10 row terata
 
 ## 11. Preset Cutoff (Kalender Akademik)
 
-**GET** `/ktw/presets`
+**GET** `/dashboard/ktw/presets`
 
 Return list cutoff date preset (akhir semester, awal tahun, wisuda tipikal) dari `ref.semester` pdut.
 
@@ -302,44 +338,44 @@ Return list cutoff date preset (akhir semester, awal tahun, wisuda tipikal) dari
 
 ---
 
-## 12. Reconcile dengan Spordit
+## 12. Reconcile dengan Spordit *(internal only)*
 
-**GET** `/ktw/reconcile?cohort=2020&jenjang=S1`
-
-Perbandingan angka pdut vs spordit (`masa_studi_generate_lulusan`). Untuk audit data consistency.
-
----
-
-## Error Response
-
-```json
-{
-  "message": "The cohort field must be an integer.",
-  "errors": {
-    "cohort": ["The cohort field must be an integer."]
-  }
-}
-```
-
-HTTP status code standar: 200 sukses, 422 validation error, 500 server error.
+`/ktw/reconcile` (public-service direct) — belum di-expose di ws-service.
+Reserved untuk audit internal, akan ditambahkan bila diperlukan.
 
 ---
 
 ## Cache
 
-Semua endpoint GET di-cache 10 menit (Redis).
-Key pattern: `ktw:{scope}:{cohort}:{jenjang}:{cutoff}`
+- **ws-service layer (client-facing):** 5 menit, key `dashboard:ktw:{endpoint}:{hash(params)}`
+- **public-service layer (upstream):** 10 menit, key `ktw:{scope}:{cohort}:{jenjang}:{cutoff}`
 
-Force refresh: **POST** `/ktw/refresh` (invalidate semua cache KTW).
+Cache ws-service di-refresh paksa oleh upstream. Tidak ada endpoint refresh publik (POST `/ktw/refresh` di public-service internal hanya).
 
 ---
 
 ## Catatan Implementasi
 
 1. **Angka identik** dengan yang tampil di `/infografis/ktw` (public) dan `/dashboard/pimpinan/ktw` (JWT-protected).
-2. **Tidak ada data personal** di response publik — hanya agregat per fakultas/prodi. Endpoint list individu mahasiswa per prodi (`/ktw/prodi/{id}/mahasiswa`) JWT-protected, dipakai dashboard pimpinan saja.
+2. **Tidak ada data personal** di response publik — hanya agregat per fakultas/prodi. Endpoint list individu mahasiswa per prodi ada di `/dashboard/pimpinan/ktw` internal, tidak di-expose via ws-service.
 3. **id_smt Gasal** untuk angkatan = `{tahun}1` (cth 2020 → `20201`).
 4. **Excel manual tim wali data** under-count ~10% krn manual rekap — pdut = source of truth.
+5. **Rate limit:** soft 60 req/menit per IP. Di-handle di Kong (future) atau Fiber middleware.
+
+---
+
+## Contoh cURL Cepat
+
+```bash
+# Overview S1 angkatan 2020
+curl "https://my.unila.ac.id/gateway/ws-service/v1/dashboard/ktw/overview?cohort=2020&jenjang=S1"
+
+# Trend 6 angkatan terakhir
+curl "https://my.unila.ac.id/gateway/ws-service/v1/dashboard/ktw/trend?jenjang=S1&start=2015&end=2020"
+
+# Top 5 prodi KTW tertinggi
+curl "https://my.unila.ac.id/gateway/ws-service/v1/dashboard/ktw/top-prodi?cohort=2020&jenjang=S1&limit=5"
+```
 
 ---
 
@@ -347,4 +383,4 @@ Force refresh: **POST** `/ktw/refresh` (invalidate semua cache KTW).
 
 Untuk kebutuhan integrasi tambahan atau endpoint baru, hubungi tim TIK Unila.
 
-**Terakhir update:** 2026-04-22
+**Terakhir update:** 2026-04-23 — dipindah dari langsung public-service ke ws-service proxy.
