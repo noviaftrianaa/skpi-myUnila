@@ -22,6 +22,10 @@ type Repository interface {
 	GetNilaiTranskrip(ctx context.Context, p types.NilaiTranskripParams) ([]NilaiTranskrip, int64, error)
 	GetKehadiranMhs(ctx context.Context, p types.KehadiranMhsParams) ([]KehadiranMhs, int64, error)
 	GetAktMhs(ctx context.Context, p types.AktMhsParams) ([]AktMhs, int64, error)
+
+	// Batch 3: Bimbingan & Uji
+	GetBimbingMhs(ctx context.Context, p types.BimbingMhsParams) ([]BimbingMhs, int64, error)
+	GetUjiMhs(ctx context.Context, p types.UjiMhsParams) ([]UjiMhs, int64, error)
 }
 
 type repository struct {

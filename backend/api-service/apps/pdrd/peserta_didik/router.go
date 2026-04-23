@@ -24,4 +24,8 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	router.Get("/list_nilai_transkrip", handler.GetNilaiTranskrip)
 	router.Get("/list_kehadiran_mhs", handler.GetKehadiranMhs)
 	router.Get("/list_aktivitas_mhs", handler.GetAktMhs)
+
+	// Batch 3 — bimbingan + uji TA
+	router.Get("/list_bimbing_mhs", handler.GetBimbingMhs)
+	router.Get("/list_uji_mhs", handler.GetUjiMhs)
 }

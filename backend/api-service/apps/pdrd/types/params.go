@@ -173,6 +173,88 @@ type AktMhsParams struct {
 	AFlagship   *int    `query:"a_flagship"`
 }
 
+// ============================================================================
+// Batch 3: Bimbingan & Uji Mahasiswa (dosen → akt_mhs pivot)
+// ============================================================================
+type BimbingMhsParams struct {
+	PaginationParams
+	IDSDM    *string `query:"id_sdm"`
+	IDAktMhs *string `query:"id_akt_mhs"`
+}
+
+type UjiMhsParams struct {
+	PaginationParams
+	IDSDM    *string `query:"id_sdm"`
+	IDAktMhs *string `query:"id_akt_mhs"`
+}
+
+// ============================================================================
+// Batch 4: SDM lanjutan
+// ============================================================================
+type KinerjaDosenParams struct {
+	PaginationParams
+	IDRegPtk    *string `query:"id_reg_ptk"`
+	IDSmt       *int    `query:"id_smt"`
+	IDJabfung   *int    `query:"id_jabfung"`
+	StatTugas   *string `query:"stat_tugas"`
+	StatBelajar *string `query:"stat_belajar"`
+}
+
+type RwyPekerjaanParams struct {
+	PaginationParams
+	IDSDM       *string `query:"id_sdm"`
+	IDPekerjaan *int    `query:"id_pekerjaan"`
+	ALn         *int    `query:"a_ln"`
+}
+
+type RwyStrukturalParams struct {
+	PaginationParams
+	IDSDM    *string `query:"id_sdm"`
+	IDJabTgs *int    `query:"id_jab_tgs"`
+}
+
+type DiklatParams struct {
+	PaginationParams
+	IDDiklat    *string `query:"id_diklat"`
+	IDSDM       *string `query:"id_sdm"`
+	IDJnsDiklat *int    `query:"id_jns_diklat"`
+	Thn         *int    `query:"thn"`
+	AValid      *int    `query:"a_valid"`
+}
+
+// ============================================================================
+// Batch 5: Institusi
+// ============================================================================
+type ProdiParams struct {
+	PaginationParams
+	IDSms       *string `query:"id_sms"`
+	IDFakUnila  *string `query:"id_fak_unila"`
+	IDJenjDidik *int    `query:"id_jenj_didik"`
+	IDJnsSms    *int    `query:"id_jns_sms"`
+	StatProdi   *string `query:"stat_prodi"` // A=Aktif, T=Tutup
+	KodeProdi   *string `query:"kode_prodi"`
+}
+
+type SatuanPendidikanParams struct {
+	PaginationParams
+	IDSp *string `query:"id_sp"`
+	Npsn *string `query:"npsn"`
+}
+
+type ProfilProdiParams struct {
+	PaginationParams
+	IDSms       *string `query:"id_sms"`
+	IDThnAjaran *int    `query:"id_thn_ajaran"`
+}
+
+type AkreditasiProdiParams struct {
+	PaginationParams
+	IDSms       *string `query:"id_sms"`
+	IDLembAkred *int    `query:"id_lemb_akred"`
+	IDAkred     *int    `query:"id_akred"`
+	AAktif      *int    `query:"a_aktif"`
+}
+
 type LitabmasParams struct {
 	PaginationParams
 	IDLitabmas    string  `query:"id_litabmas"`     // Filter by ID litabmas
