@@ -24,6 +24,12 @@ type Service interface {
 	GetRiwayatKepangkatan(ctx context.Context, p types.RiwayatSDMParams) ([]RiwayatKepangkatan, int64, error)
 	GetRiwayatTugasTambahan(ctx context.Context, p types.RiwayatSDMParams) ([]RiwayatTugasTambahan, int64, error)
 	GetRiwayatSertifikasi(ctx context.Context, p types.RiwayatSDMParams) ([]RiwayatSertifikasi, int64, error)
+
+	// Batch 4 — SDM lanjutan
+	GetKinerjaDosen(ctx context.Context, p types.KinerjaDosenParams) ([]KinerjaDosen, int64, error)
+	GetRwyPekerjaan(ctx context.Context, p types.RwyPekerjaanParams) ([]RwyPekerjaan, int64, error)
+	GetRwyStruktural(ctx context.Context, p types.RwyStrukturalParams) ([]RwyStruktural, int64, error)
+	GetDiklat(ctx context.Context, p types.DiklatParams) ([]Diklat, int64, error)
 }
 
 type service struct {
