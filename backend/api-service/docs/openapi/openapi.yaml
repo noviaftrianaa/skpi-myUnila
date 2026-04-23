@@ -328,6 +328,22 @@ paths:
   /v1/pdrd/litabmas:
     $ref: './paths/pdrd.yaml#/litabmas'
 
+  # PDRD · SDM (source: SISTER)
+  /v1/pdrd/list_sdm:
+    $ref: './paths/pdrd.yaml#/list-sdm'
+  /v1/pdrd/detail_sdm:
+    $ref: './paths/pdrd.yaml#/detail-sdm'
+  /v1/pdrd/penugasan_sdm:
+    $ref: './paths/pdrd.yaml#/penugasan-sdm'
+  /v1/pdrd/riwayat_sdm:
+    $ref: './paths/pdrd.yaml#/riwayat-sdm'
+
+  # PDRD · Pegawai (source: SIKEP)
+  /v1/pdrd/list_pegawai:
+    $ref: './paths/pdrd.yaml#/list-pegawai'
+  /v1/pdrd/detail_pegawai:
+    $ref: './paths/pdrd.yaml#/detail-pegawai'
+
 components:
   schemas:
     $ref: './schemas/_index.yaml'

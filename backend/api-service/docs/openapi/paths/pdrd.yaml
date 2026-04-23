@@ -649,3 +649,236 @@ litabmas:
         $ref: '../responses/errors.yaml#/Unauthorized'
       '500':
         $ref: '../responses/errors.yaml#/InternalServerError'
+
+# =============================================================================
+# SDM (Dosen + Tendik) — sumber: SISTER (sync ke pdrd.sdm)
+# =============================================================================
+
+list-sdm:
+  get:
+    tags:
+      - PDRD
+    summary: List SDM (dosen/tendik)
+    description: |
+      Daftar SDM dari `pdrd.sdm`. Filter `id_jns_sdm`:
+      - `12` = Dosen
+      - `13` = Tenaga Kependidikan
+      - lihat `ref.jenis_sdm` untuk kode lengkap
+
+      **Sumber data:** SISTER (di-sync via sister-service).
+    operationId: getSDMList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - name: id_jns_sdm
+        in: query
+        description: Filter jenis SDM (12=Dosen, 13=Tendik)
+        schema: { type: integer, example: 12 }
+      - name: nidn
+        in: query
+        schema: { type: string }
+      - name: nuptk
+        in: query
+        schema: { type: string }
+      - name: nip
+        in: query
+        schema: { type: string }
+    responses:
+      '200':
+        description: OK
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+detail-sdm:
+  get:
+    tags:
+      - PDRD
+    summary: Detail SDM (dengan FK+nama ref)
+    description: |
+      Detail biodata SDM. Join ke `ref.jenis_sdm`, `ref.status_keaktifan_pegawai`,
+      `ref.agama`, `ref.wilayah`, `ref.sumber_gaji` — sehingga response
+      menampilkan FK id **dan** nama-nya.
+
+      **Minimal 1 filter wajib:** `id_sdm`, `nidn`, `nuptk`, atau `search`.
+    operationId: getSDMDetail
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: nidn
+        in: query
+        schema: { type: string }
+      - name: nuptk
+        in: query
+        schema: { type: string }
+      - name: id_jns_sdm
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200':
+        description: OK
+      '400': { $ref: '../responses/errors.yaml#/BadRequest' }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+penugasan-sdm:
+  get:
+    tags:
+      - PDRD
+    summary: Penugasan SDM (homebase reg_ptk)
+    description: |
+      Penugasan/homebase SDM di prodi / satuan pendidikan — dari `pdrd.reg_ptk`.
+      Join ke `pdrd.sdm`, `pdrd.satuan_pendidikan`, `pdrd.sms`,
+      `ref.status_kepegawaian`, `ref.ikatan_kerja_sdm`, `ref.jenis_keluar`.
+
+      Pakai `only_aktif=true` untuk filter `id_jns_keluar IS NULL`.
+    operationId: getPenugasanSDM
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sp
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: only_aktif
+        in: query
+        description: true = hanya penugasan aktif (belum keluar)
+        schema: { type: boolean }
+      - name: id_jns_keluar
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200':
+        description: OK
+
+riwayat-sdm:
+  get:
+    tags:
+      - PDRD
+    summary: Riwayat SDM (pendidikan/fungsional/kepangkatan/tugas/sertifikasi)
+    description: |
+      Endpoint generic untuk riwayat SDM. Tentukan jenis via `?type=`:
+      - `pend_formal` — dari `pdrd.rwy_pend_formal`
+      - `fungsional` — dari `pdrd.rwy_fungsional`
+      - `kepangkatan` — dari `pdrd.rwy_kepangkatan`
+      - `tugas_tambahan` — dari `pdrd.tugas_tambahan`
+      - `sertifikasi` — dari `pdrd.rwy_sertifikasi`
+
+      Join ref sesuai jenis untuk FK id+nama.
+    operationId: getRiwayatSDM
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        required: true
+        schema: { type: string, format: uuid }
+      - name: type
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [pend_formal, fungsional, kepangkatan, tugas_tambahan, sertifikasi]
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200':
+        description: OK
+      '400': { $ref: '../responses/errors.yaml#/BadRequest' }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+# =============================================================================
+# PEGAWAI — sumber: SIKEP (schema sikep.pegawai)
+# =============================================================================
+
+list-pegawai:
+  get:
+    tags:
+      - PDRD
+    summary: List pegawai (SIKEP)
+    description: |
+      Daftar pegawai dari schema `sikep.pegawai`. Berbeda sumber dengan
+      `/list_sdm` yang ambil dari `pdrd.sdm` (SISTER).
+
+      **Sumber data:** SIKEP (Sistem Kepegawaian Unila).
+
+      Filter populer:
+      - `jns_pegawai` — PNS / PPPK / Honorer
+      - `jns_tenaga` — Dosen / Tendik / Fungsional / Struktural
+      - `id_unit_orga` — filter unit organisasi
+    operationId: getPegawaiList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - name: jns_pegawai
+        in: query
+        schema: { type: string }
+      - name: jns_tenaga
+        in: query
+        schema: { type: string }
+      - name: nip
+        in: query
+        schema: { type: string }
+      - name: id_unit_orga
+        in: query
+        schema: { type: integer }
+      - name: id_gol
+        in: query
+        schema: { type: integer }
+      - name: id_jabfung
+        in: query
+        schema: { type: integer }
+      - name: id_jabstruk
+        in: query
+        schema: { type: integer }
+      - name: status
+        in: query
+        schema: { type: string }
+    responses:
+      '200':
+        description: OK
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+
+detail-pegawai:
+  get:
+    tags:
+      - PDRD
+    summary: Detail pegawai (SIKEP) — dengan FK+nama ref
+    description: |
+      Detail 1 atau lebih pegawai dengan JOIN ke:
+      - `sikep.golongan_pns` → nama golongan + pangkat
+      - `sikep.jabfung` → nama jabatan fungsional
+      - `sikep.jabstruk` → nama jabatan struktural
+      - `sikep.pendidikan` → nama pendidikan
+      - `sikep.unit_orga` → nama unit organisasi
+
+      **Minimal 1 filter wajib:** `id_pegawai`, `nip`, atau `search`.
+    operationId: getPegawaiDetail
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_pegawai
+        in: query
+        schema: { type: string, format: uuid }
+      - name: nip
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses:
+      '200':
+        description: OK
+      '400': { $ref: '../responses/errors.yaml#/BadRequest' }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }

@@ -5,8 +5,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 
+	"github.com/myunila/api-service/apps/pdrd/pegawai"
 	"github.com/myunila/api-service/apps/pdrd/penelitian"
 	pesertadidik "github.com/myunila/api-service/apps/pdrd/peserta_didik"
+	"github.com/myunila/api-service/apps/pdrd/sdm"
 	"github.com/myunila/api-service/internal/middleware"
 )
 
@@ -27,4 +29,6 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redis *redis
 
 	pesertadidik.RegisterRoutes(pdrd, db, redis)
 	penelitian.RegisterRoutes(pdrd, db, redis)
+	sdm.RegisterRoutes(pdrd, db, redis)     // SDM (dosen + tendik) — source: SISTER
+	pegawai.RegisterRoutes(pdrd, db, redis) // Pegawai — source: SIKEP
 }
