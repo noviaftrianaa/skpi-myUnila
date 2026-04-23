@@ -19,6 +19,12 @@ type Service interface {
 	GetPesertaDidikDetail(ctx context.Context, params types.PesertaDidikDetailParams) ([]PesertaDidikDetail, int64, error)
 	GetRegPd(ctx context.Context, params types.RegPdParams) ([]RegPd, int64, error)
 	GetStatusKuliahMahasiswa(ctx context.Context, params types.StatusKuliahMahasiswaParams) ([]StatusKuliahMahasiswa, int64, error)
+
+	// Batch 2: nilai + kehadiran + aktivitas
+	GetNilaiSmtMhs(ctx context.Context, p types.NilaiSmtParams) ([]NilaiSmtMhs, int64, error)
+	GetNilaiTranskrip(ctx context.Context, p types.NilaiTranskripParams) ([]NilaiTranskrip, int64, error)
+	GetKehadiranMhs(ctx context.Context, p types.KehadiranMhsParams) ([]KehadiranMhs, int64, error)
+	GetAktMhs(ctx context.Context, p types.AktMhsParams) ([]AktMhs, int64, error)
 }
 
 type service struct {

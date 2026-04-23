@@ -18,4 +18,10 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	router.Get("/detail_biodata_mahasiswa", handler.GetPesertaDidikDetail)
 	router.Get("/riwayat_pendidikan_mahasiswa", handler.GetRegPd)
 	router.Get("/status_kuliah_mahasiswa", handler.GetStatusKuliahMahasiswa)
+
+	// Batch 2 — nilai + kehadiran + aktivitas
+	router.Get("/list_nilai_smt", handler.GetNilaiSmtMhs)
+	router.Get("/list_nilai_transkrip", handler.GetNilaiTranskrip)
+	router.Get("/list_kehadiran_mhs", handler.GetKehadiranMhs)
+	router.Get("/list_aktivitas_mhs", handler.GetAktMhs)
 }

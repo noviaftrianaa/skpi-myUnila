@@ -138,6 +138,41 @@ type PegawaiParams struct {
 	Status     *string `query:"status"`
 }
 
+// Batch 2: Nilai & Kehadiran & Aktivitas Mahasiswa
+type NilaiSmtParams struct {
+	PaginationParams
+	IDRegPd *string `query:"id_reg_pd"`
+	IDKls   *string `query:"id_kls"`
+	IDSmt   *int    `query:"id_smt"`
+	Nipd    *string `query:"nipd"`
+}
+
+type NilaiTranskripParams struct {
+	PaginationParams
+	IDRegPd *string `query:"id_reg_pd"` // Wajib
+	IDMk    *string `query:"id_mk"`
+	SmtKe   *int    `query:"smt_ke"`
+	Nipd    *string `query:"nipd"`
+}
+
+type KehadiranMhsParams struct {
+	PaginationParams
+	IDHadirMhs *string `query:"id_hadir_mhs"`
+	IDKls      *string `query:"id_kls"`
+	IDRegPtk   *string `query:"id_reg_ptk"`
+	StatHadir  *string `query:"stat_hadir"`
+}
+
+type AktMhsParams struct {
+	PaginationParams
+	IDAktMhs    *string `query:"id_akt_mhs"`
+	IDJnsAktMhs *int    `query:"id_jns_akt_mhs"`
+	IDSms       *string `query:"id_sms"`
+	IDSmt       *int    `query:"id_smt"`
+	AKomunal    *int    `query:"a_komunal"`
+	AFlagship   *int    `query:"a_flagship"`
+}
+
 type LitabmasParams struct {
 	PaginationParams
 	IDLitabmas    string  `query:"id_litabmas"`     // Filter by ID litabmas
