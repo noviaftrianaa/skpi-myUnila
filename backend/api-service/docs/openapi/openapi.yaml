@@ -63,6 +63,11 @@ tags:
     description: |
       Publikasi ilmiah (jurnal, prosiding, buku, dll).
       Source: `pdrd.publikasi`.
+  - name: Institusi
+    description: |
+      Profil institusi: program studi, satuan pendidikan (fakultas),
+      profil prodi per tahun ajaran, akreditasi.
+      Source: `pdrd.sms`, `pdrd.satuan_pendidikan`, `pdrd.profil_prodi`, `pdrd.akreditasi_prodi`.
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -122,6 +127,10 @@ paths:
     $ref: './paths/pdrd.yaml#/list-kehadiran-mhs'
   /v1/mahasiswa/list_aktivitas_mhs:
     $ref: './paths/pdrd.yaml#/list-aktivitas-mhs'
+  /v1/mahasiswa/list_bimbing_mhs:
+    $ref: './paths/pdrd.yaml#/list-bimbing-mhs'
+  /v1/mahasiswa/list_uji_mhs:
+    $ref: './paths/pdrd.yaml#/list-uji-mhs'
 
   # ==========================================================================
   # AKADEMIK (matkul, kelas kuliah, jadwal, kurikulum)
@@ -148,6 +157,26 @@ paths:
     $ref: './paths/pdrd.yaml#/penugasan-sdm'
   /v1/sdm/riwayat_sdm:
     $ref: './paths/pdrd.yaml#/riwayat-sdm'
+  /v1/sdm/list_kinerja_dosen:
+    $ref: './paths/pdrd.yaml#/list-kinerja-dosen'
+  /v1/sdm/list_rwy_pekerjaan:
+    $ref: './paths/pdrd.yaml#/list-rwy-pekerjaan'
+  /v1/sdm/list_rwy_struktural:
+    $ref: './paths/pdrd.yaml#/list-rwy-struktural'
+  /v1/sdm/list_diklat:
+    $ref: './paths/pdrd.yaml#/list-diklat'
+
+  # ==========================================================================
+  # INSTITUSI — Profil prodi + akreditasi + fakultas
+  # ==========================================================================
+  /v1/institusi/list_prodi:
+    $ref: './paths/pdrd.yaml#/list-prodi'
+  /v1/institusi/list_satuan_pendidikan:
+    $ref: './paths/pdrd.yaml#/list-satuan-pendidikan'
+  /v1/institusi/list_profil_prodi:
+    $ref: './paths/pdrd.yaml#/list-profil-prodi'
+  /v1/institusi/list_akreditasi_prodi:
+    $ref: './paths/pdrd.yaml#/list-akreditasi-prodi'
 
   # ==========================================================================
   # PEGAWAI — source SIKEP

@@ -1147,3 +1147,247 @@ list-aktivitas-mhs:
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses:
       '200': { description: OK }
+
+# =============================================================================
+# MAHASISWA — Batch 3 (bimbing_mhs, uji_mhs)
+# =============================================================================
+
+list-bimbing-mhs:
+  get:
+    tags: [Mahasiswa]
+    summary: Bimbingan dosen → aktivitas mahasiswa (skripsi/tesis/disertasi)
+    description: Pivot `pdrd.bimbing_mhs`. Dosen yang membimbing di aktivitas mhs (promotor 1/2/3).
+    operationId: getBimbingMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_akt_mhs
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-uji-mhs:
+  get:
+    tags: [Mahasiswa]
+    summary: Pengujian dosen (sidang TA)
+    description: Pivot `pdrd.uji_mhs`. Dosen yang menguji di sidang TA mhs.
+    operationId: getUjiMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_akt_mhs
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# SDM — Batch 4 (kinerja_dosen, rwy_pekerjaan, rwy_struktural, diklat)
+# =============================================================================
+
+list-kinerja-dosen:
+  get:
+    tags: [SDM]
+    summary: Kinerja Dosen (BKD — Beban Kerja Dosen per semester)
+    description: Data BKD dari `pdrd.kinerja_dosen` — SKS pendidikan/penelitian/pengabdian per dosen per semester, simpulan asesor, ewmp.
+    operationId: getKinerjaDosen
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_reg_ptk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: integer, example: 20251 }
+      - name: id_jabfung
+        in: query
+        schema: { type: integer }
+      - name: stat_tugas
+        in: query
+        schema: { type: string }
+      - name: stat_belajar
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-rwy-pekerjaan:
+  get:
+    tags: [SDM]
+    summary: Riwayat pekerjaan SDM (sebelum/samping kerja UNILA)
+    description: Dari `pdrd.rwy_pekerjaan`. Pekerjaan di luar kampus (sebelum diangkat atau pekerjaan paralel).
+    operationId: getRwyPekerjaan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_pekerjaan
+        in: query
+        schema: { type: integer }
+      - name: a_ln
+        in: query
+        description: 1 = luar negeri
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-rwy-struktural:
+  get:
+    tags: [SDM]
+    summary: Riwayat jabatan struktural SDM
+    description: Dari `pdrd.rwy_struktural`. Jabatan struktural (rektor/dekan/kaprodi) yang pernah dijabat.
+    operationId: getRwyStruktural
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jab_tgs
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-diklat:
+  get:
+    tags: [SDM]
+    summary: Diklat/pelatihan SDM
+    description: Dari `pdrd.diklat`. Daftar diklat/workshop/training yang diikuti SDM.
+    operationId: getDiklat
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jns_diklat
+        in: query
+        schema: { type: integer }
+      - name: thn
+        in: query
+        schema: { type: integer, example: 2024 }
+      - name: a_valid
+        in: query
+        description: 1 = sudah divalidasi
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# INSTITUSI — Batch 5 (sms, satuan_pendidikan, profil_prodi, akreditasi_prodi)
+# =============================================================================
+
+list-prodi:
+  get:
+    tags: [Institusi]
+    summary: List program studi (master)
+    description: |
+      Master prodi dari `pdrd.sms`. Join ke `man_akses.unit_organisasi` (fakultas),
+      `ref.jenjang_pendidikan`, `ref.jenis_sms`.
+    operationId: getProdiList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_fak_unila
+        in: query
+        schema: { type: string }
+      - name: id_jenj_didik
+        in: query
+        description: 22=D3, 23=D4, 30=S1, 35=S2, 40=S3
+        schema: { type: integer }
+      - name: id_jns_sms
+        in: query
+        schema: { type: integer }
+      - name: stat_prodi
+        in: query
+        description: A=Aktif, T=Tutup
+        schema: { type: string }
+      - name: kode_prodi
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-satuan-pendidikan:
+  get:
+    tags: [Institusi]
+    summary: List satuan pendidikan (PT + fakultas)
+    description: Master satuan pendidikan dari `pdrd.satuan_pendidikan` (UNILA + data struktur).
+    operationId: getSatuanPendidikanList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sp
+        in: query
+        schema: { type: string, format: uuid }
+      - name: npsn
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-profil-prodi:
+  get:
+    tags: [Institusi]
+    summary: Profil prodi per tahun ajaran
+    description: Visi/misi/tujuan/kompetensi/capaian belajar per prodi per tahun ajaran dari `pdrd.profil_prodi`.
+    operationId: getProfilProdiList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_thn_ajaran
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-akreditasi-prodi:
+  get:
+    tags: [Institusi]
+    summary: Akreditasi prodi
+    description: SK akreditasi dari BAN-PT / LAM dari `pdrd.akreditasi_prodi`. Filter `a_aktif=1` untuk yang masih berlaku.
+    operationId: getAkreditasiProdiList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_lemb_akred
+        in: query
+        description: ID lembaga akreditasi (BAN-PT, LAM Teknik, dll)
+        schema: { type: integer }
+      - name: id_akred
+        in: query
+        description: Nilai akreditasi (A/B/C atau Unggul/Baik Sekali/Baik)
+        schema: { type: integer }
+      - name: a_aktif
+        in: query
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
