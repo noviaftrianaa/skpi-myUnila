@@ -17,6 +17,7 @@ import (
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/dashboard"
 	"github.com/myunila/api-service/apps/diklat"
+	"github.com/myunila/api-service/apps/institusi"
 	"github.com/myunila/api-service/apps/pdrd"
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
@@ -201,6 +202,10 @@ func main() {
 	// Akademik module (matkul, kelas_kuliah, jadwal_kelas, kurikulum_sp)
 	akademik.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Akademik module initialized")
+
+	// Institusi module (prodi, satuan_pendidikan, profil_prodi, akreditasi_prodi)
+	institusi.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
+	log.Println("✅ Institusi module initialized")
 
 	// Dashboard module (public — no JWT, but rate-limited).
 	// Proxy ke service domain masing-masing (KTW → public-service).
