@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/myunila/api-service/apps/akademik"
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/dashboard"
 	"github.com/myunila/api-service/apps/diklat"
@@ -195,7 +196,11 @@ func main() {
 	log.Println("✅ Diklat module initialized")
 
 	pdrd.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
-	log.Println("✅ PDRD module initialized")
+	log.Println("✅ PDRD module initialized (+ domain aliases: /mahasiswa /sdm /pegawai /penelitian)")
+
+	// Akademik module (matkul, kelas_kuliah, jadwal_kelas, kurikulum_sp)
+	akademik.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
+	log.Println("✅ Akademik module initialized")
 
 	// Dashboard module (public — no JWT, but rate-limited).
 	// Proxy ke service domain masing-masing (KTW → public-service).

@@ -12,23 +12,57 @@ import (
 	"github.com/myunila/api-service/internal/middleware"
 )
 
-// RegisterRoutes mendaftarkan semua routes untuk modul PDRD (backward compat)
-func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
-	RegisterRoutesWithMiddleware(router, db, redis, nil)
+// RegisterRoutes mendaftarkan routes dgn backward compat (tanpa middleware chain).
+func RegisterRoutes(router fiber.Router, db *sqlx.DB, redisCli *redis.Client) {
+	RegisterRoutesWithMiddleware(router, db, redisCli, nil)
 }
 
-// RegisterRoutesWithMiddleware mendaftarkan routes dengan custom middleware chain
-func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redis *redis.Client, middlewares []fiber.Handler) {
-	var pdrd fiber.Router
-	if len(middlewares) > 0 {
-		pdrd = router.Group("/pdrd", middlewares...)
-	} else {
-		pdrd = router.Group("/pdrd", middleware.KongAuth())
+// RegisterRoutesWithMiddleware mendaftarkan routes dgn domain grouping.
+//
+// Mulai 2026-04-23: grouping pindah ke domain-based (/mahasiswa, /sdm, /pegawai,
+// /publikasi, /litabmas). `/pdrd/*` dipertahankan sebagai alias deprecated
+// untuk backward compat existing client.
+func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *redis.Client, middlewares []fiber.Handler) {
+	// Helper: bikin group dengan middleware chain standar
+	group := func(prefix string) fiber.Router {
+		var g fiber.Router
+		if len(middlewares) > 0 {
+			g = router.Group(prefix, middlewares...)
+		} else {
+			g = router.Group(prefix, middleware.KongAuth())
+		}
+		g.Use(middleware.RateLimiterMiddleware(redisCli, middleware.DefaultRateLimiterConfig()))
+		return g
 	}
-	pdrd.Use(middleware.RateLimiterMiddleware(redis, middleware.DefaultRateLimiterConfig()))
 
-	pesertadidik.RegisterRoutes(pdrd, db, redis)
-	penelitian.RegisterRoutes(pdrd, db, redis)
-	sdm.RegisterRoutes(pdrd, db, redis)     // SDM (dosen + tendik) — source: SISTER
-	pegawai.RegisterRoutes(pdrd, db, redis) // Pegawai — source: SIKEP
+	// =========================================================
+	// DEPRECATED: /v1/pdrd/* — kept for backward compatibility
+	// Existing clients tetap jalan. Ke depan migrate ke domain groups.
+	// =========================================================
+	legacy := group("/pdrd")
+	pesertadidik.RegisterRoutes(legacy, db, redisCli)
+	penelitian.RegisterRoutes(legacy, db, redisCli)
+	sdm.RegisterRoutes(legacy, db, redisCli)
+	pegawai.RegisterRoutes(legacy, db, redisCli)
+
+	// =========================================================
+	// NEW: domain-based groups (recommended URL)
+	// =========================================================
+
+	// /v1/mahasiswa/* — peserta didik (pdrd.peserta_didik, reg_pd, kuliah_mhs)
+	mhs := group("/mahasiswa")
+	pesertadidik.RegisterRoutes(mhs, db, redisCli)
+
+	// /v1/sdm/* — SDM dosen + tendik (source: SISTER)
+	sdmGroup := group("/sdm")
+	sdm.RegisterRoutes(sdmGroup, db, redisCli)
+
+	// /v1/pegawai/* — pegawai (source: SIKEP)
+	pegawaiGroup := group("/pegawai")
+	pegawai.RegisterRoutes(pegawaiGroup, db, redisCli)
+
+	// /v1/penelitian/* — publikasi + litabmas dalam satu domain "penelitian"
+	// (handler module penelitian sudah expose /publikasi & /litabmas path).
+	penelitiGroup := group("/penelitian")
+	penelitian.RegisterRoutes(penelitiGroup, db, redisCli)
 }
