@@ -14,6 +14,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/api-service/apps/auth"
+	"github.com/myunila/api-service/apps/dashboard"
 	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/pdrd"
 	"github.com/myunila/api-service/apps/referensi"
@@ -195,6 +196,11 @@ func main() {
 
 	pdrd.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ PDRD module initialized")
+
+	// Dashboard module (public — no JWT, but rate-limited).
+	// Proxy ke service domain masing-masing (KTW → public-service).
+	dashboard.RegisterRoutes(apiV1, redis.Client)
+	log.Println("✅ Dashboard module initialized (ktw proxy)")
 
 	// System routes (for endpoint management - self-report all registered routes)
 	app.Get("/system/routes", func(c *fiber.Ctx) error {
