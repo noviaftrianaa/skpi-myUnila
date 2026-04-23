@@ -1,0 +1,335 @@
+# Dashboard API Paths — KTW (Kelulusan Tepat Waktu) & agregat publik
+#
+# Endpoint publik (tanpa JWT). Proxy + cache dari public-service.
+# Semua endpoint di sini konsumsi bebas — data agregat saja, tidak ada
+# informasi personal mahasiswa.
+
+# ----------------------------------------------------------------------------
+# KTW — Overview
+# ----------------------------------------------------------------------------
+ktw-overview:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Overview KTW 1 angkatan univ-wide
+    description: |
+      Ringkasan angka KTW (Kelulusan Tepat Waktu) 1 angkatan masuk — univ-wide.
+      Denominator = Peserta Didik Baru (id_jns_daftar=1) angkatan Gasal.
+      Numerator = Lulus dengan masa mukim ≤ masa normatif per strata.
+
+      **Masa normatif:** D3=3, D4=4, S1=4, S2=2, S3=3 (tahun).
+    operationId: getKtwOverview
+    parameters:
+      - name: cohort
+        in: query
+        description: Tahun angkatan masuk (cth 2020). Kalau kosong, default = thn - normatif - 1.
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        description: Strata program.
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        description: Tanggal cutoff snapshot (format YYYY-MM-DD). Lulus setelah cutoff tidak dihitung.
+        schema: { type: string, format: date, example: '2026-04-22' }
+      - name: reconcile
+        in: query
+        description: Sertakan blok `reconcile` dari spordit (optional audit).
+        schema: { type: boolean, default: false }
+    responses:
+      '200':
+        description: Berhasil mengambil overview KTW
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success: { type: boolean, example: true }
+                message: { type: string, example: 'Berhasil mengambil overview KTW' }
+                data:
+                  type: object
+                  properties:
+                    scope: { type: string, example: univ_angkatan }
+                    cohort_year: { type: integer, example: 2020 }
+                    jenjang: { type: string, example: S1 }
+                    data:
+                      type: object
+                      properties:
+                        maba: { type: integer, example: 5404 }
+                        sudah_lulus: { type: integer, example: 3912 }
+                        ktw_strict: { type: integer, example: 2475 }
+                        ktw_tolerant: { type: integer, example: 3036 }
+                        masih_aktif: { type: integer, example: 1024 }
+                        keluar_non_lulus: { type: integer, example: 468 }
+                        pct_ktw_strict: { type: number, example: 45.80 }
+                        pct_ktw_tolerant: { type: number, example: 56.18 }
+                        pct_survival: { type: number, example: 72.39 }
+                        masa_normatif_tahun: { type: integer, example: 4 }
+                        tolerance_tahun: { type: number, example: 0.25 }
+                timestamp: { type: string, format: date-time }
+
+# ----------------------------------------------------------------------------
+# KTW — Breakdown per Fakultas
+# ----------------------------------------------------------------------------
+ktw-fakultas:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Breakdown KTW per fakultas
+    description: Rincian KTW per fakultas untuk 1 angkatan + summary univ-wide.
+    operationId: getKtwFakultas
+    parameters:
+      - name: cohort
+        in: query
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: Berhasil mengambil KTW per fakultas
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success: { type: boolean }
+                data:
+                  type: object
+                  properties:
+                    scope: { type: string, example: fakultas_breakdown }
+                    summary: { type: object }
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id_fakultas: { type: string, format: uuid }
+                          nm_fakultas: { type: string }
+                          maba: { type: integer }
+                          sudah_lulus: { type: integer }
+                          ktw_strict: { type: integer }
+                          pct_ktw_strict: { type: number }
+                          pct_survival: { type: number }
+
+# ----------------------------------------------------------------------------
+# KTW — Breakdown per Prodi
+# ----------------------------------------------------------------------------
+ktw-prodi:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Breakdown KTW per prodi
+    description: Rincian KTW per prodi. Filter opsional `id_fakultas` untuk drill-down.
+    operationId: getKtwProdi
+    parameters:
+      - name: cohort
+        in: query
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: id_fakultas
+        in: query
+        description: Filter ke 1 fakultas.
+        schema: { type: string, format: uuid }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Detail Prodi
+# ----------------------------------------------------------------------------
+ktw-prodi-detail:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Detail KTW 1 prodi
+    description: Info prodi + overview data + (optional) reconcile dari spordit.
+    operationId: getKtwProdiDetail
+    parameters:
+      - name: id_sms
+        in: path
+        required: true
+        description: UUID prodi (id_sms dari pdut).
+        schema: { type: string, format: uuid }
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer, example: 2020 }
+      - name: reconcile
+        in: query
+        schema: { type: boolean, default: true }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Trend
+# ----------------------------------------------------------------------------
+ktw-trend:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Trend KTW 6 angkatan
+    description: Time-series KTW per angkatan untuk chart trend.
+    operationId: getKtwTrend
+    parameters:
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: start
+        in: query
+        description: Tahun angkatan awal.
+        schema: { type: integer, example: 2015 }
+      - name: end
+        in: query
+        description: Tahun angkatan akhir.
+        schema: { type: integer, example: 2020 }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Breakdown Status
+# ----------------------------------------------------------------------------
+ktw-status-breakdown:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Breakdown status keluar (Lulus/Aktif/DO/Mutasi/dll)
+    operationId: getKtwStatusBreakdown
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Breakdown Gender
+# ----------------------------------------------------------------------------
+ktw-gender-breakdown:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Breakdown KTW per gender (L vs P)
+    operationId: getKtwGenderBreakdown
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Breakdown Jalur Daftar
+# ----------------------------------------------------------------------------
+ktw-jalur-breakdown:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Breakdown KTW per jalur daftar (SNMPTN/SBMPTN/Mandiri/dll)
+    operationId: getKtwJalurBreakdown
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Statistik Masa Mukim
+# ----------------------------------------------------------------------------
+ktw-masa-mukim-stats:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Statistik agregat masa mukim lulusan (avg/min/max/stddev)
+    operationId: getKtwMasaMukimStats
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Top Prodi
+# ----------------------------------------------------------------------------
+ktw-top-prodi:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Top prodi dengan %KTW tertinggi
+    operationId: getKtwTopProdi
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: limit
+        in: query
+        description: Jumlah prodi teratas (default 10).
+        schema: { type: integer, default: 10, minimum: 1, maximum: 50 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200':
+        description: OK
+
+# ----------------------------------------------------------------------------
+# KTW — Preset Cutoff
+# ----------------------------------------------------------------------------
+ktw-presets:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: Preset tanggal cutoff dari kalender akademik
+    description: Akhir semester, awal tahun, wisuda tipikal — dari ref.semester pdut.
+    operationId: getKtwPresets
+    responses:
+      '200':
+        description: OK

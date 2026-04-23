@@ -5,10 +5,14 @@ info:
     Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
     **Base URL:** `/v1/...` (sama untuk staging dan production)
-    
+
     **Environment:**
     - Staging: `http://192.168.120.45:9800/ws-service/v1`
-    - Production: `https://my.unila.ac.id/ws-service/v1`
+    - Production (internal/JWT): `https://my.unila.ac.id/api-service/v1`
+    - Production (docs publik): `https://my.unila.ac.id/gateway/api-service/docs`
+
+    **Endpoint publik (tanpa JWT):**
+    - `GET /v1/dashboard/ktw/*` — statistik Kelulusan Tepat Waktu (untuk BAN-PT, aplikasi fakultas, dll). Lihat tag `Dashboard · KTW`.
 
     Untuk permintaan penambahan endpoint atau akses API, hubungi PJ Aplikasi terkait atau tim pengembang.
   version: 1.0.0
@@ -21,6 +25,11 @@ servers:
     description: Relative (auto-detect environment)
 
 tags:
+  - name: Dashboard · KTW
+    description: |
+      Statistik Kelulusan Tepat Waktu (KTW) — endpoint **publik tanpa JWT**.
+      Data agregat per angkatan/fakultas/prodi untuk BAN-PT, aplikasi fakultas,
+      dashboard eksekutif, dan integrasi pihak ketiga.
   - name: Auth
     description: Autentikasi dan manajemen token
   - name: Referensi
@@ -31,6 +40,32 @@ tags:
     description: System endpoints
 
 paths:
+  # ==========================================================================
+  # DASHBOARD · KTW (publik, tanpa JWT) — proxy ke public-service
+  # ==========================================================================
+  /v1/dashboard/ktw/overview:
+    $ref: './paths/dashboard.yaml#/ktw-overview'
+  /v1/dashboard/ktw/fakultas:
+    $ref: './paths/dashboard.yaml#/ktw-fakultas'
+  /v1/dashboard/ktw/prodi:
+    $ref: './paths/dashboard.yaml#/ktw-prodi'
+  /v1/dashboard/ktw/prodi/{id_sms}:
+    $ref: './paths/dashboard.yaml#/ktw-prodi-detail'
+  /v1/dashboard/ktw/trend:
+    $ref: './paths/dashboard.yaml#/ktw-trend'
+  /v1/dashboard/ktw/status-breakdown:
+    $ref: './paths/dashboard.yaml#/ktw-status-breakdown'
+  /v1/dashboard/ktw/gender-breakdown:
+    $ref: './paths/dashboard.yaml#/ktw-gender-breakdown'
+  /v1/dashboard/ktw/jalur-breakdown:
+    $ref: './paths/dashboard.yaml#/ktw-jalur-breakdown'
+  /v1/dashboard/ktw/masa-mukim-stats:
+    $ref: './paths/dashboard.yaml#/ktw-masa-mukim-stats'
+  /v1/dashboard/ktw/top-prodi:
+    $ref: './paths/dashboard.yaml#/ktw-top-prodi'
+  /v1/dashboard/ktw/presets:
+    $ref: './paths/dashboard.yaml#/ktw-presets'
+
   # Auth endpoints
   /v1/auth/login:
     $ref: './paths/auth.yaml#/login'
