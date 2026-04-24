@@ -74,6 +74,12 @@ tags:
       buku ajar, kepanitiaan, prestasi mahasiswa.
       Source: `pdrd.pembicara`, `pdrd.pengelola_jurnal`, `pdrd.buku_ajar`,
       `pdrd.kepanitiaan`, `pdrd.prestasi`.
+  - name: Tracer Study
+    description: |
+      Survei alumni (tracer study) — status kerja, waktu tunggu, income, kesesuaian
+      bidang, survei atasan. **Full CRUD** untuk sync dari aplikasi tracer eksternal
+      ke pdut via POST/PUT/DELETE. Source: schema `tracer` (hasil_tracer_study,
+      hasil_tracer_atasan, umr_wilayah).
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -271,6 +277,20 @@ paths:
     $ref: './paths/pdrd.yaml#/list-non-ca-anggota-litabmas'
   /v1/penelitian/list_non_ca:
     $ref: './paths/pdrd.yaml#/list-non-ca'
+
+  # ==========================================================================
+  # TRACER STUDY — schema tracer (CRUD)
+  # ==========================================================================
+  /v1/tracer/hasil_tracer:
+    $ref: './paths/tracer.yaml#/hasil-tracer-collection'
+  /v1/tracer/hasil_tracer/{id}:
+    $ref: './paths/tracer.yaml#/hasil-tracer-item'
+  /v1/tracer/hasil_tracer_atasan:
+    $ref: './paths/tracer.yaml#/hasil-tracer-atasan-collection'
+  /v1/tracer/hasil_tracer_atasan/{id}:
+    $ref: './paths/tracer.yaml#/hasil-tracer-atasan-item'
+  /v1/tracer/umr_wilayah:
+    $ref: './paths/tracer.yaml#/umr-wilayah'
 
   # ==========================================================================
   # REFERENSI (ref.*)

@@ -1,0 +1,272 @@
+# Path definitions untuk modul Tracer Study (Batch 12)
+# Schema `tracer` di pdut — CRUD hasil_tracer_study + hasil_tracer_atasan,
+# GET-only untuk umr_wilayah.
+
+# =============================================================================
+# hasil_tracer_study (full CRUD)
+# =============================================================================
+
+hasil-tracer-collection:
+  get:
+    tags: [Tracer Study]
+    summary: List hasil tracer study
+    description: |
+      Survey alumni — status kerja, waktu tunggu, income, kesesuaian bidang, dll.
+      Join ke pdrd.reg_pd + peserta_didik + sms untuk enrich nama mhs/prodi.
+    operationId: listHasilTracer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_hasil_tracer_study, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: id_thn_ajaran, in: query, schema: { type: integer } }
+      - { name: status_lulusan, in: query, description: "1=Bekerja, 2=Wirausaha, 3=Belum, 4=Lanjut Studi", schema: { type: integer } }
+      - { name: tkt_kesesuaian, in: query, description: "1=Sangat Sesuai .. 4=Tidak Sesuai", schema: { type: integer, minimum: 1, maximum: 4 } }
+      - { name: hub_bidang_kerja, in: query, schema: { type: integer, minimum: 1, maximum: 5 } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+  post:
+    tags: [Tracer Study]
+    summary: Create hasil tracer study
+    description: |
+      Sync hasil survey dari aplikasi tracer eksternal ke pdut.
+      Kalau `id_hasil_tracer_study` kosong, server generate UUID baru.
+      **Wajib:** id_reg_pd, id_thn_ajaran, wkt_pengisian (ISO8601), status_lulusan, id_creator.
+    operationId: createHasilTracer
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_reg_pd, id_thn_ajaran, wkt_pengisian, status_lulusan, id_creator]
+            properties:
+              id_hasil_tracer_study: { type: string, format: uuid, description: optional — auto-generate kalau kosong }
+              id_reg_pd: { type: string, format: uuid }
+              id_thn_ajaran: { type: integer, example: 2024 }
+              id_bid_kerja: { type: integer }
+              id_wil: { type: string }
+              id_smt: { type: string }
+              id_jns_jalur_kerja: { type: integer }
+              wkt_pengisian: { type: string, format: date-time }
+              wkt_tunggu: { type: integer, description: bulan menunggu kerja }
+              status_lulusan: { type: integer, enum: [1,2,3,4,5] }
+              jns_tmpt_bekerja: { type: string }
+              nm_tmpt_bekerja: { type: string }
+              income_per_bln: { type: number }
+              total_instansi_dilamar: { type: integer }
+              hub_bidang_kerja: { type: integer, minimum: 1, maximum: 5 }
+              tkt_kesesuaian: { type: integer, minimum: 1, maximum: 4 }
+              alasan_tidak_sesuai: { type: string }
+              a_kerja_sblm_lulus: { type: integer, enum: [0,1] }
+              ket: { type: string }
+              level_perusahaan: { type: string }
+              status_jabatan: { type: string }
+              nm_pt_lnjt: { type: string }
+              nm_prodi_lnjt: { type: string }
+              wkt_masuk: { type: string, format: date-time }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+      '400': { description: Body validation error }
+      '500': { description: DB error }
+
+hasil-tracer-item:
+  get:
+    tags: [Tracer Study]
+    summary: Get detail hasil tracer study
+    operationId: getHasilTracer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Tracer Study]
+    summary: Update hasil tracer study
+    description: Semua field body optional kecuali `id_updater`. Hanya field yang dikirim akan di-update.
+    operationId: updateHasilTracer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_thn_ajaran: { type: integer }
+              id_bid_kerja: { type: integer }
+              id_wil: { type: string }
+              id_smt: { type: string }
+              id_jns_jalur_kerja: { type: integer }
+              wkt_pengisian: { type: string, format: date-time }
+              wkt_tunggu: { type: integer }
+              status_lulusan: { type: integer }
+              jns_tmpt_bekerja: { type: string }
+              nm_tmpt_bekerja: { type: string }
+              income_per_bln: { type: number }
+              total_instansi_dilamar: { type: integer }
+              hub_bidang_kerja: { type: integer }
+              tkt_kesesuaian: { type: integer }
+              alasan_tidak_sesuai: { type: string }
+              a_kerja_sblm_lulus: { type: integer }
+              ket: { type: string }
+              level_perusahaan: { type: string }
+              status_jabatan: { type: string }
+              nm_pt_lnjt: { type: string }
+              nm_prodi_lnjt: { type: string }
+              wkt_masuk: { type: string, format: date-time }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Tracer Study]
+    summary: Soft-delete hasil tracer study
+    description: Set soft_delete=1. id_updater wajib di body JSON atau query `?id_updater=<uuid>`.
+    operationId: deleteHasilTracer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+# =============================================================================
+# hasil_tracer_atasan (full CRUD)
+# =============================================================================
+
+hasil-tracer-atasan-collection:
+  get:
+    tags: [Tracer Study]
+    summary: List hasil tracer atasan
+    description: Survei atasan alumni (saran/harapan dari atasan tempat bekerja).
+    operationId: listHasilTracerAtasan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_hasil_tracer_atasan, in: query, schema: { type: string, format: uuid } }
+      - { name: id_hasil_tracer_study, in: query, schema: { type: string, format: uuid } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+  post:
+    tags: [Tracer Study]
+    summary: Create hasil tracer atasan
+    operationId: createHasilTracerAtasan
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_hasil_tracer_study, id_creator]
+            properties:
+              id_hasil_tracer_atasan: { type: string, format: uuid }
+              id_hasil_tracer_study: { type: string, format: uuid }
+              id_negara: { type: string }
+              id_wil: { type: string }
+              email_atasan: { type: string }
+              nm_atasan: { type: string }
+              jabatan_atasan: { type: string }
+              nm_tmpt_bekerja: { type: string }
+              bidang_tempat_bekerja: { type: string }
+              saran: { type: string }
+              harapan: { type: string }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+
+hasil-tracer-atasan-item:
+  get:
+    tags: [Tracer Study]
+    summary: Get detail hasil tracer atasan
+    operationId: getHasilTracerAtasan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Tracer Study]
+    summary: Update hasil tracer atasan
+    operationId: updateHasilTracerAtasan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_negara: { type: string }
+              id_wil: { type: string }
+              email_atasan: { type: string }
+              nm_atasan: { type: string }
+              jabatan_atasan: { type: string }
+              nm_tmpt_bekerja: { type: string }
+              bidang_tempat_bekerja: { type: string }
+              saran: { type: string }
+              harapan: { type: string }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Tracer Study]
+    summary: Soft-delete hasil tracer atasan
+    operationId: deleteHasilTracerAtasan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+# =============================================================================
+# umr_wilayah (read-only)
+# =============================================================================
+
+umr-wilayah:
+  get:
+    tags: [Tracer Study]
+    summary: List UMR per wilayah per tahun anggaran
+    description: Referensi UMR untuk perbandingan income_per_bln alumni.
+    operationId: listUmrWilayah
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_umr_wil, in: query, schema: { type: string, format: uuid } }
+      - { name: id_wil, in: query, schema: { type: string, description: "char(8) — kode wilayah" } }
+      - { name: id_tahun_anggaran, in: query, schema: { type: integer, example: 2024 } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
