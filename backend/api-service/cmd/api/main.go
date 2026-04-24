@@ -31,6 +31,7 @@ import (
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
 	"github.com/myunila/api-service/internal/middleware"
+	"github.com/myunila/api-service/internal/startup"
 )
 
 // @title MyUnila API Service
@@ -238,6 +239,17 @@ func main() {
 	// MBKM module (GET-only — daftar/periode/mk_konversi/ekuiv/log_book dari pdut.mbkm.*)
 	mbkm.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ MBKM module initialized (GET-only, 6 endpoint)")
+
+	// Auto-sync /system/routes → man_akses.ws_endpoint (background).
+	// Supaya setiap rebuild, endpoint terbaru langsung ter-register untuk authorization.
+	startup.SyncEndpointsAsync(startup.SyncEndpointsConfig{
+		AppID: wsAuthAppID,
+		DB:    db,
+		App:   app,
+	})
+	if wsAuthAppID != "" {
+		log.Println("✅ Endpoint auto-sync enabled (background)")
+	}
 
 	// Dashboard module (public — no JWT, but rate-limited).
 	// Proxy ke service domain masing-masing (KTW → public-service).
