@@ -21,6 +21,7 @@ import (
 	"github.com/myunila/api-service/apps/kontribusi"
 	"github.com/myunila/api-service/apps/pdrd"
 	"github.com/myunila/api-service/apps/referensi"
+	"github.com/myunila/api-service/apps/tracer"
 	"github.com/myunila/api-service/docs"
 	"github.com/myunila/api-service/external/database"
 	extminio "github.com/myunila/api-service/external/minio"
@@ -218,6 +219,10 @@ func main() {
 	// Kontribusi module (pembicara, pengelola_jurnal, buku_ajar, kepanitiaan, prestasi)
 	kontribusi.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Kontribusi module initialized")
+
+	// Tracer Study module (CRUD — hasil_tracer_study, hasil_tracer_atasan, umr_wilayah)
+	tracer.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
+	log.Println("✅ Tracer Study module initialized (CRUD)")
 
 	// Dashboard module (public — no JWT, but rate-limited).
 	// Proxy ke service domain masing-masing (KTW → public-service).
