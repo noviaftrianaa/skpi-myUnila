@@ -2219,3 +2219,100 @@ list-akred-sp:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 15 — Prestasi CRUD extension
+# =============================================================================
+
+prestasi-item:
+  get:
+    tags: [Kontribusi]
+    summary: Get detail prestasi mahasiswa
+    description: |
+      Detail prestasi by id_prestasi. Join ref.jenis_prestasi + tingkat_prestasi
+      + pdrd.peserta_didik untuk nama.
+    operationId: getPrestasiByID
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Kontribusi]
+    summary: Update prestasi mahasiswa (partial)
+    operationId: updatePrestasi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_jenis_prestasi: { type: integer }
+              id_tkt_prestasi: { type: integer }
+              id_akt_mhs: { type: string, format: uuid }
+              id_pd: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              nm_prestasi: { type: string, maxLength: 160 }
+              thn_prestasi: { type: integer }
+              penyelenggara: { type: string }
+              peringkat: { type: integer, minimum: 1 }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Kontribusi]
+    summary: Soft-delete prestasi mahasiswa
+    operationId: deletePrestasi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+prestasi-create:
+  post:
+    tags: [Kontribusi]
+    summary: Create prestasi mahasiswa
+    description: |
+      Wajib: id_pd, id_sp, id_jenis_prestasi, id_tkt_prestasi, nm_prestasi,
+      thn_prestasi, id_creator.
+    operationId: createPrestasi
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_pd, id_sp, id_jenis_prestasi, id_tkt_prestasi, nm_prestasi, thn_prestasi, id_creator]
+            properties:
+              id_prestasi: { type: string, format: uuid }
+              id_jenis_prestasi: { type: integer }
+              id_tkt_prestasi: { type: integer }
+              id_akt_mhs: { type: string, format: uuid }
+              id_pd: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              nm_prestasi: { type: string, maxLength: 160 }
+              thn_prestasi: { type: integer }
+              penyelenggara: { type: string }
+              peringkat: { type: integer }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+      '400': { description: Body validation error }

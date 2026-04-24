@@ -112,3 +112,441 @@ list-log-book-mbkm:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 15 — CRUD extension untuk 6 resource (Get by ID + POST + PUT + DELETE)
+# =============================================================================
+
+daftar-kampus-merdeka-create:
+  post:
+    tags: [MBKM]
+    summary: Create pendaftaran MBKM
+    operationId: createDaftarKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_periode_mbkm, id_creator]
+            properties:
+              id_daftar_kampus_merdeka: { type: string, format: uuid }
+              id_periode_mbkm: { type: string, format: uuid }
+              id_reg_pd: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              lokasi_mbkm: { type: string }
+              nm_pd: { type: string }
+              nipd: { type: string }
+              a_diluar_pt: { type: integer, enum: [0, 1] }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+daftar-kampus-merdeka-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail pendaftaran MBKM
+    operationId: getDaftarKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update pendaftaran MBKM (partial)
+    operationId: updateDaftarKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_periode_mbkm: { type: string, format: uuid }
+              id_reg_pd: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              lokasi_mbkm: { type: string }
+              nm_pd: { type: string }
+              nipd: { type: string }
+              a_diluar_pt: { type: integer }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete pendaftaran MBKM
+    operationId: deleteDaftarKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+
+periode-kampus-merdeka-create:
+  post:
+    tags: [MBKM]
+    summary: Create periode MBKM
+    operationId: createPeriodeKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_smt, id_jns_akt_mhs, nm_periode_mbkm, id_creator]
+            properties:
+              id_periode_mbkm: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_jns_akt_mhs: { type: integer }
+              nm_periode_mbkm: { type: string, maxLength: 120 }
+              nm_penyelenggara: { type: string }
+              waktu_mulai: { type: string }
+              waktu_selesai: { type: string }
+              a_aktif: { type: integer, enum: [0, 1] }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+periode-kampus-merdeka-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail periode MBKM
+    operationId: getPeriodeKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update periode MBKM
+    operationId: updatePeriodeKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_jns_akt_mhs: { type: integer }
+              nm_periode_mbkm: { type: string }
+              nm_penyelenggara: { type: string }
+              waktu_mulai: { type: string }
+              waktu_selesai: { type: string }
+              a_aktif: { type: integer }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete periode MBKM
+    operationId: deletePeriodeKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+
+mk-konversi-create:
+  post:
+    tags: [MBKM]
+    summary: Create MK konversi
+    operationId: createMkKonversi
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_daftar_kampus_merdeka, stat_ajuan, wkt_ajuan, id_creator]
+            properties:
+              id_mk_konversi: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              id_daftar_kampus_merdeka: { type: string, format: uuid }
+              nm_verifikator: { type: string }
+              wkt_selesai_ver: { type: string, format: date-time }
+              ket_periksa: { type: string }
+              nm_mk: { type: string }
+              kode_mk: { type: string }
+              sks_mk: { type: number }
+              stat_ajuan: { type: string, enum: ['0','1','2','3','4'] }
+              wkt_ajuan: { type: string, format: date-time }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+mk-konversi-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail MK konversi
+    operationId: getMkKonversi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update MK konversi
+    operationId: updateMkKonversi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              id_daftar_kampus_merdeka: { type: string, format: uuid }
+              nm_verifikator: { type: string }
+              wkt_selesai_ver: { type: string, format: date-time }
+              ket_periksa: { type: string }
+              nm_mk: { type: string }
+              kode_mk: { type: string }
+              sks_mk: { type: number }
+              stat_ajuan: { type: string }
+              wkt_ajuan: { type: string, format: date-time }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete MK konversi
+    operationId: deleteMkKonversi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+
+konversi-akt-mhs-create:
+  post:
+    tags: [MBKM]
+    summary: Create konversi aktivitas MBKM
+    operationId: createKonversiAktMhs
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_mk, id_akt_mhs, id_creator]
+            properties:
+              id_konversi_aktivitas: { type: string, format: uuid }
+              id_mk: { type: string, format: uuid }
+              id_akt_mhs: { type: string, format: uuid }
+              id_ang_akt_mhs: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_daftar_kampus_merdeka: { type: string, format: uuid }
+              nilai_angka: { type: number }
+              nilai_huruf: { type: string }
+              nilai_indeks: { type: number }
+              sks_mk: { type: number }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+konversi-akt-mhs-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail konversi aktivitas
+    operationId: getKonversiAktMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update konversi aktivitas
+    operationId: updateKonversiAktMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_mk: { type: string, format: uuid }
+              id_akt_mhs: { type: string, format: uuid }
+              id_ang_akt_mhs: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_daftar_kampus_merdeka: { type: string, format: uuid }
+              nilai_angka: { type: number }
+              nilai_huruf: { type: string }
+              nilai_indeks: { type: number }
+              sks_mk: { type: number }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete konversi aktivitas
+    operationId: deleteKonversiAktMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+
+ekuiv-transfer-create:
+  post:
+    tags: [MBKM]
+    summary: Create ekuivalensi transfer MK
+    operationId: createEkuivTransfer
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_mk, id_reg_pd, kode_mk_asal, nm_mk_asal, sks_asal, sks_diakui, nilai_huruf_asal, nilai_huruf_diakui, nilai_angka_diakui, id_creator]
+            properties:
+              id_ekuivalensi: { type: string, format: uuid }
+              id_akt_mhs: { type: string, format: uuid }
+              id_mk: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_reg_pd: { type: string, format: uuid }
+              kode_mk_asal: { type: string }
+              nm_mk_asal: { type: string }
+              sks_asal: { type: number }
+              sks_diakui: { type: integer }
+              nilai_huruf_asal: { type: string }
+              nilai_huruf_diakui: { type: string }
+              nilai_angka_diakui: { type: number }
+              id_sp: { type: string, format: uuid }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+ekuiv-transfer-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail ekuivalensi transfer
+    operationId: getEkuivTransfer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update ekuivalensi transfer
+    operationId: updateEkuivTransfer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_akt_mhs: { type: string, format: uuid }
+              id_mk: { type: string, format: uuid }
+              id_smt: { type: string }
+              id_reg_pd: { type: string, format: uuid }
+              kode_mk_asal: { type: string }
+              nm_mk_asal: { type: string }
+              sks_asal: { type: number }
+              sks_diakui: { type: integer }
+              nilai_huruf_asal: { type: string }
+              nilai_huruf_diakui: { type: string }
+              nilai_angka_diakui: { type: number }
+              id_sp: { type: string, format: uuid }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete ekuivalensi transfer
+    operationId: deleteEkuivTransfer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+
+log-book-mbkm-create:
+  post:
+    tags: [MBKM]
+    summary: Create log book MBKM
+    operationId: createLogBookMbkm
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_mk_konversi, judul_log_book, aktivitas_kegiatan, tgl_kegiatan, id_creator]
+            properties:
+              id_log_book_mbkm: { type: string, format: uuid }
+              id_mk_konversi: { type: string, format: uuid }
+              judul_log_book: { type: string }
+              aktivitas_kegiatan: { type: string }
+              tgl_kegiatan: { type: string, format: date-time }
+              nm_verifikator: { type: string }
+              wkt_selesai_ver: { type: string, format: date-time }
+              ket_periksa: { type: string }
+              lokasi_kegiatan: { type: string }
+              stat_ajuan: { type: string }
+              wkt_ajuan: { type: string, format: date-time }
+              id_creator: { type: string, format: uuid }
+    responses: { '201': { description: Created } }
+
+log-book-mbkm-item:
+  get:
+    tags: [MBKM]
+    summary: Get detail log book MBKM
+    operationId: getLogBookMbkm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  put:
+    tags: [MBKM]
+    summary: Update log book MBKM
+    operationId: updateLogBookMbkm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_mk_konversi: { type: string, format: uuid }
+              judul_log_book: { type: string }
+              aktivitas_kegiatan: { type: string }
+              tgl_kegiatan: { type: string, format: date-time }
+              nm_verifikator: { type: string }
+              wkt_selesai_ver: { type: string, format: date-time }
+              ket_periksa: { type: string }
+              lokasi_kegiatan: { type: string }
+              stat_ajuan: { type: string }
+              wkt_ajuan: { type: string, format: date-time }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }
+  delete:
+    tags: [MBKM]
+    summary: Soft-delete log book MBKM
+    operationId: deleteLogBookMbkm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    responses: { '200': { description: OK }, '404': { description: Not Found } }

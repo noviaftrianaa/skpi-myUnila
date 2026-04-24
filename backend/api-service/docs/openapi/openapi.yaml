@@ -265,6 +265,10 @@ paths:
     $ref: './paths/pdrd.yaml#/list-kepanitiaan'
   /v1/kontribusi/list_prestasi:
     $ref: './paths/pdrd.yaml#/list-prestasi'
+  /v1/kontribusi/prestasi:
+    $ref: './paths/pdrd.yaml#/prestasi-create'
+  /v1/kontribusi/prestasi/{id}:
+    $ref: './paths/pdrd.yaml#/prestasi-item'
   /v1/kontribusi/list_tulis_buku_ajar:
     $ref: './paths/pdrd.yaml#/list-tulis-buku-ajar'
   /v1/kontribusi/list_anggota_panitia:
@@ -385,6 +389,31 @@ paths:
     $ref: './paths/mbkm.yaml#/list-ekuiv-transfer'
   /v1/mbkm/list_log_book_mbkm:
     $ref: './paths/mbkm.yaml#/list-log-book-mbkm'
+  # MBKM CRUD extension (Batch 15)
+  /v1/mbkm/daftar_kampus_merdeka:
+    $ref: './paths/mbkm.yaml#/daftar-kampus-merdeka-create'
+  /v1/mbkm/daftar_kampus_merdeka/{id}:
+    $ref: './paths/mbkm.yaml#/daftar-kampus-merdeka-item'
+  /v1/mbkm/periode_kampus_merdeka:
+    $ref: './paths/mbkm.yaml#/periode-kampus-merdeka-create'
+  /v1/mbkm/periode_kampus_merdeka/{id}:
+    $ref: './paths/mbkm.yaml#/periode-kampus-merdeka-item'
+  /v1/mbkm/mk_konversi:
+    $ref: './paths/mbkm.yaml#/mk-konversi-create'
+  /v1/mbkm/mk_konversi/{id}:
+    $ref: './paths/mbkm.yaml#/mk-konversi-item'
+  /v1/mbkm/konversi_akt_mhs:
+    $ref: './paths/mbkm.yaml#/konversi-akt-mhs-create'
+  /v1/mbkm/konversi_akt_mhs/{id}:
+    $ref: './paths/mbkm.yaml#/konversi-akt-mhs-item'
+  /v1/mbkm/ekuiv_transfer:
+    $ref: './paths/mbkm.yaml#/ekuiv-transfer-create'
+  /v1/mbkm/ekuiv_transfer/{id}:
+    $ref: './paths/mbkm.yaml#/ekuiv-transfer-item'
+  /v1/mbkm/log_book_mbkm:
+    $ref: './paths/mbkm.yaml#/log-book-mbkm-create'
+  /v1/mbkm/log_book_mbkm/{id}:
+    $ref: './paths/mbkm.yaml#/log-book-mbkm-item'
 
   # ==========================================================================
   # REFERENSI (ref.*)
