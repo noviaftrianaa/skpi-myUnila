@@ -73,6 +73,9 @@ const METHOD_COLORS: Record<string, string> = {
 
 export default function WsAuthorizationManager() {
   // Data state
+  //   providerApps = aplikasi yang PUNYA endpoint (service provider, e.g. WS API MyUnila v2)
+  //   apps         = aplikasi CLIENT (consumer) yang minta akses ke endpoint provider
+  const [providerApps, setProviderApps] = useState<AppOption[]>([]);
   const [apps, setApps] = useState<AppOption[]>([]);
   const [pjList, setPjList] = useState<PjAplikasi[]>([]);
   const [endpoints, setEndpoints] = useState<EndpointItem[]>([]);
@@ -80,6 +83,9 @@ export default function WsAuthorizationManager() {
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
 
   // Filter state
+  //   selectedProvider = ID aplikasi provider (sumber endpoint — default WS API MyUnila v2)
+  //   selectedApp      = ID aplikasi client (consumer) yang PJ-nya mau di-beri akses
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [selectedApp, setSelectedApp] = useState<string>("");
   const [selectedPj, setSelectedPj] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,17 +105,33 @@ export default function WsAuthorizationManager() {
   // Get selected PJ data
   const selectedPjData = useMemo(() => pjList.find((p) => p.id_pengguna === selectedPj), [pjList, selectedPj]);
   const selectedAppData = useMemo(() => apps.find((a) => a.id_aplikasi === selectedApp), [apps, selectedApp]);
+  const selectedProviderData = useMemo(() => providerApps.find((a) => a.id_aplikasi === selectedProvider), [providerApps, selectedProvider]);
 
-  // Load only apps that have endpoints registered
+  // Load provider apps (yang punya endpoint ter-register) + all client apps paralel.
+  // Provider list: dari /endpoint/apps (sudah filter yang punya endpoint).
+  // Client list: dari /aplikasi (semua aplikasi aktif).
   useEffect(() => {
-    const loadApps = async () => {
+    const loadData = async () => {
       try {
-        const res = await authClient.get("/manakses/endpoint/apps");
-        const list = toArray(res.data.data).map((a: any) => ({
+        const [providerRes, clientRes] = await Promise.all([
+          authClient.get("/manakses/endpoint/apps"),
+          authClient.get("/manakses/aplikasi?limit=500"),
+        ]);
+        const providers = toArray(providerRes.data.data).map((a: any) => ({
           id_aplikasi: a.id_aplikasi,
           nm_aplikasi: a.nm_aplikasi,
         }));
-        setApps(list);
+        const clients = toArray(clientRes.data.data).map((a: any) => ({
+          id_aplikasi: a.id_aplikasi,
+          nm_aplikasi: a.nm_aplikasi,
+        }));
+        setProviderApps(providers);
+        setApps(clients);
+        // Default provider: cari yang nama mengandung "MyUnila v2" atau ambil item pertama
+        const prefer = providers.find((p) =>
+          p.nm_aplikasi.toLowerCase().includes("myunila v2")
+        ) || providers[0];
+        if (prefer) setSelectedProvider(prefer.id_aplikasi);
       } catch (e) {
         console.error(e);
         toastError("Gagal memuat data aplikasi");
@@ -117,7 +139,7 @@ export default function WsAuthorizationManager() {
         setLoadingApps(false);
       }
     };
-    loadApps();
+    loadData();
   }, []);
 
   // Load PJ Aplikasi when app selected
@@ -159,9 +181,12 @@ export default function WsAuthorizationManager() {
     loadPj();
   }, [selectedApp]);
 
-  // Load endpoints + authorization when PJ selected
+  // Load endpoints (dari PROVIDER) + existing authorization untuk PJ yang dipilih.
+  // Logika:
+  //   • Endpoint list selalu dari Provider (sumber service).
+  //   • Authorized set di-filter untuk pengguna = PJ + id_aplikasi = provider.
   useEffect(() => {
-    if (!selectedApp || !selectedPj) {
+    if (!selectedProvider || !selectedPj) {
       setEndpoints([]);
       setAuthorizedIds(new Set());
       setCheckedIds(new Set());
@@ -171,8 +196,8 @@ export default function WsAuthorizationManager() {
     const load = async () => {
       setLoadingEndpoints(true);
       try {
-        // Get all endpoints for this app
-        const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
+        // Endpoints = dari aplikasi PROVIDER (sumber service)
+        const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedProvider}`);
         const epList: EndpointItem[] = toArray(epsRes.data.data).map((e: any) => ({
           id_ws_endpoint: e.id_ws_endpoint,
           nm_group: e.nm_group || "uncategorized",
@@ -183,8 +208,8 @@ export default function WsAuthorizationManager() {
         }));
         setEndpoints(epList);
 
-        // Get authorized endpoint IDs for this pengguna + app
-        const authRes = await wsAuthorizationService.getByPengguna(selectedPj, selectedApp);
+        // Existing authorization untuk pengguna PJ ini, dalam scope provider.
+        const authRes = await wsAuthorizationService.getByPengguna(selectedPj, selectedProvider);
         const authSet = new Set(authRes.endpoint_ids || []);
         setAuthorizedIds(authSet);
         setCheckedIds(new Set(authSet));
@@ -196,7 +221,7 @@ export default function WsAuthorizationManager() {
       }
     };
     load();
-  }, [selectedApp, selectedPj]);
+  }, [selectedProvider, selectedPj]);
 
   // Group + filter endpoints
   const groupedEndpoints = useMemo(() => {
@@ -277,14 +302,16 @@ export default function WsAuthorizationManager() {
     setCheckedIds(new Set(authorizedIds));
   }, [authorizedIds]);
 
-  // Save (sync by pengguna)
+  // Save (sync by pengguna).
+  // id_aplikasi yang di-simpan di ws_authorization = PROVIDER (bukan consumer),
+  // supaya middleware ws-auth (yg cek e.id_aplikasi = provider) bisa match.
   const handleSave = async () => {
-    if (!selectedPj || !selectedApp) return;
+    if (!selectedPj || !selectedProvider) return;
     setIsSaving(true);
     try {
       const result = await wsAuthorizationService.syncByPengguna(
         selectedPj,
-        selectedApp,
+        selectedProvider,
         Array.from(checkedIds)
       );
       toastSuccess(result.message);
@@ -375,7 +402,8 @@ export default function WsAuthorizationManager() {
 
         <div class="info">
           <div class="info-grid">
-            <div class="info-item"><span class="info-label">Aplikasi</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">Aplikasi Client</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">Service Provider</span><span class="info-value">: ${selectedProviderData?.nm_aplikasi ?? "-"}</span></div>
             <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-value">: ${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
             <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-value">: ${selectedPjData.nm_pengguna}</span></div>
             <div class="info-item"><span class="info-label">Total Group</span><span class="info-value">: ${sortedGroups.length}</span></div>
@@ -428,7 +456,7 @@ export default function WsAuthorizationManager() {
   };
 
   const handleConfirmGenerate = async () => {
-    if (!selectedApp || genRoutes.length === 0) return;
+    if (!selectedProvider || genRoutes.length === 0) return;
     setIsGenerating(true);
     try {
       const formatted = genRoutes.map((r) => ({
@@ -437,12 +465,13 @@ export default function WsAuthorizationManager() {
         path_url: r.path,
         nm_endpoint: r.path.split("/").pop()?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || r.path,
       }));
-      const result = await wsAuthorizationService.generateEndpoints(selectedApp, formatted);
+      // Generate always applies to PROVIDER (sumber endpoint), bukan consumer.
+      const result = await wsAuthorizationService.generateEndpoints(selectedProvider, formatted);
       toastSuccess(result.message);
       onGenClose();
 
-      // Reload endpoints
-      const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedApp}`);
+      // Reload endpoints dari provider
+      const epsRes = await authClient.get(`/manakses/endpoint?limit=500&id_aplikasi=${selectedProvider}`);
       const epList = toArray(epsRes.data.data).map((e: any) => ({
         id_ws_endpoint: e.id_ws_endpoint,
         nm_group: e.nm_group || "uncategorized",
@@ -476,11 +505,38 @@ export default function WsAuthorizationManager() {
     >
       {/* Filter Bar */}
       <Card className="border-none shadow-lg rounded-xl">
-        <CardBody className="p-4">
+        <CardBody className="p-4 space-y-3">
+          {/* Row 1: Service Provider (dropdown) */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 whitespace-nowrap min-w-[120px]">
+              🎯 Service Provider
+            </span>
+            <Select
+              aria-label="Service Provider"
+              placeholder="Pilih service provider (sumber endpoint)"
+              selectedKeys={selectedProvider ? [selectedProvider] : []}
+              onSelectionChange={(keys) => setSelectedProvider(Array.from(keys)[0] as string || "")}
+              variant="bordered"
+              isLoading={loadingApps}
+              startContent={<FiServer className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
+              classNames={{
+                base: "w-full",
+                trigger: "h-11 !bg-indigo-50 dark:!bg-indigo-900/20 border-indigo-200 hover:border-indigo-400 transition-colors shadow-sm",
+                value: "text-sm font-medium text-gray-700 dark:text-gray-300",
+                popoverContent: "!bg-white dark:!bg-gray-800 rounded-lg shadow-xl border border-gray-200 min-w-[280px]",
+              }}
+            >
+              {providerApps.map((a) => (
+                <SelectItem key={a.id_aplikasi}>{a.nm_aplikasi}</SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          {/* Row 2: Client App + PJ + Search */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Select
-                aria-label="Pilih Aplikasi"
-                placeholder="Pilih Aplikasi"
+                aria-label="Aplikasi Client"
+                placeholder="Pilih Aplikasi Client"
                 selectedKeys={selectedApp ? [selectedApp] : []}
                 onSelectionChange={(keys) => setSelectedApp(Array.from(keys)[0] as string || "")}
                 variant="bordered"
@@ -500,7 +556,7 @@ export default function WsAuthorizationManager() {
 
               <Select
                 aria-label="Pilih PJ Aplikasi"
-                placeholder={loadingPj ? "Memuat PJ..." : (selectedApp ? "Pilih PJ Aplikasi" : "Pilih aplikasi dulu")}
+                placeholder={loadingPj ? "Memuat PJ..." : (selectedApp ? "Pilih PJ Aplikasi" : "Pilih aplikasi client dulu")}
                 selectedKeys={selectedPj ? [selectedPj] : []}
                 onSelectionChange={(keys) => setSelectedPj(Array.from(keys)[0] as string || "")}
                 variant="bordered"
@@ -540,12 +596,13 @@ export default function WsAuthorizationManager() {
               />
 
               <div className="flex items-center gap-2">
-                {selectedApp && (
+                {selectedProvider && (
                   <Button
                     size="md"
                     startContent={<FiDownload className="w-4 h-4" />}
                     onPress={handleOpenGenerate}
                     className="h-11 font-medium bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
+                    title="Re-sync endpoint dari ws-api provider (manual trigger; ws-api startup sudah auto-sync)"
                   >
                     Generate
                   </Button>
@@ -567,15 +624,29 @@ export default function WsAuthorizationManager() {
       </Card>
 
       {/* No selection states */}
-      {!selectedApp && (
+      {!selectedProvider && (
+        <Card className="border-none shadow-lg rounded-xl">
+          <CardBody className="p-12 text-center">
+            <FiServer className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Pilih Service Provider
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              Pilih service provider (misal WS API MyUnila v2) terlebih dahulu — ini adalah sumber endpoint yang akan di-grant ke aplikasi client.
+            </p>
+          </CardBody>
+        </Card>
+      )}
+
+      {selectedProvider && !selectedApp && (
         <Card className="border-none shadow-lg rounded-xl">
           <CardBody className="p-12 text-center">
             <FiBox className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Pilih Aplikasi
+              Pilih Aplikasi Client
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-              Pilih aplikasi terlebih dahulu untuk melihat dan mengatur otorisasi endpoint WS API
+              Pilih aplikasi client yang butuh akses ke endpoint provider di atas. PJ dari aplikasi client inilah yang akan di-beri otorisasi endpoint.
             </p>
           </CardBody>
         </Card>
@@ -629,7 +700,8 @@ export default function WsAuthorizationManager() {
                         {selectedPjData.nm_pengguna}
                       </h3>
                       <p className="text-xs text-gray-500 truncate">
-                        @{selectedPjData.username} · {selectedAppData?.nm_aplikasi}
+                        @{selectedPjData.username} · PJ <strong>{selectedAppData?.nm_aplikasi}</strong>
+                        {selectedProviderData ? ` → akses service ${selectedProviderData.nm_aplikasi}` : ""}
                       </p>
                     </div>
                   </div>
