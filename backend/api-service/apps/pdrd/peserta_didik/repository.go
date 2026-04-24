@@ -26,6 +26,9 @@ type Repository interface {
 	// Batch 3: Bimbingan & Uji
 	GetBimbingMhs(ctx context.Context, p types.BimbingMhsParams) ([]BimbingMhs, int64, error)
 	GetUjiMhs(ctx context.Context, p types.UjiMhsParams) ([]UjiMhs, int64, error)
+
+	// Batch 9b: pivot tables
+	GetAnggotaAktMhs(ctx context.Context, p AnggotaAktMhsParams) ([]AnggotaAktMhs, int64, error)
 }
 
 type repository struct {

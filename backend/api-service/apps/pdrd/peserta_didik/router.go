@@ -32,4 +32,7 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	// Batch 9a — Foto mahasiswa (MinIO-only, photos/pd/{id_pd}.jpg)
 	router.Get("/foto_mahasiswa", handler.GetFotoMahasiswa)
 	router.Post("/foto_mahasiswa", handler.UploadFotoMahasiswa)
+
+	// Batch 9b — pivot anggota aktivitas mahasiswa
+	router.Get("/list_anggota_akt_mhs", handler.GetAnggotaAktMhs)
 }

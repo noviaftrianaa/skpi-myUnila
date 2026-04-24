@@ -29,6 +29,9 @@ type Service interface {
 	// Batch 3: bimbingan + uji
 	GetBimbingMhs(ctx context.Context, p types.BimbingMhsParams) ([]BimbingMhs, int64, error)
 	GetUjiMhs(ctx context.Context, p types.UjiMhsParams) ([]UjiMhs, int64, error)
+
+	// Batch 9b: pivot
+	GetAnggotaAktMhs(ctx context.Context, p AnggotaAktMhsParams) ([]AnggotaAktMhs, int64, error)
 }
 
 type service struct {
