@@ -2088,3 +2088,134 @@ list-non-ca:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 10 — SDM lain (keaktifan/inpassing/kesejahteraan/tubel/tunjangan)
+#            + Institusi PT-level (profil_pt + akred_sp)
+# =============================================================================
+
+list-keaktifan-ptk:
+  get:
+    tags: [SDM]
+    summary: List status keaktifan PTK per bulan
+    description: |
+      Status aktif dosen per bulan dalam satu tahun ajaran (12 flag a_aktif_bln_1..12)
+      + a_sp_homebase flag. Dipakai untuk BKD & laporan SISTER.
+      Composite PK: (id_reg_ptk, id_thn_ajaran).
+    operationId: getKeaktifanPtkList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_ptk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_thn_ajaran, in: query, schema: { type: integer, example: 2024 } }
+      - { name: a_sp_homebase, in: query, schema: { type: integer, enum: [0,1] } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-inpassing:
+  get:
+    tags: [SDM]
+    summary: List inpassing (penyetaraan pangkat dosen)
+    description: |
+      Data inpassing per dosen — SK penyetaraan pangkat + angka kredit + masa kerja.
+    operationId: getInpassingList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_inpassing, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_pangkat_gol, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-kesejahteraan:
+  get:
+    tags: [SDM]
+    summary: List data kesejahteraan dosen
+    description: |
+      Data kesejahteraan dosen (BPJS, asuransi, koperasi, dll).
+    operationId: getKesejahteraanList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_kesejahteraan, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_jns_sejahtera, in: query, schema: { type: integer } }
+      - { name: dari_thn, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-tugas-belajar-sdm:
+  get:
+    tags: [SDM]
+    summary: List tugas belajar (tubel) dosen
+    description: |
+      Data tubel dosen S2/S3. Include SK, prodi tujuan, domisili, pembiayaan.
+      Source: pdrd.tugas_belajar (beda dgn pdrd.tugas_belajar_mhs).
+    operationId: getTugasBelajarSDMList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_tb, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_jenj_didik, in: query, schema: { type: integer } }
+      - { name: id_negara, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-tunjangan:
+  get:
+    tags: [SDM]
+    summary: List tunjangan dosen
+    description: |
+      Tunjangan dosen (fungsional, profesi, sertifikasi, dll) — per tahun.
+    operationId: getTunjanganList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_tunj, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_jns_tunj, in: query, schema: { type: integer } }
+      - { name: dari_thn, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-profil-pt:
+  get:
+    tags: [Institusi]
+    summary: List profil PT per tahun ajaran
+    description: |
+      Profil deskriptif PT (visi, misi, tujuan, sasaran, pola pimpin, sistem kelola)
+      per tahun ajaran. Dipakai untuk laporan BAN-PT atau website institusi.
+      Composite: (id_sp, id_thn_ajaran).
+    operationId: getProfilPtList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_thn_ajaran, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-akred-sp:
+  get:
+    tags: [Institusi]
+    summary: List akreditasi SP (institusi-level)
+    description: |
+      Akreditasi institusi / SP (fakultas / PT). Beda dgn akreditasi_prodi yang
+      per prodi. Source: pdrd.akred_sp.
+    operationId: getAkredSpList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_akred_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_lemb_akred, in: query, schema: { type: string } }
+      - { name: id_akred, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }

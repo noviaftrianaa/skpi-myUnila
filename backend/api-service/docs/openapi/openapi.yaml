@@ -197,6 +197,16 @@ paths:
     $ref: './paths/pdrd.yaml#/foto-dosen'
   /v1/sdm/list_bimbing_dosen:
     $ref: './paths/pdrd.yaml#/list-bimbing-dosen'
+  /v1/sdm/list_keaktifan_ptk:
+    $ref: './paths/pdrd.yaml#/list-keaktifan-ptk'
+  /v1/sdm/list_inpassing:
+    $ref: './paths/pdrd.yaml#/list-inpassing'
+  /v1/sdm/list_kesejahteraan:
+    $ref: './paths/pdrd.yaml#/list-kesejahteraan'
+  /v1/sdm/list_tugas_belajar_sdm:
+    $ref: './paths/pdrd.yaml#/list-tugas-belajar-sdm'
+  /v1/sdm/list_tunjangan:
+    $ref: './paths/pdrd.yaml#/list-tunjangan'
 
   # ==========================================================================
   # INSTITUSI — Profil prodi + akreditasi + fakultas
@@ -211,6 +221,10 @@ paths:
     $ref: './paths/pdrd.yaml#/list-akreditasi-prodi'
   /v1/institusi/list_lembaga_iptek:
     $ref: './paths/pdrd.yaml#/list-lembaga-iptek'
+  /v1/institusi/list_profil_pt:
+    $ref: './paths/pdrd.yaml#/list-profil-pt'
+  /v1/institusi/list_akred_sp:
+    $ref: './paths/pdrd.yaml#/list-akred-sp'
 
   # ==========================================================================
   # KONTRIBUSI — pembicara, jurnal, buku ajar, panitia, prestasi
