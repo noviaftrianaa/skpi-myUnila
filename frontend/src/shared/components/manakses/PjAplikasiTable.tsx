@@ -126,21 +126,25 @@ export default function PjAplikasiTable() {
       });
   }, []);
 
-  // Debounced pengguna search: type in autocomplete → query backend
+  // Debounced pengguna search: type in autocomplete → query backend.
+  // Min 3 huruf supaya server tidak kena query LIKE '%a%' yang match ribuan row.
+  // Debounce 500ms supaya tidak query setiap keystroke.
+  // Limit 15 rows supaya response cepat dirender.
   useEffect(() => {
-    // Clear timeout on deps change
     if (penggunaSearchTimerRef.current) {
       window.clearTimeout(penggunaSearchTimerRef.current);
     }
-    // Don't query empty search (too many results) unless user already typed something
-    if (penggunaSearch.length < 2) {
+    if (penggunaSearch.length < 3) {
       setPenggunaOptions([]);
+      setPenggunaLoading(false);
       return;
     }
     penggunaSearchTimerRef.current = window.setTimeout(async () => {
       setPenggunaLoading(true);
       try {
-        const res = await authClient.get(`/manakses/pengguna?search=${encodeURIComponent(penggunaSearch)}&limit=20`);
+        const res = await authClient.get(
+          `/manakses/pengguna?search=${encodeURIComponent(penggunaSearch)}&limit=15`
+        );
         const list = res.data?.data || [];
         const arr = Array.isArray(list) ? list : list?.data || [];
         setPenggunaOptions(
@@ -158,7 +162,7 @@ export default function PjAplikasiTable() {
       } finally {
         setPenggunaLoading(false);
       }
-    }, 300);
+    }, 500);
 
     return () => {
       if (penggunaSearchTimerRef.current) {
@@ -504,7 +508,7 @@ export default function PjAplikasiTable() {
         </label>
         <Autocomplete
           aria-label="Pilih Pengguna"
-          placeholder="Ketik username atau nama minimal 2 huruf..."
+          placeholder="Ketik username / nama (min 3 huruf)..."
           inputValue={penggunaSearch}
           onInputChange={setPenggunaSearch}
           selectedKey={formData.id_pengguna || null}
@@ -516,7 +520,27 @@ export default function PjAplikasiTable() {
           classNames={{
             base: "w-full",
           }}
-          listboxProps={{ emptyContent: penggunaSearch.length < 2 ? "Ketik min. 2 huruf untuk cari" : "Tidak ada user cocok" }}
+          inputProps={{
+            classNames: {
+              inputWrapper:
+                "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+              input: "text-gray-900 dark:text-white",
+            },
+          }}
+          popoverProps={{
+            classNames: {
+              content:
+                "!bg-white dark:!bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-xl rounded-lg",
+            },
+          }}
+          listboxProps={{
+            emptyContent:
+              penggunaSearch.length < 3
+                ? "Ketik min. 3 huruf untuk cari"
+                : penggunaLoading
+                  ? "Mencari..."
+                  : "Tidak ada user cocok",
+          }}
         >
           {penggunaOptions.map((p) => (
             <AutocompleteItem key={p.id_pengguna} textValue={`${p.username} — ${p.nm_pengguna}`}>
