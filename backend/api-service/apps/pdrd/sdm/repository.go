@@ -25,6 +25,12 @@ type Repository interface {
 	GetRwyPekerjaan(ctx context.Context, p types.RwyPekerjaanParams) ([]RwyPekerjaan, int64, error)
 	GetRwyStruktural(ctx context.Context, p types.RwyStrukturalParams) ([]RwyStruktural, int64, error)
 	GetDiklat(ctx context.Context, p types.DiklatParams) ([]Diklat, int64, error)
+
+	// Batch 6 — SDM specialized
+	GetDetasering(ctx context.Context, p types.DetaseringParams) ([]Detasering, int64, error)
+	GetVisitingScientist(ctx context.Context, p types.VisitingScientistParams) ([]VisitingScientist, int64, error)
+	GetAnggotaOrgprof(ctx context.Context, p AnggotaOrgprofParams) ([]AnggotaOrgprof, int64, error)
+	GetPenghargaan(ctx context.Context, p PenghargaanParams) ([]Penghargaan, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }

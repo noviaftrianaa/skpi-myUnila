@@ -27,4 +27,10 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	router.Get("/list_rwy_pekerjaan", h.GetRwyPekerjaan)
 	router.Get("/list_rwy_struktural", h.GetRwyStruktural)
 	router.Get("/list_diklat", h.GetDiklat)
+
+	// Batch 6 — SDM specialized (detasering, visiting, orgprof, penghargaan)
+	router.Get("/list_detasering", h.GetDetasering)
+	router.Get("/list_visiting_scientist", h.GetVisitingScientist)
+	router.Get("/list_anggota_orgprof", h.GetAnggotaOrgprof)
+	router.Get("/list_penghargaan", h.GetPenghargaan)
 }

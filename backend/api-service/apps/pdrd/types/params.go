@@ -223,6 +223,22 @@ type DiklatParams struct {
 }
 
 // ============================================================================
+// Batch 6: SDM specialized
+// ============================================================================
+type DetaseringParams struct {
+	PaginationParams
+	IDSDM       *string `query:"id_sdm"`
+	IDSpSumber  *string `query:"id_sp_sumber"`
+	IDSpSasaran *string `query:"id_sp_sasaran"`
+}
+
+type VisitingScientistParams struct {
+	PaginationParams
+	IDSDM *string `query:"id_sdm"`
+	IDSp  *string `query:"id_sp"`
+}
+
+// ============================================================================
 // Batch 5: Institusi
 // ============================================================================
 type ProdiParams struct {
