@@ -119,6 +119,9 @@ type Repository interface {
 	GetSatuanPendidikan(ctx context.Context, p types.SatuanPendidikanParams) ([]SatuanPendidikan, int64, error)
 	GetProfilProdi(ctx context.Context, p types.ProfilProdiParams) ([]ProfilProdi, int64, error)
 	GetAkreditasiProdi(ctx context.Context, p types.AkreditasiProdiParams) ([]AkreditasiProdi, int64, error)
+
+	// Batch 9b
+	GetLembagaIptek(ctx context.Context, p LembagaIptekParams) ([]LembagaIptek, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }
@@ -328,6 +331,9 @@ type Service interface {
 	GetSatuanPendidikan(ctx context.Context, p types.SatuanPendidikanParams) ([]SatuanPendidikan, int64, error)
 	GetProfilProdi(ctx context.Context, p types.ProfilProdiParams) ([]ProfilProdi, int64, error)
 	GetAkreditasiProdi(ctx context.Context, p types.AkreditasiProdiParams) ([]AkreditasiProdi, int64, error)
+
+	// Batch 9b
+	GetLembagaIptek(ctx context.Context, p LembagaIptekParams) ([]LembagaIptek, int64, error)
 }
 
 type service struct {
@@ -450,4 +456,7 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 	g.Get("/list_satuan_pendidikan", h.GetSatuanPendidikan)
 	g.Get("/list_profil_prodi", h.GetProfilProdi)
 	g.Get("/list_akreditasi_prodi", h.GetAkreditasiProdi)
+
+	// Batch 9b
+	g.Get("/list_lembaga_iptek", h.GetLembagaIptek)
 }
