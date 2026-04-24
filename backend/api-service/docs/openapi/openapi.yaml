@@ -151,6 +151,16 @@ paths:
     $ref: './paths/pdrd.yaml#/list-jadwal-kelas'
   /v1/akademik/list_kurikulum:
     $ref: './paths/pdrd.yaml#/list-kurikulum'
+  /v1/akademik/list_akt_ajar_dosen:
+    $ref: './paths/pdrd.yaml#/list-akt-ajar-dosen'
+  /v1/akademik/list_rencana_ajar:
+    $ref: './paths/pdrd.yaml#/list-rencana-ajar'
+  /v1/akademik/list_matkul_kurikulum:
+    $ref: './paths/pdrd.yaml#/list-matkul-kurikulum'
+  /v1/akademik/list_substansi_kuliah:
+    $ref: './paths/pdrd.yaml#/list-substansi-kuliah'
+  /v1/akademik/list_re_mk:
+    $ref: './paths/pdrd.yaml#/list-re-mk'
 
   # ==========================================================================
   # SDM (Dosen + Tendik) — source SISTER

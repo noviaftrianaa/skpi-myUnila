@@ -1611,3 +1611,145 @@ list-prestasi:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# AKADEMIK — Batch 8 (advanced: BKD mengajar, RPS, matkul_kurikulum, substansi, re_mk)
+# =============================================================================
+
+list-akt-ajar-dosen:
+  get:
+    tags: [Akademik]
+    summary: List aktivitas mengajar dosen (BKD)
+    description: |
+      BKD mengajar dosen per kelas per semester.
+      Join reg_ptk → sdm (nama dosen) + kelas_kuliah → matkul + semester.
+      Source `pdrd.akt_ajar_dosen`.
+    operationId: getAktAjarDosenList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_ajar
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_reg_ptk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sdm
+        in: query
+        description: Filter dosen (resolved via reg_ptk.id_sdm)
+        schema: { type: string, format: uuid }
+      - name: id_kls
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_smt
+        in: query
+        schema: { type: string, example: "20251" }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-rencana-ajar:
+  get:
+    tags: [Akademik]
+    summary: List RPS (Rencana Pembelajaran Semester)
+    description: |
+      Rencana ajar per mata kuliah per pertemuan.
+      Join matkul (kode/nama). Source `pdrd.rencana_ajar`.
+    operationId: getRencanaAjarList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_renc_ajar
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: pertemuan
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-matkul-kurikulum:
+  get:
+    tags: [Akademik]
+    summary: List MK per kurikulum
+    description: |
+      Pivot MK ↔ kurikulum dengan info smt + sks + wajib/pilihan.
+      Join kurikulum_sp + matkul. Source `pdrd.matkul_kurikulum`.
+    operationId: getMatkulKurikulumList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_kurikulum_sp
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: smt
+        in: query
+        description: Semester ke-berapa dalam kurikulum
+        schema: { type: integer }
+      - name: a_wajib
+        in: query
+        description: 1 = wajib, 0 = pilihan
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-substansi-kuliah:
+  get:
+    tags: [Akademik]
+    summary: List substansi kuliah
+    description: |
+      Substansi MK per prodi (rincian bobot sks tatap muka/praktik/simulasi).
+      Join prodi. Source `pdrd.substansi_kuliah`.
+    operationId: getSubstansiKuliahList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_subst
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sms
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jns_subst
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-re-mk:
+  get:
+    tags: [Akademik]
+    summary: List komponen evaluasi MK
+    description: |
+      Rencana evaluasi per mata kuliah (tugas/quiz/UTS/UAS + bobot).
+      Join matkul. Source `pdrd.re_mk`.
+    operationId: getReMkList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_re_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_mk
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jns_eval
+        in: query
+        schema: { type: integer }
+      - name: komponen_evaluasi
+        in: query
+        schema: { type: string, enum: [TGS, QIZ, UTS, UAS] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
