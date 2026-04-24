@@ -1753,3 +1753,128 @@ list-re-mk:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 9a — Foto dosen + mahasiswa (MinIO photos/* public-read)
+# =============================================================================
+
+foto-dosen:
+  get:
+    tags: [SDM]
+    summary: Get foto dosen (public URL MinIO)
+    description: |
+      Return public URL foto dosen di MinIO path `photos/sdm/{id_sdm}.jpg`.
+      Bucket policy: photos/* = public-read, jadi URL bisa langsung dipakai di `<img src>`.
+      `exists=false` kalau belum ada foto di MinIO — client bisa pakai placeholder.
+    operationId: getFotoDosen
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        required: true
+        schema: { type: string, format: uuid }
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success: { type: boolean }
+                message: { type: string }
+                data:
+                  type: object
+                  properties:
+                    id_sdm: { type: string, format: uuid }
+                    path: { type: string, example: "photos/sdm/abc.jpg" }
+                    foto_url: { type: string, format: uri }
+                    exists: { type: boolean }
+      '400': { description: id_sdm kosong }
+  post:
+    tags: [SDM]
+    summary: Upload foto dosen (multipart → MinIO)
+    description: |
+      Upload foto dosen ke MinIO `photos/sdm/{id_sdm}.jpg`. Dipakai untuk sync
+      dari SISTER atau manual upload. Overwrite existing file.
+      **Constraints:** max 5 MB, jenis file: image/jpeg, image/png, image/webp.
+    operationId: uploadFotoDosen
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [id_sdm, file]
+            properties:
+              id_sdm:
+                type: string
+                format: uuid
+              file:
+                type: string
+                format: binary
+    responses:
+      '200': { description: OK — foto_url dikembalikan }
+      '400': { description: file hilang / format salah / size >5MB }
+      '500': { description: MinIO unavailable }
+
+foto-mahasiswa:
+  get:
+    tags: [Mahasiswa]
+    summary: Get foto mahasiswa (public URL MinIO)
+    description: |
+      Return public URL foto mahasiswa di MinIO path `photos/pd/{id_pd}.jpg`.
+      `exists=false` kalau belum di-upload — client pakai placeholder.
+    operationId: getFotoMahasiswa
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_pd
+        in: query
+        required: true
+        schema: { type: string, format: uuid }
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success: { type: boolean }
+                message: { type: string }
+                data:
+                  type: object
+                  properties:
+                    id_pd: { type: string, format: uuid }
+                    path: { type: string, example: "photos/pd/abc.jpg" }
+                    foto_url: { type: string, format: uri }
+                    exists: { type: boolean }
+      '400': { description: id_pd kosong }
+  post:
+    tags: [Mahasiswa]
+    summary: Upload foto mahasiswa (multipart → MinIO)
+    description: |
+      Upload foto mahasiswa ke MinIO `photos/pd/{id_pd}.jpg`. Endpoint ini
+      disiapkan khusus untuk SIAKADU push foto ke MinIO (belum ada auto-sync).
+      **Constraints:** max 5 MB, jenis file: image/jpeg, image/png, image/webp.
+    operationId: uploadFotoMahasiswa
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [id_pd, file]
+            properties:
+              id_pd:
+                type: string
+                format: uuid
+              file:
+                type: string
+                format: binary
+    responses:
+      '200': { description: OK — foto_url dikembalikan }
+      '400': { description: file hilang / format salah / size >5MB }
+      '500': { description: MinIO unavailable }

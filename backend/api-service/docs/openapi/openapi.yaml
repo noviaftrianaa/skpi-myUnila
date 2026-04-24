@@ -137,6 +137,8 @@ paths:
     $ref: './paths/pdrd.yaml#/list-bimbing-mhs'
   /v1/mahasiswa/list_uji_mhs:
     $ref: './paths/pdrd.yaml#/list-uji-mhs'
+  /v1/mahasiswa/foto_mahasiswa:
+    $ref: './paths/pdrd.yaml#/foto-mahasiswa'
 
   # ==========================================================================
   # AKADEMIK (matkul, kelas kuliah, jadwal, kurikulum)
@@ -189,6 +191,8 @@ paths:
     $ref: './paths/pdrd.yaml#/list-anggota-orgprof'
   /v1/sdm/list_penghargaan:
     $ref: './paths/pdrd.yaml#/list-penghargaan'
+  /v1/sdm/foto_dosen:
+    $ref: './paths/pdrd.yaml#/foto-dosen'
 
   # ==========================================================================
   # INSTITUSI — Profil prodi + akreditasi + fakultas
