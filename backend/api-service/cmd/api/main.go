@@ -23,6 +23,7 @@ import (
 	"github.com/myunila/api-service/apps/referensi"
 	"github.com/myunila/api-service/docs"
 	"github.com/myunila/api-service/external/database"
+	extminio "github.com/myunila/api-service/external/minio"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/config"
 	"github.com/myunila/api-service/internal/middleware"
@@ -91,6 +92,12 @@ func main() {
 		log.Println("   JWT token caching will be disabled")
 	} else {
 		defer redis.Close()
+	}
+
+	// Connect to MinIO (untuk foto dosen/mahasiswa + dokumen)
+	if _, err := extminio.Init(config.Cfg.MinIO); err != nil {
+		log.Printf("⚠️  Warning: MinIO unavailable: %v", err)
+		log.Println("   Upload/GET foto endpoint akan return 500.")
 	}
 
 	// Create Fiber app

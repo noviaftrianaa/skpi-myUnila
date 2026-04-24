@@ -13,6 +13,7 @@ type Config struct {
 	Database DatabaseConfig
 	Redis    RedisConfig
 	JWT      JWTConfig
+	MinIO    MinIOConfig
 }
 
 type AppConfig struct {
@@ -46,6 +47,15 @@ type JWTConfig struct {
 	Algo           string
 	AccessTokenTTL int // dalam menit
 	Issuer         string
+}
+
+type MinIOConfig struct {
+	Endpoint  string
+	AccessKey string
+	SecretKey string
+	Bucket    string
+	UseSSL    bool
+	PublicURL string // URL public untuk akses object (photos/* = public-read)
 }
 
 var Cfg Config
@@ -90,6 +100,14 @@ func LoadConfig() error {
 			Algo:           getEnv("JWT_ALGO", "HS256"),
 			AccessTokenTTL: jwtTTL,
 			Issuer:         getEnv("JWT_ISSUER", "onedata-api"),
+		},
+		MinIO: MinIOConfig{
+			Endpoint:  getEnv("MINIO_ENDPOINT", ""),
+			AccessKey: getEnv("MINIO_ACCESS_KEY", ""),
+			SecretKey: getEnv("MINIO_SECRET_KEY", ""),
+			Bucket:    getEnv("MINIO_BUCKET", "myunila-storage"),
+			UseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
+			PublicURL: getEnv("MINIO_PUBLIC_URL", ""),
 		},
 	}
 
