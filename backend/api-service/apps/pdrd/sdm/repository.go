@@ -31,6 +31,9 @@ type Repository interface {
 	GetVisitingScientist(ctx context.Context, p types.VisitingScientistParams) ([]VisitingScientist, int64, error)
 	GetAnggotaOrgprof(ctx context.Context, p AnggotaOrgprofParams) ([]AnggotaOrgprof, int64, error)
 	GetPenghargaan(ctx context.Context, p PenghargaanParams) ([]Penghargaan, int64, error)
+
+	// Batch 9b
+	GetBimbingDosen(ctx context.Context, p BimbingDosenParams) ([]BimbingDosen, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }
