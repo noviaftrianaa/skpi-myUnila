@@ -266,6 +266,52 @@ create_service_route "prometheus-service" \
     "prometheus" 100
 
 ###############################################################################
+# Plugin: rate-limiting untuk ws-service (defensive against spam/DoS)
+# 600 req/minute + 10000 req/hour per IP (local policy).
+# Idempotent: skip kalau plugin sudah ada di route.
+###############################################################################
+
+echo ""
+echo -e "${GREEN}Applying rate-limiting plugin ke ws-service-route...${NC}"
+
+WS_ROUTE_ID=$(curl -s "$KONG_ADMIN_URL/routes/ws-service-route" | python3 -c "
+import sys, json
+try: print(json.load(sys.stdin).get('id',''))
+except: pass
+")
+
+if [ -n "$WS_ROUTE_ID" ]; then
+    HAS_RL=$(curl -s "$KONG_ADMIN_URL/routes/$WS_ROUTE_ID/plugins" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    rl = [p for p in d.get('data', []) if p.get('name') == 'rate-limiting']
+    print('yes' if rl else 'no')
+except: print('no')
+")
+    if [ "$HAS_RL" = "no" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$WS_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "rate-limiting",
+            "config": {
+              "minute": 600,
+              "hour": 10000,
+              "policy": "local",
+              "limit_by": "ip",
+              "fault_tolerant": true,
+              "hide_client_headers": false
+            }
+          }' > /dev/null
+        echo -e "${GREEN}  ✓ Rate-limit plugin applied (600/min, 10k/hr per IP)${NC}"
+    else
+        echo -e "${YELLOW}  ⏭️  Rate-limit plugin sudah ada, skip${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ ws-service-route tidak ditemukan${NC}"
+fi
+
+###############################################################################
 # Summary
 ###############################################################################
 

@@ -1018,7 +1018,25 @@ else
               "cookie_names": []
             }
           }' > /dev/null
-        echo -e "${GREEN}  ✓ Protected route created with JWT${NC}"
+
+        # Add rate-limiting plugin (defensive against spam / DoS)
+        # Per-IP throttle: 600 req/minute, 10000 req/hour
+        # Policy: local (per Kong node counter) — simpler, no Redis needed
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "rate-limiting",
+            "config": {
+              "minute": 600,
+              "hour": 10000,
+              "policy": "local",
+              "limit_by": "ip",
+              "fault_tolerant": true,
+              "hide_client_headers": false
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ Protected route created with JWT + rate-limit (600/min, 10k/hr per IP)${NC}"
     fi
 fi
 
