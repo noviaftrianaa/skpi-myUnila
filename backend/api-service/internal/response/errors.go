@@ -52,6 +52,7 @@ var (
 	ErrAppNotRegistered   = NewError("Aplikasi tidak terdaftar", "APP_NOT_REGISTERED", http.StatusForbidden)
 	ErrUserNotAuthorized  = NewError("Pengguna tidak terdaftar di aplikasi ini", "USER_NOT_AUTHORIZED", http.StatusForbidden)
 	ErrUserNoLongerActive = NewError("Pengguna sudah tidak aktif di aplikasi", "USER_NO_LONGER_ACTIVE", http.StatusForbidden)
+	ErrUserNotDeveloper   = NewError("Akun tidak memiliki peran Developer. Hubungi admin manajemen akses.", "USER_NOT_DEVELOPER", http.StatusForbidden)
 )
 
 // Validation Errors

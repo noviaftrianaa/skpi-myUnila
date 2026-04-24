@@ -55,6 +55,8 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 			return response.Forbidden(c, "Gagal Otentikasi. Pengguna tidak terdaftar sebagai pengguna aplikasi ini")
 		case ErrUserNoLongerActive:
 			return response.Forbidden(c, "Gagal Otentikasi. Pengguna sudah tidak aktif di aplikasi")
+		case ErrUserNotDeveloper:
+			return response.Forbidden(c, "Gagal Otentikasi. Akun tidak memiliki peran Developer. Hubungi admin manajemen akses.")
 		default:
 			return response.InternalError(c, "Terjadi kesalahan internal")
 		}

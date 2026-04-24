@@ -20,7 +20,13 @@ var (
 	ErrAppNotRegistered   = response.ErrAppNotRegistered
 	ErrUserNotAuthorized  = response.ErrUserNotAuthorized
 	ErrUserNoLongerActive = response.ErrUserNoLongerActive
+	ErrUserNotDeveloper   = response.ErrUserNotDeveloper
 )
+
+// PeranDeveloper = id_peran yang wajib dimiliki pengguna untuk login ws-api.
+// Mengikuti desain: PJ aplikasi boleh banyak, tapi khusus yang akses ws-api
+// wajib punya role Developer (dari menu manajemen akses).
+const PeranDeveloper = 107
 
 // Service interface untuk auth business logic
 type Service interface {
@@ -90,6 +96,18 @@ func (s *service) Login(ctx context.Context, req *LoginRequest, ipAddress string
 	// 7. Cek masih aktif di aplikasi
 	if pjAplikasi.AMasih == 0 {
 		return nil, ErrUserNoLongerActive
+	}
+
+	// 7b. Cek peran Developer. PJ aplikasi boleh banyak, tapi yang boleh akses
+	// ws-api harus punya peran Developer (id_peran 107) — supaya akun Non-tech
+	// staff (misal Kabag yang juga PJ) tidak bisa issue JWT ke ws-api.
+	hasDev, err := s.repo.HasPeran(ctx, pengguna.IDPengguna.String(), PeranDeveloper)
+	if err != nil {
+		log.Printf("Error checking peran Developer: %v", err)
+		return nil, fmt.Errorf("internal error: %w", err)
+	}
+	if !hasDev {
+		return nil, ErrUserNotDeveloper
 	}
 
 	// 8. Cek apakah sudah ada token aktif

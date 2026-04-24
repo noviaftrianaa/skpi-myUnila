@@ -22,6 +22,7 @@ type Repository interface {
 
 	// Role operations
 	GetRolePengguna(ctx context.Context, idPengguna string) (*RolePengguna, error)
+	HasPeran(ctx context.Context, idPengguna string, idPeran int) (bool, error)
 
 	// JWT Log operations
 	CreateLogJWT(ctx context.Context, log *LogJWT) error
@@ -218,6 +219,33 @@ func (r *repository) GetRolePengguna(ctx context.Context, idPengguna string) (*R
 	}
 
 	return &role, nil
+}
+
+// HasPeran mengecek apakah pengguna memiliki peran tertentu yang masih aktif.
+// Filter: soft_delete = 0 + ref peran belum expired. Approval & tgl_kadarluasa
+// tidak di-check per arahan desain (add flow hanya isi a_aktif).
+func (r *repository) HasPeran(ctx context.Context, idPengguna string, idPeran int) (bool, error) {
+	userUUID, err := uuid.Parse(idPengguna)
+	if err != nil {
+		return false, fmt.Errorf("invalid id_pengguna format: %w", err)
+	}
+
+	query := `
+		SELECT COUNT(*)
+		FROM man_akses.role_pengguna rp
+		JOIN man_akses.peran p ON p.id_peran = rp.id_peran
+			AND p.expired_date IS NULL
+		WHERE rp.id_pengguna = @p1
+		  AND rp.id_peran = @p2
+		  AND (rp.soft_delete IS NULL OR rp.soft_delete = 0)
+	`
+
+	var count int
+	err = r.db.GetContext(ctx, &count, query, userUUID, idPeran)
+	if err != nil {
+		return false, fmt.Errorf("failed to check peran: %w", err)
+	}
+	return count > 0, nil
 }
 
 // CreateLogJWT menyimpan log JWT ke database
