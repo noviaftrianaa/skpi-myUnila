@@ -4,12 +4,12 @@ info:
   description: |
     Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
-    **Base URL:** `/v1/...` (sama untuk staging dan production)
+    **Server pilihan:**
+    - 🔴 **Live** — `https://my.unila.ac.id/api-service` → production (db `pdut`)
+    - 🟡 **Sandbox** — `http://192.168.120.45:9800/ws-service` → staging (db `pdut_staging`)
 
-    **Environment:**
-    - Staging: `http://192.168.120.45:9800/ws-service/v1`
-    - Production (internal/JWT): `https://my.unila.ac.id/api-service/v1`
-    - Production (docs publik): `https://my.unila.ac.id/gateway/api-service/docs`
+    Pilih server via dropdown di atas "Authorize" button. Semua path di bawah
+    otomatis menambahkan base URL server yang dipilih + `/v1/...`.
 
     **Endpoint publik (tanpa JWT):**
     - `GET /v1/dashboard/ktw/*` — statistik Kelulusan Tepat Waktu. Lihat tag `Dashboard · KTW`.
@@ -26,8 +26,10 @@ info:
     email: dev@unila.ac.id
 
 servers:
-  - url: /
-    description: Relative (auto-detect environment)
+  - url: https://my.unila.ac.id/api-service
+    description: 🔴 Live — Production (Kong VM1, database pdut production)
+  - url: http://192.168.120.45:9800/ws-service
+    description: 🟡 Sandbox — Staging (Kong VM5, database pdut_staging)
 
 tags:
   - name: Dashboard · KTW
