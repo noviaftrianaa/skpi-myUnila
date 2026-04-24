@@ -1,0 +1,386 @@
+# Path definitions untuk modul Kerjasama (Batch 13)
+# LP2M / Bagian Kerjasama — full CRUD untuk MOU, sms_kerjasama, DUDI.
+
+# =============================================================================
+# MOU (kerjasama.mou)
+# =============================================================================
+
+mou-collection:
+  get:
+    tags: [Kerjasama]
+    summary: List MOU kerjasama
+    description: |
+      Master MoU kerjasama PT dengan DUDI/mitra. Join ke satuan_pendidikan +
+      aktifitas_kerjasama + dudi untuk denormalized names.
+    operationId: listMou
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_mou, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_akt_kerjasama, in: query, schema: { type: integer } }
+      - { name: id_dudi, in: query, schema: { type: string, format: uuid } }
+      - { name: sk_mou, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+  post:
+    tags: [Kerjasama]
+    summary: Create MOU
+    description: |
+      Wajib: id_sp, sk_mou, judul_mou, tgl_mulai, tgl_selesai, nm_dudi, nm_bu, id_creator.
+    operationId: createMou
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_sp, sk_mou, judul_mou, tgl_mulai, tgl_selesai, nm_dudi, nm_bu, id_creator]
+            properties:
+              id_mou: { type: string, format: uuid, description: optional auto-generate }
+              id_sp: { type: string, format: uuid }
+              id_akt_kerjasama: { type: integer }
+              id_dudi: { type: string, format: uuid }
+              sk_mou: { type: string, maxLength: 80 }
+              judul_mou: { type: string, maxLength: 500 }
+              uraian_mou: { type: string }
+              tgl_mulai: { type: string, format: date }
+              tgl_selesai: { type: string, format: date }
+              nm_dudi: { type: string }
+              npwp_dudi: { type: string }
+              nm_bu: { type: string }
+              tel_kantor: { type: string }
+              fax: { type: string }
+              cp: { type: string }
+              tel_cp: { type: string }
+              jab_cp: { type: string }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+
+mou-item:
+  get:
+    tags: [Kerjasama]
+    summary: Get detail MOU
+    operationId: getMou
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Kerjasama]
+    summary: Update MOU (partial)
+    operationId: updateMou
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_sp: { type: string, format: uuid }
+              id_akt_kerjasama: { type: integer }
+              id_dudi: { type: string, format: uuid }
+              sk_mou: { type: string }
+              judul_mou: { type: string }
+              uraian_mou: { type: string }
+              tgl_mulai: { type: string, format: date }
+              tgl_selesai: { type: string, format: date }
+              nm_dudi: { type: string }
+              npwp_dudi: { type: string }
+              nm_bu: { type: string }
+              tel_kantor: { type: string }
+              fax: { type: string }
+              cp: { type: string }
+              tel_cp: { type: string }
+              jab_cp: { type: string }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Kerjasama]
+    summary: Soft-delete MOU
+    operationId: deleteMou
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+# =============================================================================
+# SMS_Kerjasama (kerjasama.sms_kerjasama) — kerjasama per prodi
+# =============================================================================
+
+sms-kerjasama-collection:
+  get:
+    tags: [Kerjasama]
+    summary: List kerjasama per prodi
+    description: |
+      Kerjasama prodi dalam konteks MOU. Include tingkat, status, bidang, kriteria mitra,
+      bentuk kegiatan, produk/jasa yang dihasilkan, omzet, dan besaran kerjasama.
+    operationId: listSmsKerjasama
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_sms_kerjasama, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: id_mou, in: query, schema: { type: string, format: uuid } }
+      - { name: id_tingkat_kerjasama, in: query, schema: { type: integer } }
+      - { name: id_stat_kerjasama, in: query, schema: { type: integer } }
+      - { name: id_bid_kerjasama, in: query, schema: { type: integer } }
+      - { name: id_bntk_giat_kerjasama, in: query, schema: { type: integer } }
+      - { name: id_kriteria_mitra, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+  post:
+    tags: [Kerjasama]
+    summary: Create kerjasama prodi
+    operationId: createSmsKerjasama
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_sms, id_mou, id_tingkat_kerjasama, id_creator]
+            properties:
+              id_sms_kerjasama: { type: string, format: uuid }
+              id_sms: { type: string, format: uuid }
+              id_mou: { type: string, format: uuid }
+              id_tingkat_kerjasama: { type: integer }
+              id_sumber_dana: { type: integer }
+              id_stat_kerjasama: { type: integer }
+              id_bid_kerjasama: { type: integer }
+              id_kriteria_mitra: { type: integer }
+              id_bntk_giat_kerjasama: { type: integer }
+              hsl_prod_brg: { type: string }
+              hsl_prod_jasa: { type: string }
+              omzet_barang_per_bulan: { type: number }
+              omzet_jasa_per_bulan: { type: number }
+              prestasi_penghargaan: { type: string }
+              pangsa_psr_brg: { type: string }
+              pangsa_psr_jasa: { type: string }
+              besaran_kerjasama: { type: number }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+
+sms-kerjasama-item:
+  get:
+    tags: [Kerjasama]
+    summary: Get detail kerjasama prodi
+    operationId: getSmsKerjasama
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Kerjasama]
+    summary: Update kerjasama prodi (partial)
+    operationId: updateSmsKerjasama
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_sms: { type: string, format: uuid }
+              id_mou: { type: string, format: uuid }
+              id_tingkat_kerjasama: { type: integer }
+              id_sumber_dana: { type: integer }
+              id_stat_kerjasama: { type: integer }
+              id_bid_kerjasama: { type: integer }
+              id_kriteria_mitra: { type: integer }
+              id_bntk_giat_kerjasama: { type: integer }
+              hsl_prod_brg: { type: string }
+              hsl_prod_jasa: { type: string }
+              omzet_barang_per_bulan: { type: number }
+              omzet_jasa_per_bulan: { type: number }
+              prestasi_penghargaan: { type: string }
+              pangsa_psr_brg: { type: string }
+              pangsa_psr_jasa: { type: string }
+              besaran_kerjasama: { type: number }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Kerjasama]
+    summary: Soft-delete kerjasama prodi
+    operationId: deleteSmsKerjasama
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+# =============================================================================
+# DUDI (pdrd.dudi) — master mitra
+# =============================================================================
+
+dudi-collection:
+  get:
+    tags: [Kerjasama]
+    summary: List DUDI (Dunia Usaha Dunia Industri) — master mitra
+    description: |
+      Master data mitra DUDI (perusahaan, rumah sakit, instansi) yang dipakai
+      sebagai partner MOU dan mitra_litabmas. Source pdrd.dudi.
+    operationId: listDudi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_dudi, in: query, schema: { type: string, format: uuid } }
+      - { name: id_wil, in: query, schema: { type: string } }
+      - { name: id_bu, in: query, schema: { type: string, description: kode bidang usaha } }
+      - { name: npwp, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+  post:
+    tags: [Kerjasama]
+    summary: Create DUDI master
+    operationId: createDudi
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [nm_lemb, id_wil, id_bu, id_creator]
+            properties:
+              id_dudi: { type: string, format: uuid }
+              nm_lemb: { type: string }
+              nm_wp: { type: string }
+              jln: { type: string }
+              rt: { type: integer }
+              rw: { type: integer }
+              nm_dsn: { type: string }
+              ds_kel: { type: string }
+              kode_pos: { type: string }
+              lintang: { type: number }
+              bujur: { type: number }
+              no_tel: { type: string }
+              no_fax: { type: string }
+              email: { type: string }
+              website: { type: string }
+              npwp: { type: string }
+              kip: { type: string }
+              alamat_kanpus: { type: string }
+              email_kanpus: { type: string }
+              telp_kanpus: { type: string }
+              fax_kanpus: { type: string }
+              website_kanpus: { type: string }
+              id_wil: { type: string }
+              id_bu: { type: string }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+
+dudi-item:
+  get:
+    tags: [Kerjasama]
+    summary: Get detail DUDI
+    operationId: getDudi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Kerjasama]
+    summary: Update DUDI (partial)
+    operationId: updateDudi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              nm_lemb: { type: string }
+              nm_wp: { type: string }
+              jln: { type: string }
+              rt: { type: integer }
+              rw: { type: integer }
+              nm_dsn: { type: string }
+              ds_kel: { type: string }
+              kode_pos: { type: string }
+              lintang: { type: number }
+              bujur: { type: number }
+              no_tel: { type: string }
+              no_fax: { type: string }
+              email: { type: string }
+              website: { type: string }
+              npwp: { type: string }
+              kip: { type: string }
+              alamat_kanpus: { type: string }
+              email_kanpus: { type: string }
+              telp_kanpus: { type: string }
+              fax_kanpus: { type: string }
+              website_kanpus: { type: string }
+              id_wil: { type: string }
+              id_bu: { type: string }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Kerjasama]
+    summary: Soft-delete DUDI
+    operationId: deleteDudi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }

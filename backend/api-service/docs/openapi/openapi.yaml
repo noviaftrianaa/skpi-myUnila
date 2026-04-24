@@ -86,6 +86,13 @@ tags:
       sync). **GET-only** — write tetap via myunila-service. Response include
       UUID bridging (id_pd, id_reg_pd, id_sdm, id_sms) + denormalized names
       (nm_fakultas, nm_jurusan, nm_prodi, dll).
+  - name: Kerjasama
+    description: |
+      LP2M / Bagian Kerjasama — **Full CRUD** untuk MOU, kerjasama prodi, dan
+      master DUDI (mitra). Source: `kerjasama.mou`, `kerjasama.sms_kerjasama`,
+      `pdrd.dudi`. Referensi master sudah di `/v1/referensi/*`
+      (aktifitas_kerjasama, kriteria_mitra, tingkat_kerjasama, bidang_kerjasama,
+      bentuk_kegiatan_kerjasama, status_kerjasama).
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -339,6 +346,22 @@ paths:
     $ref: './paths/siakadu.yaml#/list-siakadu-kuliah-mhs'
   /v1/siakadu/list_pimpinan_unit:
     $ref: './paths/siakadu.yaml#/list-siakadu-pimpinan-unit'
+
+  # ==========================================================================
+  # KERJASAMA — LP2M/Bagian Kerjasama (CRUD)
+  # ==========================================================================
+  /v1/kerjasama/mou:
+    $ref: './paths/kerjasama.yaml#/mou-collection'
+  /v1/kerjasama/mou/{id}:
+    $ref: './paths/kerjasama.yaml#/mou-item'
+  /v1/kerjasama/sms_kerjasama:
+    $ref: './paths/kerjasama.yaml#/sms-kerjasama-collection'
+  /v1/kerjasama/sms_kerjasama/{id}:
+    $ref: './paths/kerjasama.yaml#/sms-kerjasama-item'
+  /v1/kerjasama/dudi:
+    $ref: './paths/kerjasama.yaml#/dudi-collection'
+  /v1/kerjasama/dudi/{id}:
+    $ref: './paths/kerjasama.yaml#/dudi-item'
 
   # ==========================================================================
   # REFERENSI (ref.*)
