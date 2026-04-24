@@ -15,6 +15,13 @@ type Repository interface {
 	GetKelasKuliah(ctx context.Context, p KelasKuliahParams) ([]KelasKuliah, int64, error)
 	GetJadwalKelas(ctx context.Context, p JadwalKelasParams) ([]JadwalKelas, int64, error)
 	GetKurikulum(ctx context.Context, p KurikulumParams) ([]Kurikulum, int64, error)
+
+	// Batch 8 — akademik advanced
+	GetAktAjarDosen(ctx context.Context, p AktAjarDosenParams) ([]AktAjarDosen, int64, error)
+	GetRencanaAjar(ctx context.Context, p RencanaAjarParams) ([]RencanaAjar, int64, error)
+	GetMatkulKurikulum(ctx context.Context, p MatkulKurikulumParams) ([]MatkulKurikulum, int64, error)
+	GetSubstansiKuliah(ctx context.Context, p SubstansiKuliahParams) ([]SubstansiKuliah, int64, error)
+	GetReMk(ctx context.Context, p ReMkParams) ([]ReMk, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }

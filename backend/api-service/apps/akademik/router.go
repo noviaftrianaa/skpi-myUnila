@@ -28,4 +28,11 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 	g.Get("/list_kelas_kuliah", h.ListKelasKuliah)
 	g.Get("/list_jadwal_kelas", h.ListJadwalKelas)
 	g.Get("/list_kurikulum", h.ListKurikulum)
+
+	// Batch 8 — akademik advanced
+	g.Get("/list_akt_ajar_dosen", h.ListAktAjarDosen)
+	g.Get("/list_rencana_ajar", h.ListRencanaAjar)
+	g.Get("/list_matkul_kurikulum", h.ListMatkulKurikulum)
+	g.Get("/list_substansi_kuliah", h.ListSubstansiKuliah)
+	g.Get("/list_re_mk", h.ListReMk)
 }
