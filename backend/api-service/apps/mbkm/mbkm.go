@@ -217,6 +217,37 @@ type Repository interface {
 	ListKonversiAktMhs(ctx context.Context, p KonversiAktMhsParams) ([]KonversiAktMhs, int64, error)
 	ListEkuivTransfer(ctx context.Context, p EkuivTransferParams) ([]EkuivTransfer, int64, error)
 	ListLogBook(ctx context.Context, p LogBookParams) ([]LogBookMbkm, int64, error)
+
+	// Batch 15 — CRUD extension (24 methods, 6 resource × 4 op)
+	GetDaftar(ctx context.Context, id string) (*DaftarKampusMerdeka, error)
+	CreateDaftar(ctx context.Context, in DaftarCreate) (string, error)
+	UpdateDaftar(ctx context.Context, id string, in DaftarUpdate) error
+	DeleteDaftar(ctx context.Context, id, idUpdater string) error
+
+	GetPeriode(ctx context.Context, id string) (*PeriodeKampusMerdeka, error)
+	CreatePeriode(ctx context.Context, in PeriodeCreate) (string, error)
+	UpdatePeriode(ctx context.Context, id string, in PeriodeUpdate) error
+	DeletePeriode(ctx context.Context, id, idUpdater string) error
+
+	GetMkKonversi(ctx context.Context, id string) (*MkKonversi, error)
+	CreateMkKonversi(ctx context.Context, in MkKonversiCreate) (string, error)
+	UpdateMkKonversi(ctx context.Context, id string, in MkKonversiUpdate) error
+	DeleteMkKonversi(ctx context.Context, id, idUpdater string) error
+
+	GetKonversiAktMhs(ctx context.Context, id string) (*KonversiAktMhs, error)
+	CreateKonversiAktMhs(ctx context.Context, in KonversiAktMhsCreate) (string, error)
+	UpdateKonversiAktMhs(ctx context.Context, id string, in KonversiAktMhsUpdate) error
+	DeleteKonversiAktMhs(ctx context.Context, id, idUpdater string) error
+
+	GetEkuivTransfer(ctx context.Context, id string) (*EkuivTransfer, error)
+	CreateEkuivTransfer(ctx context.Context, in EkuivTransferCreate) (string, error)
+	UpdateEkuivTransfer(ctx context.Context, id string, in EkuivTransferUpdate) error
+	DeleteEkuivTransfer(ctx context.Context, id, idUpdater string) error
+
+	GetLogBook(ctx context.Context, id string) (*LogBookMbkm, error)
+	CreateLogBook(ctx context.Context, in LogBookCreate) (string, error)
+	UpdateLogBook(ctx context.Context, id string, in LogBookUpdate) error
+	DeleteLogBook(ctx context.Context, id, idUpdater string) error
 }
 
 type repository struct{ db *sqlx.DB }
@@ -589,6 +620,37 @@ type Service interface {
 	ListKonversiAktMhs(ctx context.Context, p KonversiAktMhsParams) ([]KonversiAktMhs, int64, error)
 	ListEkuivTransfer(ctx context.Context, p EkuivTransferParams) ([]EkuivTransfer, int64, error)
 	ListLogBook(ctx context.Context, p LogBookParams) ([]LogBookMbkm, int64, error)
+
+	// Batch 15 — CRUD extension
+	GetDaftar(ctx context.Context, id string) (*DaftarKampusMerdeka, error)
+	CreateDaftar(ctx context.Context, in DaftarCreate) (string, error)
+	UpdateDaftar(ctx context.Context, id string, in DaftarUpdate) error
+	DeleteDaftar(ctx context.Context, id, idUpdater string) error
+
+	GetPeriode(ctx context.Context, id string) (*PeriodeKampusMerdeka, error)
+	CreatePeriode(ctx context.Context, in PeriodeCreate) (string, error)
+	UpdatePeriode(ctx context.Context, id string, in PeriodeUpdate) error
+	DeletePeriode(ctx context.Context, id, idUpdater string) error
+
+	GetMkKonversi(ctx context.Context, id string) (*MkKonversi, error)
+	CreateMkKonversi(ctx context.Context, in MkKonversiCreate) (string, error)
+	UpdateMkKonversi(ctx context.Context, id string, in MkKonversiUpdate) error
+	DeleteMkKonversi(ctx context.Context, id, idUpdater string) error
+
+	GetKonversiAktMhs(ctx context.Context, id string) (*KonversiAktMhs, error)
+	CreateKonversiAktMhs(ctx context.Context, in KonversiAktMhsCreate) (string, error)
+	UpdateKonversiAktMhs(ctx context.Context, id string, in KonversiAktMhsUpdate) error
+	DeleteKonversiAktMhs(ctx context.Context, id, idUpdater string) error
+
+	GetEkuivTransfer(ctx context.Context, id string) (*EkuivTransfer, error)
+	CreateEkuivTransfer(ctx context.Context, in EkuivTransferCreate) (string, error)
+	UpdateEkuivTransfer(ctx context.Context, id string, in EkuivTransferUpdate) error
+	DeleteEkuivTransfer(ctx context.Context, id, idUpdater string) error
+
+	GetLogBook(ctx context.Context, id string) (*LogBookMbkm, error)
+	CreateLogBook(ctx context.Context, in LogBookCreate) (string, error)
+	UpdateLogBook(ctx context.Context, id string, in LogBookUpdate) error
+	DeleteLogBook(ctx context.Context, id, idUpdater string) error
 }
 
 type service struct {
@@ -760,4 +822,35 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 	g.Get("/list_konversi_akt_mhs", h.ListKonversiAktMhs)
 	g.Get("/list_ekuiv_transfer", h.ListEkuivTransfer)
 	g.Get("/list_log_book_mbkm", h.ListLogBook)
+
+	// Batch 15 — CRUD (GET detail + POST + PUT + DELETE untuk 6 resource)
+	g.Get("/daftar_kampus_merdeka/:id", h.GetDaftar)
+	g.Post("/daftar_kampus_merdeka", h.CreateDaftar)
+	g.Put("/daftar_kampus_merdeka/:id", h.UpdateDaftar)
+	g.Delete("/daftar_kampus_merdeka/:id", h.DeleteDaftar)
+
+	g.Get("/periode_kampus_merdeka/:id", h.GetPeriode)
+	g.Post("/periode_kampus_merdeka", h.CreatePeriode)
+	g.Put("/periode_kampus_merdeka/:id", h.UpdatePeriode)
+	g.Delete("/periode_kampus_merdeka/:id", h.DeletePeriode)
+
+	g.Get("/mk_konversi/:id", h.GetMkKonversi)
+	g.Post("/mk_konversi", h.CreateMkKonversi)
+	g.Put("/mk_konversi/:id", h.UpdateMkKonversi)
+	g.Delete("/mk_konversi/:id", h.DeleteMkKonversi)
+
+	g.Get("/konversi_akt_mhs/:id", h.GetKonversiAktMhs)
+	g.Post("/konversi_akt_mhs", h.CreateKonversiAktMhs)
+	g.Put("/konversi_akt_mhs/:id", h.UpdateKonversiAktMhs)
+	g.Delete("/konversi_akt_mhs/:id", h.DeleteKonversiAktMhs)
+
+	g.Get("/ekuiv_transfer/:id", h.GetEkuivTransfer)
+	g.Post("/ekuiv_transfer", h.CreateEkuivTransfer)
+	g.Put("/ekuiv_transfer/:id", h.UpdateEkuivTransfer)
+	g.Delete("/ekuiv_transfer/:id", h.DeleteEkuivTransfer)
+
+	g.Get("/log_book_mbkm/:id", h.GetLogBook)
+	g.Post("/log_book_mbkm", h.CreateLogBook)
+	g.Put("/log_book_mbkm/:id", h.UpdateLogBook)
+	g.Delete("/log_book_mbkm/:id", h.DeleteLogBook)
 }
