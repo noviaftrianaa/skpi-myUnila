@@ -16,4 +16,12 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 	// Register routes
 	router.Get("/publikasi", handler.GetPublikasi)
 	router.Get("/litabmas", handler.GetLitabmas)
+
+	// Batch 9b — pivot tables
+	router.Get("/list_tulis_pub", handler.GetTulisPub)
+	router.Get("/list_mitra_litabmas", handler.GetMitraLitabmas)
+	router.Get("/list_pd_anggota_litabmas", handler.GetPdAngLitabmas)
+	router.Get("/list_sdm_anggota_litabmas", handler.GetSdmAnggotaLitabmas)
+	router.Get("/list_non_ca_anggota_litabmas", handler.GetNonCaAnggotaLitabmas)
+	router.Get("/list_non_ca", handler.GetNonCa)
 }

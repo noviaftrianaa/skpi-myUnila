@@ -17,6 +17,14 @@ import (
 type Service interface {
 	GetPublikasi(ctx context.Context, params types.PublikasiParams) ([]Publikasi, int64, error)
 	GetLitabmas(ctx context.Context, params types.LitabmasParams) ([]Litabmas, int64, error)
+
+	// Batch 9b — pivot tables
+	GetTulisPub(ctx context.Context, p TulisPubParams) ([]TulisPub, int64, error)
+	GetMitraLitabmas(ctx context.Context, p MitraLitabmasParams) ([]MitraLitabmas, int64, error)
+	GetPdAngLitabmas(ctx context.Context, p PdAngLitabmasParams) ([]PdAngLitabmas, int64, error)
+	GetSdmAnggotaLitabmas(ctx context.Context, p SdmAnggotaLitabmasParams) ([]SdmAnggotaLitabmas, int64, error)
+	GetNonCaAnggotaLitabmas(ctx context.Context, p NonCaAnggotaLitabmasParams) ([]NonCaAnggotaLitabmas, int64, error)
+	GetNonCa(ctx context.Context, p NonCaParams) ([]NonCa, int64, error)
 }
 
 type service struct {
