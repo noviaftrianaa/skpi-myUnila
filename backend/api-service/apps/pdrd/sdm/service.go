@@ -39,6 +39,13 @@ type Service interface {
 
 	// Batch 9b
 	GetBimbingDosen(ctx context.Context, p BimbingDosenParams) ([]BimbingDosen, int64, error)
+
+	// Batch 10 — SDM tambahan
+	GetKeaktifanPtk(ctx context.Context, p KeaktifanPtkParams) ([]KeaktifanPtk, int64, error)
+	GetInpassing(ctx context.Context, p InpassingParams) ([]Inpassing, int64, error)
+	GetKesejahteraan(ctx context.Context, p KesejahteraanParams) ([]Kesejahteraan, int64, error)
+	GetTugasBelajarSDM(ctx context.Context, p TugasBelajarSDMParams) ([]TugasBelajarSDM, int64, error)
+	GetTunjangan(ctx context.Context, p TunjanganParams) ([]Tunjangan, int64, error)
 }
 
 type service struct {

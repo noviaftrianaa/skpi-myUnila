@@ -40,4 +40,11 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, redis *redis.Client) {
 
 	// Batch 9b — bimbing_dosen (kegiatan bimbingan dosen, SK + bid ahli)
 	router.Get("/list_bimbing_dosen", h.GetBimbingDosen)
+
+	// Batch 10 — SDM tambahan (keaktifan, inpassing, kesejahteraan, tubel, tunjangan)
+	router.Get("/list_keaktifan_ptk", h.GetKeaktifanPtk)
+	router.Get("/list_inpassing", h.GetInpassing)
+	router.Get("/list_kesejahteraan", h.GetKesejahteraan)
+	router.Get("/list_tugas_belajar_sdm", h.GetTugasBelajarSDM)
+	router.Get("/list_tunjangan", h.GetTunjangan)
 }
