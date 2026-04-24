@@ -93,6 +93,13 @@ tags:
       `pdrd.dudi`. Referensi master sudah di `/v1/referensi/*`
       (aktifitas_kerjasama, kriteria_mitra, tingkat_kerjasama, bidang_kerjasama,
       bentuk_kegiatan_kerjasama, status_kerjasama).
+  - name: MBKM
+    description: |
+      Kampus Merdeka (MBKM) — pendaftaran + konversi MK + log book.
+      **GET-only** untuk sync ke aplikasi konsumen.
+      Source: schema `mbkm` (daftar_kampus_merdeka, periode_kampus_merdeka,
+      mk_konversi, konversi_akt_mhs, ekuiv_transfer, log_book_mbkm).
+      **Note:** full KKN lifecycle ada di service si-kkn (Postgres terpisah).
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -362,6 +369,22 @@ paths:
     $ref: './paths/kerjasama.yaml#/dudi-collection'
   /v1/kerjasama/dudi/{id}:
     $ref: './paths/kerjasama.yaml#/dudi-item'
+
+  # ==========================================================================
+  # MBKM Kampus Merdeka (GET-only)
+  # ==========================================================================
+  /v1/mbkm/list_daftar_kampus_merdeka:
+    $ref: './paths/mbkm.yaml#/list-daftar-kampus-merdeka'
+  /v1/mbkm/list_periode_kampus_merdeka:
+    $ref: './paths/mbkm.yaml#/list-periode-kampus-merdeka'
+  /v1/mbkm/list_mk_konversi:
+    $ref: './paths/mbkm.yaml#/list-mk-konversi'
+  /v1/mbkm/list_konversi_akt_mhs:
+    $ref: './paths/mbkm.yaml#/list-konversi-akt-mhs'
+  /v1/mbkm/list_ekuiv_transfer:
+    $ref: './paths/mbkm.yaml#/list-ekuiv-transfer'
+  /v1/mbkm/list_log_book_mbkm:
+    $ref: './paths/mbkm.yaml#/list-log-book-mbkm'
 
   # ==========================================================================
   # REFERENSI (ref.*)

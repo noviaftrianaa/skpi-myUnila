@@ -1,0 +1,114 @@
+# Path definitions untuk modul MBKM Kampus Merdeka (Batch 14)
+# Schema `mbkm` di pdut — GET-only, 6 endpoint.
+# Note: full KKN lifecycle ada di si-kkn (service terpisah, Postgres), bukan di sini.
+
+list-daftar-kampus-merdeka:
+  get:
+    tags: [MBKM]
+    summary: List pendaftaran MBKM
+    description: |
+      Mahasiswa yang terdaftar mengikuti program MBKM per periode.
+      Join mbkm.periode_kampus_merdeka + pdrd.satuan_pendidikan.
+    operationId: listDaftarKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_daftar_kampus_merdeka, in: query, schema: { type: string, format: uuid } }
+      - { name: id_periode_mbkm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: a_diluar_pt, in: query, schema: { type: integer, enum: [0, 1] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-periode-kampus-merdeka:
+  get:
+    tags: [MBKM]
+    summary: List master periode MBKM
+    description: Master periode program MBKM — join ref.semester + ref.jenis_akt_mhs.
+    operationId: listPeriodeKampusMerdeka
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_periode_mbkm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: id_jns_akt_mhs, in: query, schema: { type: integer } }
+      - { name: a_aktif, in: query, schema: { type: integer, enum: [0, 1] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-mk-konversi:
+  get:
+    tags: [MBKM]
+    summary: List MK konversi MBKM (pengajuan)
+    description: |
+      MK yang diajukan untuk konversi dari aktivitas MBKM.
+      stat_ajuan: 0=draft, 1=submit, 2=verif, 3=approved, 4=rejected.
+    operationId: listMkKonversi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_mk_konversi, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - { name: id_daftar_kampus_merdeka, in: query, schema: { type: string, format: uuid } }
+      - { name: stat_ajuan, in: query, schema: { type: string, enum: ['0','1','2','3','4'] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-konversi-akt-mhs:
+  get:
+    tags: [MBKM]
+    summary: List konversi aktivitas MBKM → akt_mhs
+    description: |
+      Mapping konversi aktivitas MBKM ke akt_mhs di pdrd.
+      Join pdrd.matkul + akt_mhs + ref.semester.
+    operationId: listKonversiAktMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_konversi_aktivitas, in: query, schema: { type: string, format: uuid } }
+      - { name: id_mk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_akt_mhs, in: query, schema: { type: string, format: uuid } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: id_daftar_kampus_merdeka, in: query, schema: { type: string, format: uuid } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-ekuiv-transfer:
+  get:
+    tags: [MBKM]
+    summary: List ekuivalensi transfer MK (MBKM)
+    description: |
+      MK ekuivalensi transfer dari program MBKM ke transkrip mahasiswa.
+      Include nilai asal + nilai diakui + sks asal + sks diakui.
+    operationId: listEkuivTransfer
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_ekuivalensi, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_mk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: id_sp, in: query, schema: { type: string, format: uuid } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-log-book-mbkm:
+  get:
+    tags: [MBKM]
+    summary: List log book MBKM (harian/mingguan)
+    description: Log aktivitas harian/mingguan program MBKM per mahasiswa.
+    operationId: listLogBookMbkm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_log_book_mbkm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_mk_konversi, in: query, schema: { type: string, format: uuid } }
+      - { name: stat_ajuan, in: query, schema: { type: string, enum: ['0','1','2','3','4'] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
