@@ -29,8 +29,12 @@ type Service interface {
 	UpdateHasilTracerAtasan(ctx context.Context, id string, in HasilTracerAtasanUpdate) error
 	DeleteHasilTracerAtasan(ctx context.Context, id, idUpdater string) error
 
-	// umr_wilayah
+	// umr_wilayah (full CRUD)
 	ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]UmrWilayah, int64, error)
+	GetUmrWilayah(ctx context.Context, id string) (*UmrWilayah, error)
+	CreateUmrWilayah(ctx context.Context, in UmrWilayahCreate) (string, error)
+	UpdateUmrWilayah(ctx context.Context, id string, in UmrWilayahUpdate) error
+	DeleteUmrWilayah(ctx context.Context, id, idUpdater string) error
 }
 
 type service struct {
@@ -111,4 +115,16 @@ func (s *service) DeleteHasilTracerAtasan(ctx context.Context, id, idUpdater str
 func (s *service) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]UmrWilayah, int64, error) {
 	return cached(ctx, fmt.Sprintf("umr:%s", utils.HashParams(p)),
 		func() ([]UmrWilayah, int64, error) { return s.repo.ListUmrWilayah(ctx, p) })
+}
+func (s *service) GetUmrWilayah(ctx context.Context, id string) (*UmrWilayah, error) {
+	return s.repo.GetUmrWilayah(ctx, id)
+}
+func (s *service) CreateUmrWilayah(ctx context.Context, in UmrWilayahCreate) (string, error) {
+	return s.repo.CreateUmrWilayah(ctx, in)
+}
+func (s *service) UpdateUmrWilayah(ctx context.Context, id string, in UmrWilayahUpdate) error {
+	return s.repo.UpdateUmrWilayah(ctx, id, in)
+}
+func (s *service) DeleteUmrWilayah(ctx context.Context, id, idUpdater string) error {
+	return s.repo.DeleteUmrWilayah(ctx, id, idUpdater)
 }

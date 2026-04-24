@@ -225,7 +225,7 @@ func (h *Handler) DeleteAtasan(c *fiber.Ctx) error {
 	})
 }
 
-// ---------- umr_wilayah ----------
+// ---------- umr_wilayah (full CRUD) ----------
 
 func (h *Handler) ListUmr(c *fiber.Ctx) error {
 	var p UmrWilayahParams
@@ -239,4 +239,87 @@ func (h *Handler) ListUmr(c *fiber.Ctx) error {
 	}
 	normT(&p.Page, &p.Limit, &p.Order)
 	return response.SuccessWithMeta(c, "Berhasil mengambil data UMR wilayah", data, p.Page, p.Limit, total)
+}
+
+func (h *Handler) GetUmr(c *fiber.Ctx) error {
+	id := strings.TrimSpace(c.Params("id"))
+	if id == "" {
+		return response.BadRequest(c, "Parameter id wajib diisi", nil)
+	}
+	m, err := h.svc.GetUmrWilayah(c.Context(), id)
+	if errors.Is(err, ErrNotFound) {
+		return response.NotFound(c, "UMR wilayah tidak ditemukan")
+	}
+	if err != nil {
+		log.Printf("get umr: %v", err)
+		return response.InternalError(c, "Gagal mengambil detail UMR wilayah")
+	}
+	return response.Success(c, "OK", m)
+}
+
+func (h *Handler) CreateUmr(c *fiber.Ctx) error {
+	var in UmrWilayahCreate
+	if err := c.BodyParser(&in); err != nil {
+		return response.BadRequest(c, "Body JSON tidak valid", map[string]string{"error": err.Error()})
+	}
+	if in.IDWil == "" || in.IDTahunAnggaran == 0 || in.IDCreator == "" {
+		return response.BadRequest(c, "Field wajib kosong", map[string]string{
+			"required": "id_wil, id_tahun_anggaran, besaran_umr, id_creator",
+		})
+	}
+	id, err := h.svc.CreateUmrWilayah(c.Context(), in)
+	if err != nil {
+		log.Printf("create umr: %v", err)
+		return response.InternalError(c, "Gagal menyimpan UMR wilayah")
+	}
+	c.Status(fiber.StatusCreated)
+	return response.Success(c, "UMR wilayah berhasil disimpan", fiber.Map{
+		"id_umr_wil": id,
+	})
+}
+
+func (h *Handler) UpdateUmr(c *fiber.Ctx) error {
+	id := strings.TrimSpace(c.Params("id"))
+	if id == "" {
+		return response.BadRequest(c, "Parameter id wajib diisi", nil)
+	}
+	var in UmrWilayahUpdate
+	if err := c.BodyParser(&in); err != nil {
+		return response.BadRequest(c, "Body JSON tidak valid", map[string]string{"error": err.Error()})
+	}
+	if in.IDUpdater == "" {
+		return response.BadRequest(c, "Field id_updater wajib diisi", nil)
+	}
+	if err := h.svc.UpdateUmrWilayah(c.Context(), id, in); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return response.NotFound(c, "UMR wilayah tidak ditemukan")
+		}
+		log.Printf("update umr: %v", err)
+		return response.InternalError(c, "Gagal memperbarui UMR wilayah")
+	}
+	return response.Success(c, "UMR wilayah berhasil diperbarui", fiber.Map{"id_umr_wil": id})
+}
+
+func (h *Handler) DeleteUmr(c *fiber.Ctx) error {
+	id := strings.TrimSpace(c.Params("id"))
+	if id == "" {
+		return response.BadRequest(c, "Parameter id wajib diisi", nil)
+	}
+	var body DeleteBody
+	_ = c.BodyParser(&body)
+	idUpdater := body.IDUpdater
+	if idUpdater == "" {
+		idUpdater = strings.TrimSpace(c.Query("id_updater"))
+	}
+	if idUpdater == "" {
+		return response.BadRequest(c, "id_updater wajib diisi", nil)
+	}
+	if err := h.svc.DeleteUmrWilayah(c.Context(), id, idUpdater); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return response.NotFound(c, "UMR wilayah tidak ditemukan")
+		}
+		log.Printf("delete umr: %v", err)
+		return response.InternalError(c, "Gagal menghapus UMR wilayah")
+	}
+	return response.Success(c, "UMR wilayah berhasil dihapus (soft delete)", fiber.Map{"id_umr_wil": id})
 }

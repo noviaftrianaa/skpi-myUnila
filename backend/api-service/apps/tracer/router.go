@@ -52,6 +52,10 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 	g.Put("/hasil_tracer_atasan/:id", h.UpdateAtasan)
 	g.Delete("/hasil_tracer_atasan/:id", h.DeleteAtasan)
 
-	// umr_wilayah (read-only)
+	// umr_wilayah (full CRUD)
 	g.Get("/umr_wilayah", h.ListUmr)
+	g.Get("/umr_wilayah/:id", h.GetUmr)
+	g.Post("/umr_wilayah", h.CreateUmr)
+	g.Put("/umr_wilayah/:id", h.UpdateUmr)
+	g.Delete("/umr_wilayah/:id", h.DeleteUmr)
 }

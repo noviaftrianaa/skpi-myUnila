@@ -31,8 +31,12 @@ type Repository interface {
 	UpdateHasilTracerAtasan(ctx context.Context, id string, in HasilTracerAtasanUpdate) error
 	DeleteHasilTracerAtasan(ctx context.Context, id, idUpdater string) error
 
-	// umr_wilayah (read-only)
+	// umr_wilayah (full CRUD)
 	ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]UmrWilayah, int64, error)
+	GetUmrWilayah(ctx context.Context, id string) (*UmrWilayah, error)
+	CreateUmrWilayah(ctx context.Context, in UmrWilayahCreate) (string, error)
+	UpdateUmrWilayah(ctx context.Context, id string, in UmrWilayahUpdate) error
+	DeleteUmrWilayah(ctx context.Context, id, idUpdater string) error
 }
 
 type repository struct{ db *sqlx.DB }
@@ -429,6 +433,12 @@ func (r *repository) DeleteHasilTracerAtasan(ctx context.Context, id, idUpdater 
 
 // ---------- umr_wilayah (read-only) ----------
 
+const umrSelect = `
+	SELECT u.id_umr_wil, u.id_wil, w.nm_wil,
+		u.id_tahun_anggaran, u.besaran_umr, u.last_sync
+	FROM tracer.umr_wilayah u
+	LEFT JOIN ref.wilayah w ON w.id_wil = u.id_wil`
+
 func (r *repository) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]UmrWilayah, int64, error) {
 	normT(&p.Page, &p.Limit, &p.Order)
 
@@ -441,12 +451,9 @@ func (r *repository) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]
 	conds = append(conds, "u.soft_delete = 0")
 	where := strings.Join(conds, " AND ")
 
-	join := `
-		FROM tracer.umr_wilayah u
-		LEFT JOIN ref.wilayah w ON w.id_wil = u.id_wil`
-
 	var total int64
-	if err := r.db.QueryRowContext(ctx, "SELECT COUNT(*)"+join+" WHERE "+where, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM tracer.umr_wilayah u WHERE "+where, args...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
@@ -458,12 +465,8 @@ func (r *repository) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]
 		order = "ASC"
 	}
 
-	q := fmt.Sprintf(`
-		SELECT u.id_umr_wil, u.id_wil, w.nm_wil,
-			u.id_tahun_anggaran, u.besaran_umr, u.last_sync
-		%s WHERE %s ORDER BY %s %s
-		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
-		join, where, sortBy, order, len(args)+1, len(args)+2)
+	q := fmt.Sprintf(`%s WHERE %s ORDER BY %s %s OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
+		umrSelect, where, sortBy, order, len(args)+1, len(args)+2)
 	args = append(args, (p.Page-1)*p.Limit, p.Limit)
 
 	rows, err := r.db.QueryxContext(ctx, q, args...)
@@ -481,5 +484,98 @@ func (r *repository) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]
 		result = append(result, m)
 	}
 	return result, total, rows.Err()
+}
+
+func (r *repository) GetUmrWilayah(ctx context.Context, id string) (*UmrWilayah, error) {
+	q := umrSelect + ` WHERE u.id_umr_wil = @p1 AND u.soft_delete = 0`
+	var m UmrWilayah
+	err := r.db.QueryRowxContext(ctx, q, id).StructScan(&m)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (r *repository) CreateUmrWilayah(ctx context.Context, in UmrWilayahCreate) (string, error) {
+	id := uuid.New().String()
+	if in.IDUmrWil != nil && *in.IDUmrWil != "" {
+		if _, err := uuid.Parse(*in.IDUmrWil); err == nil {
+			id = *in.IDUmrWil
+		}
+	}
+	q := `INSERT INTO tracer.umr_wilayah (
+		id_umr_wil, id_wil, id_tahun_anggaran, besaran_umr,
+		create_date, id_creator, last_update, soft_delete, last_sync)
+	VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, 0, @p8)`
+	now := time.Now()
+	_, err := r.db.ExecContext(ctx, q,
+		id, in.IDWil, in.IDTahunAnggaran, in.BesaranUmr,
+		now, in.IDCreator, now, now)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (r *repository) UpdateUmrWilayah(ctx context.Context, id string, in UmrWilayahUpdate) error {
+	sets := []string{}
+	args := []interface{}{}
+	i := 1
+
+	if in.IDWil != nil {
+		sets = append(sets, fmt.Sprintf("id_wil = @p%d", i))
+		args = append(args, *in.IDWil)
+		i++
+	}
+	if in.IDTahunAnggaran != nil {
+		sets = append(sets, fmt.Sprintf("id_tahun_anggaran = @p%d", i))
+		args = append(args, *in.IDTahunAnggaran)
+		i++
+	}
+	if in.BesaranUmr != nil {
+		sets = append(sets, fmt.Sprintf("besaran_umr = @p%d", i))
+		args = append(args, *in.BesaranUmr)
+		i++
+	}
+
+	sets = append(sets, fmt.Sprintf("last_update = @p%d", i))
+	args = append(args, time.Now())
+	i++
+	sets = append(sets, fmt.Sprintf("id_updater = @p%d", i))
+	args = append(args, in.IDUpdater)
+	i++
+
+	args = append(args, id)
+	q := fmt.Sprintf(`UPDATE tracer.umr_wilayah SET %s
+		WHERE id_umr_wil = @p%d AND soft_delete = 0`,
+		strings.Join(sets, ", "), i)
+
+	res, err := r.db.ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) DeleteUmrWilayah(ctx context.Context, id, idUpdater string) error {
+	q := `UPDATE tracer.umr_wilayah
+		SET soft_delete = 1, last_update = @p1, id_updater = @p2
+		WHERE id_umr_wil = @p3 AND soft_delete = 0`
+	res, err := r.db.ExecContext(ctx, q, time.Now(), idUpdater, id)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 

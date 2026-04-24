@@ -291,6 +291,8 @@ paths:
     $ref: './paths/tracer.yaml#/hasil-tracer-atasan-item'
   /v1/tracer/umr_wilayah:
     $ref: './paths/tracer.yaml#/umr-wilayah'
+  /v1/tracer/umr_wilayah/{id}:
+    $ref: './paths/tracer.yaml#/umr-wilayah-item'
 
   # ==========================================================================
   # REFERENSI (ref.*)

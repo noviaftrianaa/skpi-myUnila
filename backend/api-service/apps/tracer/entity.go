@@ -229,3 +229,20 @@ type HasilTracerAtasanUpdate struct {
 type DeleteBody struct {
 	IDUpdater string `json:"id_updater" validate:"required"`
 }
+
+// UmrWilayahCreate — body POST /umr_wilayah
+type UmrWilayahCreate struct {
+	IDUmrWil        *string `json:"id_umr_wil"` // optional, auto-generate
+	IDWil           string  `json:"id_wil" validate:"required"`            // char(8)
+	IDTahunAnggaran int     `json:"id_tahun_anggaran" validate:"required"` // numeric(4)
+	BesaranUmr      float64 `json:"besaran_umr" validate:"required"`
+	IDCreator       string  `json:"id_creator" validate:"required"`
+}
+
+// UmrWilayahUpdate — body PUT /umr_wilayah/:id (partial)
+type UmrWilayahUpdate struct {
+	IDWil           *string  `json:"id_wil"`
+	IDTahunAnggaran *int     `json:"id_tahun_anggaran"`
+	BesaranUmr      *float64 `json:"besaran_umr"`
+	IDUpdater       string   `json:"id_updater" validate:"required"`
+}

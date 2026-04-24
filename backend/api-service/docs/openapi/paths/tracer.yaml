@@ -253,7 +253,7 @@ hasil-tracer-atasan-item:
       '404': { description: Not Found }
 
 # =============================================================================
-# umr_wilayah (read-only)
+# umr_wilayah (full CRUD)
 # =============================================================================
 
 umr-wilayah:
@@ -270,3 +270,79 @@ umr-wilayah:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+  post:
+    tags: [Tracer Study]
+    summary: Create UMR wilayah
+    description: |
+      Tambah UMR baru untuk suatu wilayah + tahun anggaran.
+      Wajib: id_wil (char 8), id_tahun_anggaran (numeric 4), besaran_umr, id_creator.
+    operationId: createUmrWilayah
+    security: [{ BearerAuth: [] }]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_wil, id_tahun_anggaran, besaran_umr, id_creator]
+            properties:
+              id_umr_wil: { type: string, format: uuid, description: optional — auto-generate kalau kosong }
+              id_wil: { type: string, description: char(8) kode wilayah }
+              id_tahun_anggaran: { type: integer, example: 2024 }
+              besaran_umr: { type: number, example: 2700000 }
+              id_creator: { type: string, format: uuid }
+    responses:
+      '201': { description: Created }
+      '400': { description: Body validation error }
+
+umr-wilayah-item:
+  get:
+    tags: [Tracer Study]
+    summary: Get detail UMR wilayah
+    operationId: getUmrWilayah
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  put:
+    tags: [Tracer Study]
+    summary: Update UMR wilayah (partial)
+    operationId: updateUmrWilayah
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_updater]
+            properties:
+              id_updater: { type: string, format: uuid }
+              id_wil: { type: string }
+              id_tahun_anggaran: { type: integer }
+              besaran_umr: { type: number }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+  delete:
+    tags: [Tracer Study]
+    summary: Soft-delete UMR wilayah
+    operationId: deleteUmrWilayah
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id_updater, in: query, schema: { type: string, format: uuid } }
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id_updater: { type: string, format: uuid }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
