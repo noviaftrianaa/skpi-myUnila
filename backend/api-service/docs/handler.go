@@ -3,6 +3,8 @@ package docs
 import (
 	"encoding/json"
 	"log"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +19,10 @@ var (
 	specErr          error
 )
 
-// loadCompiledSpec loads and compiles the OpenAPI spec from YAML files
+// loadCompiledSpec loads and compiles the OpenAPI spec from YAML files.
+// Setelah load, filter `servers` list sesuai APP_ENV supaya docs di staging
+// cuma expose URL sandbox, docs di production cuma expose URL live — bukan
+// leak internal topology ke publik.
 func loadCompiledSpec() error {
 	specOnce.Do(func() {
 		spec, err := openapi.LoadSpec()
@@ -26,17 +31,63 @@ func loadCompiledSpec() error {
 			specErr = err
 			return
 		}
-		compiledSpec = spec.GetYAML()
+		rawYAML := spec.GetYAML()
 
-		// Convert to JSON for Scalar UI
+		// Parse → filter servers → re-marshal
 		var yamlData interface{}
-		if err := yaml.Unmarshal(compiledSpec, &yamlData); err != nil {
+		if err := yaml.Unmarshal(rawYAML, &yamlData); err != nil {
 			specErr = err
 			return
 		}
-		compiledSpecJSON, specErr = json.Marshal(convertYAMLToJSON(yamlData))
+		normalized := convertYAMLToJSON(yamlData)
+		filterServersByEnv(normalized)
+
+		// Serialize final spec (both YAML + JSON form)
+		outYAML, err := yaml.Marshal(normalized)
+		if err != nil {
+			specErr = err
+			return
+		}
+		compiledSpec = outYAML
+		compiledSpecJSON, specErr = json.Marshal(normalized)
 	})
 	return specErr
+}
+
+// filterServersByEnv menyaring spec.servers berdasarkan APP_ENV.
+//   - APP_ENV=production           → hanya server yang URL-nya production
+//   - APP_ENV=staging/development  → hanya server yang URL-nya sandbox
+// Penanda sederhana: kalau URL mengandung "my.unila.ac.id" = production server.
+// Kalau YAML tidak punya servers / hanya 1 server, biarin apa adanya.
+func filterServersByEnv(spec interface{}) {
+	m, ok := spec.(map[string]interface{})
+	if !ok {
+		return
+	}
+	serversRaw, ok := m["servers"].([]interface{})
+	if !ok || len(serversRaw) < 2 {
+		return
+	}
+
+	env := strings.ToLower(os.Getenv("APP_ENV"))
+	isProd := env == "production" || env == "prod"
+
+	var kept []interface{}
+	for _, s := range serversRaw {
+		srv, ok := s.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		url, _ := srv["url"].(string)
+		isProdServer := strings.Contains(url, "my.unila.ac.id") ||
+			strings.Contains(strings.ToLower(url), "gateway")
+		if isProd == isProdServer {
+			kept = append(kept, srv)
+		}
+	}
+	if len(kept) > 0 {
+		m["servers"] = kept
+	}
 }
 
 // convertYAMLToJSON converts YAML maps to JSON-compatible maps
