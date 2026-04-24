@@ -183,6 +183,9 @@ func (r *LoginRequest) Validate() map[string]string {
 
 	if r.IDAplikasi == "" {
 		errors["id_aplikasi"] = "ID Aplikasi harus diisi"
+	} else if _, err := uuid.Parse(r.IDAplikasi); err != nil {
+		// Guard UUID format supaya error 400 (bukan 500 dari DB layer)
+		errors["id_aplikasi"] = "ID Aplikasi harus format UUID valid (contoh: 12345678-1234-1234-1234-123456789abc)"
 	}
 	if r.Username == "" {
 		errors["username"] = "Username harus diisi"
