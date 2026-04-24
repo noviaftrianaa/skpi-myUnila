@@ -153,6 +153,10 @@ type Repository interface {
 	GetBukuAjar(ctx context.Context, p BukuAjarParams) ([]BukuAjar, int64, error)
 	GetKepanitiaan(ctx context.Context, p KepanitiaanParams) ([]Kepanitiaan, int64, error)
 	GetPrestasi(ctx context.Context, p PrestasiParams) ([]PrestasiMhs, int64, error)
+
+	// Batch 9b pivot
+	GetTulisBukuAjar(ctx context.Context, p TulisBukuAjarParams) ([]TulisBukuAjar, int64, error)
+	GetAnggotaPanitia(ctx context.Context, p AnggotaPanitiaParams) ([]AnggotaPanitia, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }
@@ -389,6 +393,10 @@ type Service interface {
 	GetBukuAjar(ctx context.Context, p BukuAjarParams) ([]BukuAjar, int64, error)
 	GetKepanitiaan(ctx context.Context, p KepanitiaanParams) ([]Kepanitiaan, int64, error)
 	GetPrestasi(ctx context.Context, p PrestasiParams) ([]PrestasiMhs, int64, error)
+
+	// Batch 9b pivot
+	GetTulisBukuAjar(ctx context.Context, p TulisBukuAjarParams) ([]TulisBukuAjar, int64, error)
+	GetAnggotaPanitia(ctx context.Context, p AnggotaPanitiaParams) ([]AnggotaPanitia, int64, error)
 }
 
 type service struct {
@@ -518,4 +526,8 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 	g.Get("/list_buku_ajar", h.GetBukuAjar)
 	g.Get("/list_kepanitiaan", h.GetKepanitiaan)
 	g.Get("/list_prestasi", h.GetPrestasi)
+
+	// Batch 9b pivot
+	g.Get("/list_tulis_buku_ajar", h.GetTulisBukuAjar)
+	g.Get("/list_anggota_panitia", h.GetAnggotaPanitia)
 }
