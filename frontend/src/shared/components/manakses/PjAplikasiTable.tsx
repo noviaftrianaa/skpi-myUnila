@@ -1,14 +1,27 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import {
   Chip, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  Input, Select, SelectItem, useDisclosure, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem,
+  Input, Select, SelectItem, Autocomplete, AutocompleteItem, useDisclosure,
+  Dropdown, DropdownTrigger, DropdownMenu, DropdownItem,
 } from "@heroui/react";
 import { authClient } from "@/lib/api/authClient";
 import { FiPlus, FiEdit2, FiTrash2, FiUser, FiPhone, FiMail, FiMoreVertical, FiBriefcase } from "react-icons/fi";
 import toast from "react-hot-toast";
+
+interface PenggunaOption {
+  id_pengguna: string;
+  username: string;
+  nm_pengguna: string;
+  email: string | null;
+  no_hp: string | null;
+}
+interface PeranOption {
+  id_peran: number;
+  nm_peran: string;
+}
 
 interface PjItem {
   id_pj_aplikasi: string;
@@ -82,12 +95,100 @@ export default function PjAplikasiTable() {
 
   const [formData, setFormData] = useState({
     id_aplikasi: "",
+    id_pengguna: "",
     nm_pj: "",
     jabatan_pj: "",
     no_hp: "",
     email: "",
     a_masih: true,
   });
+
+  // Autocomplete data: pengguna + peran (for jabatan dropdown)
+  const [penggunaOptions, setPenggunaOptions] = useState<PenggunaOption[]>([]);
+  const [penggunaSearch, setPenggunaSearch] = useState("");
+  const [penggunaLoading, setPenggunaLoading] = useState(false);
+  const [peranOptions, setPeranOptions] = useState<PeranOption[]>([]);
+  const penggunaSearchTimerRef = useRef<number | undefined>(undefined);
+
+  // Load peran once (fixed list, small)
+  useEffect(() => {
+    authClient
+      .get("/manakses/peran/all")
+      .then((res) => {
+        const list = res.data?.data || res.data || [];
+        const options = (Array.isArray(list) ? list : list?.data || [])
+          .map((p: any) => ({ id_peran: p.id_peran, nm_peran: p.nm_peran }))
+          .sort((a: PeranOption, b: PeranOption) => a.nm_peran.localeCompare(b.nm_peran));
+        setPeranOptions(options);
+      })
+      .catch(() => {
+        // fallback: no options
+      });
+  }, []);
+
+  // Debounced pengguna search: type in autocomplete → query backend
+  useEffect(() => {
+    // Clear timeout on deps change
+    if (penggunaSearchTimerRef.current) {
+      window.clearTimeout(penggunaSearchTimerRef.current);
+    }
+    // Don't query empty search (too many results) unless user already typed something
+    if (penggunaSearch.length < 2) {
+      setPenggunaOptions([]);
+      return;
+    }
+    penggunaSearchTimerRef.current = window.setTimeout(async () => {
+      setPenggunaLoading(true);
+      try {
+        const res = await authClient.get(`/manakses/pengguna?search=${encodeURIComponent(penggunaSearch)}&limit=20`);
+        const list = res.data?.data || [];
+        const arr = Array.isArray(list) ? list : list?.data || [];
+        setPenggunaOptions(
+          arr.map((u: any) => ({
+            id_pengguna: u.id_pengguna,
+            username: u.username || "",
+            nm_pengguna: u.nm_pengguna || u.nama || "",
+            email: u.email || null,
+            no_hp: u.no_hp || null,
+          }))
+        );
+      } catch (e) {
+        console.error("Search pengguna failed:", e);
+        setPenggunaOptions([]);
+      } finally {
+        setPenggunaLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (penggunaSearchTimerRef.current) {
+        window.clearTimeout(penggunaSearchTimerRef.current);
+      }
+    };
+  }, [penggunaSearch]);
+
+  // Handler: when user picks a pengguna, auto-fill form fields
+  const handlePickPengguna = (idPengguna: string | null) => {
+    if (!idPengguna) {
+      setFormData((prev) => ({
+        ...prev,
+        id_pengguna: "",
+        nm_pj: "",
+        email: "",
+        no_hp: "",
+      }));
+      return;
+    }
+    const pick = penggunaOptions.find((p) => p.id_pengguna === idPengguna);
+    if (!pick) return;
+    setFormData((prev) => ({
+      ...prev,
+      id_pengguna: pick.id_pengguna,
+      nm_pj: pick.nm_pengguna || pick.username,
+      email: pick.email || prev.email,
+      no_hp: pick.no_hp || prev.no_hp,
+    }));
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -160,12 +261,15 @@ export default function PjAplikasiTable() {
   const handleAdd = () => {
     setFormData({
       id_aplikasi: "",
+      id_pengguna: "",
       nm_pj: "",
       jabatan_pj: "",
       no_hp: "",
       email: "",
       a_masih: true,
     });
+    setPenggunaSearch("");
+    setPenggunaOptions([]);
     onAddOpen();
   };
 
@@ -174,12 +278,28 @@ export default function PjAplikasiTable() {
     setSelectedItem(item);
     setFormData({
       id_aplikasi: item.id_aplikasi,
+      id_pengguna: item.id_pengguna || "",
       nm_pj: item.nm_pj,
       jabatan_pj: item.jabatan_pj,
       no_hp: item.no_hp || "",
       email: item.email || "",
       a_masih: item.a_masih === 1,
     });
+    // Pre-populate pengguna option so autocomplete shows current selection
+    if (item.id_pengguna) {
+      setPenggunaOptions([
+        {
+          id_pengguna: item.id_pengguna,
+          username: item.username || "",
+          nm_pengguna: item.nm_pengguna || item.nm_pj,
+          email: item.email,
+          no_hp: item.no_hp,
+        },
+      ]);
+    } else {
+      setPenggunaOptions([]);
+    }
+    setPenggunaSearch("");
     onEditOpen();
   };
 
@@ -191,8 +311,8 @@ export default function PjAplikasiTable() {
 
   // Submit Add
   const handleSubmitAdd = async () => {
-    if (!formData.nm_pj.trim() || !formData.jabatan_pj.trim() || !formData.email.trim() || !formData.id_aplikasi) {
-      toastError("Lengkapi semua field yang wajib");
+    if (!formData.id_pengguna || !formData.jabatan_pj.trim() || !formData.email.trim() || !formData.id_aplikasi) {
+      toastError("Lengkapi semua field yang wajib (Pengguna, Jabatan PJ, Email, Aplikasi)");
       return;
     }
     setIsSubmitting(true);
@@ -211,8 +331,8 @@ export default function PjAplikasiTable() {
 
   // Submit Edit
   const handleSubmitEdit = async () => {
-    if (!selectedItem || !formData.nm_pj.trim() || !formData.jabatan_pj.trim() || !formData.email.trim()) {
-      toastError("Lengkapi semua field yang wajib");
+    if (!selectedItem || !formData.id_pengguna || !formData.jabatan_pj.trim() || !formData.email.trim()) {
+      toastError("Lengkapi semua field yang wajib (Pengguna, Jabatan PJ, Email)");
       return;
     }
     setIsSubmitting(true);
@@ -377,41 +497,71 @@ export default function PjAplikasiTable() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-            Nama PJ <span className="text-red-500">*</span>
-          </label>
-          <Input
-            aria-label="Nama PJ"
-            placeholder="Nama penanggung jawab"
-            value={formData.nm_pj}
-            onValueChange={(v) => setFormData({ ...formData, nm_pj: v })}
-            variant="bordered"
-            size="sm"
-            classNames={{
-              input: "text-gray-900 dark:text-white",
-              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-            }}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-            Jabatan PJ <span className="text-red-500">*</span>
-          </label>
-          <Input
-            aria-label="Jabatan PJ"
-            placeholder="Jabatan PJ"
-            value={formData.jabatan_pj}
-            onValueChange={(v) => setFormData({ ...formData, jabatan_pj: v })}
-            variant="bordered"
-            size="sm"
-            classNames={{
-              input: "text-gray-900 dark:text-white",
-              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-            }}
-          />
-        </div>
+      {/* Pengguna search — autocomplete ke man_akses.pengguna (SSO users) */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+          Pengguna (Username / Email) <span className="text-red-500">*</span>
+        </label>
+        <Autocomplete
+          aria-label="Pilih Pengguna"
+          placeholder="Ketik username atau nama minimal 2 huruf..."
+          inputValue={penggunaSearch}
+          onInputChange={setPenggunaSearch}
+          selectedKey={formData.id_pengguna || null}
+          onSelectionChange={(key) => handlePickPengguna(key as string | null)}
+          isLoading={penggunaLoading}
+          variant="bordered"
+          size="sm"
+          startContent={<FiUser className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+          classNames={{
+            base: "w-full",
+          }}
+          listboxProps={{ emptyContent: penggunaSearch.length < 2 ? "Ketik min. 2 huruf untuk cari" : "Tidak ada user cocok" }}
+        >
+          {penggunaOptions.map((p) => (
+            <AutocompleteItem key={p.id_pengguna} textValue={`${p.username} — ${p.nm_pengguna}`}>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{p.nm_pengguna || "-"}</span>
+                <span className="text-xs text-gray-500">@{p.username}{p.email ? ` · ${p.email}` : ""}</span>
+              </div>
+            </AutocompleteItem>
+          ))}
+        </Autocomplete>
+        {formData.id_pengguna && (
+          <p className="text-xs text-emerald-600 dark:text-emerald-400">
+            ✓ {formData.nm_pj} — auto-fill dari akun pengguna
+          </p>
+        )}
+      </div>
+
+      {/* Jabatan PJ — dropdown dari man_akses.peran */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+          Jabatan PJ <span className="text-red-500">*</span>
+        </label>
+        <Select
+          aria-label="Jabatan PJ"
+          placeholder="Pilih peran sebagai jabatan PJ"
+          selectedKeys={formData.jabatan_pj ? [formData.jabatan_pj] : []}
+          onSelectionChange={(keys) =>
+            setFormData({ ...formData, jabatan_pj: (Array.from(keys)[0] as string) || "" })
+          }
+          variant="bordered"
+          size="sm"
+          startContent={<FiBriefcase className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+          classNames={{
+            base: "w-full",
+            trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
+            value: "text-gray-900 dark:text-white",
+            popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+          }}
+        >
+          {peranOptions.map((p) => (
+            <SelectItem key={p.nm_peran} textValue={p.nm_peran}>
+              {p.nm_peran}
+            </SelectItem>
+          ))}
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
