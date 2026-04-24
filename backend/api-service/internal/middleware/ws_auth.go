@@ -185,8 +185,14 @@ func queryAuthorization(db *sqlx.DB, appID, method, path string, roleID int) (bo
 	return authCount > 0, nil
 }
 
-// WsAuthLog logs access attempts to man_akses.logger.log_akses
-// Should be used as a separate middleware after WsAuthorization
+// WsAuthLog logs access attempts to logger.log_akses_jwt
+// Should be used as a separate middleware after WsAuthorization.
+//
+// Schema target (logger.log_akses_jwt):
+//   id_log_akses_jwt (PK), id_log_jwt (FK to logger.log_jwt, dari JWT claim "jti"),
+//   menu_akses (= path_url), method, request_list (query string),
+//   waktu_akses, a_berhasil (1=success, 0=fail), ket (status code + error),
+//   hasil_akses (response summary, optional)
 func WsAuthLog(db *sqlx.DB, appID string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Process request first
@@ -195,35 +201,54 @@ func WsAuthLog(db *sqlx.DB, appID string) fiber.Handler {
 		// Log after response (async-ish via goroutine)
 		go func() {
 			userID, _ := c.Locals("user_id").(string)
-			authorized, _ := c.Locals("ws_authorized").(bool)
+			jti, _ := c.Locals("jti").(string)
 
+			// Skip kalau tidak ada JWT context (public endpoint, preflight, dsb)
 			if userID == "" {
 				return
 			}
 
+			status := c.Response().StatusCode()
 			aSuccess := 0
-			if authorized && c.Response().StatusCode() < 400 {
+			if status < 400 {
 				aSuccess = 1
 			}
 
+			// Query string (kalau ada) ke request_list
+			reqList := string(c.Request().URI().QueryString())
+			if reqList == "" {
+				reqList = "" // simpan string kosong, bukan NULL
+			}
+
+			// ket = status code + method untuk quick-scan di log dashboard
+			ket := fmt.Sprintf("%d %s", status, c.Method())
+
+			// id_log_jwt (FK): dari JTI claim. Nullable di schema, jadi kalau JTI
+			// kosong kita biarkan NULL (bukan string kosong — SQL Server reject uniqueidentifier empty).
+			var idLogJwtArg interface{}
+			if jti != "" {
+				idLogJwtArg = jti
+			} else {
+				idLogJwtArg = nil
+			}
+
 			logQuery := `
-				INSERT INTO logger.log_akses (
-					id_pengguna, id_aplikasi, nm_method, path_url,
-					ip_address, user_agent, a_berhasil,
-					response_code, tgl_akses
+				INSERT INTO logger.log_akses_jwt (
+					id_log_akses_jwt, id_log_jwt,
+					menu_akses, method, request_list,
+					waktu_akses, a_berhasil, ket
 				) VALUES (
-					@p1, @p2, @p3, @p4,
-					@p5, @p6, @p7,
-					@p8, GETDATE()
+					NEWID(), @p1,
+					@p2, @p3, @p4,
+					GETDATE(), @p5, @p6
 				)
 			`
 
-			_, logErr := db.Exec(logQuery,
-				userID, appID, c.Method(), c.Path(),
-				c.IP(), string(c.Request().Header.UserAgent()), aSuccess,
-				c.Response().StatusCode(),
-			)
-			if logErr != nil {
+			if _, logErr := db.Exec(logQuery,
+				idLogJwtArg,
+				c.Path(), c.Method(), reqList,
+				aSuccess, ket,
+			); logErr != nil {
 				log.Printf("[WsAuthLog] Failed to log access: %v", logErr)
 			}
 		}()

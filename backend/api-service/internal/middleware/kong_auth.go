@@ -107,6 +107,9 @@ func KongAuth() fiber.Handler {
 			c.Locals("username", claims.Username)
 			c.Locals("role", claims.Role)
 		}
+		// JTI (JWT ID) — di ws-api corresponds ke logger.log_jwt.id_log_jwt
+		// Dipakai middleware WsAuthLog untuk FK ke log_akses_jwt.
+		c.Locals("jti", claims.JTI)
 
 		return c.Next()
 	}
