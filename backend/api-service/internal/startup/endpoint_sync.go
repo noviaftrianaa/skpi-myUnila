@@ -76,8 +76,11 @@ type syncStats struct {
 	Reactivated int
 }
 
-// collectRoutes walk semua registered routes dari fiber.App, filter internal path
-// (/system, /health, /docs, /).
+// collectRoutes walk semua registered routes dari fiber.App, filter:
+//   - internal path (/system, /health, /docs, /)
+//   - group-root middleware artifacts (fiber.GetRoutes() return entry untuk
+//     setiap method pada .Group().Use() — path cuma /v1/<group> tanpa segment
+//     berikutnya. Itu bukan endpoint aktual, skip).
 func collectRoutes(app *fiber.App) []Route {
 	seen := make(map[string]bool)
 	var result []Route
@@ -94,6 +97,13 @@ func collectRoutes(app *fiber.App) []Route {
 		if strings.HasPrefix(r.Path, "/system") || strings.HasPrefix(r.Path, "/docs") {
 			continue
 		}
+		// Skip group-root middleware artifacts: path /v1/<group> tanpa segment
+		// endpoint di belakangnya. Minimal harus ada 3 segment setelah split "/"
+		// (empty, "v1", "<group>", "<endpoint>" → len 4).
+		if isGroupRootPath(r.Path) {
+			continue
+		}
+
 		key := r.Method + ":" + r.Path
 		if seen[key] {
 			continue
@@ -108,6 +118,15 @@ func collectRoutes(app *fiber.App) []Route {
 		})
 	}
 	return result
+}
+
+// isGroupRootPath true untuk path yang hanya terdiri dari prefix + 1 group
+// (contoh: /v1/siakadu, /v1/mbkm). fiber auto-register method route ke path
+// ini saat Group().Use() dipakai untuk middleware.
+func isGroupRootPath(path string) bool {
+	// Split /v1/siakadu → ["", "v1", "siakadu"] len=3
+	parts := strings.Split(path, "/")
+	return len(parts) == 3 && parts[0] == "" && parts[1] == "v1"
 }
 
 // deriveGroup: /v1/mahasiswa/list_mahasiswa → "mahasiswa"
