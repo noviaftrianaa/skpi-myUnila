@@ -68,6 +68,12 @@ tags:
       Profil institusi: program studi, satuan pendidikan (fakultas),
       profil prodi per tahun ajaran, akreditasi.
       Source: `pdrd.sms`, `pdrd.satuan_pendidikan`, `pdrd.profil_prodi`, `pdrd.akreditasi_prodi`.
+  - name: Kontribusi
+    description: |
+      Kontribusi akademik dosen & mahasiswa: narasumber/pembicara, pengelola jurnal,
+      buku ajar, kepanitiaan, prestasi mahasiswa.
+      Source: `pdrd.pembicara`, `pdrd.pengelola_jurnal`, `pdrd.buku_ajar`,
+      `pdrd.kepanitiaan`, `pdrd.prestasi`.
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -165,6 +171,14 @@ paths:
     $ref: './paths/pdrd.yaml#/list-rwy-struktural'
   /v1/sdm/list_diklat:
     $ref: './paths/pdrd.yaml#/list-diklat'
+  /v1/sdm/list_detasering:
+    $ref: './paths/pdrd.yaml#/list-detasering'
+  /v1/sdm/list_visiting_scientist:
+    $ref: './paths/pdrd.yaml#/list-visiting-scientist'
+  /v1/sdm/list_anggota_orgprof:
+    $ref: './paths/pdrd.yaml#/list-anggota-orgprof'
+  /v1/sdm/list_penghargaan:
+    $ref: './paths/pdrd.yaml#/list-penghargaan'
 
   # ==========================================================================
   # INSTITUSI — Profil prodi + akreditasi + fakultas
@@ -177,6 +191,20 @@ paths:
     $ref: './paths/pdrd.yaml#/list-profil-prodi'
   /v1/institusi/list_akreditasi_prodi:
     $ref: './paths/pdrd.yaml#/list-akreditasi-prodi'
+
+  # ==========================================================================
+  # KONTRIBUSI — pembicara, jurnal, buku ajar, panitia, prestasi
+  # ==========================================================================
+  /v1/kontribusi/list_pembicara:
+    $ref: './paths/pdrd.yaml#/list-pembicara'
+  /v1/kontribusi/list_pengelola_jurnal:
+    $ref: './paths/pdrd.yaml#/list-pengelola-jurnal'
+  /v1/kontribusi/list_buku_ajar:
+    $ref: './paths/pdrd.yaml#/list-buku-ajar'
+  /v1/kontribusi/list_kepanitiaan:
+    $ref: './paths/pdrd.yaml#/list-kepanitiaan'
+  /v1/kontribusi/list_prestasi:
+    $ref: './paths/pdrd.yaml#/list-prestasi'
 
   # ==========================================================================
   # PEGAWAI — source SIKEP

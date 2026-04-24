@@ -1391,3 +1391,223 @@ list-akreditasi-prodi:
       - $ref: '../schemas/common.yaml#/parameters/page'
       - $ref: '../schemas/common.yaml#/parameters/limit'
     responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 6 — SDM Specialized
+# =============================================================================
+
+list-detasering:
+  get:
+    tags: [SDM]
+    summary: Detasering SDM
+    description: Penugasan dosen keluar kampus/lintas SP dari `pdrd.detasering`. Join ke satuan_pendidikan sumber & sasaran.
+    operationId: getDetasering
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sp_sumber
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sp_sasaran
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-visiting-scientist:
+  get:
+    tags: [SDM]
+    summary: Visiting Scientist (dosen tamu/undangan)
+    description: Dari `pdrd.visiting_scientist`. Dosen yang undangan ke PT lain.
+    operationId: getVisitingScientist
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sp
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-anggota-orgprof:
+  get:
+    tags: [SDM]
+    summary: Keanggotaan organisasi profesi SDM
+    description: Dari `pdrd.anggota_orgprof`. Organisasi profesi yang diikuti dosen.
+    operationId: getAnggotaOrgprof
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-penghargaan:
+  get:
+    tags: [SDM]
+    summary: Penghargaan yang diterima SDM
+    description: Dari `pdrd.penghargaan`. Join ref.jenis_penghargaan, ref.tingkat_penghargaan.
+    operationId: getPenghargaan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jns_penghargaan
+        in: query
+        schema: { type: integer }
+      - name: id_tkt_penghargaan
+        in: query
+        schema: { type: integer }
+      - name: thn
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# BATCH 7 — Kontribusi Akademik (pembicara, jurnal, buku, panitia, prestasi)
+# =============================================================================
+
+list-pembicara:
+  get:
+    tags: [Kontribusi]
+    summary: Pembicara/narasumber seminar
+    description: Dari `pdrd.pembicara`. Dosen yang jadi pembicara di temu ilmiah (seminar/konferensi/workshop).
+    operationId: getPembicara
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_kat_capaian
+        in: query
+        schema: { type: integer }
+      - name: kat_bicara
+        in: query
+        description: Kategori bicara (Pemakalah/Pembicara Utama/Panelis/dll)
+        schema: { type: string }
+      - name: tkt_temu
+        in: query
+        description: Tingkat temu (Internasional/Nasional/Regional)
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-pengelola-jurnal:
+  get:
+    tags: [Kontribusi]
+    summary: Editor/reviewer/pengelola jurnal
+    description: Dari `pdrd.pengelola_jurnal`. Dosen sebagai editor/reviewer/chief editor jurnal.
+    operationId: getPengelolaJurnal
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_sdm
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_media_pub
+        in: query
+        schema: { type: string, format: uuid }
+      - name: a_aktif
+        in: query
+        schema: { type: integer, enum: [0,1] }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-buku-ajar:
+  get:
+    tags: [Kontribusi]
+    summary: Buku ajar
+    description: Dari `pdrd.buku_ajar`. Master buku ajar yang ditulis oleh sivitas UNILA.
+    operationId: getBukuAjar
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_buku_ajar
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_kat_capaian
+        in: query
+        schema: { type: integer }
+      - name: id_jns_bhn_ajar
+        in: query
+        schema: { type: integer }
+      - name: isbn
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-kepanitiaan:
+  get:
+    tags: [Kontribusi]
+    summary: Kepanitiaan (acara/kegiatan)
+    description: Dari `pdrd.kepanitiaan`. Kepanitiaan kegiatan (internal/eksternal UNILA).
+    operationId: getKepanitiaan
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_panitia
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jns_panitia
+        in: query
+        schema: { type: integer }
+      - name: tkt_panitia
+        in: query
+        schema: { type: string }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-prestasi:
+  get:
+    tags: [Kontribusi]
+    summary: Prestasi mahasiswa (PDDIKTI feeder)
+    description: |
+      Dari `pdrd.prestasi` — data prestasi mahasiswa yang tercatat di PDDIKTI feeder.
+      Beda dengan `si-prestasi` (SIMKATMAWA) yang lebih lengkap.
+    operationId: getPrestasi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - name: id_prestasi
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_pd
+        in: query
+        description: ID peserta didik (mahasiswa)
+        schema: { type: string, format: uuid }
+      - name: id_akt_mhs
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_jenis_prestasi
+        in: query
+        schema: { type: integer }
+      - name: id_tkt_prestasi
+        in: query
+        schema: { type: integer }
+      - name: thn_prestasi
+        in: query
+        schema: { type: integer }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
