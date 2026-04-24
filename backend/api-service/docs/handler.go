@@ -2,6 +2,7 @@ package docs
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -19,10 +20,8 @@ var (
 	specErr          error
 )
 
-// loadCompiledSpec loads and compiles the OpenAPI spec from YAML files.
-// Setelah load, filter `servers` list sesuai APP_ENV supaya docs di staging
-// cuma expose URL sandbox, docs di production cuma expose URL live — bukan
-// leak internal topology ke publik.
+// loadCompiledSpec loads + compile OpenAPI spec (order-preserving) +
+// filter `servers` sesuai APP_ENV.
 func loadCompiledSpec() error {
 	specOnce.Do(func() {
 		spec, err := openapi.LoadSpec()
@@ -31,54 +30,69 @@ func loadCompiledSpec() error {
 			specErr = err
 			return
 		}
-		rawYAML := spec.GetYAML()
 
-		// Parse → filter servers → re-marshal
-		var yamlData interface{}
-		if err := yaml.Unmarshal(rawYAML, &yamlData); err != nil {
-			specErr = err
-			return
-		}
-		normalized := convertYAMLToJSON(yamlData)
-		filterServersByEnv(normalized)
-
-		// Serialize final spec (both YAML + JSON form)
-		outYAML, err := yaml.Marshal(normalized)
+		// Filter servers + return filtered YAML (order preserved via yaml.Node).
+		filteredYAML, err := filterServersInYAMLBytes(spec.GetYAML())
 		if err != nil {
-			specErr = err
-			return
+			log.Printf("Warning: filter servers failed, using unfiltered: %v", err)
+			filteredYAML = spec.GetYAML()
 		}
-		compiledSpec = outYAML
-		compiledSpecJSON, specErr = json.Marshal(normalized)
+		compiledSpec = filteredYAML
+
+		// Convert YAML bytes → JSON bytes preserving key order.
+		compiledSpecJSON, specErr = yamlBytesToOrderedJSON(filteredYAML)
 	})
 	return specErr
 }
 
-// filterServersByEnv menyaring spec.servers berdasarkan APP_ENV.
-//   - APP_ENV=production           → hanya server yang URL-nya production
-//   - APP_ENV=staging/development  → hanya server yang URL-nya sandbox
-// Penanda sederhana: kalau URL mengandung "my.unila.ac.id" = production server.
-// Kalau YAML tidak punya servers / hanya 1 server, biarin apa adanya.
-func filterServersByEnv(spec interface{}) {
-	m, ok := spec.(map[string]interface{})
-	if !ok {
-		return
+// filterServersInYAMLBytes parse spec YAML (preserve order), iterate node
+// `servers`, keep entry yang cocok dengan APP_ENV current, drop yang lain.
+//
+// Matching:
+//   - APP_ENV=production → keep server yang url mengandung
+//     "my.unila.ac.id" atau "gateway"
+//   - other (staging/development/dev) → keep yang sebaliknya (internal)
+func filterServersInYAMLBytes(in []byte) ([]byte, error) {
+	var root yaml.Node
+	if err := yaml.Unmarshal(in, &root); err != nil {
+		return nil, err
 	}
-	serversRaw, ok := m["servers"].([]interface{})
-	if !ok || len(serversRaw) < 2 {
-		return
+	mapping := rootMapping(&root)
+	if mapping == nil {
+		return in, nil
+	}
+
+	// find `servers` key
+	serversIdx := -1
+	for i := 0; i < len(mapping.Content); i += 2 {
+		if mapping.Content[i].Value == "servers" {
+			serversIdx = i + 1
+			break
+		}
+	}
+	if serversIdx < 0 {
+		return in, nil
+	}
+	seq := mapping.Content[serversIdx]
+	if seq.Kind != yaml.SequenceNode || len(seq.Content) < 2 {
+		return in, nil
 	}
 
 	env := strings.ToLower(os.Getenv("APP_ENV"))
 	isProd := env == "production" || env == "prod"
 
-	var kept []interface{}
-	for _, s := range serversRaw {
-		srv, ok := s.(map[string]interface{})
-		if !ok {
+	kept := make([]*yaml.Node, 0, len(seq.Content))
+	for _, srv := range seq.Content {
+		if srv.Kind != yaml.MappingNode {
 			continue
 		}
-		url, _ := srv["url"].(string)
+		url := ""
+		for i := 0; i < len(srv.Content); i += 2 {
+			if srv.Content[i].Value == "url" {
+				url = srv.Content[i+1].Value
+				break
+			}
+		}
 		isProdServer := strings.Contains(url, "my.unila.ac.id") ||
 			strings.Contains(strings.ToLower(url), "gateway")
 		if isProd == isProdServer {
@@ -86,31 +100,110 @@ func filterServersByEnv(spec interface{}) {
 		}
 	}
 	if len(kept) > 0 {
-		m["servers"] = kept
+		seq.Content = kept
 	}
+
+	return yaml.Marshal(&root)
 }
 
-// convertYAMLToJSON converts YAML maps to JSON-compatible maps
-func convertYAMLToJSON(i interface{}) interface{} {
-	switch x := i.(type) {
-	case map[string]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range x {
-			m[k] = convertYAMLToJSON(v)
-		}
-		return m
-	case map[interface{}]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range x {
-			m[k.(string)] = convertYAMLToJSON(v)
-		}
-		return m
-	case []interface{}:
-		for i, v := range x {
-			x[i] = convertYAMLToJSON(v)
-		}
+// rootMapping returns top-level mapping node of a parsed document.
+func rootMapping(root *yaml.Node) *yaml.Node {
+	if root.Kind == yaml.DocumentNode && len(root.Content) > 0 {
+		return root.Content[0]
 	}
-	return i
+	if root.Kind == yaml.MappingNode {
+		return root
+	}
+	return nil
+}
+
+// yamlBytesToOrderedJSON parses YAML bytes into yaml.Node then serializes to
+// JSON preserving key order. Walk tree manually; for mapping, build JSON
+// bytes directly (json.Marshal di Go sort key map alphabetis).
+func yamlBytesToOrderedJSON(in []byte) ([]byte, error) {
+	var root yaml.Node
+	if err := yaml.Unmarshal(in, &root); err != nil {
+		return nil, err
+	}
+	entry := &root
+	if root.Kind == yaml.DocumentNode && len(root.Content) > 0 {
+		entry = root.Content[0]
+	}
+	var buf strings.Builder
+	if err := writeNodeJSON(entry, &buf); err != nil {
+		return nil, err
+	}
+	return []byte(buf.String()), nil
+}
+
+func writeNodeJSON(n *yaml.Node, buf *strings.Builder) error {
+	if n == nil {
+		buf.WriteString("null")
+		return nil
+	}
+	switch n.Kind {
+	case yaml.ScalarNode:
+		b, err := json.Marshal(scalarValue(n))
+		if err != nil {
+			return err
+		}
+		buf.Write(b)
+	case yaml.SequenceNode:
+		buf.WriteByte('[')
+		for i, c := range n.Content {
+			if i > 0 {
+				buf.WriteByte(',')
+			}
+			if err := writeNodeJSON(c, buf); err != nil {
+				return err
+			}
+		}
+		buf.WriteByte(']')
+	case yaml.MappingNode:
+		buf.WriteByte('{')
+		for i := 0; i < len(n.Content); i += 2 {
+			if i > 0 {
+				buf.WriteByte(',')
+			}
+			kb, err := json.Marshal(n.Content[i].Value)
+			if err != nil {
+				return err
+			}
+			buf.Write(kb)
+			buf.WriteByte(':')
+			if err := writeNodeJSON(n.Content[i+1], buf); err != nil {
+				return err
+			}
+		}
+		buf.WriteByte('}')
+	case yaml.DocumentNode:
+		if len(n.Content) > 0 {
+			return writeNodeJSON(n.Content[0], buf)
+		}
+		buf.WriteString("null")
+	case yaml.AliasNode:
+		return writeNodeJSON(n.Alias, buf)
+	}
+	return nil
+}
+
+// scalarValue preserves scalar type (bool/int/float/null/string).
+func scalarValue(n *yaml.Node) interface{} {
+	switch n.Tag {
+	case "!!bool":
+		return n.Value == "true"
+	case "!!int":
+		var i int64
+		_, _ = fmt.Sscanf(n.Value, "%d", &i)
+		return i
+	case "!!float":
+		var f float64
+		_, _ = fmt.Sscanf(n.Value, "%g", &f)
+		return f
+	case "!!null":
+		return nil
+	}
+	return n.Value
 }
 
 // SetupSwagger mendaftarkan endpoint untuk API documentation
@@ -223,7 +316,7 @@ var scalarHTML = `<!DOCTYPE html>
         <div class="loading-subtext">Loading myUnila API Web Service Documentation...</div>
     </div>
 
-    <script id="api-reference" data-url="docs/openapi.json"></script>
+    <script id="api-reference" data-url="docs/openapi.yaml"></script>
     <script>
         var configuration = {
             theme: 'purple',
