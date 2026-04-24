@@ -122,6 +122,10 @@ type Repository interface {
 
 	// Batch 9b
 	GetLembagaIptek(ctx context.Context, p LembagaIptekParams) ([]LembagaIptek, int64, error)
+
+	// Batch 10 — PT-level
+	GetProfilPt(ctx context.Context, p ProfilPtParams) ([]ProfilPt, int64, error)
+	GetAkredSp(ctx context.Context, p AkredSpParams) ([]AkredSp, int64, error)
 }
 
 type repository struct{ db *sqlx.DB }
@@ -334,6 +338,10 @@ type Service interface {
 
 	// Batch 9b
 	GetLembagaIptek(ctx context.Context, p LembagaIptekParams) ([]LembagaIptek, int64, error)
+
+	// Batch 10 — PT-level
+	GetProfilPt(ctx context.Context, p ProfilPtParams) ([]ProfilPt, int64, error)
+	GetAkredSp(ctx context.Context, p AkredSpParams) ([]AkredSp, int64, error)
 }
 
 type service struct {
@@ -459,4 +467,8 @@ func RegisterRoutesWithMiddleware(router fiber.Router, db *sqlx.DB, redisCli *re
 
 	// Batch 9b
 	g.Get("/list_lembaga_iptek", h.GetLembagaIptek)
+
+	// Batch 10 — PT-level (profil_pt, akred_sp)
+	g.Get("/list_profil_pt", h.GetProfilPt)
+	g.Get("/list_akred_sp", h.GetAkredSp)
 }
