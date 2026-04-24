@@ -139,6 +139,8 @@ paths:
     $ref: './paths/pdrd.yaml#/list-uji-mhs'
   /v1/mahasiswa/foto_mahasiswa:
     $ref: './paths/pdrd.yaml#/foto-mahasiswa'
+  /v1/mahasiswa/list_anggota_akt_mhs:
+    $ref: './paths/pdrd.yaml#/list-anggota-akt-mhs'
 
   # ==========================================================================
   # AKADEMIK (matkul, kelas kuliah, jadwal, kurikulum)
@@ -193,6 +195,8 @@ paths:
     $ref: './paths/pdrd.yaml#/list-penghargaan'
   /v1/sdm/foto_dosen:
     $ref: './paths/pdrd.yaml#/foto-dosen'
+  /v1/sdm/list_bimbing_dosen:
+    $ref: './paths/pdrd.yaml#/list-bimbing-dosen'
 
   # ==========================================================================
   # INSTITUSI — Profil prodi + akreditasi + fakultas
@@ -205,6 +209,8 @@ paths:
     $ref: './paths/pdrd.yaml#/list-profil-prodi'
   /v1/institusi/list_akreditasi_prodi:
     $ref: './paths/pdrd.yaml#/list-akreditasi-prodi'
+  /v1/institusi/list_lembaga_iptek:
+    $ref: './paths/pdrd.yaml#/list-lembaga-iptek'
 
   # ==========================================================================
   # KONTRIBUSI — pembicara, jurnal, buku ajar, panitia, prestasi
@@ -219,6 +225,10 @@ paths:
     $ref: './paths/pdrd.yaml#/list-kepanitiaan'
   /v1/kontribusi/list_prestasi:
     $ref: './paths/pdrd.yaml#/list-prestasi'
+  /v1/kontribusi/list_tulis_buku_ajar:
+    $ref: './paths/pdrd.yaml#/list-tulis-buku-ajar'
+  /v1/kontribusi/list_anggota_panitia:
+    $ref: './paths/pdrd.yaml#/list-anggota-panitia'
 
   # ==========================================================================
   # PEGAWAI — source SIKEP
@@ -235,6 +245,18 @@ paths:
     $ref: './paths/pdrd.yaml#/publikasi'
   /v1/penelitian/litabmas:
     $ref: './paths/pdrd.yaml#/litabmas'
+  /v1/penelitian/list_tulis_pub:
+    $ref: './paths/pdrd.yaml#/list-tulis-pub'
+  /v1/penelitian/list_mitra_litabmas:
+    $ref: './paths/pdrd.yaml#/list-mitra-litabmas'
+  /v1/penelitian/list_pd_anggota_litabmas:
+    $ref: './paths/pdrd.yaml#/list-pd-anggota-litabmas'
+  /v1/penelitian/list_sdm_anggota_litabmas:
+    $ref: './paths/pdrd.yaml#/list-sdm-anggota-litabmas'
+  /v1/penelitian/list_non_ca_anggota_litabmas:
+    $ref: './paths/pdrd.yaml#/list-non-ca-anggota-litabmas'
+  /v1/penelitian/list_non_ca:
+    $ref: './paths/pdrd.yaml#/list-non-ca'
 
   # ==========================================================================
   # REFERENSI (ref.*)

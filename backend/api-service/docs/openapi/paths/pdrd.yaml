@@ -1878,3 +1878,213 @@ foto-mahasiswa:
       '200': { description: OK — foto_url dikembalikan }
       '400': { description: file hilang / format salah / size >5MB }
       '500': { description: MinIO unavailable }
+
+# =============================================================================
+# BATCH 9b — Pivot tables masuk ke modul existing
+# =============================================================================
+
+list-anggota-akt-mhs:
+  get:
+    tags: [Mahasiswa]
+    summary: List anggota aktivitas mahasiswa
+    description: |
+      Siapa saja mahasiswa yang ikut akt_mhs. Pivot pdrd.anggota_akt_mhs.
+      Filter utama: id_akt_mhs (list per kegiatan) atau id_reg_pd (riwayat per mhs).
+      jns_peran_mhs: 1=Ketua, 2=Anggota, 3=Individu.
+    operationId: getAnggotaAktMhsList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_ang_akt_mhs, in: query, schema: { type: string, format: uuid } }
+      - { name: id_akt_mhs, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: jns_peran_mhs, in: query, schema: { type: string, enum: ['1','2','3'] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-lembaga-iptek:
+  get:
+    tags: [Institusi]
+    summary: List lembaga iptek (parent litabmas/publikasi)
+    description: |
+      Data profil lembaga iptek (pusat studi, pusat penelitian, unit kerja riset).
+      hub_lemb_iptek: 1=dalam PT, 2=luar PT, 3=kemitraan, 9=lain.
+    operationId: getLembagaIptekList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_lemb_iptek, in: query, schema: { type: string, format: uuid } }
+      - { name: hub_lemb_iptek, in: query, schema: { type: string, enum: ['1','2','3','9'] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-bimbing-dosen:
+  get:
+    tags: [SDM]
+    summary: List kegiatan bimbingan dosen (SK + bid ahli)
+    description: |
+      Kegiatan bimbingan/mentoring oleh dosen. jns_bimbing: R=Reguler, C=Cross.
+      Tabel ini tidak punya FK langsung ke id_sdm — filter via id_katgiat.
+    operationId: getBimbingDosenList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_bimb_dosen, in: query, schema: { type: string, format: uuid } }
+      - { name: id_katgiat, in: query, schema: { type: integer } }
+      - { name: jns_bimbing, in: query, schema: { type: string, enum: [R, C] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-tulis-buku-ajar:
+  get:
+    tags: [Kontribusi]
+    summary: List penulis buku ajar
+    description: |
+      Pivot pdrd.tulis_buku_ajar: penulis buku ajar (dosen/mhs/non-civitas).
+      Parent tabel buku_ajar sudah di modul ini (Batch 7).
+      peran_tulis: A/B/C/D (Utama/Pendamping/Korespondensi/lain).
+      jns_penulis: 1=Dosen, 2=Mahasiswa, 3=Non-civitas.
+    operationId: getTulisBukuAjarList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_tulis_buku_ajar, in: query, schema: { type: string, format: uuid } }
+      - { name: id_buku_ajar, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: peran_tulis, in: query, schema: { type: string, enum: [A,B,C,D] } }
+      - { name: jns_penulis, in: query, schema: { type: string, enum: ['1','2','3'] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-anggota-panitia:
+  get:
+    tags: [Kontribusi]
+    summary: List anggota kepanitiaan (dosen)
+    description: |
+      Pivot pdrd.anggota_panitia: dosen di kepanitiaan kegiatan.
+      Parent tabel kepanitiaan sudah di modul ini (Batch 7).
+    operationId: getAnggotaPanitiaList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_ang_panitia, in: query, schema: { type: string, format: uuid } }
+      - { name: id_panitia, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_katgiat, in: query, schema: { type: integer } }
+      - { name: peran, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-tulis-pub:
+  get:
+    tags: [Publikasi]
+    summary: List penulis publikasi
+    description: |
+      Pivot pdrd.tulis_pub: penulis publikasi (dosen/mhs/non-civitas). Support
+      filter corresponding author. peran_tulis: A/B/C/D. jns_penulis: 1/2/3.
+    operationId: getTulisPubList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_tulis_pub, in: query, schema: { type: string, format: uuid } }
+      - { name: id_publikasi, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: peran_tulis, in: query, schema: { type: string, enum: [A,B,C,D] } }
+      - { name: jns_penulis, in: query, schema: { type: string, enum: ['1','2','3'] } }
+      - { name: a_corr_author, in: query, schema: { type: integer, enum: [0,1] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-mitra-litabmas:
+  get:
+    tags: [Penelitian & Pengabdian]
+    summary: List mitra DUDI per litabmas
+    description: |
+      Pivot pdrd.mitra_litabmas (composite PK id_dudi+id_litabmas).
+      id_dudi umumnya merujuk ke pdrd.lembaga_non_sp.
+    operationId: getMitraLitabmasList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_litabmas, in: query, schema: { type: string, format: uuid } }
+      - { name: id_dudi, in: query, schema: { type: string, format: uuid } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-pd-anggota-litabmas:
+  get:
+    tags: [Penelitian & Pengabdian]
+    summary: List mahasiswa anggota litabmas
+    description: |
+      Pivot pdrd.pd_anggota_litabmas. peran_litabmas: A=Anggota, K=Kontributor.
+    operationId: getPdAnggotaLitabmasList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_litabmas, in: query, schema: { type: string, format: uuid } }
+      - { name: id_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: peran_litabmas, in: query, schema: { type: string, enum: [A, K] } }
+      - { name: stat_aktif, in: query, schema: { type: integer, enum: [0,1] } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-sdm-anggota-litabmas:
+  get:
+    tags: [Penelitian & Pengabdian]
+    summary: List dosen anggota litabmas
+    description: |
+      Pivot pdrd.sdm_anggota_litabmas. peran_litabmas: A=Anggota, K=Kontributor.
+    operationId: getSdmAnggotaLitabmasList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_litabmas, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_katgiat, in: query, schema: { type: integer } }
+      - { name: peran_litabmas, in: query, schema: { type: string, enum: [A, K] } }
+      - { name: stat_aktif, in: query, schema: { type: integer, enum: [0,1] } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-non-ca-anggota-litabmas:
+  get:
+    tags: [Penelitian & Pengabdian]
+    summary: List non-civitas anggota litabmas
+    description: |
+      Pivot pdrd.non_ca_anggota_litabmas: orang luar (mitra/asisten/dll).
+    operationId: getNonCaAnggotaLitabmasList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_litabmas, in: query, schema: { type: string, format: uuid } }
+      - { name: id_orang, in: query, schema: { type: string, format: uuid } }
+      - { name: peran_litabmas, in: query, schema: { type: string, enum: [A, K] } }
+      - { name: stat_aktif, in: query, schema: { type: integer, enum: [0,1] } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-non-ca:
+  get:
+    tags: [Penelitian & Pengabdian]
+    summary: List non-civitas (master orang luar)
+    description: |
+      Master data orang di luar civitas akademika (undangan, mitra kegiatan, dll).
+      Dipakai referensi oleh non_ca_anggota_litabmas dan pivot lainnya.
+    operationId: getNonCaList
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_orang, in: query, schema: { type: string, format: uuid } }
+      - { name: jk, in: query, schema: { type: string, enum: [L, P, '*'] } }
+      - { name: id_negara, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
