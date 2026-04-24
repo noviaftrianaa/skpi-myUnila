@@ -1,0 +1,304 @@
+# Path definitions untuk modul Siakadu (Batch 11)
+# Schema `siakadu` di pdut — GET-only, enriched dengan pdrd UUID (id_pd, id_reg_pd, id_sdm, id_sms)
+# + denormalized names (nm_fakultas, nm_jurusan, nm_prodi, nm_smt, kode_mk, nm_mk).
+# Write tetap via myunila-service (sync dari SIAKADU WS).
+
+# =============================================================================
+# 11a — Mahasiswa + SDM + Wisuda
+# =============================================================================
+
+list-siakadu-mahasiswa:
+  get:
+    tags: [Siakadu]
+    summary: List mahasiswa SIAKADU
+    description: |
+      Data mahasiswa dari siakadu.mahasiswa (v2.0 flat table).
+      Include UUID bridging ke pdrd: id_pd, id_reg_pd, id_sms.
+      Denormalized names sudah di tabel: nm_fakultas, nm_jurusan, nm_prodi.
+    operationId: listSiakaduMahasiswa
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: nim, in: query, schema: { type: string } }
+      - { name: id_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: angkatan, in: query, schema: { type: string, example: "2024" } }
+      - { name: id_unit, in: query, schema: { type: string, description: SIAKADU unit code } }
+      - { name: id_status_mhs, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+detail-siakadu-mahasiswa:
+  get:
+    tags: [Siakadu]
+    summary: Detail mahasiswa SIAKADU (full biodata + keluarga via id_reg_pd atau nim)
+    description: Full siakadu.mahasiswa row (biodata, address, admission, transfer, high school, finance).
+    operationId: detailSiakaduMahasiswa
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: nim, in: query, required: true, schema: { type: string } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+list-siakadu-keluarga-mhs:
+  get:
+    tags: [Siakadu]
+    summary: List keluarga mahasiswa
+    description: Data keluarga (Ayah/Ibu/Wali) per NIM dari siakadu.keluarga_mhs.
+    operationId: listSiakaduKeluargaMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: nim, in: query, schema: { type: string } }
+      - { name: status_keluarga, in: query, schema: { type: string, enum: [Ayah, Ibu, Wali] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-sdm:
+  get:
+    tags: [Siakadu]
+    summary: List SDM SIAKADU (dosen + tendik)
+    description: id_jns_sdm 12=Dosen, 13=Tendik.
+    operationId: listSiakaduSdm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_jns_sdm, in: query, schema: { type: integer, enum: [12, 13] } }
+      - { name: nip, in: query, schema: { type: string } }
+      - { name: nidn, in: query, schema: { type: string } }
+      - { name: jk, in: query, schema: { type: string, enum: [L, P] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+detail-siakadu-sdm:
+  get:
+    tags: [Siakadu]
+    summary: Detail SDM SIAKADU by id_sdm
+    operationId: detailSiakaduSdm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_sdm, in: query, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Not Found }
+
+list-siakadu-reg-ptk:
+  get:
+    tags: [Siakadu]
+    summary: List penugasan PTK (reg_ptk)
+    description: Homebase dosen/pegawai ke prodi/satuan pendidikan. Join siakadu.sdm + sms untuk nama.
+    operationId: listSiakaduRegPtk
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_ptk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: id_stat_pegawai, in: query, schema: { type: integer } }
+      - { name: id_jns_keluar, in: query, schema: { type: string } }
+      - { name: only_aktif, in: query, description: "true = filter id_jns_keluar IS NULL", schema: { type: boolean } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-wisuda:
+  get:
+    tags: [Siakadu]
+    summary: List peserta wisuda per periode
+    description: Include id_reg_pd + id_sms + nm_sms + nm_periode.
+    operationId: listSiakaduWisuda
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_yudisium, in: query, schema: { type: integer } }
+      - { name: id_periode_wisuda, in: query, schema: { type: string } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: nipd, in: query, schema: { type: string } }
+      - { name: is_wisuda, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-periode-wisuda:
+  get:
+    tags: [Siakadu]
+    summary: List master periode wisuda
+    operationId: listSiakaduPeriodeWisuda
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_periode_wisuda, in: query, schema: { type: string } }
+      - { name: id_thn_ajaran, in: query, schema: { type: integer } }
+      - { name: a_aktif, in: query, schema: { type: integer, enum: [0, 1] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# 11b — Nilai + Kehadiran + Kinerja
+# =============================================================================
+
+list-siakadu-nilai-smt:
+  get:
+    tags: [Siakadu]
+    summary: List nilai per semester
+    description: siakadu.nilai_smt_mhs + join mahasiswa/kelas/matkul untuk nama.
+    operationId: listSiakaduNilaiSmt
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_kls, in: query, schema: { type: string, format: uuid } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: nipd, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-nilai-transkrip:
+  get:
+    tags: [Siakadu]
+    summary: List nilai transkrip kumulatif
+    operationId: listSiakaduNilaiTranskrip
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_mk, in: query, schema: { type: string, format: uuid } }
+      - { name: smt_ke, in: query, schema: { type: integer } }
+      - { name: nipd, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-kehadiran-mhs:
+  get:
+    tags: [Siakadu]
+    summary: List presensi mahasiswa per kelas
+    operationId: listSiakaduKehadiranMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_ptk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_kls, in: query, schema: { type: string, format: uuid } }
+      - { name: id_hadir_mhs, in: query, schema: { type: string, format: uuid } }
+      - { name: stat_hadir, in: query, schema: { type: string, enum: [H, I, S, A] } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-kehadiran-sdm:
+  get:
+    tags: [Siakadu]
+    summary: List presensi SDM (dosen/tendik)
+    operationId: listSiakaduKehadiranSdm
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_kehadiran_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: tgl_from, in: query, schema: { type: string, format: date } }
+      - { name: tgl_to, in: query, schema: { type: string, format: date } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-kinerja-dosen:
+  get:
+    tags: [Siakadu]
+    summary: List kinerja dosen versi SIAKADU per semester
+    operationId: listSiakaduKinerjaDosen
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_ptk, in: query, schema: { type: string, format: uuid } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: id_jabfung, in: query, schema: { type: integer } }
+      - { name: stat_tugas, in: query, schema: { type: string } }
+      - { name: stat_belajar, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# 11c — Keuangan + Status Kuliah + Unit
+# =============================================================================
+
+list-siakadu-spp-mhs:
+  get:
+    tags: [Siakadu]
+    summary: List pembayaran SPP mahasiswa
+    description: Transaksi pembayaran per semester. Include UKT class + total tagihan + cicilan.
+    operationId: listSiakaduSppMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_spp_mhs, in: query, schema: { type: string, format: uuid } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: nim, in: query, schema: { type: string } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-daftar-ukt:
+  get:
+    tags: [Siakadu]
+    summary: List daftar UKT (tier per prodi per tahun)
+    description: Master tabel tier UKT per kombinasi fakultas/prodi/kelas/tahun.
+    operationId: listSiakaduDaftarUkt
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_daftar_ukt, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: tahun, in: query, schema: { type: integer, example: 2024 } }
+      - { name: kode_strata, in: query, schema: { type: integer } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-kelas-ukt:
+  get:
+    tags: [Siakadu]
+    summary: List master kelas UKT (nominal per tier)
+    operationId: listSiakaduKelasUkt
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_kelas_ukt, in: query, schema: { type: string, format: uuid } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-kuliah-mhs:
+  get:
+    tags: [Siakadu]
+    summary: List status kuliah mahasiswa per semester
+    description: IPS/IPK/SKS per semester per mahasiswa.
+    operationId: listSiakaduKuliahMhs
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: nim, in: query, schema: { type: string } }
+      - { name: id_smt, in: query, schema: { type: string } }
+      - { name: id_stat_mhs, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+list-siakadu-pimpinan-unit:
+  get:
+    tags: [Siakadu]
+    summary: List pejabat unit (dekan/kajur/dll)
+    operationId: listSiakaduPimpinanUnit
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_pimpinan, in: query, schema: { type: string, format: uuid } }
+      - { name: id_unit, in: query, schema: { type: string } }
+      - { name: id_sdm, in: query, schema: { type: string, format: uuid } }
+      - { name: nip, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }

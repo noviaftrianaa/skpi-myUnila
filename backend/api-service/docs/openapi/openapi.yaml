@@ -80,6 +80,12 @@ tags:
       bidang, survei atasan. **Full CRUD** untuk sync dari aplikasi tracer eksternal
       ke pdut via POST/PUT/DELETE. Source: schema `tracer` (hasil_tracer_study,
       hasil_tracer_atasan, umr_wilayah).
+  - name: Siakadu
+    description: |
+      Data SIAKADU dari schema `siakadu` di pdut (dipopulate oleh myunila-service
+      sync). **GET-only** — write tetap via myunila-service. Response include
+      UUID bridging (id_pd, id_reg_pd, id_sdm, id_sms) + denormalized names
+      (nm_fakultas, nm_jurusan, nm_prodi, dll).
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
   - name: System
@@ -293,6 +299,46 @@ paths:
     $ref: './paths/tracer.yaml#/umr-wilayah'
   /v1/tracer/umr_wilayah/{id}:
     $ref: './paths/tracer.yaml#/umr-wilayah-item'
+
+  # ==========================================================================
+  # SIAKADU — schema siakadu di pdut (GET-only, enriched dgn pdrd UUID)
+  # ==========================================================================
+  /v1/siakadu/list_mahasiswa:
+    $ref: './paths/siakadu.yaml#/list-siakadu-mahasiswa'
+  /v1/siakadu/detail_mahasiswa:
+    $ref: './paths/siakadu.yaml#/detail-siakadu-mahasiswa'
+  /v1/siakadu/list_keluarga_mhs:
+    $ref: './paths/siakadu.yaml#/list-siakadu-keluarga-mhs'
+  /v1/siakadu/list_sdm:
+    $ref: './paths/siakadu.yaml#/list-siakadu-sdm'
+  /v1/siakadu/detail_sdm:
+    $ref: './paths/siakadu.yaml#/detail-siakadu-sdm'
+  /v1/siakadu/list_reg_ptk:
+    $ref: './paths/siakadu.yaml#/list-siakadu-reg-ptk'
+  /v1/siakadu/list_wisuda:
+    $ref: './paths/siakadu.yaml#/list-siakadu-wisuda'
+  /v1/siakadu/list_periode_wisuda:
+    $ref: './paths/siakadu.yaml#/list-siakadu-periode-wisuda'
+  /v1/siakadu/list_nilai_smt:
+    $ref: './paths/siakadu.yaml#/list-siakadu-nilai-smt'
+  /v1/siakadu/list_nilai_transkrip:
+    $ref: './paths/siakadu.yaml#/list-siakadu-nilai-transkrip'
+  /v1/siakadu/list_kehadiran_mhs:
+    $ref: './paths/siakadu.yaml#/list-siakadu-kehadiran-mhs'
+  /v1/siakadu/list_kehadiran_sdm:
+    $ref: './paths/siakadu.yaml#/list-siakadu-kehadiran-sdm'
+  /v1/siakadu/list_kinerja_dosen:
+    $ref: './paths/siakadu.yaml#/list-siakadu-kinerja-dosen'
+  /v1/siakadu/list_spp_mhs:
+    $ref: './paths/siakadu.yaml#/list-siakadu-spp-mhs'
+  /v1/siakadu/list_daftar_ukt:
+    $ref: './paths/siakadu.yaml#/list-siakadu-daftar-ukt'
+  /v1/siakadu/list_kelas_ukt:
+    $ref: './paths/siakadu.yaml#/list-siakadu-kelas-ukt'
+  /v1/siakadu/list_kuliah_mhs:
+    $ref: './paths/siakadu.yaml#/list-siakadu-kuliah-mhs'
+  /v1/siakadu/list_pimpinan_unit:
+    $ref: './paths/siakadu.yaml#/list-siakadu-pimpinan-unit'
 
   # ==========================================================================
   # REFERENSI (ref.*)
