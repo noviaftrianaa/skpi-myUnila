@@ -1,6 +1,11 @@
 # Module 5: Monitoring & Dashboard
 
-## Status: PENDING
+## Status: DONE (Update 25 April 2026)
+
+**Update terkini:**
+- ✅ Pivot ke `siakadu.mahasiswa` (single denormalized table) — lihat `09-catatan-teknis-development.md` #16
+- ✅ KTW Exclusion (tabel `ref.ktw_exclude_jalur`) + UI Pengaturan KTW — lihat #17
+- ✅ Export CSV dengan auth token + kolom Jalur Pendaftaran + Status KTW
 
 ## Scope
 

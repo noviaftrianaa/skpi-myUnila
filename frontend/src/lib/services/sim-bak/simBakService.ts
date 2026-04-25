@@ -456,6 +456,28 @@ export const exportMonitoring = async (params?: Record<string, unknown>): Promis
   return response.data.data.url;
 };
 
+// ============ KTW Exclusion ============
+
+export const getKtwExclusions = async (): Promise<{
+  exclusions: Array<{ id_exclude: string; jalur_pendaftaran: string; deskripsi: string | null; a_aktif: boolean; created_at: string }>;
+  available_jalur: string[];
+}> => {
+  const response = await bakClient.get('/monitoring/ktw-exclusions');
+  return response.data.data;
+};
+
+export const addKtwExclusion = async (jalur_pendaftaran: string, deskripsi?: string): Promise<void> => {
+  await bakClient.post('/monitoring/ktw-exclusions', { jalur_pendaftaran, deskripsi });
+};
+
+export const toggleKtwExclusion = async (id: string, a_aktif: boolean): Promise<void> => {
+  await bakClient.put(`/monitoring/ktw-exclusions/${id}`, { a_aktif });
+};
+
+export const deleteKtwExclusion = async (id: string): Promise<void> => {
+  await bakClient.delete(`/monitoring/ktw-exclusions/${id}`);
+};
+
 // ============ Default Export ============
 
 const simBakService = {

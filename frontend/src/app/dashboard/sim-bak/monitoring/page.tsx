@@ -6,10 +6,11 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiUsers, FiAward, FiDownload, FiClock, FiTrendingUp, FiSearch, FiCheck, FiX } from "react-icons/fi";
+import { FiUsers, FiAward, FiDownload, FiClock, FiTrendingUp, FiSearch, FiCheck, FiX, FiSettings, FiPlus, FiTrash2 } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
-import { getMahasiswaAktif, getLulusan, getMonitoringStats, getRefFakultas, getRefProdi, exportMonitoring } from "@/lib/services/sim-bak/simBakService";
+import { getMahasiswaAktif, getLulusan, getMonitoringStats, getRefFakultas, getRefProdi, exportMonitoring, getKtwExclusions, addKtwExclusion, toggleKtwExclusion, deleteKtwExclusion } from "@/lib/services/sim-bak/simBakService";
+import { getToken } from "@/lib/api/client";
 import toast, { Toaster } from "react-hot-toast";
 
 const tabs = [
@@ -23,12 +24,65 @@ export default function MonitoringPage() {
   const [loading, setLoading] = useState(true);
 
   // Stats
-  const [stats, setStats] = useState<{ total_aktif: number; total_lulus: number; persen_tepat_waktu: number; rata_masa_studi: number } | null>(null);
+  const [stats, setStats] = useState<{
+    total_aktif: number; total_lulus: number; persen_tepat_waktu: number; rata_masa_studi: number;
+    total_lulus_dihitung_ktw?: number; total_lulus_excluded_ktw?: number; jalur_di_exclude?: string[];
+  } | null>(null);
 
   // Filter
   const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
   const [prodiList, setProdiList] = useState<Array<{ id_prodi: string; nm_prodi: string; nm_jenjang: string }>>([]);
   const [filters, setFilters] = useState({ id_fakultas: "", id_prodi: "", jenjang: "", angkatan: "", tahun_lulus: "", search: "" });
+
+  // KTW Settings
+  const [showKtwModal, setShowKtwModal] = useState(false);
+  const [ktwExclusions, setKtwExclusions] = useState<Array<{ id_exclude: string; jalur_pendaftaran: string; deskripsi: string | null; a_aktif: boolean }>>([]);
+  const [ktwAvailableJalur, setKtwAvailableJalur] = useState<string[]>([]);
+  const [ktwNewJalur, setKtwNewJalur] = useState("");
+  const [ktwNewDesc, setKtwNewDesc] = useState("");
+  const [ktwLoading, setKtwLoading] = useState(false);
+
+  const fetchKtwExclusions = async () => {
+    try {
+      const result = await getKtwExclusions();
+      setKtwExclusions(result.exclusions);
+      setKtwAvailableJalur(result.available_jalur);
+    } catch { /* empty */ }
+  };
+
+  const refreshAfterKtwChange = () => {
+    fetchKtwExclusions();
+    getMonitoringStats().then(setStats).catch(() => {});
+    fetchData(); // refresh tabel agar badge "Excluded" update
+  };
+
+  const handleAddKtw = async () => {
+    if (!ktwNewJalur.trim()) { toast.error("Pilih atau ketik jalur pendaftaran"); return; }
+    setKtwLoading(true);
+    try {
+      await addKtwExclusion(ktwNewJalur, ktwNewDesc || undefined);
+      toast.success("Jalur ditambahkan ke exclusion");
+      setKtwNewJalur(""); setKtwNewDesc("");
+      refreshAfterKtwChange();
+    } catch { toast.error("Gagal menambahkan"); }
+    finally { setKtwLoading(false); }
+  };
+
+  const handleToggleKtw = async (id: string, current: boolean) => {
+    try {
+      await toggleKtwExclusion(id, !current);
+      toast.success(!current ? "Jalur diaktifkan" : "Jalur dinonaktifkan");
+      refreshAfterKtwChange();
+    } catch { toast.error("Gagal mengubah status"); }
+  };
+
+  const handleDeleteKtw = async (id: string) => {
+    try {
+      await deleteKtwExclusion(id);
+      toast.success("Exclusion dihapus");
+      refreshAfterKtwChange();
+    } catch { toast.error("Gagal menghapus"); }
+  };
 
   // Data
   const [aktifData, setAktifData] = useState<Array<Record<string, unknown>>>([]);
@@ -85,7 +139,6 @@ export default function MonitoringPage() {
 
   const handleExport = async () => {
     try {
-      // Direct download via window.open
       const params = new URLSearchParams();
       params.set("type", activeTab === "aktif" ? "aktif" : "lulusan");
       if (filters.id_fakultas) params.set("id_fakultas", filters.id_fakultas);
@@ -94,8 +147,12 @@ export default function MonitoringPage() {
       if (filters.angkatan) params.set("angkatan", filters.angkatan);
       if (filters.tahun_lulus) params.set("tahun_lulus", filters.tahun_lulus);
 
-      const baseUrl = process.env.NEXT_PUBLIC_BAK_API_URL || "http://localhost:9002/api/v1";
-      window.open(`${baseUrl}/monitoring/export?${params.toString()}`, "_blank");
+      // Attach JWT via query token (backend support extractToken via query)
+      const token = getToken("ACCESS");
+      if (token) params.set("token", token);
+
+      const baseUrl = (process.env.NEXT_PUBLIC_BAK_API_URL || "http://localhost:9002").replace(/\/api\/v1$/, "");
+      window.open(`${baseUrl}/api/v1/monitoring/export?${params.toString()}`, "_blank");
       toast.success("Export dimulai...");
     } catch {
       toast.error("Gagal export data");
@@ -129,11 +186,17 @@ export default function MonitoringPage() {
     { key: "tahun_lulus", label: "Lulus", align: "center" as const, render: (item) => <span className="text-sm">{String(item.tahun_lulus ?? "-")}</span> },
     { key: "masa_studi_semester", label: "Masa Studi", align: "center" as const, render: (item) => <span className="text-sm">{String(item.masa_studi_semester ?? "-")} smt</span> },
     { key: "ipk", label: "IPK", align: "center" as const, render: (item) => <span className="text-sm">{String(item.ipk ?? "-")}</span> },
-    { key: "tepat_waktu", label: "Tepat Waktu", align: "center" as const, render: (item) => (
-      item.tepat_waktu
-        ? <Chip size="sm" color="success" variant="flat" startContent={<FiCheck className="w-3 h-3" />}>Ya</Chip>
-        : <Chip size="sm" color="danger" variant="flat" startContent={<FiX className="w-3 h-3" />}>Tidak</Chip>
+    { key: "jalur_pendaftaran", label: "Jalur", render: (item) => (
+      <span className="text-xs text-gray-600">{String(item.jalur_pendaftaran ?? "-")}</span>
     )},
+    { key: "tepat_waktu", label: "Tepat Waktu", align: "center" as const, render: (item) => {
+      if (item.is_excluded_ktw) {
+        return <Chip size="sm" color="warning" variant="flat" title="Jalur ini di-exclude dari perhitungan KTW">Excluded</Chip>;
+      }
+      return item.tepat_waktu
+        ? <Chip size="sm" color="success" variant="flat" startContent={<FiCheck className="w-3 h-3" />}>Ya</Chip>
+        : <Chip size="sm" color="danger" variant="flat" startContent={<FiX className="w-3 h-3" />}>Tidak</Chip>;
+    }},
   ];
 
   const selectClass = "px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -146,21 +209,39 @@ export default function MonitoringPage() {
 
         {/* Stat Cards */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Mahasiswa Aktif", value: stats.total_aktif.toLocaleString("id-ID"), icon: <FiUsers />, gradient: "from-blue-500 to-blue-600" },
-              { label: "Total Lulusan", value: stats.total_lulus.toLocaleString("id-ID"), icon: <FiAward />, gradient: "from-emerald-500 to-green-600" },
-              { label: "Tepat Waktu", value: `${stats.persen_tepat_waktu}%`, icon: <FiTrendingUp />, gradient: "from-violet-500 to-purple-600" },
-              { label: "Rata-rata Studi", value: `${stats.rata_masa_studi} smt`, icon: <FiClock />, gradient: "from-amber-500 to-orange-500" },
-            ].map(s => (
-              <Card key={s.label} className="border-none shadow-md rounded-xl"><CardBody className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${s.gradient} text-white`}>{s.icon}</div>
-                  <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p></div>
-                </div>
-              </CardBody></Card>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Mahasiswa Aktif", value: stats.total_aktif.toLocaleString("id-ID"), icon: <FiUsers />, gradient: "from-blue-500 to-blue-600" },
+                { label: "Total Lulusan", value: stats.total_lulus.toLocaleString("id-ID"), icon: <FiAward />, gradient: "from-emerald-500 to-green-600" },
+                { label: "Tepat Waktu", value: `${stats.persen_tepat_waktu}%`, icon: <FiTrendingUp />, gradient: "from-violet-500 to-purple-600" },
+                { label: "Rata-rata Studi", value: `${stats.rata_masa_studi} smt`, icon: <FiClock />, gradient: "from-amber-500 to-orange-500" },
+              ].map(s => (
+                <Card key={s.label} className="border-none shadow-md rounded-xl"><CardBody className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-lg bg-gradient-to-br ${s.gradient} text-white`}>{s.icon}</div>
+                    <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p></div>
+                  </div>
+                </CardBody></Card>
+              ))}
+            </div>
+
+            {/* Info KTW Exclusion */}
+            {stats.jalur_di_exclude && stats.jalur_di_exclude.length > 0 && (
+              <Card className="shadow-sm rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+                <CardBody className="p-3">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">
+                    📊 Perhitungan KTW (Kelulusan Tepat Waktu)
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Total {stats.total_lulus} lulusan, <strong>{stats.total_lulus_dihitung_ktw ?? 0}</strong> dihitung di KTW,{" "}
+                    <strong>{stats.total_lulus_excluded_ktw ?? 0}</strong> di-exclude. Jalur yang di-exclude:{" "}
+                    <span className="italic">{stats.jalur_di_exclude.join(", ")}</span>
+                  </p>
+                </CardBody>
+              </Card>
+            )}
+          </>
         )}
 
         {/* Tabs */}
@@ -232,6 +313,12 @@ export default function MonitoringPage() {
           <Button size="sm" color="primary" variant="flat" startContent={<FiDownload className="w-3.5 h-3.5" />} onPress={handleExport}>
             Export CSV
           </Button>
+          {activeTab === "lulusan" && (
+            <Button size="sm" color="warning" variant="flat" startContent={<FiSettings className="w-3.5 h-3.5" />}
+              onPress={() => { setShowKtwModal(true); fetchKtwExclusions(); }}>
+              Pengaturan KTW
+            </Button>
+          )}
         </div>
 
         {/* Data Table */}
@@ -248,6 +335,85 @@ export default function MonitoringPage() {
           Menampilkan {activeTab === "aktif" ? aktifData.length : lulusanData.length} dari {activeTab === "aktif" ? aktifTotal : lulusanTotal} data
         </p>
       </div>
+
+      {/* Modal: Pengaturan KTW Exclusion */}
+      {showKtwModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowKtwModal(false)} />
+          <div className="relative w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <FiSettings className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Pengaturan KTW Exclusion</h2>
+                  <p className="text-xs text-gray-500">Jalur pendaftaran yang dikecualikan dari perhitungan Kelulusan Tepat Waktu</p>
+                </div>
+              </div>
+
+              {/* Tambah baru */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Tambah Jalur ke Exclusion</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <select value={ktwNewJalur} onChange={e => setKtwNewJalur(e.target.value)} className={selectClass}>
+                    <option value="">-- Pilih jalur --</option>
+                    {ktwAvailableJalur.filter(j => !ktwExclusions.some(e => e.jalur_pendaftaran === j)).map(j => (
+                      <option key={j} value={j}>{j}</option>
+                    ))}
+                  </select>
+                  <input type="text" value={ktwNewDesc} onChange={e => setKtwNewDesc(e.target.value)}
+                    className={selectClass} placeholder="Deskripsi (opsional)" />
+                </div>
+                <input type="text" value={ktwNewJalur} onChange={e => setKtwNewJalur(e.target.value)}
+                  className={`${selectClass} w-full`} placeholder="Atau ketik manual jalur baru (contoh: RPL)" />
+                <div className="flex justify-end">
+                  <Button size="sm" color="primary" startContent={<FiPlus className="w-3.5 h-3.5" />}
+                    isLoading={ktwLoading} onPress={handleAddKtw}>Tambah</Button>
+                </div>
+              </div>
+
+              {/* Daftar exclusion */}
+              <div>
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Jalur yang Dikecualikan ({ktwExclusions.length})
+                </p>
+                {ktwExclusions.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">Belum ada jalur yang dikecualikan</p>
+                ) : (
+                  <div className="space-y-2">
+                    {ktwExclusions.map(ex => (
+                      <div key={ex.id_exclude} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{ex.jalur_pendaftaran}</p>
+                          {ex.deskripsi && <p className="text-xs text-gray-500 mt-0.5">{ex.deskripsi}</p>}
+                        </div>
+                        <Chip size="sm" color={ex.a_aktif ? "success" : "default"} variant="flat">
+                          {ex.a_aktif ? "Aktif" : "Nonaktif"}
+                        </Chip>
+                        <button onClick={() => handleToggleKtw(ex.id_exclude, ex.a_aktif)}
+                          className="text-xs text-blue-600 hover:underline">
+                          {ex.a_aktif ? "Nonaktifkan" : "Aktifkan"}
+                        </button>
+                        <button onClick={() => handleDeleteKtw(ex.id_exclude)}
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500">
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowKtwModal(false)}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayoutWithDynamicMenu>
   );
 }

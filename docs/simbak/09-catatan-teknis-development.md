@@ -368,7 +368,12 @@ AUTH_APLIKASI_ID=6df39588-e4d7-4e92-b3b1-e7b5078a3832
 
 ---
 
-## 11. [PERLU DITAMBAHKAN] Monitoring KTW (Kelulusan Tepat Waktu) + Exclusion Jalur Masuk
+## 11. [SUPERSEDED — lihat #17] Monitoring KTW (Kelulusan Tepat Waktu) + Exclusion Jalur Masuk
+
+> **STATUS UPDATE (25 April 2026):** Implementasi KTW Exclusion sudah selesai.
+> Lihat **section 17** untuk detail implementasi terkini.
+> Section ini dipertahankan untuk konteks historis — saat itu blocker adalah data `id_jalur_daftar` kosong.
+> Schema PDUT baru sudah punya `siakadu.mahasiswa.jalur_pendaftaran` (text) yang sudah terisi sebagian.
 
 ### Kebutuhan (dari docs `02-alur-layanan-simba-revisi.md` poin 2.10)
 
@@ -938,3 +943,188 @@ Modal exclude kandidat:
 | Backend validasi + upload | **Belum** |
 | Frontend select dropdown + conditional upload | **Belum** |
 | Testing | **Belum** |
+
+---
+
+## 16. [DONE] Pivot PdutRepository ke `siakadu.mahasiswa`
+
+### Konteks (25 April 2026)
+
+Schema PDUT di-restructure besar. Tabel `peserta_didik` & `reg_pd` **tidak ada lagi**, diganti dengan `siakadu.mahasiswa` (denormalized, 125k+ rows).
+
+### Mapping Pivot
+
+| Sebelumnya | Sekarang |
+|-----------|----------|
+| `siakadu.peserta_didik pd` + `siakadu.reg_pd rp` | `siakadu.mahasiswa m` (single table) |
+| `pdrd.sms` (untuk nm_prodi) | `m.nm_prodi` (text langsung) |
+| `man_akses.unit_organisasi` (untuk fakultas) | `m.nm_fakultas` (text — id_fakultas tidak ada lagi) |
+| `pd.id_stat_mhs → siakadu.status_mahasiswa` | `m.status_mahasiswa` (text langsung) |
+| `YEAR(rp.tgl_masuk_sp)` | `m.angkatan` |
+
+### Bonus Field di siakadu.mahasiswa
+
+- `email`, `email_kampus`, `hp` → untuk notifikasi
+- `is_transfer`, `univ_asal`, `prodi_asal` → untuk PM-ALIH dari luar Unila
+- `jalur_pendaftaran` (text) → untuk KTW exclusion
+- `tgl_keluar`, `id_jns_keluar`, `ket_keluar` → status mahasiswa keluar
+
+### Fallback untuk Data NULL
+
+Karena banyak data masih NULL di mahasiswa (status, semester):
+
+- `semester_aktif` NULL → pakai `masa_studi_semester` (dihitung dari angkatan)
+- `status_registrasi` NULL & `id_jns_keluar` NULL → asumsikan **'Aktif'**
+
+### Catatan Keterbatasan Data (per 25 April 2026)
+
+- `status_mahasiswa` hanya 441 dari 125k yang terisi (sisanya NULL)
+- `tgl_keluar` & `id_jns_keluar` semua NULL → tidak bisa filter by tahun lulus
+- `kuliah_mhs` kosong → tidak bisa get IPS per semester
+- `jalur_pendaftaran` ~342 yang terisi (cukup untuk testing KTW exclusion)
+
+### File yang Diubah
+
+- `backend/simbak-service/app/Repositories/PdutRepository.php` (full rewrite)
+
+---
+
+## 17. [DONE] KTW (Kelulusan Tepat Waktu) Exclusion
+
+### Konteks
+
+Mahasiswa dengan jalur tertentu (Pindahan/Transfer, RPL, Studi Lanjut, Mahasiswa Asing) tidak fair dibandingkan jalur reguler dalam perhitungan masa studi. Perlu di-exclude dari KTW.
+
+### Solusi
+
+Tabel `ref.ktw_exclude_jalur` di PostgreSQL menyimpan daftar jalur yang di-exclude. Admin BAK bisa CRUD via UI.
+
+### Tabel Database (PostgreSQL simbak)
+
+```sql
+CREATE TABLE ref.ktw_exclude_jalur (
+    id_exclude UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    jalur_pendaftaran VARCHAR(200) NOT NULL UNIQUE,
+    deskripsi TEXT NULL,
+    a_aktif BOOLEAN NOT NULL DEFAULT TRUE,
+    id_creator UUID NULL, id_updater UUID NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+```
+
+### Default Seed (5 jalur)
+
+1. Pindahan/Transfer
+2. Mahasiswa Asing
+3. Permata Sakti/Pertukaran Mahasiswa
+4. RPL (Rekognisi Pembelajaran Lampau)
+5. Studi Lanjut (D3 ke S1)
+
+### Logic di PdutRepository
+
+```php
+public function getKtwExcludedJalur(): array  // ambil list jalur aktif
+public function isJalurExcludedFromKtw($jalur, $excludedList): bool
+
+// getMonitoringStats() → lulusan dengan jalur excluded TIDAK dihitung di persen tepat_waktu
+// getLulusanPaginated() → tambah flag is_excluded_ktw per row
+```
+
+### Endpoint Backend
+
+| Method | Path | Fungsi |
+|--------|------|--------|
+| GET | `/v1/monitoring/ktw-exclusions` | List + daftar jalur unique dari PDUT |
+| POST | `/v1/monitoring/ktw-exclusions` | Tambah jalur ke exclusion |
+| PUT | `/v1/monitoring/ktw-exclusions/{id}` | Toggle aktif/nonaktif |
+| DELETE | `/v1/monitoring/ktw-exclusions/{id}` | Hapus exclusion |
+
+### Frontend
+
+- Tab Lulusan di Monitoring → kolom baru "Jalur" + badge "Excluded" (kuning) untuk yang ke-exclude
+- Tombol "Pengaturan KTW" (sebelah Export CSV) → modal dengan form Tambah + Daftar exclusion
+- Stats card menampilkan: total lulus, dihitung KTW, di-exclude, persen tepat waktu
+
+### Output Stats Baru
+
+```json
+{
+  "total_aktif": 224,
+  "total_lulus": 171,
+  "total_lulus_dihitung_ktw": 168,
+  "total_lulus_excluded_ktw": 3,
+  "persen_tepat_waktu": 15.8,
+  "rata_masa_studi": 6.5,
+  "jalur_di_exclude": ["Pindahan/Transfer", "RPL ..."]
+}
+```
+
+### Status Implementasi
+
+| Aspek | Status |
+|-------|--------|
+| Tabel `ref.ktw_exclude_jalur` + 5 seed default | ✅ |
+| Backend logic di PdutRepository | ✅ |
+| Backend CRUD endpoints di MonitoringController | ✅ |
+| Frontend kolom Jalur + badge Excluded di tabel lulusan | ✅ |
+| Frontend info card di stats | ✅ |
+| Frontend modal "Pengaturan KTW" | ✅ |
+| Auto-refresh tabel + stats setelah perubahan exclusion | ✅ |
+| Export CSV include kolom Jalur + Status KTW | ✅ |
+
+---
+
+## 18. [DONE] Hapus Batch + Tarik Ulang Kandidat
+
+### Aturan Status untuk Hapus Batch
+
+| Status | Bisa Dihapus? | Alasan Wajib? |
+|--------|:-------------:|:-------------:|
+| `draft` | ✅ Ya | Tidak |
+| `kandidat_ditarik` | ✅ Ya | Tidak |
+| `verifikasi_fakultas` | ✅ Ya | **Wajib (min 10 char)** — sudah ada verifikasi |
+| `sk_dekan_terbit` | ❌ Tidak | Data terkunci |
+| `finalisasi` | ❌ Tidak | Dalam proses BAK |
+| `terbit` | ❌ Tidak | SK Rektor sudah terbit, legal binding |
+
+### Cascade Soft Delete
+
+- `batch.batch_penetapan` → soft_delete = true
+- `batch.kandidat_batch` → soft_delete = true (cascade)
+- `batch.verifikasi_batch` → hard delete (tidak punya kolom soft_delete)
+- File dokumen exclude di MinIO → best-effort delete
+
+### Tarik Ulang Kandidat
+
+| Aspek | Detail |
+|-------|--------|
+| **Endpoint** | `POST /batch/{id}/pull-candidates` (sudah ada sejak awal) |
+| **Status allowed** | `draft` & `kandidat_ditarik` |
+| **Cara kerja** | Soft delete kandidat lama → re-query PDUT → insert ulang dengan status `masuk` |
+| **Frontend tombol** | "Tarik Ulang" (warna primary, icon refresh) di header batch detail |
+| **Modal konfirmasi** | Warning: kandidat saat ini akan dihapus, status verifikasi reset |
+
+### Endpoints Backend
+
+| Method | Path | Fungsi |
+|--------|------|--------|
+| POST | `/v1/batch/{id}/pull-candidates` | Re-pull kandidat dari PDUT |
+| DELETE | `/v1/batch/{id}` | Hapus batch (cascade) |
+
+### File yang Diubah
+
+- `app/Http/Controllers/Api/Batch/BatchController.php` — method `destroy()` baru
+- `app/Repositories/Batch/BatchRepository.php` — `softDeleteCascade()`, `getDokumenExcludePaths()`
+- `routes/api.php` — `Route::delete('/{id}', ...)`
+- `frontend/.../batch/page.tsx` & `batch/[id]/page.tsx` — tombol + modal
+
+### Status Implementasi
+
+| Aspek | Status |
+|-------|--------|
+| Backend destroy + cascade soft delete | ✅ |
+| Backend pull candidates (existing) | ✅ |
+| Frontend tombol Hapus di batch list & detail | ✅ |
+| Frontend tombol Tarik Ulang di batch detail | ✅ |
+| Modal konfirmasi (native button, bukan HeroUI) | ✅ |

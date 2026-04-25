@@ -7,6 +7,7 @@ use App\Repositories\PdutRepository;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -107,24 +108,32 @@ class MonitoringController extends Controller
             if ($type === 'lulusan') {
                 $result = $this->pdutRepository->getLulusanPaginated($params);
                 $filename = 'monitoring_lulusan_' . date('Ymd_His') . '.csv';
-                $headers = ['NIM', 'Nama', 'Prodi', 'Fakultas', 'Jenjang', 'Angkatan', 'Tahun Lulus', 'Masa Studi (smt)', 'Tepat Waktu'];
+                $headers = ['NIM', 'Nama', 'Prodi', 'Fakultas', 'Jenjang', 'Angkatan', 'Tahun Lulus', 'Masa Studi (smt)', 'IPK', 'Tepat Waktu', 'Jalur Pendaftaran', 'Status KTW'];
                 $mapRow = function ($row) {
+                    $statusKtw = ($row->is_excluded_ktw ?? false)
+                        ? 'Excluded'
+                        : (($row->tepat_waktu ?? false) ? 'Tepat Waktu' : 'Tidak Tepat Waktu');
                     return [
                         $row->nim ?? '', $row->nm_mahasiswa ?? '', $row->nm_prodi ?? '',
                         $row->nm_fakultas ?? '', $row->nm_jenjang ?? '', $row->angkatan ?? '',
-                        $row->tahun_lulus ?? '', $row->masa_studi_semester ?? '',
+                        $row->tahun_lulus ?? '', $row->masa_studi_semester ?? '', $row->ipk ?? '',
                         ($row->tepat_waktu ?? false) ? 'Ya' : 'Tidak',
+                        $row->jalur_pendaftaran ?? '-',
+                        $statusKtw,
                     ];
                 };
             } else {
                 $result = $this->pdutRepository->getMahasiswaAktifPaginated($params);
                 $filename = 'monitoring_mahasiswa_aktif_' . date('Ymd_His') . '.csv';
-                $headers = ['NIM', 'Nama', 'Prodi', 'Fakultas', 'Jenjang', 'Angkatan', 'Semester', 'IPK', 'Status'];
+                $headers = ['NIM', 'Nama', 'Prodi', 'Fakultas', 'Jenjang', 'Angkatan', 'Semester', 'IPK', 'SKS Lulus', 'Status', 'Jalur Pendaftaran', 'Email', 'HP'];
                 $mapRow = function ($row) {
                     return [
                         $row->nim ?? '', $row->nm_mahasiswa ?? '', $row->nm_prodi ?? '',
                         $row->nm_fakultas ?? '', $row->nm_jenjang ?? '', $row->angkatan ?? '',
-                        $row->semester_aktif ?? '', $row->ipk ?? '', $row->status_registrasi ?? '',
+                        $row->semester_aktif ?? '', $row->ipk ?? '', $row->sks_lulus ?? '',
+                        $row->status_registrasi ?? '',
+                        $row->jalur_pendaftaran ?? '-',
+                        $row->email ?? '-', $row->hp ?? '-',
                     ];
                 };
             }
@@ -145,6 +154,96 @@ class MonitoringController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Monitoring.export: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    // =========================================
+    // KTW Exclusion CRUD
+    // =========================================
+
+    /**
+     * List semua jalur pendaftaran yang di-exclude dari KTW.
+     * Plus list semua jalur unique dari mahasiswa (untuk dropdown).
+     */
+    public function getKtwExclusions(): JsonResponse
+    {
+        try {
+            $excluded = DB::connection('pgsql')->select(
+                "SELECT id_exclude, jalur_pendaftaran, deskripsi, a_aktif, created_at
+                 FROM ref.ktw_exclude_jalur ORDER BY jalur_pendaftaran"
+            );
+
+            // Daftar jalur unique dari PDUT (untuk dropdown tambah)
+            $allJalur = DB::connection('sqlsrv')->select(
+                "SELECT DISTINCT jalur_pendaftaran FROM siakadu.mahasiswa
+                 WHERE soft_delete = 0 AND jalur_pendaftaran IS NOT NULL
+                 ORDER BY jalur_pendaftaran"
+            );
+
+            return $this->successResponse([
+                'exclusions' => $excluded,
+                'available_jalur' => array_map(fn($j) => $j->jalur_pendaftaran, $allJalur),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Monitoring.getKtwExclusions: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function addKtwExclusion(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'jalur_pendaftaran' => 'required|string|max:200',
+                'deskripsi' => 'nullable|string',
+            ]);
+            $user = $request->user();
+
+            DB::connection('pgsql')->insert("
+                INSERT INTO ref.ktw_exclude_jalur (jalur_pendaftaran, deskripsi, a_aktif, id_creator)
+                VALUES (?, ?, true, ?)
+                ON CONFLICT (jalur_pendaftaran) DO UPDATE SET a_aktif = true, deskripsi = EXCLUDED.deskripsi, updated_at = NOW()
+            ", [$data['jalur_pendaftaran'], $data['deskripsi'] ?? null, $user->id_pengguna]);
+
+            return $this->successResponse(null, 'Jalur berhasil ditambahkan ke exclusion KTW');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Monitoring.addKtwExclusion: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function toggleKtwExclusion(Request $request, string $id): JsonResponse
+    {
+        try {
+            $data = $request->validate(['a_aktif' => 'required|boolean']);
+            $user = $request->user();
+
+            DB::connection('pgsql')->update(
+                "UPDATE ref.ktw_exclude_jalur SET a_aktif = ?, id_updater = ?, updated_at = NOW() WHERE id_exclude = ?",
+                [$data['a_aktif'], $user->id_pengguna, $id]
+            );
+
+            return $this->successResponse(null, $data['a_aktif'] ? 'Exclusion diaktifkan' : 'Exclusion dinonaktifkan');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Monitoring.toggleKtwExclusion: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function deleteKtwExclusion(string $id): JsonResponse
+    {
+        try {
+            DB::connection('pgsql')->delete(
+                "DELETE FROM ref.ktw_exclude_jalur WHERE id_exclude = ?", [$id]
+            );
+            return $this->successResponse(null, 'Exclusion berhasil dihapus');
+        } catch (\Exception $e) {
+            Log::error('Monitoring.deleteKtwExclusion: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }
