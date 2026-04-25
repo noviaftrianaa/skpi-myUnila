@@ -54,56 +54,61 @@ func WsAuthorization(cfg WsAuthConfig) fiber.Handler {
 		// Normalize path: remove trailing slash
 		path = strings.TrimRight(path, "/")
 
+		// Tentukan SUBJECT yang dipakai untuk authorization check:
+		// - DefaultRoleID > 0 (ws-api flow): subject = userID (cek per-user
+		//   grant di ws_authorization.id_pengguna). Login flow sudah validasi
+		//   user punya peran 107, jadi tidak perlu Redis active_context lagi.
+		// - DefaultRoleID == 0 (frontend flow): subject = userID dari user
+		//   yang aktif role-nya (juga via id_pengguna, tetap per-user).
+		// Skema DB sebenarnya: ws_authorization punya kolom id_pengguna
+		// (BUKAN id_peran — meski dokumentasi awal menyebut id_peran).
+		var subjectName string
 		if cfg.DefaultRoleID > 0 {
-			// ws-api server-to-server flow:
-			// - Login (apps/auth/service.go) sudah validasi user wajib punya
-			//   peran cfg.DefaultRoleID (107 = Developer).
-			// - JWT yang sampai ke sini = user pasti punya peran tsb.
-			// - Tidak ada UI select-role di ws-api flow.
-			// Jadi: trust JWT, lewati Redis user_context + ws_authorization
-			//   per-endpoint. Login + JWT-validation = sufficient guard.
-			c.Locals("ws_authorized", true)
-			c.Locals("ws_role_id", cfg.DefaultRoleID)
-			return c.Next()
+			subjectName = "user"
+		} else {
+			activeCtx, err := getActiveContext(userID)
+			if err != nil {
+				log.Printf("[WsAuth] Warning: failed to get active context for user %s: %v", userID, err)
+				return response.Forbidden(c, "Unable to verify authorization. Please select a role first.")
+			}
+			if activeCtx == nil {
+				return response.Forbidden(c, "No active context selected. Please select a role first.")
+			}
+			c.Locals("active_context", activeCtx)
+			subjectName = activeCtx.NmPeran
 		}
 
-		// Frontend flow: baca user_context dari Redis (set saat user
-		// pilih role via UI), lalu cek per-endpoint authorization.
-		activeCtx, err := getActiveContext(userID)
-		if err != nil {
-			log.Printf("[WsAuth] Warning: failed to get active context for user %s: %v", userID, err)
-			return response.Forbidden(c, "Unable to verify authorization. Please select a role first.")
-		}
-		if activeCtx == nil {
-			return response.Forbidden(c, "No active context selected. Please select a role first.")
-		}
-		c.Locals("active_context", activeCtx)
-
-		// Check authorization (with cache)
-		allowed, err := checkAuthorization(cfg, method, path, activeCtx.IDPeran)
+		// Check per-user authorization (with cache).
+		allowed, err := checkAuthorization(cfg, method, path, userID)
 		if err != nil {
 			log.Printf("[WsAuth] Error checking authorization: %v", err)
-			// Fail-closed: deny on error
 			return response.Forbidden(c, "Authorization check failed")
 		}
-
 		if !allowed {
 			return response.Forbidden(c, fmt.Sprintf(
-				"Access denied. Role '%s' is not authorized for %s %s",
-				activeCtx.NmPeran, method, path,
+				"Access denied. %s tidak punya otorisasi untuk %s %s",
+				subjectName, method, path,
 			))
 		}
 
 		c.Locals("ws_authorized", true)
-
+		if cfg.DefaultRoleID > 0 {
+			c.Locals("ws_role_id", cfg.DefaultRoleID)
+		}
 		return c.Next()
 	}
 }
 
-// checkAuthorization verifies if a role has access to method+path
-func checkAuthorization(cfg WsAuthConfig, method, path string, roleID int) (bool, error) {
-	// Try cache first
-	cacheKey := fmt.Sprintf("ws_auth:%s:%d:%s:%s", cfg.AppID[:8], roleID, method, path)
+// checkAuthorization verifies if a user has access to method+path.
+// Pakai id_pengguna (UUID) sebagai subject — match schema actual ws_authorization.
+func checkAuthorization(cfg WsAuthConfig, method, path, userID string) (bool, error) {
+	// Try cache first. Cache key cuma 8 char dari appID + 8 dari userID
+	// supaya gak terlalu panjang, masih unik.
+	uidShort := userID
+	if len(uidShort) > 8 {
+		uidShort = uidShort[:8]
+	}
+	cacheKey := fmt.Sprintf("ws_auth:%s:%s:%s:%s", cfg.AppID[:8], uidShort, method, path)
 
 	if redis.Client != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -116,7 +121,7 @@ func checkAuthorization(cfg WsAuthConfig, method, path string, roleID int) (bool
 	}
 
 	// Query database
-	allowed, err := queryAuthorization(cfg.DB, cfg.AppID, method, path, roleID)
+	allowed, err := queryAuthorization(cfg.DB, cfg.AppID, method, path, userID)
 	if err != nil {
 		return false, err
 	}
@@ -142,12 +147,14 @@ type authResult struct {
 	roleAllowed    bool // role has authorization for this endpoint
 }
 
-// queryAuthorization checks the database for endpoint authorization
-// Strategy: PERMISSIVE — only enforce if endpoint is registered in ws_endpoint
-// - Endpoint not registered → allow (backward compat, not yet configured)
-// - Endpoint registered, role authorized → allow
-// - Endpoint registered, role NOT authorized → deny
-func queryAuthorization(db *sqlx.DB, appID, method, path string, roleID int) (bool, error) {
+// queryAuthorization checks the database for per-user endpoint authorization.
+// Strategy: PERMISSIVE — only enforce if endpoint is registered in ws_endpoint.
+//   - Endpoint not registered → allow (backward compat / belum dikonfigurasi)
+//   - Endpoint registered, user has grant → allow
+//   - Endpoint registered, user no grant → deny
+//
+// Schema actual ws_authorization pakai id_pengguna (UUID), bukan id_peran.
+func queryAuthorization(db *sqlx.DB, appID, method, path, userID string) (bool, error) {
 	// Step 1: Check if endpoint exists in ws_endpoint for this app
 	checkEndpointQuery := `
 		SELECT COUNT(*) as cnt
@@ -173,7 +180,7 @@ func queryAuthorization(db *sqlx.DB, appID, method, path string, roleID int) (bo
 		return true, nil
 	}
 
-	// Step 2: Check if role is authorized for this endpoint
+	// Step 2: Check if user is authorized for this endpoint (per-user grant).
 	checkAuthQuery := `
 		SELECT COUNT(*) as cnt
 		FROM man_akses.ws_authorization wsa
@@ -184,7 +191,7 @@ func queryAuthorization(db *sqlx.DB, appID, method, path string, roleID int) (bo
 		  AND e.a_active = 1
 		  AND e.id_aplikasi = @p1
 		  AND e.nm_method = @p2
-		  AND wsa.id_peran = @p3
+		  AND wsa.id_pengguna = @p3
 		  AND (
 		    e.path_url = @p4
 		    OR @p4 LIKE REPLACE(REPLACE(REPLACE(e.path_url, ':id', '%'), ':uuid', '%'), ':slug', '%')
@@ -192,7 +199,7 @@ func queryAuthorization(db *sqlx.DB, appID, method, path string, roleID int) (bo
 	`
 
 	var authCount int
-	err = db.QueryRow(checkAuthQuery, appID, method, roleID, path).Scan(&authCount)
+	err = db.QueryRow(checkAuthQuery, appID, method, userID, path).Scan(&authCount)
 	if err != nil {
 		return false, fmt.Errorf("ws_authorization check failed: %w", err)
 	}
@@ -271,9 +278,9 @@ func WsAuthLog(db *sqlx.DB, appID string) fiber.Handler {
 	}
 }
 
-// ClearWsAuthCache clears cached authorization for a specific role
-// Call this when ws_authorization entries are updated
-func ClearWsAuthCache(appID string, roleID int) {
+// ClearWsAuthCache clears cached authorization for a specific user.
+// Call this when ws_authorization entries are updated.
+func ClearWsAuthCache(appID, userID string) {
 	if redis.Client == nil {
 		return
 	}
@@ -281,7 +288,11 @@ func ClearWsAuthCache(appID string, roleID int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	pattern := fmt.Sprintf("ws_auth:%s:%d:*", appID[:8], roleID)
+	uidShort := userID
+	if len(uidShort) > 8 {
+		uidShort = uidShort[:8]
+	}
+	pattern := fmt.Sprintf("ws_auth:%s:%s:*", appID[:8], uidShort)
 	redis.DelByPattern(ctx, pattern)
 }
 
