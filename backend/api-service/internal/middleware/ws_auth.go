@@ -213,39 +213,31 @@ func WsAuthLog(db *sqlx.DB, appID string) fiber.Handler {
 		// Process request first
 		err := c.Next()
 
-		// Log after response (async-ish via goroutine)
-		go func() {
-			userID, _ := c.Locals("user_id").(string)
-			jti, _ := c.Locals("jti").(string)
+		// IMPORTANT: extract semua nilai dari c SEBELUM spawn goroutine.
+		// Fiber recycle Ctx setelah handler return — akses c.Locals/c.Path/dll
+		// di goroutine = nil pointer panic (pernah crash di prod, bikin Kong
+		// dapat 'invalid response from upstream').
+		userID, _ := c.Locals("user_id").(string)
+		jti, _ := c.Locals("jti").(string)
 
-			// Skip kalau tidak ada JWT context (public endpoint, preflight, dsb)
-			if userID == "" {
-				return
-			}
+		// Skip kalau tidak ada JWT context (public endpoint, preflight, dsb)
+		if userID == "" {
+			return err
+		}
 
-			status := c.Response().StatusCode()
+		status := c.Response().StatusCode()
+		path := c.Path()
+		method := c.Method()
+		reqList := string(c.Request().URI().QueryString())
+
+		// Log after response (async via goroutine — sekarang capture by value).
+		go func(idLogJwt interface{}, path, method, reqList string, status int) {
 			aSuccess := 0
 			if status < 400 {
 				aSuccess = 1
 			}
-
-			// Query string (kalau ada) ke request_list
-			reqList := string(c.Request().URI().QueryString())
-			if reqList == "" {
-				reqList = "" // simpan string kosong, bukan NULL
-			}
-
 			// ket = status code + method untuk quick-scan di log dashboard
-			ket := fmt.Sprintf("%d %s", status, c.Method())
-
-			// id_log_jwt (FK): dari JTI claim. Nullable di schema, jadi kalau JTI
-			// kosong kita biarkan NULL (bukan string kosong — SQL Server reject uniqueidentifier empty).
-			var idLogJwtArg interface{}
-			if jti != "" {
-				idLogJwtArg = jti
-			} else {
-				idLogJwtArg = nil
-			}
+			ket := fmt.Sprintf("%d %s", status, method)
 
 			logQuery := `
 				INSERT INTO logger.log_akses_jwt (
@@ -260,13 +252,20 @@ func WsAuthLog(db *sqlx.DB, appID string) fiber.Handler {
 			`
 
 			if _, logErr := db.Exec(logQuery,
-				idLogJwtArg,
-				c.Path(), c.Method(), reqList,
+				idLogJwt,
+				path, method, reqList,
 				aSuccess, ket,
 			); logErr != nil {
 				log.Printf("[WsAuthLog] Failed to log access: %v", logErr)
 			}
-		}()
+		}(func() interface{} {
+			// id_log_jwt (FK): dari JTI claim. Nullable di schema; kalau kosong
+			// biarkan NULL (SQL Server reject uniqueidentifier '').
+			if jti != "" {
+				return jti
+			}
+			return nil
+		}(), path, method, reqList, status)
 
 		return err
 	}
