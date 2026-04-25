@@ -8,6 +8,7 @@ import { getTahapan, createTahapan, updateTahapan, deleteTahapan, getJenisLayana
 import type { TahapanLayanan, JenisLayanan } from "@/lib/services/sim-bak/types";
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiLoader } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
+import { ConfirmDialog } from "../../components";
 
 const emptyForm = { id_jenis_layanan: "", nm_tahapan: "", urutan: 1, kode_role: "", status_masuk: "", status_selesai: "", a_opsional: false, deskripsi: "" };
 
