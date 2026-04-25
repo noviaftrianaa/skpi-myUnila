@@ -136,6 +136,85 @@ PRINT 'STEP 5 OK — pdut_staging sudah MULTI_USER (ready to accept connections)
 GO
 
 -- ----------------------------------------------------------------------------
+-- STEP 5b — Fix orphaned database users
+-- ----------------------------------------------------------------------------
+-- Setelah RESTORE, tabel `sys.database_principals` di pdut_staging berisi user
+-- dengan SID dari server SOURCE (production SQL Server). Login yang ada di
+-- master server STAGING ini punya SID berbeda → mapping putus → service
+-- container dapet error "Login failed for user '...'" / "User has no
+-- permission to run the procedure" walau login & password benar.
+--
+-- Fix: ALTER USER ... WITH LOGIN = ... untuk re-bind ke login lokal.
+-- Catatan: kalau login `mizarzulmi` tidak ada di server staging, buat dulu
+-- (lihat STEP 5c di bawah).
+-- ----------------------------------------------------------------------------
+USE pdut_staging;
+GO
+
+DECLARE @user NVARCHAR(128) = N'mizarzulmi';
+
+IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = @user)
+   AND EXISTS (SELECT 1 FROM sys.database_principals WHERE name = @user AND type = 'S')
+BEGIN
+    DECLARE @sql NVARCHAR(MAX) = N'ALTER USER [' + @user + N'] WITH LOGIN = [' + @user + N'];';
+    EXEC sp_executesql @sql;
+    PRINT 'STEP 5b OK — re-mapped database user [' + @user + '] ke login lokal (SID disinkronkan)';
+END
+ELSE IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = @user)
+    PRINT 'STEP 5b WARN — login server [' + @user + '] tidak ada. Lihat STEP 5c untuk create login baru.';
+ELSE
+    PRINT 'STEP 5b SKIP — user [' + @user + '] tidak ada di pdut_staging (mungkin login pakai sa).';
+GO
+
+-- ----------------------------------------------------------------------------
+-- STEP 5c — (OPSIONAL) Create staging-only login + DB user
+-- ----------------------------------------------------------------------------
+-- Kalau bapak ingin AKUN DB STAGING TERPISAH dari prod (best practice
+-- — supaya restore tidak menyentuh kredensial yang dipakai service prod, dan
+-- bocoran kredensial staging tidak bisa akses prod), buat login baru:
+--
+--   USE master;
+--   CREATE LOGIN mizarzulmi_staging WITH PASSWORD = 'GANTI_PASSWORD_KUAT!2026',
+--       CHECK_POLICY = ON, DEFAULT_DATABASE = pdut_staging;
+--
+--   USE pdut_staging;
+--   IF USER_ID('mizarzulmi_staging') IS NULL
+--       CREATE USER mizarzulmi_staging FOR LOGIN mizarzulmi_staging;
+--   ALTER ROLE db_datareader ADD MEMBER mizarzulmi_staging;
+--   ALTER ROLE db_datawriter ADD MEMBER mizarzulmi_staging;
+--   ALTER ROLE db_ddladmin   ADD MEMBER mizarzulmi_staging;  -- kalau perlu DDL
+--
+-- Setelah itu, update `.env` di vm5-staging:
+--   *_DB_USERNAME=mizarzulmi_staging
+--   *_DB_PASSWORD=GANTI_PASSWORD_KUAT!2026
+-- lalu rebuild semua container yang konek ke pdut_staging.
+--
+-- CATATAN: setiap kali restore pdut → pdut_staging, user `mizarzulmi_staging`
+-- akan tertimpa lagi (karena pdut backup tidak punya user tsb). Solusi:
+-- ulangi STEP 5c ini SETELAH setiap RESTORE — atau tambahkan ke STEP ini
+-- supaya otomatis (uncomment block di bawah):
+-- ----------------------------------------------------------------------------
+/*
+USE master;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'mizarzulmi_staging')
+    CREATE LOGIN mizarzulmi_staging WITH PASSWORD = 'GANTI_PASSWORD_KUAT!2026',
+        CHECK_POLICY = ON, DEFAULT_DATABASE = pdut_staging;
+GO
+USE pdut_staging;
+GO
+IF USER_ID('mizarzulmi_staging') IS NULL
+    CREATE USER mizarzulmi_staging FOR LOGIN mizarzulmi_staging;
+ELSE
+    ALTER USER mizarzulmi_staging WITH LOGIN = mizarzulmi_staging;
+ALTER ROLE db_datareader ADD MEMBER mizarzulmi_staging;
+ALTER ROLE db_datawriter ADD MEMBER mizarzulmi_staging;
+ALTER ROLE db_ddladmin   ADD MEMBER mizarzulmi_staging;
+PRINT 'STEP 5c OK — staging-only login + db user siap dipakai';
+GO
+*/
+
+-- ----------------------------------------------------------------------------
 -- STEP 6 — Quick sanity check
 -- ----------------------------------------------------------------------------
 USE pdut_staging;
