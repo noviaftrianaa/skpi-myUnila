@@ -454,12 +454,20 @@ export default function WsAuthorizationManager() {
           .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 7px 24px;
+            gap: 8px 28px;
           }
-          .info-item { display: flex; gap: 8px; }
-          .info-label { font-weight: 600; color: #4b5563; min-width: 110px; font-size: 10.5px; }
-          .info-value { color: #1a1a2e; font-size: 10.5px; }
-          .info-value.mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; }
+          .info-item {
+            display: grid;
+            grid-template-columns: 110px 8px 1fr;
+            align-items: baseline;
+            gap: 0;
+            font-size: 10.5px;
+          }
+          .info-label { font-weight: 600; color: #4b5563; }
+          .info-sep { color: #6b7280; font-weight: 600; }
+          .info-value { color: #1a1a2e; word-break: break-all; }
+          .info-value.mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; letter-spacing: 0.2px; }
+          .info-value.muted { color: #9ca3af; font-style: italic; }
           /* Credential note */
           .cred-note {
             margin-bottom: 16px;
@@ -566,23 +574,23 @@ export default function WsAuthorizationManager() {
             <img src="/assets/images/logo-unila.png" alt="Logo Unila" onerror="this.style.display='none'" />
             <div class="header-text">
               <h1>Universitas Lampung</h1>
-              <h2>UPT Teknologi Informasi dan Komunikasi</h2>
+              <h2>UPA Teknologi Informasi dan Komunikasi</h2>
             </div>
           </div>
-          <div class="doc-title">Laporan Otorisasi Endpoint Web Service API</div>
+          <div class="doc-title">Dokumen Otorisasi Endpoint Web Service API myUnila</div>
           <div class="subtitle">Dicetak pada ${nowDate} pukul ${nowTime}</div>
         </div>
 
         <div class="info">
           <div class="info-grid">
-            <div class="info-item"><span class="info-label">Aplikasi Client</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
-            <div class="info-item"><span class="info-label">Service Provider</span><span class="info-value">: ${selectedProviderData?.nm_aplikasi ?? "-"}</span></div>
-            <div class="info-item"><span class="info-label">ID Aplikasi</span><span class="info-value mono">: ${selectedAppData.id_aplikasi}</span></div>
-            <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-value">: ${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
-            <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-value">: ${selectedPjData.nm_pengguna}</span></div>
-            <div class="info-item"><span class="info-label">Total Group</span><span class="info-value">: ${sortedGroups.length}</span></div>
-            <div class="info-item"><span class="info-label">Username</span><span class="info-value mono">: ${selectedPjData.username}</span></div>
-            <div class="info-item"><span class="info-label">Password</span><span class="info-value" style="color:#9ca3af;font-style:italic">: (rahasia — diketahui PJ aplikasi)</span></div>
+            <div class="info-item"><span class="info-label">Aplikasi Client</span><span class="info-sep">:</span><span class="info-value">${selectedAppData.nm_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">Service Provider</span><span class="info-sep">:</span><span class="info-value">${selectedProviderData?.nm_aplikasi ?? "-"}</span></div>
+            <div class="info-item"><span class="info-label">ID Aplikasi</span><span class="info-sep">:</span><span class="info-value mono">${selectedAppData.id_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-sep">:</span><span class="info-value">${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
+            <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-sep">:</span><span class="info-value">${selectedPjData.nm_pengguna}</span></div>
+            <div class="info-item"><span class="info-label">Total Group</span><span class="info-sep">:</span><span class="info-value">${sortedGroups.length}</span></div>
+            <div class="info-item"><span class="info-label">Username</span><span class="info-sep">:</span><span class="info-value mono">${selectedPjData.username}</span></div>
+            <div class="info-item"><span class="info-label">Password</span><span class="info-sep">:</span><span class="info-value muted">(rahasia — diketahui PJ aplikasi)</span></div>
           </div>
         </div>
 
@@ -618,7 +626,14 @@ export default function WsAuthorizationManager() {
         `).join("")}
 
         <div class="footer">
-          <strong>MyUnila</strong> — UPT TIK Universitas Lampung<br/>
+          <div style="margin-bottom:6px;padding:6px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:5px;color:#7f1d1d;font-size:9.5px;line-height:1.5;text-align:left">
+            <strong>RAHASIA — TIDAK UNTUK DISEBARLUASKAN.</strong>
+            Dokumen ini berisi kredensial otentikasi (username + ID aplikasi) yang
+            <strong>hanya boleh diakses oleh PJ Aplikasi</strong> sebagai pemegang otoritas.
+            Penggandaan, penyebaran, atau penggunaan kredensial oleh pihak yang tidak berwenang
+            merupakan pelanggaran kebijakan keamanan informasi UPA TIK Universitas Lampung.
+          </div>
+          <strong>myUnila</strong> — UPA TIK Universitas Lampung<br/>
           Dokumen ini di-generate otomatis oleh sistem Manajemen Akses · ${nowDate} ${nowTime}
         </div>
       </body>
