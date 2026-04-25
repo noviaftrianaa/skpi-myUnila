@@ -51,13 +51,13 @@ GO
 -- STEP 1 — Safety check: pastikan file backup exist + path sudah di-isi
 -- ----------------------------------------------------------------------------
 -- Default path (Windows Server 192.168.123.119):
---   @BackupFile  = C:\backup\pdut.bak
+--   @BackupFile  = C:\backup\pdut_backup_2026_04_25_000010_6355706.bak
 --   @DataFileDir = C:\backup  (SQL Server service account sudah punya FULL acc
 --                              di folder ini; kalau mau taruh di instance
 --                              default data dir, ganti ke path default)
--- Ganti kalau file .bak kamu pakai nama lain (mis. pdut_20260424.bak).
+-- Ganti @BackupFile sesuai nama file .bak terbaru (auto-backup pdut_backup_*.bak).
 -- ----------------------------------------------------------------------------
-DECLARE @BackupFile  NVARCHAR(500) = N'C:\backup\pdut.bak';
+DECLARE @BackupFile  NVARCHAR(500) = N'C:\backup\pdut_backup_2026_04_25_000010_6355706.bak';
 DECLARE @DataFileDir NVARCHAR(500) = N'C:\backup';
 DECLARE @DbName      NVARCHAR(128) = N'pdut_staging';
 
@@ -95,7 +95,7 @@ GO
 --   Type=L (log file)   → logical name biasanya "pdut_Log" atau "pdut_log"
 -- Kalau logical name-nya beda, sesuaikan @LogicalDataName / @LogicalLogName.
 -- ----------------------------------------------------------------------------
-DECLARE @BackupFile NVARCHAR(500) = N'C:\backup\pdut.bak';
+DECLARE @BackupFile NVARCHAR(500) = N'C:\backup\pdut_backup_2026_04_25_000010_6355706.bak';
 
 PRINT 'STEP 3 — Info file di dalam backup (cek logical names):';
 DECLARE @cmd NVARCHAR(MAX) = N'RESTORE FILELISTONLY FROM DISK = N''' + @BackupFile + N'''';
@@ -107,7 +107,7 @@ GO
 -- ----------------------------------------------------------------------------
 -- Sesuaikan @LogicalDataName + @LogicalLogName dari output STEP 3 kalau berbeda.
 -- ----------------------------------------------------------------------------
-DECLARE @BackupFile      NVARCHAR(500) = N'C:\backup\pdut.bak';
+DECLARE @BackupFile      NVARCHAR(500) = N'C:\backup\pdut_backup_2026_04_25_000010_6355706.bak';
 DECLARE @DataFileDir     NVARCHAR(500) = N'C:\backup';
 DECLARE @LogicalDataName NVARCHAR(128) = N'pdut';     -- default; sesuaikan dari STEP 3
 DECLARE @LogicalLogName  NVARCHAR(128) = N'pdut_log'; -- default; sesuaikan dari STEP 3
