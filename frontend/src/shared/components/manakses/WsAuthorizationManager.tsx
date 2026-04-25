@@ -343,14 +343,11 @@ export default function WsAuthorizationManager() {
     const nowDate = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
     const nowTime = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }) + " WIB";
     const checkedEndpoints = endpoints.filter((ep) => checkedIds.has(ep.id_ws_endpoint));
-    // Watermark text — disisipkan ke setiap halaman (transparent overlay).
+    // Watermark text. Pakai foreground div (position:fixed) bukan background-image
+    // — alasannya: Chrome "Save as PDF" / "Print" by-default skip background
+    // images kecuali user centang "Background graphics". Foreground tetap
+    // ke-render. position:fixed tetap muncul di setiap halaman saat print.
     const wmText = `RAHASIA · PJ ${selectedPjData.nm_pengguna} · ${nowDate}`;
-    // SVG data URL untuk background tile watermark (rotate -28°, opacity 0.05).
-    const wmSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='320'>
-      <text x='50%' y='50%' fill='%231a1a2e' fill-opacity='0.06' font-family='Poppins,Segoe UI,sans-serif'
-        font-size='32' font-weight='700' text-anchor='middle' transform='rotate(-28 300 160)'>${wmText.replace(/'/g, "%27").replace(/&/g, "%26").replace(/</g, "%3C").replace(/>/g, "%3E")}</text>
-    </svg>`;
-    const wmDataUrl = `url("data:image/svg+xml;utf8,${wmSvg.replace(/\n\s*/g, " ").replace(/"/g, "'")}")`;
 
     // Method order untuk sort: GET → POST → PUT → PATCH → DELETE
     const methodOrder: Record<string, number> = { GET: 1, POST: 2, PUT: 3, PATCH: 4, DELETE: 5 };
@@ -379,12 +376,31 @@ export default function WsAuthorizationManager() {
             color: #1a1a2e;
             font-size: 11px;
             line-height: 1.5;
-            background-image: ${wmDataUrl};
-            background-repeat: repeat;
-            background-position: center top;
+            position: relative;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
+          /* Watermark — position:fixed bikin tile ini muncul di setiap halaman
+             saat print. Multiple instance untuk efek tile diagonal. */
+          .wm {
+            position: fixed;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 38px;
+            color: rgba(26, 26, 46, 0.07);
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            transform: rotate(-28deg);
+            transform-origin: center center;
+            pointer-events: none;
+            z-index: -1;
+            user-select: none;
+          }
+          .wm-1 { top: 8%;  left: -10%; }
+          .wm-2 { top: 32%; left: 30%; }
+          .wm-3 { top: 56%; left: -10%; }
+          .wm-4 { top: 80%; left: 30%; }
+          .content { position: relative; z-index: 1; }
           /* Header */
           .header {
             text-align: center;
@@ -569,6 +585,10 @@ export default function WsAuthorizationManager() {
         </style>
       </head>
       <body>
+        <div class="wm wm-1">${wmText}</div>
+        <div class="wm wm-2">${wmText}</div>
+        <div class="wm wm-3">${wmText}</div>
+        <div class="wm wm-4">${wmText}</div>
         <div class="header">
           <div class="header-flex">
             <img src="/assets/images/logo-unila.png" alt="Logo Unila" onerror="this.style.display='none'" />
