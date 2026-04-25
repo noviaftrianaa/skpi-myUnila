@@ -143,16 +143,28 @@ export default function KongAdminPage() {
   const { activeContext, isLoadingContext } = useUserContext();
   const router = useRouter();
 
-  // Check if user has Developer role from manakses context
-  // Developer can be the nm_peran from activeContext
-  const hasAccess = isAuthenticated && activeContext?.nm_peran === "Developer";
+  // Akses dibatasi: HARUS Developer (nm_peran) DAN unit organisasi UPA TIK.
+  // nm_organisasi bisa bervariasi ("UPA Teknologi Informasi dan Komunikasi",
+  // "UPT TIK", "UPA TIK") — match longgar pakai substring "TIK" + indikator
+  // teknologi info.
+  const isDeveloperRole = activeContext?.nm_peran === "Developer";
+  const orgName = (activeContext?.nm_organisasi || "").toLowerCase();
+  const isTIKUnit =
+    orgName.includes("tik") ||
+    orgName.includes("teknologi informasi") ||
+    orgName.includes("upa ti") ||
+    orgName.includes("upt ti");
+  const hasAccess = isAuthenticated && isDeveloperRole && isTIKUnit;
+
   const accessMessage = !isAuthenticated
     ? "Silakan login terlebih dahulu"
     : !activeContext
       ? "Silakan pilih peran terlebih dahulu"
-      : !hasAccess
-        ? `Halaman ini hanya dapat diakses oleh Developer. Peran Anda saat ini: ${activeContext.nm_peran}`
-        : "";
+      : !isDeveloperRole
+        ? `Halaman ini hanya untuk Developer di UPA TIK. Peran Anda saat ini: ${activeContext.nm_peran}`
+        : !isTIKUnit
+          ? `Halaman ini hanya untuk Developer di UPA TIK. Unit Anda saat ini: ${activeContext.nm_organisasi}`
+          : "";
 
   const [services, setServices] = useState<KongService[]>([]);
   const [routes, setRoutes] = useState<KongRoute[]>([]);
