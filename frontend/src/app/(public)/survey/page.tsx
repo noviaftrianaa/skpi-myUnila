@@ -62,7 +62,25 @@ export default function SurveyPage() {
     { id: "F", title: "Kontak", icon: "📧", color: "gray" },
   ];
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  // Progress berdasar field yang sudah diisi, BUKAN posisi step. Sebelumnya
+  // pakai (currentStep + 1) / total → step 0 langsung 16% padahal user belum
+  // isi apapun. User bingung; sekarang 0% saat fresh, 100% saat semua field
+  // primary terisi.
+  const stringFields: (keyof typeof formData)[] = [
+    'status', 'unit_fakultas', 'lama_kampus',
+    'menggunakan_sistem', 'sistem_digunakan',
+    'freq_dosen', 'freq_mahasiswa', 'freq_staf', 'freq_akademik', 'freq_tridarma',
+    'modul_prioritas', 'pentingnya_portal', 'harapan_ui',
+    'tantangan', 'ide_penting', 'ideal_tim',
+  ];
+  const arrayFields: (keyof typeof formData)[] = [
+    'kendala', 'fitur_wajib', 'akses_pengguna', 'harapan',
+  ];
+  const totalFields = stringFields.length + arrayFields.length;
+  const filledCount =
+    stringFields.filter((k) => ((formData[k] as string) || '').trim() !== '').length +
+    arrayFields.filter((k) => ((formData[k] as string[]) || []).length > 0).length;
+  const progress = (filledCount / totalFields) * 100;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
