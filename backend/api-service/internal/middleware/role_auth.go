@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/myunila/api-service/external/redis"
 	"github.com/myunila/api-service/internal/response"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 // ActiveContext represents the user's active context from Redis cache
@@ -85,9 +87,15 @@ func getActiveContext(userID string) (*ActiveContext, error) {
 	// Laravel cache key format: {prefix}user_context:{user_id}
 	cacheKey := getCachePrefix() + "user_context:" + userID
 
-	// Get from Redis
+	// Get from Redis. redis.Nil bukan error sebenarnya — itu cuma sinyal
+	// "key tidak ada" (mis. user belum select role / Redis baru di-flush).
+	// Treat sebagai (nil, nil) supaya pesan downstream lebih jelas
+	// ("No active context selected" bukan "Unable to verify authorization").
 	data, err := redis.Get(ctx, cacheKey)
 	if err != nil {
+		if errors.Is(err, goredis.Nil) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
