@@ -1,6 +1,5 @@
 # Path definitions untuk modul MBKM Kampus Merdeka (Batch 14)
-# Schema `mbkm` di pdut — GET-only, 6 endpoint.
-# Note: full KKN lifecycle ada di si-kkn (service terpisah, Postgres), bukan di sini.
+# GET-only, 6 endpoint.
 
 list-daftar-kampus-merdeka:
   get:

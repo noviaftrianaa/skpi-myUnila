@@ -1,5 +1,5 @@
 # Path definitions untuk modul Siakadu (Batch 11)
-# Schema `siakadu` di pdut — GET-only, enriched dengan pdrd UUID (id_pd, id_reg_pd, id_sdm, id_sms)
+# GET-only, enriched dengan UUID bridging (id_pd, id_reg_pd, id_sdm, id_sms)
 # + denormalized names (nm_fakultas, nm_jurusan, nm_prodi, nm_smt, kode_mk, nm_mk).
 # Write tetap via myunila-service (sync dari SIAKADU WS).
 

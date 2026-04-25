@@ -5,8 +5,8 @@ info:
     Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
     **Server pilihan:**
-    - 🔴 **Live** — `https://my.unila.ac.id/gateway/api-service` → production (db `pdut`)
-    - 🟡 **Sandbox** — `http://192.168.120.45:9800/ws-service` → staging (db `pdut_staging`)
+    - 🔴 **Live** — `https://my.unila.ac.id/gateway/api-service` → production
+    - 🟡 **Sandbox** — `http://192.168.120.45:9800/ws-service` → staging (internal)
 
     Pilih server via dropdown di atas "Authorize" button. Semua path di bawah
     otomatis menambahkan base URL server yang dipilih + `/v1/...`.
@@ -27,9 +27,9 @@ info:
 
 servers:
   - url: https://my.unila.ac.id/gateway/api-service
-    description: 🔴 Live — Production (Kong VM1, database pdut production)
+    description: 🔴 Live — Production (akses publik via my.unila.ac.id)
   - url: http://192.168.120.45:9800/ws-service
-    description: 🟡 Sandbox — Staging (Kong VM5, database pdut_staging)
+    description: 🟡 Sandbox — Staging (akses internal Unila)
 
 tags:
   - name: Dashboard · KTW
@@ -80,14 +80,12 @@ tags:
     description: |
       Survei alumni (tracer study) — status kerja, waktu tunggu, income, kesesuaian
       bidang, survei atasan. **Full CRUD** untuk sync dari aplikasi tracer eksternal
-      ke pdut via POST/PUT/DELETE. Source: schema `tracer` (hasil_tracer_study,
-      hasil_tracer_atasan, umr_wilayah).
+      via POST/PUT/DELETE.
   - name: Siakadu
     description: |
-      Data SIAKADU dari schema `siakadu` di pdut (dipopulate oleh myunila-service
-      sync). **GET-only** — write tetap via myunila-service. Response include
-      UUID bridging (id_pd, id_reg_pd, id_sdm, id_sms) + denormalized names
-      (nm_fakultas, nm_jurusan, nm_prodi, dll).
+      Data SIAKADU (dipopulate oleh myunila-service sync). **GET-only** — write
+      tetap via myunila-service. Response include UUID bridging (id_pd, id_reg_pd,
+      id_sdm, id_sms) + denormalized names (nm_fakultas, nm_jurusan, nm_prodi, dll).
   - name: Kerjasama
     description: |
       LP2M / Bagian Kerjasama — **Full CRUD** untuk MOU, kerjasama prodi, dan
@@ -321,7 +319,7 @@ paths:
     $ref: './paths/tracer.yaml#/umr-wilayah-item'
 
   # ==========================================================================
-  # SIAKADU — schema siakadu di pdut (GET-only, enriched dgn pdrd UUID)
+  # SIAKADU — modul akademik (GET-only)
   # ==========================================================================
   /v1/siakadu/list_mahasiswa:
     $ref: './paths/siakadu.yaml#/list-siakadu-mahasiswa'

@@ -1,6 +1,5 @@
 # Path definitions untuk modul Tracer Study (Batch 12)
-# Schema `tracer` di pdut — CRUD hasil_tracer_study + hasil_tracer_atasan,
-# GET-only untuk umr_wilayah.
+# CRUD hasil_tracer_study + hasil_tracer_atasan, GET-only untuk umr_wilayah.
 
 # =============================================================================
 # hasil_tracer_study (full CRUD)
@@ -32,7 +31,7 @@ hasil-tracer-collection:
     tags: [Tracer Study]
     summary: Create hasil tracer study
     description: |
-      Sync hasil survey dari aplikasi tracer eksternal ke pdut.
+      Sync hasil survey dari aplikasi tracer eksternal.
       Kalau `id_hasil_tracer_study` kosong, server generate UUID baru.
       **Wajib:** id_reg_pd, id_thn_ajaran, wkt_pengisian (ISO8601), status_lulusan, id_creator.
     operationId: createHasilTracer

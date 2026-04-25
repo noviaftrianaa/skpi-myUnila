@@ -157,7 +157,7 @@ ktw-prodi-detail:
       - name: id_sms
         in: path
         required: true
-        description: UUID prodi (id_sms dari pdut).
+        description: UUID prodi (id_sms).
         schema: { type: string, format: uuid }
       - name: cohort
         in: query
@@ -328,7 +328,7 @@ ktw-presets:
     tags:
       - Dashboard · KTW
     summary: Preset tanggal cutoff dari kalender akademik
-    description: Akhir semester, awal tahun, wisuda tipikal — dari ref.semester pdut.
+    description: Akhir semester, awal tahun, wisuda tipikal — dari kalender akademik.
     operationId: getKtwPresets
     responses:
       '200':
