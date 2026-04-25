@@ -138,6 +138,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalize'])->middleware('permission:approve,sim-bak');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\Batch\BatchController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
         // -----------------------------------------
@@ -158,6 +159,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/mahasiswa-aktif', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'mahasiswaAktif']);
             Route::get('/lulusan', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'lulusan']);
             Route::get('/export', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'export']);
+            // KTW Exclusion CRUD
+            Route::get('/ktw-exclusions', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'getKtwExclusions']);
+            Route::post('/ktw-exclusions', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'addKtwExclusion']);
+            Route::put('/ktw-exclusions/{id}', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'toggleKtwExclusion']);
+            Route::delete('/ktw-exclusions/{id}', [\App\Http\Controllers\Api\Dashboard\MonitoringController::class, 'deleteKtwExclusion']);
         });
     });
 });

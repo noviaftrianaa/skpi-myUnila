@@ -300,6 +300,10 @@ export const pullBatchCandidates = async (idBatch: string): Promise<{ jumlah_kan
   return response.data.data;
 };
 
+export const deleteBatch = async (idBatch: string, alasan?: string): Promise<void> => {
+  await bakClient.delete(`/batch/${idBatch}`, { data: alasan ? { alasan } : {} });
+};
+
 export const uploadSkDekan = async (idBatch: string, formData: FormData): Promise<void> => {
   await bakClient.post(`/batch/${idBatch}/upload-sk-dekan`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -477,7 +481,7 @@ const simBakService = {
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
   getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
-  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK,
+  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring
