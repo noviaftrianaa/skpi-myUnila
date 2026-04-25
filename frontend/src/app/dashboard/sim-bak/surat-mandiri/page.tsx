@@ -61,10 +61,10 @@ export default function SuratMandiriPage() {
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Surat Mandiri">
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Permohonan Surat">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Surat Mandiri</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Permohonan Surat</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pilih jenis surat yang ingin diajukan</p>
         </div>
 
@@ -85,7 +85,7 @@ export default function SuratMandiriPage() {
             <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-300 mb-4">
               <FiFileText className="w-10 h-10" />
             </div>
-            <p className="text-base font-medium text-gray-700 dark:text-gray-300">Belum ada layanan surat mandiri</p>
+            <p className="text-base font-medium text-gray-700 dark:text-gray-300">Belum ada layanan permohonan surat</p>
             <p className="text-sm text-gray-500 mt-1">Hubungi admin untuk mengaktifkan layanan</p>
           </div>
         ) : (

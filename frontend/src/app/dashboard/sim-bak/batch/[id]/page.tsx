@@ -99,7 +99,7 @@ export default function BatchDetailPage() {
       toast.success("Batch berhasil dihapus");
       setTimeout(() => router.push("/dashboard/sim-bak/batch"), 800);
     } catch (e) {
-      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal menghapus batch";
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal menghapus evaluasi";
       toast.error(msg);
     } finally { setDeleting(false); }
   };
@@ -133,8 +133,8 @@ export default function BatchDetailPage() {
 
   if (!batch) {
     return (
-      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Batch Detail">
-        <div className="flex flex-col items-center justify-center py-20"><FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" /><p className="text-gray-500">Batch tidak ditemukan</p>
+      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Detail Evaluasi">
+        <div className="flex flex-col items-center justify-center py-20"><FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" /><p className="text-gray-500">Evaluasi tidak ditemukan</p>
           <Button className="mt-4" variant="flat" color="primary" onPress={() => router.push("/dashboard/sim-bak/batch")}>Kembali</Button>
         </div>
       </DashboardLayoutWithDynamicMenu>
@@ -210,7 +210,7 @@ export default function BatchDetailPage() {
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Batch — ${batch.kode_batch}`}>
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Evaluasi — ${batch.kode_batch}`}>
       <Toaster position="top-right" />
       <div className="space-y-6">
         {/* Header */}
@@ -474,7 +474,7 @@ export default function BatchDetailPage() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowFinalizeModal(false)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Finalkan Batch & Terbitkan SK Rektor</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Finalkan Evaluasi & Terbitkan SK Rektor</h2>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-700 dark:text-blue-300">Setelah difinalkan, batch tidak dapat diubah lagi. Upload file SK Rektor yang sudah ditandatangani.</p>
               </div>
@@ -548,7 +548,7 @@ export default function BatchDetailPage() {
         </div>
       )}
 
-      {/* Modal: Hapus Batch */}
+      {/* Modal: Hapus Evaluasi */}
       {showDeleteModal && (() => {
         const needsAlasan = batch.status === "verifikasi_fakultas";
         return (
@@ -560,7 +560,7 @@ export default function BatchDetailPage() {
                   <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
                     <FiTrash2 className="w-5 h-5 text-red-500" />
                   </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hapus Batch</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hapus Evaluasi</h2>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm space-y-1">
                   <p><span className="text-gray-500">Kode:</span> <span className="font-mono font-semibold">{batch.kode_batch}</span></p>
@@ -581,7 +581,7 @@ export default function BatchDetailPage() {
                       </label>
                       <textarea rows={3} value={deleteAlasan} onChange={e => setDeleteAlasan(e.target.value)}
                         className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                        placeholder="Jelaskan alasan menghapus batch (min 10 karakter)..." />
+                        placeholder="Jelaskan alasan menghapus evaluasi (min 10 karakter)..." />
                     </div>
                   </>
                 )}
@@ -597,7 +597,7 @@ export default function BatchDetailPage() {
                 <div className="w-px bg-gray-200 dark:bg-gray-700" />
                 <button onClick={handleDelete} disabled={deleting || (needsAlasan && deleteAlasan.trim().length < 10)}
                   className="flex-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  {deleting ? "Menghapus..." : "Hapus Batch"}
+                  {deleting ? "Menghapus..." : "Hapus Evaluasi"}
                 </button>
               </div>
             </div>

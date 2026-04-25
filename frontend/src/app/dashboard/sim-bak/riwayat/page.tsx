@@ -155,8 +155,8 @@ export default function RiwayatPengajuanPage() {
           <EmptyState
             variant="document"
             title="Belum ada pengajuan"
-            description="Ajukan surat atau permohonan dari menu Surat Mandiri / Permohonan Akademik"
-            actionLabel="Ajukan Surat Mandiri"
+            description="Ajukan surat atau permohonan dari menu Permohonan Surat / Permohonan Akademik"
+            actionLabel="Ajukan Permohonan Surat"
             onAction={() => router.push("/dashboard/sim-bak/surat-mandiri")}
           />
         ) : (

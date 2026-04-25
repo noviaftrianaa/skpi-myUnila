@@ -79,7 +79,7 @@ function MahasiswaDashboard() {
   }, [user]);
 
   const quickActions = [
-    { title: "Surat Mandiri", desc: "LOA, KTM, PKKMB, Herregistrasi", icon: <FiFileText className="w-7 h-7" />, href: "/dashboard/sim-bak/surat-mandiri", color: "from-blue-500 to-indigo-600" },
+    { title: "Permohonan Surat", desc: "LOA, KTM, PKKMB, Herregistrasi", icon: <FiFileText className="w-7 h-7" />, href: "/dashboard/sim-bak/surat-mandiri", color: "from-blue-500 to-indigo-600" },
     { title: "Permohonan Akademik", desc: "Cuti, Undur Diri, Alih Program", icon: <FiClipboard className="w-7 h-7" />, href: "/dashboard/sim-bak/permohonan", color: "from-violet-500 to-purple-600" },
   ];
 
@@ -201,7 +201,7 @@ function MahasiswaDashboard() {
                   <FiFileText className="w-7 h-7 text-gray-300 dark:text-gray-500" />
                 </div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Belum ada pengajuan</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Mulai dengan mengajukan surat mandiri atau permohonan akademik</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Mulai dengan permohonan surat atau permohonan akademik</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -299,9 +299,9 @@ function AdminDashboard() {
   ];
 
   const quickActions = [
-    { title: "Surat Mandiri", desc: "LOA, KTM, PKKMB, Herregistrasi", icon: <FiFileText className="w-8 h-8" />, href: "/dashboard/sim-bak/surat-mandiri", color: "from-blue-500 to-indigo-600" },
+    { title: "Permohonan Surat", desc: "LOA, KTM, PKKMB, Herregistrasi", icon: <FiFileText className="w-8 h-8" />, href: "/dashboard/sim-bak/surat-mandiri", color: "from-blue-500 to-indigo-600" },
     { title: "Permohonan Akademik", desc: "Cuti, Undur Diri, Alih Program", icon: <FiClipboard className="w-8 h-8" />, href: "/dashboard/sim-bak/permohonan", color: "from-violet-500 to-purple-600" },
-    { title: "Batch Administrasi", desc: "HMM, Putus Studi", icon: <FiUsers className="w-8 h-8" />, href: "/dashboard/sim-bak/batch", color: "from-amber-500 to-orange-600" },
+    { title: "Evaluasi Studi", desc: "Habis Masa Mukim, Putus Studi", icon: <FiUsers className="w-8 h-8" />, href: "/dashboard/sim-bak/batch", color: "from-amber-500 to-orange-600" },
   ];
 
   const slaValue = slaPercent || (stats as Record<string, number>).sla_compliance || 0;
@@ -350,7 +350,7 @@ function AdminDashboard() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">Target: Surat Mandiri 3 hari, Permohonan 14 hari</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">Target: Permohonan Surat 3 hari, Permohonan Akademik 14 hari</p>
             </CardBody>
           </Card>
 
@@ -379,7 +379,7 @@ function AdminDashboard() {
                     })}
                   </div>
                   <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500" /> Surat Mandiri</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500" /> Permohonan Surat</span>
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-violet-500" /> Permohonan</span>
                     <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /> Batch</span>
                   </div>

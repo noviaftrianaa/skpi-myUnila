@@ -22,7 +22,7 @@ export const simBakMenuConfig: MenuItem[] = [
     roles: allRoles,
   },
   {
-    title: "Surat Mandiri",
+    title: "Permohonan Surat",
     icon: <FiFileText className="w-5 h-5" />,
     href: "/dashboard/sim-bak/surat-mandiri",
     roles: mahasiswaRoles,
@@ -58,7 +58,7 @@ export const simBakMenuConfig: MenuItem[] = [
     roles: approverRoles,
   },
   {
-    title: "Batch Administrasi",
+    title: "Evaluasi Studi",
     icon: <FiUsers className="w-5 h-5" />,
     href: "/dashboard/sim-bak/batch",
     roles: adminRoles,

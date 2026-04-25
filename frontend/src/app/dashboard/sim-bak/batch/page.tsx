@@ -54,7 +54,7 @@ export default function BatchPage() {
       setDeleteAlasan("");
       fetchData();
     } catch (e) {
-      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal menghapus batch";
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal menghapus evaluasi";
       toast.error(msg);
     } finally { setDeleting(false); }
   };
@@ -74,7 +74,7 @@ export default function BatchPage() {
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   const statCards = [
-    { label: "Total Batch", value: total, icon: <FiLayers className="w-6 h-6" />, gradient: "from-blue-500 to-blue-600" },
+    { label: "Total Evaluasi", value: total, icon: <FiLayers className="w-6 h-6" />, gradient: "from-blue-500 to-blue-600" },
     { label: "Draft", value: data.filter(b => b.status === "draft").length, icon: <FiFileText className="w-6 h-6" />, gradient: "from-gray-400 to-gray-500" },
     { label: "Verifikasi", value: data.filter(b => b.status === "verifikasi_fakultas").length, icon: <FiClock className="w-6 h-6" />, gradient: "from-amber-500 to-orange-500" },
     { label: "Terbit", value: data.filter(b => b.status === "terbit").length, icon: <FiCheckCircle className="w-6 h-6" />, gradient: "from-emerald-500 to-green-600" },
@@ -108,15 +108,15 @@ export default function BatchPage() {
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Batch Administrasi">
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Evaluasi Studi">
       <Toaster position="top-right" />
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Batch Administrasi</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Kelola batch penetapan HMM dan Putus Studi</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Evaluasi Studi</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Kelola evaluasi penetapan Habis Masa Mukim dan Putus Studi</p>
           </div>
-          <Button color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={() => router.push("/dashboard/sim-bak/batch/create")}>Buat Batch Baru</Button>
+          <Button color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={() => router.push("/dashboard/sim-bak/batch/create")}>Buat Evaluasi Baru</Button>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -138,11 +138,11 @@ export default function BatchPage() {
         {data.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
             <FiAlertCircle className="w-12 h-12 mb-3" />
-            <p className="text-lg font-medium">Belum ada batch</p>
-            <p className="text-sm">Buat batch baru untuk memulai</p>
+            <p className="text-lg font-medium">Belum ada evaluasi</p>
+            <p className="text-sm">Buat evaluasi baru untuk memulai</p>
           </div>
         ) : (
-          <DataTable data={data} columns={columns} searchable searchKeys={["kode_batch", "nm_batch"]} searchPlaceholder="Cari batch..."
+          <DataTable data={data} columns={columns} searchable searchKeys={["kode_batch", "nm_batch"]} searchPlaceholder="Cari evaluasi..."
             filterSlot={
               <div className="flex gap-2">
                 <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -165,7 +165,7 @@ export default function BatchPage() {
         )}
       </div>
 
-      {/* Modal Hapus Batch */}
+      {/* Modal Hapus Evaluasi */}
       {deleteModal && (() => {
         const needsAlasan = deleteModal.status === "verifikasi_fakultas";
         return (
@@ -177,7 +177,7 @@ export default function BatchPage() {
                   <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
                     <FiTrash2 className="w-5 h-5 text-red-500" />
                   </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hapus Batch</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hapus Evaluasi</h2>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm space-y-1">
                   <p><span className="text-gray-500">Kode:</span> <span className="font-mono font-semibold">{deleteModal.kode_batch}</span></p>
@@ -199,7 +199,7 @@ export default function BatchPage() {
                     </label>
                     <textarea rows={3} value={deleteAlasan} onChange={e => setDeleteAlasan(e.target.value)}
                       className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                      placeholder="Jelaskan alasan menghapus batch (min 10 karakter)..." />
+                      placeholder="Jelaskan alasan menghapus evaluasi (min 10 karakter)..." />
                   </div>
                 )}
                 <p className="text-xs text-red-600 dark:text-red-400">
@@ -214,7 +214,7 @@ export default function BatchPage() {
                 <div className="w-px bg-gray-200 dark:bg-gray-700" />
                 <button onClick={handleDelete} disabled={deleting || (needsAlasan && deleteAlasan.trim().length < 10)}
                   className="flex-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  {deleting ? "Menghapus..." : "Hapus Batch"}
+                  {deleting ? "Menghapus..." : "Hapus Evaluasi"}
                 </button>
               </div>
             </div>

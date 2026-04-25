@@ -11,7 +11,7 @@
       "roles": [1, 107, 39, 106, 43, 111]
     },
     {
-      "nm_menu": "Surat Mandiri",
+      "nm_menu": "Permohonan Surat",
       "nm_file": "/dashboard/sim-bak/surat-mandiri",
       "icon": "heroicons:document-text",
       "urutan": 2,
@@ -59,20 +59,20 @@
       ]
     },
     {
-      "nm_menu": "Batch Administrasi",
-      "nm_file": "#batch",
-      "icon": "heroicons:users",
+      "nm_menu": "Evaluasi Studi",
+      "nm_file": "#evaluasi-studi",
+      "icon": "heroicons:academic-cap",
       "urutan": 6,
       "roles": [1, 107, 111, 106],
       "children": [
         {
-          "nm_menu": "Daftar Batch",
+          "nm_menu": "Daftar Evaluasi",
           "nm_file": "/dashboard/sim-bak/batch",
           "urutan": 1,
           "roles": [1, 107, 111]
         },
         {
-          "nm_menu": "Buat Batch Baru",
+          "nm_menu": "Buat Evaluasi Baru",
           "nm_file": "/dashboard/sim-bak/batch/create",
           "urutan": 2,
           "roles": [1, 107, 111]

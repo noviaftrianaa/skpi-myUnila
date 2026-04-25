@@ -92,7 +92,7 @@ export default function CreateBatchPage() {
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Buat Batch Baru">
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Buat Evaluasi Baru">
       <Toaster position="top-right" />
       <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function CreateBatchPage() {
             <FiArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Buat Batch Baru</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Buat Evaluasi Baru</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Tarik kandidat dari data akademik (PDUT) berdasarkan kriteria</p>
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function CreateBatchPage() {
             startContent={!saving && <FiCheck className="w-4 h-4" />}
             isDisabled={!form.id_jenis_layanan || !form.nm_batch || !form.id_smt}
             onPress={handleSubmit}>
-            Buat Batch & Tarik Data{previewData ? ` (${previewData.total} kandidat)` : ''}
+            Buat Evaluasi & Tarik Data{previewData ? ` (${previewData.total} kandidat)` : ''}
           </Button>
         </div>
       </div>
