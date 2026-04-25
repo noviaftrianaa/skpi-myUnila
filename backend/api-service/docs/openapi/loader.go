@@ -38,7 +38,7 @@ func LoadSpec() (*Spec, error) {
 	}
 
 	s := &Spec{root: &root}
-	if err := resolveRefsInNode(s.mappingNode(), ""); err != nil {
+	if err := resolveRefsInNode(s.mappingNode(), "", s.mappingNode()); err != nil {
 		return nil, fmt.Errorf("resolve refs: %w", err)
 	}
 	return s, nil
@@ -76,7 +76,11 @@ func (s *Spec) GetJSON() ([]byte, error) {
 
 // resolveRefsInNode walks recursively. Saat nemu mapping `$ref: ...`, replace
 // mapping tersebut dengan content file yang di-refer.
-func resolveRefsInNode(node *yaml.Node, basePath string) error {
+//
+// currentFileRoot dipakai untuk resolve LOCAL ref (`#/...` tanpa filepath) —
+// itu navigate dalam current file. Untuk root spec openapi.yaml currentFileRoot
+// = mapping root spec; saat descend ke external file, jadi root file itu.
+func resolveRefsInNode(node *yaml.Node, basePath string, currentFileRoot *yaml.Node) error {
 	if node == nil {
 		return nil
 	}
@@ -89,7 +93,7 @@ func resolveRefsInNode(node *yaml.Node, basePath string) error {
 			keyNode := node.Content[i]
 			valNode := node.Content[i+1]
 			if keyNode.Value == "$ref" && valNode.Kind == yaml.ScalarNode {
-				resolved, err := loadRef(valNode.Value, basePath)
+				resolved, err := loadRef(valNode.Value, basePath, currentFileRoot)
 				if err != nil {
 					return fmt.Errorf("$ref %s: %w", valNode.Value, err)
 				}
@@ -100,14 +104,14 @@ func resolveRefsInNode(node *yaml.Node, basePath string) error {
 		}
 		// Recurse into each value.
 		for i := 1; i < len(node.Content); i += 2 {
-			if err := resolveRefsInNode(node.Content[i], basePath); err != nil {
+			if err := resolveRefsInNode(node.Content[i], basePath, currentFileRoot); err != nil {
 				return err
 			}
 		}
 
 	case yaml.SequenceNode:
 		for _, child := range node.Content {
-			if err := resolveRefsInNode(child, basePath); err != nil {
+			if err := resolveRefsInNode(child, basePath, currentFileRoot); err != nil {
 				return err
 			}
 		}
@@ -115,9 +119,35 @@ func resolveRefsInNode(node *yaml.Node, basePath string) error {
 	return nil
 }
 
+// nullNode returns a fresh yaml null scalar (untuk lenient missing-ref).
+func nullNode() *yaml.Node {
+	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: "null"}
+}
+
+// cloneNode deep-clones yaml.Node tree (Content slice diisolasi). Penting
+// supaya resolve refs ke target yang sama (mis. `#/UserInfo` muncul di banyak
+// tempat dalam 1 file) tidak share + saling corrupt saat di-mutate in-place.
+func cloneNode(n *yaml.Node) *yaml.Node {
+	if n == nil {
+		return nil
+	}
+	c := *n
+	if len(n.Content) > 0 {
+		c.Content = make([]*yaml.Node, len(n.Content))
+		for i, child := range n.Content {
+			c.Content[i] = cloneNode(child)
+		}
+	}
+	return &c
+}
+
 // loadRef reads the target file + navigates JSON-pointer path + returns its
-// yaml.Node. Nested $ref di dalam file target juga di-resolve.
-func loadRef(ref, basePath string) (*yaml.Node, error) {
+// yaml.Node (cloned). Nested $ref di dalam clone juga di-resolve.
+//
+// Behaviour:
+//   - filePath == "" + jsonPath != ""  → local ref, navigate dalam currentFileRoot
+//   - filePath != ""                   → load file external, navigate dalam file root
+func loadRef(ref, basePath string, currentFileRoot *yaml.Node) (*yaml.Node, error) {
 	parts := strings.SplitN(ref, "#", 2)
 	filePath := strings.TrimPrefix(parts[0], "./")
 	jsonPath := ""
@@ -125,32 +155,45 @@ func loadRef(ref, basePath string) (*yaml.Node, error) {
 		jsonPath = parts[1]
 	}
 
-	if filePath == "" {
-		return nil, fmt.Errorf("local $ref tidak di-support")
-	}
-
-	if basePath != "" {
-		filePath = filepath.ToSlash(filepath.Join(basePath, filePath))
-	}
-
-	content, err := specFiles.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", filePath, err)
-	}
-
-	var fileRoot yaml.Node
-	if err := yaml.Unmarshal(content, &fileRoot); err != nil {
-		return nil, fmt.Errorf("parse %s: %w", filePath, err)
-	}
-	// DocumentNode → MappingNode
 	var entry *yaml.Node
-	if fileRoot.Kind == yaml.DocumentNode && len(fileRoot.Content) > 0 {
-		entry = fileRoot.Content[0]
+	var newCurrentRoot *yaml.Node
+	newBase := basePath
+
+	if filePath == "" {
+		// Local ref (#/...)
+		if currentFileRoot == nil {
+			return nil, fmt.Errorf("local $ref %s tanpa current file context", ref)
+		}
+		entry = currentFileRoot
+		newCurrentRoot = currentFileRoot
 	} else {
-		entry = &fileRoot
+		// External file ref
+		if basePath != "" {
+			filePath = filepath.ToSlash(filepath.Join(basePath, filePath))
+		}
+		content, err := specFiles.ReadFile(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", filePath, err)
+		}
+		var fileRoot yaml.Node
+		if err := yaml.Unmarshal(content, &fileRoot); err != nil {
+			return nil, fmt.Errorf("parse %s: %w", filePath, err)
+		}
+		if fileRoot.Kind == yaml.DocumentNode && len(fileRoot.Content) > 0 {
+			entry = fileRoot.Content[0]
+		} else {
+			entry = &fileRoot
+		}
+		newCurrentRoot = entry
+		newBase = filepath.ToSlash(filepath.Dir(filePath))
+		if newBase == "." {
+			newBase = ""
+		}
 	}
 
-	// Navigate JSON pointer
+	// Navigate JSON pointer. Lenient: kalau segment tidak ketemu (mis. _index
+	// punya entry stale yang refer schema yang sudah di-rename/hapus), return
+	// null node daripada error — match behavior loader sebelum-nya.
 	if jsonPath != "" {
 		segments := strings.Split(strings.TrimPrefix(jsonPath, "/"), "/")
 		for _, seg := range segments {
@@ -158,7 +201,7 @@ func loadRef(ref, basePath string) (*yaml.Node, error) {
 				continue
 			}
 			if entry.Kind != yaml.MappingNode {
-				return nil, fmt.Errorf("path %s: current node bukan mapping", jsonPath)
+				return nullNode(), nil
 			}
 			var next *yaml.Node
 			for i := 0; i < len(entry.Content); i += 2 {
@@ -168,22 +211,22 @@ func loadRef(ref, basePath string) (*yaml.Node, error) {
 				}
 			}
 			if next == nil {
-				return nil, fmt.Errorf("path %s: segment %s tidak ketemu", jsonPath, seg)
+				return nullNode(), nil
 			}
 			entry = next
 		}
 	}
 
-	// Resolve nested $refs dalam entry (base path = folder file yang di-load).
-	newBase := filepath.ToSlash(filepath.Dir(filePath))
-	if newBase == "." {
-		newBase = ""
-	}
-	if err := resolveRefsInNode(entry, newBase); err != nil {
+	// Clone supaya in-place mutation di hasil tidak corrupt original (penting
+	// untuk local ref ke target yang sama dari banyak tempat).
+	cloned := cloneNode(entry)
+
+	// Resolve nested $refs dalam clone.
+	if err := resolveRefsInNode(cloned, newBase, newCurrentRoot); err != nil {
 		return nil, err
 	}
 
-	return entry, nil
+	return cloned, nil
 }
 
 // ============================================================================
