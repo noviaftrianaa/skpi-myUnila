@@ -106,7 +106,7 @@ func collectRoutes(app *fiber.App) []Route {
 		// Skip group-root middleware artifacts: path /v1/<group> tanpa segment
 		// endpoint di belakangnya. Minimal harus ada 3 segment setelah split "/"
 		// (empty, "v1", "<group>", "<endpoint>" → len 4).
-		if isGroupRootPath(r.Path) {
+		if IsGroupRootPath(r.Path) {
 			continue
 		}
 
@@ -126,10 +126,10 @@ func collectRoutes(app *fiber.App) []Route {
 	return result
 }
 
-// isGroupRootPath true untuk path yang hanya terdiri dari prefix + 1 group
+// IsGroupRootPath true untuk path yang hanya terdiri dari prefix + 1 group
 // (contoh: /v1/siakadu, /v1/mbkm). fiber auto-register method route ke path
 // ini saat Group().Use() dipakai untuk middleware.
-func isGroupRootPath(path string) bool {
+func IsGroupRootPath(path string) bool {
 	// Split /v1/siakadu → ["", "v1", "siakadu"] len=3
 	parts := strings.Split(path, "/")
 	return len(parts) == 3 && parts[0] == "" && parts[1] == "v1"

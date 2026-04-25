@@ -292,6 +292,14 @@ func main() {
 			if strings.HasPrefix(r.Path, "/v1/pdrd") {
 				continue
 			}
+			// Skip group-root middleware artifacts (mis. /v1/referensi tanpa
+			// segment endpoint berikutnya — itu auto-register oleh Fiber pas
+			// .Group().Use() dipakai untuk middleware). Filter sama dengan
+			// auto-sync supaya count konsisten antara /system/routes vs
+			// ws_endpoint table.
+			if startup.IsGroupRootPath(r.Path) {
+				continue
+			}
 			// Only include standard HTTP methods (nm_method column is varchar(6))
 			validMethods := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}
 			if !validMethods[r.Method] {
