@@ -68,12 +68,6 @@ export default function StrukturTim() {
         foto: "/assets/images/tim/kholik.jpg",
         skills: ["Next.js", "Node.js", "API"],
       },
-      {
-        nama: "Atika Istiqomah, S.Kom., M.T.",
-        role: "Fullstack Developer",
-        foto: "/assets/images/tim/atika.jpg",
-        skills: ["React", "Laravel", "PostgreSQL"],
-      },
     ],
     qa: [
       {
@@ -255,12 +249,12 @@ export default function StrukturTim() {
           {/* Tim Pengembang - Layout 1 Baris Sejajar dengan Garis */}
           <motion.div variants={itemVariants} className="relative">
             <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Tim Pengembang</h3>
-            <p className="text-center text-gray-600 mb-12">1 System Analyst, 3 Fullstack Developers & 2 Quality Assurance</p>
+            <p className="text-center text-gray-600 mb-12">1 System Analyst, 2 Fullstack Developers & 2 Quality Assurance</p>
 
             {/* Container */}
-            <div className="relative max-w-7xl mx-auto">
-              {/* Grid 6 Kolom - 1 Baris */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="relative max-w-5xl mx-auto">
+              {/* Grid 5 Kolom - 1 Baris (1 SA + 2 Fullstack + 2 QA) */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 justify-items-center">
                 {/* System Analyst */}
                 {timPengembang.systemAnalyst.map((analyst, index) => (
                   <motion.div
