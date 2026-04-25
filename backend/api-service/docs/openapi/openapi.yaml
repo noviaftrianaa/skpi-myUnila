@@ -5,7 +5,7 @@ info:
     Layanan Web Service API untuk integrasi data antar sistem di lingkungan Universitas Lampung.
 
     **Server pilihan:**
-    - 🔴 **Live** — `https://my.unila.ac.id/api-service` → production (db `pdut`)
+    - 🔴 **Live** — `https://my.unila.ac.id/gateway/api-service` → production (db `pdut`)
     - 🟡 **Sandbox** — `http://192.168.120.45:9800/ws-service` → staging (db `pdut_staging`)
 
     Pilih server via dropdown di atas "Authorize" button. Semua path di bawah
@@ -26,7 +26,7 @@ info:
     email: dev@unila.ac.id
 
 servers:
-  - url: https://my.unila.ac.id/api-service
+  - url: https://my.unila.ac.id/gateway/api-service
     description: 🔴 Live — Production (Kong VM1, database pdut production)
   - url: http://192.168.120.45:9800/ws-service
     description: 🟡 Sandbox — Staging (Kong VM5, database pdut_staging)
