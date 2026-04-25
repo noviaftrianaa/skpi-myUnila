@@ -377,6 +377,11 @@ export default function PjAplikasiTable() {
       render: (item) => (
         <div>
           <div className="font-medium text-gray-900 dark:text-white">{item.nm_pj}</div>
+          {item.username && (
+            <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
+              @{item.username}
+            </div>
+          )}
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.jabatan_pj}</div>
         </div>
       ),
@@ -586,6 +591,11 @@ export default function PjAplikasiTable() {
             </SelectItem>
           ))}
         </Select>
+        <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed">
+          ⓘ Jabatan ini hanya label dokumen — TIDAK otomatis memberi peran/role ke pengguna.
+          Untuk memberi peran (mis. Developer supaya bisa login ke WS API),
+          tambahkan via menu <strong>Manajemen Peran</strong> atau Role Pengguna.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
