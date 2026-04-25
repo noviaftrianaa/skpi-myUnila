@@ -1079,25 +1079,6 @@ export default function WsAuthorizationManager() {
             </Accordion>
           )}
 
-          {/* Floating Save Button */}
-          {hasChanges && (
-            <motion.div
-              className="fixed bottom-6 right-6 z-50"
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-            >
-              <Button
-                color="primary"
-                size="lg"
-                onPress={handleSave}
-                isLoading={isSaving}
-                className="shadow-2xl font-semibold px-6"
-                startContent={<FiSave className="w-5 h-5" />}
-              >
-                Simpan Perubahan
-              </Button>
-            </motion.div>
-          )}
         </>
       )}
 
