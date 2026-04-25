@@ -165,57 +165,6 @@ export interface JwtAccessLogListResult {
   total_pages: number;
 }
 
-// Types for Role Access Logs
-// Note: Role-based access logs do NOT have aplikasi info (peran table doesn't have id_aplikasi)
-export interface RoleAccessLog {
-  id_log_akses: string;
-  id_role_pengguna: string;
-  id_log_login: string | null;
-  menu_akses: string;
-  method: string;
-  request_list: string | null;
-  waktu_akses: string;
-  a_berhasil: boolean;
-  ket: string | null;
-  id_pengguna: string;
-  username: string;
-  nm_pengguna: string;
-  email: string | null;
-  id_peran: string;
-  nm_peran: string;
-  ip_address: string | null;
-  browser: string | null;
-  os: string | null;
-}
-
-export interface RoleAccessLogDetail extends RoleAccessLog {
-  jenis_kelamin: string | null;
-  no_hp: string | null;
-  jabatan: string | null;
-  waktu_login: string | null;
-}
-
-export interface RoleAccessLogListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  date_from?: string;
-  date_to?: string;
-  id_role_pengguna?: string;
-  a_berhasil?: 'true' | 'false';
-  method?: string;
-  sort_by?: 'waktu_akses' | 'menu_akses' | 'method' | 'username' | 'nm_pengguna';
-  sort_order?: 'asc' | 'desc';
-}
-
-export interface RoleAccessLogListResult {
-  data: RoleAccessLog[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
-
 // Logger Statistics
 export interface LoggerStats {
   login: {
@@ -364,30 +313,6 @@ export const loggerService = {
     return response.data.data;
   },
 
-  // ==================== Role Access Logs ====================
-
-  /**
-   * Get paginated list of role access logs with optional search and filters
-   * Protected endpoint - requires JWT authentication
-   */
-  async getRoleAccessLogs(params?: RoleAccessLogListParams): Promise<RoleAccessLogListResult> {
-    const response = await authClient.get<ApiResponse<RoleAccessLogListResult>>(
-      '/manakses/logger/role-access',
-      { params }
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Get role access log detail by ID
-   * Protected endpoint - requires JWT authentication
-   */
-  async getRoleAccessLogDetail(id: string): Promise<RoleAccessLogDetail> {
-    const response = await authClient.get<ApiResponse<RoleAccessLogDetail>>(
-      `/manakses/logger/role-access/${id}`
-    );
-    return response.data.data;
-  },
 };
 
 export default loggerService;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import RoleAccessLogsTable from "@/shared/components/manakses/RoleAccessLogsTable";
+import JwtAccessLogsTable from "@/shared/components/manakses/JwtAccessLogsTable";
 import {
   Card,
   CardBody,
@@ -56,10 +56,10 @@ export default function LogAksesPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Log Akses (Role-Based)
+              Log Akses
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Riwayat akses berdasarkan role pengguna
+              Riwayat akses endpoint sistem (berbasis JWT token)
             </p>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function LogAksesPage() {
         </div>
 
         {/* Data Table */}
-        <RoleAccessLogsTable />
+        <JwtAccessLogsTable />
       </div>
     </DashboardLayoutWithDynamicMenu>
   );
