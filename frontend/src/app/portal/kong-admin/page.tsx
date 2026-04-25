@@ -89,15 +89,25 @@ const getKongAdminUrl = () => {
   return "http://localhost:9801";
 };
 
-// Mapping service to documentation URL (via Kong gateway)
-// Route pattern: /{serviceName}/docs (strip_path=true di Kong)
+// Mapping service to documentation URL (via Kong gateway).
+// Pattern produksi vs staging beda:
+//   - Produksi: https://my.unila.ac.id/gateway/{service}/docs
+//     (Kong route: paths=["/gateway/{service}/docs"], strip_path=true)
+//   - Staging:  http://{host}:9800/{service}/docs
+//     (Kong route: paths=["/{service}/docs"], strip_path=true)
 const getServiceDocsUrl = (serviceName: string): string => {
   const baseUrl = getKongBaseUrl();
+  if (typeof window !== "undefined" && window.location.hostname === "my.unila.ac.id") {
+    return `${baseUrl}/gateway/${serviceName}/docs`;
+  }
   return `${baseUrl}/${serviceName}/docs`;
 };
 
 
-// Service display names for better UX
+// Service display names for better UX.
+// Catatan: nama service di Kong beda antara prod ('api-service') vs staging ('ws-service').
+// Keduanya merujuk backend yang sama, jadi di-include keduanya supaya UI ngebaca dari Kong
+// di env mana pun nampak.
 const serviceDisplayNames: Record<string, string> = {
   "auth-service": "Auth Service",
   "public-service": "Public Service",
@@ -105,6 +115,7 @@ const serviceDisplayNames: Record<string, string> = {
   "feeder-service": "Feeder Service",
   "myunila-service": "myUnila Integrator",
   "ws-service": "myUnila Web Service (API)",
+  "api-service": "myUnila Web Service (API)",
   "dashboard-service": "Dashboard Service",
 };
 
@@ -115,7 +126,8 @@ const mainServices = [
   "sister-service",
   "feeder-service",
   "myunila-service",
-  "ws-service",
+  "ws-service",      // staging name
+  "api-service",     // production name
   "dashboard-service",
 ];
 
