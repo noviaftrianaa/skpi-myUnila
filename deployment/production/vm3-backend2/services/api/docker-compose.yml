@@ -46,6 +46,15 @@ services:
       # Auth Cache Prefix (for reading user context)
       AUTH_CACHE_PREFIX: "${AUTH_CACHE_PREFIX:-auth_}"
 
+      # WS Authorization (endpoint-level RBAC + access logging ke log_akses_jwt)
+      # ENABLED=true → middleware aktif (block endpoint kalau user gak punya grant)
+      # APP_ID = id_aplikasi v2 di man_akses.aplikasi (D1A39991-...)
+      # DEFAULT_ROLE_ID=107 (Developer) → skip Redis user_context, trust JWT
+      #   karena login flow sudah validasi user wajib punya peran 107
+      WS_AUTH_ENABLED: "${WS_AUTH_ENABLED:-false}"
+      WS_AUTH_APP_ID: "${WS_AUTH_APP_ID:-}"
+      WS_AUTH_DEFAULT_ROLE_ID: "${WS_AUTH_DEFAULT_ROLE_ID:-107}"
+
       # Go runtime (tune-up 2026-04-20: sebelumnya NO memory limit — fix critical)
       GOMAXPROCS: 2
       GOGC: 100
