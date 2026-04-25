@@ -199,13 +199,17 @@ func main() {
 	protectedMiddlewares = append(protectedMiddlewares, middleware.KongAuth())
 
 	if wsAuthEnabled && wsAuthAppID != "" {
+		// Order matters: WsAuthLog HARUS sebelum WsAuthorization. Kalau dibalik,
+		// WsAuthorization yang return 403 akan stop chain → WsAuthLog gak ke-eksekusi
+		// → akses gagal tidak ke-log. WsAuthLog pakai pattern c.Next() lalu inspect
+		// response status, jadi tetap log baik 200 maupun 403.
+		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthLog(db, wsAuthAppID))
 		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthorization(middleware.WsAuthConfig{
 			DB:            db,
 			AppID:         wsAuthAppID,
 			CacheTTL:      5 * time.Minute,
 			DefaultRoleID: wsAuthDefaultRole,
 		}))
-		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthLog(db, wsAuthAppID))
 		log.Printf("✅ WS Authorization ENABLED (app_id: %s, default_role: %d)", wsAuthAppID[:8]+"...", wsAuthDefaultRole)
 	} else {
 		log.Println("⚠️  WS Authorization DISABLED (set WS_AUTH_ENABLED=true and WS_AUTH_APP_ID to enable)")
