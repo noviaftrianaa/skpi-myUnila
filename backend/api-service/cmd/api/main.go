@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -179,8 +180,19 @@ func main() {
 	// WS Authorization config
 	// WS_AUTH_APP_ID: aplikasi ID di man_akses untuk endpoint authorization
 	// WS_AUTH_ENABLED: enable/disable ws_authorization enforcement (default: false for backward compat)
+	// WS_AUTH_DEFAULT_ROLE_ID: kalau set (mis. "107"), middleware skip Redis
+	//   user_context lookup & langsung pakai role ini sebagai authorized role.
+	//   Cocok untuk ws-api server-to-server flow yang tidak punya UI buat
+	//   select-role. Default: 107 (Developer) — match dgn login flow di
+	//   apps/auth/service.go yang sudah validasi user wajib punya peran 107.
 	wsAuthEnabled := os.Getenv("WS_AUTH_ENABLED") == "true"
 	wsAuthAppID := os.Getenv("WS_AUTH_APP_ID")
+	wsAuthDefaultRole := 107
+	if v := os.Getenv("WS_AUTH_DEFAULT_ROLE_ID"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			wsAuthDefaultRole = n
+		}
+	}
 
 	// Build middleware chain for protected routes: KongAuth → WsAuth → Handler
 	var protectedMiddlewares []fiber.Handler
@@ -188,12 +200,13 @@ func main() {
 
 	if wsAuthEnabled && wsAuthAppID != "" {
 		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthorization(middleware.WsAuthConfig{
-			DB:       db,
-			AppID:    wsAuthAppID,
-			CacheTTL: 5 * time.Minute,
+			DB:            db,
+			AppID:         wsAuthAppID,
+			CacheTTL:      5 * time.Minute,
+			DefaultRoleID: wsAuthDefaultRole,
 		}))
 		protectedMiddlewares = append(protectedMiddlewares, middleware.WsAuthLog(db, wsAuthAppID))
-		log.Printf("✅ WS Authorization ENABLED (app_id: %s)", wsAuthAppID[:8]+"...")
+		log.Printf("✅ WS Authorization ENABLED (app_id: %s, default_role: %d)", wsAuthAppID[:8]+"...", wsAuthDefaultRole)
 	} else {
 		log.Println("⚠️  WS Authorization DISABLED (set WS_AUTH_ENABLED=true and WS_AUTH_APP_ID to enable)")
 	}

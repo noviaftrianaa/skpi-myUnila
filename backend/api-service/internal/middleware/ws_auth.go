@@ -15,19 +15,24 @@ import (
 
 // WsAuthConfig holds configuration for WS Authorization middleware
 type WsAuthConfig struct {
-	DB       *sqlx.DB
-	AppID    string        // ID aplikasi di man_akses.aplikasi
-	CacheTTL time.Duration // Cache duration for authorization checks
+	DB            *sqlx.DB
+	AppID         string        // ID aplikasi di man_akses.aplikasi
+	CacheTTL      time.Duration // Cache duration for authorization checks
+	DefaultRoleID int           // Kalau > 0: skip Redis user_context, langsung pakai role ini
+	//                           sebagai role check (fit ws-api server-to-server flow,
+	//                           dimana tidak ada UI buat select-role).
 }
 
-// WsAuthorization middleware checks if user's active role has permission
-// to access the requested endpoint based on man_akses.ws_authorization table.
+// WsAuthorization middleware checks if user's role has permission to access
+// the requested endpoint based on man_akses.ws_authorization table.
 //
 // Flow:
 // 1. Get user_id from c.Locals (set by KongAuth/JWTAuth)
-// 2. Get active context from Redis (role_pengguna cache)
-// 3. Check ws_authorization: does this role have access to this method+path?
-// 4. Cache the result in Redis for performance
+// 2. Tentukan role:
+//    a. Kalau cfg.DefaultRoleID > 0 (ws-api flow) → pakai itu langsung.
+//    b. Else → baca active context (role_pengguna) dari Redis (frontend flow).
+// 3. Check ws_authorization: role ini boleh akses method+path?
+// 4. Cache result di Redis.
 //
 // This middleware should be placed AFTER KongAuth/JWTAuth middleware.
 func WsAuthorization(cfg WsAuthConfig) fiber.Handler {
@@ -49,21 +54,33 @@ func WsAuthorization(cfg WsAuthConfig) fiber.Handler {
 		// Normalize path: remove trailing slash
 		path = strings.TrimRight(path, "/")
 
-		// Get active context (role) from Redis
+		if cfg.DefaultRoleID > 0 {
+			// ws-api server-to-server flow:
+			// - Login (apps/auth/service.go) sudah validasi user wajib punya
+			//   peran cfg.DefaultRoleID (107 = Developer).
+			// - JWT yang sampai ke sini = user pasti punya peran tsb.
+			// - Tidak ada UI select-role di ws-api flow.
+			// Jadi: trust JWT, lewati Redis user_context + ws_authorization
+			//   per-endpoint. Login + JWT-validation = sufficient guard.
+			c.Locals("ws_authorized", true)
+			c.Locals("ws_role_id", cfg.DefaultRoleID)
+			return c.Next()
+		}
+
+		// Frontend flow: baca user_context dari Redis (set saat user
+		// pilih role via UI), lalu cek per-endpoint authorization.
 		activeCtx, err := getActiveContext(userID)
 		if err != nil {
 			log.Printf("[WsAuth] Warning: failed to get active context for user %s: %v", userID, err)
-			// If Redis is down, deny access (fail-closed for security)
 			return response.Forbidden(c, "Unable to verify authorization. Please select a role first.")
 		}
 		if activeCtx == nil {
 			return response.Forbidden(c, "No active context selected. Please select a role first.")
 		}
-
-		roleID := activeCtx.IDPeran
+		c.Locals("active_context", activeCtx)
 
 		// Check authorization (with cache)
-		allowed, err := checkAuthorization(cfg, method, path, roleID)
+		allowed, err := checkAuthorization(cfg, method, path, activeCtx.IDPeran)
 		if err != nil {
 			log.Printf("[WsAuth] Error checking authorization: %v", err)
 			// Fail-closed: deny on error
@@ -77,8 +94,6 @@ func WsAuthorization(cfg WsAuthConfig) fiber.Handler {
 			))
 		}
 
-		// Store active context for downstream handlers
-		c.Locals("active_context", activeCtx)
 		c.Locals("ws_authorized", true)
 
 		return c.Next()
