@@ -10,8 +10,9 @@ import {
   Spinner,
 } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
+import { useRequireAppAccess } from "@/lib/hoc/withAuth";
+import AccessDenied from "@/shared/components/auth/AccessDenied";
 import {
   FiArrowLeft,
   FiServer,
@@ -19,7 +20,6 @@ import {
   FiRefreshCw,
   FiExternalLink,
   FiBook,
-  FiLock,
 } from "react-icons/fi";
 import {
   MdCheckCircle,
@@ -136,35 +136,29 @@ const isMainService = (serviceName: string): boolean => {
   return mainServices.includes(serviceName);
 };
 
+// App key di man_akses.aplikasi.app_slug — pakai filter resmi via
+// useRequireAppAccess (cek menu_role + a_filter_organisasi + aplikasi_organisasi
+// whitelist), bukan ad-hoc string match terhadap nm_peran/nm_organisasi.
+const APP_KEY = "api-gateway";
+
 export default function KongAdminPage() {
-  // Use auth and user context for role-based access control
-  // Developer role is from manakses system (activeContext.nm_peran), not from auth user.role
-  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
-  const { activeContext, isLoadingContext } = useUserContext();
+  const { isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Akses dibatasi: HARUS Developer (nm_peran) DAN unit organisasi UPA TIK.
-  // nm_organisasi bisa bervariasi ("UPA Teknologi Informasi dan Komunikasi",
-  // "UPT TIK", "UPA TIK") — match longgar pakai substring "TIK" + indikator
-  // teknologi info.
-  const isDeveloperRole = activeContext?.nm_peran === "Developer";
-  const orgName = (activeContext?.nm_organisasi || "").toLowerCase();
-  const isTIKUnit =
-    orgName.includes("tik") ||
-    orgName.includes("teknologi informasi") ||
-    orgName.includes("upa ti") ||
-    orgName.includes("upt ti");
-  const hasAccess = isAuthenticated && isDeveloperRole && isTIKUnit;
-
-  const accessMessage = !isAuthenticated
-    ? "Silakan login terlebih dahulu"
-    : !activeContext
-      ? "Silakan pilih peran terlebih dahulu"
-      : !isDeveloperRole
-        ? `Halaman ini hanya untuk Developer di UPA TIK. Peran Anda saat ini: ${activeContext.nm_peran}`
-        : !isTIKUnit
-          ? `Halaman ini hanya untuk Developer di UPA TIK. Unit Anda saat ini: ${activeContext.nm_organisasi}`
-          : "";
+  // Akses dibatasi via system manajemen-akses standar:
+  //   1. Login + active context terpilih
+  //   2. menu_role: peran user punya mapping ke aplikasi 'api-gateway'
+  //   3. a_filter_organisasi=1 + aplikasi_organisasi whitelist (UPA TIK only)
+  // Setting DB-side (lihat data-model/script/sqlserver/man_akses/seed_app_filter_api_gateway.sql).
+  const {
+    isLoading: accessLoading,
+    hasAccess,
+    requiresContextSelection,
+    message: accessMessage,
+  } = useRequireAppAccess({
+    appKey: APP_KEY,
+    showAccessDenied: true,
+  });
 
   const [services, setServices] = useState<KongService[]>([]);
   const [routes, setRoutes] = useState<KongRoute[]>([]);
@@ -218,51 +212,36 @@ export default function KongAdminPage() {
     return routes.filter((route) => route.service.id === serviceId);
   };
 
-  // Loading state
-  if (authLoading || isLoadingContext || (hasAccess && isLoading)) {
+  // Loading state — termasuk saat checkAppAccess masih jalan
+  if (authLoading || accessLoading || (hasAccess && isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mb-4" color="primary" />
-          <p className="text-gray-600">Loading Kong Admin...</p>
+          <p className="text-gray-600">Memeriksa akses...</p>
         </div>
       </div>
     );
   }
 
-  // Access denied state
+  // Access denied — pakai komponen AccessDenied standar yang punya CTA pilih role.
   if (hasAccess === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <Button
-            startContent={<FiArrowLeft />}
-            variant="light"
-            onPress={() => router.push("/portal")}
-            className="mb-6"
-          >
-            Back to Portal
-          </Button>
-          <Card className="bg-amber-50 border border-amber-200">
-            <CardBody className="p-8 text-center">
-              <div className="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiLock className="w-10 h-10 text-amber-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-amber-800 mb-2">
-                Akses Tidak Diizinkan
-              </h2>
-              <p className="text-amber-700 mb-6">
-                {accessMessage || "Anda tidak memiliki akses ke halaman ini."}
-              </p>
-              <Button
-                color="warning"
-                variant="flat"
-                onPress={() => router.push("/portal")}
-              >
-                Kembali ke Portal
-              </Button>
-            </CardBody>
-          </Card>
+      <AccessDenied
+        message={accessMessage}
+        requiresContextSelection={requiresContextSelection}
+        appName="Kong API Gateway Admin"
+      />
+    );
+  }
+
+  // Fallback — kalau hasAccess null (belum settle), tampilkan loading
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" className="mb-4" color="primary" />
+          <p className="text-gray-600">Memeriksa akses...</p>
         </div>
       </div>
     );
