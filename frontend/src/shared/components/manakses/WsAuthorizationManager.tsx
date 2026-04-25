@@ -244,11 +244,19 @@ export default function WsAuthorizationManager() {
       groups[g].push(ep);
     }
 
+    // Sort: GET → POST → PUT → PATCH → DELETE, lalu alphabet path.
+    // Mempermudah scan endpoint per-method dalam tiap grup.
+    const methodOrder: Record<string, number> = { GET: 1, POST: 2, PUT: 3, PATCH: 4, DELETE: 5 };
     const sorted: GroupedEndpoints = {};
     Object.keys(groups)
       .sort()
       .forEach((k) => {
-        sorted[k] = groups[k].sort((a, b) => a.path_url.localeCompare(b.path_url));
+        sorted[k] = groups[k].sort((a, b) => {
+          const ma = methodOrder[a.nm_method] ?? 99;
+          const mb = methodOrder[b.nm_method] ?? 99;
+          if (ma !== mb) return ma - mb;
+          return a.path_url.localeCompare(b.path_url);
+        });
       });
     return sorted;
   }, [endpoints, searchQuery]);
@@ -332,8 +340,20 @@ export default function WsAuthorizationManager() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
-    const now = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    const nowDate = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    const nowTime = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }) + " WIB";
     const checkedEndpoints = endpoints.filter((ep) => checkedIds.has(ep.id_ws_endpoint));
+    // Watermark text — disisipkan ke setiap halaman (transparent overlay).
+    const wmText = `RAHASIA · PJ ${selectedPjData.nm_pengguna} · ${nowDate}`;
+    // SVG data URL untuk background tile watermark (rotate -28°, opacity 0.05).
+    const wmSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='320'>
+      <text x='50%' y='50%' fill='%231a1a2e' fill-opacity='0.06' font-family='Poppins,Segoe UI,sans-serif'
+        font-size='32' font-weight='700' text-anchor='middle' transform='rotate(-28 300 160)'>${wmText.replace(/'/g, "%27").replace(/&/g, "%26").replace(/</g, "%3C").replace(/>/g, "%3E")}</text>
+    </svg>`;
+    const wmDataUrl = `url("data:image/svg+xml;utf8,${wmSvg.replace(/\n\s*/g, " ").replace(/"/g, "'")}")`;
+
+    // Method order untuk sort: GET → POST → PUT → PATCH → DELETE
+    const methodOrder: Record<string, number> = { GET: 1, POST: 2, PUT: 3, PATCH: 4, DELETE: 5 };
 
     // Group checked endpoints
     const grouped: Record<string, EndpointItem[]> = {};
@@ -342,49 +362,200 @@ export default function WsAuthorizationManager() {
       if (!grouped[g]) grouped[g] = [];
       grouped[g].push(ep);
     }
-    // Sort
     const sortedGroups = Object.keys(grouped).sort();
 
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
         <title>Laporan Otorisasi WS API - ${selectedPjData.nm_pengguna}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px 30px; color: #1a1a1a; font-size: 11px; line-height: 1.4; }
-          .header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px double #333; }
-          .header-flex { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px; }
-          .header img { width: 60px; height: 60px; object-fit: contain; }
-          .header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-          .header h2 { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 2px; }
-          .header h3 { font-size: 12px; font-weight: 500; color: #555; }
-          .header .subtitle { font-size: 11px; color: #666; margin-top: 6px; }
-          .info { margin-bottom: 18px; background: #f8f9fa; border-radius: 6px; padding: 12px 15px; border: 1px solid #e9ecef; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+          html, body { font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+          body {
+            padding: 28px 32px;
+            color: #1a1a2e;
+            font-size: 11px;
+            line-height: 1.5;
+            background-image: ${wmDataUrl};
+            background-repeat: repeat;
+            background-position: center top;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          /* Header */
+          .header {
+            text-align: center;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #1a1a2e;
+            position: relative;
+          }
+          .header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -5px;
+            height: 1px;
+            background: #1a1a2e;
+          }
+          .header-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 6px;
+          }
+          .header img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+          }
+          .header-text { text-align: left; }
+          .header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #1a1a2e;
+            line-height: 1.2;
+          }
+          .header h2 {
+            font-size: 12px;
+            font-weight: 500;
+            color: #444;
+            letter-spacing: 0.5px;
+            margin-top: 3px;
+            line-height: 1.3;
+          }
+          .doc-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-top: 10px;
+            letter-spacing: 0.3px;
+          }
+          .header .subtitle {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 6px;
+            letter-spacing: 0.2px;
+          }
+          /* Info card */
+          .info {
+            margin-bottom: 16px;
+            background: rgba(248, 249, 250, 0.92);
+            border-radius: 8px;
+            padding: 14px 18px;
+            border: 1px solid #e5e7eb;
+            backdrop-filter: blur(2px);
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px 24px;
+          }
           .info-item { display: flex; gap: 8px; }
-          .info-label { font-weight: 600; color: #555; min-width: 100px; }
-          .info-value { color: #1a1a1a; }
+          .info-label { font-weight: 600; color: #4b5563; min-width: 110px; font-size: 10.5px; }
+          .info-value { color: #1a1a2e; font-size: 10.5px; }
+          .info-value.mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; }
+          /* Credential note */
+          .cred-note {
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: rgba(255, 248, 225, 0.92);
+            border-left: 3px solid #f59e0b;
+            font-size: 10px;
+            color: #78350f;
+            border-radius: 0 6px 6px 0;
+            line-height: 1.5;
+          }
+          .cred-note code {
+            background: #fef3c7;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+          }
+          /* Endpoint groups */
           .group-section { margin-bottom: 14px; page-break-inside: avoid; }
-          .group-title { font-size: 12px; font-weight: 700; padding: 5px 10px; background: #e8edf3; border-left: 3px solid #4f46e5; margin-bottom: 4px; border-radius: 0 4px 4px 0; }
-          table.endpoints { width: 100%; border-collapse: collapse; font-size: 10px; }
-          table.endpoints th { background: #f1f3f5; padding: 4px 8px; text-align: left; border: 1px solid #dee2e6; font-weight: 600; font-size: 10px; }
-          table.endpoints td { padding: 3px 8px; border: 1px solid #dee2e6; word-wrap: break-word; overflow-wrap: break-word; }
-          table.endpoints td.path { font-family: 'Consolas', 'Courier New', monospace; font-size: 10px; max-width: 350px; word-break: break-all; }
-          table.endpoints tr:nth-child(even) { background: #f8f9fa; }
-          .method { font-family: monospace; font-weight: 700; font-size: 9px; padding: 1px 5px; border-radius: 3px; display: inline-block; min-width: 40px; text-align: center; }
-          .method-GET { background: #d4edda; color: #155724; }
-          .method-POST { background: #cce5ff; color: #004085; }
-          .method-PUT { background: #fff3cd; color: #856404; }
+          .group-title {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            background: linear-gradient(90deg, #eef2ff, #f5f3ff);
+            border-left: 3px solid #4f46e5;
+            margin-bottom: 5px;
+            border-radius: 0 5px 5px 0;
+            color: #312e81;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+          }
+          table.endpoints {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            background: rgba(255,255,255,0.92);
+          }
+          table.endpoints th {
+            background: #f1f3f5;
+            padding: 5px 8px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            font-size: 9.5px;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+          }
+          table.endpoints td {
+            padding: 4px 8px;
+            border: 1px solid #dee2e6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          }
+          table.endpoints td.path {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 9.5px;
+            max-width: 350px;
+            word-break: break-all;
+            color: #1f2937;
+          }
+          table.endpoints tr:nth-child(even) { background: rgba(248,249,250,0.85); }
+          .method {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            min-width: 46px;
+            text-align: center;
+            letter-spacing: 0.3px;
+          }
+          .method-GET    { background: #d4edda; color: #155724; }
+          .method-POST   { background: #cce5ff; color: #004085; }
+          .method-PUT    { background: #fff3cd; color: #856404; }
           .method-DELETE { background: #f8d7da; color: #721c24; }
-          .method-PATCH { background: #e2e3f1; color: #383d6e; }
-          .footer { margin-top: 20px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #dee2e6; padding-top: 8px; }
-          .summary { display: flex; justify-content: space-between; margin-bottom: 12px; }
-          .summary-item { text-align: center; flex: 1; }
-          .summary-number { font-size: 18px; font-weight: 700; color: #4f46e5; }
-          .summary-label { font-size: 9px; color: #666; text-transform: uppercase; }
-          @media print { 
-            body { padding: 15px; } 
+          .method-PATCH  { background: #e2e3f1; color: #383d6e; }
+          /* Footer */
+          .footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 9px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+            line-height: 1.5;
+          }
+          .footer strong { color: #4b5563; }
+          @media print {
+            body {
+              padding: 18px 22px;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
             .group-section { page-break-inside: avoid; }
           }
         </style>
@@ -393,41 +564,47 @@ export default function WsAuthorizationManager() {
         <div class="header">
           <div class="header-flex">
             <img src="/assets/images/logo-unila.png" alt="Logo Unila" onerror="this.style.display='none'" />
-            <div>
+            <div class="header-text">
               <h1>Universitas Lampung</h1>
               <h2>UPT Teknologi Informasi dan Komunikasi</h2>
-              <h3>Laporan Otorisasi Endpoint Web Service API</h3>
             </div>
           </div>
-          <div class="subtitle">Dicetak pada: ${now}</div>
+          <div class="doc-title">Laporan Otorisasi Endpoint Web Service API</div>
+          <div class="subtitle">Dicetak pada ${nowDate} pukul ${nowTime}</div>
         </div>
 
         <div class="info">
           <div class="info-grid">
             <div class="info-item"><span class="info-label">Aplikasi Client</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
             <div class="info-item"><span class="info-label">Service Provider</span><span class="info-value">: ${selectedProviderData?.nm_aplikasi ?? "-"}</span></div>
-            <div class="info-item"><span class="info-label">ID Aplikasi</span><span class="info-value" style="font-family:monospace;font-size:10px">: ${selectedAppData.id_aplikasi}</span></div>
+            <div class="info-item"><span class="info-label">ID Aplikasi</span><span class="info-value mono">: ${selectedAppData.id_aplikasi}</span></div>
             <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-value">: ${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
             <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-value">: ${selectedPjData.nm_pengguna}</span></div>
             <div class="info-item"><span class="info-label">Total Group</span><span class="info-value">: ${sortedGroups.length}</span></div>
-            <div class="info-item"><span class="info-label">Username</span><span class="info-value">: ${selectedPjData.username}</span></div>
-            <div class="info-item"><span class="info-label">Password</span><span class="info-value" style="color:#777;font-style:italic">: (rahasia — diketahui oleh PJ aplikasi)</span></div>
+            <div class="info-item"><span class="info-label">Username</span><span class="info-value mono">: ${selectedPjData.username}</span></div>
+            <div class="info-item"><span class="info-label">Password</span><span class="info-value" style="color:#9ca3af;font-style:italic">: (rahasia — diketahui PJ aplikasi)</span></div>
           </div>
         </div>
 
-        <div style="margin-bottom:14px;padding:8px 12px;background:#fff8e1;border-left:3px solid #f59e0b;font-size:10px;color:#78350f;border-radius:0 4px 4px 0">
-          <strong>Catatan kredensial:</strong> Gunakan <strong>Username</strong> + <strong>ID Aplikasi</strong> di atas
-          beserta password yang sudah diserahterimakan ke PJ aplikasi untuk melakukan otentikasi via endpoint
+        <div class="cred-note">
+          <strong>Catatan kredensial:</strong> Gunakan <strong>Username</strong> + <strong>ID Aplikasi</strong>
+          di atas beserta password yang sudah diserahterimakan ke PJ untuk otentikasi via
           <code>POST /v1/auth/login</code>. Password tidak ditampilkan di dokumen ini demi keamanan.
+          Watermark "RAHASIA" pada halaman menunjukkan dokumen ini bersifat terbatas — tidak untuk disebarluaskan.
         </div>
 
         ${sortedGroups.map((group) => `
           <div class="group-section">
-            <div class="group-title">${group} (${grouped[group].length} endpoint)</div>
+            <div class="group-title">${group} <span style="font-weight:400;font-size:10px;opacity:0.7">(${grouped[group].length} endpoint)</span></div>
             <table class="endpoints">
-              <thead><tr><th style="width:55px">No</th><th style="width:60px">Method</th><th>Path URL</th><th style="width:140px">Nama</th></tr></thead>
+              <thead><tr><th style="width:38px">No</th><th style="width:60px">Method</th><th>Path URL</th><th style="width:140px">Nama</th></tr></thead>
               <tbody>
-                ${grouped[group].sort((a, b) => a.path_url.localeCompare(b.path_url)).map((ep, i) => `
+                ${grouped[group].sort((a, b) => {
+                  const ma = methodOrder[a.nm_method] ?? 99;
+                  const mb = methodOrder[b.nm_method] ?? 99;
+                  if (ma !== mb) return ma - mb;
+                  return a.path_url.localeCompare(b.path_url);
+                }).map((ep, i) => `
                   <tr>
                     <td style="text-align:center">${i + 1}</td>
                     <td><span class="method method-${ep.nm_method}">${ep.nm_method || "-"}</span></td>
@@ -441,7 +618,8 @@ export default function WsAuthorizationManager() {
         `).join("")}
 
         <div class="footer">
-          MyUnila — UPT TIK Universitas Lampung · Dokumen ini digenerate secara otomatis dari sistem Manajemen Akses
+          <strong>MyUnila</strong> — UPT TIK Universitas Lampung<br/>
+          Dokumen ini di-generate otomatis oleh sistem Manajemen Akses · ${nowDate} ${nowTime}
         </div>
       </body>
       </html>
