@@ -655,8 +655,8 @@ export default function WsAuthorizationManager() {
           </div>
           <div style="margin-bottom:6px;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:5px;color:#1e3a8a;font-size:9.5px;line-height:1.5;text-align:left">
             <strong>Request Endpoint, Pertanyaan, atau Masukan?</strong>
-            Hubungi tim pengembang myUnila melalui kontak resmi di
-            <a href="https://my.unila.ac.id/tentang" style="color:#1d4ed8;text-decoration:underline;font-weight:600">https://my.unila.ac.id/tentang</a>.
+            Kirim email ke
+            <a href="mailto:dev@unila.ac.id" style="color:#1d4ed8;text-decoration:underline;font-weight:600">dev@unila.ac.id</a>.
             Sertakan nama PJ Aplikasi dan endpoint yang dimaksud agar permintaan dapat diproses lebih cepat.
           </div>
           <strong>myUnila</strong> — UPA TIK Universitas Lampung<br/>
