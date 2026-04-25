@@ -97,6 +97,12 @@ func collectRoutes(app *fiber.App) []Route {
 		if strings.HasPrefix(r.Path, "/system") || strings.HasPrefix(r.Path, "/docs") {
 			continue
 		}
+		// Skip DEPRECATED /v1/pdrd/* — masih ke-register untuk backward compat
+		// tapi jangan masuk ws_endpoint supaya user tidak grant akses ke alias
+		// lama (gantinya: /v1/mahasiswa, /v1/sdm, /v1/pegawai, /v1/penelitian).
+		if strings.HasPrefix(r.Path, "/v1/pdrd") {
+			continue
+		}
 		// Skip group-root middleware artifacts: path /v1/<group> tanpa segment
 		// endpoint di belakangnya. Minimal harus ada 3 segment setelah split "/"
 		// (empty, "v1", "<group>", "<endpoint>" → len 4).

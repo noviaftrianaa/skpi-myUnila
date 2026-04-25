@@ -269,6 +269,12 @@ func main() {
 				strings.HasPrefix(r.Path, "/docs") {
 				continue
 			}
+			// Skip DEPRECATED /v1/pdrd/* — kept registered untuk backward
+			// compatibility, tapi jangan muncul di docs/Generate/auto-sync
+			// supaya user tidak grant akses ke alias lama.
+			if strings.HasPrefix(r.Path, "/v1/pdrd") {
+				continue
+			}
 			// Only include standard HTTP methods (nm_method column is varchar(6))
 			validMethods := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}
 			if !validMethods[r.Method] {

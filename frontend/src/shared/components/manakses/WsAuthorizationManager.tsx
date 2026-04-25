@@ -796,12 +796,13 @@ export default function WsAuthorizationManager() {
                   </Button>
                 )}
 
-                {selectedPjData && selectedAppData && checkedIds.size > 0 && (
+                {selectedPjData && selectedAppData && endpoints.length > 0 && (
                   <Button
                     size="md"
                     startContent={<FiPrinter className="w-4 h-4" />}
                     onPress={handlePrintPDF}
                     className="h-11 font-medium bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:shadow-lg transition-all rounded-lg whitespace-nowrap"
+                    title="Cetak laporan otorisasi PDF (endpoint yang ter-checklist)"
                   >
                     Cetak PDF
                   </Button>
