@@ -117,7 +117,7 @@ export default function WsAuthorizationManager() {
           authClient.get("/manakses/endpoint/apps"),
           authClient.get("/manakses/aplikasi?limit=500"),
         ]);
-        const providers = toArray(providerRes.data.data).map((a: any) => ({
+        const allProviders = toArray(providerRes.data.data).map((a: any) => ({
           id_aplikasi: a.id_aplikasi,
           nm_aplikasi: a.nm_aplikasi,
         }));
@@ -125,13 +125,15 @@ export default function WsAuthorizationManager() {
           id_aplikasi: a.id_aplikasi,
           nm_aplikasi: a.nm_aplikasi,
         }));
+        // Provider dikunci ke "WS API MyUnila v2" — satu service provider standar.
+        // Kalau ada beberapa app yang punya endpoint, filter cuma yang v2.
+        const v2Only = allProviders.filter((p) =>
+          p.nm_aplikasi.toLowerCase().includes("myunila v2")
+        );
+        const providers = v2Only.length > 0 ? v2Only : allProviders;
         setProviderApps(providers);
         setApps(clients);
-        // Default provider: cari yang nama mengandung "MyUnila v2" atau ambil item pertama
-        const prefer = providers.find((p) =>
-          p.nm_aplikasi.toLowerCase().includes("myunila v2")
-        ) || providers[0];
-        if (prefer) setSelectedProvider(prefer.id_aplikasi);
+        if (providers[0]) setSelectedProvider(providers[0].id_aplikasi);
       } catch (e) {
         console.error(e);
         toastError("Gagal memuat data aplikasi");
@@ -404,11 +406,19 @@ export default function WsAuthorizationManager() {
           <div class="info-grid">
             <div class="info-item"><span class="info-label">Aplikasi Client</span><span class="info-value">: ${selectedAppData.nm_aplikasi}</span></div>
             <div class="info-item"><span class="info-label">Service Provider</span><span class="info-value">: ${selectedProviderData?.nm_aplikasi ?? "-"}</span></div>
+            <div class="info-item"><span class="info-label">ID Aplikasi</span><span class="info-value" style="font-family:monospace;font-size:10px">: ${selectedAppData.id_aplikasi}</span></div>
             <div class="info-item"><span class="info-label">Total Endpoint</span><span class="info-value">: ${checkedEndpoints.length} dari ${totalEndpoints}</span></div>
             <div class="info-item"><span class="info-label">PJ Aplikasi</span><span class="info-value">: ${selectedPjData.nm_pengguna}</span></div>
             <div class="info-item"><span class="info-label">Total Group</span><span class="info-value">: ${sortedGroups.length}</span></div>
             <div class="info-item"><span class="info-label">Username</span><span class="info-value">: ${selectedPjData.username}</span></div>
+            <div class="info-item"><span class="info-label">Password</span><span class="info-value" style="color:#777;font-style:italic">: (rahasia — diketahui oleh PJ aplikasi)</span></div>
           </div>
+        </div>
+
+        <div style="margin-bottom:14px;padding:8px 12px;background:#fff8e1;border-left:3px solid #f59e0b;font-size:10px;color:#78350f;border-radius:0 4px 4px 0">
+          <strong>Catatan kredensial:</strong> Gunakan <strong>Username</strong> + <strong>ID Aplikasi</strong> di atas
+          beserta password yang sudah diserahterimakan ke PJ aplikasi untuk melakukan otentikasi via endpoint
+          <code>POST /v1/auth/login</code>. Password tidak ditampilkan di dokumen ini demi keamanan.
         </div>
 
         ${sortedGroups.map((group) => `
