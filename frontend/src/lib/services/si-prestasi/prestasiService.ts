@@ -226,3 +226,76 @@ export const refService = {
     } catch { return []; }
   },
 };
+
+// =====================================================================
+// Sync ke SIMKATMAWA (Phase 2)
+// =====================================================================
+
+export type ParentTipe = "PRESTASI" | "SERTIFIKASI" | "REKOGNISI";
+
+export interface SyncSubmission {
+  id_submission: string;
+  id_parent: string;
+  parent_tipe: ParentTipe;
+  tipe_sync_kode: string;
+  nm_tipe_sync: string;
+  request_at: string;
+  http_status: number | null;
+  simkatmawa_id: number | null;
+  simkatmawa_kode_pt: string | null;
+  error_message: string | null;
+  retry_count: number;
+  a_success: boolean;
+  id_actor: string | null;
+}
+
+export interface SyncSubmissionDetail extends SyncSubmission {
+  request_payload: Record<string, unknown> | null;
+  response_body: Record<string, unknown> | null;
+}
+
+export interface SyncLogParams {
+  parent_tipe?: ParentTipe;
+  id_parent?: string;
+  success_only?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export interface SyncPingResult {
+  ok: boolean;
+  message: string;
+  kode_pt?: string | null;
+  token_preview?: string | null;
+  dry_run: boolean;
+}
+
+export const syncService = {
+  /**
+   * Trigger submit job (async). Backend dispatch SubmitToSimkatmawaJob ke
+   * queue 'simkatmawa'. Status 202 berarti queued — cek log untuk hasil.
+   */
+  async submit(type: "prestasi" | "sertifikasi" | "rekognisi", id: string): Promise<{ id_parent: string; parent_tipe: ParentTipe; queued_at: string }> {
+    const r = await simPrestasiClient.post<{ success: boolean; data: { id_parent: string; parent_tipe: ParentTipe; queued_at: string } }>(
+      `/v1/sync/submit/${type}/${id}`
+    );
+    return r.data.data;
+  },
+
+  async log(params: SyncLogParams = {}): Promise<{ data: SyncSubmission[]; pagination: PaginationMeta }> {
+    const r = await simPrestasiClient.get<{ data: SyncSubmission[]; meta: PaginationMeta }>("/v1/sync/log", {
+      params: cleanParams(params as Record<string, unknown>),
+    });
+    return { data: r.data.data, pagination: r.data.meta };
+  },
+
+  async logDetail(idSubmission: string): Promise<SyncSubmissionDetail> {
+    const r = await simPrestasiClient.get<{ data: SyncSubmissionDetail }>(`/v1/sync/log/${idSubmission}`);
+    return r.data.data;
+  },
+
+  async ping(): Promise<SyncPingResult> {
+    const r = await simPrestasiClient.post<{ data: SyncPingResult }>("/v1/sync/ping");
+    return r.data.data;
+  },
+};

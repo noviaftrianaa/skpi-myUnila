@@ -9,6 +9,7 @@ import type {
   Sertifikasi, PesertaMhs, PesertaDosen, WorkflowStatus, RefLevel, MahasiswaLookup,
 } from "@/lib/services/si-prestasi/types";
 import { WorkflowBadge } from "../components/WorkflowBadge";
+import SubmitButton from "../components/SubmitButton";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";
 import toast, { Toaster } from "react-hot-toast";
@@ -228,6 +229,9 @@ export default function SertifikasiPage() {
                         )}
                         {it.status_workflow === "draft" && <IconBtn title="Submit" onClick={() => handleTransition(it.id_sertifikasi, "review")} variant="blue"><FiSend /></IconBtn>}
                         {it.status_workflow === "review" && <IconBtn title="Approve" onClick={() => handleTransition(it.id_sertifikasi, "ready")} variant="emerald"><FiSend /></IconBtn>}
+                        {(it.status_workflow === "ready" || it.status_workflow === "error") && (
+                          <SubmitButton type="sertifikasi" id={it.id_sertifikasi} status={it.status_workflow} onSubmitted={fetchList} size="sm" />
+                        )}
                         {it.status_workflow !== "sent" && <IconBtn title="Hapus" onClick={() => handleDelete(it.id_sertifikasi)} variant="rose"><FiTrash2 /></IconBtn>}
                       </div>
                     </td>

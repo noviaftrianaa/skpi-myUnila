@@ -11,6 +11,7 @@ import type {
 import { WorkflowBadge } from "../components/WorkflowBadge";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";
+import SubmitButton from "../components/SubmitButton";
 import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "si-prestasi";
@@ -239,6 +240,9 @@ export default function RekognisiPage() {
                         {!["sending","sent","archived"].includes(it.status_workflow) && <IconBtn title="Edit" onClick={() => openEdit(it.id_rekognisi)}><FiEdit2 /></IconBtn>}
                         {it.status_workflow === "draft" && <IconBtn title="Submit" onClick={() => handleTransition(it.id_rekognisi, "review")} variant="blue"><FiSend /></IconBtn>}
                         {it.status_workflow === "review" && <IconBtn title="Approve" onClick={() => handleTransition(it.id_rekognisi, "ready")} variant="emerald"><FiSend /></IconBtn>}
+                        {(it.status_workflow === "ready" || it.status_workflow === "error") && (
+                          <SubmitButton type="rekognisi" id={it.id_rekognisi} status={it.status_workflow} onSubmitted={fetchList} size="sm" />
+                        )}
                         {it.status_workflow !== "sent" && <IconBtn title="Hapus" onClick={() => handleDelete(it.id_rekognisi)} variant="rose"><FiTrash2 /></IconBtn>}
                       </div>
                     </td>

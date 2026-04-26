@@ -14,6 +14,7 @@ import type {
   MahasiswaLookup,
 } from "@/lib/services/si-prestasi/types";
 import { WorkflowBadge } from "../components/WorkflowBadge";
+import SubmitButton from "../components/SubmitButton";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";
 import toast, { Toaster } from "react-hot-toast";
@@ -321,6 +322,9 @@ export default function PrestasiMandiriPage() {
                         )}
                         {it.status_workflow === "review" && (
                           <IconBtn title="Approve (Ready)" onClick={() => handleTransition(it.id_prestasi_mandiri, "ready")} variant="emerald"><FiSend /></IconBtn>
+                        )}
+                        {(it.status_workflow === "ready" || it.status_workflow === "error") && (
+                          <SubmitButton type="prestasi" id={it.id_prestasi_mandiri} status={it.status_workflow} onSubmitted={fetchList} size="sm" />
                         )}
                         {it.status_workflow !== "sent" && (
                           <IconBtn title="Hapus" onClick={() => handleDelete(it.id_prestasi_mandiri)} variant="rose"><FiTrash2 /></IconBtn>
