@@ -167,18 +167,23 @@ func (r *Repository) GetByID(id int) (*ScheduledSync, error) {
 	return &schedule, nil
 }
 
-// GetActive retrieves all active scheduled syncs for mahasiswa type
+// GetActive retrieves all active scheduled syncs untuk semua sync_type
+// yang dikelola feeder-service.
 func (r *Repository) GetActive() ([]ScheduledSync, error) {
 	query := `
 		SELECT id, name, description, sync_type, endpoint_key, cron_expression, schedule_time,
 		       is_active, last_run_at, next_run_at, created_by, created_at, updated_at
 		FROM scheduled_syncs
-		WHERE is_active = 1 AND sync_type = @p1
+		WHERE is_active = 1
+		  AND sync_type IN (
+		    'mahasiswa', 'aktivitas_mahasiswa', 'kurikulum', 'rencana_evaluasi',
+		    'kelas_kuliah', 'nilai_perkuliahan', 'nilai_konversi', 'transkrip_nilai'
+		  )
 		ORDER BY next_run_at ASC
 	`
 
 	var schedules []ScheduledSync
-	err := r.db.Select(&schedules, query, "mahasiswa")
+	err := r.db.Select(&schedules, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get active schedules: %w", err)
 	}
