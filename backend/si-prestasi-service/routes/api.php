@@ -88,5 +88,14 @@ Route::middleware(['jwt.auth'])->group(function () {
             Route::get('bentuk-pelaksanaan',   [MasterDataController::class, 'bentuk']);
             Route::get('jenis-rekognisi',      [MasterDataController::class, 'jenisRekognisi']);
         });
+
+        // Sync ke SIMKATMAWA (Phase 2 — push payload dengan queue async)
+        // Dispatch SubmitToSimkatmawaJob → kirim payload + log ke sync.submission.
+        Route::prefix('sync')->group(function () {
+            Route::post('submit/{type}/{id}',  [\App\Http\Controllers\Api\SyncController::class, 'submit']);
+            Route::get('log',                   [\App\Http\Controllers\Api\SyncController::class, 'log']);
+            Route::get('log/{id_submission}',   [\App\Http\Controllers\Api\SyncController::class, 'logDetail']);
+            Route::post('ping',                 [\App\Http\Controllers\Api\SyncController::class, 'ping']);
+        });
     });
 });
