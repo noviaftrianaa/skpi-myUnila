@@ -259,6 +259,8 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 		return s.siakaduRunner.Run("/siakadu/nilai/kuliah/sync")
 	case "siakadu_transkrip":
 		return s.siakaduRunner.Run("/siakadu/nilai/transkrip/sync-batch")
+	case "siakadu_wisuda":
+		return s.siakaduRunner.Run("/siakadu/wisuda/sync")
 	default:
 		return fmt.Errorf("unknown sync type: %s", syncType)
 	}
