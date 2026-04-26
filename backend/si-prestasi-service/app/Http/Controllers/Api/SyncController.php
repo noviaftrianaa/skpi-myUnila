@@ -104,7 +104,7 @@ class SyncController extends Controller
         $rows = DB::select("
             SELECT
                 s.id_submission, s.id_parent, s.parent_tipe,
-                ts.kode AS tipe_sync_kode, ts.nm_tipe_sync,
+                ts.kode AS tipe_sync_kode, ts.nm_tipe,
                 s.request_at, s.http_status, s.simkatmawa_id, s.simkatmawa_kode_pt,
                 s.error_message, s.retry_count, s.a_success, s.id_actor
             FROM sync.submission s
@@ -135,7 +135,7 @@ class SyncController extends Controller
         $row = DB::selectOne("
             SELECT
                 s.*,
-                ts.kode AS tipe_sync_kode, ts.nm_tipe_sync
+                ts.kode AS tipe_sync_kode, ts.nm_tipe
             FROM sync.submission s
             LEFT JOIN ref.tipe_sync ts ON ts.id_tipe_sync = s.id_tipe_sync
             WHERE s.id_submission = ?

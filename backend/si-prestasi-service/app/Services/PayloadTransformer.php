@@ -180,7 +180,7 @@ class PayloadTransformer
         $rows = DB::select("
             SELECT nim, nm_mahasiswa AS nama
             FROM prestasi.peserta_mhs
-            WHERE id_parent = ? AND parent_tipe = ? AND soft_delete = FALSE
+            WHERE id_parent = ? AND parent_tipe = ?
             ORDER BY nim
         ", [$idParent, $tipe]);
         return array_map(fn($r) => ['nim' => $r->nim, 'nama' => $r->nama], $rows);
@@ -195,7 +195,7 @@ class PayloadTransformer
         $rows = DB::select("
             SELECT nuptk, nm_dosen AS nama, url_surat_tugas
             FROM prestasi.peserta_dosen
-            WHERE id_parent = ? AND parent_tipe = ? AND soft_delete = FALSE
+            WHERE id_parent = ? AND parent_tipe = ?
             ORDER BY nuptk
         ", [$idParent, $tipe]);
         return array_map(fn($r) => [

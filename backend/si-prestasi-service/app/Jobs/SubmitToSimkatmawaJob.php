@@ -175,12 +175,15 @@ class SubmitToSimkatmawaJob implements ShouldQueue
             Log::error("ref.tipe_sync row tidak ada untuk {$this->parentTipe}");
             return;
         }
+        $kodePt = is_array($responseBody) ? ($responseBody['kode_pt'] ?? null) : null;
+        $tahun  = is_array($responseBody) ? ($responseBody['tahun'] ?? null) : null;
+        // Note: a_success is a generated column ((http_status BETWEEN 200 AND 299)) — jangan di-insert manual.
         DB::insert("
             INSERT INTO sync.submission
                 (id_submission, id_parent, parent_tipe, id_tipe_sync, request_payload,
-                 request_at, http_status, response_body, simkatmawa_id, error_message,
-                 retry_count, id_actor)
-            VALUES (?, ?, ?, ?, ?::jsonb, NOW(), ?, ?::jsonb, ?, ?, ?, ?)
+                 request_at, http_status, response_body, simkatmawa_id, simkatmawa_kode_pt,
+                 simkatmawa_tahun, error_message, retry_count, id_actor)
+            VALUES (?, ?, ?, ?, ?::jsonb, NOW(), ?, ?::jsonb, ?, ?, ?, ?, ?, ?)
         ", [
             $idSubmission,
             $this->idParent,
@@ -190,6 +193,8 @@ class SubmitToSimkatmawaJob implements ShouldQueue
             $httpStatus,
             $responseBody !== null ? json_encode($responseBody, JSON_UNESCAPED_UNICODE) : null,
             $simkatmawaId !== null && is_numeric($simkatmawaId) ? (int) $simkatmawaId : null,
+            $kodePt,
+            $tahun !== null && is_numeric($tahun) ? (int) $tahun : null,
             $errorMessage,
             $this->attempts(),
             $this->idActor,
@@ -198,7 +203,7 @@ class SubmitToSimkatmawaJob implements ShouldQueue
 
     protected function fetchTipeSyncIds(): array
     {
-        $rows = DB::select("SELECT id_tipe_sync, kode FROM ref.tipe_sync WHERE soft_delete = FALSE");
+        $rows = DB::select("SELECT id_tipe_sync, kode FROM ref.tipe_sync WHERE a_active = TRUE");
         $map = [];
         foreach ($rows as $r) {
             $map[$r->kode] = $r->id_tipe_sync;
