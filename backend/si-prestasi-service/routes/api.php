@@ -97,5 +97,24 @@ Route::middleware(['jwt.auth'])->group(function () {
             Route::get('log/{id_submission}',   [\App\Http\Controllers\Api\SyncController::class, 'logDetail']);
             Route::post('ping',                 [\App\Http\Controllers\Api\SyncController::class, 'ping']);
         });
+
+        // Analytics dashboard pimpinan (Phase 4) — drilldown Universitas → Fakultas → Prodi → Mhs
+        // Semua endpoint di-cache Redis 5 menit. Filter via query string.
+        Route::prefix('analytics')->group(function () {
+            Route::get('overview',                [\App\Http\Controllers\Api\AnalyticsController::class, 'overview']);
+            Route::get('trend',                   [\App\Http\Controllers\Api\AnalyticsController::class, 'trend']);
+            Route::get('by-tipe',                 [\App\Http\Controllers\Api\AnalyticsController::class, 'byTipe']);
+            Route::get('by-level',                [\App\Http\Controllers\Api\AnalyticsController::class, 'byLevel']);
+            Route::get('by-kategori',             [\App\Http\Controllers\Api\AnalyticsController::class, 'byKategori']);
+            Route::get('by-peringkat',            [\App\Http\Controllers\Api\AnalyticsController::class, 'byPeringkat']);
+            Route::get('by-fakultas',             [\App\Http\Controllers\Api\AnalyticsController::class, 'byFakultas']);
+            Route::get('by-prodi',                [\App\Http\Controllers\Api\AnalyticsController::class, 'byProdi']);
+            Route::get('top-mahasiswa',           [\App\Http\Controllers\Api\AnalyticsController::class, 'topMahasiswa']);
+            Route::get('sync-health',             [\App\Http\Controllers\Api\AnalyticsController::class, 'syncHealth']);
+            Route::get('workflow-pipeline',       [\App\Http\Controllers\Api\AnalyticsController::class, 'workflowPipeline']);
+            Route::get('matrix-kategori-level',   [\App\Http\Controllers\Api\AnalyticsController::class, 'matrixKategoriLevel']);
+            Route::get('mahasiswa-prodi/{id_sms}',[\App\Http\Controllers\Api\AnalyticsController::class, 'mahasiswaProdiDetail']);
+            Route::post('refresh-cache',          [\App\Http\Controllers\Api\AnalyticsController::class, 'refreshCache']);
+        });
     });
 });

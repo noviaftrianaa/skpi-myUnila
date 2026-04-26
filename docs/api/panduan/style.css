@@ -51,11 +51,10 @@ html, body {
   color: #1f2937;
 }
 .cover-mark {
-  font-size: 14pt;
+  font-size: 18pt;
   font-weight: 700;
-  letter-spacing: 4pt;
+  letter-spacing: 1pt;
   color: #1e3a8a;
-  text-transform: uppercase;
   margin-bottom: 14mm;
 }
 .cover-title {

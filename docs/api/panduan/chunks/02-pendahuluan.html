@@ -113,7 +113,7 @@ GET    https://my.unila.ac.id/api-service/v1/mahasiswa/list_mahasiswa</code></pr
 <p>Contoh:</p>
 <pre><code>https://my.unila.ac.id/api-service/v1/auth/login
 ↓
-Kong (port 443) → forward ke ws-api container (port 8085) → /v1/auth/login</code></pre>
+Kong Gateway (HTTPS) → forward ke service backend (HTTP, internal) → /v1/auth/login</code></pre>
 
 <p>Apa yang Kong lakukan untuk setiap request:</p>
 <ol>
@@ -126,9 +126,9 @@ Kong (port 443) → forward ke ws-api container (port 8085) → /v1/auth/login</
 </ol>
 
 <div class="note">
-  <strong>Implikasi untuk konsumen:</strong> selalu pakai URL Kong (https://my.unila.ac.id/api-service/...),
-  jangan akses langsung port backend (8085) walaupun secara teknis bisa di intranet —
-  itu bypass rate-limit, audit log, dan policy security.
+  <strong>Implikasi untuk konsumen:</strong> selalu pakai URL Kong publik
+  (<code>https://my.unila.ac.id/api-service/...</code>). Jangan mencoba akses langsung
+  ke service backend internal — itu bypass rate-limit, audit log, dan policy security.
 </div>
 
 <h2>1.6 Rate Limiting</h2>

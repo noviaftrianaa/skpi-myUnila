@@ -2,7 +2,7 @@
  * Menu Configuration untuk SI Prestasi.
  * Fallback frontend; sumber utama dari auth-service (portal_menus/si-prestasi.json).
  */
-import { FiAward, FiBookmark, FiClock, FiGrid, FiStar, FiTrophy } from "react-icons/fi";
+import { FiAward, FiBookmark, FiClock, FiGrid, FiStar, FiTrophy, FiBarChart2 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
@@ -47,6 +47,12 @@ export const simPrestasiMenuConfig: MenuItem[] = [
     title: "Sync Log",
     icon: <FiClock className="w-5 h-5" />,
     href: "/dashboard/si-prestasi/sync-log",
+    roles: adminRoles,
+  },
+  {
+    title: "Analytics Pimpinan",
+    icon: <FiBarChart2 className="w-5 h-5" />,
+    href: "/dashboard/si-prestasi/analytics",
     roles: adminRoles,
   },
 ];
