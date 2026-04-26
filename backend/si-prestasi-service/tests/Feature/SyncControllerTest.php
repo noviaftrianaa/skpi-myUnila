@@ -23,7 +23,7 @@ class SyncControllerTest extends TestCase
     {
         parent::setUp();
         // Bypass jwt.auth middleware untuk test ini.
-        $this->withoutMiddleware(\App\Http\Middleware\JwtAuthMiddleware::class);
+        $this->withoutMiddleware(\App\Http\Middleware\JwtAuthenticate::class);
     }
 
     protected function tearDown(): void
