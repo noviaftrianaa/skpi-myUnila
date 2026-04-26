@@ -1,0 +1,208 @@
+<h1>1. Pendahuluan</h1>
+
+<h2>1.1 Tentang Web Service myUnila</h2>
+<p>
+  <strong>Web Service API myUnila</strong> adalah layanan integrasi data internal Universitas
+  Lampung yang menyediakan akses terstandar ke data akademik, kepegawaian, kerjasama, tracer
+  study, dan referensi. Dibangun berdasarkan arsitektur REST dengan format JSON, layanan ini
+  ditujukan untuk dipakai oleh aplikasi internal Unila (Sistem Informasi Akademik, Sistem
+  Penjaminan Mutu, Sistem Kepegawaian, Dashboard Pimpinan, dll.) maupun aplikasi mitra resmi
+  yang telah disetujui oleh UPA TIK.
+</p>
+
+<p>
+  Layanan ini menggantikan API legacy <code>/v1/pdrd/*</code> dengan struktur grouping baru
+  per-domain (<code>/v1/mahasiswa</code>, <code>/v1/sdm</code>, <code>/v1/pegawai</code>,
+  <code>/v1/penelitian</code>) yang lebih konsisten. URL lama tetap dipertahankan untuk
+  kompatibilitas mundur namun dianggap <em>deprecated</em>.
+</p>
+
+<h2>1.2 Cakupan API</h2>
+<p>Saat ini terdapat <strong>260 endpoint aktif</strong> yang dikelompokkan dalam 15 grup domain:</p>
+<table>
+  <thead>
+    <tr><th>Grup</th><th>Cakupan singkat</th><th>Jumlah</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>auth</code></td><td>Otentikasi: login &amp; check token</td><td>2</td></tr>
+    <tr><td><code>referensi</code></td><td>Master data referensi (agama, jurusan, negara, dll)</td><td>±98</td></tr>
+    <tr><td><code>mahasiswa</code></td><td>Data mahasiswa, biodata, kuliah, kehadiran</td><td>±13</td></tr>
+    <tr><td><code>sdm</code></td><td>Data SDM/dosen, penugasan, riwayat</td><td>±20</td></tr>
+    <tr><td><code>pegawai</code></td><td>Data tendik &amp; pegawai non-dosen</td><td>±3</td></tr>
+    <tr><td><code>akademik</code></td><td>Mata kuliah, kelas, jadwal, kurikulum</td><td>±10</td></tr>
+    <tr><td><code>institusi</code></td><td>Profil PT, prodi, akreditasi</td><td>±8</td></tr>
+    <tr><td><code>penelitian</code></td><td>Publikasi, litabmas, mitra</td><td>±9</td></tr>
+    <tr><td><code>kontribusi</code></td><td>Pembicara, jurnal, prestasi, kepanitiaan</td><td>±10</td></tr>
+    <tr><td><code>tracer</code></td><td>Tracer study lulusan + UMR wilayah</td><td>±10</td></tr>
+    <tr><td><code>siakadu</code></td><td>Data SIAKADU (read-only, sync via Siakadu)</td><td>±18</td></tr>
+    <tr><td><code>kerjasama</code></td><td>MoU, kerjasama dengan SMS &amp; DUDI</td><td>±15</td></tr>
+    <tr><td><code>mbkm</code></td><td>Daftar &amp; periode kampus merdeka, log book</td><td>±28</td></tr>
+    <tr><td><code>diklat</code></td><td>Daftar diklat &amp; sertifikasi</td><td>±5</td></tr>
+    <tr><td><code>dashboard</code></td><td>Statistik KTW lulusan (publik, tanpa JWT)</td><td>±11</td></tr>
+  </tbody>
+</table>
+
+<h2>1.3 Server &amp; URL Dasar</h2>
+<p>Tersedia dua lingkungan:</p>
+<table>
+  <thead>
+    <tr><th>Lingkungan</th><th>URL Dasar</th><th>Tujuan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Live (Produksi)</strong></td>
+      <td class="mono">https://my.unila.ac.id/api-service</td>
+      <td>Konsumsi resmi oleh aplikasi yang sudah lulus UAT</td>
+    </tr>
+    <tr>
+      <td><strong>Sandbox (Staging)</strong></td>
+      <td class="mono">https://my.unila.ac.id/gateway/api-service</td>
+      <td>Testing terbatas (akses via VPN UPA TIK)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Catatan jaringan:</strong> URL sandbox hanya dapat diakses dari dalam jaringan
+  intranet Universitas Lampung. Untuk akses dari luar, gunakan VPN UPA TIK.
+</div>
+
+<p>Semua endpoint mengikuti pola URL:</p>
+<pre><code>{base_url}/v1/{group}/{endpoint}</code></pre>
+<p>Contoh:</p>
+<pre><code>POST   https://my.unila.ac.id/api-service/v1/auth/login
+GET    https://my.unila.ac.id/api-service/v1/referensi/agama
+GET    https://my.unila.ac.id/api-service/v1/mahasiswa/list_mahasiswa</code></pre>
+
+<h2>1.4 Arsitektur &amp; Tech Stack</h2>
+<p>
+  Web Service myUnila dibangun di atas tumpukan teknologi modern dengan fokus pada
+  performa, keamanan, dan kemudahan integrasi.
+</p>
+<table>
+  <thead><tr><th>Lapisan</th><th>Teknologi</th><th>Keterangan</th></tr></thead>
+  <tbody>
+    <tr><td>Backend</td><td><strong>Go 1.24</strong> + <strong>Fiber v2</strong></td><td>HTTP framework berbasis fasthttp, throughput tinggi (&gt;50k req/s)</td></tr>
+    <tr><td>Database utama</td><td><strong>Microsoft SQL Server 2022</strong></td><td>Pengelolaan terpisah lingkungan live &amp; sandbox</td></tr>
+    <tr><td>Cache &amp; session</td><td><strong>Redis 7</strong></td><td>JWT cache, ws_authorization cache (TTL 5 menit), session store</td></tr>
+    <tr><td>API Gateway</td><td><strong>Kong 3.4</strong></td><td>Reverse proxy + rate-limit + JWT validation</td></tr>
+    <tr><td>Otentikasi</td><td><strong>JWT (HS256)</strong></td><td>Access token 1 jam; secret rotation per environment</td></tr>
+    <tr><td>Object storage</td><td><strong>MinIO</strong></td><td>Foto mahasiswa &amp; dosen (S3-compatible)</td></tr>
+    <tr><td>Containerization</td><td><strong>Docker + Compose</strong></td><td>Auto-restart, health-check, log rotation</td></tr>
+    <tr><td>Observability</td><td><strong>Prometheus + Grafana + Loki</strong></td><td>Metrics, dashboard, log centralized</td></tr>
+    <tr><td>Dokumentasi API</td><td><strong>OpenAPI 3.0 + Scalar UI</strong></td><td>Interaktif di <code>/docs</code></td></tr>
+  </tbody>
+</table>
+
+<h2>1.5 Kong API Gateway</h2>
+<p>
+  Semua request dari konsumen <strong>tidak langsung</strong> ke service backend Go,
+  melainkan melewati Kong API Gateway sebagai entrypoint tunggal. Pola URL:
+</p>
+<pre><code>{kong_base}/{service_name}/{path_belakang}
+       └─ Kong route                  └─ diteruskan ke backend
+</code></pre>
+<p>Contoh:</p>
+<pre><code>https://my.unila.ac.id/api-service/v1/auth/login
+↓
+Kong (port 443) → forward ke ws-api container (port 8085) → /v1/auth/login</code></pre>
+
+<p>Apa yang Kong lakukan untuk setiap request:</p>
+<ol>
+  <li><strong>Routing</strong> — match URL pattern ke service backend yang sesuai</li>
+  <li><strong>Strip prefix</strong> — buang segmen <code>/api-service</code> sebelum forward</li>
+  <li><strong>Rate-limit check</strong> — pakai counter Redis, deny kalau over-quota</li>
+  <li><strong>Header injection</strong> — tambah <code>X-Real-IP</code>, <code>X-Forwarded-For</code> untuk audit log</li>
+  <li><strong>SSL termination</strong> — handshake HTTPS di Kong, traffic internal HTTP</li>
+  <li><strong>Logging</strong> — record latency, status, response size ke metrics dashboard</li>
+</ol>
+
+<div class="note">
+  <strong>Implikasi untuk konsumen:</strong> selalu pakai URL Kong (https://my.unila.ac.id/api-service/...),
+  jangan akses langsung port backend (8085) walaupun secara teknis bisa di intranet —
+  itu bypass rate-limit, audit log, dan policy security.
+</div>
+
+<h2>1.6 Rate Limiting</h2>
+<p>
+  Untuk melindungi infrastruktur dari beban berlebih (intentional / accidental DDoS,
+  query loop bug, dst), Kong menerapkan rate-limit per-IP. Konsumen <strong>wajib</strong>
+  memperhitungkan limit ini saat merancang integrasi.
+</p>
+
+<table>
+  <thead><tr><th>Skenario</th><th>Limit</th><th>Window</th><th>Policy</th></tr></thead>
+  <tbody>
+    <tr><td>Default per-IP (anonymous)</td><td>60 request</td><td>1 menit</td><td>local (per Kong node)</td></tr>
+    <tr><td>Per-konsumen authenticated</td><td>120 request</td><td>1 menit</td><td>local</td></tr>
+    <tr><td>Endpoint berat (foto, list besar)</td><td>20 request</td><td>1 menit</td><td>local</td></tr>
+    <tr><td>Whitelist mitra (atas permintaan)</td><td>1000 request</td><td>1 menit</td><td>cluster-wide (Redis)</td></tr>
+  </tbody>
+</table>
+
+<h3>Header Response Rate-Limit</h3>
+<p>Setiap response (sukses maupun gagal) menyertakan header rate-limit standar dari Kong:</p>
+<pre><code>HTTP/1.1 200 OK
+X-RateLimit-Limit-Minute: 60
+X-RateLimit-Remaining-Minute: 47
+RateLimit-Reset: 23
+...</code></pre>
+
+<table>
+  <thead><tr><th>Header</th><th>Arti</th></tr></thead>
+  <tbody>
+    <tr><td><code>X-RateLimit-Limit-Minute</code></td><td>Batas total request per menit</td></tr>
+    <tr><td><code>X-RateLimit-Remaining-Minute</code></td><td>Sisa kuota dalam window berjalan</td></tr>
+    <tr><td><code>RateLimit-Reset</code></td><td>Jumlah detik sebelum window di-reset</td></tr>
+  </tbody>
+</table>
+
+<h3>Saat Limit Tercapai (HTTP 429)</h3>
+<pre><code>HTTP/1.1 429 Too Many Requests
+Retry-After: 38
+Content-Type: application/json
+
+{
+  "message": "API rate limit exceeded"
+}</code></pre>
+<p>
+  Header <code>Retry-After</code> berisi jumlah detik konsumen harus tunggu sebelum
+  mencoba lagi. Implementasikan <strong>exponential backoff</strong>:
+</p>
+<pre><code>// Pseudocode
+let backoff = 1000;  // mulai 1 detik
+while (true) {
+  const res = await fetch(url, { headers });
+  if (res.status !== 429) break;
+  const retryAfter = parseInt(res.headers.get("Retry-After")) * 1000;
+  await sleep(Math.max(retryAfter, backoff));
+  backoff = Math.min(backoff * 2, 60_000);  // cap 1 menit
+}</code></pre>
+
+<div class="tip">
+  <strong>Praktik baik untuk batch import / sync:</strong>
+  <ul>
+    <li>Pakai <code>limit=100</code> (max) untuk minimasi jumlah call.</li>
+    <li>Sleep 100-500ms antar request supaya tidak overshoot 60/menit.</li>
+    <li>Gunakan filter spesifik (mis. <code>id_thn_ajaran</code>) ketimbang fetch all.</li>
+    <li>Kalau butuh volume lebih dari default, ajukan whitelist via dev@unila.ac.id.</li>
+  </ul>
+</div>
+
+<h2>1.7 Prasyarat Konsumsi API</h2>
+<ol>
+  <li>Aplikasi konsumen telah didaftarkan oleh tim UPA TIK ke sistem manajemen akses
+      (memiliki <code>id_aplikasi</code> dan <code>app_key</code>).</li>
+  <li>Penanggung Jawab (PJ) Aplikasi sudah ditetapkan dan memiliki kredensial pengguna
+      (username + password) di sistem manajemen akses.</li>
+  <li>PJ memiliki peran <strong>Developer</strong> (id_peran = 107) di organisasi
+      Universitas Lampung. Tanpa peran ini, login akan ditolak.</li>
+  <li>PJ telah diberi otorisasi per-endpoint melalui menu <em>WS Authorization</em> di portal
+      manajemen akses (oleh administrator UPA TIK).</li>
+</ol>
+
+<div class="tip">
+  <strong>Permintaan akses:</strong> kirim email ke
+  <a href="mailto:dev@unila.ac.id">dev@unila.ac.id</a> dengan menyertakan nama aplikasi,
+  PJ aplikasi, daftar endpoint yang dibutuhkan, dan tujuan integrasi.
+</div>

@@ -1,0 +1,186 @@
+<h1>2. Cara Mendapatkan &amp; Memakai Token</h1>
+
+<p>
+  Seluruh endpoint <code>/v1/*</code> kecuali <code>/v1/auth/*</code> dan
+  <code>/v1/dashboard/ktw/*</code> (publik) memerlukan <strong>JWT Bearer Token</strong> yang
+  valid. Token didapatkan dari endpoint login dan harus disertakan pada setiap request
+  melalui header <code>Authorization</code>.
+</p>
+
+<h2>2.1 Alur Otentikasi</h2>
+
+<div class="steps">
+  <div class="step">
+    <h4>Persiapkan kredensial</h4>
+    <p>Anda butuh tiga komponen:</p>
+    <ul>
+      <li><code>id_aplikasi</code> — UUID aplikasi (dari tim UPA TIK)</li>
+      <li><code>username</code> — username PJ Aplikasi (mis. <code>app_pj</code>)</li>
+      <li><code>password</code> — password PJ Aplikasi</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h4>Kirim request login</h4>
+    <p>POST ke endpoint <code>/v1/auth/login</code> dengan body JSON:</p>
+<pre><code>POST /v1/auth/login
+Content-Type: application/json
+
+{
+  "id_aplikasi": "00000000-1111-2222-3333-444444444444",
+  "username": "app_pj",
+  "password": "RahasiaKuat!2026"
+}</code></pre>
+  </div>
+
+  <div class="step">
+    <h4>Simpan access_token dari response</h4>
+    <p>Server merespons dengan token JWT yang berlaku selama 1 jam (3600 detik):</p>
+<pre><code>{
+  "success": true,
+  "message": "Berhasil Otentikasi",
+  "data": {
+    "token_status": "Baru",
+    "token_dibuat": "2026-04-25 15:00:00",
+    "token_kadarluwasa": "2026-04-25 16:00:00",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "expires_in": 3600
+  },
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+    <p>Simpan nilai <code>access_token</code> untuk digunakan pada request selanjutnya.</p>
+  </div>
+
+  <div class="step">
+    <h4>Gunakan token di header request</h4>
+    <p>Tambahkan header <code>Authorization: Bearer &lt;access_token&gt;</code>:</p>
+<pre><code>GET /v1/referensi/agama
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+  </div>
+
+  <div class="step">
+    <h4>Refresh saat token kedaluwarsa</h4>
+    <p>
+      Jika token sudah <em>expired</em> (atau hampir expired), ulangi langkah 2 untuk login
+      kembali. Saat ini layanan tidak menyediakan endpoint <code>refresh-token</code> —
+      gunakan login ulang sebagai mekanisme perpanjangan.
+    </p>
+  </div>
+</div>
+
+<h2>2.2 Memeriksa Validitas Token</h2>
+<p>
+  Konsumen dapat memverifikasi token sebelum dipakai (mis. setelah lama idle) menggunakan
+  endpoint <code>/v1/auth/check-token</code>. Berguna untuk menentukan apakah perlu login
+  ulang atau token masih sah.
+</p>
+<pre><code>POST /v1/auth/check-token
+Content-Type: application/json
+
+{
+  "token_bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+<p>Response sukses:</p>
+<pre><code>{
+  "success": true,
+  "message": "Token valid",
+  "data": {
+    "token_status": "Aktif",
+    "token_dibuat": "2026-04-25 15:00:00",
+    "token_kadarluwasa": "2026-04-25 16:00:00",
+    "user": {
+      "id_pengguna": "99999999-8888-7777-6666-555555555555",
+      "username": "app_pj",
+      "email": "pj.aplikasi@example.com",
+      "nm_pengguna": "Nama Penanggung Jawab",
+      "id_aplikasi": "00000000-1111-2222-3333-444444444444"
+    }
+  },
+  "timestamp": "2026-04-25T15:30:00+07:00"
+}</code></pre>
+
+<h2>2.3 Memakai Bearer Token di Header</h2>
+<p>
+  Setiap permintaan ke endpoint <em>protected</em> harus mencantumkan header berikut:
+</p>
+<pre><code>Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p>Contoh dengan <code>curl</code>:</p>
+<pre><code>curl -X GET "https://my.unila.ac.id/api-service/v1/referensi/agama" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Accept: application/json"</code></pre>
+
+<p>Contoh dengan JavaScript (<code>fetch</code>):</p>
+<pre><code>const response = await fetch(
+  "https://my.unila.ac.id/api-service/v1/referensi/agama",
+  {
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Accept": "application/json",
+    },
+  }
+);
+const data = await response.json();</code></pre>
+
+<p>Contoh dengan PHP (<code>cURL</code>):</p>
+<pre><code>$ch = curl_init("https://my.unila.ac.id/api-service/v1/referensi/agama");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $accessToken,
+        "Accept: application/json",
+    ],
+]);
+$response = json_decode(curl_exec($ch), true);
+curl_close($ch);</code></pre>
+
+<h2>2.4 Penanganan Error Otentikasi</h2>
+<table>
+  <thead>
+    <tr><th>HTTP</th><th>Kondisi</th><th>Pesan tipikal</th><th>Tindakan</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>400</td>
+      <td>Validasi field</td>
+      <td>VALIDATION_ERROR — id_aplikasi/username/password kosong/format salah</td>
+      <td>Lengkapi/perbaiki field</td>
+    </tr>
+    <tr>
+      <td>401</td>
+      <td>Token tidak ada/invalid</td>
+      <td>Authentication token not provided / Invalid token</td>
+      <td>Login ulang untuk dapat token baru</td>
+    </tr>
+    <tr>
+      <td>403</td>
+      <td>Aplikasi tidak terdaftar</td>
+      <td>Gagal Otentikasi. Aplikasi tidak terdaftar</td>
+      <td>Pastikan id_aplikasi benar &amp; aktif</td>
+    </tr>
+    <tr>
+      <td>403</td>
+      <td>Tidak punya peran Developer</td>
+      <td>Akun tidak memiliki peran Developer</td>
+      <td>Hubungi UPA TIK untuk pemberian peran 107</td>
+    </tr>
+    <tr>
+      <td>403</td>
+      <td>Endpoint tidak diotorisasi</td>
+      <td>Access denied. user tidak punya otorisasi untuk &lt;METHOD&gt; &lt;PATH&gt;</td>
+      <td>Minta UPA TIK menambah grant endpoint</td>
+    </tr>
+    <tr>
+      <td>429</td>
+      <td>Rate limit</td>
+      <td>API rate limit exceeded</td>
+      <td>Tunggu &amp; turunkan kecepatan request (default 60/menit/IP)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  <strong>Penting:</strong> jangan menyimpan token di tempat publik (mis. log file, repo
+  Git, frontend statis). Token JWT memberi akses langsung ke data — perlakukan seperti
+  password. Gunakan environment variable atau secret manager.
+</div>

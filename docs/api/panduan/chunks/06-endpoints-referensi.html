@@ -1,0 +1,261 @@
+<h2>4.2 Grup Referensi (sample 8 endpoint)</h2>
+
+<p>
+  Endpoint referensi menyediakan master data yang umum dipakai sebagai dropdown / lookup di
+  aplikasi konsumen. Semua endpoint mendukung pagination standar (<code>page</code>,
+  <code>limit</code>) dan dapat di-cache di sisi konsumen karena data jarang berubah.
+</p>
+
+<!-- ===== 3. GET /v1/referensi ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi</span>
+  </div>
+  <div class="endpoint-title">Indeks daftar sub-endpoint referensi</div>
+  <p>
+    Mengembalikan ringkasan semua sub-endpoint referensi yang tersedia. Berguna untuk
+    self-discovery / introspeksi.
+  </p>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <p>Tidak ada (endpoint statis).</p>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "success": true,
+  "message": "Daftar referensi",
+  "data": [
+    { "kode": "agama",              "url": "/v1/referensi/agama" },
+    { "kode": "jenjang_pendidikan", "url": "/v1/referensi/jenjang_pendidikan" },
+    { "kode": "jurusan",            "url": "/v1/referensi/jurusan" },
+    ...
+  ],
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+</div>
+
+<!-- ===== 4. GET /v1/referensi/agama ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/agama</span>
+  </div>
+  <div class="endpoint-title">Daftar agama (master data referensi PD-DIKTI)</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>search</code></td><td>string</td><td>-</td><td>Cari di kolom <code>nm_agama</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200</div>
+<pre><code>{
+  "success": true,
+  "message": "Berhasil mengambil data agama",
+  "data": [
+    { "id_agama": 1, "nm_agama": "Islam",     "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:53" },
+    { "id_agama": 2, "nm_agama": "Kristen",   "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:53" },
+    { "id_agama": 3, "nm_agama": "Katolik",   "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:53" },
+    { "id_agama": 4, "nm_agama": "Hindu",     "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:53" },
+    { "id_agama": 5, "nm_agama": "Budha",     "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:53" },
+    { "id_agama": 6, "nm_agama": "Khonghucu", "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:54" },
+    { "id_agama": 99, "nm_agama": "Lainnya",  "waktu_ditambahkan": "2013-05-13 00:00:00", "terakhir_diubah": "2025-11-18 20:40:54" }
+  ],
+  "meta": { "page": 1, "limit": 20, "total": 7, "total_pages": 1 },
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+
+  <div class="endpoint-section-title">Field response</div>
+  <table>
+    <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_agama</code></td><td>int</td><td>PK referensi</td></tr>
+      <tr><td><code>nm_agama</code></td><td>string</td><td>Nama agama (sesuai PD-DIKTI)</td></tr>
+      <tr><td><code>waktu_ditambahkan</code></td><td>datetime</td><td>Timestamp insert</td></tr>
+      <tr><td><code>terakhir_diubah</code></td><td>datetime</td><td>Timestamp update terakhir</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== 5. GET /v1/referensi/jenjang_pendidikan ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/jenjang_pendidikan</span>
+  </div>
+  <div class="endpoint-title">Daftar jenjang pendidikan (S1, S2, S3, D3, dll)</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>search</code></td><td>string</td><td>-</td><td>Cari di <code>nm_jenj_didik</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "success": true,
+  "message": "Berhasil mengambil data jenjang pendidikan",
+  "data": [
+    { "id_jenj_didik": "20", "nm_jenj_didik": "Sarjana (S1)", "kode_jenj_didik": "S1", "tinggi_jenj_didik": 7 },
+    { "id_jenj_didik": "30", "nm_jenj_didik": "Magister (S2)", "kode_jenj_didik": "S2", "tinggi_jenj_didik": 8 },
+    { "id_jenj_didik": "40", "nm_jenj_didik": "Doktor (S3)",   "kode_jenj_didik": "S3", "tinggi_jenj_didik": 9 }
+  ],
+  "meta": { "page": 1, "limit": 20, "total": 12, "total_pages": 1 }
+}</code></pre>
+</div>
+
+<!-- ===== 6. GET /v1/referensi/jurusan ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/jurusan</span>
+  </div>
+  <div class="endpoint-title">Daftar jurusan / fakultas pendidikan</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>search</code></td><td>string</td><td>-</td><td>Cari di <code>nm_jurusan</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id_jurusan": "...", "kode_jurusan": "55-301", "nm_jurusan": "Teknik Informatika" },
+    { "id_jurusan": "...", "kode_jurusan": "61-201", "nm_jurusan": "Manajemen" }
+  ]
+}</code></pre>
+</div>
+
+<!-- ===== 7. GET /v1/referensi/negara ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/negara</span>
+  </div>
+  <div class="endpoint-title">Daftar negara (kode ISO + nama)</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>search</code></td><td>string</td><td>-</td><td>Cari di <code>nm_negara</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "data": [
+    { "id_negara": "ID", "nm_negara": "Indonesia",  "kode_negara": "IDN" },
+    { "id_negara": "MY", "nm_negara": "Malaysia",   "kode_negara": "MYS" },
+    { "id_negara": "SG", "nm_negara": "Singapura",  "kode_negara": "SGP" }
+  ]
+}</code></pre>
+</div>
+
+<!-- ===== 8. GET /v1/referensi/semester ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/semester</span>
+  </div>
+  <div class="endpoint-title">Daftar periode semester (semester ganjil/genap, tahun ajaran)</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>id_thn_ajaran</code></td><td>int</td><td>-</td><td>Filter per tahun ajaran</td></tr>
+      <tr><td><code>a_periode_aktif</code></td><td>int</td><td>-</td><td>0 = arsip, 1 = aktif</td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "data": [
+    { "id_smt": "20251", "nm_smt": "2025/2026 Ganjil", "id_thn_ajaran": 2025, "smt": 1, "a_periode_aktif": 1 },
+    { "id_smt": "20242", "nm_smt": "2024/2025 Genap",  "id_thn_ajaran": 2024, "smt": 2, "a_periode_aktif": 0 }
+  ]
+}</code></pre>
+</div>
+
+<!-- ===== 9. GET /v1/referensi/tahun_ajaran ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/tahun_ajaran</span>
+  </div>
+  <div class="endpoint-title">Daftar tahun ajaran</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>a_periode_aktif</code></td><td>int</td><td>-</td><td>0 = arsip, 1 = aktif</td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "data": [
+    { "id_thn_ajaran": 2025, "nm_thn_ajaran": "2025/2026", "a_periode_aktif": 1 },
+    { "id_thn_ajaran": 2024, "nm_thn_ajaran": "2024/2025", "a_periode_aktif": 0 }
+  ]
+}</code></pre>
+</div>
+
+<!-- ===== 10. GET /v1/referensi/wilayah ===== -->
+<div class="endpoint">
+  <div class="endpoint-head">
+    <span class="method m-GET">GET</span>
+    <span class="endpoint-path">/v1/referensi/wilayah</span>
+  </div>
+  <div class="endpoint-title">Daftar wilayah administrasi (provinsi/kota/kabupaten/kecamatan)</div>
+
+  <div class="endpoint-section-title">Query parameter</div>
+  <table>
+    <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman</td></tr>
+      <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100</td></tr>
+      <tr><td><code>search</code></td><td>string</td><td>-</td><td>Cari di <code>nm_wil</code></td></tr>
+      <tr><td><code>id_level_wil</code></td><td>int</td><td>-</td><td>1=Provinsi, 2=Kota, 3=Kecamatan</td></tr>
+      <tr><td><code>id_induk_wil</code></td><td>string</td><td>-</td><td>Kode wilayah induk (untuk drill-down)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="endpoint-section-title">Response 200 (cuplikan)</div>
+<pre><code>{
+  "data": [
+    { "id_wil": "180000", "nm_wil": "Prov. Lampung",     "id_level_wil": 1, "id_induk_wil": "000000" },
+    { "id_wil": "187100", "nm_wil": "Kota Bandar Lampung","id_level_wil": 2, "id_induk_wil": "180000" },
+    { "id_wil": "187171", "nm_wil": "Kec. Kedaton",       "id_level_wil": 3, "id_induk_wil": "187100" }
+  ],
+  "meta": { "page": 1, "limit": 20, "total": 87412, "total_pages": 4371 }
+}</code></pre>
+  <div class="tip">
+    <strong>Tip:</strong> wilayah punya banyak baris (87k+). Gunakan <code>id_level_wil</code>
+    + <code>id_induk_wil</code> untuk drill-down (provinsi → kota → kecamatan), bukan
+    fetch all di awal.
+  </div>
+</div>

@@ -1,0 +1,209 @@
+<h2>4.3 Grup Referensi — Daftar Lengkap</h2>
+
+<p>
+  Selain 8 endpoint sample yang sudah didokumentasikan dengan detail di sub-bab sebelumnya,
+  Web Service myUnila menyediakan total <strong>93 endpoint referensi GET</strong>. Sebagian
+  besar mengikuti pola request/response yang serupa, jadi cukup pahami pola umum kemudian
+  panggil endpoint sesuai kebutuhan.
+</p>
+
+<h3>Pola Standar Endpoint Referensi</h3>
+<p>Semua endpoint referensi GET mengikuti pola berikut:</p>
+<pre><code>GET /v1/referensi/{kode}?page=1&amp;limit=20&amp;search=&lt;kata&gt;
+Authorization: Bearer &lt;jwt&gt;</code></pre>
+
+<table>
+  <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Keterangan</th></tr></thead>
+  <tbody>
+    <tr><td><code>page</code></td><td>int</td><td>1</td><td>Halaman ke-N</td></tr>
+    <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Maks 100 per halaman</td></tr>
+    <tr><td><code>search</code></td><td>string</td><td>-</td><td>LIKE-search di kolom nama utama (case-insensitive)</td></tr>
+    <tr><td><code>sort_by</code></td><td>string</td><td>varies</td><td>Kolom sort (umumnya kolom <code>nm_*</code> atau ID)</td></tr>
+    <tr><td><code>sort_order</code></td><td>string</td><td>asc</td><td><code>asc</code> | <code>desc</code></td></tr>
+  </tbody>
+</table>
+
+<p>Format response:</p>
+<pre><code>{
+  "success": true,
+  "message": "Berhasil mengambil data {kode}",
+  "data": [ /* array of objects */ ],
+  "meta": { "page": 1, "limit": 20, "total": N, "total_pages": M },
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+
+<div class="tip">
+  <strong>Tip caching:</strong> data referensi jarang berubah. Konsumen disarankan
+  cache result minimum 6-24 jam supaya tidak boros rate-limit. Pakai HTTP cache key
+  <code>{kode}+limit+page</code>.
+</div>
+
+<h3>Daftar 85 Endpoint Referensi Lainnya</h3>
+<p>
+  Tabel berikut mencantumkan semua endpoint referensi yang BELUM didokumentasikan detail
+  di sub-bab sebelumnya. Path lengkap: <code>GET /v1/referensi/{kode}</code>. Klasifikasi
+  domain memudahkan eksplorasi.
+</p>
+
+<h4>Akademik &amp; Pendidikan</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>bentuk_pendidikan</code></td><td>Bentuk pendidikan (Universitas, Institut, Sekolah Tinggi, dll)</td></tr>
+    <tr><td><code>bidang_studi</code></td><td>Bidang studi PD-DIKTI (kode + nama)</td></tr>
+    <tr><td><code>gelar_akademik</code></td><td>Daftar gelar akademik (S.Kom., M.T., Ph.D., dll)</td></tr>
+    <tr><td><code>jenis_mk</code></td><td>Jenis mata kuliah (Wajib, Pilihan, MKDU, dst)</td></tr>
+    <tr><td><code>jenis_pendaftaran</code></td><td>Jenis pendaftaran mahasiswa baru</td></tr>
+    <tr><td><code>jenis_substansi</code> (jenis_subst)</td><td>Substansi mata kuliah</td></tr>
+    <tr><td><code>jalur_daftar</code></td><td>Jalur masuk mahasiswa (SNBP/SNBT/Mandiri/dll)</td></tr>
+    <tr><td><code>kelompok_mk</code></td><td>Kelompok mata kuliah (kurikulum)</td></tr>
+    <tr><td><code>kategori_capaian_luaran</code></td><td>Kategori capaian luaran pendidikan</td></tr>
+  </tbody>
+</table>
+
+<h4>Mahasiswa &amp; Aktivitas</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_akt_mhs</code></td><td>Jenis aktivitas mahasiswa (Skripsi/Tesis/Disertasi/dll)</td></tr>
+    <tr><td><code>jenis_beasiswa</code></td><td>Jenis beasiswa</td></tr>
+    <tr><td><code>jenis_keluar</code></td><td>Jenis keluar mahasiswa (Lulus/DO/PindahPT/dll)</td></tr>
+    <tr><td><code>jenis_tes</code></td><td>Jenis tes (UAS/UTS/Tugas/dll)</td></tr>
+    <tr><td><code>jenis_evaluasi</code></td><td>Jenis evaluasi prestasi mahasiswa</td></tr>
+    <tr><td><code>basis_evaluasi</code></td><td>Basis evaluasi (semester/tahunan/akhir studi)</td></tr>
+    <tr><td><code>kebutuhan_khusus</code></td><td>Daftar kebutuhan khusus (untuk mahasiswa difabel)</td></tr>
+    <tr><td><code>status_mahasiswa</code></td><td>Status mahasiswa (Aktif/Cuti/Lulus/Mengundurkan diri)</td></tr>
+    <tr><td><code>status_anak</code></td><td>Status anak (orang tua/wali)</td></tr>
+    <tr><td><code>tingkat_prestasi</code></td><td>Tingkat prestasi (Lokal/Nasional/Internasional)</td></tr>
+    <tr><td><code>tingkat_penghargaan</code></td><td>Tingkat penghargaan</td></tr>
+    <tr><td><code>tingkat_kerjasama</code></td><td>Tingkat kerjasama</td></tr>
+    <tr><td><code>jenis_prestasi</code></td><td>Jenis prestasi (Akademik/Non-akademik)</td></tr>
+    <tr><td><code>jenis_penghargaan</code></td><td>Jenis penghargaan</td></tr>
+    <tr><td><code>jenis_kepanitiaan</code></td><td>Jenis kepanitiaan</td></tr>
+  </tbody>
+</table>
+
+<h4>SDM &amp; Kepegawaian</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_sdm</code></td><td>Jenis SDM (Dosen/Tenaga Kependidikan/Profesional)</td></tr>
+    <tr><td><code>ikatan_kerja_sdm</code></td><td>Ikatan kerja (PNS/Tetap Yayasan/Tidak Tetap/dll)</td></tr>
+    <tr><td><code>jab_tgs</code></td><td>Jabatan tugas tambahan</td></tr>
+    <tr><td><code>jabfung</code></td><td>Jabatan fungsional dosen (Asisten Ahli/Lektor/Lektor Kepala/Profesor)</td></tr>
+    <tr><td><code>pangkat_golongan</code></td><td>Pangkat &amp; golongan PNS (III/a, IV/b, dst)</td></tr>
+    <tr><td><code>pekerjaan</code></td><td>Daftar pekerjaan (untuk profil orang tua, alumni)</td></tr>
+    <tr><td><code>bidang_pekerjaan</code></td><td>Bidang pekerjaan</td></tr>
+    <tr><td><code>jenis_jalur_pekerjaan</code></td><td>Jalur pekerjaan</td></tr>
+    <tr><td><code>jenis_kesejahteraan</code></td><td>Jenis tunjangan kesejahteraan</td></tr>
+    <tr><td><code>jenis_tunjangan</code></td><td>Jenis tunjangan</td></tr>
+    <tr><td><code>jenis_diklat</code></td><td>Jenis diklat &amp; pelatihan</td></tr>
+    <tr><td><code>jenis_sert</code></td><td>Jenis sertifikat</td></tr>
+    <tr><td><code>kelompok_profesi</code></td><td>Kelompok profesi</td></tr>
+    <tr><td><code>lembaga_pengangkat</code></td><td>Lembaga pengangkatan SDM</td></tr>
+    <tr><td><code>lembaga_sertifikasi</code></td><td>Lembaga sertifikasi profesi</td></tr>
+    <tr><td><code>status_kepegawaian</code></td><td>Status kepegawaian</td></tr>
+    <tr><td><code>status_keaktifan_pegawai</code></td><td>Status keaktifan pegawai</td></tr>
+    <tr><td><code>peta_katgiat_jabfung</code></td><td>Peta kategori kegiatan ↔ jabfung</td></tr>
+  </tbody>
+</table>
+
+<h4>Penelitian &amp; Publikasi</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_penelitian</code></td><td>Jenis penelitian (Mandiri/Kelompok/Hibah/Eksternal)</td></tr>
+    <tr><td><code>jenis_publikasi</code></td><td>Jenis publikasi (Jurnal/Prosiding/Buku/dll)</td></tr>
+    <tr><td><code>media_publikasi</code></td><td>Media publikasi</td></tr>
+    <tr><td><code>jenis_media_pub</code></td><td>Jenis media publikasi (cetak/online/dll)</td></tr>
+    <tr><td><code>peta_katgiat_jnspub</code></td><td>Peta kategori kegiatan ↔ jenis publikasi</td></tr>
+    <tr><td><code>kategori_kegiatan</code></td><td>Kategori kegiatan tridarma</td></tr>
+    <tr><td><code>kategori_tabel</code></td><td>Kategori tabel referensi</td></tr>
+    <tr><td><code>skim_kegiatan</code></td><td>Skim kegiatan penelitian/PKM</td></tr>
+    <tr><td><code>jenis_dokumen</code></td><td>Jenis dokumen (Sertifikat/SK/Surat/dll)</td></tr>
+    <tr><td><code>peta_katgiat_jnsdok</code></td><td>Peta kategori kegiatan ↔ jenis dokumen</td></tr>
+    <tr><td><code>jenis_bahan_ajar</code></td><td>Jenis bahan ajar (Modul/Diktat/Buku Ajar/dll)</td></tr>
+  </tbody>
+</table>
+
+<h4>Sarana, Lab, &amp; Aset</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_sarana</code></td><td>Jenis sarana</td></tr>
+    <tr><td><code>jenis_prasarana</code></td><td>Jenis prasarana</td></tr>
+    <tr><td><code>jenis_unit</code></td><td>Jenis unit organisasi</td></tr>
+    <tr><td><code>jenis_lembaga</code></td><td>Jenis lembaga</td></tr>
+    <tr><td><code>jenis_hapus_buku</code></td><td>Jenis penghapusan buku/aset</td></tr>
+    <tr><td><code>fungsi_lab</code></td><td>Fungsi laboratorium</td></tr>
+    <tr><td><code>keahlian_lab</code></td><td>Keahlian laboratorium</td></tr>
+    <tr><td><code>status_kepemilikan</code></td><td>Status kepemilikan aset</td></tr>
+    <tr><td><code>status_milik_sarpras</code></td><td>Status milik sarana/prasarana</td></tr>
+    <tr><td><code>satuan</code></td><td>Satuan ukuran (kg, m, liter, dll)</td></tr>
+    <tr><td><code>sumber_air</code></td><td>Sumber air</td></tr>
+    <tr><td><code>sumber_listrik</code></td><td>Sumber listrik</td></tr>
+  </tbody>
+</table>
+
+<h4>Keuangan</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_keuangan</code></td><td>Jenis transaksi keuangan</td></tr>
+    <tr><td><code>sumber_dana</code></td><td>Sumber dana (APBN/PNBP/Hibah/dll)</td></tr>
+    <tr><td><code>sumber_gaji</code></td><td>Sumber gaji</td></tr>
+    <tr><td><code>pembiayaan</code></td><td>Skema pembiayaan</td></tr>
+    <tr><td><code>penghasilan</code></td><td>Range penghasilan (untuk profil sosioekonomi mahasiswa)</td></tr>
+    <tr><td><code>tahun_anggaran</code></td><td>Tahun anggaran</td></tr>
+  </tbody>
+</table>
+
+<h4>Kerjasama &amp; Mitra</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>aktifitas_kerjasama</code></td><td>Aktivitas kerjasama (Riset/PKM/MoU/dll)</td></tr>
+    <tr><td><code>bentuk_kegiatan_kerjasama</code></td><td>Bentuk kegiatan kerjasama</td></tr>
+    <tr><td><code>bidang_kerjasama</code></td><td>Bidang kerjasama</td></tr>
+    <tr><td><code>kriteria_mitra</code></td><td>Kriteria mitra kerjasama</td></tr>
+    <tr><td><code>status_kerjasama</code></td><td>Status kerjasama (Aktif/Selesai/Dibatalkan)</td></tr>
+    <tr><td><code>kbli</code></td><td>Klasifikasi Baku Lapangan Usaha Indonesia</td></tr>
+    <tr><td><code>kelompok_usaha</code></td><td>Kelompok usaha (UMKM/Korporasi/BUMN/dll)</td></tr>
+    <tr><td><code>kelompok_bidang</code></td><td>Kelompok bidang</td></tr>
+    <tr><td><code>bidang_usaha</code></td><td>Bidang usaha</td></tr>
+  </tbody>
+</table>
+
+<h4>Akreditasi &amp; Mutu</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>lembaga_akred</code></td><td>Lembaga akreditasi (BAN-PT/LAM/dll)</td></tr>
+    <tr><td><code>nilai_akred</code></td><td>Nilai akreditasi (A/B/C/Unggul/Baik Sekali/dll)</td></tr>
+    <tr><td><code>tse</code></td><td>Tingkat Standar Pendidikan</td></tr>
+  </tbody>
+</table>
+
+<h4>Wilayah</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>level_wilayah</code></td><td>Level wilayah (Provinsi/Kabupaten/Kecamatan/Kelurahan)</td></tr>
+    <tr><td><code>jenis_tinggal</code></td><td>Jenis tempat tinggal mahasiswa</td></tr>
+  </tbody>
+</table>
+
+<h4>Lainnya / Klasifikasi</h4>
+<table>
+  <thead><tr><th style="width:55mm">Kode endpoint</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>jenis_sms</code></td><td>Jenis Satuan Manajemen Sumberdaya (PT/Fakultas/Prodi/dll)</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Catatan endpoint write:</strong> referensi juga punya endpoint POST/PUT/DELETE/PATCH
+  untuk admin manajemen master data. Endpoint write tersebut tidak didokumentasikan di
+  panduan ini karena hanya untuk internal UPA TIK — konsumen aplikasi mitra bersifat
+  read-only di referensi.
+</div>

@@ -1,0 +1,114 @@
+<h1>3. Format Standar Request &amp; Response</h1>
+
+<h2>3.1 Format Response Sukses</h2>
+<p>Seluruh endpoint mengembalikan struktur standar berikut saat sukses:</p>
+<pre><code>{
+  "success": true,
+  "message": "Berhasil mengambil data agama",
+  "data": [ ... ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 8,
+    "total_pages": 1
+  },
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+
+<table>
+  <thead><tr><th>Field</th><th>Tipe</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>success</code></td><td>boolean</td><td>Selalu <code>true</code> untuk respon sukses</td></tr>
+    <tr><td><code>message</code></td><td>string</td><td>Pesan deskriptif (Bahasa Indonesia)</td></tr>
+    <tr><td><code>data</code></td><td>array / object / null</td><td>Payload aktual — array untuk list, object untuk detail</td></tr>
+    <tr><td><code>meta</code></td><td>object (opsional)</td><td>Metadata pagination, hanya muncul pada endpoint list</td></tr>
+    <tr><td><code>timestamp</code></td><td>string (ISO 8601)</td><td>Waktu server saat respon dibuat (zona Asia/Jakarta)</td></tr>
+  </tbody>
+</table>
+
+<h2>3.2 Format Response Error</h2>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "details": {
+      "id_aplikasi": "ID Aplikasi harus diisi",
+      "username": "Username harus diisi"
+    }
+  },
+  "timestamp": "2026-04-25T15:00:00+07:00"
+}</code></pre>
+
+<table>
+  <thead><tr><th>Field</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>success</code></td><td>Selalu <code>false</code></td></tr>
+    <tr><td><code>message</code></td><td>Ringkasan error (manusiawi)</td></tr>
+    <tr><td><code>error.code</code></td><td>Kode error mesin (lihat tabel di bawah)</td></tr>
+    <tr><td><code>error.details</code></td><td>Field-level errors (opsional, hanya untuk validation)</td></tr>
+  </tbody>
+</table>
+
+<h3>Kode Error Standar</h3>
+<table>
+  <thead><tr><th>Code</th><th>HTTP</th><th>Arti</th></tr></thead>
+  <tbody>
+    <tr><td><code>VALIDATION_ERROR</code></td><td>400</td><td>Field input tidak valid</td></tr>
+    <tr><td><code>UNAUTHORIZED</code></td><td>401</td><td>Token tidak ada/expired/invalid</td></tr>
+    <tr><td><code>FORBIDDEN</code></td><td>403</td><td>Tidak punya hak akses (peran/grant kurang)</td></tr>
+    <tr><td><code>NOT_FOUND</code></td><td>404</td><td>Resource yang diminta tidak ditemukan</td></tr>
+    <tr><td><code>CONFLICT</code></td><td>409</td><td>Data sudah ada (duplikat unique)</td></tr>
+    <tr><td><code>RATE_LIMIT</code></td><td>429</td><td>Terlalu banyak request (60/menit/IP)</td></tr>
+    <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Kesalahan server, hubungi tim</td></tr>
+  </tbody>
+</table>
+
+<h2>3.3 Konvensi Pagination &amp; Filter</h2>
+<p>
+  Endpoint <em>list</em> mendukung query parameter standar untuk pagination, filter, dan
+  sorting:
+</p>
+<table>
+  <thead><tr><th>Param</th><th>Tipe</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td><code>page</code></td><td>integer</td><td><code>1</code></td><td>Halaman ke- (mulai 1)</td></tr>
+    <tr><td><code>limit</code></td><td>integer</td><td><code>20</code></td><td>Jumlah baris per halaman (max 100)</td></tr>
+    <tr><td><code>search</code></td><td>string</td><td>-</td><td>Pencarian di kolom-kolom umum (LIKE)</td></tr>
+    <tr><td><code>sort_by</code></td><td>string</td><td>varies</td><td>Nama kolom untuk pengurutan</td></tr>
+    <tr><td><code>sort_order</code></td><td>string</td><td><code>desc</code></td><td><code>asc</code> atau <code>desc</code></td></tr>
+  </tbody>
+</table>
+
+<p>Contoh: ambil halaman 2 (limit 50) dari list mahasiswa, urutkan nama A→Z:</p>
+<pre><code>GET /v1/mahasiswa/list_mahasiswa?page=2&amp;limit=50&amp;sort_by=nm_pd&amp;sort_order=asc</code></pre>
+
+<h3>Filter Khusus per Endpoint</h3>
+<p>
+  Selain param standar, banyak endpoint punya filter spesifik (mis. <code>id_sms</code>,
+  <code>angkatan</code>, <code>tahun_ajaran</code>). Lihat dokumentasi tiap endpoint pada
+  Bab 4 untuk daftar lengkap.
+</p>
+
+<h2>3.4 HTTP Status Code &amp; Method Usage</h2>
+<table>
+  <thead><tr><th>Method</th><th>Kegunaan</th><th>Status sukses</th></tr></thead>
+  <tbody>
+    <tr><td><code>GET</code></td><td>Baca data (list / detail)</td><td>200</td></tr>
+    <tr><td><code>POST</code></td><td>Buat resource baru</td><td>201</td></tr>
+    <tr><td><code>PUT</code></td><td>Update resource (replace)</td><td>200</td></tr>
+    <tr><td><code>PATCH</code></td><td>Update sebagian field</td><td>200</td></tr>
+    <tr><td><code>DELETE</code></td><td>Hapus (soft-delete)</td><td>200</td></tr>
+  </tbody>
+</table>
+
+<h2>3.5 Header yang Wajib / Direkomendasikan</h2>
+<table>
+  <thead><tr><th>Header</th><th>Wajib</th><th>Contoh</th></tr></thead>
+  <tbody>
+    <tr><td><code>Authorization</code></td><td>Ya (kecuali public)</td><td><code>Bearer eyJhbGc...</code></td></tr>
+    <tr><td><code>Content-Type</code></td><td>Ya (untuk POST/PUT/PATCH)</td><td><code>application/json</code></td></tr>
+    <tr><td><code>Accept</code></td><td>Direkomendasikan</td><td><code>application/json</code></td></tr>
+    <tr><td><code>X-Request-ID</code></td><td>Direkomendasikan</td><td>UUID untuk trace di log server</td></tr>
+  </tbody>
+</table>

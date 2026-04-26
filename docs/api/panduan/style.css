@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Panduan Web Service API myUnila — print stylesheet
+   Target: A4 portrait, weasyprint
+   ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 22mm 18mm 24mm 18mm;
+  @top-left {
+    content: "Panduan Web Service API myUnila";
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+  @top-right {
+    content: "UPA TIK · Universitas Lampung";
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+  @bottom-center {
+    content: "Halaman " counter(page) " / " counter(pages);
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+}
+
+/* Cover page tidak punya header/footer */
+@page :first {
+  margin: 0;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-center { content: none; }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  font-family: 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.55;
+  color: #1f2937;
+}
+
+/* ----- Cover (simple, plain text) ----- */
+.cover-simple {
+  page-break-after: always;
+  text-align: center;
+  padding: 80mm 20mm 0;
+  color: #1f2937;
+}
+.cover-mark {
+  font-size: 14pt;
+  font-weight: 700;
+  letter-spacing: 4pt;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  margin-bottom: 14mm;
+}
+.cover-title {
+  font-size: 28pt;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 6mm;
+  line-height: 1.15;
+  border: none !important;
+  padding: 0 !important;
+  page-break-before: auto !important;
+}
+.cover-sub {
+  font-size: 12pt;
+  color: #4b5563;
+  font-weight: 400;
+  margin: 0 0 16mm;
+  line-height: 1.5;
+}
+.cover-rule {
+  width: 40mm;
+  border: none;
+  border-top: 0.4pt solid #4f46e5;
+  margin: 6mm auto 16mm;
+}
+.cover-meta {
+  font-size: 10pt;
+  color: #4b5563;
+  line-height: 1.7;
+}
+.cover-meta strong { color: #1f2937; font-weight: 600; }
+
+/* ----- Headings ----- */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  color: #1e3a8a;
+  page-break-after: avoid;
+}
+h1 {
+  font-size: 22pt;
+  margin: 0 0 8mm;
+  padding-bottom: 3mm;
+  border-bottom: 2pt solid #1e3a8a;
+  page-break-before: always;
+}
+h1:first-of-type { page-break-before: auto; }
+h2 {
+  font-size: 14pt;
+  margin: 8mm 0 3mm;
+  color: #1e40af;
+}
+h3 {
+  font-size: 11.5pt;
+  margin: 6mm 0 2.5mm;
+  color: #312e81;
+}
+h4 {
+  font-size: 10.5pt;
+  margin: 4mm 0 2mm;
+  color: #4c1d95;
+}
+
+p { margin: 0 0 3mm; text-align: justify; }
+ul, ol { margin: 0 0 4mm 6mm; padding: 0; }
+li { margin-bottom: 1.2mm; }
+strong { font-weight: 600; color: #111827; }
+
+/* ----- Code & inline ----- */
+code, pre, .mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+code {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 0.5mm 1.5mm;
+  border-radius: 1mm;
+  font-size: 9pt;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 4mm 5mm;
+  border-radius: 2mm;
+  font-size: 8.5pt;
+  line-height: 1.45;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 3mm 0;
+  page-break-inside: avoid;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ----- Boxes / callouts ----- */
+.note, .warn, .tip, .danger {
+  border-left: 1mm solid;
+  padding: 3mm 4mm;
+  margin: 4mm 0;
+  border-radius: 0 1.5mm 1.5mm 0;
+  page-break-inside: avoid;
+}
+.note    { background: #eff6ff; border-color: #2563eb; color: #1e3a8a; }
+.tip     { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+.warn    { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+.danger  { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+.note strong, .tip strong, .warn strong, .danger strong { color: inherit; }
+
+/* ----- Tables ----- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 3mm 0 5mm;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 0.3pt solid #e5e7eb;
+  padding: 2mm 2.5mm;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: #eef2ff;
+  color: #312e81;
+  font-weight: 600;
+  font-size: 9pt;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+}
+tr:nth-child(even) td { background: #f9fafb; }
+table code { font-size: 8.5pt; }
+
+/* ----- Endpoint card ----- */
+.endpoint {
+  margin: 5mm 0 7mm;
+  page-break-inside: avoid;
+}
+.endpoint-head {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  background: linear-gradient(90deg, #eef2ff, #f5f3ff);
+  border-left: 1.2mm solid #4f46e5;
+  padding: 3mm 4mm;
+  border-radius: 0 1.5mm 1.5mm 0;
+  margin-bottom: 3mm;
+}
+.method {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 9pt;
+  padding: 1mm 3mm;
+  border-radius: 1.5mm;
+  letter-spacing: 0.4pt;
+  min-width: 16mm;
+  text-align: center;
+}
+.m-GET    { background: #d1fae5; color: #064e3b; }
+.m-POST   { background: #dbeafe; color: #1e3a8a; }
+.m-PUT    { background: #fef3c7; color: #78350f; }
+.m-DELETE { background: #fee2e2; color: #7f1d1d; }
+.m-PATCH  { background: #e0e7ff; color: #312e81; }
+.endpoint-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10pt;
+  color: #1e293b;
+  font-weight: 500;
+  flex: 1;
+}
+.endpoint-title {
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 2mm;
+}
+.endpoint-section-title {
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: #4f46e5;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+  margin: 4mm 0 1.5mm;
+}
+
+/* ----- Auth flow steps ----- */
+.steps {
+  counter-reset: step;
+  margin: 4mm 0;
+}
+.step {
+  position: relative;
+  padding-left: 12mm;
+  margin-bottom: 4mm;
+  page-break-inside: avoid;
+}
+.step::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8mm;
+  height: 8mm;
+  background: #1e3a8a;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 9pt;
+}
+.step h4 { margin-top: 0; }
+
+/* ----- Misc ----- */
+hr {
+  border: none;
+  border-top: 0.3pt solid #d1d5db;
+  margin: 5mm 0;
+}
+a { color: #2563eb; text-decoration: none; }
+.muted { color: #6b7280; }
+.kbd {
+  font-family: 'JetBrains Mono', monospace;
+  background: #1f2937;
+  color: white;
+  padding: 0.5mm 2mm;
+  border-radius: 1mm;
+  font-size: 8.5pt;
+}
+
+/* TOC */
+.toc { page-break-after: always; }
+.toc ol { list-style: none; counter-reset: toc; padding-left: 0; margin-left: 0; }
+.toc ol li {
+  counter-increment: toc;
+  padding: 1.5mm 0;
+  border-bottom: 0.3pt dotted #e5e7eb;
+}
+.toc ol li::before {
+  content: counter(toc, decimal-leading-zero) ". ";
+  font-weight: 700;
+  color: #4f46e5;
+  margin-right: 2mm;
+}
+.toc ol li.subitem {
+  padding-left: 8mm;
+  font-size: 9.5pt;
+  color: #4b5563;
+}
+.toc ol li.subitem::before { content: "→ "; color: #94a3b8; }

@@ -1,0 +1,91 @@
+<h1>5. Penutup &amp; Kontak</h1>
+
+<h2>5.1 Catatan Kerahasiaan Kredensial</h2>
+<div class="danger">
+  <strong>RAHASIA — TIDAK UNTUK DISEBARLUASKAN.</strong>
+  Kredensial otentikasi (id_aplikasi, username, password, JWT token) yang diberikan oleh
+  UPA TIK <strong>hanya boleh digunakan oleh PJ Aplikasi yang berwenang</strong>.
+  Penggandaan, penyebaran, atau penggunaan oleh pihak yang tidak berwenang merupakan
+  pelanggaran kebijakan keamanan informasi UPA TIK Universitas Lampung dan dapat
+  berakibat pencabutan akses serta sanksi sesuai peraturan yang berlaku.
+</div>
+
+<h3>Praktik Keamanan yang Direkomendasikan</h3>
+<ul>
+  <li>
+    <strong>Jangan</strong> menyimpan password atau token di repositori Git, file log,
+    atau frontend yang dapat diakses publik. Pakai environment variable atau secret
+    manager (HashiCorp Vault, AWS Secrets Manager, dll.).
+  </li>
+  <li>
+    Rotasi password PJ secara berkala (rekomendasi: tiap 90 hari) atau saat ada
+    indikasi kebocoran.
+  </li>
+  <li>
+    Selalu pakai HTTPS saat memanggil URL produksi. Hindari mendebug request di
+    proxy publik (mis. webhook.site) yang akan menyimpan body request termasuk token.
+  </li>
+  <li>
+    Catat <code>jti</code> (JWT ID) token untuk keperluan audit. Server menyimpan log
+    setiap akses melalui sistem logging terpusat.
+  </li>
+  <li>
+    Saat aplikasi konsumen di-decommission, kabari UPA TIK supaya akses
+    di-non-aktifkan di sistem manajemen akses.
+  </li>
+</ul>
+
+<h2>5.2 SLA &amp; Rate Limiting</h2>
+<table>
+  <thead><tr><th>Aspek</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>Rate limit per IP</td><td>60 request/menit (default Kong rate-limit)</td></tr>
+    <tr><td>Timeout request</td><td>30 detik (server-side); konsumen disarankan set client timeout 60 detik</td></tr>
+    <tr><td>Maintenance window</td><td>Setiap Sabtu 00:00–04:00 WIB (announce di mailing list)</td></tr>
+    <tr><td>Uptime target</td><td>99.5% (di luar window maintenance)</td></tr>
+  </tbody>
+</table>
+
+<h2>5.3 Request Endpoint, Pertanyaan, atau Masukan</h2>
+<p>
+  Untuk permintaan endpoint baru, bug report, peningkatan kuota, atau pertanyaan teknis
+  apa pun, kirim email ke:
+</p>
+
+<div class="note" style="text-align: center; font-size: 12pt; padding: 6mm;">
+  <strong>📧 dev@unila.ac.id</strong>
+</div>
+
+<p>Sertakan informasi berikut agar permintaan dapat diproses lebih cepat:</p>
+<ul>
+  <li><strong>Nama aplikasi konsumen</strong> + <code>id_aplikasi</code> (kalau sudah punya)</li>
+  <li><strong>Nama PJ Aplikasi</strong> + username</li>
+  <li><strong>Endpoint yang dimaksud</strong> (METHOD + PATH + grup)</li>
+  <li><strong>Tujuan penggunaan</strong> (mis. import data wisuda untuk SIAK)</li>
+  <li><strong>Estimasi volume request</strong> per hari (untuk planning kapasitas)</li>
+  <li>Untuk bug report: ID request (header <code>X-Request-ID</code>) + timestamp + payload reproduksi</li>
+</ul>
+
+<h2>5.4 Sumber Dokumentasi Lain</h2>
+<ul>
+  <li>
+    <strong>Scalar API Reference</strong> (interaktif, untuk eksplorasi):
+    <a href="https://my.unila.ac.id/api-service/docs">my.unila.ac.id/api-service/docs</a>
+  </li>
+  <li>
+    <strong>OpenAPI 3.0 spec</strong>:
+    <a href="https://my.unila.ac.id/api-service/docs/openapi.yaml">/docs/openapi.yaml</a>
+    (untuk import ke Postman / generate SDK)
+  </li>
+  <li>
+    <strong>Status &amp; pengumuman</strong>: dashboard monitoring internal Unila
+  </li>
+</ul>
+
+<hr/>
+
+<p style="text-align: center; color: #6b7280; font-size: 9pt; margin-top: 8mm;">
+  <strong>myUnila</strong> · UPA TIK · Universitas Lampung<br/>
+  Dokumen ini disusun oleh tim pengembang myUnila. Versi cetak: April 2026.<br/>
+  Hak Cipta © 2026 Universitas Lampung. Untuk penggunaan internal &amp; mitra resmi saja.
+</p>
