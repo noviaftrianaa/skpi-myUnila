@@ -48,6 +48,13 @@
       "icon": "heroicons:clock",
       "urutan": 6,
       "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Analytics Pimpinan",
+      "nm_file": "/dashboard/si-prestasi/analytics",
+      "icon": "heroicons:chart-bar",
+      "urutan": 7,
+      "roles": [1, 107]
     }
   ]
 }

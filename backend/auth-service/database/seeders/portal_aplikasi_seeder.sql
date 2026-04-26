@@ -393,7 +393,7 @@ EXEC sp_executesql N'
         PRINT ''  ~ '' + @nm;
     END',
 N'@nm NVARCHAR(255), @ket NVARCHAR(500), @url NVARCHAR(500), @icon_name NVARCHAR(100), @icon_color NVARCHAR(50), @kategori UNIQUEIDENTIFIER, @org UNIQUEIDENTIFIER, @slug NVARCHAR(100), @urutan INT, @terintegrasi BIT, @coming_soon BIT',
-@nm = 'SI Prestasi', @ket = 'Sistem Informasi Prestasi', @url = '#', @icon_name = 'heroicons:trophy', @icon_color = 'text-yellow-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'si-prestasi', @urutan = 1, @terintegrasi = 0, @coming_soon = 1;
+@nm = 'SI Prestasi', @ket = 'Sistem Informasi Prestasi Mahasiswa — integrasi SIMKATMAWA', @url = '/dashboard/si-prestasi', @icon_name = 'heroicons:trophy', @icon_color = 'text-yellow-600', @kategori = @kat_kemahasiswaan, @org = @ORG_SEMUA_UNIT, @slug = 'si-prestasi', @urutan = 1, @terintegrasi = 1, @coming_soon = 0;
 
 EXEC sp_executesql N'
     IF NOT EXISTS (SELECT 1 FROM man_akses.aplikasi WHERE LOWER(nm_aplikasi) = LOWER(@nm) AND url = @url)
