@@ -124,6 +124,16 @@ paths:
   /v1/dashboard/ktw/presets:
     $ref: './paths/dashboard.yaml#/ktw-presets'
 
+  # KTW Raw (PROTECTED — JWT + ws_authorization required)
+  /v1/dashboard/ktw/raw/per-fakultas:
+    $ref: './paths/dashboard.yaml#/ktw-raw-per-fakultas'
+  /v1/dashboard/ktw/raw/per-prodi:
+    $ref: './paths/dashboard.yaml#/ktw-raw-per-prodi'
+  /v1/dashboard/ktw/raw/per-jenjang:
+    $ref: './paths/dashboard.yaml#/ktw-raw-per-jenjang'
+  /v1/dashboard/ktw/raw/mahasiswa:
+    $ref: './paths/dashboard.yaml#/ktw-raw-mahasiswa'
+
   # ==========================================================================
   # AUTH
   # ==========================================================================

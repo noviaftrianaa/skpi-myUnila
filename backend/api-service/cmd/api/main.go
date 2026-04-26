@@ -17,6 +17,7 @@ import (
 	"github.com/myunila/api-service/apps/akademik"
 	"github.com/myunila/api-service/apps/auth"
 	"github.com/myunila/api-service/apps/dashboard"
+	"github.com/myunila/api-service/apps/dashboard/ktw_raw"
 	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/institusi"
 	"github.com/myunila/api-service/apps/kerjasama"
@@ -272,6 +273,13 @@ func main() {
 	// Proxy ke service domain masing-masing (KTW → public-service).
 	dashboard.RegisterRoutes(apiV1, redis.Client)
 	log.Println("✅ Dashboard module initialized (ktw proxy)")
+
+	// KTW Raw module — endpoint /v1/dashboard/ktw/raw/* untuk aplikasi client.
+	// Direct DB query (bukan proxy), formula identik public-service KtwRepository
+	// (definisi strict PDDIKTI). Mounted PROTECTED — wajib JWT + ws_authorization.
+	ktwRawGroup := apiV1.Group("/dashboard/ktw", protectedMiddlewares...)
+	ktwraw.RegisterRoutes(ktwRawGroup, db)
+	log.Println("✅ KTW Raw module initialized (4 endpoint, formula strict PDDIKTI)")
 
 	// System routes (for endpoint management - self-report all registered routes)
 	app.Get("/system/routes", func(c *fiber.Ctx) error {

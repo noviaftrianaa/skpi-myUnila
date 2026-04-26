@@ -333,3 +333,164 @@ ktw-presets:
     responses:
       '200':
         description: OK
+
+# =============================================================================
+# KTW RAW — direct query (PROTECTED, JWT + ws_authorization required)
+# Diperuntukkan aplikasi client yang butuh raw data per fakultas/prodi/jenjang
+# atau row-level mahasiswa dengan status KTW computed.
+# Formula identik public-service (definisi strict PDDIKTI).
+# =============================================================================
+
+# ----------------------------------------------------------------------------
+# KTW Raw — Per Fakultas
+# ----------------------------------------------------------------------------
+ktw-raw-per-fakultas:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: KTW per fakultas (raw)
+    description: |
+      Agregat KTW per fakultas untuk 1 cohort + jenjang. Mengembalikan baris
+      dengan: maba, sudah_lulus, ktw_strict, masih_aktif, keluar_non_lulus,
+      pct_ktw_strict, pct_sudah_lulus.
+
+      **Memerlukan JWT** + per-user grant via `ws_authorization`.
+    operationId: getKtwRawPerFakultas
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date, example: '2026-04-26' }
+    responses:
+      '200':
+        description: OK
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+      '403': { $ref: '../responses/errors.yaml#/Forbidden' }
+
+# ----------------------------------------------------------------------------
+# KTW Raw — Per Prodi
+# ----------------------------------------------------------------------------
+ktw-raw-per-prodi:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: KTW per prodi (raw)
+    description: |
+      Agregat KTW per program studi. Filter opsional `id_fakultas` untuk
+      drill-down ke 1 fakultas.
+    operationId: getKtwRawPerProdi
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        schema: { type: string, enum: [D3, D4, S1, S2, S3], default: S1 }
+      - name: id_fakultas
+        in: query
+        schema: { type: string, format: uuid }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200': { description: OK }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+      '403': { $ref: '../responses/errors.yaml#/Forbidden' }
+
+# ----------------------------------------------------------------------------
+# KTW Raw — Per Jenjang
+# ----------------------------------------------------------------------------
+ktw-raw-per-jenjang:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: KTW per jenjang (raw)
+    description: |
+      Agregat KTW rollup per jenjang (D3, D4, S1, S2, S3). Tiap baris
+      menyertakan masa_normatif yang dipakai per jenjang.
+    operationId: getKtwRawPerJenjang
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer, example: 2020 }
+      - name: id_fakultas
+        in: query
+        schema: { type: string, format: uuid }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+    responses:
+      '200': { description: OK }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+      '403': { $ref: '../responses/errors.yaml#/Forbidden' }
+
+# ----------------------------------------------------------------------------
+# KTW Raw — List Mahasiswa (row-level)
+# ----------------------------------------------------------------------------
+ktw-raw-mahasiswa:
+  get:
+    tags:
+      - Dashboard · KTW
+    summary: List mahasiswa raw dengan status KTW
+    description: |
+      Mengembalikan daftar mahasiswa (row-level) untuk cohort + jenjang
+      tertentu, lengkap dengan status_ktw computed (lulus_tepat,
+      lulus_terlambat, masih_aktif, keluar_non_lulus).
+
+      Pagination: page, limit (max 100). Search by nama atau NPM.
+      Filter opsional: id_fakultas, id_sms (prodi), status_ktw.
+    operationId: getKtwRawMahasiswa
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: cohort
+        in: query
+        required: true
+        schema: { type: integer, example: 2020 }
+      - name: jenjang
+        in: query
+        required: true
+        schema: { type: string, enum: [D3, D4, S1, S2, S3] }
+      - name: id_fakultas
+        in: query
+        schema: { type: string, format: uuid }
+      - name: id_sms
+        in: query
+        description: UUID prodi (id_sms).
+        schema: { type: string, format: uuid }
+      - name: status_ktw
+        in: query
+        schema:
+          type: string
+          enum: [lulus_tepat, lulus_terlambat, masih_aktif, keluar_non_lulus]
+      - name: search
+        in: query
+        description: Cari di nama mahasiswa atau NPM (case-insensitive LIKE).
+        schema: { type: string }
+      - name: cutoff
+        in: query
+        schema: { type: string, format: date }
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20, maximum: 100 }
+    responses:
+      '200': { description: OK }
+      '401': { $ref: '../responses/errors.yaml#/Unauthorized' }
+      '403': { $ref: '../responses/errors.yaml#/Forbidden' }
