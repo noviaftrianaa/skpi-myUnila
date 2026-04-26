@@ -7,11 +7,11 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare, FiTrash2, FiRefreshCw } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat, deleteBatch, pullBatchCandidates } from "@/lib/services/sim-bak/simBakService";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
@@ -66,6 +66,46 @@ export default function BatchDetailPage() {
   const [skRektorNomor, setSkRektorNomor] = useState("");
   const [skRektorTgl, setSkRektorTgl] = useState(new Date().toISOString().split("T")[0]);
 
+  // Delete batch modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteAlasan, setDeleteAlasan] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  // Tarik ulang kandidat modal
+  const [showPullModal, setShowPullModal] = useState(false);
+  const [pulling, setPulling] = useState(false);
+
+  const handlePullCandidates = async () => {
+    setPulling(true);
+    try {
+      const result = await pullBatchCandidates(id);
+      toast.success(`Berhasil tarik ulang: ${result.jumlah_kandidat} kandidat`);
+      setShowPullModal(false);
+      fetchData();
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal tarik ulang kandidat";
+      toast.error(msg);
+    } finally { setPulling(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!batch) return;
+    const needsAlasan = batch.status === "verifikasi_fakultas";
+    if (needsAlasan && deleteAlasan.trim().length < 10) {
+      toast.error("Alasan wajib diisi minimal 10 karakter");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteBatch(id, deleteAlasan || undefined);
+      toast.success("Batch berhasil dihapus");
+      setTimeout(() => router.push("/dashboard/sim-bak/batch"), 800);
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal menghapus evaluasi";
+      toast.error(msg);
+    } finally { setDeleting(false); }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const [b, k] = await Promise.all([
@@ -118,8 +158,8 @@ export default function BatchDetailPage() {
 
   if (!batch) {
     return (
-      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Batch Detail">
-        <div className="flex flex-col items-center justify-center py-20"><FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" /><p className="text-gray-500">Batch tidak ditemukan</p>
+      <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Detail Evaluasi">
+        <div className="flex flex-col items-center justify-center py-20"><FiAlertCircle className="w-12 h-12 text-gray-400 mb-3" /><p className="text-gray-500">Evaluasi tidak ditemukan</p>
           <Button className="mt-4" variant="flat" color="primary" onPress={() => router.push("/dashboard/sim-bak/batch")}>Kembali</Button>
         </div>
       </DashboardLayoutWithDynamicMenu>
@@ -228,7 +268,7 @@ export default function BatchDetailPage() {
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Batch — ${batch.kode_batch}`}>
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Evaluasi — ${batch.kode_batch}`}>
       <Toaster position="top-right" />
       <div className="space-y-6">
         {/* Header */}
@@ -239,6 +279,14 @@ export default function BatchDetailPage() {
             <p className="text-sm text-gray-500">{batch.kode_batch} · {batch.nm_layanan}</p>
           </div>
           <Chip size="sm" color={cfg.color} variant="flat">{cfg.label}</Chip>
+          {["draft", "kandidat_ditarik"].includes(batch.status) && (
+            <Button size="sm" color="primary" variant="flat" startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
+              onPress={() => setShowPullModal(true)}>Tarik Ulang</Button>
+          )}
+          {["draft", "kandidat_ditarik", "verifikasi_fakultas"].includes(batch.status) && (
+            <Button size="sm" color="danger" variant="flat" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+              onPress={() => { setShowDeleteModal(true); setDeleteAlasan(""); }}>Hapus</Button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -527,7 +575,7 @@ export default function BatchDetailPage() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowFinalizeModal(false)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Finalkan Batch & Terbitkan SK Rektor</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Finalkan Evaluasi & Terbitkan SK Rektor</h2>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-700 dark:text-blue-300">Setelah difinalkan, batch tidak dapat diubah lagi. Upload file SK Rektor yang sudah ditandatangani.</p>
               </div>
@@ -561,6 +609,102 @@ export default function BatchDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Modal: Tarik Ulang Kandidat */}
+      {showPullModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowPullModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <FiRefreshCw className="w-5 h-5 text-blue-500" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Tarik Ulang Kandidat</h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Sistem akan menarik ulang data kandidat dari PDUT berdasarkan kriteria batch ini.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
+                <p className="font-semibold">Yang akan terjadi:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li><strong>{batch.jumlah_kandidat}</strong> kandidat saat ini akan dihapus</li>
+                  <li>Data kandidat baru akan ditarik dari PDUT</li>
+                  <li>Status verifikasi semua kandidat akan reset ke &ldquo;masuk&rdquo;</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowPullModal(false)} disabled={pulling}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+                Batal
+              </button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={handlePullCandidates} disabled={pulling}
+                className="flex-1 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
+                {pulling ? "Menarik data..." : "Ya, Tarik Ulang"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Hapus Evaluasi */}
+      {showDeleteModal && (() => {
+        const needsAlasan = batch.status === "verifikasi_fakultas";
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                    <FiTrash2 className="w-5 h-5 text-red-500" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Hapus Evaluasi</h2>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm space-y-1">
+                  <p><span className="text-gray-500">Kode:</span> <span className="font-mono font-semibold">{batch.kode_batch}</span></p>
+                  <p><span className="text-gray-500">Nama:</span> {batch.nm_batch}</p>
+                  <p><span className="text-gray-500">Status:</span> {cfg.label}</p>
+                  <p><span className="text-gray-500">Kandidat:</span> {batch.jumlah_kandidat} ({batch.jumlah_terverifikasi} terverifikasi)</p>
+                </div>
+                {needsAlasan && (
+                  <>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                      <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                        Batch sudah ada verifikasi fakultas. Alasan penghapusan WAJIB diisi.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Alasan Penghapusan <span className="text-red-500">*</span>
+                      </label>
+                      <textarea rows={3} value={deleteAlasan} onChange={e => setDeleteAlasan(e.target.value)}
+                        className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                        placeholder="Jelaskan alasan menghapus evaluasi (min 10 karakter)..." />
+                    </div>
+                  </>
+                )}
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  ⚠️ Tindakan ini tidak dapat dibatalkan. Semua kandidat dan data verifikasi akan dihapus.
+                </p>
+              </div>
+              <div className="flex border-t border-gray-200 dark:border-gray-700">
+                <button onClick={() => setShowDeleteModal(false)} disabled={deleting}
+                  className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+                  Batal
+                </button>
+                <div className="w-px bg-gray-200 dark:bg-gray-700" />
+                <button onClick={handleDelete} disabled={deleting || (needsAlasan && deleteAlasan.trim().length < 10)}
+                  className="flex-1 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  {deleting ? "Menghapus..." : "Hapus Evaluasi"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </DashboardLayoutWithDynamicMenu>
   );
 }

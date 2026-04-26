@@ -633,3 +633,20 @@ CATATAN UMUM
   6. PM-ALIH: tahap Pejabat dihilangkan baik internal maupun luar Unila
      (proses persetujuan Rektor/WR I dilakukan via SAP di luar sistem)
      Perbedaan luar Unila: tahap 1 oleh Admin BAK, skip Fakultas Asal
+
+  7. [DONE 25 April 2026] Schema PDUT siakadu di-restructure besar.
+     PdutRepository di-pivot ke siakadu.mahasiswa (single denormalized table).
+     Detail: docs/simbak/09-catatan-teknis-development.md bagian 16
+
+  8. [DONE 25 April 2026] Hapus Batch + Tarik Ulang Kandidat
+     - Hapus batch hanya untuk status: draft, kandidat_ditarik, verifikasi_fakultas
+     - Status verifikasi_fakultas WAJIB alasan (min 10 char)
+     - Tarik ulang kandidat untuk status: draft, kandidat_ditarik
+     Detail: docs/simbak/09-catatan-teknis-development.md bagian 18
+
+  9. [DONE 25 April 2026] KTW (Kelulusan Tepat Waktu) Exclusion
+     - Tabel ref.ktw_exclude_jalur (default 5 jalur: Pindahan/Transfer,
+       Mahasiswa Asing, Permata Sakti, RPL, Studi Lanjut)
+     - Lulusan dengan jalur excluded tidak dihitung di persen tepat_waktu
+     - UI: Pengaturan KTW di halaman Monitoring (tab Lulusan)
+     Detail: docs/simbak/09-catatan-teknis-development.md bagian 17

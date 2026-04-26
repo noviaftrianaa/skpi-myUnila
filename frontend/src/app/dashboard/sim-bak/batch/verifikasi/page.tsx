@@ -77,11 +77,11 @@ export default function BatchVerifikasiPage() {
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Verifikasi Batch">
+    <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle="Verifikasi Fakultas">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Verifikasi Batch</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Batch yang menunggu verifikasi dari admin fakultas</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Verifikasi Fakultas</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Evaluasi yang menunggu verifikasi dari admin fakultas</p>
         </div>
 
         {/* Stats */}
@@ -90,7 +90,7 @@ export default function BatchVerifikasiPage() {
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white"><FiUsers className="w-5 h-5" /></div>
               <div>
-                <p className="text-xs text-gray-500">Total Batch</p>
+                <p className="text-xs text-gray-500">Total Evaluasi</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">{data.length}</p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { authClient } from "@/lib/api/client";
+import { authClient } from "@/lib/api/authClient";
 import toast from "react-hot-toast";
 import {
   Modal,

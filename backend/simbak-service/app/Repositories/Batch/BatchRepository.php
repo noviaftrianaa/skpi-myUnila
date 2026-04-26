@@ -176,4 +176,40 @@ class BatchRepository extends BaseRepository
             WHERE id_batch_penetapan = ?
         ", [$idBatch, $idBatch, $idBatch, $idBatch]) >= 0;
     }
+
+    /**
+     * Ambil semua path file dokumen exclude dari verifikasi (untuk cleanup MinIO).
+     */
+    public function getDokumenExcludePaths(string $idBatch): array
+    {
+        $rows = $this->pgSelect(
+            "SELECT path_dokumen_exclude FROM batch.verifikasi_batch WHERE id_batch_penetapan = ? AND path_dokumen_exclude IS NOT NULL",
+            [$idBatch]
+        );
+        return array_map(fn($r) => $r->path_dokumen_exclude, $rows);
+    }
+
+    /**
+     * Soft delete batch + cascade ke verifikasi_batch & kandidat_batch.
+     * Catatan: verifikasi_batch tidak punya kolom soft_delete, jadi pakai DELETE.
+     */
+    public function softDeleteCascade(string $idBatch, string $userId): bool
+    {
+        // Hard delete verifikasi_batch (tidak punya soft_delete)
+        $this->pgDelete("DELETE FROM batch.verifikasi_batch WHERE id_batch_penetapan = ?", [$idBatch]);
+
+        // Soft delete kandidat_batch
+        $this->pgUpdate(
+            "UPDATE batch.kandidat_batch SET soft_delete = true, id_updater = ? WHERE id_batch_penetapan = ?",
+            [$userId, $idBatch]
+        );
+
+        // Soft delete batch
+        $affected = $this->pgUpdate(
+            "UPDATE batch.batch_penetapan SET soft_delete = true, id_updater = ? WHERE id_batch_penetapan = ? AND soft_delete = false",
+            [$userId, $idBatch]
+        );
+
+        return $affected > 0;
+    }
 }

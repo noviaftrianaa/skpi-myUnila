@@ -300,6 +300,10 @@ export const pullBatchCandidates = async (idBatch: string): Promise<{ jumlah_kan
   return response.data.data;
 };
 
+export const deleteBatch = async (idBatch: string, alasan?: string): Promise<void> => {
+  await bakClient.delete(`/batch/${idBatch}`, { data: alasan ? { alasan } : {} });
+};
+
 export const uploadSkDekan = async (idBatch: string, formData: FormData): Promise<void> => {
   await bakClient.post(`/batch/${idBatch}/upload-sk-dekan`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -529,6 +533,28 @@ export const getNotifLogStats = async (): Promise<{ total: number; sent: number;
   return response.data.data;
 };
 
+// ============ KTW Exclusion ============
+
+export const getKtwExclusions = async (): Promise<{
+  exclusions: Array<{ id_exclude: string; jalur_pendaftaran: string; deskripsi: string | null; a_aktif: boolean; created_at: string }>;
+  available_jalur: string[];
+}> => {
+  const response = await bakClient.get('/monitoring/ktw-exclusions');
+  return response.data.data;
+};
+
+export const addKtwExclusion = async (jalur_pendaftaran: string, deskripsi?: string): Promise<void> => {
+  await bakClient.post('/monitoring/ktw-exclusions', { jalur_pendaftaran, deskripsi });
+};
+
+export const toggleKtwExclusion = async (id: string, a_aktif: boolean): Promise<void> => {
+  await bakClient.put(`/monitoring/ktw-exclusions/${id}`, { a_aktif });
+};
+
+export const deleteKtwExclusion = async (id: string): Promise<void> => {
+  await bakClient.delete(`/monitoring/ktw-exclusions/${id}`);
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -554,7 +580,7 @@ const simBakService = {
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
   getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
-  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK,
+  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring

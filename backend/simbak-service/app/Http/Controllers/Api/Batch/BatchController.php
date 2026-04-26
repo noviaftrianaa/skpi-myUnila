@@ -305,6 +305,71 @@ class BatchController extends Controller
     }
 
     /**
+     * Hapus batch (soft delete).
+     * Aturan status:
+     *   - draft / kandidat_ditarik: bisa dihapus tanpa alasan
+     *   - verifikasi_fakultas: bisa dihapus tapi alasan WAJIB (sudah ada verifikasi)
+     *   - sk_dekan_terbit / finalisasi / terbit: TIDAK BOLEH dihapus
+     * Cascade: kandidat_batch (soft delete) + verifikasi_batch (hard delete) + dokumen MinIO
+     */
+    public function destroy(Request $request, string $id): JsonResponse
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+
+            $allowedStatuses = ['draft', 'kandidat_ditarik', 'verifikasi_fakultas'];
+            if (!in_array($batch->status, $allowedStatuses)) {
+                return $this->errorResponse(
+                    "Batch dengan status '{$batch->status}' tidak dapat dihapus. Hanya batch dengan status draft, kandidat_ditarik, atau verifikasi_fakultas yang dapat dihapus.",
+                    422
+                );
+            }
+
+            // Validasi alasan wajib jika sudah ada verifikasi fakultas
+            $rules = [];
+            if ($batch->status === 'verifikasi_fakultas') {
+                $rules['alasan'] = 'required|string|min:10';
+            } else {
+                $rules['alasan'] = 'nullable|string';
+            }
+            $data = $request->validate($rules);
+
+            $user = $request->user();
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            // Ambil path file exclude untuk cleanup MinIO
+            $dokumenPaths = $this->repository->getDokumenExcludePaths($id);
+
+            // Cascade soft delete
+            $deleted = $this->repository->softDeleteCascade($id, $user->id_pengguna);
+            if (!$deleted) {
+                $this->repository->pgRollback();
+                return $this->errorResponse('Gagal menghapus batch', 500);
+            }
+
+            $this->repository->pgCommit();
+
+            // Cleanup MinIO (best effort, di luar transaction)
+            foreach ($dokumenPaths as $path) {
+                try { $this->minioService->delete($path); } catch (\Exception $e) {
+                    Log::warning("Batch.destroy: gagal hapus file {$path} — {$e->getMessage()}");
+                }
+            }
+
+            Log::info("Batch dihapus: {$batch->kode_batch} oleh {$user->id_pengguna}, alasan: " . ($data['alasan'] ?? '-'));
+
+            return $this->successResponse(null, 'Batch berhasil dihapus');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Batch.destroy: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Re-pull kandidat dari PDUT (jika data berubah).
      */
     public function pullCandidates(Request $request, string $id): JsonResponse

@@ -11,9 +11,9 @@ import { FiPlus, FiEdit2, FiTrash2, FiX, FiLoader } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
 
 const kategoriColors: Record<string, { color: "primary" | "secondary" | "warning" | "success"; label: string }> = {
-  surat_mandiri: { color: "primary", label: "Surat Mandiri" },
+  surat_mandiri: { color: "primary", label: "Permohonan Surat" },
   permohonan_akademik: { color: "secondary", label: "Permohonan Akademik" },
-  batch_administrasi: { color: "warning", label: "Batch Administrasi" },
+  batch_administrasi: { color: "warning", label: "Evaluasi Studi" },
   monitoring: { color: "success", label: "Monitoring" },
 };
 
@@ -159,9 +159,9 @@ export default function JenisLayananTab() {
             className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Semua Kategori</option>
-            <option value="surat_mandiri">Surat Mandiri</option>
+            <option value="surat_mandiri">Permohonan Surat</option>
             <option value="permohonan_akademik">Permohonan Akademik</option>
-            <option value="batch_administrasi">Batch Administrasi</option>
+            <option value="batch_administrasi">Evaluasi Studi</option>
             <option value="monitoring">Monitoring</option>
           </select>
         }
@@ -202,9 +202,9 @@ export default function JenisLayananTab() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
                 <select value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value as JenisLayanan["kategori"] })}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="surat_mandiri">Surat Mandiri</option>
+                  <option value="surat_mandiri">Permohonan Surat</option>
                   <option value="permohonan_akademik">Permohonan Akademik</option>
-                  <option value="batch_administrasi">Batch Administrasi</option>
+                  <option value="batch_administrasi">Evaluasi Studi</option>
                   <option value="monitoring">Monitoring</option>
                 </select>
               </div>
