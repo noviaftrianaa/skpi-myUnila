@@ -971,8 +971,13 @@ if [ -z "$API_SERVICE_ID" ]; then
 else
     echo -e "${GREEN}  ✓ API service created: $API_SERVICE_ID${NC}"
 
-    # Route: Protected endpoints (with JWT)
-    echo -e "${YELLOW}  → Creating protected route...${NC}"
+    # Route: ws-api endpoints
+    # IMPORTANT: TIDAK pasang Kong JWT plugin di route ini.
+    # Alasan: endpoint /v1/auth/login adalah generator JWT (chicken-and-egg).
+    # ws-api Go service punya middleware JWT sendiri yang skip /v1/auth/* dan
+    # validate JWT untuk endpoint protected lain — itu yang dipakai sebagai
+    # source of truth, bukan Kong-level enforcement.
+    echo -e "${YELLOW}  → Creating ws-api route (no JWT plugin — handled by service)...${NC}"
     API_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/$API_SERVICE_ID/routes" \
       -H "Content-Type: application/json" \
       -d '{
@@ -1002,23 +1007,6 @@ else
             }
           }' > /dev/null
 
-        # Add JWT plugin
-        curl -s -X POST "$KONG_ADMIN_URL/routes/$API_ROUTE_ID/plugins" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "name": "jwt",
-            "config": {
-              "claims_to_verify": ["exp"],
-              "key_claim_name": "iss",
-              "secret_is_base64": false,
-              "anonymous": null,
-              "run_on_preflight": false,
-              "maximum_expiration": 0,
-              "header_names": ["authorization"],
-              "cookie_names": []
-            }
-          }' > /dev/null
-
         # Add rate-limiting plugin (defensive against spam / DoS)
         # Per-IP throttle: 600 req/minute, 10000 req/hour
         # Policy: local (per Kong node counter) — simpler, no Redis needed
@@ -1036,7 +1024,7 @@ else
             }
           }' > /dev/null
 
-        echo -e "${GREEN}  ✓ Protected route created with JWT + rate-limit (600/min, 10k/hr per IP)${NC}"
+        echo -e "${GREEN}  ✓ ws-api route created with CORS + rate-limit (600/min, 10k/hr per IP) — JWT enforced by Go middleware${NC}"
     fi
 fi
 
