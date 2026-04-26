@@ -255,3 +255,45 @@ curl https://my.unila.ac.id/api-service/v1/dashboard/ktw/overview?cohort=2018&am
   di-decommission, atau penambahan/pengurangan endpoint — kirim email update ke
   <code>dev@unila.ac.id</code> supaya hak akses tetap akurat.
 </div>
+
+<h2>1.8 Audit &amp; Logging</h2>
+<p>
+  Setiap request yang masuk ke Web Service myUnila <strong>tercatat</strong> di sistem
+  audit terpusat — baik yang berhasil maupun yang ditolak. Catatan ini dipakai untuk
+  troubleshooting, deteksi penyalahgunaan, dan kepatuhan tata kelola data kampus.
+</p>
+
+<table>
+  <thead><tr><th>Field</th><th>Sumber</th><th>Tujuan</th></tr></thead>
+  <tbody>
+    <tr><td>Timestamp</td><td>Server-side waktu request</td><td>Korelasi insiden</td></tr>
+    <tr><td>id_aplikasi + username</td><td>JWT claim <code>app_id</code> + <code>sub</code></td><td>Identifikasi konsumen</td></tr>
+    <tr><td>JWT ID (<code>jti</code>)</td><td>JWT claim</td><td>Audit trail per-token</td></tr>
+    <tr><td>Path + method</td><td>HTTP request line</td><td>Endpoint apa yang dipanggil</td></tr>
+    <tr><td>HTTP status</td><td>Response code</td><td>Deteksi error / forbidden</td></tr>
+    <tr><td>Latency</td><td>Server-side timer</td><td>Performance monitoring</td></tr>
+    <tr><td>X-Real-IP / X-Forwarded-For</td><td>Header (di-inject Kong)</td><td>Lacak asal request</td></tr>
+    <tr><td>X-Request-ID</td><td>Header (auto-generate Kong)</td><td>Korelasi distributed trace</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Apa yang tidak disimpan:</strong> <strong>request body / response body</strong>
+  tidak ditulis ke log audit (untuk kepatuhan data privacy). Hanya metadata di atas.
+  Kalau Anda perlu reproduksi insiden, sertakan ID request (<code>X-Request-ID</code>)
+  + timestamp pada email ke <code>dev@unila.ac.id</code> — tim teknis akan korelasikan
+  dengan log internal.
+</div>
+
+<h3>1.8.1 Implikasi untuk Konsumen</h3>
+<ul>
+  <li><strong>Jangan share</strong> JWT antar konsumen / antar instance aplikasi —
+      log akan menampilkan <code>id_aplikasi</code> bersama, sulit forensik.</li>
+  <li><strong>Tetapkan X-Request-ID sendiri</strong> kalau aplikasi Anda punya correlation ID
+      internal (header opsional, akan diteruskan untuk korelasi end-to-end).</li>
+  <li><strong>Monitoring health-check</strong> sebaiknya pakai endpoint <code>/health</code>
+      (kalau tersedia) ketimbang spam endpoint normal — supaya log audit tidak
+      terkontaminasi dengan trafik probe.</li>
+  <li><strong>Login</strong> di-log secara terpisah dengan flag <code>auth=true</code> — gagal
+      login berturut-turut akan men-trigger alert otomatis ke admin.</li>
+</ul>
