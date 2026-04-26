@@ -32,50 +32,38 @@ servers:
     description: 🟡 Sandbox — Staging (akses internal Unila)
 
 tags:
-  - name: Dashboard · KTW
-    description: |
-      Statistik Kelulusan Tepat Waktu (KTW) — endpoint **publik tanpa JWT**.
-      Data agregat per angkatan/fakultas/prodi untuk BAN-PT, aplikasi fakultas,
-      dashboard eksekutif, dan integrasi pihak ketiga.
   - name: Auth
-    description: Autentikasi dan manajemen token
+    description: Autentikasi dan manajemen token (login, check token)
   - name: Mahasiswa
     description: |
       Data peserta didik / mahasiswa — biodata, registrasi, riwayat pendidikan,
-      status kuliah per semester. Source: `pdrd.peserta_didik`, `pdrd.reg_pd`,
-      `pdrd.kuliah_mhs`.
+      status kuliah per semester.
   - name: Akademik
     description: |
-      Master mata kuliah, kurikulum, kelas kuliah, jadwal kelas.
-      Source: `pdrd.matkul`, `pdrd.kurikulum_sp`, `pdrd.kelas_kuliah`, `pdrd.jadwal_kelas`.
+      Master mata kuliah, kurikulum, kelas kuliah, jadwal kelas, rencana ajar.
   - name: SDM
     description: |
-      Data SDM (dosen + tendik) dari SISTER — biodata, penugasan/homebase,
+      Data SDM (dosen + tendik) — biodata, penugasan/homebase,
       riwayat pendidikan/fungsional/kepangkatan/tugas tambahan/sertifikasi.
-      Source: `pdrd.sdm`, `pdrd.reg_ptk`, `pdrd.rwy_*`.
   - name: Pegawai
     description: |
-      Data pegawai dari sistem SIKEP (tendik + struktural). Berbeda source
-      dengan SDM (SISTER). Source: `sikep.pegawai`.
+      Data pegawai (tendik + struktural) dari sistem kepegawaian. Berbeda
+      source dengan SDM (SISTER).
   - name: Penelitian & Pengabdian
     description: |
-      Litabmas = Penelitian & Pengabdian kepada Masyarakat.
-      Source: `pdrd.litabmas` (filter `jns_litabmas`: L=Penelitian, M=Pengabdian).
+      Litabmas = Penelitian & Pengabdian kepada Masyarakat (filter
+      `jns_litabmas`: L=Penelitian, M=Pengabdian).
   - name: Publikasi
     description: |
-      Publikasi ilmiah (jurnal, prosiding, buku, dll).
-      Source: `pdrd.publikasi`.
+      Publikasi ilmiah dosen & mahasiswa (jurnal, prosiding, buku, dll).
   - name: Institusi
     description: |
       Profil institusi: program studi, satuan pendidikan (fakultas),
       profil prodi per tahun ajaran, akreditasi.
-      Source: `pdrd.sms`, `pdrd.satuan_pendidikan`, `pdrd.profil_prodi`, `pdrd.akreditasi_prodi`.
   - name: Kontribusi
     description: |
       Kontribusi akademik dosen & mahasiswa: narasumber/pembicara, pengelola jurnal,
       buku ajar, kepanitiaan, prestasi mahasiswa.
-      Source: `pdrd.pembicara`, `pdrd.pengelola_jurnal`, `pdrd.buku_ajar`,
-      `pdrd.kepanitiaan`, `pdrd.prestasi`.
   - name: Tracer Study
     description: |
       Survei alumni (tracer study) — status kerja, waktu tunggu, income, kesesuaian
@@ -89,21 +77,25 @@ tags:
   - name: Kerjasama
     description: |
       LP2M / Bagian Kerjasama — **Full CRUD** untuk MOU, kerjasama prodi, dan
-      master DUDI (mitra). Source: `kerjasama.mou`, `kerjasama.sms_kerjasama`,
-      `pdrd.dudi`. Referensi master sudah di `/v1/referensi/*`
+      master DUDI (mitra). Referensi master ada di `/v1/referensi/*`
       (aktifitas_kerjasama, kriteria_mitra, tingkat_kerjasama, bidang_kerjasama,
       bentuk_kegiatan_kerjasama, status_kerjasama).
   - name: MBKM
     description: |
       Kampus Merdeka (MBKM) — pendaftaran + konversi MK + log book.
       **GET-only** untuk sync ke aplikasi konsumen.
-      Source: schema `mbkm` (daftar_kampus_merdeka, periode_kampus_merdeka,
-      mk_konversi, konversi_akt_mhs, ekuiv_transfer, log_book_mbkm).
-      **Note:** full KKN lifecycle ada di service si-kkn (Postgres terpisah).
+      Sub-modul: daftar_kampus_merdeka, periode_kampus_merdeka, mk_konversi,
+      konversi_akt_mhs, ekuiv_transfer, log_book_mbkm.
+      **Note:** full KKN lifecycle ada di service terpisah (si-kkn).
   - name: Referensi
     description: Data referensi master (semester, tahun ajaran, agama, wilayah, dll)
+  - name: Dashboard · KTW
+    description: |
+      Statistik Kelulusan Tepat Waktu (KTW) — endpoint **publik tanpa JWT**.
+      Data agregat per angkatan/fakultas/prodi untuk BAN-PT, aplikasi fakultas,
+      dashboard eksekutif, dan integrasi pihak ketiga.
   - name: System
-    description: System endpoints
+    description: System endpoints (administrative)
 
 paths:
   # ==========================================================================

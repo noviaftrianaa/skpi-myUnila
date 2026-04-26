@@ -346,6 +346,9 @@ var scalarHTML = `<!DOCTYPE html>
             searchHotKey: 'k',
             showSidebar: true,
             hideModels: false,
+            defaultOpenAllTags: false,
+            // Default tampilkan tag pertama (Auth) terbuka, sisanya tertutup —
+            // user expand sesuai kebutuhan supaya tidak overwhelmed.
             hideDownloadButton: false,
             hideDarkModeToggle: false,
             withDefaultFonts: true,
