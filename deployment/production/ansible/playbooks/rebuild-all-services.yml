@@ -204,7 +204,7 @@
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
         docker image prune -af --filter "until=24h"
-        docker volume prune -f
+        # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
         docker builder prune -af --filter "until=24h"
       args:
         executable: /bin/bash
@@ -381,7 +381,7 @@
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
         docker image prune -af --filter "until=24h"
-        docker volume prune -f
+        # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
         docker builder prune -af --filter "until=24h"
       args:
         executable: /bin/bash
@@ -637,7 +637,7 @@
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
         docker image prune -af --filter "until=24h"
-        docker volume prune -f
+        # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
         docker builder prune -af --filter "until=24h"
       args:
         executable: /bin/bash
@@ -980,7 +980,7 @@
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
         docker image prune -af --filter "until=24h"
-        docker volume prune -f
+        # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
         docker builder prune -af --filter "until=24h"
       args:
         executable: /bin/bash

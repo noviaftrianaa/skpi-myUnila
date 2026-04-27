@@ -50,12 +50,27 @@
       become_user: "{{ ansible_user }}"
       register: image_prune
 
-    - name: Remove unused volumes
-      shell: docker volume prune -f
+    # NOTE: volume prune sengaja DIHAPUS dari otomasi karena beresiko hapus
+    # volume yang sedang tidak ter-mount ke container running (mis. saat
+    # service down sementara). Cleanup volume harus manual:
+    #   ssh <vm>
+    #   docker volume ls -qf dangling=true   # cek dulu nama-nya
+    #   docker volume rm <volume-name>       # hapus selektif
+    - name: List dangling volumes (informational only — tidak dihapus)
+      shell: docker volume ls -qf dangling=true
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
-      register: volume_prune
+      register: dangling_volumes
+      failed_when: false
+
+    - name: Display dangling volumes hint (manual cleanup)
+      debug:
+        msg: |
+          Dangling volumes pada {{ inventory_hostname }} (TIDAK auto-prune):
+          {{ dangling_volumes.stdout_lines | default(['(tidak ada)']) }}
+          Cleanup manual setelah verifikasi:
+          ssh {{ inventory_hostname }}; docker volume rm <name>
 
     - name: Remove build cache
       shell: docker builder prune -af --filter "until=24h"
@@ -80,7 +95,7 @@
 
           Containers removed: {{ container_prune.stdout_lines | length }} items
           Images removed: {{ image_prune.stdout_lines | length }} items
-          Volumes removed: {{ volume_prune.stdout_lines | length }} items
+          Volumes (dangling, NOT auto-pruned): {{ dangling_volumes.stdout_lines | default([]) | length }} items
           Build cache cleared: {{ builder_prune.stdout_lines | length }} items
 
     - name: Get current running containers

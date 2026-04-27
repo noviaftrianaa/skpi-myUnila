@@ -52,6 +52,11 @@ show_help() {
     echo "  --check          Dry run - only check connections"
     echo "  --cleanup        Clean up Docker resources on all VMs (no rebuild)"
     echo ""
+    echo "Pre-rebuild cleanup:"
+    echo "  Setiap target rebuild (--vm1, --vm2, --vm3, --vm5, atau no-args) otomatis"
+    echo "  jalanin cleanup-docker.yml DULU di VM target supaya storage cukup."
+    echo "  Volume tidak disentuh. Set SKIP_CLEANUP=1 untuk skip kalau emergency."
+    echo ""
     echo "Examples:"
     echo "  $0                    # Rebuild all production VMs (VM1-VM3)"
     echo "  $0 --vm1              # Rebuild only VM1"
@@ -107,6 +112,31 @@ run_playbook() {
     fi
 }
 
+# Run cleanup playbook BEFORE rebuild untuk hemat storage VM target.
+# Set SKIP_CLEANUP=1 untuk skip kalau perlu (mis. emergency rebuild).
+run_pre_rebuild_cleanup() {
+    local limit=$1
+    if [ "${SKIP_CLEANUP:-0}" = "1" ]; then
+        echo -e "${YELLOW}⏭️  SKIP_CLEANUP=1, lewati pre-rebuild cleanup${NC}"
+        echo ""
+        return 0
+    fi
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  Pre-rebuild cleanup (hemat storage VM)${NC}"
+    if [ -n "$limit" ]; then
+        echo -e "${BLUE}  Targeting: $limit${NC}"
+    fi
+    echo -e "${BLUE}  Volume tetap aman — tidak di-prune.${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo ""
+    if [ -n "$limit" ]; then
+        ansible-playbook -i "$INVENTORY" "$PLAYBOOK_DIR/cleanup-docker.yml" --limit "$limit"
+    else
+        ansible-playbook -i "$INVENTORY" "$PLAYBOOK_DIR/cleanup-docker.yml"
+    fi
+    echo ""
+}
+
 # Function to check connections
 check_connections() {
     echo -e "${BLUE}========================================${NC}"
@@ -145,12 +175,15 @@ main() {
             exit 0
             ;;
         --vm1)
+            run_pre_rebuild_cleanup "frontend"
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "frontend"
             ;;
         --vm2)
+            run_pre_rebuild_cleanup "backend1"
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "backend1"
             ;;
         --vm3)
+            run_pre_rebuild_cleanup "backend2"
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "backend2"
             ;;
         --vm5)
@@ -158,6 +191,7 @@ main() {
             if [ $# -gt 0 ]; then
                 # Rebuild specific service(s) on VM5 via Ansible
                 SERVICES="$*"
+                run_pre_rebuild_cleanup "staging"
                 echo -e "${GREEN}========================================${NC}"
                 echo -e "${GREEN}  Rebuilding on VM5: $SERVICES${NC}"
                 echo -e "${GREEN}========================================${NC}"
@@ -166,6 +200,7 @@ main() {
                     --limit "staging" \
                     -e "services=$SERVICES"
             else
+                run_pre_rebuild_cleanup "staging"
                 run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml" "staging"
             fi
             ;;
@@ -186,6 +221,7 @@ main() {
                 exit 0
             fi
 
+            run_pre_rebuild_cleanup ""
             run_playbook "$PLAYBOOK_DIR/rebuild-all-services.yml"
             ;;
         *)
