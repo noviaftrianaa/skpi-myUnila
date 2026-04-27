@@ -14,6 +14,31 @@ export interface MouListItem {
   last_sync?: string | null;
 }
 
+export interface MoUDetail {
+  id_mou: string;
+  id_sp?: string | null;
+  id_akt_kerjasama?: number | null;
+  id_dudi?: string | null;
+  sk_mou?: string | null;
+  judul_mou?: string | null;
+  uraian_mou?: string | null;
+  tgl_mulai?: string | null;
+  tgl_selesai?: string | null;
+  nm_dudi?: string | null;
+  npwp_dudi?: string | null;
+  nm_bu?: string | null;
+  tel_kantor?: string | null;
+  fax?: string | null;
+  cp?: string | null;
+  tel_cp?: string | null;
+  jab_cp?: string | null;
+  id_sikerma?: number | null;
+  id_jenis_dokumen?: string | null;
+  create_date?: string | null;
+  last_update?: string | null;
+  last_sync?: string | null;
+}
+
 export interface MouStats {
   total_mou: number;
   total_aktif: number;
@@ -79,7 +104,7 @@ const kerjasamaService = {
 
   async getMouByID(id: string) {
     const response = await myunilaClient.get(`/kerjasama/mou/${id}`);
-    return response.data;
+    return response.data as { success: boolean; data: MoUDetail };
   },
 
   async syncKerjasama(unit_ids?: number[]) {

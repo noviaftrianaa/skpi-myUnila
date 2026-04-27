@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kerjasamaService, { MouListItem, MouStats } from "@/lib/services/kerjasama/kerjasamaService";
+import kerjasamaService, { MouListItem, MouStats, MoUDetail } from "@/lib/services/kerjasama/kerjasamaService";
 import { myunilaIntegratorMenuConfig } from "../config/menuConfig";
 
 import {
@@ -17,6 +17,9 @@ import {
   FiXCircle,
   FiUsers,
   FiCalendar,
+  FiEye,
+  FiX,
+  FiExternalLink,
 } from "react-icons/fi";
 import { MdSync, MdHandshake } from "react-icons/md";
 import { toast } from "react-hot-toast";
@@ -43,6 +46,26 @@ export default function KerjasamaMouPage() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
+
+  const [detailRow, setDetailRow] = useState<MoUDetail | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  const openDetail = useCallback(async (idMou: string) => {
+    try {
+      setIsLoadingDetail(true);
+      setDetailRow({ id_mou: idMou } as MoUDetail);
+      const r = await kerjasamaService.getMouByID(idMou);
+      if (r.success) setDetailRow(r.data);
+    } catch (e) {
+      console.error("Error loading mou detail:", e);
+      toast.error("Gagal memuat detail MoU");
+      setDetailRow(null);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  }, []);
+
+  const closeDetail = () => setDetailRow(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -193,6 +216,20 @@ export default function KerjasamaMouPage() {
       align: "center",
       render: (it) => (
         <span className="text-xs text-gray-500">{formatDate(it.last_sync)}</span>
+      ),
+    },
+    {
+      key: "id_mou",
+      label: "Aksi",
+      align: "center",
+      render: (it) => (
+        <button
+          onClick={() => openDetail(it.id_mou)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+          title="Lihat detail MoU"
+        >
+          <FiEye className="w-3.5 h-3.5" /> Detail
+        </button>
       ),
     },
   ];
@@ -415,6 +452,129 @@ export default function KerjasamaMouPage() {
                 }`}>
                   {syncMessage}
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail MoU Modal */}
+      {detailRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40" onClick={closeDetail} />
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <FiBriefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Detail MoU</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {detailRow.id_jenis_dokumen ? `${detailRow.id_jenis_dokumen} · ` : ""}
+                    {detailRow.id_sikerma ? `SIKERMA #${detailRow.id_sikerma}` : "Internal"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={closeDetail}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                title="Tutup"
+              >
+                <FiX className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {isLoadingDetail ? (
+                <div className="flex items-center justify-center py-12">
+                  <FiRefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Judul Kerjasama</p>
+                    <p className="text-base font-medium text-gray-900 dark:text-white">
+                      {detailRow.judul_mou || "-"}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Nomor Dokumen</p>
+                      <p className="text-sm font-mono text-gray-800 dark:text-gray-200">{detailRow.sk_mou || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Jenis Dokumen</p>
+                      <p className="text-sm text-gray-800 dark:text-gray-200">{detailRow.id_jenis_dokumen || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Tanggal Mulai</p>
+                      <p className="text-sm font-mono text-gray-800 dark:text-gray-200">
+                        {detailRow.tgl_mulai ? new Date(detailRow.tgl_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Tanggal Selesai</p>
+                      <p className="text-sm font-mono text-gray-800 dark:text-gray-200">
+                        {detailRow.tgl_selesai ? new Date(detailRow.tgl_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Mitra (DUDI)</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Nama Mitra</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200">{detailRow.nm_dudi || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Penandatangan</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200">{detailRow.cp || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Jabatan</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200">{detailRow.jab_cp || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Telepon Kantor</p>
+                        <p className="text-sm font-mono text-gray-800 dark:text-gray-200">{detailRow.tel_kantor || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {detailRow.uraian_mou && (
+                    <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Uraian</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{detailRow.uraian_mou}</p>
+                    </div>
+                  )}
+
+                  <div className="border-t border-gray-100 dark:border-gray-700 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-gray-500">ID MoU (internal)</p>
+                      <p className="font-mono text-gray-700 dark:text-gray-300 break-all">{detailRow.id_mou}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Last Sync</p>
+                      <p className="font-mono text-gray-700 dark:text-gray-300">{formatDate(detailRow.last_sync)}</p>
+                    </div>
+                  </div>
+
+                  {detailRow.id_sikerma && (
+                    <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                      <a
+                        href={`https://sikerma.unila.ac.id/kerjasama/${detailRow.id_sikerma}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        <FiExternalLink className="w-4 h-4" /> Buka di SIKERMA
+                      </a>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
