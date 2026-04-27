@@ -36,6 +36,9 @@ services:
       RADIUS_API_APP_KEY: ${RADIUS_API_APP_KEY}
       RADIUS_API_USERNAME: ${RADIUS_API_USERNAME}
 
+      # SIKERMA API Configuration (via VM1 nginx sidecar proxy — bypass Cloudflare TLS fp discrimination)
+      SIKERMA_BASE_URL: ${SIKERMA_BASE_URL:-http://192.168.120.41:9803/sikerma/api/v1}
+
       # Encryption Key
       API_CONFIG_ENCRYPTION_KEY: ${API_CONFIG_ENCRYPTION_KEY}
 
