@@ -872,7 +872,9 @@ export interface MahasiswaStatisticsSummary {
   total_mahasiswa_asing: number;
   periode: string;
   periode_nama?: string | null;
+  tahun_ajaran?: string | null;
   last_update?: string | null;
+  last_feeder_sync?: string | null;
   formula?: string;
   sumber?: string;
   note?: string;

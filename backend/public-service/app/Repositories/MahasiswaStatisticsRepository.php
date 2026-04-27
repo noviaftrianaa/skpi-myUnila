@@ -95,6 +95,18 @@ class MahasiswaStatisticsRepository
     }
 
     /**
+     * Timestamp Feeder PDDIKTI sync terakhir — diambil dari MAX(last_update)
+     * di reg_pd. Indikator data freshness untuk konsumen infografis.
+     */
+    private function getLastFeederSync(): ?string
+    {
+        $row = DB::connection('sqlsrv')->selectOne(
+            "SELECT MAX(last_update) AS last_sync FROM pdrd.reg_pd WHERE soft_delete = 0"
+        );
+        return $row->last_sync ?? null;
+    }
+
+    /**
      * Get active year from period
      *
      * @param string $period
@@ -180,6 +192,7 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY didik.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -289,6 +302,7 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY pd.jk
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -329,6 +343,7 @@ class MahasiswaStatisticsRepository
                 ON jd.id_jalur_daftar = reg.id_jalur_daftar
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY jd.nm_jalur_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -369,6 +384,7 @@ class MahasiswaStatisticsRepository
                 ON jp.id_jns_daftar = reg.id_jns_daftar
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY jp.nm_jns_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -409,6 +425,7 @@ class MahasiswaStatisticsRepository
                 ON pb.id_pembiayaan = reg.id_pembiayaan
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY pb.nm_pembiayaan
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -452,6 +469,7 @@ class MahasiswaStatisticsRepository
                 ON negara.id_negara = wil.id_negara
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
             GROUP BY negara.nm_negara
@@ -497,6 +515,7 @@ class MahasiswaStatisticsRepository
                 ON wil.id_wil = pd.id_wil
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
             GROUP BY
                 CASE
                     WHEN wil.id_negara = 'ID' OR wil.id_negara IS NULL THEN 'Lokal'
@@ -543,6 +562,7 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
         ";
 
         $totalResult = DB::connection('sqlsrv')->select($sqlTotal);
@@ -566,6 +586,7 @@ class MahasiswaStatisticsRepository
                 ON wil.id_wil = pd.id_wil
             WHERE reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
         ";
@@ -584,9 +605,10 @@ class MahasiswaStatisticsRepository
             'periode_nama' => $this->getSemesterName($activePeriod),
             'tahun_ajaran' => $tahunAjaran,
             'last_update' => $this->getLastUpdate($activePeriod),
-            'formula' => "COUNT(DISTINCT pd.id_pd) WHERE reg_pd.id_jns_keluar IS NULL AND prodi.stat_prodi='A'",
+            'last_feeder_sync' => $this->getLastFeederSync(),
+            'formula' => "COUNT(DISTINCT pd.id_pd) WHERE reg_pd.id_jns_keluar IS NULL AND peserta_didik.id_stat_mhs = 'A' AND prodi.stat_prodi='A'",
             'sumber' => 'Sistem Informasi Akademik Unila (realtime)',
-            'note' => "Total mahasiswa aktif terdaftar di Unila — mahasiswa yang belum punya SK keluar (id_jns_keluar IS NULL). Tidak terpengaruh delay sync per semester. Untuk angka per-semester (status A/M/C/N), lihat sebaran-status dengan filter periode.",
+            'note' => "Total mahasiswa aktif terdaftar di Unila — INTERSECT dual confirm: belum punya SK keluar (reg_pd.id_jns_keluar IS NULL) DAN status master 'Aktif' (peserta_didik.id_stat_mhs = 'A'). Pendekatan paling konservatif untuk akurasi maksimal. Untuk angka per-semester (status A/M/C/N), lihat sebaran-status dengan filter periode.",
         ];
     }
 }
