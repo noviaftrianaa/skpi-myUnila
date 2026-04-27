@@ -50,11 +50,15 @@ class IkuRepository extends BaseRepository
      */
     public function getActiveSemester(): string
     {
+        // Ambil semester aktif terbaru. Kalau ada >1 row a_periode_aktif=1
+        // (mis. transisi Ganjil→Genap belum di-flip), pilih id_smt paling
+        // akhir supaya konsisten dengan period semester yang sedang berjalan.
         $sql = "
             SELECT TOP 1 id_smt
             FROM ref.semester
             WHERE expired_date IS NULL
                 AND a_periode_aktif = 1
+            ORDER BY id_smt DESC
         ";
 
         $result = $this->selectOne($sql);
@@ -103,7 +107,7 @@ class IkuRepository extends BaseRepository
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt IN {$smtIn}
                 AND sms.id_jenj_didik = ?
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
@@ -254,7 +258,7 @@ class IkuRepository extends BaseRepository
                         ON rp.id_reg_pd = kmh.id_reg_pd
                         AND rp.soft_delete = 0
                     WHERE kmh.soft_delete = 0
-                        AND kmh.id_stat_mhs = 'A'
+                        AND kmh.id_stat_mhs IN ('A', 'M')
                         AND kmh.id_smt IN {$smtIn}
                 ) AS kmh_sub ON kmh_sub.id_sms = sms.id_sms
                 WHERE sms.soft_delete = 0
@@ -353,7 +357,7 @@ class IkuRepository extends BaseRepository
                         ON rp.id_reg_pd = kmh.id_reg_pd
                         AND rp.soft_delete = 0
                     WHERE kmh.soft_delete = 0
-                        AND kmh.id_stat_mhs = 'A'
+                        AND kmh.id_stat_mhs IN ('A', 'M')
                         AND kmh.id_smt IN {$smtIn}
                 ) AS kmh_sub ON kmh_sub.id_sms = sms.id_sms
                 WHERE sms.soft_delete = 0
@@ -826,7 +830,7 @@ class IkuRepository extends BaseRepository
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt IN {$smtIn}
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND sms.id_jenj_didik IN (20, 21, 22, 23, 30)
@@ -939,7 +943,7 @@ class IkuRepository extends BaseRepository
                 ON sms.id_sms = reg.id_sms AND sms.soft_delete = 0 AND sms.stat_prodi = 'A'
             INNER JOIN pdrd.kuliah_mhs AS kmh
                 ON kmh.id_reg_pd = reg.id_reg_pd AND kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A' AND kmh.id_smt IN {$smtIn}
+                AND kmh.id_stat_mhs IN ('A', 'M') AND kmh.id_smt IN {$smtIn}
             WHERE p.soft_delete = 0
                 AND p.id_tkt_prestasi IN (5, 6)
                 AND p.thn_prestasi IN {$yearIn}
@@ -1049,7 +1053,7 @@ class IkuRepository extends BaseRepository
                     ON sms3.id_sms = reg3.id_sms AND sms3.soft_delete = 0 AND sms3.stat_prodi = 'A'
                 INNER JOIN pdrd.kuliah_mhs AS kmh
                     ON kmh.id_reg_pd = reg3.id_reg_pd AND kmh.soft_delete = 0
-                    AND kmh.id_stat_mhs = 'A' AND kmh.id_smt IN {$smtInB}
+                    AND kmh.id_stat_mhs IN ('A', 'M') AND kmh.id_smt IN {$smtInB}
                 WHERE p.soft_delete = 0
                     AND p.id_tkt_prestasi IN (5, 6)
                     AND p.thn_prestasi IN {$yearInB}
@@ -1192,7 +1196,7 @@ class IkuRepository extends BaseRepository
                 INNER JOIN pdrd.peserta_didik AS pd ON pd.id_pd = p.id_pd AND pd.soft_delete = 0
                 INNER JOIN pdrd.reg_pd AS reg3 ON reg3.id_pd = pd.id_pd AND reg3.soft_delete = 0
                 INNER JOIN pdrd.sms AS sms3 ON sms3.id_sms = reg3.id_sms AND sms3.soft_delete = 0 AND sms3.stat_prodi = 'A'
-                INNER JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd = reg3.id_reg_pd AND kmh.soft_delete = 0 AND kmh.id_stat_mhs = 'A' AND kmh.id_smt IN {$smtInB}
+                INNER JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd = reg3.id_reg_pd AND kmh.soft_delete = 0 AND kmh.id_stat_mhs IN ('A', 'M') AND kmh.id_smt IN {$smtInB}
                 WHERE p.soft_delete = 0 AND p.id_tkt_prestasi IN (5,6) AND p.thn_prestasi IN {$yearInB}
                     AND CAST(reg3.id_sp AS VARCHAR(50)) = ?
                     AND sms3.id_jenj_didik IN (20,21,22,23,30)
@@ -1206,7 +1210,7 @@ class IkuRepository extends BaseRepository
                 FROM pdrd.kuliah_mhs AS kmh_d
                 INNER JOIN pdrd.reg_pd AS reg_d ON reg_d.id_reg_pd = kmh_d.id_reg_pd AND reg_d.soft_delete = 0
                 INNER JOIN pdrd.sms AS sms_d ON sms_d.id_sms = reg_d.id_sms AND sms_d.soft_delete = 0 AND sms_d.stat_prodi = 'A'
-                WHERE kmh_d.soft_delete = 0 AND kmh_d.id_stat_mhs = 'A' AND kmh_d.id_smt IN {$smtInD}
+                WHERE kmh_d.soft_delete = 0 AND kmh_d.id_stat_mhs IN ('A', 'M') AND kmh_d.id_smt IN {$smtInD}
                     AND CAST(reg_d.id_sp AS VARCHAR(50)) = ?
                     AND sms_d.id_jenj_didik IN (20,21,22,23,30)
                 GROUP BY sms_d.id_fak_unila
@@ -1297,7 +1301,7 @@ class IkuRepository extends BaseRepository
                 INNER JOIN pdrd.peserta_didik AS pd ON pd.id_pd = p.id_pd AND pd.soft_delete = 0
                 INNER JOIN pdrd.reg_pd AS reg3 ON reg3.id_pd = pd.id_pd AND reg3.soft_delete = 0
                 INNER JOIN pdrd.sms AS sms3 ON sms3.id_sms = reg3.id_sms AND sms3.soft_delete = 0 AND sms3.stat_prodi = 'A'
-                INNER JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd = reg3.id_reg_pd AND kmh.soft_delete = 0 AND kmh.id_stat_mhs = 'A' AND kmh.id_smt IN {$smtInB}
+                INNER JOIN pdrd.kuliah_mhs AS kmh ON kmh.id_reg_pd = reg3.id_reg_pd AND kmh.soft_delete = 0 AND kmh.id_stat_mhs IN ('A', 'M') AND kmh.id_smt IN {$smtInB}
                 WHERE p.soft_delete = 0 AND p.id_tkt_prestasi IN (5,6) AND p.thn_prestasi IN {$yearInB}
                     AND CAST(reg3.id_sp AS VARCHAR(50)) = ?
                     AND sms3.id_jenj_didik IN (20,21,22,23,30) AND sms3.id_fak_unila = ?
@@ -1309,7 +1313,7 @@ class IkuRepository extends BaseRepository
                 FROM pdrd.kuliah_mhs AS kmh_d
                 INNER JOIN pdrd.reg_pd AS reg_d ON reg_d.id_reg_pd = kmh_d.id_reg_pd AND reg_d.soft_delete = 0
                 INNER JOIN pdrd.sms AS sms_d ON sms_d.id_sms = reg_d.id_sms AND sms_d.soft_delete = 0 AND sms_d.stat_prodi = 'A'
-                WHERE kmh_d.soft_delete = 0 AND kmh_d.id_stat_mhs = 'A' AND kmh_d.id_smt IN {$smtInD}
+                WHERE kmh_d.soft_delete = 0 AND kmh_d.id_stat_mhs IN ('A', 'M') AND kmh_d.id_smt IN {$smtInD}
                     AND CAST(reg_d.id_sp AS VARCHAR(50)) = ?
                     AND sms_d.id_jenj_didik IN (20,21,22,23,30) AND sms_d.id_fak_unila = ?
                 GROUP BY reg_d.id_sms

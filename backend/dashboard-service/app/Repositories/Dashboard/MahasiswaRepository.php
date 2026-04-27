@@ -33,7 +33,7 @@ class MahasiswaRepository extends BaseRepository
             INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
             WHERE rp.id_sp = ?
               AND kmh.soft_delete = 0
-              AND kmh.id_stat_mhs = 'A'
+              AND kmh.id_stat_mhs IN ('A', 'M')
               AND CAST(kmh.id_smt AS VARCHAR(10)) IN {$inClause}
               {$fakFilter}
         ";

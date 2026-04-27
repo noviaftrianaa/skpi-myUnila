@@ -436,7 +436,7 @@ class KtwService
     {
         $idSmt = $cohortYear ? sprintf('%d1', $cohortYear) : null;
         return [
-            'source' => 'pdut (realtime)',
+            'source' => 'Sistem Informasi Akademik Unila (realtime)',
             'formula' => 'DATEDIFF(DAY, tgl_masuk_sp, tgl_keluar) / 365.25 <= masa_normatif',
             'masa_normatif_tahun' => KtwRepository::MASA_NORMATIF[$jenjang] ?? null,
             'tolerance_tahun' => KtwRepository::TOLERANCE_YEARS,

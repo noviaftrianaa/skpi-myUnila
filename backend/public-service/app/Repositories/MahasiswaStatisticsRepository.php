@@ -13,16 +13,21 @@ class MahasiswaStatisticsRepository
      */
     private function getActivePeriod(): string
     {
+        // Ambil semester aktif terbaru. Kalau ada >1 row a_periode_aktif=1
+        // (mis. transisi Ganjil→Genap belum di-flip clean), pilih yang
+        // paling akhir id_smt-nya.
         $sql = "
             SELECT TOP 1 id_smt
             FROM ref.semester
             WHERE expired_date IS NULL
                 AND a_periode_aktif = 1
+            ORDER BY id_smt DESC
         ";
 
         $result = DB::connection('sqlsrv')->select($sql);
 
         if (empty($result)) {
+            // Fallback: ambil semester pendaftaran/ganjil/genap terbaru
             $sql = "
                 SELECT TOP 1 id_smt
                 FROM ref.semester
@@ -104,7 +109,7 @@ class MahasiswaStatisticsRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND RIGHT(kmh.id_smt, 1) = '1'  -- Semester ganjil only for yearly trend
                 AND LEFT(kmh.id_smt, 4) >= ?
                 AND LEFT(kmh.id_smt, 4) <= ?
@@ -150,7 +155,7 @@ class MahasiswaStatisticsRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY didik.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
@@ -248,7 +253,7 @@ class MahasiswaStatisticsRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY pd.jk
             ORDER BY jumlah_mahasiswa DESC
@@ -294,7 +299,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.jalur_daftar AS jd
                 ON jd.id_jalur_daftar = reg.id_jalur_daftar
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY jd.nm_jalur_daftar
             ORDER BY jumlah_mahasiswa DESC
@@ -340,7 +345,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.jenis_pendaftaran AS jp
                 ON jp.id_jns_daftar = reg.id_jns_daftar
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY jp.nm_jns_daftar
             ORDER BY jumlah_mahasiswa DESC
@@ -386,7 +391,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.pembiayaan AS pb
                 ON pb.id_pembiayaan = reg.id_pembiayaan
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY pb.nm_pembiayaan
             ORDER BY jumlah_mahasiswa DESC
@@ -435,7 +440,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.negara AS negara
                 ON negara.id_negara = wil.id_negara
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
@@ -486,7 +491,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = pd.id_wil
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
             GROUP BY
                 CASE
@@ -533,7 +538,7 @@ class MahasiswaStatisticsRepository
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
         ";
 
@@ -560,7 +565,7 @@ class MahasiswaStatisticsRepository
             LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = pd.id_wil
             WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
+                AND kmh.id_stat_mhs IN ('A', 'M')
                 AND kmh.id_smt = ?
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
@@ -576,9 +581,9 @@ class MahasiswaStatisticsRepository
             'periode' => $activePeriod,
             'periode_nama' => $this->getSemesterName($activePeriod),
             'last_update' => $this->getLastUpdate($activePeriod),
-            'formula' => "COUNT(DISTINCT id_pd) WHERE id_stat_mhs='A' AND id_smt={$activePeriod} AND sms.stat_prodi='A'",
-            'sumber' => 'pdut (pdrd.kuliah_mhs) — sumber utama realtime',
-            'note' => 'Semester aktif ditentukan dari ref.semester.a_periode_aktif=1. Semester berikutnya akan muncul setelah admin pdut flip flag.',
+            'formula' => "COUNT(DISTINCT id_pd) WHERE id_stat_mhs IN ('A','M') AND id_smt={$activePeriod} AND prodi aktif",
+            'sumber' => 'Sistem Informasi Akademik Unila (realtime)',
+            'note' => 'Periode aktif ditentukan oleh konfigurasi semester aktif terbaru di sistem akademik. Status mahasiswa "A" (Aktif) dan "M" (Kampus Merdeka) sama-sama dihitung sebagai aktif.',
         ];
     }
 }
