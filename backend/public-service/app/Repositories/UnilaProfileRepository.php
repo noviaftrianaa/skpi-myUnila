@@ -45,9 +45,7 @@ class UnilaProfileRepository
                     akred.nm_akred,
                     akred.sk_akred_sp,
                     akred.tgl_sk_akred_sp,
-                    akred.tst_sk_akred_sp,
-                    biaya.min_biaya,
-                    biaya.max_biaya
+                    akred.tst_sk_akred_sp
                 FROM pdrd.satuan_pendidikan AS sp
                 LEFT JOIN (
                     SELECT
@@ -62,21 +60,6 @@ class UnilaProfileRepository
                         ON na.id_akred = asp.id_akred
                     WHERE asp.soft_delete = 0
                 ) AS akred ON akred.id_sp = sp.id_sp AND akred.rn = 1
-                LEFT JOIN (
-                    SELECT
-                        reg.id_sp,
-                        MIN(km.biaya_smt) as min_biaya,
-                        MAX(km.biaya_smt) as max_biaya
-                    FROM pdrd.kuliah_mhs AS km
-                    INNER JOIN pdrd.reg_pd AS reg
-                        ON reg.id_reg_pd = km.id_reg_pd
-                        AND reg.soft_delete = 0
-                    WHERE km.soft_delete = 0
-                        AND km.biaya_smt IS NOT NULL
-                        AND km.biaya_smt >= 100000
-                        AND km.biaya_smt <= 100000000
-                    GROUP BY reg.id_sp
-                ) AS biaya ON biaya.id_sp = sp.id_sp
                 WHERE sp.soft_delete = 0
                     AND CAST(sp.id_sp AS VARCHAR(50)) = ?
             ";
@@ -87,10 +70,112 @@ class UnilaProfileRepository
                 throw new \Exception('Unila profile not found in database');
             }
 
+            // Attach UKT range from keuangan.daftar_ukt (proper tarif UKT, bukan
+            // pdrd.kuliah_mhs.biaya_smt yg banyak nilai outlier non-UKT).
+            $ukt = $this->getUktRange();
+            $result[0]->min_biaya = $ukt['min'];
+            $result[0]->max_biaya = $ukt['max'];
+            $result[0]->ukt_tahun = $ukt['tahun'];
+            $result[0]->ukt_sumber = $ukt['sumber'];
+            $result[0]->ukt_golongan = $ukt['golongan'];
+
             return $result[0];
         } catch (\Exception $e) {
             // Re-throw exception to be handled by service layer
             throw $e;
+        }
+    }
+
+    /**
+     * Get UKT range + golongan breakdown dari keuangan.daftar_ukt.
+     *
+     * Filter:
+     *   - soft_delete = 0
+     *   - nominal > 0 (skip placeholder 0/null)
+     *   - nama_kelas LIKE 'KELOMPOK %' (skip BIDIKMISI/KIP — beasiswa, bukan UKT mandiri)
+     *   - tahun = latest tahun yang punya tarif KELOMPOK
+     *
+     * @return array{min:int|null, max:int|null, tahun:int|null, sumber:string, golongan:array}
+     */
+    private function getUktRange(): array
+    {
+        try {
+            // Latest tahun yang punya tarif KELOMPOK (UKT mandiri)
+            $tahunSql = "
+                SELECT MAX(tahun) AS tahun
+                FROM keuangan.daftar_ukt
+                WHERE soft_delete = 0
+                    AND nominal > 0
+                    AND nama_kelas LIKE 'KELOMPOK %'
+            ";
+            $tahunRow = DB::connection('sqlsrv')->select($tahunSql);
+            $tahun = $tahunRow[0]->tahun ?? null;
+
+            if (!$tahun) {
+                return [
+                    'min' => null,
+                    'max' => null,
+                    'tahun' => null,
+                    'sumber' => 'Sistem Informasi Keuangan Unila',
+                    'golongan' => [],
+                ];
+            }
+
+            // Range global tahun terbaru
+            $rangeSql = "
+                SELECT
+                    MIN(nominal) AS min_n,
+                    MAX(nominal) AS max_n
+                FROM keuangan.daftar_ukt
+                WHERE soft_delete = 0
+                    AND nominal > 0
+                    AND nama_kelas LIKE 'KELOMPOK %'
+                    AND tahun = ?
+            ";
+            $rangeRow = DB::connection('sqlsrv')->select($rangeSql, [$tahun]);
+
+            // Per-golongan breakdown (KELOMPOK I-VIII)
+            $golonganSql = "
+                SELECT
+                    nama_kelas,
+                    MIN(nominal) AS nominal_min,
+                    MAX(nominal) AS nominal_max,
+                    COUNT(*) AS jml_prodi
+                FROM keuangan.daftar_ukt
+                WHERE soft_delete = 0
+                    AND nominal > 0
+                    AND nama_kelas LIKE 'KELOMPOK %'
+                    AND tahun = ?
+                GROUP BY nama_kelas
+                ORDER BY MIN(nominal)
+            ";
+            $golonganRows = DB::connection('sqlsrv')->select($golonganSql, [$tahun]);
+
+            $golongan = array_map(function ($r) {
+                return [
+                    'nama_kelas' => $r->nama_kelas,
+                    'nominal_min' => (int) $r->nominal_min,
+                    'nominal_max' => (int) $r->nominal_max,
+                    'jml_prodi' => (int) $r->jml_prodi,
+                ];
+            }, $golonganRows);
+
+            return [
+                'min' => isset($rangeRow[0]) ? (int) $rangeRow[0]->min_n : null,
+                'max' => isset($rangeRow[0]) ? (int) $rangeRow[0]->max_n : null,
+                'tahun' => (int) $tahun,
+                'sumber' => 'Sistem Informasi Keuangan Unila (Simpedam) — sync via MyUnila Integrator',
+                'golongan' => $golongan,
+            ];
+        } catch (\Exception $e) {
+            // Schema atau data belum tersedia — return null range, frontend show "Memuat..."
+            return [
+                'min' => null,
+                'max' => null,
+                'tahun' => null,
+                'sumber' => 'Sistem Informasi Keuangan Unila',
+                'golongan' => [],
+            ];
         }
     }
 }

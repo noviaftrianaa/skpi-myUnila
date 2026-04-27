@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -52,6 +53,27 @@ func (r *SiakaduSyncRunner) Run(endpoint string) error {
 	return nil
 }
 
+// KeuanganSyncRunner — runs keuangan-service sync via internal HTTP calls.
+// Service mount di docker network alias `keuangan-service:8088`.
+type KeuanganSyncRunner struct {
+	BaseURL string
+}
+
+// RunWithBody — POST endpoint dengan body JSON arbitrary (mis. {"tahun":2025}).
+func (r *KeuanganSyncRunner) RunWithBody(endpoint, jsonBody string) error {
+	client := &http.Client{Timeout: 4 * time.Hour}
+	url := r.BaseURL + endpoint
+	resp, err := client.Post(url, "application/json", strings.NewReader(jsonBody))
+	if err != nil {
+		return fmt.Errorf("failed to call %s: %w", endpoint, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 && resp.StatusCode != 201 && resp.StatusCode != 202 {
+		return fmt.Errorf("sync %s returned HTTP %d", endpoint, resp.StatusCode)
+	}
+	return nil
+}
+
 type Service interface {
 	Start() error
 	Stop()
@@ -77,6 +99,7 @@ type service struct {
 	unitOrgSync       UnitOrganisasiSyncService
 	kerjasamaSync     KerjasamaSyncService
 	siakaduRunner     *SiakaduSyncRunner
+	keuanganRunner    *KeuanganSyncRunner
 }
 
 func NewService(repo Repository) Service {
@@ -89,11 +112,17 @@ func NewService(repo Repository) Service {
 		cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)),
 	)
 
+	keuanganURL := os.Getenv("KEUANGAN_SERVICE_URL")
+	if keuanganURL == "" {
+		keuanganURL = "http://keuangan-service:8088/api/v1"
+	}
+
 	return &service{
 		repo:     repo,
 		cron:     c,
 		cronJobs: make(map[int]cron.EntryID),
-		siakaduRunner: &SiakaduSyncRunner{BaseURL: "http://localhost:8086/api/v1"},
+		siakaduRunner:  &SiakaduSyncRunner{BaseURL: "http://localhost:8086/api/v1"},
+		keuanganRunner: &KeuanganSyncRunner{BaseURL: keuanganURL},
 	}
 }
 
@@ -265,6 +294,15 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 		}
 		_, err := s.kerjasamaSync.SyncKerjasama(ctx, nil, syncedBy)
 		return err
+	case "daftar_ukt":
+		// Tahun saat ini (UTC, tetapi server jalan WIB jadi accurate)
+		tahun := time.Now().Year()
+		body := fmt.Sprintf(`{"tahun":%d,"force_sync":false,"synced_by":"scheduler"}`, tahun)
+		return s.keuanganRunner.RunWithBody("/daftar-ukt/sync", body)
+	case "spp_mhs":
+		// Default sync semester aktif berjalan; tahun_akd & ganjil_genap di-derive di
+		// keuangan-service kalau body kosong.
+		return s.keuanganRunner.RunWithBody("/spp-mhs/sync", `{"synced_by":"scheduler"}`)
 	case "siakadu_referensi":
 		return s.siakaduRunner.Run("/siakadu/referensi/unit/sync")
 	case "siakadu_mahasiswa":

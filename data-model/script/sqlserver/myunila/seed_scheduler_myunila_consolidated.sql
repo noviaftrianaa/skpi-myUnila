@@ -38,7 +38,9 @@ WHERE name IN (
     N'SIAKADU Status Kuliah Sync Harian',
     N'SIAKADU Transkrip Sync Harian',
     N'SIAKADU Wisuda Sync Harian',
-    N'SIKERMA Kerjasama Sync Harian'
+    N'SIKERMA Kerjasama Sync Harian',
+    N'Keuangan Daftar UKT Sync Harian',
+    N'Keuangan SPP Mahasiswa Sync Harian'
 );
 GO
 
@@ -118,15 +120,27 @@ VALUES
     (N'SIKERMA Kerjasama Sync Harian',
      N'Sync MoU/MoA/IA dari SIKERMA Unila (via VM1 proxy) setiap malam pukul 23:45 WIB',
      N'kerjasama', NULL, N'0 45 23 * * *',
-     CAST('2026-01-01T23:45:00' AS DATETIME2), 1, @creator);
+     CAST('2026-01-01T23:45:00' AS DATETIME2), 1, @creator),
+
+    -- Keuangan — Daftar UKT (tarif resmi per prodi/golongan) — mingguan, daily redundant
+    (N'Keuangan Daftar UKT Sync Harian',
+     N'Sync tarif Daftar UKT dari SIMPEDAM ke keuangan.daftar_ukt setiap malam pukul 02:30 WIB (year-default current year)',
+     N'daftar_ukt', NULL, N'0 30 2 * * *',
+     CAST('2026-01-01T02:30:00' AS DATETIME2), 1, @creator),
+
+    -- Keuangan — SPP Mahasiswa (riwayat pembayaran per mahasiswa) — harian
+    (N'Keuangan SPP Mahasiswa Sync Harian',
+     N'Sync data pembayaran SPP/UKT mahasiswa dari SIMPEDAM ke keuangan.spp_mhs setiap malam pukul 03:00 WIB',
+     N'spp_mhs', NULL, N'0 0 3 * * *',
+     CAST('2026-01-01T03:00:00' AS DATETIME2), 1, @creator);
 
 -- ============================================================================
 -- Verifikasi
 -- ============================================================================
 SELECT id, name, sync_type, cron_expression, is_active, created_by
 FROM dbo.scheduled_syncs
-WHERE sync_type IN ('pegawai', 'radius', 'unit_organisasi', 'kerjasama')
+WHERE sync_type IN ('pegawai', 'radius', 'unit_organisasi', 'kerjasama', 'daftar_ukt', 'spp_mhs')
    OR sync_type LIKE 'siakadu_%'
 ORDER BY cron_expression;
 
-PRINT N'Selesai — 13 jadwal myunila-service di-seed (siakadu_referensi by manual admin, tidak di-jadwal). Service akan auto-pickup setelah restart container.';
+PRINT N'Selesai — 15 jadwal myunila-service di-seed (siakadu_referensi by manual admin, tidak di-jadwal). Service akan auto-pickup setelah restart container.';

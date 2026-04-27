@@ -625,8 +625,16 @@ export interface UnilaProfile {
   tanggal_sk_akreditasi: string | null;
   tanggal_berakhir_akreditasi: string | null;
   biaya_kuliah: {
-    min: number;
-    max: number;
+    min: number | null;
+    max: number | null;
+    tahun?: number | null;
+    sumber?: string;
+    golongan?: Array<{
+      nama_kelas: string;
+      nominal_min: number;
+      nominal_max: number;
+      jml_prodi: number;
+    }>;
   };
 }
 

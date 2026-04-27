@@ -50,8 +50,11 @@ class UnilaProfileService
                 'tanggal_sk_akreditasi' => $profile->tgl_sk_akred_sp ? date('Y-m-d', strtotime($profile->tgl_sk_akred_sp)) : null,
                 'tanggal_berakhir_akreditasi' => $profile->tst_sk_akred_sp ? date('Y-m-d', strtotime($profile->tst_sk_akred_sp)) : null,
                 'biaya_kuliah' => [
-                    'min' => (int) ($profile->min_biaya ?? 0),
-                    'max' => (int) ($profile->max_biaya ?? 0),
+                    'min' => $profile->min_biaya !== null ? (int) $profile->min_biaya : null,
+                    'max' => $profile->max_biaya !== null ? (int) $profile->max_biaya : null,
+                    'tahun' => $profile->ukt_tahun ?? null,
+                    'sumber' => $profile->ukt_sumber ?? 'Sistem Informasi Keuangan Unila',
+                    'golongan' => $profile->ukt_golongan ?? [],
                 ],
             ];
         });

@@ -280,22 +280,51 @@ export default function ProfileUnila() {
                 </p>
               </div>
 
-              {/* Range Tuition */}
+              {/* Range Tuition / UKT */}
               <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                   </svg>
-                  Range Biaya Kuliah
+                  Range UKT Kuliah
+                  {profile?.biaya_kuliah?.tahun && (
+                    <span className="ml-auto text-xs font-semibold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full">
+                      Tahun {profile.biaya_kuliah.tahun}
+                    </span>
+                  )}
                 </h3>
                 <div className="text-2xl font-bold text-gray-800">
-                  {profile?.biaya_kuliah?.min && profile?.biaya_kuliah?.max
-                    ? `${formatCurrency(profile.biaya_kuliah.min)} - ${formatCurrency(profile.biaya_kuliah.max)}`
-                    : 'Memuat data...'
-                  }
+                  {profile?.biaya_kuliah?.min != null && profile?.biaya_kuliah?.max != null
+                    ? `${formatCurrency(profile.biaya_kuliah.min)} – ${formatCurrency(profile.biaya_kuliah.max)}`
+                    : 'Memuat data...'}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Per Semester</div>
+                <div className="text-sm text-gray-600 mt-1">per semester (8 golongan KELOMPOK)</div>
+
+                {/* Golongan breakdown */}
+                {profile?.biaya_kuliah?.golongan && profile.biaya_kuliah.golongan.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-emerald-200/60">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Range per Golongan UKT:</p>
+                    <div className="space-y-1">
+                      {profile.biaya_kuliah.golongan.map((g) => (
+                        <div key={g.nama_kelas} className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-gray-700">{g.nama_kelas}</span>
+                          <span className="font-mono text-gray-800">
+                            {g.nominal_min === g.nominal_max
+                              ? formatCurrency(g.nominal_min)
+                              : `${formatCurrency(g.nominal_min)} – ${formatCurrency(g.nominal_max)}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {profile?.biaya_kuliah?.sumber && (
+                  <p className="mt-3 text-[11px] text-gray-500 italic">
+                    Sumber: {profile.biaya_kuliah.sumber}
+                  </p>
+                )}
               </div>
             </motion.div>
           </div>
