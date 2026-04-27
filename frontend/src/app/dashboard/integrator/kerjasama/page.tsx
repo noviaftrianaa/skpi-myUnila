@@ -565,12 +565,11 @@ export default function KerjasamaMouPage() {
                   {detailRow.id_sikerma && (
                     <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
                       <a
-                        href={`https://sikerma.unila.ac.id/kerjasama/${detailRow.id_sikerma}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); toast("Endpoint dokumen belum tersedia", { icon: "ℹ️" }); }}
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                       >
-                        <FiExternalLink className="w-4 h-4" /> Buka di SIKERMA
+                        <FiExternalLink className="w-4 h-4" /> Buka Dokumen
                       </a>
                     </div>
                   )}
