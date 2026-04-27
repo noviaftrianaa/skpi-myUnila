@@ -6,6 +6,9 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	"github.com/myunila/myunila-service/apps/logger"
+	"github.com/myunila/myunila-service/apps/monitoring"
 )
 
 // Service — orchestrates SIKERMA fetch + pdut upsert.
@@ -26,13 +29,20 @@ type Service interface {
 }
 
 type service struct {
-	repo   Repository
-	client *SikermaClient
+	repo       Repository
+	client     *SikermaClient
+	monitorSvc monitoring.Service
+	loggerSvc  logger.Service
 }
 
 // NewService — constructor
 func NewService(repo Repository, client *SikermaClient) Service {
-	return &service{repo: repo, client: client}
+	return &service{
+		repo:       repo,
+		client:     client,
+		monitorSvc: monitoring.GetInstance(),
+		loggerSvc:  logger.GetService(),
+	}
 }
 
 // =============================================================================
@@ -90,16 +100,31 @@ func (s *service) SyncFromSikerma(ctx context.Context, filter *SyncFilter, synce
 
 	log.Println("🔄 [Kerjasama] Starting sync from SIKERMA...")
 
+	// Start monitoring (real-time progress untuk halaman /integrator/monitoring)
+	syncID := ""
+	if s.monitorSvc != nil {
+		syncID = s.monitorSvc.StartSync("Kerjasama SIKERMA", "kerjasama", "manual", syncedBy, 0)
+	}
+
 	// Step 1: Fetch unit-kerja
 	units, err := s.client.GetUnitKerja(ctx)
 	if err != nil {
 		res.FinishedAt = time.Now()
 		res.DurationMs = res.FinishedAt.Sub(res.StartedAt).Milliseconds()
-		res.Errors = append(res.Errors, fmt.Sprintf("fetch unit-kerja: %v", err))
+		errMsg := fmt.Sprintf("fetch unit-kerja: %v", err)
+		res.Errors = append(res.Errors, errMsg)
+		if s.monitorSvc != nil && syncID != "" {
+			s.monitorSvc.FailSync(syncID, errMsg)
+		}
+		s.logSyncResult(ctx, syncedBy, "failed", res, &errMsg)
 		return res, err
 	}
 	res.UnitTotal = len(units)
 	log.Printf("   ✓ Fetched %d units from SIKERMA", len(units))
+
+	if s.monitorSvc != nil && syncID != "" {
+		s.monitorSvc.UpdateTotalRecords(syncID, len(units))
+	}
 
 	// Filter kalau ada
 	if filter != nil && len(filter.UnitIDs) > 0 {
@@ -132,7 +157,7 @@ func (s *service) SyncFromSikerma(ctx context.Context, filter *SyncFilter, synce
 	log.Printf("   ✓ Mapping cache: %d/%d units mapped to pdrd.sms", mapped, len(mapping))
 
 	// Step 3: Loop fetch kerjasama per unit
-	for _, u := range units {
+	for idx, u := range units {
 		ksResp, err := s.client.GetKerjasamaByUnit(ctx, u.ID)
 		if err != nil {
 			res.UnitFailed++
@@ -143,6 +168,12 @@ func (s *service) SyncFromSikerma(ctx context.Context, filter *SyncFilter, synce
 		}
 		res.UnitProcessed++
 		idSms := mapping[u.ID]
+
+		// Update real-time progress untuk monitoring page
+		if s.monitorSvc != nil && syncID != "" {
+			s.monitorSvc.UpdateProgress(syncID, idx+1,
+				fmt.Sprintf("Unit %d/%d: %s (%d kerjasama)", idx+1, len(units), u.NamaPendek, len(ksResp.Data)))
+		}
 
 		for _, ks := range ksResp.Data {
 			// Step 3a: Upsert mitra (loop daftar_mitra → pdrd.dudi)
@@ -211,9 +242,81 @@ func (s *service) SyncFromSikerma(ctx context.Context, filter *SyncFilter, synce
 
 	res.FinishedAt = time.Now()
 	res.DurationMs = res.FinishedAt.Sub(res.StartedAt).Milliseconds()
-	log.Printf("✅ [Kerjasama] Sync done: %d unit OK, %d failed, %d mou upserted, %d mitra upserted, took %dms",
-		res.UnitProcessed, res.UnitFailed, res.MouUpserted, res.MitraUpserted, res.DurationMs)
+
+	// Complete monitoring + log to DB
+	status := "success"
+	if res.UnitFailed > 0 || len(res.Errors) > 0 {
+		if res.UnitProcessed == 0 {
+			status = "failed"
+		} else {
+			status = "partial"
+		}
+	}
+	completionMsg := fmt.Sprintf("%d unit OK, %d failed, %d mou upserted, %d mitra upserted",
+		res.UnitProcessed, res.UnitFailed, res.MouUpserted, res.MitraUpserted)
+	if s.monitorSvc != nil && syncID != "" {
+		if status == "failed" {
+			s.monitorSvc.FailSync(syncID, completionMsg)
+		} else {
+			s.monitorSvc.CompleteSync(syncID, completionMsg)
+		}
+	}
+	s.logSyncResult(ctx, syncedBy, status, res, nil)
+
+	log.Printf("✅ [Kerjasama] Sync done: %s, took %dms", completionMsg, res.DurationMs)
 	return res, nil
+}
+
+// logSyncResult — persist sync attempt ke logger (visible di /dashboard/integrator/logs).
+func (s *service) logSyncResult(ctx context.Context, syncedBy, status string, res *SyncResult, errMsg *string) {
+	loggerSvc := s.loggerSvc
+	if loggerSvc == nil {
+		loggerSvc = logger.GetService()
+	}
+	if loggerSvc == nil {
+		log.Println("⚠️  [Kerjasama] Logger service not available, skipping DB log")
+		return
+	}
+
+	durationMs := int(res.DurationMs)
+	var errDetails *string
+	if len(res.Errors) > 0 {
+		// Cap supaya tidak meledak ke text yang sangat panjang
+		max := 5
+		if len(res.Errors) < max {
+			max = len(res.Errors)
+		}
+		joined := strings.Join(res.Errors[:max], "\n")
+		if len(res.Errors) > max {
+			joined += fmt.Sprintf("\n…(+%d more)", len(res.Errors)-max)
+		}
+		errDetails = &joined
+	}
+
+	syncType := "manual"
+	if syncedBy == "scheduler" {
+		syncType = "scheduled"
+	}
+
+	req := &logger.CreateSyncLogRequest{
+		EndpointName:  "Kerjasama SIKERMA",
+		EndpointKey:   "kerjasama",
+		SyncType:      syncType,
+		Status:        status,
+		APICode:       "SIKERMA",
+		TotalRecords:  res.UnitTotal,
+		InsertedCount: res.MouUpserted + res.MitraUpserted,
+		UpdatedCount:  0, // upsert counter agnostic — semua dianggap inserted di logger
+		FailedCount:   res.UnitFailed,
+		SkippedCount:  res.MouSkipped,
+		DurationMs:    &durationMs,
+		ErrorMessage:  errMsg,
+		ErrorDetails:  errDetails,
+		SyncedBy:      syncedBy,
+	}
+	if _, err := loggerSvc.LogSync(ctx, req); err != nil {
+		log.Printf("⚠️  [Kerjasama] LogSync failed: %v", err)
+	}
 }
 
 // resolveSmsForUnit — try multiple strategy untuk dapat id_sms,
