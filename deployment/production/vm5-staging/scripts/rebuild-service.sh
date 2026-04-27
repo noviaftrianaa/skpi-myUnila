@@ -177,3 +177,15 @@ else
     echo -e "${GREEN}All services rebuilt successfully${NC}"
 fi
 echo ""
+
+# Auto-cleanup dangling images + build cache untuk hemat storage.
+# Aman: tidak menyentuh volume + tidak menghapus image yang dipakai container.
+# Set REBUILD_NO_CLEANUP=1 untuk skip kalau perlu.
+if [ "${REBUILD_NO_CLEANUP:-0}" != "1" ]; then
+    echo -e "${BLUE}Auto-cleanup dangling images + build cache (set REBUILD_NO_CLEANUP=1 untuk skip)...${NC}"
+    BEFORE=$(docker system df --format "{{.Reclaimable}}" 2>/dev/null | head -1)
+    docker image prune -f >/dev/null 2>&1 || true
+    docker builder prune -f --keep-storage 2GB >/dev/null 2>&1 || true
+    echo -e "${GREEN}  ✓ cleanup selesai (dangling + build cache, volume tidak disentuh)${NC}"
+    echo ""
+fi

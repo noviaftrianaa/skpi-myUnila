@@ -39,6 +39,17 @@ echo "========================================="
 echo "  Rebuild Complete!"
 echo "========================================="
 echo ""
+
+# Auto-cleanup dangling images + build cache (aman, tidak sentuh volume).
+# Set REBUILD_NO_CLEANUP=1 untuk skip.
+if [ "${REBUILD_NO_CLEANUP:-0}" != "1" ]; then
+    echo "🧹 Auto-cleanup dangling images + build cache..."
+    docker image prune -f >/dev/null 2>&1 || true
+    docker builder prune -f --keep-storage 2GB >/dev/null 2>&1 || true
+    echo "  ✓ cleanup selesai (volume tidak disentuh)"
+    echo ""
+fi
+
 echo "Next steps:"
 echo "1. Hard refresh browser (Ctrl+Shift+R)"
 echo "2. Logout and login again"
