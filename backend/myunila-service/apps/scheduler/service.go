@@ -74,7 +74,13 @@ type service struct {
 
 func NewService(repo Repository) Service {
 	// Create cron with seconds precision
-	c := cron.New(cron.WithSeconds())
+	// SkipIfStillRunning: kalau sync sebelumnya belum selesai, fire berikutnya
+	// akan di-skip (bukan jalan paralel). Penting untuk sync data besar
+	// (mis. siakadu_transkrip per-NPM, mahasiswa) yang bisa lewat 1 cycle.
+	c := cron.New(
+		cron.WithSeconds(),
+		cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)),
+	)
 
 	return &service{
 		repo:     repo,

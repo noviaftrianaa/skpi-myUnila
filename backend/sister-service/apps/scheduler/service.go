@@ -43,8 +43,14 @@ type Service struct {
 }
 
 func NewService(repo *Repository, dosenService dosen.Service, referensiService referensi.Service, penugasanService penugasan.Service, penelitianService penelitian.Service, publikasiService publikasi.Service, pendidikanService pendidikan.Service, riwayatPekerjaanService *riwayat_pekerjaan.Service, riwayatFungsionalService *riwayat_fungsional.Service, jabatanStrukturalService *jabatan_struktural.Service, tugasTambahanService *tugas_tambahan.Service, sertifikasiDosenService *sertifikasi_dosen.Service, bidangIlmuService bidang_ilmu.Service) *Service {
-	// Create cron with second precision
-	c := cron.New(cron.WithSeconds())
+	// Create cron with second precision.
+	// SkipIfStillRunning: kalau sync sebelumnya belum selesai, fire berikutnya
+	// di-skip (bukan jalan paralel). Mencegah double-sync untuk data besar
+	// (mis. dosen, penelitian, publikasi) yang bisa lewat 1 cycle.
+	c := cron.New(
+		cron.WithSeconds(),
+		cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)),
+	)
 
 	service := &Service{
 		repo:                     repo,

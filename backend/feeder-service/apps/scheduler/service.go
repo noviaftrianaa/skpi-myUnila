@@ -51,8 +51,14 @@ func NewService(
 	nilaiKonversiService nilai_konversi.Service,
 	transkripNilaiService transkrip_nilai.Service,
 ) *Service {
-	// Create cron with second precision
-	c := cron.New(cron.WithSeconds())
+	// Create cron with second precision.
+	// SkipIfStillRunning: kalau sync feeder PDDIKTI sebelumnya belum selesai
+	// (mis. mahasiswa 50k+ rows), fire weekly berikutnya akan di-skip
+	// supaya tidak jalan paralel.
+	c := cron.New(
+		cron.WithSeconds(),
+		cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)),
+	)
 
 	service := &Service{
 		repo:                      repo,
