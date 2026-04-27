@@ -293,6 +293,9 @@ export default function SiakaduPegawaiPage() {
           ))}
         </div>
 
+        {/* Scheduled Syncs */}
+        <ScheduleList syncType={"pegawai" as any} />
+
         {/* Filter Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
           <button
@@ -373,8 +376,6 @@ export default function SiakaduPegawaiPage() {
             </div>
           )}
         </div>
-
-        <ScheduleList syncType={"pegawai" as any} />
 
         {/* Data Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">

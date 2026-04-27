@@ -282,6 +282,9 @@ export default function SiakaduMataKuliahPage() {
           </Card>
         </div>
 
+        {/* Scheduled Syncs */}
+        <ScheduleList syncType={"siakadu_matakuliah" as any} />
+
         {/* Filter Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
           <button
@@ -347,8 +350,6 @@ export default function SiakaduMataKuliahPage() {
             </div>
           )}
         </div>
-
-        <ScheduleList syncType={"siakadu_matakuliah" as any} />
 
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">

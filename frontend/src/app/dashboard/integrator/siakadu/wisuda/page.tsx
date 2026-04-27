@@ -293,6 +293,9 @@ export default function SiakaduWisudaPage() {
           </div>
         </div>
 
+        {/* Scheduled Syncs */}
+        <ScheduleList syncType={"siakadu_wisuda" as any} />
+
         {/* Filter Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
           <button
@@ -375,8 +378,6 @@ export default function SiakaduWisudaPage() {
             </div>
           )}
         </div>
-
-        <ScheduleList syncType={"siakadu_wisuda" as any} />
 
         {/* Data Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
