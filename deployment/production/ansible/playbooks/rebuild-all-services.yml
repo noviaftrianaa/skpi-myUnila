@@ -203,9 +203,9 @@
       shell: |
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
-        docker image prune -af --filter "until=24h"
+        docker image prune -af
         # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
-        docker builder prune -af --filter "until=24h"
+        docker builder prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -380,9 +380,9 @@
       shell: |
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
-        docker image prune -af --filter "until=24h"
+        docker image prune -af
         # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
-        docker builder prune -af --filter "until=24h"
+        docker builder prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -636,9 +636,9 @@
       shell: |
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
-        docker image prune -af --filter "until=24h"
+        docker image prune -af
         # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
-        docker builder prune -af --filter "until=24h"
+        docker builder prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -979,9 +979,9 @@
       shell: |
         echo "Cleaning up unused Docker resources..."
         docker container prune -f
-        docker image prune -af --filter "until=24h"
+        docker image prune -af
         # SKIP: docker volume prune -f → resiko hilang volume yang sedang tidak ter-mount. Cleanup volume harus manual via "docker volume ls -qf dangling=true" + "docker volume rm <name>".
-        docker builder prune -af --filter "until=24h"
+        docker builder prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"

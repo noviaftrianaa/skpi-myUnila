@@ -5,12 +5,14 @@
 #
 # This playbook removes:
 # 1. Stopped containers
-# 2. Dangling images (not tagged and not used by any container)
-# 3. Unused images older than 24 hours
-# 4. Unused volumes
-# 5. Build cache older than 24 hours
+# 2. ALL unused images (not tagged and not used by any RUNNING container)
+# 3. ALL build cache (next build akan rebuild from scratch — slower but clean)
+# 4. Dangling volumes — list-only (TIDAK auto-prune untuk safety)
 #
-# Can be run standalone or as part of rebuild process
+# Filter "until=24h" sebelumnya removed karena terlalu permissive — fresh
+# rebuilds <24h tetap tersisa di cache. Sekarang full purge tiap kali jalan.
+#
+# Can be run standalone or as part of rebuild process.
 
 - name: Cleanup Docker Resources on All VMs
   hosts: all
@@ -44,7 +46,7 @@
       register: container_prune
 
     - name: Remove dangling and old images
-      shell: docker image prune -af --filter "until=24h"
+      shell: docker image prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -73,7 +75,7 @@
           ssh {{ inventory_hostname }}; docker volume rm <name>
 
     - name: Remove build cache
-      shell: docker builder prune -af --filter "until=24h"
+      shell: docker builder prune -af
       args:
         executable: /bin/bash
       become_user: "{{ ansible_user }}"
@@ -125,9 +127,9 @@
 
           Cleaned up resources on all VMs:
           - Removed stopped containers
-          - Removed dangling images (older than 24h)
-          - Removed unused volumes
-          - Cleared build cache (older than 24h)
+          - Removed ALL unused images (not used by running containers)
+          - Cleared ALL build cache (full purge)
+          - Volumes list-only (manual cleanup required for safety)
 
           All running services remain active and healthy.
 
