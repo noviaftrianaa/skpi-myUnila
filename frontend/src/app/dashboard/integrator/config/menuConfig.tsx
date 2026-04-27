@@ -15,6 +15,7 @@ import {
   FiCalendar,
   FiKey,
   FiDollarSign,
+  FiBriefcase,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -97,6 +98,23 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
       //   href: "/dashboard/integrator/siakadu/wisuda",
       //   roles: defaultRoles,
       // },
+    ],
+  },
+  {
+    title: "Data Kerjasama",
+    icon: <FiBriefcase className="w-5 h-5" />,
+    roles: defaultRoles,
+    children: [
+      {
+        title: "MoU & Sync",
+        href: "/dashboard/integrator/kerjasama",
+        roles: defaultRoles,
+      },
+      {
+        title: "Mapping Unit",
+        href: "/dashboard/integrator/kerjasama/mapping",
+        roles: defaultRoles,
+      },
     ],
   },
   {

@@ -37,7 +37,8 @@ WHERE name IN (
     N'SIAKADU KHS Sync Harian',
     N'SIAKADU Status Kuliah Sync Harian',
     N'SIAKADU Transkrip Sync Harian',
-    N'SIAKADU Wisuda Sync Harian'
+    N'SIAKADU Wisuda Sync Harian',
+    N'SIKERMA Kerjasama Sync Harian'
 );
 GO
 
@@ -111,15 +112,21 @@ VALUES
     (N'SIAKADU Wisuda Sync Harian',
      N'Sync data wisuda dari SIAKADU setiap malam pukul 23:30 WIB',
      N'siakadu_wisuda', NULL, N'0 30 23 * * *',
-     CAST('2026-01-01T23:30:00' AS DATETIME2), 1, @creator);
+     CAST('2026-01-01T23:30:00' AS DATETIME2), 1, @creator),
+
+    -- SIKERMA — kerjasama (MoU/MoA/IA) sync via VM1 nginx proxy
+    (N'SIKERMA Kerjasama Sync Harian',
+     N'Sync MoU/MoA/IA dari SIKERMA Unila (via VM1 proxy) setiap malam pukul 23:45 WIB',
+     N'kerjasama', NULL, N'0 45 23 * * *',
+     CAST('2026-01-01T23:45:00' AS DATETIME2), 1, @creator);
 
 -- ============================================================================
 -- Verifikasi
 -- ============================================================================
 SELECT id, name, sync_type, cron_expression, is_active, created_by
 FROM dbo.scheduled_syncs
-WHERE sync_type IN ('pegawai', 'radius', 'unit_organisasi')
+WHERE sync_type IN ('pegawai', 'radius', 'unit_organisasi', 'kerjasama')
    OR sync_type LIKE 'siakadu_%'
 ORDER BY cron_expression;
 
-PRINT N'Selesai — 12 jadwal myunila-service di-seed (siakadu_referensi by manual admin, tidak di-jadwal). Service akan auto-pickup setelah restart container.';
+PRINT N'Selesai — 13 jadwal myunila-service di-seed (siakadu_referensi by manual admin, tidak di-jadwal). Service akan auto-pickup setelah restart container.';

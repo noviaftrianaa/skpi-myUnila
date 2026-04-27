@@ -28,6 +28,11 @@ type UnitOrganisasiSyncService interface {
 	SyncFromSMS(ctx context.Context, syncedBy string) (interface{}, error)
 }
 
+// KerjasamaSyncService interface for SIKERMA kerjasama sync operations
+type KerjasamaSyncService interface {
+	SyncKerjasama(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
+}
+
 // SiakaduSyncRunner runs SIAKADU sync via internal HTTP calls
 type SiakaduSyncRunner struct {
 	BaseURL string
@@ -59,6 +64,7 @@ type Service interface {
 	SetPegawaiSyncService(svc PegawaiSyncService)
 	SetRadiusSyncService(svc RadiusSyncService)
 	SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService)
+	SetKerjasamaSyncService(svc KerjasamaSyncService)
 }
 
 type service struct {
@@ -69,6 +75,7 @@ type service struct {
 	pegawaiSync       PegawaiSyncService
 	radiusSync        RadiusSyncService
 	unitOrgSync       UnitOrganisasiSyncService
+	kerjasamaSync     KerjasamaSyncService
 	siakaduRunner     *SiakaduSyncRunner
 }
 
@@ -103,6 +110,11 @@ func (s *service) SetRadiusSyncService(svc RadiusSyncService) {
 // SetUnitOrganisasiSyncService sets the unit organisasi sync service for scheduled syncs
 func (s *service) SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService) {
 	s.unitOrgSync = svc
+}
+
+// SetKerjasamaSyncService sets the SIKERMA kerjasama sync service for scheduled syncs
+func (s *service) SetKerjasamaSyncService(svc KerjasamaSyncService) {
+	s.kerjasamaSync = svc
 }
 
 // Start loads active schedules and starts the cron scheduler
@@ -246,6 +258,12 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 			return fmt.Errorf("unit organisasi sync service not configured")
 		}
 		_, err := s.unitOrgSync.SyncFromSMS(ctx, syncedBy)
+		return err
+	case "kerjasama":
+		if s.kerjasamaSync == nil {
+			return fmt.Errorf("kerjasama sync service not configured")
+		}
+		_, err := s.kerjasamaSync.SyncKerjasama(ctx, nil, syncedBy)
 		return err
 	case "siakadu_referensi":
 		return s.siakaduRunner.Run("/siakadu/referensi/unit/sync")

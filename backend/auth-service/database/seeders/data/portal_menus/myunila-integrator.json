@@ -36,10 +36,20 @@
       ]
     },
     {
+      "nm_menu": "Data Kerjasama",
+      "nm_file": "#kerjasama",
+      "icon": "heroicons:briefcase",
+      "urutan": 4,
+      "children": [
+        {"nm_menu": "MoU & Sync", "nm_file": "/dashboard/integrator/kerjasama", "urutan": 1},
+        {"nm_menu": "Mapping Unit", "nm_file": "/dashboard/integrator/kerjasama/mapping", "urutan": 2}
+      ]
+    },
+    {
       "nm_menu": "Sirandu",
       "nm_file": "#sirandu",
       "icon": "heroicons:calendar",
-      "urutan": 4,
+      "urutan": 5,
       "children": [
         {"nm_menu": "Presensi Mahasiswa", "nm_file": "/dashboard/integrator/sirandu/presensi-mahasiswa", "urutan": 1},
         {"nm_menu": "Presensi Dosen", "nm_file": "/dashboard/integrator/sirandu/presensi-dosen", "urutan": 2}
@@ -49,7 +59,7 @@
       "nm_menu": "ManAkses",
       "nm_file": "#manakses",
       "icon": "heroicons:lock-closed",
-      "urutan": 5,
+      "urutan": 6,
       "children": [
         {"nm_menu": "Unit Organisasi", "nm_file": "/dashboard/integrator/manakses/unit-organisasi", "urutan": 1},
         {"nm_menu": "SSO Radius", "nm_file": "/dashboard/integrator/manakses/sso-radius", "urutan": 2}
@@ -59,7 +69,7 @@
       "nm_menu": "Keuangan",
       "nm_file": "#keuangan",
       "icon": "heroicons:banknotes",
-      "urutan": 6,
+      "urutan": 7,
       "children": [
         {"nm_menu": "Daftar UKT", "nm_file": "/dashboard/integrator/keuangan/daftar-ukt", "urutan": 1},
         {"nm_menu": "SPP Mahasiswa", "nm_file": "/dashboard/integrator/keuangan/spp-mhs", "urutan": 2}
@@ -69,19 +79,19 @@
       "nm_menu": "Monitoring",
       "nm_file": "/dashboard/integrator/monitoring",
       "icon": "heroicons:presentation-chart-line",
-      "urutan": 7
+      "urutan": 8
     },
     {
       "nm_menu": "Sync Logs",
       "nm_file": "/dashboard/integrator/logs",
       "icon": "heroicons:document-text",
-      "urutan": 8
+      "urutan": 9
     },
     {
       "nm_menu": "API Configuration",
       "nm_file": "/dashboard/integrator/settings",
       "icon": "heroicons:cog-6-tooth",
-      "urutan": 9
+      "urutan": 10
     }
   ]
 }

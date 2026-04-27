@@ -12,6 +12,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/myunila-service/apps/api_config"
+	"github.com/myunila/myunila-service/apps/kerjasama"
 	"github.com/myunila/myunila-service/apps/logger"
 	"github.com/myunila/myunila-service/apps/manakses/unit_organisasi"
 	"github.com/myunila/myunila-service/apps/monitoring"
@@ -186,6 +187,10 @@ func main() {
 	siakadu_wisuda.Init(apiV1, db.DB, siakaduAPI)
 	log.Println("✅ SIAKADU Wisuda module initialized")
 
+	// Initialize Kerjasama (SIKERMA) module
+	kerjasamaSvc := kerjasama.Init(apiV1, db.DB)
+	log.Println("✅ Kerjasama (SIKERMA) module initialized")
+
 	// Initialize ManAkses Unit Organisasi module
 	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
 	log.Println("✅ ManAkses Unit Organisasi module initialized")
@@ -209,6 +214,10 @@ func main() {
 	// Connect unit organisasi sync service to scheduler
 	schedulerSvc.SetUnitOrganisasiSyncService(&unitOrgSyncAdapter{svc: unitOrgSvc})
 	log.Println("✅ Unit Organisasi sync service connected to scheduler")
+
+	// Connect kerjasama sync service to scheduler
+	schedulerSvc.SetKerjasamaSyncService(&kerjasamaSyncAdapter{svc: kerjasamaSvc})
+	log.Println("✅ Kerjasama sync service connected to scheduler")
 
 	// Start scheduler
 	if err := schedulerSvc.Start(); err != nil {
@@ -242,6 +251,9 @@ func main() {
 				"radius_pengguna":     "/api/v1/radius/pengguna",
 				"radius_stats":        "/api/v1/radius/stats",
 				"radius_sync":         "/api/v1/radius/sync",
+				"kerjasama_mou":       "/api/v1/kerjasama/mou",
+				"kerjasama_mapping":   "/api/v1/kerjasama/unit-mapping",
+				"kerjasama_sync":      "/api/v1/kerjasama/sync",
 				"logger":              "/api/v1/logger",
 				"monitoring":          "/api/v1/monitoring",
 				"scheduler":           "/api/v1/schedules",
@@ -306,4 +318,13 @@ type unitOrgSyncAdapter struct {
 
 func (a *unitOrgSyncAdapter) SyncFromSMS(ctx context.Context, syncedBy string) (interface{}, error) {
 	return a.svc.SyncFromSMS(ctx, syncedBy)
+}
+
+// kerjasamaSyncAdapter adapts kerjasama.Service to scheduler.KerjasamaSyncService
+type kerjasamaSyncAdapter struct {
+	svc kerjasama.Service
+}
+
+func (a *kerjasamaSyncAdapter) SyncKerjasama(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error) {
+	return a.svc.SyncKerjasama(ctx, filter, syncedBy)
 }
