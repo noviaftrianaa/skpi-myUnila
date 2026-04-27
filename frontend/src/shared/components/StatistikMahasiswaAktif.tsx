@@ -53,6 +53,10 @@ export default function StatistikMahasiswaAktif() {
   const [trendData, setTrendData] = useState<MahasiswaTrendYearItem[]>([]);
   const [jenjangData, setJenjangData] = useState<JenjangDistributionItem[]>([]);
   const [statusData, setStatusData] = useState<StatusDistributionItem[]>([]);
+  // Filter semester untuk chart status mhs (default null = semester aktif)
+  const [statusSemester, setStatusSemester] = useState<string>("");
+  const [availableSemesters, setAvailableSemesters] = useState<{ id_smt: string; nm_smt: string }[]>([]);
+  const [statusLoading, setStatusLoading] = useState(false);
   const [jenisKelaminData, setJenisKelaminData] = useState<JenisKelaminDistributionItem[]>([]);
   const [jalurDaftarData, setJalurDaftarData] = useState<JalurDaftarDistributionItem[]>([]);
   const [jenisPendaftaranData, setJenisPendaftaranData] = useState<JenisPendaftaranDistributionItem[]>([]);
@@ -170,7 +174,21 @@ export default function StatistikMahasiswaAktif() {
     };
 
     fetchData();
+    // Fetch list semester available untuk dropdown filter chart status
+    dashboardService.getAvailableSemesters()
+      .then(r => setAvailableSemesters(r.success ? r.data : []))
+      .catch(() => setAvailableSemesters([]));
   }, []);
+
+  // Re-fetch chart status when statusSemester filter changes
+  useEffect(() => {
+    if (!statusSemester) return; // empty = semester aktif default, sudah dimuat di fetchData
+    setStatusLoading(true);
+    dashboardService.getSebaranMahasiswaByStatus(statusSemester)
+      .then(r => { if (r.success) setStatusData(r.data.data); })
+      .catch(err => console.error('Error refetch status:', err))
+      .finally(() => setStatusLoading(false));
+  }, [statusSemester]);
 
   // Helper function to get tahun ajaran from periode
   const getTahunAjaran = (periode: string) => {
@@ -1228,15 +1246,36 @@ export default function StatistikMahasiswaAktif() {
           <Card className="shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden rounded-2xl">
             <CardBody className="p-0">
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                  Berdasarkan Status Mahasiswa
-                </h3>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                    Berdasarkan Status Mahasiswa
+                  </h3>
+                  {/* Semester filter — status mhs berubah per semester, jadi user bisa lihat snapshot semester lain */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">Semester:</label>
+                    <select
+                      value={statusSemester}
+                      onChange={(e) => setStatusSemester(e.target.value)}
+                      className="text-xs font-medium rounded-lg border border-orange-300 bg-white px-2.5 py-1.5 text-gray-900 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 dark:border-orange-700 dark:bg-gray-800 dark:text-gray-100"
+                    >
+                      <option value="">Aktif (default)</option>
+                      {availableSemesters.map(s => (
+                        <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
               <div className="p-6 bg-white dark:bg-gray-900">
-                <div className="h-[300px]">
+                <div className="h-[300px] relative">
+                  {statusLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-gray-900/70 z-10">
+                      <div className="text-sm text-orange-600 dark:text-orange-400">Memuat...</div>
+                    </div>
+                  )}
                   <ReactECharts
                     option={statusChartOptions}
                     style={{ height: "100%", width: "100%" }}

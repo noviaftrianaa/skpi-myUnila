@@ -480,16 +480,33 @@ class DashboardService {
   }
 
   /**
-   * Get sebaran mahasiswa by status
+   * Get sebaran mahasiswa by status — optional filter id_smt untuk snapshot
+   * semester spesifik. Tanpa param → semester aktif default.
    */
-  async getSebaranMahasiswaByStatus(): Promise<SebaranStatusResponse> {
+  async getSebaranMahasiswaByStatus(idSmt?: string): Promise<SebaranStatusResponse> {
     try {
-      const response = await axios.get<SebaranStatusResponse>(
-        `${PUBLIC_API_URL}/mahasiswa-statistics/status`
-      );
+      const url = idSmt
+        ? `${PUBLIC_API_URL}/mahasiswa-statistics/status?id_smt=${idSmt}`
+        : `${PUBLIC_API_URL}/mahasiswa-statistics/status`;
+      const response = await axios.get<SebaranStatusResponse>(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching sebaran by status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list of available semesters untuk dropdown filter chart status.
+   */
+  async getAvailableSemesters(): Promise<{ success: boolean; data: { id_smt: string; nm_smt: string }[] }> {
+    try {
+      const response = await axios.get<{ success: boolean; data: { id_smt: string; nm_smt: string }[] }>(
+        `${PUBLIC_API_URL}/mahasiswa-statistics/available-semesters`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching available semesters:', error);
       throw error;
     }
   }
