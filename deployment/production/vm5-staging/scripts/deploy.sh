@@ -213,3 +213,13 @@ echo "  Keuangan:    http://192.168.120.45:8088/health"
 echo "  Monitoring:  http://192.168.120.45:8089/health"
 echo ""
 echo -e "${GREEN}Deployment complete!${NC}"
+
+# Auto-cleanup dangling images + build cache (aman, tidak sentuh volume).
+# Set REBUILD_NO_CLEANUP=1 untuk skip kalau perlu.
+if [ "${REBUILD_NO_CLEANUP:-0}" != "1" ]; then
+    echo "🧹 Auto-cleanup dangling images + build cache..."
+    docker image prune -f >/dev/null 2>&1 || true
+    docker builder prune -f --keep-storage 2GB >/dev/null 2>&1 || true
+    echo "  ✓ cleanup selesai (volume tidak disentuh)"
+    echo ""
+fi

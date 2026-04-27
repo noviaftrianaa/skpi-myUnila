@@ -121,3 +121,14 @@ if [ "$UNHEALTHY" -gt 0 ]; then
     docker ps --filter "name=myunila" --filter "health=unhealthy" --format "  - {{.Names}}: {{.Status}}"
     echo ""
 fi
+
+# Auto-cleanup dangling images + build cache (aman, tidak sentuh volume).
+# Set REBUILD_NO_CLEANUP=1 untuk skip kalau perlu.
+if [ "${REBUILD_NO_CLEANUP:-0}" != "1" ]; then
+    echo "🧹 Auto-cleanup dangling images + build cache..."
+    docker image prune -f >/dev/null 2>&1 || true
+    docker builder prune -f --keep-storage 2GB >/dev/null 2>&1 || true
+    echo "  ✓ cleanup selesai (volume tidak disentuh)"
+    echo ""
+fi
+
