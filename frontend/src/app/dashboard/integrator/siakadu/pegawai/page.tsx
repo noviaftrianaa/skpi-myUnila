@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { myunilaClient } from "@/lib/api/myunilaClient";
 
@@ -372,6 +373,8 @@ export default function SiakaduPegawaiPage() {
             </div>
           )}
         </div>
+
+        <ScheduleList syncType={"pegawai" as any} />
 
         {/* Data Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">

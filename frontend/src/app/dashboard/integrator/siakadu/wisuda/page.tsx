@@ -5,6 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import siakaduService, { SiakaduWisuda, WisudaFilterOptions } from "@/lib/services/siakadu/siakaduService";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 
@@ -374,6 +375,8 @@ export default function SiakaduWisudaPage() {
             </div>
           )}
         </div>
+
+        <ScheduleList syncType={"siakadu_wisuda" as any} />
 
         {/* Data Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">

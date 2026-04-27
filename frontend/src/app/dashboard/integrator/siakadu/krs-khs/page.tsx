@@ -5,6 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import siakaduService, {
   SiakaduKRS,
   SiakaduKHS,
@@ -602,6 +603,9 @@ export default function SiakaduKrsKhsPage() {
             </CardBody>
           </Card>
         </div>
+
+        {/* Scheduled Syncs (siakadu_khs) */}
+        <ScheduleList syncType={"siakadu_khs" as any} />
 
         {/* Tabs */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">

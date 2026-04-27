@@ -10,7 +10,7 @@ export interface ScheduledSync {
   id: number;
   name: string;
   description: string;
-  sync_type: 'mahasiswa' | 'aktivitas_mahasiswa' | 'kurikulum';
+  sync_type: 'mahasiswa' | 'aktivitas_mahasiswa' | 'kurikulum' | 'rencana_evaluasi' | 'kelas_kuliah' | 'nilai_perkuliahan' | 'nilai_konversi' | 'transkrip_nilai' | 'bimbing_mhs';
   endpoint_key?: string | null;
   cron_expression: string;
   schedule_time?: string | null;
@@ -36,7 +36,7 @@ export interface ScheduledSyncListResponse {
 export interface CreateScheduleRequest {
   name: string;
   description: string;
-  sync_type: 'mahasiswa' | 'aktivitas_mahasiswa' | 'kurikulum';
+  sync_type: 'mahasiswa' | 'aktivitas_mahasiswa' | 'kurikulum' | 'rencana_evaluasi' | 'kelas_kuliah' | 'nilai_perkuliahan' | 'nilai_konversi' | 'transkrip_nilai' | 'bimbing_mhs';
   schedule_date: string; // YYYY-MM-DD
   schedule_time: string; // HH:mm
   angkatan?: string; // Comma-separated for mahasiswa
@@ -195,6 +195,12 @@ export const schedulerHelpers = {
       mahasiswa: 'Mahasiswa',
       aktivitas_mahasiswa: 'Aktivitas Mahasiswa',
       kurikulum: 'Kurikulum',
+      rencana_evaluasi: 'Rencana Evaluasi',
+      kelas_kuliah: 'Kelas Kuliah',
+      nilai_perkuliahan: 'Nilai Perkuliahan',
+      nilai_konversi: 'Nilai Konversi',
+      transkrip_nilai: 'Transkrip Nilai',
+      bimbing_mhs: 'Bimbingan Mahasiswa',
     };
     return labels[syncType] || syncType;
   },
@@ -207,6 +213,12 @@ export const schedulerHelpers = {
       mahasiswa: 'primary',
       aktivitas_mahasiswa: 'secondary',
       kurikulum: 'success',
+      rencana_evaluasi: 'warning',
+      kelas_kuliah: 'primary',
+      nilai_perkuliahan: 'warning',
+      nilai_konversi: 'warning',
+      transkrip_nilai: 'success',
+      bimbing_mhs: 'secondary',
     };
     return colors[syncType] || 'default';
   },

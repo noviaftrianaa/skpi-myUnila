@@ -20,8 +20,6 @@ import {
   Input,
   Select,
   SelectItem,
-  Tabs,
-  Tab,
 } from "@heroui/react";
 import {
   FiUsers,
@@ -35,7 +33,7 @@ import {
 } from "react-icons/fi";
 import { MdSync, MdSchool } from "react-icons/md";
 import SsoRadiusPenggunaTable from "@/shared/components/myunila-integrator/SsoRadiusPenggunaTable";
-import SsoRadiusSchedulerTable from "@/shared/components/myunila-integrator/SsoRadiusSchedulerTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 import { myunilaClient } from "@/lib/api/myunilaClient";
 import { toast } from "react-hot-toast";
@@ -335,49 +333,11 @@ export default function ManaksesSsoRadiusPage() {
           </Card>
         </div>
 
-        {/* Tabs for Data Pengguna and Scheduler */}
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden">
-          <CardBody className="p-6">
-            <Tabs
-              aria-label="SSO Radius tabs"
-              color="primary"
-              variant="underlined"
-              classNames={{
-                tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                cursor: "w-full bg-primary",
-                tab: "max-w-fit px-0 h-12",
-                tabContent: "group-data-[selected=true]:text-primary font-semibold"
-              }}
-            >
-              <Tab
-                key="data"
-                title={
-                  <div className="flex items-center space-x-2">
-                    <FiUsers />
-                    <span>Data Pengguna</span>
-                  </div>
-                }
-              >
-                <div className="py-4">
-                  <SsoRadiusPenggunaTable refreshTrigger={refreshTrigger} />
-                </div>
-              </Tab>
-              <Tab
-                key="scheduler"
-                title={
-                  <div className="flex items-center space-x-2">
-                    <FiClock />
-                    <span>Scheduler</span>
-                  </div>
-                }
-              >
-                <div className="py-4">
-                  <SsoRadiusSchedulerTable />
-                </div>
-              </Tab>
-            </Tabs>
-          </CardBody>
-        </Card>
+        {/* Scheduled Syncs (inline, mengikuti pola sister/feeder) */}
+        <ScheduleList syncType={"radius" as any} />
+
+        {/* Data Pengguna table */}
+        <SsoRadiusPenggunaTable refreshTrigger={refreshTrigger} />
       </div>
 
       {/* Sync Confirmation Modal */}

@@ -5,6 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import siakaduService, { SiakaduMataKuliah, MatakuliahFilterOptions } from "@/lib/services/siakadu/siakaduService";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 
@@ -346,6 +347,8 @@ export default function SiakaduMataKuliahPage() {
             </div>
           )}
         </div>
+
+        <ScheduleList syncType={"siakadu_matakuliah" as any} />
 
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">

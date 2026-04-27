@@ -5,6 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
+import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
 import siakaduService, {
   SiakaduTranskrip,
   TranskripFilterOptions,
@@ -474,6 +475,8 @@ export default function SiakaduTranskripPage() {
             </div>
           )}
         </div>
+
+        <ScheduleList syncType={"siakadu_transkrip" as any} />
 
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">

@@ -10,7 +10,7 @@ export interface ScheduledSync {
   id: number;
   name: string;
   description: string;
-  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
+  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan' | 'publikasi' | 'riwayat_pekerjaan' | 'riwayat_fungsional' | 'jabatan_fungsional' | 'jabatan_struktural' | 'tugas_tambahan' | 'sertifikasi_dosen' | 'bidang_ilmu';
   endpoint_key?: string | null;
   cron_expression: string;
   schedule_time?: string | null;
@@ -32,7 +32,7 @@ export interface ScheduledSyncListResponse {
 export interface CreateScheduleRequest {
   name: string;
   description: string;
-  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan';
+  sync_type: 'dosen' | 'dosen_foto' | 'dosen_dokumen' | 'referensi' | 'penugasan' | 'penelitian' | 'pengabdian' | 'pendidikan' | 'publikasi' | 'riwayat_pekerjaan' | 'riwayat_fungsional' | 'jabatan_fungsional' | 'jabatan_struktural' | 'tugas_tambahan' | 'sertifikasi_dosen' | 'bidang_ilmu';
   endpoint_key?: string;
   schedule_date: string; // YYYY-MM-DD
   schedule_time: string; // HH:mm
@@ -179,11 +179,21 @@ export const schedulerHelpers = {
   getSyncTypeLabel(syncType: string): string {
     const labels: Record<string, string> = {
       dosen: 'Dosen',
+      dosen_foto: 'Foto Dosen',
+      dosen_dokumen: 'Dokumen Dosen',
       referensi: 'Referensi',
       penugasan: 'Penugasan',
       penelitian: 'Penelitian',
       pengabdian: 'Pengabdian',
       pendidikan: 'Pendidikan Formal',
+      publikasi: 'Publikasi',
+      riwayat_pekerjaan: 'Riwayat Pekerjaan',
+      riwayat_fungsional: 'Riwayat Fungsional',
+      jabatan_fungsional: 'Jabatan Fungsional',
+      jabatan_struktural: 'Jabatan Struktural',
+      tugas_tambahan: 'Tugas Tambahan',
+      sertifikasi_dosen: 'Sertifikasi Dosen',
+      bidang_ilmu: 'Bidang Ilmu',
     };
     return labels[syncType] || syncType;
   },
@@ -194,11 +204,21 @@ export const schedulerHelpers = {
   getSyncTypeColor(syncType: string): 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'default' {
     const colors: Record<string, 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'default'> = {
       dosen: 'primary',
+      dosen_foto: 'primary',
+      dosen_dokumen: 'primary',
       referensi: 'secondary',
       penugasan: 'success',
       penelitian: 'warning',
       pengabdian: 'warning',
       pendidikan: 'danger',
+      publikasi: 'warning',
+      riwayat_pekerjaan: 'default',
+      riwayat_fungsional: 'default',
+      jabatan_fungsional: 'success',
+      jabatan_struktural: 'success',
+      tugas_tambahan: 'secondary',
+      sertifikasi_dosen: 'primary',
+      bidang_ilmu: 'secondary',
     };
     return colors[syncType] || 'default';
   },

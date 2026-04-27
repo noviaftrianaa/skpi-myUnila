@@ -5,6 +5,7 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import FeederRencanaEvaluasiTable from "@/shared/components/feeder-integrator/FeederRencanaEvaluasiTable";
+import ScheduleList from "@/shared/components/feeder-integrator/ScheduleList";
 import {
   Card,
   CardBody,
@@ -333,6 +334,9 @@ export default function RencanaEvaluasiPage() {
             </CardBody>
           </Card>
         </div>
+
+        {/* Scheduled Syncs */}
+        <ScheduleList syncType={"rencana_evaluasi" as any} />
 
         {/* Data Table */}
         <FeederRencanaEvaluasiTable />
