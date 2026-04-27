@@ -22,6 +22,13 @@ class MahasiswaStatisticsService
      *
      * @return array
      */
+    public function getAvailableSemesters(int $limit = 12): array
+    {
+        return Cache::remember('mahasiswa_available_semesters', self::CACHE_TTL, function () use ($limit) {
+            return $this->repository->getAvailableSemesters($limit);
+        });
+    }
+
     public function getMahasiswaAktifTrend(): array
     {
         $cacheKey = 'mahasiswa_aktif_trend';
@@ -71,13 +78,13 @@ class MahasiswaStatisticsService
      *
      * @return array
      */
-    public function getSebaranByStatus(): array
+    public function getSebaranByStatus(?string $idSmt = null): array
     {
-        $cacheKey = 'mahasiswa_sebaran_status';
+        $cacheKey = 'mahasiswa_sebaran_status_' . ($idSmt ?? 'active');
         $cacheDuration = self::CACHE_TTL;
 
-        return Cache::remember($cacheKey, $cacheDuration, function () {
-            $data = $this->repository->getSebaranByStatus();
+        return Cache::remember($cacheKey, $cacheDuration, function () use ($idSmt) {
+            $data = $this->repository->getSebaranByStatus($idSmt);
 
             // Calculate total and percentage
             $total = array_sum(array_column($data, 'jumlah_mahasiswa'));

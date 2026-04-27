@@ -92,10 +92,11 @@ class MahasiswaStatisticsController extends Controller
      *
      * @return JsonResponse
      */
-    public function getSebaranByStatus(): JsonResponse
+    public function getSebaranByStatus(\Illuminate\Http\Request $request): JsonResponse
     {
         try {
-            $data = $this->service->getSebaranByStatus();
+            $idSmt = $request->query('id_smt'); // Optional filter, e.g., 20251
+            $data = $this->service->getSebaranByStatus($idSmt);
 
             return response()->json([
                 'success' => true,
@@ -106,6 +107,27 @@ class MahasiswaStatisticsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data sebaran mahasiswa per status',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * List semester tersedia untuk filter chart status mahasiswa.
+     */
+    public function getAvailableSemesters(): JsonResponse
+    {
+        try {
+            $data = $this->service->getAvailableSemesters();
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar semester berhasil diambil',
+                'data' => $data,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil daftar semester',
                 'error' => $e->getMessage(),
             ], 500);
         }

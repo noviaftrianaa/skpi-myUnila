@@ -116,6 +116,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/jenis-kelamin', [MahasiswaStatisticsController::class, 'getSebaranByJenisKelamin']);
         Route::get('/jalur-daftar', [MahasiswaStatisticsController::class, 'getSebaranByJalurDaftar']);
         Route::get('/mahasiswa-asing', [MahasiswaStatisticsController::class, 'getSebaranMahasiswaAsing']);
+        Route::get('/available-semesters', [MahasiswaStatisticsController::class, 'getAvailableSemesters']);
     });
 
     // Mahasiswa Profile
