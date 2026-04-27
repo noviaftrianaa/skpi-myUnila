@@ -87,22 +87,24 @@ class UnilaStatisticsRepository
     }
 
     /**
-     * Get total active mahasiswa
+     * Get total active mahasiswa.
      *
-     * @param string $periode
+     * Pakai INTERSECT reg_pd ∩ peserta_didik (sama dengan infografis):
+     *  - reg.id_jns_keluar IS NULL  → belum punya SK keluar
+     *  - pd.id_stat_mhs = 'A'       → status master Aktif
+     * Realtime, tidak depend ke delay sync feeder per semester.
+     *
+     * Konsisten dengan MahasiswaStatisticsRepository::getStatisticsSummary
+     * supaya angka di beranda "Unila dalam Angka" sama dengan halaman /infografis.
+     *
+     * @param string $periode  hanya dipakai untuk label periode di response
      * @return int
      */
     private function getTotalMahasiswa(string $periode): int
     {
-        // Count distinct students who are active in the current semester
-        // Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs = 'A' (per semester)
-        // Tidak perlu filter pd.id_stat_mhs karena status master bisa berbeda
         $sql = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
-            FROM pdrd.kuliah_mhs AS kmh
-            JOIN pdrd.reg_pd AS reg
-                ON reg.id_reg_pd = kmh.id_reg_pd
-                AND reg.soft_delete = 0
+            FROM pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
@@ -113,12 +115,12 @@ class UnilaStatisticsRepository
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
-            WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
-                AND kmh.id_smt = ?
+            WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$periode]);
+        $result = DB::connection('sqlsrv')->select($sql);
 
         return (int) ($result[0]->total ?? 0);
     }
