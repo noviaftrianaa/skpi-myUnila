@@ -3,6 +3,7 @@ package kerjasama
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -199,8 +200,64 @@ func (r *repository) GetFakultasByName(ctx context.Context, namaPendek string) (
 // =============================================================================
 
 // UpsertMou — insert atau update kerjasama.mou.
-// Idempotent by id_sikerma kalau sudah ada column-nya.
+// Idempotent by id_sikerma.
+//
+// kerjasama.mou NOT NULL columns yang tidak diisi PDDikti dari SIKERMA:
+//   - id_sp          uniqueidentifier  → UNILA_ID_SP
+//   - sk_mou         varchar(80)       → fallback "-"
+//   - judul_mou      varchar(500)      → fallback "(tanpa judul)"
+//   - tgl_mulai      date              → fallback hari ini
+//   - tgl_selesai    date              → fallback hari ini
+//   - nm_bu          varchar(50)       → fallback "-"
+//   - id_creator     uniqueidentifier  → system user UUID
+//
+// Plus VARCHAR truncation untuk kolom yang lebih pendek dari payload SIKERMA:
+//   - sk_mou (80), nm_dudi (300), cp (100), jab_cp (40)
 func (r *repository) UpsertMou(ctx context.Context, mou *MoU) error {
+	const (
+		unilaIDSp       = "E2B705A7-173E-464A-9FAC-509128709515"   // UNILA SP UUID
+		systemIDCreator = "26004417-6E92-463C-BF35-F741817121DC"   // system user
+	)
+
+	// Sanitize fields ke ukuran kolom DB untuk hindari "String or binary data
+	// would be truncated". Mou yang gagal dengan id_sikerma stale tidak akan
+	// dimasukkan diam-diam — kita potong sesuai limit dan biarkan SIKERMA tetap
+	// jadi source-of-truth.
+	skMou := "-"
+	if mou.SkMou != nil && *mou.SkMou != "" {
+		skMou = truncate(*mou.SkMou, 80)
+	}
+	judulMou := "(tanpa judul)"
+	if mou.JudulMou != nil && *mou.JudulMou != "" {
+		judulMou = truncate(*mou.JudulMou, 500)
+	}
+	var nmDudi *string
+	if mou.NmDudi != nil {
+		v := truncate(*mou.NmDudi, 300)
+		nmDudi = &v
+	}
+	var cp *string
+	if mou.Cp != nil {
+		v := truncate(*mou.Cp, 100)
+		cp = &v
+	}
+	var jabCp *string
+	if mou.JabCp != nil {
+		v := truncate(*mou.JabCp, 40)
+		jabCp = &v
+	}
+
+	tglMulai := mou.TglMulai
+	tglSelesai := mou.TglSelesai
+	if tglMulai == nil || tglMulai.IsZero() {
+		now := time.Now()
+		tglMulai = &now
+	}
+	if tglSelesai == nil || tglSelesai.IsZero() {
+		now := time.Now()
+		tglSelesai = &now
+	}
+
 	// Kalau id_sikerma di-set, cek apakah row dengan id_sikerma sudah ada.
 	if mou.IDSikerma != nil {
 		var existing string
@@ -210,15 +267,14 @@ func (r *repository) UpsertMou(ctx context.Context, mou *MoU) error {
 			WHERE id_sikerma = @p1 AND soft_delete = 0
 		`, *mou.IDSikerma)
 		if err == nil && existing != "" {
-			// UPDATE existing
 			_, err = r.db.ExecContext(ctx, `
 				UPDATE kerjasama.mou
 				SET sk_mou = @p2, judul_mou = @p3, tgl_mulai = @p4, tgl_selesai = @p5,
 				    nm_dudi = @p6, cp = @p7, jab_cp = @p8, id_jenis_dokumen = @p9,
 				    id_dudi = @p10, last_update = GETDATE(), last_sync = GETDATE()
 				WHERE id_mou = @p1
-			`, existing, mou.SkMou, mou.JudulMou, mou.TglMulai, mou.TglSelesai,
-				mou.NmDudi, mou.Cp, mou.JabCp, mou.IDJenisDokumen, mou.IDDudi)
+			`, existing, skMou, judulMou, tglMulai, tglSelesai,
+				nmDudi, cp, jabCp, mou.IDJenisDokumen, mou.IDDudi)
 			if err != nil {
 				return fmt.Errorf("update mou: %w", err)
 			}
@@ -227,28 +283,69 @@ func (r *repository) UpsertMou(ctx context.Context, mou *MoU) error {
 		}
 	}
 
-	// INSERT new
-	_, err := r.db.ExecContext(ctx, `
+	// INSERT new — supply id_sp, nm_bu, id_creator agar lolos NOT NULL.
+	row := r.db.QueryRowxContext(ctx, `
 		INSERT INTO kerjasama.mou
-			(id_mou, id_sikerma, id_jenis_dokumen, sk_mou, judul_mou,
-			 tgl_mulai, tgl_selesai, nm_dudi, cp, jab_cp, id_dudi,
-			 create_date, last_update, soft_delete, last_sync)
+			(id_mou, id_sp, id_sikerma, id_jenis_dokumen, sk_mou, judul_mou,
+			 tgl_mulai, tgl_selesai, nm_dudi, nm_bu, cp, jab_cp, id_dudi,
+			 id_creator, create_date, last_update, soft_delete, last_sync)
+		OUTPUT CAST(INSERTED.id_mou AS VARCHAR(36))
 		VALUES
-			(NEWID(), @p1, @p2, @p3, @p4,
-			 @p5, @p6, @p7, @p8, @p9, @p10,
-			 GETDATE(), GETDATE(), 0, GETDATE())
-	`, mou.IDSikerma, mou.IDJenisDokumen, mou.SkMou, mou.JudulMou,
-		mou.TglMulai, mou.TglSelesai, mou.NmDudi, mou.Cp, mou.JabCp, mou.IDDudi)
-	if err != nil {
+			(NEWID(), @p1, @p2, @p3, @p4, @p5,
+			 @p6, @p7, @p8, '-', @p9, @p10, @p11,
+			 @p12, GETDATE(), GETDATE(), 0, GETDATE())
+	`, unilaIDSp, mou.IDSikerma, mou.IDJenisDokumen, skMou, judulMou,
+		tglMulai, tglSelesai, nmDudi, cp, jabCp, mou.IDDudi, systemIDCreator)
+	if err := row.Scan(&mou.IDMou); err != nil {
 		return fmt.Errorf("insert mou: %w", err)
 	}
 	return nil
 }
 
+// truncate — slice string to max bytes (safe for ASCII; for UTF-8 multibyte,
+// avoid splitting mid-rune by trimming to last full rune boundary).
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	// Walk back to nearest rune start to avoid breaking multi-byte char.
+	cut := max
+	for cut > 0 && (s[cut]&0xC0) == 0x80 {
+		cut--
+	}
+	return s[:cut]
+}
+
 // UpsertDudi — insert atau update pdrd.dudi by id_sikerma (mitra).
+//
+// pdrd.dudi punya beberapa kolom NOT NULL tanpa default:
+//   - nm_lemb varchar(100) NOT NULL (nama lembaga mitra)
+//   - id_wil  char(8)      NOT NULL (kode wilayah PDDikti)
+//   - id_bu   char(10)     NOT NULL (kode bidang usaha PDDikti)
+//   - id_creator uniqueidentifier NOT NULL
+//   - create_date / last_update datetime NOT NULL
+//
+// Karena SIKERMA tidak menyediakan id_wil/id_bu per mitra, pakai default
+// "Lainnya" supaya idempotent insert tidak gagal. Admin bisa edit later.
 func (r *repository) UpsertDudi(ctx context.Context, dudi *DUDI) error {
 	if dudi.IDSikerma == nil {
 		return fmt.Errorf("dudi.IDSikerma required for upsert")
+	}
+
+	const (
+		defaultIDWil     = "126000"                                 // Kota Bandar Lampung (placeholder)
+		defaultIDBu      = "9999999999"                             // ref.bidang_usaha "Lainnya"
+		systemIDCreator  = "26004417-6E92-463C-BF35-F741817121DC"   // system user (Unila baseline)
+	)
+
+	// nm_lemb NOT NULL — fallback ke "(unnamed)" kalau payload kosong.
+	nmLemb := "(unnamed)"
+	if dudi.NmDudi != nil && *dudi.NmDudi != "" {
+		nmLemb = *dudi.NmDudi
+		// pdrd.dudi.nm_lemb is varchar(100) — truncate.
+		if len(nmLemb) > 100 {
+			nmLemb = nmLemb[:100]
+		}
 	}
 
 	var existing string
@@ -259,9 +356,9 @@ func (r *repository) UpsertDudi(ctx context.Context, dudi *DUDI) error {
 	`, *dudi.IDSikerma)
 	if err == nil && existing != "" {
 		_, err = r.db.ExecContext(ctx, `
-			UPDATE pdrd.dudi SET nm_dudi = @p2, last_update = GETDATE()
+			UPDATE pdrd.dudi SET nm_lemb = @p2, last_update = GETDATE(), last_sync = GETDATE()
 			WHERE id_dudi = @p1
-		`, existing, dudi.NmDudi)
+		`, existing, nmLemb)
 		if err != nil {
 			return fmt.Errorf("update dudi: %w", err)
 		}
@@ -271,10 +368,13 @@ func (r *repository) UpsertDudi(ctx context.Context, dudi *DUDI) error {
 
 	// INSERT — generate new UUID, return ke caller via dudi.IDDudi
 	row := r.db.QueryRowxContext(ctx, `
-		INSERT INTO pdrd.dudi (id_dudi, nm_dudi, id_sikerma, soft_delete)
+		INSERT INTO pdrd.dudi
+			(id_dudi, nm_lemb, id_wil, id_bu, id_sikerma,
+			 id_creator, create_date, last_update, last_sync, soft_delete)
 		OUTPUT CAST(INSERTED.id_dudi AS VARCHAR(36))
-		VALUES (NEWID(), @p1, @p2, 0)
-	`, dudi.NmDudi, *dudi.IDSikerma)
+		VALUES (NEWID(), @p1, @p2, @p3, @p4,
+		        @p5, GETDATE(), GETDATE(), GETDATE(), 0)
+	`, nmLemb, defaultIDWil, defaultIDBu, *dudi.IDSikerma, systemIDCreator)
 	if err := row.Scan(&dudi.IDDudi); err != nil {
 		return fmt.Errorf("insert dudi: %w", err)
 	}
@@ -464,11 +564,17 @@ func (r *repository) UpdateUnitMappingManual(ctx context.Context, sikermaUnitID 
 }
 
 // LinkSmsKerjasama — bridge mou ↔ sms (per prodi). Idempotent.
+//
+// kerjasama.sms_kerjasama NOT NULL columns:
+//   - id_sms_kerjasama, id_sms, id_mou (struktur)
+//   - id_creator, create_date, last_update, last_sync, soft_delete
 func (r *repository) LinkSmsKerjasama(ctx context.Context, idMou, idSms string, idKriteriaMitra *int) error {
 	// Skip kalau idSms kosong (univ-level kerjasama)
 	if idSms == "" {
 		return nil
 	}
+
+	const systemIDCreator = "26004417-6E92-463C-BF35-F741817121DC" // system user
 
 	// Cek existing link dulu
 	var existing int
@@ -483,10 +589,11 @@ func (r *repository) LinkSmsKerjasama(ctx context.Context, idMou, idSms string, 
 	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO kerjasama.sms_kerjasama
 			(id_sms_kerjasama, id_sms, id_mou, id_kriteria_mitra,
-			 create_date, last_update, soft_delete)
+			 id_creator, create_date, last_update, last_sync, soft_delete)
 		VALUES
-			(NEWID(), @p1, @p2, @p3, GETDATE(), GETDATE(), 0)
-	`, idSms, idMou, idKriteriaMitra)
+			(NEWID(), @p1, @p2, @p3,
+			 @p4, GETDATE(), GETDATE(), GETDATE(), 0)
+	`, idSms, idMou, idKriteriaMitra, systemIDCreator)
 	if err != nil {
 		return fmt.Errorf("link sms_kerjasama: %w", err)
 	}

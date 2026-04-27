@@ -101,10 +101,13 @@ type MoU struct {
 	LastSync        *time.Time `db:"last_sync" json:"last_sync,omitempty"`
 }
 
-// DUDI — pdrd.dudi row (subset)
+// DUDI — pdrd.dudi row (subset).
+// Kolom nama lembaga aslinya `nm_lemb` di pdrd.dudi (NOT NULL varchar 100).
+// Field NmDudi di Go tetap memetakan ke nm_lemb supaya konsisten dengan
+// payload kerjasama (DaftarMitra.NamaMitra).
 type DUDI struct {
 	IDDudi    string  `db:"id_dudi" json:"id_dudi"`
-	NmDudi    *string `db:"nm_dudi" json:"nm_dudi,omitempty"`
+	NmDudi    *string `db:"nm_lemb" json:"nm_dudi,omitempty"`
 	IDSikerma *int    `db:"id_sikerma" json:"id_sikerma,omitempty"`
 }
 
