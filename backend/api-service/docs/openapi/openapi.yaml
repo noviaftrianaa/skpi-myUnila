@@ -6,7 +6,7 @@ info:
 
     **Server pilihan:**
     - 🔴 **Live** — `https://my.unila.ac.id/gateway/api-service` → production
-    - 🟡 **Sandbox** — `http://192.168.120.45:9800/ws-service` → staging (internal)
+    - 🟡 **Sandbox** — `http://192.168.120.45:9800/api-service` → staging (akses VPN UPA TIK)
 
     Pilih server via dropdown di atas "Authorize" button. Semua path di bawah
     otomatis menambahkan base URL server yang dipilih + `/v1/...`.
@@ -28,8 +28,8 @@ info:
 servers:
   - url: https://my.unila.ac.id/gateway/api-service
     description: 🔴 Live — Production (akses publik via my.unila.ac.id)
-  - url: http://192.168.120.45:9800/ws-service
-    description: 🟡 Sandbox — Staging (akses internal Unila)
+  - url: http://192.168.120.45:9800/api-service
+    description: 🟡 Sandbox — Staging (akses VPN UPA TIK)
 
 tags:
   - name: Auth

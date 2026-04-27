@@ -230,10 +230,11 @@ create_service_route "feeder-service" \
     "${FEEDER_SERVICE_URL:-http://myunila-feeder-staging:8084}" \
     "feeder-service" 100
 
-# API Service / OneData (Go - direct)
-create_service_route "ws-service" \
+# API Service / OneData (Go - direct) — path: /api-service untuk konsistensi
+# dengan prod (https://my.unila.ac.id/gateway/api-service/...).
+create_service_route "api-service" \
     "${API_SERVICE_URL:-http://myunila-ws-staging:8085}" \
-    "ws-service" 100
+    "api-service" 100
 
 # MyUnila Service (Go - direct)
 create_service_route "myunila-service" \
@@ -266,15 +267,15 @@ create_service_route "prometheus-service" \
     "prometheus" 100
 
 ###############################################################################
-# Plugin: rate-limiting untuk ws-service (defensive against spam/DoS)
+# Plugin: rate-limiting untuk api-service (defensive against spam/DoS)
 # 600 req/minute + 10000 req/hour per IP (local policy).
 # Idempotent: skip kalau plugin sudah ada di route.
 ###############################################################################
 
 echo ""
-echo -e "${GREEN}Applying rate-limiting plugin ke ws-service-route...${NC}"
+echo -e "${GREEN}Applying rate-limiting plugin ke api-service-route...${NC}"
 
-WS_ROUTE_ID=$(curl -s "$KONG_ADMIN_URL/routes/ws-service-route" | python3 -c "
+WS_ROUTE_ID=$(curl -s "$KONG_ADMIN_URL/routes/api-service-route" | python3 -c "
 import sys, json
 try: print(json.load(sys.stdin).get('id',''))
 except: pass
@@ -308,7 +309,7 @@ except: print('no')
         echo -e "${YELLOW}  ⏭️  Rate-limit plugin sudah ada, skip${NC}"
     fi
 else
-    echo -e "${RED}  ✗ ws-service-route tidak ditemukan${NC}"
+    echo -e "${RED}  ✗ api-service-route tidak ditemukan${NC}"
 fi
 
 ###############################################################################
