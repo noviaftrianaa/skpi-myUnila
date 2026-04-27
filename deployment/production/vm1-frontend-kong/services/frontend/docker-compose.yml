@@ -64,7 +64,10 @@ services:
       - myunila-prod-network
 
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      # Pakai 127.0.0.1 (bukan localhost) — Alpine + musl libc kadang resolve
+      # localhost ke ::1 (IPv6) dulu, sementara Next.js bind di IPv4 0.0.0.0
+      # → wget gagal "Connection refused". Gunakan 127.0.0.1 langsung.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -54,6 +54,35 @@ class MahasiswaStatisticsRepository
     }
 
     /**
+     * Ambil SEMUA id_smt di tahun ajaran berjalan (Ganjil + Genap + Pendek).
+     * Pakai untuk kalkulasi "total mahasiswa aktif tahun ajaran X" — UNION
+     * DISTINCT id_pd di kedua/ketiga semester. Best practice PDDIKTI Feeder
+     * supaya mahasiswa yang sempat aktif di Ganjil tapi tidak di Genap
+     * (mis. lulus di tengah TA) tetap dihitung di angka headline tahun ajaran.
+     *
+     * Kalau Genap belum sync penuh dari SIAKADU, query tetap aman karena
+     * UNION + DISTINCT — kalkulasi otomatis pakai data Ganjil saja.
+     *
+     * @return string[] Format ['20251','20252'] atau ['20251','20252','20253']
+     */
+    private function getActiveAcademicYearPeriods(): array
+    {
+        $activePeriod = $this->getActivePeriod();
+        $tahun = substr($activePeriod, 0, 4);
+        // Semester ke-3 (Pendek) optional: kalau ada di ref.semester include juga.
+        $sql = "
+            SELECT id_smt
+            FROM ref.semester
+            WHERE expired_date IS NULL
+              AND LEFT(id_smt, 4) = ?
+            ORDER BY id_smt
+        ";
+        $rows = DB::connection('sqlsrv')->select($sql, [$tahun]);
+        $periods = array_map(fn($r) => $r->id_smt, $rows);
+        return $periods ?: [$activePeriod];
+    }
+
+    /**
      * Timestamp data terakhir di-sync ke pdut untuk semester tsb
      */
     private function getLastUpdate(string $idSmt): ?string
@@ -134,7 +163,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJenjang(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -156,12 +186,12 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY didik.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -228,7 +258,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJenisKelamin(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -254,12 +285,12 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY pd.jk
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -276,7 +307,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJalurDaftar(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -300,12 +332,12 @@ class MahasiswaStatisticsRepository
                 ON jd.id_jalur_daftar = reg.id_jalur_daftar
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY jd.nm_jalur_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -322,7 +354,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJenisPendaftaran(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -346,12 +379,12 @@ class MahasiswaStatisticsRepository
                 ON jp.id_jns_daftar = reg.id_jns_daftar
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY jp.nm_jns_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -368,7 +401,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByPembiayaan(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -392,12 +426,12 @@ class MahasiswaStatisticsRepository
                 ON pb.id_pembiayaan = reg.id_pembiayaan
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY pb.nm_pembiayaan
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -414,7 +448,8 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranMahasiswaAsing(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         // Query untuk mendapatkan mahasiswa asing berdasarkan id_negara di ref.wilayah
         $sql = "
@@ -441,14 +476,14 @@ class MahasiswaStatisticsRepository
                 ON negara.id_negara = wil.id_negara
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
             GROUP BY negara.nm_negara
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -465,7 +500,8 @@ class MahasiswaStatisticsRepository
      */
     public function getTotalLokalVsAsing(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $taPeriods = $this->getActiveAcademicYearPeriods();
+        $ph = implode(',', array_fill(0, count($taPeriods), '?'));
 
         $sql = "
             SELECT
@@ -492,7 +528,7 @@ class MahasiswaStatisticsRepository
                 ON wil.id_wil = pd.id_wil
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$ph})
             GROUP BY
                 CASE
                     WHEN wil.id_negara = 'ID' OR wil.id_negara IS NULL THEN 'Lokal'
@@ -501,7 +537,7 @@ class MahasiswaStatisticsRepository
             ORDER BY jumlah_mahasiswa DESC
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql, [$activePeriod]);
+        $result = DB::connection('sqlsrv')->select($sql, $taPeriods);
 
         return array_map(function($item) {
             return [
@@ -518,9 +554,15 @@ class MahasiswaStatisticsRepository
      */
     public function getStatisticsSummary(): array
     {
-        $activePeriod = $this->getActivePeriod();
+        $activePeriod  = $this->getActivePeriod();
+        $taPeriods     = $this->getActiveAcademicYearPeriods(); // [20251, 20252, ...]
+        $taPlaceholder = implode(',', array_fill(0, count($taPeriods), '?'));
 
-        // Total mahasiswa aktif
+        // Total mahasiswa aktif TAHUN AJARAN (UNION distinct id_pd di semua
+        // semester di TA berjalan). Mengakomodasi:
+        // - Mahasiswa yang aktif di Ganjil tapi lulus sebelum Genap → dihitung
+        // - Genap belum tersync penuh dari SIAKADU → fallback otomatis ke Ganjil
+        //   tanpa angka headline jadi turun drastis.
         $sqlTotal = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
             FROM pdrd.kuliah_mhs AS kmh
@@ -539,13 +581,13 @@ class MahasiswaStatisticsRepository
                 AND didik.expired_date IS NULL
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$taPlaceholder})
         ";
 
-        $totalResult = DB::connection('sqlsrv')->select($sqlTotal, [$activePeriod]);
+        $totalResult = DB::connection('sqlsrv')->select($sqlTotal, $taPeriods);
         $totalMahasiswa = (int) ($totalResult[0]->total ?? 0);
 
-        // Total mahasiswa asing
+        // Total mahasiswa asing — sama pattern UNION distinct
         $sqlAsing = "
             SELECT COUNT(DISTINCT pd.id_pd) AS total
             FROM pdrd.kuliah_mhs AS kmh
@@ -566,13 +608,16 @@ class MahasiswaStatisticsRepository
                 ON wil.id_wil = pd.id_wil
             WHERE kmh.soft_delete = 0
                 AND kmh.id_stat_mhs IN ('A', 'M')
-                AND kmh.id_smt = ?
+                AND kmh.id_smt IN ({$taPlaceholder})
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
         ";
 
-        $asingResult = DB::connection('sqlsrv')->select($sqlAsing, [$activePeriod]);
+        $asingResult = DB::connection('sqlsrv')->select($sqlAsing, $taPeriods);
         $totalAsing = (int) ($asingResult[0]->total ?? 0);
+
+        $tahun = substr($activePeriod, 0, 4);
+        $tahunAjaran = $tahun . '/' . ($tahun + 1);
 
         return [
             'total_mahasiswa_aktif' => $totalMahasiswa,
@@ -580,10 +625,12 @@ class MahasiswaStatisticsRepository
             'total_mahasiswa_asing' => $totalAsing,
             'periode' => $activePeriod,
             'periode_nama' => $this->getSemesterName($activePeriod),
+            'tahun_ajaran' => $tahunAjaran,
+            'tahun_ajaran_periods' => $taPeriods,
             'last_update' => $this->getLastUpdate($activePeriod),
-            'formula' => "COUNT(DISTINCT id_pd) WHERE id_stat_mhs IN ('A','M') AND id_smt={$activePeriod} AND prodi aktif",
+            'formula' => "COUNT(DISTINCT id_pd) WHERE id_stat_mhs IN ('A','M') AND id_smt IN (" . implode(',', $taPeriods) . ") AND prodi aktif",
             'sumber' => 'Sistem Informasi Akademik Unila (realtime)',
-            'note' => 'Periode aktif ditentukan oleh konfigurasi semester aktif terbaru di sistem akademik. Status mahasiswa "A" (Aktif) dan "M" (Kampus Merdeka) sama-sama dihitung sebagai aktif.',
+            'note' => "Total mahasiswa aktif tahun ajaran {$tahunAjaran} — UNION distinct mahasiswa yang aktif di SETIDAKNYA SATU semester di tahun ajaran (Ganjil + Genap + Pendek). Status 'A' (Aktif) + 'M' (Kampus Merdeka) sama-sama dihitung. Periode aktif ditentukan dari konfigurasi semester aktif di sistem akademik.",
         ];
     }
 }
