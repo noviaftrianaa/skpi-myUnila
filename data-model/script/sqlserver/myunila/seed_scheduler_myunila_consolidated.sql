@@ -28,7 +28,7 @@ WHERE name IN (
     N'MyUnila Pegawai SIKEP Sync Mingguan',
     N'Radius Pengguna Sync Harian',
     N'Unit Organisasi SMS Sync Harian',
-    N'SIAKADU Referensi Unit Sync Harian',
+    N'SIAKADU Referensi Unit Sync Harian',  -- legacy: dulu di-jadwal, sekarang manual admin
     N'SIAKADU Mahasiswa Sync Harian',
     N'SIAKADU Kurikulum Sync Harian',
     N'SIAKADU Mata Kuliah Sync Harian',
@@ -67,12 +67,7 @@ VALUES
      N'unit_organisasi', NULL, N'0 30 21 * * *',
      CAST('2026-01-01T21:30:00' AS DATETIME2), 1, @creator),
 
-    -- SIAKADU — 10 jadwal stagger 22:00-23:30 (10 menit interval)
-    (N'SIAKADU Referensi Unit Sync Harian',
-     N'Sync referensi unit + pimpinan dari SIAKADU setiap malam pukul 22:00 WIB',
-     N'siakadu_referensi', NULL, N'0 0 22 * * *',
-     CAST('2026-01-01T22:00:00' AS DATETIME2), 1, @creator),
-
+    -- SIAKADU — 9 jadwal stagger 22:10-23:30 (NO siakadu_referensi: by manual admin)
     (N'SIAKADU Mahasiswa Sync Harian',
      N'Sync data mahasiswa dari SIAKADU setiap malam pukul 22:10 WIB',
      N'siakadu_mahasiswa', NULL, N'0 10 22 * * *',
@@ -127,4 +122,4 @@ WHERE sync_type IN ('pegawai', 'radius', 'unit_organisasi')
    OR sync_type LIKE 'siakadu_%'
 ORDER BY cron_expression;
 
-PRINT N'Selesai — 13 jadwal myunila-service di-seed. Service akan auto-pickup setelah restart container atau wait 30 detik.';
+PRINT N'Selesai — 12 jadwal myunila-service di-seed (siakadu_referensi by manual admin, tidak di-jadwal). Service akan auto-pickup setelah restart container.';
