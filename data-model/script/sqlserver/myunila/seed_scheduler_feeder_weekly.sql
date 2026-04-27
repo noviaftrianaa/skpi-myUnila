@@ -73,7 +73,12 @@ VALUES
     (N'Feeder Transkrip Nilai Sync Mingguan',
      N'Sync transkrip nilai PDDIKTI Feeder mingguan Senin 04:45 WIB',
      N'transkrip_nilai', NULL, N'0 45 4 * * 1',
-     CAST('2026-01-01T04:45:00' AS DATETIME2), 1, @creator);
+     CAST('2026-01-01T04:45:00' AS DATETIME2), 1, @creator),
+
+    (N'Feeder Dosen Pembimbing Sync Mingguan',
+     N'Sync bimbingan mahasiswa (dosen pembimbing) PDDIKTI Feeder mingguan Senin 05:00 WIB',
+     N'bimbing_mhs', NULL, N'0 0 5 * * 1',
+     CAST('2026-01-01T05:00:00' AS DATETIME2), 1, @creator);
 
 -- ============================================================================
 -- Verifikasi
@@ -83,4 +88,4 @@ FROM dbo.scheduled_syncs
 WHERE name LIKE N'Feeder %'
 ORDER BY cron_expression;
 
-PRINT N'Selesai — 8 jadwal feeder-service di-seed (mingguan Senin pagi).';
+PRINT N'Selesai — 9 jadwal feeder-service di-seed (mingguan Senin pagi 03:00-05:00 WIB).';

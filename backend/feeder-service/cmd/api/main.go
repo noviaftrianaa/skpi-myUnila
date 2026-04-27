@@ -189,7 +189,7 @@ func main() {
 	log.Println("✅ Prestasi module initialized")
 
 	// Initialize Bimbing Mhs module (Dosen Pembimbing - pass logger service for sync logging)
-	bimbing_mhs.Init(apiV1, db, feederAPI, redisClient, loggerService)
+	bimbingMhsService := bimbing_mhs.Init(apiV1, db, feederAPI, redisClient, loggerService)
 	log.Println("✅ Bimbing Mhs (Dosen Pembimbing) module initialized")
 
 	// Initialize Referensi module (master data from Feeder API)
@@ -212,6 +212,7 @@ func main() {
 		nilaiPerkuliahanService,
 		nilaiKonversiService,
 		transkripNilaiService,
+		bimbingMhsService,
 	)
 	schedulerHandler := scheduler.NewHandler(schedulerService)
 	scheduler.RegisterRoutes(apiV1, schedulerHandler)

@@ -177,7 +177,8 @@ func (r *Repository) GetActive() ([]ScheduledSync, error) {
 		WHERE is_active = 1
 		  AND sync_type IN (
 		    'mahasiswa', 'aktivitas_mahasiswa', 'kurikulum', 'rencana_evaluasi',
-		    'kelas_kuliah', 'nilai_perkuliahan', 'nilai_konversi', 'transkrip_nilai'
+		    'kelas_kuliah', 'nilai_perkuliahan', 'nilai_konversi', 'transkrip_nilai',
+		    'bimbing_mhs'
 		  )
 		ORDER BY next_run_at ASC
 	`

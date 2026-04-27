@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/myunila/feeder-service/apps/aktivitas_mahasiswa"
+	"github.com/myunila/feeder-service/apps/bimbing_mhs"
 	"github.com/myunila/feeder-service/apps/kelas_kuliah"
 	"github.com/myunila/feeder-service/apps/mahasiswa"
 	"github.com/myunila/feeder-service/apps/matkul_kurikulum"
@@ -31,6 +32,7 @@ type Service struct {
 	nilaiPerkuliahanService   nilai_perkuliahan.Service
 	nilaiKonversiService      nilai_konversi.Service
 	transkripNilaiService     transkrip_nilai.Service
+	bimbingMhsService         bimbing_mhs.Service
 }
 
 // EndpointConfig represents the JSON structure stored in endpoint_key
@@ -50,6 +52,7 @@ func NewService(
 	nilaiPerkuliahanService nilai_perkuliahan.Service,
 	nilaiKonversiService nilai_konversi.Service,
 	transkripNilaiService transkrip_nilai.Service,
+	bimbingMhsService bimbing_mhs.Service,
 ) *Service {
 	// Create cron with second precision.
 	// SkipIfStillRunning: kalau sync feeder PDDIKTI sebelumnya belum selesai
@@ -72,6 +75,7 @@ func NewService(
 		nilaiPerkuliahanService:   nilaiPerkuliahanService,
 		nilaiKonversiService:      nilaiKonversiService,
 		transkripNilaiService:     transkripNilaiService,
+		bimbingMhsService:         bimbingMhsService,
 	}
 
 	return service
@@ -187,6 +191,8 @@ func (s *Service) registerSchedule(schedule ScheduledSync) error {
 			err = s.executeNilaiKonversiSync(ctx, schedule)
 		case "transkrip_nilai":
 			err = s.executeTranskripNilaiSync(ctx, schedule)
+		case "bimbing_mhs":
+			err = s.executeBimbingMhsSync(ctx, schedule)
 		default:
 			err = fmt.Errorf("unknown sync type: %s", schedule.SyncType)
 		}
@@ -355,6 +361,16 @@ func (s *Service) executeTranskripNilaiSync(ctx context.Context, schedule Schedu
 	}
 
 	_, err := s.transkripNilaiService.SyncTranskripNilai(ctx, filter, "scheduler")
+	return err
+}
+
+// executeBimbingMhsSync executes bimbingan mahasiswa (dosen pembimbing) sync
+func (s *Service) executeBimbingMhsSync(ctx context.Context, schedule ScheduledSync) error {
+	// Bimbing mhs sync all by default; future enhancement bisa parse filter
+	// dari endpoint_key (id_prodi/id_kategori_kegiatan) kalau dibutuhkan.
+	filter := &bimbing_mhs.SyncFilter{}
+
+	_, err := s.bimbingMhsService.SyncBimbingMhs(ctx, filter, "scheduler")
 	return err
 }
 
