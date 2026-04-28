@@ -125,21 +125,25 @@ class ProgramStudiRepository
                     AND ap.a_aktif = 1
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
             LEFT JOIN (
-                SELECT
-                    reg.id_sms,
-                    COUNT(DISTINCT pd.id_pd) AS total_mahasiswa
-                FROM pdrd.kuliah_mhs AS kmh
-                JOIN pdrd.reg_pd AS reg
-                    ON reg.id_reg_pd = kmh.id_reg_pd
-                    AND reg.soft_delete = 0
-                -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                WHERE kmh.soft_delete = 0
-                    AND kmh.id_stat_mhs = 'A'
-                    AND kmh.id_smt = ?
-                GROUP BY reg.id_sms
+                -- INTERSECT reg_pd ∩ peserta_didik (sama dgn /infografis & beranda).
+                -- Per-mahasiswa pakai LATEST reg_pd (ROW_NUMBER) supaya 1 student
+                -- masuk 1 prodi saja → sum per-prodi = global DISTINCT count.
+                SELECT id_sms, COUNT(*) AS total_mahasiswa
+                FROM (
+                    SELECT
+                        reg.id_sms,
+                        pd.id_pd,
+                        ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                    FROM pdrd.reg_pd AS reg
+                    JOIN pdrd.peserta_didik AS pd
+                        ON pd.id_pd = reg.id_pd
+                        AND pd.soft_delete = 0
+                    WHERE reg.soft_delete = 0
+                        AND reg.id_jns_keluar IS NULL
+                        AND pd.id_stat_mhs = 'A'
+                ) AS dedup
+                WHERE rn = 1
+                GROUP BY id_sms
             ) AS mhs ON mhs.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
@@ -193,7 +197,9 @@ class ProgramStudiRepository
                 AND sms.id_jns_sms = '3'
         ";
 
-        $params = [$periode, $periode, $tahunAjaran];
+        // Param order: ? AS periode (display), keaktifan.id_thn_ajaran = ? (dosen subquery)
+        // mhs subquery sekarang tidak butuh periode — pakai reg_pd snapshot realtime.
+        $params = [$periode, $tahunAjaran];
 
         // Add search filter
         if ($search) {
@@ -409,44 +415,51 @@ class ProgramStudiRepository
                 {$filterWhere}
         ";
 
-        // Get total mahasiswa DISTINCT
-        // Filter konsisten dengan sqlProdi: id_jns_sms = '3', id_fak_unila IS NOT NULL, UNILA_ID_SP
+        // Get total mahasiswa — INTERSECT reg_pd ∩ peserta_didik dgn dedup
+        // ROW_NUMBER pakai latest reg_pd. Identik dgn per-prodi subquery di getList()
+        // sehingga sum-of-table = stat_total (tidak ada double-count mhs pindahan).
+        // Filter prodi: id_jns_sms='3' AND id_fak_unila IS NOT NULL.
         $sqlMahasiswa = "
-            SELECT COUNT(DISTINCT pd.id_pd) AS total
-            FROM pdrd.kuliah_mhs AS kmh
-            JOIN pdrd.reg_pd AS reg
-                ON reg.id_reg_pd = kmh.id_reg_pd
-                AND reg.soft_delete = 0
-            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
-            JOIN pdrd.peserta_didik AS pd
-                ON pd.id_pd = reg.id_pd
-                AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-                AND sms.id_jns_sms = '3'
-                AND sms.id_fak_unila IS NOT NULL
-                AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-            LEFT JOIN (
+            SELECT COUNT(*) AS total
+            FROM (
                 SELECT
-                    ap.id_sms,
-                    na.nm_akred,
-                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
-                FROM pdrd.akreditasi_prodi AS ap
-                JOIN ref.nilai_akred AS na
-                    ON na.id_akred = ap.id_akred
-                    AND na.expired_date IS NULL
-                WHERE ap.soft_delete = 0
-                    AND ap.a_aktif = 1
-            ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
-            WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
-                AND kmh.id_smt = ?
-                {$filterWhere}
+                    pd.id_pd,
+                    sms.id_sms,
+                    didik.nm_jenj_didik,
+                    akred.nm_akred,
+                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                FROM pdrd.reg_pd AS reg
+                JOIN pdrd.peserta_didik AS pd
+                    ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                INNER JOIN pdrd.sms AS sms
+                    ON sms.id_sms = reg.id_sms
+                    AND sms.soft_delete = 0
+                    AND sms.stat_prodi = 'A'
+                    AND sms.id_jns_sms = '3'
+                    AND sms.id_fak_unila IS NOT NULL
+                    AND CAST(sms.id_sp AS VARCHAR(50)) = '{$unilaIdSp}'
+                INNER JOIN ref.jenjang_pendidikan AS didik
+                    ON didik.id_jenj_didik = sms.id_jenj_didik
+                    AND didik.expired_date IS NULL
+                LEFT JOIN (
+                    SELECT
+                        ap.id_sms,
+                        na.nm_akred,
+                        ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                    FROM pdrd.akreditasi_prodi AS ap
+                    JOIN ref.nilai_akred AS na
+                        ON na.id_akred = ap.id_akred
+                        AND na.expired_date IS NULL
+                    WHERE ap.soft_delete = 0
+                        AND ap.a_aktif = 1
+                ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
+                WHERE reg.soft_delete = 0
+                    AND reg.id_jns_keluar IS NULL
+                    AND pd.id_stat_mhs = 'A'
+                    {$filterWhere}
+            ) AS dedup
+            WHERE dedup.rn = 1
         ";
 
         // Get akreditasi and jenjang breakdown
@@ -489,10 +502,11 @@ class ProgramStudiRepository
                 {$filterWhere}
         ";
 
-        // Execute queries
+        // Execute queries.
+        // sqlMahasiswa sekarang pakai reg_pd snapshot realtime (tidak butuh $periode).
         $totalProdi = DB::connection('sqlsrv')->select($sqlProdi, $filterParams);
         $totalDosen = DB::connection('sqlsrv')->select($sqlDosen, array_merge([$tahunAjaran], $filterParams));
-        $totalMahasiswa = DB::connection('sqlsrv')->select($sqlMahasiswa, array_merge([$periode], $filterParams));
+        $totalMahasiswa = DB::connection('sqlsrv')->select($sqlMahasiswa, $filterParams);
         $breakdown = DB::connection('sqlsrv')->select($sqlBreakdown, $filterParams);
 
         // Combine results
@@ -643,21 +657,25 @@ class ProgramStudiRepository
                     AND ap.a_aktif = 1
             ) AS akred ON akred.id_sms = sms.id_sms AND akred.rn = 1
             LEFT JOIN (
-                SELECT
-                    reg.id_sms,
-                    COUNT(DISTINCT pd.id_pd) AS total_mahasiswa
-                FROM pdrd.kuliah_mhs AS kmh
-                JOIN pdrd.reg_pd AS reg
-                    ON reg.id_reg_pd = kmh.id_reg_pd
-                    AND reg.soft_delete = 0
-                -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                WHERE kmh.soft_delete = 0
-                    AND kmh.id_stat_mhs = 'A'
-                    AND kmh.id_smt = ?
-                GROUP BY reg.id_sms
+                -- INTERSECT reg_pd ∩ peserta_didik (sama dgn /infografis & beranda).
+                -- Per-mahasiswa pakai LATEST reg_pd (ROW_NUMBER) supaya 1 student
+                -- masuk 1 prodi saja → sum per-prodi = global DISTINCT count.
+                SELECT id_sms, COUNT(*) AS total_mahasiswa
+                FROM (
+                    SELECT
+                        reg.id_sms,
+                        pd.id_pd,
+                        ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                    FROM pdrd.reg_pd AS reg
+                    JOIN pdrd.peserta_didik AS pd
+                        ON pd.id_pd = reg.id_pd
+                        AND pd.soft_delete = 0
+                    WHERE reg.soft_delete = 0
+                        AND reg.id_jns_keluar IS NULL
+                        AND pd.id_stat_mhs = 'A'
+                ) AS dedup
+                WHERE rn = 1
+                GROUP BY id_sms
             ) AS mhs ON mhs.id_sms = sms.id_sms
             LEFT JOIN (
                 SELECT
@@ -710,7 +728,9 @@ class ProgramStudiRepository
                 AND CAST(sms.id_sp AS VARCHAR(50)) = '" . strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515')) . "'
         ";
 
-        $params = [$periode, $periode, $tahunAjaran, $idSms, $idSms];
+        // mhs subquery (per-prodi count) sekarang tidak butuh periode — pakai
+        // reg_pd snapshot realtime, jadi cuma 1× $periode untuk kolom periode.
+        $params = [$periode, $tahunAjaran, $idSms, $idSms];
         $results = DB::connection('sqlsrv')->select($sql, $params);
 
         return $results[0] ?? null;
