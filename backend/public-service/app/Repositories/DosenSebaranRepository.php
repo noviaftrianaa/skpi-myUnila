@@ -47,38 +47,35 @@ class DosenSebaranRepository
             GROUP BY fak.id_sms, fak.nm_lemb
         ";
 
-        // Query 2: Get mahasiswa per fakultas (semua jenjang - konsisten dengan sebaran mahasiswa)
+        // Query 2: Get mahasiswa per fakultas (INTERSECT + ROW_NUMBER dedup,
+        // konsisten dgn MahasiswaSebaran/ProgramStudi total = 36,344).
         $sqlMahasiswa = "
             SELECT
-                fak.id_sms AS id_fakultas,
-                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
-            FROM pdrd.kuliah_mhs AS kmh
-            JOIN pdrd.reg_pd AS reg
-                ON reg.id_reg_pd = kmh.id_reg_pd
-                AND reg.soft_delete = 0
-            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
-            JOIN pdrd.peserta_didik AS pd
-                ON pd.id_pd = reg.id_pd
-                AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            -- Join ke jenjang pendidikan (tanpa filter jenjang - semua jenjang termasuk)
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-            INNER JOIN pdrd.sms AS fak
-                ON fak.id_sms = sms.id_fak_unila
-                AND fak.soft_delete = 0
-            WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
-                AND kmh.id_smt = ?
-            GROUP BY fak.id_sms
+                dedup.id_fak_unila AS id_fakultas,
+                COUNT(*) AS jumlah_mahasiswa
+            FROM (
+                SELECT
+                    pd.id_pd,
+                    sms.id_fak_unila,
+                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                FROM pdrd.reg_pd AS reg
+                JOIN pdrd.peserta_didik AS pd
+                    ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                INNER JOIN pdrd.sms AS sms
+                    ON sms.id_sms = reg.id_sms
+                    AND sms.soft_delete = 0
+                    AND sms.stat_prodi = 'A'
+                WHERE reg.soft_delete = 0
+                    AND reg.id_jns_keluar IS NULL
+                    AND pd.id_stat_mhs = 'A'
+            ) AS dedup
+            WHERE dedup.rn = 1
+            GROUP BY dedup.id_fak_unila
         ";
 
         $dosenData = DB::connection('sqlsrv')->select($sqlDosen, [$tahunAjaran]);
-        $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa, [$activePeriod]);
+        $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa);
 
         // Create map of mahasiswa counts
         $mahasiswaMap = [];
@@ -176,36 +173,35 @@ class DosenSebaranRepository
             GROUP BY sms.id_sms, sms.nm_lemb, jenj.nm_jenj_didik
         ";
 
-        // Query 2: Get mahasiswa per prodi (semua jenjang - konsisten dengan sebaran mahasiswa)
+        // Query 2: Get mahasiswa per prodi (INTERSECT + ROW_NUMBER dedup).
         $sqlMahasiswa = "
             SELECT
-                sms.id_sms AS id_prodi,
-                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
-            FROM pdrd.kuliah_mhs AS kmh
-            JOIN pdrd.reg_pd AS reg
-                ON reg.id_reg_pd = kmh.id_reg_pd
-                AND reg.soft_delete = 0
-            -- Status aktif ditentukan oleh kuliah_mhs.id_stat_mhs (per semester)
-            JOIN pdrd.peserta_didik AS pd
-                ON pd.id_pd = reg.id_pd
-                AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            -- Join ke jenjang pendidikan (tanpa filter jenjang - semua jenjang termasuk)
-            INNER JOIN ref.jenjang_pendidikan AS jenj
-                ON jenj.id_jenj_didik = sms.id_jenj_didik
-                AND jenj.expired_date IS NULL
-            WHERE kmh.soft_delete = 0
-                AND kmh.id_stat_mhs = 'A'
-                AND kmh.id_smt = ?
-                AND sms.id_fak_unila = ?
-            GROUP BY sms.id_sms
+                dedup.id_sms AS id_prodi,
+                COUNT(*) AS jumlah_mahasiswa
+            FROM (
+                SELECT
+                    pd.id_pd,
+                    sms.id_sms,
+                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                FROM pdrd.reg_pd AS reg
+                JOIN pdrd.peserta_didik AS pd
+                    ON pd.id_pd = reg.id_pd
+                    AND pd.soft_delete = 0
+                INNER JOIN pdrd.sms AS sms
+                    ON sms.id_sms = reg.id_sms
+                    AND sms.soft_delete = 0
+                    AND sms.stat_prodi = 'A'
+                WHERE reg.soft_delete = 0
+                    AND reg.id_jns_keluar IS NULL
+                    AND pd.id_stat_mhs = 'A'
+                    AND sms.id_fak_unila = ?
+            ) AS dedup
+            WHERE dedup.rn = 1
+            GROUP BY dedup.id_sms
         ";
 
         $dosenData = DB::connection('sqlsrv')->select($sqlDosen, [$tahunAjaran, $idFakultas]);
-        $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa, [$activePeriod, $idFakultas]);
+        $mahasiswaData = DB::connection('sqlsrv')->select($sqlMahasiswa, [$idFakultas]);
 
         // Create map of mahasiswa counts
         $mahasiswaMap = [];
