@@ -309,6 +309,7 @@ export default function AnnouncementsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
+                <Link href={`/portal/pengumuman/${announcement.id}`} className="block">
                 <Card
                   isPressable
                   className={`bg-white hover:shadow-lg transition-all duration-300 ${
@@ -356,6 +357,7 @@ export default function AnnouncementsPage() {
                     </div>
                   </CardBody>
                 </Card>
+                </Link>
               </motion.div>
             ))
           )}
