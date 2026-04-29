@@ -10,14 +10,25 @@ import (
 	"github.com/myunila/manajemen-konten-service/internal/config"
 )
 
-// UserClaims — minimal subset claims dari auth-service JWT.
+// UserClaims — claims dari auth-service JWT.
+// Auth-service menempatkan user info di nested "user" object, bukan flat top-level.
 type UserClaims struct {
-	IDPengguna   string `json:"sub"`
-	Username     string `json:"username"`
-	Role         string `json:"role"`        // mis. 'developer', 'admin'
-	IDOrganisasi string `json:"id_organisasi,omitempty"`
+	IDPengguna string `json:"sub"`
+	User       struct {
+		ID       string `json:"id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Name     string `json:"name"`
+		Role     string `json:"role"` // 'developer', 'admin', 'user'
+	} `json:"user"`
 	jwt.RegisteredClaims
 }
+
+// Username returns the username from nested user object.
+func (u *UserClaims) UsernameValue() string { return u.User.Username }
+
+// Role returns the role from nested user object.
+func (u *UserClaims) RoleValue() string { return u.User.Role }
 
 // RequireAuth — middleware yang validate Bearer token dan store claims di Locals("user").
 func RequireAuth() fiber.Handler {
@@ -51,10 +62,10 @@ func RequireRole(roles ...string) fiber.Handler {
 			return c.Status(401).JSON(fiber.Map{"success": false, "message": "unauthenticated"})
 		}
 		for _, r := range roles {
-			if strings.EqualFold(user.Role, r) {
+			if strings.EqualFold(user.User.Role, r) {
 				return c.Next()
 			}
 		}
-		return c.Status(403).JSON(fiber.Map{"success": false, "message": "insufficient role: " + user.Role})
+		return c.Status(403).JSON(fiber.Map{"success": false, "message": "insufficient role: " + user.User.Role})
 	}
 }
