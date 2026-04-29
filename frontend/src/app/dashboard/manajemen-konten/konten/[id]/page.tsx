@@ -44,17 +44,40 @@ export default function KontenEditPage() {
       <Toaster position="top-right" />
 
       <div className="space-y-5">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/manajemen-konten/konten"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" /> Kembali
-          </Link>
-          <span className="text-gray-300">|</span>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+              Manajemen Konten
+            </Link>
+            <span>/</span>
+            <Link href="/dashboard/manajemen-konten/konten" className="hover:text-blue-600">
+              Konten
+            </Link>
+            <span>/</span>
+            <span className="text-gray-700 font-medium">Edit</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight truncate">
             {data?.judul || (loading ? "Memuat..." : "Edit Konten")}
           </h1>
+          {data && (
+            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1.5">
+              <span className={`px-2 py-0.5 rounded-full font-semibold ${
+                data.status === "published" ? "bg-emerald-100 text-emerald-700"
+                : data.status === "draft" ? "bg-gray-100 text-gray-700"
+                : "bg-rose-100 text-rose-700"
+              }`}>
+                {data.status}
+              </span>
+              <span>·</span>
+              <span className="capitalize">{data.tipe}</span>
+              {data.view_count > 0 && (
+                <>
+                  <span>·</span>
+                  <span>{data.view_count.toLocaleString("id-ID")} views</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {loading ? (

@@ -143,27 +143,30 @@ export default function KategoriPage() {
     >
       <Toaster position="top-right" />
       <div className="space-y-5">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/manajemen-konten"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" /> Dashboard
-          </Link>
-          <span className="text-gray-300">|</span>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex-1">Kategori Konten</h1>
-          <button
-            onClick={openNew}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-lg shadow-sm"
-          >
-            <FiPlus className="w-4 h-4" /> Kategori Baru
-          </button>
+        <div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+              Manajemen Konten
+            </Link>
+            <span>/</span>
+            <span className="text-gray-700 font-medium">Kategori</span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Kategori Konten</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Taxonomy untuk pengumuman, berita, & artikel —{" "}
+                <span className="font-semibold text-gray-800">{data.length}</span> kategori
+              </p>
+            </div>
+            <button
+              onClick={openNew}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+            >
+              <FiPlus className="w-4 h-4" /> Kategori Baru
+            </button>
+          </div>
         </div>
-
-        <p className="text-sm text-gray-600">
-          Taxonomy untuk pengumuman, berita, & artikel. Total {data.length} kategori.
-        </p>
 
         {/* Grid */}
         {loading ? (

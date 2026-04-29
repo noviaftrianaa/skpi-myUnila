@@ -94,15 +94,18 @@ export default function NotifikasiBroadcastPage() {
       <Toaster position="top-right" />
 
       <div className="space-y-5">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/manajemen-konten"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600"
-          >
-            <FiArrowLeft className="w-4 h-4" /> Dashboard
-          </Link>
-          <span className="text-gray-300">|</span>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Broadcast Notifikasi</h1>
+        <div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+              Manajemen Konten
+            </Link>
+            <span>/</span>
+            <span className="text-gray-700 font-medium">Broadcast Notifikasi</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Broadcast Notifikasi</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Kirim notifikasi langsung ke bell icon portal — pilih severity, target audience, dan kedaluwarsa.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

@@ -97,13 +97,40 @@ export default function ManajemenKontenLandingPage() {
       fallbackMenus={manajemenKontenMenuConfig}
       pageTitle="Dashboard Manajemen Konten"
     >
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manajemen Konten</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Kelola pengumuman, berita, dan artikel untuk portal myUnila.
-          </p>
+      <div className="space-y-7">
+        {/* Hero Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-6 py-8 sm:px-10 sm:py-10 shadow-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_50%)] pointer-events-none" />
+          <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-semibold mb-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live di portal
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Manajemen Konten
+            </h1>
+            <p className="text-sm sm:text-base text-blue-100 mt-2 max-w-2xl">
+              Pusat kelola pengumuman, berita, dan artikel untuk portal myUnila — siapkan konten yang tampil di semua aplikasi & dashboard pengguna.
+            </p>
+            {!loading && stats.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-3 text-white/90 text-sm">
+                <div className="inline-flex items-center gap-1.5">
+                  <span className="text-2xl font-bold">{stats.reduce((a, s) => a + s.total, 0)}</span>
+                  <span className="text-xs text-blue-100">Total Konten</span>
+                </div>
+                <div className="text-blue-200/40">·</div>
+                <div className="inline-flex items-center gap-1.5">
+                  <span className="text-2xl font-bold text-emerald-300">{stats.reduce((a, s) => a + s.published, 0)}</span>
+                  <span className="text-xs text-blue-100">Published</span>
+                </div>
+                <div className="text-blue-200/40">·</div>
+                <div className="inline-flex items-center gap-1.5">
+                  <span className="text-2xl font-bold text-amber-200">{stats.reduce((a, s) => a + s.draft, 0)}</span>
+                  <span className="text-xs text-blue-100">Draft</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 3 tipe konten cards */}

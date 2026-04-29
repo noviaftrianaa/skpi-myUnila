@@ -226,24 +226,34 @@ function KontenListContent() {
       <Toaster position="top-right" />
 
       <div className="space-y-5">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{pageTitle}</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {total.toLocaleString("id-ID")} konten · halaman {page}
-            </p>
+        {/* Header — breadcrumb + title + action */}
+        <div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+              Manajemen Konten
+            </Link>
+            <span>/</span>
+            <span className="text-gray-700 font-medium">{pageTitle}</span>
           </div>
-          <Link
-            href={`/dashboard/manajemen-konten/konten/baru${tipeFilter ? `?tipe=${tipeFilter}` : ""}`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-md transition-all"
-          >
-            <FiPlus className="w-4 h-4" /> Tulis Konten
-          </Link>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{pageTitle}</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                <span className="font-semibold text-gray-800">{total.toLocaleString("id-ID")}</span> konten total · menampilkan halaman{" "}
+                <span className="font-semibold text-gray-800">{page}</span>
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/manajemen-konten/konten/baru${tipeFilter ? `?tipe=${tipeFilter}` : ""}`}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+            >
+              <FiPlus className="w-4 h-4" /> Tulis Konten
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">Tipe</label>
@@ -312,7 +322,7 @@ function KontenListContent() {
         </div>
 
         {/* DataTable */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <DataTable<Konten>
             data={data}
             columns={columns}
