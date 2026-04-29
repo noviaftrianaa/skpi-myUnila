@@ -37,6 +37,12 @@
       "nm_file": "/dashboard/manajemen-konten/kategori",
       "icon": "heroicons:tag",
       "urutan": 6
+    },
+    {
+      "nm_menu": "Broadcast Notifikasi",
+      "nm_file": "/dashboard/manajemen-konten/notifikasi",
+      "icon": "heroicons:paper-airplane",
+      "urutan": 7
     }
   ]
 }

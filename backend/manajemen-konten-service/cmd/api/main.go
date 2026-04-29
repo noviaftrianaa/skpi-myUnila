@@ -14,6 +14,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/manajemen-konten-service/apps/kategori"
+	"github.com/myunila/manajemen-konten-service/apps/notif"
 	"github.com/myunila/manajemen-konten-service/apps/pengumuman"
 	"github.com/myunila/manajemen-konten-service/external/database"
 	"github.com/myunila/manajemen-konten-service/internal/config"
@@ -60,6 +61,8 @@ func main() {
 	log.Println("✅ Kategori module initialized")
 	pengumuman.Init(apiV1, db.DB)
 	log.Println("✅ Pengumuman module initialized (unified konten: pengumuman/berita/artikel)")
+	notif.Init(apiV1, db.DB)
+	log.Println("✅ Notif module initialized (broadcast + per-user inbox)")
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{

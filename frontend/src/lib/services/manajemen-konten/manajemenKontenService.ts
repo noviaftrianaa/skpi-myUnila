@@ -172,6 +172,95 @@ const manajemenKontenService = {
     const r = await client.delete(`/pengumuman/${id}`);
     return r.data;
   },
+
+  // Notifikasi (per-user inbox + admin broadcast)
+  async getInbox(params: { page?: number; limit?: number; only_unread?: boolean } = {}) {
+    const r = await client.get("/notif/inbox", { params });
+    return r.data as {
+      success: boolean;
+      data: NotifInbox[];
+      meta: { page: number; limit: number; total: number };
+    };
+  },
+
+  async getUnreadCount() {
+    const r = await client.get("/notif/inbox/unread-count");
+    return r.data as { success: boolean; data: { unread_count: number } };
+  },
+
+  async markRead(idRecipient: string) {
+    const r = await client.patch(`/notif/inbox/${idRecipient}/read`);
+    return r.data;
+  },
+
+  async markAllRead() {
+    const r = await client.patch("/notif/inbox/read-all");
+    return r.data;
+  },
+
+  async dismissNotif(idRecipient: string) {
+    const r = await client.patch(`/notif/inbox/${idRecipient}/dismiss`);
+    return r.data;
+  },
+
+  async broadcastNotif(payload: BroadcastPayload) {
+    const r = await client.post("/notif/broadcast", payload);
+    return r.data as { success: boolean; data: { id_notif: string; total_recipient: number } };
+  },
+
+  async listBroadcasts(params: { page?: number; limit?: number } = {}) {
+    const r = await client.get("/notif/broadcasts", { params });
+    return r.data as {
+      success: boolean;
+      data: NotifBroadcast[];
+      meta: { page: number; limit: number; total: number };
+    };
+  },
 };
+
+// ============ Notif Types ============
+
+export interface NotifInbox {
+  id_recipient: string;
+  id_notif: string;
+  tipe: string;
+  judul: string;
+  pesan: string;
+  target_url?: string | null;
+  icon_name?: string | null;
+  severity: "info" | "success" | "warning" | "error";
+  is_read: boolean;
+  read_at?: string | null;
+  is_dismissed: boolean;
+  delivered_at: string;
+  create_date?: string | null;
+}
+
+export interface NotifBroadcast {
+  id_notif: string;
+  tipe: string;
+  judul: string;
+  pesan: string;
+  target_url?: string | null;
+  icon_name?: string | null;
+  severity: string;
+  target_role: string;
+  target_user_ids?: string | null;
+  expiry_at?: string | null;
+  create_date?: string | null;
+  last_update?: string | null;
+}
+
+export interface BroadcastPayload {
+  tipe?: string;
+  judul: string;
+  pesan: string;
+  target_url?: string | null;
+  icon_name?: string | null;
+  severity?: "info" | "success" | "warning" | "error";
+  target_role?: string;
+  target_user_ids?: string[];
+  expiry_at?: string | null;
+}
 
 export default manajemenKontenService;

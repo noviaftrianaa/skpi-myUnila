@@ -54,6 +54,9 @@ import {
   type MahasiswaProfileData,
   type TendikProfileData,
 } from "@/lib/services/profile/profileService";
+import manajemenKontenService, {
+  type NotifInbox,
+} from "@/lib/services/manajemen-konten/manajemenKontenService";
 import { useRouter } from "next/navigation";
 import { MdCampaign, MdConstruction } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
@@ -268,25 +271,62 @@ export default function PortalPage() {
     return categoriesWithFavorites.flatMap(cat => cat.apps.filter(app => app.isFavorite && app.has_access));
   }, [categoriesWithFavorites]);
 
-  // Dummy notifications data
-  const notifications = [
-    {
-      id: 1,
-      title: "Pembaruan Sistem",
-      message: "Sistem myUnila akan dilakukan maintenance pada tanggal 15 Januari 2025",
-      time: "2 jam yang lalu",
-      isRead: false,
-      type: "info",
-    },
-    {
-      id: 2,
-      title: "Pengumuman Beasiswa",
-      message: "Pendaftaran beasiswa semester genap 2024/2025 telah dibuka",
-      time: "5 jam yang lalu",
-      isRead: false,
-      type: "announcement",
-    },
-  ];
+  // Real-time notifications dari manajemen-konten service.
+  // Replace dummy: fetch /notif/inbox + poll unread-count tiap 30s.
+  const [notifInbox, setNotifInbox] = useState<NotifInbox[]>([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    const fetchNotifs = async () => {
+      try {
+        const [inbox, unread] = await Promise.all([
+          manajemenKontenService.getInbox({ limit: 10 }).catch(() => null),
+          manajemenKontenService.getUnreadCount().catch(() => null),
+        ]);
+        if (cancelled) return;
+        if (inbox?.success) setNotifInbox(inbox.data);
+        if (unread?.success) setUnreadNotifCount(unread.data.unread_count);
+      } catch (err) {
+        // Silent fail — notifikasi optional, jangan ganggu portal.
+      }
+    };
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 30000); // poll 30s
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isAuthenticated]);
+
+  // Map ke shape yang dipakai render existing.
+  const notifications = notifInbox.map((n) => ({
+    id: n.id_recipient,
+    title: n.judul,
+    message: n.pesan,
+    time: n.delivered_at ? formatRelativeTime(n.delivered_at) : "",
+    isRead: n.is_read,
+    type: n.tipe,
+    severity: n.severity,
+    targetUrl: n.target_url,
+  }));
+
+  const handleMarkRead = async (idRecipient: string) => {
+    try {
+      await manajemenKontenService.markRead(idRecipient);
+      setNotifInbox((prev) => prev.map((n) => (n.id_recipient === idRecipient ? { ...n, is_read: true } : n)));
+      setUnreadNotifCount((c) => Math.max(0, c - 1));
+    } catch {}
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await manajemenKontenService.markAllRead();
+      setNotifInbox((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadNotifCount(0);
+    } catch {}
+  };
 
   // Dummy announcements
   const announcements = [
@@ -307,6 +347,22 @@ export default function PortalPage() {
       isNew: false,
     },
   ];
+
+  // Format timestamp ke relative ("2 jam yg lalu") dengan locale id-ID.
+  function formatRelativeTime(iso: string): string {
+    const t = new Date(iso).getTime();
+    const now = Date.now();
+    const diffMs = now - t;
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 60) return "baru saja";
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min} menit yang lalu`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} jam yang lalu`;
+    const day = Math.floor(hr / 24);
+    if (day < 7) return `${day} hari yang lalu`;
+    return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  }
 
   // Function to get user initials
   const getInitials = (fullName: string) => {
@@ -828,7 +884,7 @@ export default function PortalPage() {
                     aria-label="Notifikasi"
                   >
                     <FiBell className="w-5 h-5 text-gray-600" />
-                    {notifications.filter(n => !n.isRead).length > 0 && (
+                    {unreadNotifCount > 0 && (
                       <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                     )}
                   </Button>
@@ -857,9 +913,19 @@ export default function PortalPage() {
                         >
                           <div className="flex items-center justify-between">
                             <h3 className="font-bold text-gray-900">Notifikasi</h3>
-                            <Chip size="sm" color="primary" className="bg-myunila text-white">
-                              {notifications.filter(n => !n.isRead).length} Baru
-                            </Chip>
+                            <div className="flex items-center gap-2">
+                              <Chip size="sm" color="primary" className="bg-myunila text-white">
+                                {unreadNotifCount} Baru
+                              </Chip>
+                              {unreadNotifCount > 0 && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleMarkAllRead(); }}
+                                  className="text-xs text-blue-600 hover:underline"
+                                >
+                                  Tandai semua
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </DropdownItem>
                       );
@@ -881,8 +947,12 @@ export default function PortalPage() {
                       <DropdownItem
                         key={item.id}
                         className={`h-auto py-3 px-4 border-b border-gray-100 last:border-0 ${!item.isRead ? "bg-blue-50" : "bg-white"
-                          } hover:bg-gray-50`}
+                          } hover:bg-gray-50 cursor-pointer`}
                         textValue={item.title}
+                        onPress={() => {
+                          if (!item.isRead) handleMarkRead(item.id);
+                          if (item.targetUrl) window.location.href = item.targetUrl;
+                        }}
                       >
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">

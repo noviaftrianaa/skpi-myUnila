@@ -5,7 +5,7 @@
  * Path root: /dashboard/manajemen-konten/
  */
 
-import { FiFileText, FiList, FiBookOpen, FiBell, FiTag, FiHome } from "react-icons/fi";
+import { FiFileText, FiList, FiBookOpen, FiBell, FiTag, FiHome, FiSend } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
@@ -46,6 +46,12 @@ export const manajemenKontenMenuConfig: MenuItem[] = [
     title: "Kategori",
     icon: <FiTag className="w-5 h-5" />,
     href: "/dashboard/manajemen-konten/kategori",
+    roles: allowedRoles,
+  },
+  {
+    title: "Broadcast Notifikasi",
+    icon: <FiSend className="w-5 h-5" />,
+    href: "/dashboard/manajemen-konten/notifikasi",
     roles: allowedRoles,
   },
 ];
