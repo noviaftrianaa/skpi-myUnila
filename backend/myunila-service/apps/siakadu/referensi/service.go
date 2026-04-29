@@ -11,6 +11,8 @@ type Service interface {
 	SyncUnits(ctx context.Context) (*SyncResult, error)
 	GetProdiList(ctx context.Context) ([]RefUnit, error)
 	GetPimpinanByUnit(ctx context.Context, idUnit string) ([]PimpinanUnit, error)
+	ListUnits(ctx context.Context, f *UnitListFilter) (*UnitListResult, error)
+	GetUnitStats(ctx context.Context) (*UnitStats, error)
 }
 
 type SiakaduAPIClient interface {
@@ -32,6 +34,14 @@ func (s *service) GetProdiList(ctx context.Context) ([]RefUnit, error) {
 
 func (s *service) GetPimpinanByUnit(ctx context.Context, idUnit string) ([]PimpinanUnit, error) {
 	return s.repo.GetPimpinanByUnit(ctx, idUnit)
+}
+
+func (s *service) ListUnits(ctx context.Context, f *UnitListFilter) (*UnitListResult, error) {
+	return s.repo.ListUnits(ctx, f)
+}
+
+func (s *service) GetUnitStats(ctx context.Context) (*UnitStats, error) {
+	return s.repo.GetUnitStats(ctx)
 }
 
 func (s *service) SyncUnits(ctx context.Context) (*SyncResult, error) {
@@ -60,6 +70,13 @@ func (s *service) SyncUnits(ctx context.Context) (*SyncResult, error) {
 		isNew, err := s.repo.UpsertUnit(ctx, item)
 		if err != nil {
 			totalErrors++
+			if totalErrors <= 5 {
+				idUnit := ""
+				if v, ok := item["id_unit"].(string); ok {
+					idUnit = v
+				}
+				log.Printf("⚠️  [Unit Sync] UpsertUnit fail %s: %v", idUnit, err)
+			}
 			continue
 		}
 		if isNew {

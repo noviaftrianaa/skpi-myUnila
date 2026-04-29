@@ -303,7 +303,7 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 		// Default sync semester aktif berjalan; tahun_akd & ganjil_genap di-derive di
 		// keuangan-service kalau body kosong.
 		return s.keuanganRunner.RunWithBody("/spp-mhs/sync", `{"synced_by":"scheduler"}`)
-	case "siakadu_referensi":
+	case "siakadu_referensi", "siakadu_unit":
 		return s.siakaduRunner.Run("/siakadu/referensi/unit/sync")
 	case "siakadu_mahasiswa":
 		return s.siakaduRunner.Run("/siakadu/mahasiswa/sync-all")

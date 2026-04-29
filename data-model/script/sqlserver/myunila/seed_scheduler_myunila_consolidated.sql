@@ -40,7 +40,8 @@ WHERE name IN (
     N'SIAKADU Wisuda Sync Harian',
     N'SIKERMA Kerjasama Sync Harian',
     N'Keuangan Daftar UKT Sync Harian',
-    N'Keuangan SPP Mahasiswa Sync Harian'
+    N'Keuangan SPP Mahasiswa Sync Harian',
+    N'SIAKADU Unit & Pimpinan Sync Harian'
 );
 GO
 
@@ -132,7 +133,13 @@ VALUES
     (N'Keuangan SPP Mahasiswa Sync Harian',
      N'Sync data pembayaran SPP/UKT mahasiswa dari SIMPEDAM ke keuangan.spp_mhs setiap malam pukul 03:00 WIB',
      N'spp_mhs', NULL, N'0 0 3 * * *',
-     CAST('2026-01-01T03:00:00' AS DATETIME2), 1, @creator);
+     CAST('2026-01-01T03:00:00' AS DATETIME2), 1, @creator),
+
+    -- SIAKADU — Unit & Pimpinan referensi (ref_unit + pimpinan_unit) harian malam
+    (N'SIAKADU Unit & Pimpinan Sync Harian',
+     N'Sync ref_unit + pimpinan_unit dari SIAKADU API setiap malam pukul 22:00 WIB',
+     N'siakadu_unit', NULL, N'0 0 22 * * *',
+     CAST('2026-01-01T22:00:00' AS DATETIME2), 1, @creator);
 
 -- ============================================================================
 -- Verifikasi

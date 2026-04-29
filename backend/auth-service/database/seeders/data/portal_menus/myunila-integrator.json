@@ -32,7 +32,8 @@
         {"nm_menu": "KRS/KHS", "nm_file": "/dashboard/integrator/siakadu/krs-khs", "urutan": 6},
         {"nm_menu": "Transkrip", "nm_file": "/dashboard/integrator/siakadu/transkrip", "urutan": 7},
         {"nm_menu": "Status Kuliah", "nm_file": "/dashboard/integrator/siakadu/status-kuliah", "urutan": 8},
-        {"nm_menu": "Wisuda", "nm_file": "/dashboard/integrator/siakadu/wisuda", "urutan": 9}
+        {"nm_menu": "Wisuda", "nm_file": "/dashboard/integrator/siakadu/wisuda", "urutan": 9},
+        {"nm_menu": "Unit & Pimpinan", "nm_file": "/dashboard/integrator/siakadu/unit-pimpinan", "urutan": 10}
       ]
     },
     {

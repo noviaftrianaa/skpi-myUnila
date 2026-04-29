@@ -92,6 +92,11 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
         href: "/dashboard/integrator/siakadu/status-kuliah",
         roles: defaultRoles,
       },
+      {
+        title: "Unit & Pimpinan",
+        href: "/dashboard/integrator/siakadu/unit-pimpinan",
+        roles: defaultRoles,
+      },
       // Wisuda — hidden, belum deploy schema siakadu
       // {
       //   title: "Wisuda",
