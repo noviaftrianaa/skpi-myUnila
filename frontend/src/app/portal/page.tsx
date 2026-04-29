@@ -40,6 +40,7 @@ import {
   FiFilter,
   FiCheck,
   FiLock,
+  FiFileText,
 } from "react-icons/fi";
 import { Icon } from "@iconify/react";
 import * as HeroIcons from "@heroicons/react/24/outline";
@@ -1541,45 +1542,125 @@ export default function PortalPage() {
                     </Link>
                   </div>
                   <div className="space-y-4">
-                    {announcements.map((announcement) => (
-                      <div
-                        key={announcement.id}
-                        className="pb-4 border-b border-gray-100 last:border-0 last:pb-0"
-                      >
-                        <div className="flex items-start gap-2 mb-2">
-                          <Chip
-                            size="sm"
-                            className={`text-xs ${announcement.isNew
-                              ? "bg-green-100 text-green-700"
-                              : "bg-orange-100 text-orange-700"
-                              }`}
-                          >
-                            {announcement.category}
-                          </Chip>
-                          {announcement.isNew && (
+                    {announcements.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-4">Belum ada pengumuman</p>
+                    ) : (
+                      announcements.map((announcement) => (
+                        <div
+                          key={announcement.id}
+                          className="pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+                        >
+                          <div className="flex items-start gap-2 mb-2">
                             <Chip
                               size="sm"
-                              className="bg-myunila text-white text-xs"
+                              className={`text-xs ${announcement.isNew
+                                ? "bg-green-100 text-green-700"
+                                : "bg-orange-100 text-orange-700"
+                                }`}
                             >
-                              Baru
+                              {announcement.category}
                             </Chip>
-                          )}
+                            {announcement.isNew && (
+                              <Chip
+                                size="sm"
+                                className="bg-myunila text-white text-xs"
+                              >
+                                Baru
+                              </Chip>
+                            )}
+                          </div>
+                          <h4 className="font-semibold text-sm text-gray-800 mb-1">
+                            {announcement.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                            {announcement.description}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {announcement.date}
+                          </p>
                         </div>
-                        <h4 className="font-semibold text-sm text-gray-800 mb-1">
-                          {announcement.title}
-                        </h4>
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
-                          {announcement.description}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {announcement.date}
-                        </p>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardBody>
               </Card>
             </motion.div>
+
+            {/* Berita Terbaru — under Pengumuman section */}
+            {beritaList.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Card className="bg-white shadow-sm">
+                  <CardBody className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                        <FiFileText className="w-5 h-5 text-blue-600" />
+                        Berita Terbaru
+                      </h3>
+                      <Link href="/portal/berita">
+                        <Button size="sm" variant="light" className="text-blue-600 text-xs">
+                          Lihat Semua
+                        </Button>
+                      </Link>
+                    </div>
+                    <div className="space-y-4">
+                      {beritaList.map((b: any) => {
+                        const ringkasan = b.ringkasan || (b.isi ? String(b.isi).replace(/<[^>]+>/g, "").substring(0, 150) : "");
+                        const tanggal = b.tgl_terbit
+                          ? new Date(b.tgl_terbit).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+                          : "";
+                        const isFresh = b.tgl_terbit
+                          ? new Date(b.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+                          : false;
+                        return (
+                          <Link
+                            key={b.id_pengumuman}
+                            href={b.slug ? `/portal/berita/${b.slug}` : `/portal/berita/${b.id_pengumuman}`}
+                            className="block group pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+                          >
+                            <div className="flex gap-3">
+                              {b.banner_url && (
+                                <img
+                                  src={b.banner_url}
+                                  alt={b.judul}
+                                  className="w-20 h-16 object-cover rounded-lg flex-shrink-0 border border-gray-100"
+                                  onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start gap-1.5 mb-1">
+                                  {b.nama_kategori && (
+                                    <Chip size="sm" className="text-[10px] bg-blue-100 text-blue-700">
+                                      {b.nama_kategori}
+                                    </Chip>
+                                  )}
+                                  {isFresh && (
+                                    <Chip size="sm" className="text-[10px] bg-emerald-100 text-emerald-700">
+                                      Baru
+                                    </Chip>
+                                  )}
+                                </div>
+                                <h4 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                  {b.judul}
+                                </h4>
+                                <p className="text-xs text-gray-500 line-clamp-2 mb-1">{ringkasan}</p>
+                                <p className="text-[11px] text-gray-400">
+                                  {tanggal}
+                                  {b.author && <span> · {b.author}</span>}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </CardBody>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Quick Access - Favorites */}
             {favoriteApps.length > 0 && (
