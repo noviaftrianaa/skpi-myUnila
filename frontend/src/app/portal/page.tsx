@@ -73,6 +73,107 @@ interface CategoryWithFavorites extends Omit<PortalCategory, 'apps'> {
   apps: AppWithFavorite[];
 }
 
+function FeedList({
+  items,
+  tipe,
+}: {
+  items: any[];
+  tipe: "berita" | "artikel";
+}) {
+  const accent =
+    tipe === "berita"
+      ? { hover: "group-hover:text-blue-600", chip: "bg-blue-100 text-blue-700" }
+      : { hover: "group-hover:text-purple-600", chip: "bg-purple-100 text-purple-700" };
+  const baseHref = tipe === "berita" ? "/portal/berita" : "/portal/artikel";
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-xs text-gray-400">
+          Belum ada {tipe === "berita" ? "berita" : "artikel"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 sm:space-y-4">
+      {items.map((b: any) => {
+        const ringkasan =
+          b.ringkasan ||
+          (b.isi ? String(b.isi).replace(/<[^>]+>/g, "").substring(0, 130) : "");
+        const tanggal = b.tgl_terbit
+          ? new Date(b.tgl_terbit).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
+          : "";
+        const isFresh = b.tgl_terbit
+          ? new Date(b.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+          : false;
+        const href = b.slug ? `${baseHref}/${b.slug}` : `${baseHref}/${b.id_pengumuman}`;
+        return (
+          <Link
+            key={b.id_pengumuman}
+            href={href}
+            className="block group pb-3 sm:pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+          >
+            <div className="flex gap-3">
+              {b.banner_url ? (
+                <img
+                  src={b.banner_url}
+                  alt={b.judul}
+                  className="w-16 h-14 sm:w-20 sm:h-16 object-cover rounded-lg flex-shrink-0 border border-gray-100"
+                  onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                />
+              ) : (
+                <div
+                  className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ${
+                    tipe === "berita"
+                      ? "bg-gradient-to-br from-blue-400 to-indigo-500"
+                      : "bg-gradient-to-br from-purple-400 to-indigo-500"
+                  }`}
+                >
+                  {tipe === "berita" ? "📰" : "📝"}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start gap-1.5 mb-1 flex-wrap">
+                  {b.nama_kategori && (
+                    <span
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${accent.chip}`}
+                    >
+                      {b.nama_kategori}
+                    </span>
+                  )}
+                  {isFresh && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-100 text-emerald-700">
+                      Baru
+                    </span>
+                  )}
+                </div>
+                <h4
+                  className={`font-semibold text-sm text-gray-800 mb-0.5 line-clamp-2 transition-colors ${accent.hover}`}
+                >
+                  {b.judul}
+                </h4>
+                {ringkasan && (
+                  <p className="text-xs text-gray-500 line-clamp-2 mb-1">{ringkasan}</p>
+                )}
+                <p className="text-[11px] text-gray-400">
+                  {tanggal}
+                  {b.author && <span> · {b.author}</span>}
+                </p>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PortalPage() {
   // Protect this route - require authentication
   const { isAuthenticated, isLoading: authLoading, user: authUser } = useRequireAuth();
@@ -329,17 +430,21 @@ export default function PortalPage() {
     } catch {}
   };
 
-  // Real pengumuman + berita dari manajemen-konten service.
+  // Real pengumuman + berita + artikel dari manajemen-konten service.
   const [pengumumanList, setPengumumanList] = useState<any[]>([]);
   const [beritaList, setBeritaList] = useState<any[]>([]);
+  const [artikelList, setArtikelList] = useState<any[]>([]);
+  const [feedTab, setFeedTab] = useState<"berita" | "artikel">("berita");
   useEffect(() => {
     if (!isAuthenticated) return;
     Promise.all([
       manajemenKontenService.dashboardKonten("pengumuman", 5).catch(() => null),
       manajemenKontenService.dashboardKonten("berita", 5).catch(() => null),
-    ]).then(([p, b]) => {
+      manajemenKontenService.dashboardKonten("artikel", 5).catch(() => null),
+    ]).then(([p, b, a]) => {
       if (p?.success) setPengumumanList(p.data || []);
       if (b?.success) setBeritaList(b.data || []);
+      if (a?.success) setArtikelList(a.data || []);
     });
   }, [isAuthenticated]);
 
@@ -1586,77 +1691,66 @@ export default function PortalPage() {
               </Card>
             </motion.div>
 
-            {/* Berita Terbaru — under Pengumuman section */}
-            {beritaList.length > 0 && (
+            {/* Berita & Artikel — tabbed widget under Pengumuman */}
+            {(beritaList.length > 0 || artikelList.length > 0) && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15 }}
               >
                 <Card className="bg-white shadow-sm">
-                  <CardBody className="p-6">
+                  <CardBody className="p-5 sm:p-6">
+                    {/* Header + Tabs */}
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                        <FiFileText className="w-5 h-5 text-blue-600" />
-                        Berita Terbaru
-                      </h3>
-                      <Link href="/portal/berita">
-                        <Button size="sm" variant="light" className="text-blue-600 text-xs">
-                          Lihat Semua
-                        </Button>
+                      <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+                        <button
+                          onClick={() => setFeedTab("berita")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                            feedTab === "berita"
+                              ? "bg-white shadow-sm text-blue-600"
+                              : "text-gray-600 hover:text-gray-800"
+                          }`}
+                        >
+                          📰 Berita
+                          {beritaList.length > 0 && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold">
+                              {beritaList.length}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setFeedTab("artikel")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                            feedTab === "artikel"
+                              ? "bg-white shadow-sm text-purple-600"
+                              : "text-gray-600 hover:text-gray-800"
+                          }`}
+                        >
+                          📝 Artikel
+                          {artikelList.length > 0 && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">
+                              {artikelList.length}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                      <Link
+                        href={feedTab === "berita" ? "/portal/berita" : "/portal/artikel"}
+                        className={`text-xs font-semibold transition-colors ${
+                          feedTab === "berita"
+                            ? "text-blue-600 hover:text-blue-700"
+                            : "text-purple-600 hover:text-purple-700"
+                        }`}
+                      >
+                        Lihat Semua →
                       </Link>
                     </div>
-                    <div className="space-y-4">
-                      {beritaList.map((b: any) => {
-                        const ringkasan = b.ringkasan || (b.isi ? String(b.isi).replace(/<[^>]+>/g, "").substring(0, 150) : "");
-                        const tanggal = b.tgl_terbit
-                          ? new Date(b.tgl_terbit).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-                          : "";
-                        const isFresh = b.tgl_terbit
-                          ? new Date(b.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
-                          : false;
-                        return (
-                          <Link
-                            key={b.id_pengumuman}
-                            href={b.slug ? `/portal/berita/${b.slug}` : `/portal/berita/${b.id_pengumuman}`}
-                            className="block group pb-4 border-b border-gray-100 last:border-0 last:pb-0"
-                          >
-                            <div className="flex gap-3">
-                              {b.banner_url && (
-                                <img
-                                  src={b.banner_url}
-                                  alt={b.judul}
-                                  className="w-20 h-16 object-cover rounded-lg flex-shrink-0 border border-gray-100"
-                                  onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-                                />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start gap-1.5 mb-1">
-                                  {b.nama_kategori && (
-                                    <Chip size="sm" className="text-[10px] bg-blue-100 text-blue-700">
-                                      {b.nama_kategori}
-                                    </Chip>
-                                  )}
-                                  {isFresh && (
-                                    <Chip size="sm" className="text-[10px] bg-emerald-100 text-emerald-700">
-                                      Baru
-                                    </Chip>
-                                  )}
-                                </div>
-                                <h4 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                                  {b.judul}
-                                </h4>
-                                <p className="text-xs text-gray-500 line-clamp-2 mb-1">{ringkasan}</p>
-                                <p className="text-[11px] text-gray-400">
-                                  {tanggal}
-                                  {b.author && <span> · {b.author}</span>}
-                                </p>
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
+
+                    {/* Active feed list */}
+                    <FeedList
+                      items={feedTab === "berita" ? beritaList : artikelList}
+                      tipe={feedTab}
+                    />
                   </CardBody>
                 </Card>
               </motion.div>
