@@ -78,20 +78,14 @@ function FeedList({
   tipe,
 }: {
   items: any[];
-  tipe: "berita" | "artikel";
+  tipe: "berita";
 }) {
-  const accent =
-    tipe === "berita"
-      ? { hover: "group-hover:text-blue-600", chip: "bg-blue-100 text-blue-700" }
-      : { hover: "group-hover:text-purple-600", chip: "bg-purple-100 text-purple-700" };
-  const baseHref = tipe === "berita" ? "/portal/berita" : "/portal/artikel";
+  const baseHref = "/portal/berita";
 
   if (!items || items.length === 0) {
     return (
       <div className="py-8 text-center">
-        <p className="text-xs text-gray-400">
-          Belum ada {tipe === "berita" ? "berita" : "artikel"}
-        </p>
+        <p className="text-xs text-gray-400">Belum ada berita</p>
       </div>
     );
   }
@@ -128,22 +122,14 @@ function FeedList({
                   onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
                 />
               ) : (
-                <div
-                  className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ${
-                    tipe === "berita"
-                      ? "bg-gradient-to-br from-blue-400 to-indigo-500"
-                      : "bg-gradient-to-br from-purple-400 to-indigo-500"
-                  }`}
-                >
-                  {tipe === "berita" ? "📰" : "📝"}
+                <div className="w-16 h-14 sm:w-20 sm:h-16 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-base bg-gradient-to-br from-blue-400 to-indigo-500">
+                  📰
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-1.5 mb-1 flex-wrap">
                   {b.nama_kategori && (
-                    <span
-                      className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${accent.chip}`}
-                    >
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-blue-100 text-blue-700">
                       {b.nama_kategori}
                     </span>
                   )}
@@ -153,9 +139,7 @@ function FeedList({
                     </span>
                   )}
                 </div>
-                <h4
-                  className={`font-semibold text-sm text-gray-800 mb-0.5 line-clamp-2 transition-colors ${accent.hover}`}
-                >
+                <h4 className="font-semibold text-sm text-gray-800 mb-0.5 line-clamp-2 group-hover:text-blue-600 transition-colors">
                   {b.judul}
                 </h4>
                 {ringkasan && (
@@ -430,21 +414,18 @@ export default function PortalPage() {
     } catch {}
   };
 
-  // Real pengumuman + berita + artikel dari manajemen-konten service.
+  // Real pengumuman + berita (digabung dengan artikel) dari manajemen-konten service.
   const [pengumumanList, setPengumumanList] = useState<any[]>([]);
   const [beritaList, setBeritaList] = useState<any[]>([]);
-  const [artikelList, setArtikelList] = useState<any[]>([]);
-  const [feedTab, setFeedTab] = useState<"berita" | "artikel">("berita");
   useEffect(() => {
     if (!isAuthenticated) return;
     Promise.all([
       manajemenKontenService.dashboardKonten("pengumuman", 5).catch(() => null),
-      manajemenKontenService.dashboardKonten("berita", 5).catch(() => null),
-      manajemenKontenService.dashboardKonten("artikel", 5).catch(() => null),
-    ]).then(([p, b, a]) => {
+      // tipe="berita,artikel" — backend support comma-separated IN clause
+      manajemenKontenService.dashboardKonten("berita,artikel" as any, 5).catch(() => null),
+    ]).then(([p, b]) => {
       if (p?.success) setPengumumanList(p.data || []);
       if (b?.success) setBeritaList(b.data || []);
-      if (a?.success) setArtikelList(a.data || []);
     });
   }, [isAuthenticated]);
 
@@ -1623,6 +1604,57 @@ export default function PortalPage() {
               </Card>
             </motion.div>
 
+            {/* Akses Cepat Konten — quick links pengumuman + berita */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <Card className="bg-white shadow-sm">
+                <CardBody className="p-4">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2.5 px-1">
+                    Akses Cepat
+                  </h3>
+                  <div className="space-y-1.5">
+                    <Link
+                      href="/portal/announcements"
+                      className="group flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-myunila/10 text-myunila flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <MdCampaign className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-myunila transition-colors">
+                          Pengumuman
+                        </p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          Info akademik & administrasi
+                        </p>
+                      </div>
+                      <FiChevronRight className="w-4 h-4 text-gray-300 group-hover:text-myunila group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                    <Link
+                      href="/portal/berita"
+                      className="group flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                          Berita & Artikel
+                        </p>
+                        <p className="text-[11px] text-gray-500 truncate">
+                          Liputan & wawasan Unila
+                        </p>
+                      </div>
+                      <FiChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
             {/* Announcements */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -1691,8 +1723,8 @@ export default function PortalPage() {
               </Card>
             </motion.div>
 
-            {/* Berita & Artikel — tabbed widget under Pengumuman */}
-            {(beritaList.length > 0 || artikelList.length > 0) && (
+            {/* Berita Terbaru (gabungan berita + artikel) */}
+            {beritaList.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1700,57 +1732,19 @@ export default function PortalPage() {
               >
                 <Card className="bg-white shadow-sm">
                   <CardBody className="p-5 sm:p-6">
-                    {/* Header + Tabs */}
                     <div className="flex items-center justify-between mb-4">
-                      <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 gap-1">
-                        <button
-                          onClick={() => setFeedTab("berita")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                            feedTab === "berita"
-                              ? "bg-white shadow-sm text-blue-600"
-                              : "text-gray-600 hover:text-gray-800"
-                          }`}
-                        >
-                          📰 Berita
-                          {beritaList.length > 0 && (
-                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold">
-                              {beritaList.length}
-                            </span>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setFeedTab("artikel")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                            feedTab === "artikel"
-                              ? "bg-white shadow-sm text-purple-600"
-                              : "text-gray-600 hover:text-gray-800"
-                          }`}
-                        >
-                          📝 Artikel
-                          {artikelList.length > 0 && (
-                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[9px] font-bold">
-                              {artikelList.length}
-                            </span>
-                          )}
-                        </button>
-                      </div>
+                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                        <FiFileText className="w-5 h-5 text-blue-600" />
+                        Berita Terbaru
+                      </h3>
                       <Link
-                        href={feedTab === "berita" ? "/portal/berita" : "/portal/artikel"}
-                        className={`text-xs font-semibold transition-colors ${
-                          feedTab === "berita"
-                            ? "text-blue-600 hover:text-blue-700"
-                            : "text-purple-600 hover:text-purple-700"
-                        }`}
+                        href="/portal/berita"
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                       >
                         Lihat Semua →
                       </Link>
                     </div>
-
-                    {/* Active feed list */}
-                    <FeedList
-                      items={feedTab === "berita" ? beritaList : artikelList}
-                      tipe={feedTab}
-                    />
+                    <FeedList items={beritaList} tipe="berita" />
                   </CardBody>
                 </Card>
               </motion.div>

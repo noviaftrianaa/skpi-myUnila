@@ -42,7 +42,7 @@ function KontenListContent() {
   useRequireAuth();
   const sp = useSearchParams();
   const router = useRouter();
-  const initialTipe = (sp.get("tipe") as KontenTipe) || "";
+  const initialTipe = sp.get("tipe") || "";
   const initialStatus = (sp.get("status") as KontenStatus) || "";
 
   const [data, setData] = useState<Konten[]>([]);
@@ -51,7 +51,8 @@ function KontenListContent() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState("");
-  const [tipeFilter, setTipeFilter] = useState<KontenTipe | "">(initialTipe);
+  // Bisa "berita,artikel" untuk filter multi-tipe (handled by backend IN clause)
+  const [tipeFilter, setTipeFilter] = useState<string>(initialTipe);
   const [statusFilter, setStatusFilter] = useState<KontenStatus | "">(initialStatus);
   const [kategoriList, setKategoriList] = useState<Kategori[]>([]);
   const [kategoriFilter, setKategoriFilter] = useState("");
@@ -63,7 +64,7 @@ function KontenListContent() {
         page,
         limit,
         search: search || undefined,
-        tipe: tipeFilter || undefined,
+        tipe: (tipeFilter as any) || undefined,
         status: statusFilter || undefined,
         id_kategori: kategoriFilter || undefined,
       });
@@ -87,8 +88,9 @@ function KontenListContent() {
   }, []);
 
   const pageTitle = useMemo(() => {
-    if (tipeFilter) return `Kelola ${TIPE_LABELS[tipeFilter].label}`;
-    return "Semua Konten";
+    if (!tipeFilter) return "Semua Konten";
+    if (tipeFilter.includes(",")) return "Kelola Berita & Artikel";
+    return `Kelola ${TIPE_LABELS[tipeFilter as KontenTipe]?.label || tipeFilter}`;
   }, [tipeFilter]);
 
   const handleDelete = async (id: string, judul: string) => {
@@ -260,15 +262,14 @@ function KontenListContent() {
               <select
                 value={tipeFilter}
                 onChange={(e) => {
-                  setTipeFilter(e.target.value as KontenTipe | "");
+                  setTipeFilter(e.target.value);
                   setPage(1);
                 }}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="">Semua Tipe</option>
                 <option value="pengumuman">Pengumuman</option>
-                <option value="berita">Berita</option>
-                <option value="artikel">Artikel</option>
+                <option value="berita,artikel">Berita & Artikel</option>
               </select>
             </div>
             <div>

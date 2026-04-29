@@ -125,11 +125,12 @@ const manajemenKontenService = {
   },
 
   // Konten (pengumuman/berita/artikel)
+  // tipe accepts comma-separated values (e.g. "berita,artikel") for multi-tipe filter
   async listKonten(params: {
     page?: number;
     limit?: number;
     search?: string;
-    tipe?: KontenTipe | "";
+    tipe?: KontenTipe | "" | string;
     id_kategori?: string;
     status?: KontenStatus | "";
     target_role?: string;
@@ -148,7 +149,7 @@ const manajemenKontenService = {
     return r.data as { success: boolean; data: Konten };
   },
 
-  async dashboardKonten(tipe?: KontenTipe, limit = 5) {
+  async dashboardKonten(tipe?: KontenTipe | string, limit = 5) {
     const r = await client.get("/pengumuman/dashboard", { params: { tipe, limit } });
     return r.data as { success: boolean; data: Konten[] };
   },

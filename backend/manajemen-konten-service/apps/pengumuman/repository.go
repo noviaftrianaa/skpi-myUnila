@@ -55,8 +55,19 @@ func (r *repository) List(ctx context.Context, f *ListFilter) (*ListResult, erro
 	args := []any{}
 	where := "WHERE p.soft_delete = 0"
 	if f.Tipe != "" {
-		args = append(args, f.Tipe)
-		where += fmt.Sprintf(" AND p.tipe = @p%d", len(args))
+		// Support comma-separated tipe (e.g. "berita,artikel")
+		tipes := strings.Split(f.Tipe, ",")
+		if len(tipes) == 1 {
+			args = append(args, strings.TrimSpace(tipes[0]))
+			where += fmt.Sprintf(" AND p.tipe = @p%d", len(args))
+		} else {
+			placeholders := make([]string, 0, len(tipes))
+			for _, t := range tipes {
+				args = append(args, strings.TrimSpace(t))
+				placeholders = append(placeholders, fmt.Sprintf("@p%d", len(args)))
+			}
+			where += " AND p.tipe IN (" + strings.Join(placeholders, ",") + ")"
+		}
 	}
 	if f.IDKategori != "" {
 		args = append(args, f.IDKategori)

@@ -212,14 +212,16 @@ export default function KontenForm({
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Tipe Konten</label>
             <select
-              value={tipe}
+              value={tipe === "artikel" ? "berita" : tipe}
               onChange={(e) => setTipe(e.target.value as KontenTipe)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-blue-500"
             >
-              <option value="pengumuman">Pengumuman</option>
-              <option value="berita">Berita</option>
-              <option value="artikel">Artikel</option>
+              <option value="pengumuman">📢 Pengumuman</option>
+              <option value="berita">📰 Berita / Artikel</option>
             </select>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Bedakan via <span className="font-semibold">Kategori</span> (Akademik, Kegiatan, Opini, dll)
+            </p>
           </div>
 
           <div>
@@ -275,7 +277,7 @@ export default function KontenForm({
 
         {(tipe === "berita" || tipe === "artikel") && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-            <h3 className="text-sm font-bold text-gray-800">Metadata Berita/Artikel</h3>
+            <h3 className="text-sm font-bold text-gray-800">Metadata SEO & Penulis</h3>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Penulis</label>
               <input
@@ -287,14 +289,20 @@ export default function KontenForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Tags <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">
+                Tags{" "}
+                <span className="text-gray-400 font-normal">(pisahkan koma — penting untuk SEO & search)</span>
+              </label>
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="akademik, beasiswa, 2025"
+                placeholder="contoh: akademik, beasiswa, 2026, prestasi"
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500"
               />
+              <p className="text-[11px] text-gray-400 mt-1">
+                Tags muncul di halaman detail dan dapat dipakai untuk filter konten serupa
+              </p>
             </div>
           </div>
         )}

@@ -15,34 +15,28 @@
       "urutan": 2
     },
     {
-      "nm_menu": "Berita",
-      "nm_file": "/dashboard/manajemen-konten/konten?tipe=berita",
+      "nm_menu": "Berita & Artikel",
+      "nm_file": "/dashboard/manajemen-konten/konten?tipe=berita,artikel",
       "icon": "heroicons:document-text",
       "urutan": 3
-    },
-    {
-      "nm_menu": "Artikel",
-      "nm_file": "/dashboard/manajemen-konten/konten?tipe=artikel",
-      "icon": "heroicons:book-open",
-      "urutan": 4
     },
     {
       "nm_menu": "Semua Konten",
       "nm_file": "/dashboard/manajemen-konten/konten",
       "icon": "heroicons:list-bullet",
-      "urutan": 5
+      "urutan": 4
     },
     {
       "nm_menu": "Kategori",
       "nm_file": "/dashboard/manajemen-konten/kategori",
       "icon": "heroicons:tag",
-      "urutan": 6
+      "urutan": 5
     },
     {
       "nm_menu": "Broadcast Notifikasi",
       "nm_file": "/dashboard/manajemen-konten/notifikasi",
       "icon": "heroicons:paper-airplane",
-      "urutan": 7
+      "urutan": 6
     }
   ]
 }

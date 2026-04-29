@@ -38,7 +38,8 @@ export default function BeritaListPage() {
 
   useEffect(() => {
     Promise.all([
-      manajemenKontenService.listKonten({ tipe: "berita", status: "published", limit: 60 }),
+      // Multi-tipe: berita + artikel digabung jadi 1 feed
+      manajemenKontenService.listKonten({ tipe: "berita,artikel" as any, status: "published", limit: 60 }),
       manajemenKontenService.listKategori("berita", true),
     ])
       .then(([list, kat]) => {
@@ -90,13 +91,13 @@ export default function BeritaListPage() {
         <div className="mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold mb-3">
             <MdNewspaper className="w-3.5 h-3.5" />
-            Berita & Liputan Unila
+            Berita, Liputan & Artikel
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1 tracking-tight">
-            Berita Universitas Lampung
+            Berita & Artikel Unila
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Liputan kegiatan, prestasi, dan informasi resmi dari Universitas Lampung
+            Liputan kegiatan, prestasi, opini, dan wawasan dari Universitas Lampung
           </p>
         </div>
 
