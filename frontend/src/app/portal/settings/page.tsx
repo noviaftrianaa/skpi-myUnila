@@ -20,8 +20,37 @@ import {
   Avatar,
   Tabs,
   Tab,
-  Switch,
 } from "@heroui/react";
+
+// Native Tailwind toggle — pengganti HeroUI Switch supaya konsisten Tailwind only.
+function ToggleSwitch({
+  checked,
+  onChange,
+  ariaLabel,
+}: {
+  checked: boolean;
+  onChange: (val: boolean) => void;
+  ariaLabel?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+        checked ? "bg-blue-600" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+          checked ? "translate-x-5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
+}
 import {
   FiShield,
   FiUser,
@@ -482,9 +511,10 @@ export default function SettingsPage() {
                           Terima notifikasi melalui email
                         </p>
                       </div>
-                      <Switch
-                        isSelected={emailNotifications}
-                        onValueChange={setEmailNotifications}
+                      <ToggleSwitch
+                        checked={emailNotifications}
+                        onChange={setEmailNotifications}
+                        ariaLabel="Email Notifications"
                       />
                     </div>
 
@@ -495,9 +525,10 @@ export default function SettingsPage() {
                           Terima notifikasi di browser
                         </p>
                       </div>
-                      <Switch
-                        isSelected={pushNotifications}
-                        onValueChange={setPushNotifications}
+                      <ToggleSwitch
+                        checked={pushNotifications}
+                        onChange={setPushNotifications}
+                        ariaLabel="Push Notifications"
                       />
                     </div>
                   </div>
@@ -533,108 +564,106 @@ export default function SettingsPage() {
                 </div>
               </ModalHeader>
               <ModalBody>
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {/* Step 1 */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold">
-                        1
-                      </div>
-                      <h3 className="font-semibold text-gray-900">Download Google Authenticator</h3>
+                  <div className="relative pl-12 pb-5 border-b border-gray-100">
+                    <div className="absolute left-0 top-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                      1
                     </div>
-                    <p className="text-sm text-gray-600 ml-8">
-                      Install aplikasi Google Authenticator di smartphone Anda dari Play Store atau App Store.
+                    <h3 className="font-semibold text-gray-900 mb-1">Install Google Authenticator</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      Download aplikasi Google Authenticator atau Microsoft Authenticator di smartphone (Play Store / App Store).
                     </p>
                   </div>
 
                   {/* Step 2 */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold">
-                        2
-                      </div>
-                      <h3 className="font-semibold text-gray-900">Scan QR Code</h3>
+                  <div className="relative pl-12 pb-5 border-b border-gray-100">
+                    <div className="absolute left-0 top-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                      2
                     </div>
-                    <div className="ml-8 space-y-3">
-                      <p className="text-sm text-gray-600">
-                        Buka aplikasi Google Authenticator dan scan QR code berikut:
-                      </p>
-                      <div className="flex justify-center p-6 bg-white border-2 border-gray-200 rounded-lg">
-                        {mfaQrCodeSvg ? (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: mfaQrCodeSvg }}
-                            className="w-48 h-48"
-                          />
-                        ) : (
-                          <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <FiSmartphone className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                              <p className="text-xs text-gray-500">Loading QR Code...</p>
-                            </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Scan QR Code</h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Buka aplikasi authenticator, tap "+" lalu scan QR code di bawah:
+                    </p>
+                    <div className="flex justify-center p-5 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+                      {mfaQrCodeSvg ? (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: mfaQrCodeSvg }}
+                          className="w-44 h-44 bg-white p-2 rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-44 h-44 bg-white rounded-lg flex items-center justify-center">
+                          <div className="text-center">
+                            <FiSmartphone className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-500">Memuat QR Code...</p>
                           </div>
-                        )}
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-xs font-medium text-gray-700 mb-2">
-                          Atau masukkan kode manual:
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded text-sm font-mono">
-                            {mfaSecret}
-                          </code>
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            variant="flat"
-                            onClick={() => copyToClipboard(mfaSecret)}
-                          >
-                            <FiCopy className="w-4 h-4" />
-                          </Button>
                         </div>
+                      )}
+                    </div>
+                    <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-blue-900 mb-1.5">Atau ketik manual kode ini:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 px-3 py-2 bg-white border border-blue-200 rounded-md text-xs font-mono text-gray-800 break-all">
+                          {mfaSecret}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(mfaSecret)}
+                          className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          title="Copy kode"
+                        >
+                          <FiCopy className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
 
                   {/* Step 3 */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold">
-                        3
-                      </div>
-                      <h3 className="font-semibold text-gray-900">Masukkan Kode Verifikasi</h3>
+                  <div className="relative pl-12">
+                    <div className="absolute left-0 top-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-md">
+                      3
                     </div>
-                    <div className="ml-8">
-                      <p className="text-sm text-gray-600 mb-3">
-                        Masukkan kode 6 digit dari aplikasi Google Authenticator:
+                    <h3 className="font-semibold text-gray-900 mb-2">Masukkan Kode 6 Digit</h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Aplikasi authenticator akan generate kode 6 digit yang refresh tiap 30 detik. Masukkan di bawah:
+                    </p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="000000"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      maxLength={6}
+                      className={`w-full px-4 py-3 text-center text-3xl tracking-[0.5em] font-mono font-bold rounded-lg border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+                        mfaError
+                          ? "border-red-400 focus:border-red-500"
+                          : "border-gray-200 focus:border-blue-500"
+                      }`}
+                    />
+                    {mfaError && (
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                        <FiAlertCircle className="w-3.5 h-3.5" /> {mfaError}
                       </p>
-                      <Input
-                        placeholder="000000"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        maxLength={6}
-                        classNames={{
-                          input: "text-center text-2xl tracking-widest font-mono",
-                        }}
-                        size="lg"
-                        isInvalid={!!mfaError}
-                        errorMessage={mfaError}
-                      />
-                    </div>
+                    )}
                   </div>
                 </div>
               </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" onPress={onClose}>
-                  Batal
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={handleEnableMfa}
-                  isDisabled={verificationCode.length !== 6}
-                  isLoading={isEnablingMfa}
+              <ModalFooter className="gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
-                  Aktifkan 2FA
-                </Button>
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEnableMfa}
+                  disabled={verificationCode.length !== 6 || isEnablingMfa}
+                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isEnablingMfa ? "Memverifikasi..." : "Aktifkan 2FA"}
+                </button>
               </ModalFooter>
             </>
           )}

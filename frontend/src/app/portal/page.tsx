@@ -47,6 +47,13 @@ import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserContext } from "@/contexts/UserContextContext";
+import {
+  profileService,
+  type ProfileResponse,
+  type DosenProfileData,
+  type MahasiswaProfileData,
+  type TendikProfileData,
+} from "@/lib/services/profile/profileService";
 import { useRouter } from "next/navigation";
 import { MdCampaign, MdConstruction } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
@@ -93,6 +100,37 @@ export default function PortalPage() {
   const [activeTab, setActiveTab] = useState("home");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
+
+  // Profile data — untuk align sidebar dengan /portal/profile (homebase asli, bukan role-based)
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    profileService.getProfile()
+      .then(setProfile)
+      .catch((err) => console.error("Failed to fetch profile for sidebar:", err));
+  }, [isAuthenticated]);
+
+  // Compute homebase display — mirror /portal/profile logic
+  const sidebarHomebase = (() => {
+    if (!profile) return null;
+    const data = profile.profile_data;
+    if (profile.profile_type === "dosen") {
+      const dosen = data as DosenProfileData;
+      const active = dosen?.homebases?.find((h) => h.is_active) || dosen?.homebases?.[0];
+      return active?.nama_unit || null;
+    }
+    if (profile.profile_type === "mahasiswa") {
+      const mhs = data as MahasiswaProfileData;
+      const active = mhs?.homebases?.find((h) => h.is_active) || mhs?.homebases?.[0];
+      return active?.program_studi || active?.nama_unit || null;
+    }
+    if (profile.profile_type === "tendik") {
+      const t = data as TendikProfileData;
+      return t?.unit_kerja?.unit_1 || t?.unit_kerja?.unit_2 || t?.unit_kerja?.unit_3 || null;
+    }
+    return profile.active_role?.nama_unit || null;
+  })();
+  const sidebarPeran = profile?.active_role?.nama_peran || activeContext?.nm_peran || null;
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
@@ -1321,9 +1359,18 @@ export default function PortalPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm mb-2">{user.name}</h3>
-                      {/* Organization Info */}
+                      {/* Organization Info — selaras dengan /portal/profile (homebase asli) */}
                       <div className="space-y-1 mb-3">
-                        {activeContext ? (
+                        {sidebarPeran || sidebarHomebase ? (
+                          <>
+                            {sidebarPeran && (
+                              <p className="text-xs text-blue-100 leading-relaxed">{sidebarPeran}</p>
+                            )}
+                            {sidebarHomebase && (
+                              <p className="text-xs text-blue-100 leading-relaxed">{sidebarHomebase}</p>
+                            )}
+                          </>
+                        ) : activeContext ? (
                           <>
                             <p className="text-xs text-blue-100 leading-relaxed">{activeContext.nm_peran}</p>
                             <p className="text-xs text-blue-100 leading-relaxed">{activeContext.nm_organisasi}</p>
