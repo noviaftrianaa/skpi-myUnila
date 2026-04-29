@@ -74,24 +74,33 @@ END
 GO
 
 -- ============================================================================
--- 2. man_konten.pengumuman — short-form announcement
+-- 2. man_konten.pengumuman — UNIFIED konten table (pengumuman/berita/artikel)
 -- ============================================================================
+-- Ditingkatkan dari single-purpose ke flexible: 1 tabel, 3 tipe konten.
+-- Field `tipe` membedakan: 'pengumuman' (short-form), 'berita' (medium), 'artikel' (long-form).
+-- Admin UI bisa filter per tipe; public-facing dapat fetch sesuai konteks.
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='pengumuman' AND schema_id=SCHEMA_ID('man_konten'))
 BEGIN
     CREATE TABLE man_konten.pengumuman (
         id_pengumuman   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID() PRIMARY KEY,
+        tipe            VARCHAR(20)      NOT NULL DEFAULT 'pengumuman',  -- pengumuman|berita|artikel
         judul           VARCHAR(255)     NOT NULL,
+        slug            VARCHAR(255)     NULL,                            -- URL-friendly (untuk berita/artikel)
         ringkasan       VARCHAR(500)     NULL,
-        isi             NVARCHAR(MAX)    NULL,
+        isi             NVARCHAR(MAX)    NULL,                            -- rich text (Tiptap HTML/JSON)
         id_kategori     UNIQUEIDENTIFIER NULL,
         banner_url      VARCHAR(500)     NULL,
+        author          VARCHAR(255)     NULL,                            -- nama penulis (untuk berita/artikel)
+        tags            VARCHAR(500)     NULL,                            -- comma-separated
         is_pinned       BIT              NOT NULL DEFAULT 0,
         is_featured     BIT              NOT NULL DEFAULT 0,
         tgl_terbit      DATETIME         NOT NULL DEFAULT GETDATE(),
         tgl_expiry      DATETIME         NULL,
-        status          VARCHAR(20)      NOT NULL DEFAULT 'draft',  -- draft|published|archived
-        target_role     VARCHAR(20)      NOT NULL DEFAULT 'all',    -- all|mahasiswa|dosen|tendik|custom
+        status          VARCHAR(20)      NOT NULL DEFAULT 'draft',        -- draft|published|archived
+        target_role     VARCHAR(20)      NOT NULL DEFAULT 'all',          -- all|mahasiswa|dosen|tendik|custom
         view_count      INT              NOT NULL DEFAULT 0,
+        allow_comment   BIT              NOT NULL DEFAULT 0,              -- toggle comment (Phase 2 fitur)
+        allow_like      BIT              NOT NULL DEFAULT 0,              -- toggle like (Phase 2 fitur)
         id_creator      UNIQUEIDENTIFIER NULL,
         create_date     DATETIME         NOT NULL DEFAULT GETDATE(),
         id_updater      UNIQUEIDENTIFIER NULL,
@@ -101,50 +110,18 @@ BEGIN
         CONSTRAINT FK_pengumuman_kategori FOREIGN KEY (id_kategori)
             REFERENCES man_konten.kategori(id_kategori)
     );
-    CREATE INDEX IX_pengumuman_status_terbit ON man_konten.pengumuman(status, tgl_terbit DESC) WHERE soft_delete = 0;
+    CREATE INDEX IX_pengumuman_tipe_status ON man_konten.pengumuman(tipe, status, tgl_terbit DESC) WHERE soft_delete = 0;
     CREATE INDEX IX_pengumuman_kategori ON man_konten.pengumuman(id_kategori) WHERE soft_delete = 0;
     CREATE INDEX IX_pengumuman_featured ON man_konten.pengumuman(is_featured, is_pinned) WHERE soft_delete = 0 AND status = 'published';
-    PRINT 'Created table man_konten.pengumuman';
+    CREATE INDEX IX_pengumuman_slug ON man_konten.pengumuman(slug) WHERE slug IS NOT NULL AND soft_delete = 0;
+    PRINT 'Created table man_konten.pengumuman (unified konten with tipe field)';
 END
 GO
 
 -- ============================================================================
--- 3. man_konten.berita — long-form article
+-- 3. (REMOVED) man_konten.berita — di-merge ke man_konten.pengumuman dengan
+--                                  field `tipe`. 1 tabel untuk pengumuman/berita/artikel.
 -- ============================================================================
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='berita' AND schema_id=SCHEMA_ID('man_konten'))
-BEGIN
-    CREATE TABLE man_konten.berita (
-        id_berita           UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID() PRIMARY KEY,
-        judul               VARCHAR(255)     NOT NULL,
-        slug                VARCHAR(255)     NOT NULL,
-        ringkasan           VARCHAR(500)     NULL,
-        isi                 NVARCHAR(MAX)    NULL,
-        id_kategori         UNIQUEIDENTIFIER NULL,
-        banner_url          VARCHAR(500)     NULL,
-        author              VARCHAR(255)     NULL,
-        tags                VARCHAR(500)     NULL,    -- comma-separated
-        is_featured         BIT              NOT NULL DEFAULT 0,
-        tgl_terbit          DATETIME         NOT NULL DEFAULT GETDATE(),
-        status              VARCHAR(20)      NOT NULL DEFAULT 'draft',
-        target_role         VARCHAR(20)      NOT NULL DEFAULT 'all',
-        view_count          INT              NOT NULL DEFAULT 0,
-        estimated_read_min  INT              NOT NULL DEFAULT 1,
-        id_creator          UNIQUEIDENTIFIER NULL,
-        create_date         DATETIME         NOT NULL DEFAULT GETDATE(),
-        id_updater          UNIQUEIDENTIFIER NULL,
-        last_update         DATETIME         NOT NULL DEFAULT GETDATE(),
-        soft_delete         NUMERIC(1,0)     NOT NULL DEFAULT 0,
-        last_sync           DATETIME         NULL,
-        CONSTRAINT FK_berita_kategori FOREIGN KEY (id_kategori)
-            REFERENCES man_konten.kategori(id_kategori)
-    );
-    CREATE UNIQUE INDEX UX_berita_slug ON man_konten.berita(slug) WHERE soft_delete = 0;
-    CREATE INDEX IX_berita_status_terbit ON man_konten.berita(status, tgl_terbit DESC) WHERE soft_delete = 0;
-    CREATE INDEX IX_berita_kategori ON man_konten.berita(id_kategori) WHERE soft_delete = 0;
-    CREATE INDEX IX_berita_featured ON man_konten.berita(is_featured) WHERE soft_delete = 0 AND status = 'published';
-    PRINT 'Created table man_konten.berita';
-END
-GO
 
 -- ============================================================================
 -- 4. man_konten.notifikasi — broadcast notification (1 row per broadcast)
@@ -252,4 +229,5 @@ SELECT
     (SELECT COUNT(*) FROM sys.tables WHERE schema_id=SCHEMA_ID('man_konten')) AS tables_count,
     (SELECT COUNT(*) FROM man_konten.kategori WHERE soft_delete=0) AS kategori_count;
 
-PRINT 'Migration man_konten complete. Expected: schema_exists=1, tables_count=6, kategori_count=8';
+PRINT 'Migration man_konten complete. Expected: schema_exists=1, tables_count=5, kategori_count=8';
+PRINT 'Tables: kategori, pengumuman (UNIFIED tipe=pengumuman/berita/artikel), notifikasi, notif_recipient, target_audience';

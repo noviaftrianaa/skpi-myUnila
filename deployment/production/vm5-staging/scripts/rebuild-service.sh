@@ -48,6 +48,7 @@ declare -A SERVICE_MAP=(
     [api]="backend-go/docker-compose.api.yml"
     [keuangan]="backend-go/docker-compose.keuangan.yml"
     [monitoring]="backend-go/docker-compose.monitoring.yml"
+    [man-konten]="backend-go/docker-compose.man-konten.yml"
 )
 
 show_list() {
