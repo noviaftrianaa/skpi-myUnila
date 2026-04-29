@@ -996,12 +996,15 @@ func (r *repository) ListPimpinanUnit(ctx context.Context, p PimpinanUnitParams)
 		return nil, 0, err
 	}
 
-	sortBy, order := "p.tgl_mulai DESC", p.Order
+	// Default sortBy column saja (tanpa direction) — direction dikontrol via `order`.
+	// Bug fix: sebelumnya default "p.tgl_mulai DESC" digabung dgn order="ASC" menjadi
+	// "ORDER BY p.tgl_mulai DESC ASC ..." → SQL Server tolak (Invalid usage of the option NEXT).
+	sortBy, order := "p.tgl_mulai", p.Order
 	if p.SortBy != "" {
 		sortBy = p.SortBy
 	}
 	if order == "" {
-		order = "ASC"
+		order = "DESC"
 	}
 
 	q := fmt.Sprintf(`SELECT
