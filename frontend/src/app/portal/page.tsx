@@ -328,25 +328,31 @@ export default function PortalPage() {
     } catch {}
   };
 
-  // Dummy announcements
-  const announcements = [
-    {
-      id: 1,
-      title: "Beasiswa Asih",
-      description: "Beasiswa Asih",
-      category: "Kegiatan",
-      date: "30 Desember 2024",
-      isNew: true,
-    },
-    {
-      id: 2,
-      title: "Pengumuman Penghapusan Akun",
-      description: "Dalam rangka implementasi kebijakan TIK, UPA TIK mengumumkan bahwa akun email...",
-      category: "Lainnya",
-      date: "28 Desember 2024",
-      isNew: false,
-    },
-  ];
+  // Real pengumuman + berita dari manajemen-konten service.
+  const [pengumumanList, setPengumumanList] = useState<any[]>([]);
+  const [beritaList, setBeritaList] = useState<any[]>([]);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    Promise.all([
+      manajemenKontenService.dashboardKonten("pengumuman", 5).catch(() => null),
+      manajemenKontenService.dashboardKonten("berita", 5).catch(() => null),
+    ]).then(([p, b]) => {
+      if (p?.success) setPengumumanList(p.data || []);
+      if (b?.success) setBeritaList(b.data || []);
+    });
+  }, [isAuthenticated]);
+
+  const announcements = pengumumanList.map((it) => ({
+    id: it.id_pengumuman,
+    title: it.judul,
+    description: it.ringkasan || (it.isi ? it.isi.replace(/<[^>]+>/g, "").substring(0, 200) : ""),
+    category: it.nama_kategori || "Pengumuman",
+    date: it.tgl_terbit ? new Date(it.tgl_terbit).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "",
+    isNew:
+      it.tgl_terbit
+        ? new Date(it.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+        : false,
+  }));
 
   // Format timestamp ke relative ("2 jam yg lalu") dengan locale id-ID.
   function formatRelativeTime(iso: string): string {

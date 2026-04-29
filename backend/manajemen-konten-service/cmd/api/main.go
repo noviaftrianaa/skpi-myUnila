@@ -16,6 +16,7 @@ import (
 	"github.com/myunila/manajemen-konten-service/apps/kategori"
 	"github.com/myunila/manajemen-konten-service/apps/notif"
 	"github.com/myunila/manajemen-konten-service/apps/pengumuman"
+	"github.com/myunila/manajemen-konten-service/apps/upload"
 	"github.com/myunila/manajemen-konten-service/external/database"
 	"github.com/myunila/manajemen-konten-service/internal/config"
 )
@@ -56,6 +57,17 @@ func main() {
 		return c.JSON(fiber.Map{"status": "ok", "service": config.Cfg.App.Name, "version": "1.0.0"})
 	})
 
+	// Static file server untuk uploaded files (banner image, dll).
+	// Path public: /<UPLOAD_BASE_URL>/<filename> mounted ke ${UPLOAD_DIR} di Docker volume.
+	app.Static(config.Cfg.Storage.BaseURL, config.Cfg.Storage.UploadDir, fiber.Static{
+		Compress:      true,
+		ByteRange:     true,
+		Browse:        false, // jangan expose directory listing
+		CacheDuration: 0,     // browser caching default
+		MaxAge:        86400, // 1 hari
+	})
+	log.Printf("✅ Static server mount %s → %s", config.Cfg.Storage.BaseURL, config.Cfg.Storage.UploadDir)
+
 	apiV1 := app.Group("/api/v1")
 	kategori.Init(apiV1, db.DB)
 	log.Println("✅ Kategori module initialized")
@@ -63,6 +75,8 @@ func main() {
 	log.Println("✅ Pengumuman module initialized (unified konten: pengumuman/berita/artikel)")
 	notif.Init(apiV1, db.DB)
 	log.Println("✅ Notif module initialized (broadcast + per-user inbox)")
+	upload.Init(apiV1)
+	log.Println("✅ Upload module initialized (multipart → Docker volume)")
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{

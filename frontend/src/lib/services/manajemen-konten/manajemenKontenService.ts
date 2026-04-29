@@ -216,6 +216,19 @@ const manajemenKontenService = {
       meta: { page: number; limit: number; total: number };
     };
   },
+
+  // File upload (banner image)
+  async uploadFile(file: File) {
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await client.post("/upload", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return r.data as {
+      success: boolean;
+      data: { filename: string; url: string; size: number; mime_type: string };
+    };
+  },
 };
 
 // ============ Notif Types ============

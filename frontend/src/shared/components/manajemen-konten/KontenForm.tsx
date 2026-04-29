@@ -11,7 +11,7 @@ import manajemenKontenService, {
   CreateKontenPayload,
 } from "@/lib/services/manajemen-konten/manajemenKontenService";
 import { toast } from "react-hot-toast";
-import { FiSave, FiX, FiEye } from "react-icons/fi";
+import { FiSave, FiX, FiEye, FiUpload, FiImage, FiTrash2 } from "react-icons/fi";
 
 export default function KontenForm({
   initialData,
@@ -46,6 +46,33 @@ export default function KontenForm({
   const [targetRole, setTargetRole] = useState(initialData?.target_role || "all");
   const [kategoriList, setKategoriList] = useState<Kategori[]>([]);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleBannerUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Maksimal 5 MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const r = await manajemenKontenService.uploadFile(file);
+      if (r.success) {
+        // Build full public URL: NEXT_PUBLIC_KONG_URL + /man-konten-service + /man-konten/uploads/<file>
+        const kongBase = (process.env.NEXT_PUBLIC_MAN_KONTEN_API_URL || "").replace(/\/api\/v1\/?$/, "");
+        const fullURL = kongBase + r.data.url;
+        setBannerURL(fullURL);
+        toast.success(`Upload sukses: ${r.data.filename}`);
+      }
+    } catch (err: any) {
+      toast.error("Gagal upload: " + (err?.response?.data?.message || err.message));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     manajemenKontenService.listKategori().then((r) => r.success && setKategoriList(r.data)).catch(() => {});
@@ -273,23 +300,65 @@ export default function KontenForm({
         )}
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-          <h3 className="text-sm font-bold text-gray-800">Banner</h3>
-          <input
-            type="text"
-            value={bannerURL}
-            onChange={(e) => setBannerURL(e.target.value)}
-            placeholder="URL gambar (https://...) atau /uploads/banner.jpg"
-            className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500"
-          />
-          {bannerURL && (
-            <img
-              src={bannerURL}
-              alt="banner preview"
-              className="w-full h-32 object-cover rounded-lg border border-gray-100"
-              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-            />
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+            <FiImage className="w-4 h-4" /> Banner
+          </h3>
+
+          {bannerURL ? (
+            <div className="space-y-2">
+              <div className="relative group">
+                <img
+                  src={bannerURL}
+                  alt="banner preview"
+                  className="w-full h-36 object-cover rounded-lg border border-gray-100"
+                  onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setBannerURL("")}
+                  className="absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-rose-600"
+                  title="Hapus banner"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <input
+                type="text"
+                value={bannerURL}
+                onChange={(e) => setBannerURL(e.target.value)}
+                placeholder="atau paste URL eksternal"
+                className="w-full px-2 py-1.5 text-xs font-mono rounded border border-gray-200 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          ) : (
+            <label
+              className="flex flex-col items-center justify-center gap-2 px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+            >
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                disabled={uploading}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleBannerUpload(f);
+                  e.target.value = "";
+                }}
+                className="sr-only"
+              />
+              {uploading ? (
+                <>
+                  <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                  <p className="text-xs font-semibold text-blue-600">Mengupload...</p>
+                </>
+              ) : (
+                <>
+                  <FiUpload className="w-8 h-8 text-gray-400" />
+                  <p className="text-sm font-semibold text-gray-700">Klik untuk upload banner</p>
+                  <p className="text-[11px] text-gray-400">JPG, PNG, WEBP, GIF · maks 5 MB</p>
+                </>
+              )}
+            </label>
           )}
-          <p className="text-xs text-gray-400">Phase 2: upload langsung ke server. Sementara: paste URL.</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
