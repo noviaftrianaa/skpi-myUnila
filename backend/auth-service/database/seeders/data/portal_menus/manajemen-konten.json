@@ -1,6 +1,6 @@
 {
   "app_slug": "manajemen-konten",
-  "roles": [1],
+  "roles": [1, 107],
   "menus": [
     {
       "nm_menu": "Dashboard",

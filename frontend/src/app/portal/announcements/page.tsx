@@ -18,21 +18,39 @@ import {
 } from "react-icons/fi";
 import { MdCampaign } from "react-icons/md";
 import Link from "next/link";
+import manajemenKontenService, {
+  Konten,
+  Kategori,
+} from "@/lib/services/manajemen-konten/manajemenKontenService";
 
 export default function AnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [isLoading, setIsLoading] = useState(true);
+  const [items, setItems] = useState<Konten[]>([]);
+  const [kategoriList, setKategoriList] = useState<Kategori[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    // Fetch real published announcements + kategori dari man_konten service.
+    const load = async () => {
+      try {
+        const [list, kat] = await Promise.all([
+          manajemenKontenService.listKonten({ tipe: "pengumuman", status: "published", limit: 50 }),
+          manajemenKontenService.listKategori("pengumuman", true),
+        ]);
+        if (list.success) setItems(list.data || []);
+        if (kat.success) setKategoriList(kat.data || []);
+      } catch (err) {
+        console.error("Failed to load announcements:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
   }, []);
 
-  // Dummy announcements data
-  const announcements = [
+  // Legacy dummy data (unused — diganti dgn announcementsReal dari API)
+  const _legacyDummy = [
     {
       id: 1,
       title: "Beasiswa Asih 2025",
@@ -115,15 +133,27 @@ export default function AnnouncementsPage() {
     },
   ];
 
-  const categories = [
-    "Semua",
-    "Akademik",
-    "Kegiatan",
-    "Teknis",
-    "Lainnya",
-  ];
+  // Override dummy categories list dengan kategori dari API
+  const categories = ["Semua", ...kategoriList.map((k) => k.nama)];
 
-  const filteredAnnouncements = announcements.filter((announcement) => {
+  // Map real konten ke shape yang dipakai render block existing (judul/desc/dll)
+  const announcementsReal = items.map((it) => ({
+    id: it.id_pengumuman,
+    title: it.judul,
+    description: it.ringkasan || (it.isi ? it.isi.replace(/<[^>]+>/g, "").substring(0, 300) : ""),
+    category: it.nama_kategori || "Umum",
+    date: it.tgl_terbit
+      ? new Date(it.tgl_terbit).toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
+      : "",
+    isNew:
+      it.tgl_terbit
+        ? new Date(it.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+        : false,
+    author: it.author || "Admin myUnila",
+    color: it.color_kategori,
+  }));
+
+  const filteredAnnouncements = announcementsReal.filter((announcement) => {
     const matchesSearch =
       announcement.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       announcement.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -133,13 +163,21 @@ export default function AnnouncementsPage() {
   });
 
   const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      Akademik: "bg-blue-100 text-blue-800",
-      Kegiatan: "bg-green-100 text-green-800",
-      Teknis: "bg-orange-100 text-orange-800",
-      Lainnya: "bg-gray-100 text-gray-800",
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
+    const k = kategoriList.find((kat) => kat.nama === category);
+    if (k?.color) {
+      const map: Record<string, string> = {
+        blue: "bg-blue-100 text-blue-800",
+        purple: "bg-purple-100 text-purple-800",
+        green: "bg-green-100 text-green-800",
+        amber: "bg-amber-100 text-amber-800",
+        rose: "bg-rose-100 text-rose-800",
+        slate: "bg-slate-100 text-slate-800",
+        sky: "bg-sky-100 text-sky-800",
+        gray: "bg-gray-100 text-gray-800",
+      };
+      return map[k.color] || map.gray;
+    }
+    return "bg-gray-100 text-gray-800";
   };
 
   if (isLoading) {
