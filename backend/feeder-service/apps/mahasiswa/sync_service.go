@@ -621,6 +621,13 @@ func (s *service) fetchDetailLulusDO(idRegPd string) (*FeederMahasiswaLulusDO, e
 		if len(lulusList) == 0 {
 			return nil, nil
 		}
+		// Feeder API kadang return 1 reg_pd dgn multiple rows (1 per pembimbing).
+		// Dedup: pick first record with id_reg_pd matching, log if duplicate.
+		// Field-field penting (id_jns_keluar, tgl_keluar, sk_yudisium, dll) identik
+		// di semua row yang sama id_reg_pd-nya — yang beda hanya id_dosen pembimbing.
+		if len(lulusList) > 1 {
+			log.Printf("ℹ️  [LulusDO %s] Feeder return %d rows (kemungkinan multiple pembimbing) — pakai row pertama", idRegPd, len(lulusList))
+		}
 		return lulusList[0], nil
 	}
 
