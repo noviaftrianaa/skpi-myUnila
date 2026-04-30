@@ -49,7 +49,7 @@ services:
       resources:
         limits:
           cpus: '1.5'
-          memory: 3G
+          memory: 5G
         reservations:
           cpus: '0.25'
           memory: 256M
