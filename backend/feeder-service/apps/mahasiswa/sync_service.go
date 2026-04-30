@@ -21,7 +21,7 @@ const (
 	SYSTEM_UUID = "00000000-0000-0000-0000-000000000001"
 
 	// Worker configuration
-	NUM_WORKERS        = 5                       // 5 concurrent workers
+	NUM_WORKERS        = 3                       // 3 concurrent workers (reduced from 5 to prevent OOM at scale)
 	RATE_LIMIT_DELAY   = 200 * time.Millisecond // 200ms delay = ~5 req/sec per worker
 	MAX_RETRY_PER_ITEM = 2                       // Retry failed items up to 2 times
 
