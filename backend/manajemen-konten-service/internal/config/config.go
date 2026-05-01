@@ -86,9 +86,9 @@ func LoadConfig() error {
 	if Cfg.Database.Username == "" || Cfg.Database.Password == "" {
 		return fmt.Errorf("DB_USERNAME and DB_PASSWORD are required")
 	}
-	if Cfg.JWT.Secret == "" {
-		return fmt.Errorf("JWT_SECRET is required")
-	}
+	// JWT_SECRET tidak strict required: middleware Kong-trust hanya parse JWT
+	// payload (base64 decode), Kong sudah verify signature di gateway level.
+	// Secret tetap di-load kalau ada (untuk compatibility), tapi tidak wajib.
 
 	return nil
 }
