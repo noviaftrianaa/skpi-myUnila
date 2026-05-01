@@ -70,6 +70,10 @@ echo "  → Building Monitoring Service..."
 docker compose --env-file .env -f services/monitoring/docker-compose.yml build --no-cache monitoring-service
 echo ""
 
+echo "  → Building Manajemen Konten Service..."
+docker compose --env-file .env -f services/man-konten/docker-compose.yml build --no-cache manajemen-konten-service
+echo ""
+
 # Step 5: Stop old containers
 echo -e "${GREEN}[5/6] Stopping old containers...${NC}"
 docker compose --env-file .env -f services/sister/docker-compose.yml down 2>/dev/null || true
@@ -77,6 +81,7 @@ docker compose --env-file .env -f services/feeder/docker-compose.yml down 2>/dev
 docker compose --env-file .env -f services/api/docker-compose.yml down 2>/dev/null || true
 docker compose --env-file .env -f services/myunila/docker-compose.yml down 2>/dev/null || true
 docker compose --env-file .env -f services/monitoring/docker-compose.yml down 2>/dev/null || true
+docker compose --env-file .env -f services/man-konten/docker-compose.yml down 2>/dev/null || true
 echo ""
 
 # Step 6: Start Services
@@ -100,6 +105,10 @@ sleep 5
 
 echo "  → Starting Monitoring Service..."
 docker compose --env-file .env -f services/monitoring/docker-compose.yml up -d
+sleep 5
+
+echo "  → Starting Manajemen Konten Service..."
+docker compose --env-file .env -f services/man-konten/docker-compose.yml up -d
 sleep 5
 
 echo ""

@@ -623,6 +623,38 @@
         timeout: 60
       when: project_compose.stat.exists
 
+    - name: Check if Manajemen Konten Service docker-compose exists
+      stat:
+        path: "{{ deployment_dir }}/services/man-konten/docker-compose.yml"
+      register: man_konten_compose
+
+    - name: Rebuild Manajemen Konten Service image
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/man-konten/docker-compose.yml build --no-cache
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      register: man_konten_build
+      when: man_konten_compose.stat.exists
+
+    - name: Restart Manajemen Konten Service
+      shell: |
+        cd {{ deployment_dir }}
+        docker compose --env-file .env -f services/man-konten/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+      when: man_konten_compose.stat.exists
+
+    - name: Wait for Manajemen Konten Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8090
+        delay: 5
+        timeout: 60
+      when: man_konten_compose.stat.exists
+
     - name: Verify VM3 services status
       shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}{% endraw %}"
       register: vm3_status

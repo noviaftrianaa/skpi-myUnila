@@ -120,6 +120,29 @@
         delay: 10
         timeout: 60
 
+    - name: Build Manajemen Konten Service
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm3-backend2
+        docker compose -f services/man-konten/docker-compose.yml build --no-cache manajemen-konten-service
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Start Manajemen Konten Service
+      shell: |
+        cd {{ app_dir }}/deployment/production/vm3-backend2
+        docker compose -f services/man-konten/docker-compose.yml up -d
+      args:
+        executable: /bin/bash
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for Manajemen Konten Service to be healthy
+      wait_for:
+        host: localhost
+        port: 8090
+        delay: 10
+        timeout: 60
+
     - name: Check services status
       shell: docker ps --filter "name=myunila" --format "table {% raw %}{{.Names}}\t{{.Status}}\t{{.Ports}}{% endraw %}"
       register: docker_status

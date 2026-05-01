@@ -1,0 +1,74 @@
+services:
+  manajemen-konten-service:
+    build:
+      context: ../../../../../backend/manajemen-konten-service
+      dockerfile: Dockerfile
+    image: myunila/manajemen-konten-service:production
+    container_name: myunila-man-konten-service
+    ports:
+      - "8090:8090"
+    environment:
+      APP_NAME: ${MAN_KONTEN_APP_NAME:-Manajemen Konten Service}
+      APP_PORT: ${MAN_KONTEN_APP_PORT:-:8090}
+      APP_ENV: ${MAN_KONTEN_APP_ENV:-production}
+
+      # DB pakai pdut (sama dgn myunila/sister) — schema man_konten
+      DB_HOST: ${MAN_KONTEN_DB_HOST:-${SISTER_DB_HOST}}
+      DB_PORT: ${MAN_KONTEN_DB_PORT:-${SISTER_DB_PORT:-1433}}
+      DB_USERNAME: ${MAN_KONTEN_DB_USERNAME:-${SISTER_DB_USERNAME}}
+      DB_PASSWORD: ${MAN_KONTEN_DB_PASSWORD:-${SISTER_DB_PASSWORD}}
+      DB_DATABASE: ${MAN_KONTEN_DB_DATABASE:-${SISTER_DB_DATABASE}}
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+
+      # JWT shared dengan auth-service
+      JWT_SECRET: ${JWT_SECRET}
+
+      # File upload storage — volume-backed (rebuild safe)
+      UPLOAD_DIR: /data/uploads
+      UPLOAD_BASE_URL: /man-konten/uploads
+
+      GOMAXPROCS: 2
+      TZ: ${TZ:-Asia/Jakarta}
+
+    volumes:
+      # Persistent storage untuk banner upload — aman dari rebuild container
+      - man-konten-uploads:/data/uploads
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+
+    networks:
+      - myunila-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=man-konten,vm=vm3"
+
+volumes:
+  man-konten-uploads:
+    name: myunila-man-konten-uploads-prod
+
+networks:
+  myunila-prod-network:
+    external: true
+    name: myunila-prod-network
