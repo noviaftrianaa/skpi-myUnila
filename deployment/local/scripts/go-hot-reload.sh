@@ -38,6 +38,7 @@ declare -A SERVICE_DIRS=(
     ["feeder"]="feeder-service"
     ["api"]="api-service"
     ["myunila"]="myunila-service"
+    ["man-konten"]="manajemen-konten-service"
 )
 
 declare -A SERVICE_PORTS=(
@@ -46,6 +47,7 @@ declare -A SERVICE_PORTS=(
     ["feeder"]="8084"
     ["api"]="8085"
     ["myunila"]="8086"
+    ["man-konten"]="8090"
 )
 
 declare -A SERVICE_DOCKER=(
@@ -54,6 +56,7 @@ declare -A SERVICE_DOCKER=(
     ["feeder"]="myunila-feeder-service"
     ["api"]="myunila-api-service"
     ["myunila"]="myunila-service"
+    ["man-konten"]="myunila-man-konten-service"
 )
 
 # Track background PIDs for cleanup
@@ -151,8 +154,9 @@ show_usage() {
     echo -e "  ${GREEN}sister${NC}    - Sister Service (port 8083)"
     echo -e "  ${GREEN}feeder${NC}    - Feeder Service (port 8084)"
     echo -e "  ${GREEN}api${NC}       - API Service (port 8085)"
-    echo -e "  ${GREEN}myunila${NC}   - MyUnila Service (port 8086)"
-    echo -e "  ${GREEN}all${NC}       - ALL Go services"
+    echo -e "  ${GREEN}myunila${NC}      - MyUnila Service (port 8086)"
+    echo -e "  ${GREEN}man-konten${NC}   - Manajemen Konten Service (port 8090)"
+    echo -e "  ${GREEN}all${NC}          - ALL Go services"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
     echo -e "  bash go-hot-reload.sh keuangan"
@@ -182,14 +186,14 @@ check_air
 if [ "$SERVICE" == "all" ]; then
     echo -e "${MAGENTA}Starting ALL Go services with hot reload...${NC}"
     echo ""
-    for svc in keuangan sister feeder api myunila; do
+    for svc in keuangan sister feeder api myunila man-konten; do
         start_service "$svc"
         sleep 1  # stagger starts
     done
     echo ""
     echo -e "${GREEN}All Go services started!${NC}"
     echo -e "${YELLOW}Services:${NC}"
-    for svc in keuangan sister feeder api myunila; do
+    for svc in keuangan sister feeder api myunila man-konten; do
         echo -e "  ${CYAN}${svc}${NC} -> http://localhost:${SERVICE_PORTS[$svc]}"
     done
     echo ""

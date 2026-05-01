@@ -142,16 +142,17 @@ if ! $FRONTEND_ONLY; then
     echo -e "${GREEN}  Dashboard Service: running (:8087) [volume mount]${NC}"
 
     # Start Go services (Docker)
-    GO_SERVICES=("keuangan" "sister" "feeder" "api" "myunila")
+    GO_SERVICES=("keuangan" "sister" "feeder" "api" "myunila" "man-konten")
     GO_COMPOSE=(
         "$SERVICES_DIR/3-backend/docker-compose.keuangan.yml"
         "$SERVICES_DIR/3-backend/docker-compose.sister.yml"
         "$SERVICES_DIR/3-backend/docker-compose.feeder.yml"
         "$SERVICES_DIR/3-backend/docker-compose.api.yml"
         "$SERVICES_DIR/3-backend/docker-compose.myunila.yml"
+        "$SERVICES_DIR/3-backend/docker-compose.man-konten.yml"
     )
-    GO_CONTAINERS=("myunila-keuangan-service" "myunila-sister-service" "myunila-feeder-service" "myunila-api-service" "myunila-service")
-    GO_PORTS=("8088" "8083" "8084" "8085" "8086")
+    GO_CONTAINERS=("myunila-keuangan-service" "myunila-sister-service" "myunila-feeder-service" "myunila-api-service" "myunila-service" "myunila-man-konten-service")
+    GO_PORTS=("8088" "8083" "8084" "8085" "8086" "8090")
 
     for i in "${!GO_SERVICES[@]}"; do
         container="${GO_CONTAINERS[$i]}"
@@ -219,6 +220,7 @@ if ! $FRONTEND_ONLY; then
     echo -e "  ${GREEN}API (Go)${NC}         -> http://localhost:8085  [Docker]"
     echo -e "  ${GREEN}MyUnila (Go)${NC}     -> http://localhost:8086  [Docker]"
     echo -e "  ${GREEN}Keuangan (Go)${NC}    -> http://localhost:8088  [Docker]"
+    echo -e "  ${GREEN}Man-Konten (Go)${NC}  -> http://localhost:8090  [Docker]"
 fi
 
 if ! $BACKEND_ONLY; then

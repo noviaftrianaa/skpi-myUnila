@@ -1413,6 +1413,62 @@ else
 fi
 
 ###############################################################################
+# Manajemen Konten Service (Go Fiber, port 8090)
+# Public endpoints: /api/v1/pengumuman, /api/v1/kategori (no auth)
+# Admin endpoints: JWT required (developer role)
+###############################################################################
+echo ""
+echo -e "${GREEN}[+] Setting up Manajemen Konten Service...${NC}"
+
+MAN_KONTEN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "man-konten-service",
+    "url": "http://myunila-man-konten-service:8090",
+    "connect_timeout": 60000,
+    "write_timeout": 60000,
+    "read_timeout": 60000,
+    "retries": 3
+  }')
+
+MAN_KONTEN_SERVICE_ID=$(parse_json_id "$MAN_KONTEN_SERVICE")
+
+if [ -n "$MAN_KONTEN_SERVICE_ID" ]; then
+    echo -e "${GREEN}  ✓ man-konten-service created: $MAN_KONTEN_SERVICE_ID${NC}"
+
+    MAN_KONTEN_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/man-konten-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "man-konten-route",
+        "paths": ["/man-konten-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    MAN_KONTEN_ROUTE_ID=$(parse_json_id "$MAN_KONTEN_ROUTE")
+
+    if [ -n "$MAN_KONTEN_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MAN_KONTEN_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Authorization", "Content-Type", "Cookie"],
+              "credentials": true,
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ man-konten-route created with CORS${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ Failed to create man-konten-service (may already exist)${NC}"
+fi
+
+###############################################################################
 # 10. Gateway Routes (for consistency with production)
 # Production uses /gateway/{service}/docs via Nginx proxy
 # Local: add same routes for frontend consistency
@@ -1433,6 +1489,7 @@ SERVICE_URLS["api-service"]="http://myunila-api-service:8085"
 SERVICE_URLS["keuangan-service"]="http://myunila-keuangan-service:8088"
 SERVICE_URLS["simbak-service"]="http://myunila-nginx:84"
 SERVICE_URLS["project-service"]="http://myunila-project-service:8095"
+SERVICE_URLS["man-konten-service"]="http://myunila-man-konten-service:8090"
 
 for SERVICE in "${!SERVICE_URLS[@]}"; do
     UPSTREAM_URL="${SERVICE_URLS[$SERVICE]}"
@@ -1534,6 +1591,7 @@ echo "  WebMon (public):       http://localhost:9800/webmon-service/v1/public"
 echo "  Dashboard (protected): http://localhost:9800/dashboard-service/api/v1"
 echo "  SIMBAK (protected):    http://localhost:9800/simbak-service/api/v1"
 echo "  SIMBAK (public):       http://localhost:9800/simbak-service/api/v1/layanan/jenis-layanan"
+echo "  Man-Konten:            http://localhost:9800/man-konten-service/api/v1"
 echo "  Project (protected):   http://localhost:9800/project-service/api/v1"
 echo "  API/OneData (protected): http://localhost:9800/api-service/api/v1"
 echo ""

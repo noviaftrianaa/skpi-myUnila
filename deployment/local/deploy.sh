@@ -95,9 +95,14 @@ show_menu() {
     echo -e "  ${BLUE}45)${NC} Restart SIMBAK Only"
     echo -e "  ${CYAN}46)${NC} Quick Dev Rebuild - SIMBAK Only"
     echo ""
+    echo -e "  ${CYAN}--- Manajemen Konten Service ---${NC}"
+    echo -e "  ${GREEN}47)${NC} Quick Rebuild - Man-Konten Only"
+    echo -e "  ${BLUE}48)${NC} Restart Man-Konten Only"
+    echo -e "  ${MAGENTA}49)${NC} Go Hot Reload - Man-Konten Only"
+    echo ""
     echo -e "  ${RED}0)${NC}  Exit"
     echo ""
-    echo -n "Pilihan [0-46]: "
+    echo -n "Pilihan [0-49]: "
 }
 
 # Function to show container status
@@ -128,8 +133,9 @@ show_logs() {
     echo "  12) Kong"
     echo "  13) Monitoring"
     echo "  14) SIMBAK"
+    echo "  15) Man-Konten"
     echo ""
-    read -p "Pilihan [1-14]: " log_choice
+    read -p "Pilihan [1-15]: " log_choice
 
     case $log_choice in
         1) docker logs myunila-public-service --tail 100 -f ;;
@@ -146,6 +152,7 @@ show_logs() {
         12) docker logs myunila-kong --tail 100 -f ;;
         13) docker logs myunila-monitoring-service --tail 100 -f ;;
         14) docker logs myunila-simbak-service --tail 100 -f ;;
+        15) docker logs myunila-man-konten-service --tail 100 -f ;;
         *) echo "Invalid choice" ;;
     esac
 }
@@ -229,11 +236,19 @@ test_endpoints() {
     fi
 
     echo -n "SIMBAK:           "
-    SIMBAK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/api/health 2>/dev/null || echo "000")
+    SIMBAK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9002/api/health 2>/dev/null || echo "000")
     if [ "$SIMBAK_STATUS" = "200" ]; then
         echo -e "${GREEN}✓ $SIMBAK_STATUS OK${NC}"
     else
         echo -e "${RED}✗ $SIMBAK_STATUS${NC}"
+    fi
+
+    echo -n "Man-Konten:       "
+    MAN_KONTEN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/health 2>/dev/null || echo "000")
+    if [ "$MAN_KONTEN_STATUS" = "200" ]; then
+        echo -e "${GREEN}✓ $MAN_KONTEN_STATUS OK${NC}"
+    else
+        echo -e "${RED}✗ $MAN_KONTEN_STATUS${NC}"
     fi
 
     echo ""
@@ -246,7 +261,8 @@ test_endpoints() {
     echo "  Keuangan:    http://localhost:8088"
     echo "  Dashboard:   http://localhost:8087"
     echo "  Monitoring:  http://localhost:8089"
-    echo "  SIMBAK:      http://localhost:8090"
+    echo "  Man-Konten:  http://localhost:8090"
+    echo "  SIMBAK:      http://localhost:9002"
     echo "  API Docs:    http://localhost:8085/api/docs"
     echo ""
     read -p "Press Enter to continue..."
@@ -584,6 +600,20 @@ while true; do
             echo -e "${YELLOW}Lebih cepat untuk perubahan kode saja!${NC}"
             echo ""
             bash "$SCRIPT_DIR/quick-dev-rebuild.sh" simbak
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === Manajemen Konten Service ===
+        47)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" man-konten
+            read -p "Press Enter to continue..."
+            ;;
+        48)
+            bash "$SCRIPT_DIR/restart-services.sh" man-konten
+            read -p "Press Enter to continue..."
+            ;;
+        49)
+            bash "$SCRIPT_DIR/go-hot-reload.sh" man-konten
             read -p "Press Enter to continue..."
             ;;
 

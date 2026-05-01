@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  man-konten-service:
+    build:
+      context: ../../../../backend/manajemen-konten-service
+      dockerfile: Dockerfile
+    image: myunila/man-konten-service:latest
+    container_name: myunila-man-konten-service
+    ports:
+      - "8090:8090"
+    env_file:
+      - ../../.env
+    environment:
+      # App Configuration
+      APP_NAME: ${MAN_KONTEN_APP_NAME:-Manajemen Konten Service}
+      APP_PORT: ${MAN_KONTEN_APP_PORT:-:8090}
+      APP_ENV: ${MAN_KONTEN_APP_ENV:-local}
+
+      # Database Configuration (SQL Server — schema man_konten)
+      DB_HOST: ${DB_MSSQL_HOST}
+      DB_PORT: ${DB_MSSQL_PORT:-1433}
+      DB_USERNAME: ${DB_MSSQL_USERNAME}
+      DB_PASSWORD: ${DB_MSSQL_PASSWORD}
+      DB_DATABASE: ${DB_MSSQL_DATABASE}
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+      DB_MAX_OPEN_CONNS: ${MAN_KONTEN_DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${MAN_KONTEN_DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME_MIN: ${MAN_KONTEN_DB_CONN_MAX_LIFETIME_MIN:-60}
+
+      # JWT (shared with auth-service)
+      JWT_SECRET: ${JWT_SECRET}
+
+      # File upload storage
+      UPLOAD_DIR: /data/uploads
+      UPLOAD_BASE_URL: /man-konten/uploads
+
+      # Timezone
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - man-konten-uploads:/data/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=man-konten"
+
+volumes:
+  man-konten-uploads:
+    driver: local
+    name: myunila-man-konten-uploads
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network

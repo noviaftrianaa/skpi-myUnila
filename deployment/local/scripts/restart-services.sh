@@ -44,7 +44,7 @@ restart_service() {
     docker compose restart ${service_name}-service
 
     # Clear Laravel caches if it's a PHP service (not Go services)
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ] && [ "$service_name" != "man-konten" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -82,6 +82,9 @@ case "$SERVICE" in
     monitoring)
         restart_service "monitoring"
         ;;
+    man-konten)
+        restart_service "man-konten"
+        ;;
     public)
         restart_service "public"
         ;;
@@ -114,6 +117,7 @@ case "$SERVICE" in
         restart_service "myunila"
         restart_service "api"
         restart_service "monitoring"
+        restart_service "man-konten"
 
         echo -e "${GREEN}Restarting Nginx...${NC}"
         docker compose restart nginx
@@ -136,6 +140,7 @@ case "$SERVICE" in
         echo "  bash restart-services.sh keuangan     # Restart keuangan only"
         echo "  bash restart-services.sh myunila      # Restart myunila only"
         echo "  bash restart-services.sh api          # Restart api only"
+        echo "  bash restart-services.sh man-konten   # Restart man-konten only"
         echo "  bash restart-services.sh redis        # Restart redis only"
         echo "  bash restart-services.sh meilisearch  # Restart meilisearch only"
         echo "  bash restart-services.sh nginx        # Restart nginx only"

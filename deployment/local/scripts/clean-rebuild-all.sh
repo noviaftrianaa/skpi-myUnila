@@ -58,6 +58,7 @@ docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.feeder.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.sister.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.executive.yml" down 2>/dev/null || true
+docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.man-konten.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.auth.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/3-backend/docker-compose.public.yml" down 2>/dev/null || true
 docker compose --env-file "$DEPLOYMENT_DIR/.env" -f "$DEPLOYMENT_DIR/services/2-gateway/docker-compose.kong.yml" down 2>/dev/null || true
@@ -134,6 +135,10 @@ echo "  → Building Executive Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.executive.yml build --no-cache --pull executive-service
 echo ""
 
+echo "  → Building Man-Konten Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.man-konten.yml build --no-cache --pull man-konten-service
+echo ""
+
 echo "  → Building Frontend..."
 docker compose --env-file .env -f services/4-frontend/docker-compose.yml build --no-cache --pull frontend
 echo ""
@@ -176,6 +181,9 @@ docker compose --env-file .env -f services/3-backend/docker-compose.myunila.yml 
 
 echo "  → Starting Executive Service..."
 docker compose --env-file .env -f services/3-backend/docker-compose.executive.yml up -d
+
+echo "  → Starting Man-Konten Service..."
+docker compose --env-file .env -f services/3-backend/docker-compose.man-konten.yml up -d
 
 echo "  → Waiting for service volumes to be created..."
 sleep 10

@@ -63,7 +63,7 @@ rebuild_service() {
     docker compose --env-file .env -f "$compose_file" up -d ${docker_service_name}
 
     # Clear Laravel caches if it's a PHP service (not Go services)
-    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ]; then
+    if [ "$service_name" != "sister" ] && [ "$service_name" != "feeder" ] && [ "$service_name" != "myunila" ] && [ "$service_name" != "monitoring" ] && [ "$service_name" != "man-konten" ]; then
         sleep 3
         echo "  → Clearing Laravel caches..."
         docker exec $container_name php artisan config:clear 2>/dev/null || true
@@ -174,6 +174,9 @@ case "$SERVICE" in
         echo -e "${YELLOW}Restarting nginx to reconnect to simbak-service...${NC}"
         docker restart myunila-nginx 2>/dev/null || true
         ;;
+    man-konten)
+        rebuild_service "man-konten"
+        ;;
     frontend)
         rebuild_frontend
         ;;
@@ -193,6 +196,7 @@ case "$SERVICE" in
         rebuild_service "api"
         rebuild_service "dashboard"
         rebuild_service "monitoring"
+        rebuild_service "man-konten"
         rebuild_nginx
 
         # Setup Kong routes after all services are up
@@ -228,6 +232,7 @@ case "$SERVICE" in
         echo "  bash quick-rebuild.sh api          # Rebuild api (onedata) only"
         echo "  bash quick-rebuild.sh dashboard    # Rebuild dashboard only"
         echo "  bash quick-rebuild.sh simbak       # Rebuild simbak only"
+        echo "  bash quick-rebuild.sh man-konten   # Rebuild man-konten only"
         echo "  bash quick-rebuild.sh frontend     # Rebuild frontend only"
         echo "  bash quick-rebuild.sh nginx        # Rebuild nginx only"
         echo ""
@@ -281,6 +286,9 @@ if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "monitoring" ]; then
     echo "  Monitoring:  curl http://localhost:8089/health"
 fi
 if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "simbak" ]; then
-    echo "  SIMBAK:      curl http://localhost:8090/api/health"
+    echo "  SIMBAK:      curl http://localhost:9002/api/health"
+fi
+if [ "$SERVICE" == "all" ] || [ "$SERVICE" == "man-konten" ]; then
+    echo "  Man-Konten:  curl http://localhost:8090/health"
 fi
 echo ""

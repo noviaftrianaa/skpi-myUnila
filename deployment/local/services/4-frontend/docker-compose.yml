@@ -14,6 +14,7 @@ services:
         NEXT_PUBLIC_FEEDER_API_URL: "${NEXT_PUBLIC_FEEDER_API_URL:-http://localhost:9800/feeder-service}"
         NEXT_PUBLIC_MYUNILA_API_URL: "${NEXT_PUBLIC_MYUNILA_API_URL:-http://localhost:9800/myunila-service}"
         NEXT_PUBLIC_WEBMON_API_URL: "${NEXT_PUBLIC_WEBMON_API_URL:-http://localhost:9800/webmon-service}"
+        NEXT_PUBLIC_MAN_KONTEN_API_URL: "${NEXT_PUBLIC_MAN_KONTEN_API_URL:-http://localhost:9800/man-konten-service}"
     image: myunila/frontend:latest
     container_name: myunila-frontend
     environment:
