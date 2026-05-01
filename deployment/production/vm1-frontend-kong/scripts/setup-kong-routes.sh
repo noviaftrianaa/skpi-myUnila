@@ -1771,6 +1771,66 @@ else
 fi
 
 ###############################################################################
+# Manajemen Konten Service (VM3 - 192.168.120.43:8090)
+# JWT required for admin CRUD (kategori/konten/notif/upload via developer role)
+# Public list via /man-konten-service/api/v1/{kategori,pengumuman} (no auth)
+# Frontend env: NEXT_PUBLIC_MAN_KONTEN_API_URL=http://kong:9800/man-konten-service/api/v1
+# Static file (banner upload) served via /man-konten-service/man-konten/uploads/*
+###############################################################################
+echo ""
+echo -e "${BLUE}=== Manajemen Konten Service ===${NC}"
+
+MAN_KONTEN_SERVICE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"man-konten-service\",
+    \"url\": \"${MAN_KONTEN_SERVICE_URL:-http://192.168.120.43:8090}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000
+  }")
+
+MAN_KONTEN_SERVICE_ID=$(parse_json_id "$MAN_KONTEN_SERVICE")
+
+if [ -n "$MAN_KONTEN_SERVICE_ID" ]; then
+    echo -e "${GREEN}  ✓ man-konten-service created: $MAN_KONTEN_SERVICE_ID${NC}"
+
+    # Route: /man-konten-service → forward (strip_path) ke service
+    echo -e "${YELLOW}  → Creating man-konten-service route...${NC}"
+    MAN_KONTEN_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/man-konten-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "man-konten-route",
+        "paths": ["/man-konten-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    MAN_KONTEN_ROUTE_ID=$(parse_json_id "$MAN_KONTEN_ROUTE")
+
+    if [ -n "$MAN_KONTEN_ROUTE_ID" ]; then
+        # CORS plugin (handle preflight + auth header pass-through)
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$MAN_KONTEN_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Authorization"],
+              "exposed_headers": ["Content-Length"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ man-konten-route created with CORS${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ Failed to create man-konten-service${NC}"
+fi
+
+###############################################################################
 # Monitoring Services (VM4 - 192.168.120.44)
 # Proxied via Kong — no direct access needed from user network
 ###############################################################################
