@@ -372,8 +372,8 @@ export default function PortalPage() {
           manajemenKontenService.getUnreadCount().catch(() => null),
         ]);
         if (cancelled) return;
-        if (inbox?.success) setNotifInbox(inbox.data);
-        if (unread?.success) setUnreadNotifCount(unread.data.unread_count);
+        if (inbox?.success) setNotifInbox(inbox.data || []);
+        if (unread?.success) setUnreadNotifCount(unread.data?.unread_count || 0);
       } catch (err) {
         // Silent fail — notifikasi optional, jangan ganggu portal.
       }
