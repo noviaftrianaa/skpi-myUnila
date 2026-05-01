@@ -6,10 +6,13 @@
 import axios from "axios";
 import { getToken } from "@/lib/api/client";
 
-// Base URL: Kong route + service prefix
-const BASE_URL =
+// Base URL: Kong route + /api/v1 (konsisten dgn pola service Go lain — env var
+// hanya kasih root path service, client append /api/v1 sendiri).
+// Contoh env prod: NEXT_PUBLIC_MAN_KONTEN_API_URL=https://my.unila.ac.id/gateway/man-konten-service
+const ROOT =
   process.env.NEXT_PUBLIC_MAN_KONTEN_API_URL ||
-  `${process.env.NEXT_PUBLIC_KONG_URL || "http://localhost:9800"}/man-konten-service/api/v1`;
+  `${process.env.NEXT_PUBLIC_KONG_URL || "http://localhost:9800"}/man-konten-service`;
+const BASE_URL = `${ROOT.replace(/\/$/, "")}/api/v1`;
 
 const client = axios.create({
   baseURL: BASE_URL,

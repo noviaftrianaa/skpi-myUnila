@@ -61,8 +61,10 @@ export default function KontenForm({
     try {
       const r = await manajemenKontenService.uploadFile(file);
       if (r.success) {
-        // Build full public URL: NEXT_PUBLIC_KONG_URL + /man-konten-service + /man-konten/uploads/<file>
-        const kongBase = (process.env.NEXT_PUBLIC_MAN_KONTEN_API_URL || "").replace(/\/api\/v1\/?$/, "");
+        // Build full public URL: NEXT_PUBLIC_MAN_KONTEN_API_URL adalah root service
+        // (tanpa /api/v1, konsisten dgn Go service lain), jadi langsung concat dgn r.data.url
+        // (yg sudah include "/man-konten/uploads/<file>")
+        const kongBase = (process.env.NEXT_PUBLIC_MAN_KONTEN_API_URL || "").replace(/\/$/, "");
         const fullURL = kongBase + r.data.url;
         setBannerURL(fullURL);
         toast.success(`Upload sukses: ${r.data.filename}`);
