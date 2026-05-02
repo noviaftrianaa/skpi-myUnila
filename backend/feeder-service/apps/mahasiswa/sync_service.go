@@ -22,8 +22,9 @@ const (
 
 	// Worker configuration
 	NUM_WORKERS        = 3                       // 3 concurrent workers (reduced from 5 to prevent OOM at scale)
-	RATE_LIMIT_DELAY   = 200 * time.Millisecond // 200ms delay = ~5 req/sec per worker
-	MAX_RETRY_PER_ITEM = 2                       // Retry failed items up to 2 times
+	RATE_LIMIT_DELAY   = 500 * time.Millisecond // 500ms delay = ~2 req/sec per worker (tuned for Feeder DIKTI overload)
+	MAX_RETRY_PER_ITEM = 5                       // Retry failed items up to 5 times (was 2 — too few for TLS timeouts)
+	MAX_BACKOFF        = 30 * time.Second        // Maximum backoff between retries
 
 	// Pagination configuration
 	BATCH_SIZE = 100 // Fetch 100 records per API call to avoid memory exhaustion
@@ -56,9 +57,25 @@ func (s *service) SyncMahasiswaByAngkatan(ctx context.Context, filter *SyncFilte
 	}
 
 	// Test if feederAPI is properly initialized by testing connection
-	if err := s.feederAPI.TestConnection(); err != nil {
-		log.Printf("❌ [ERROR] Feeder API client failed connection test: %v", err)
-		return nil, fmt.Errorf("feeder API client connection failed: %w - please check API credentials and network connectivity", err)
+	// Retry up to 3 times with backoff karena Feeder DIKTI server kadang TLS timeout sporadis
+	var connErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			backoff := time.Duration(1<<uint(attempt)) * time.Second // 2s, 4s
+			log.Printf("🔄 [Connection retry %d/3] wait %s before retry...", attempt+1, backoff)
+			time.Sleep(backoff)
+		}
+		if err := s.feederAPI.TestConnection(); err != nil {
+			connErr = err
+			log.Printf("⚠️  [Connection attempt %d/3] failed: %v", attempt+1, err)
+			continue
+		}
+		connErr = nil
+		break
+	}
+	if connErr != nil {
+		log.Printf("❌ [ERROR] Feeder API client failed connection test after 3 attempts: %v", connErr)
+		return nil, fmt.Errorf("feeder API client connection failed: %w - please check API credentials and network connectivity", connErr)
 	}
 
 	log.Printf("✅ [DEBUG] Feeder API client is initialized and connected")
@@ -324,12 +341,23 @@ func (s *service) syncSingleMahasiswaWithRetry(idRegPd, nama, npm string) Mahasi
 
 	for attempt := 0; attempt <= MAX_RETRY_PER_ITEM; attempt++ {
 		if attempt > 0 {
-			log.Printf("🔄 [Retry %d/%d] %s (%s)", attempt, MAX_RETRY_PER_ITEM, nama, npm)
-			time.Sleep(time.Duration(attempt) * 2 * time.Second) // Exponential backoff
+			// Exponential backoff: 1s, 2s, 4s, 8s, 16s, capped at MAX_BACKOFF (30s)
+			// + small jitter (0-500ms) untuk avoid thundering herd kalau banyak worker retry barengan
+			backoff := time.Duration(1<<uint(attempt-1)) * time.Second
+			if backoff > MAX_BACKOFF {
+				backoff = MAX_BACKOFF
+			}
+			jitter := time.Duration(attempt*100) * time.Millisecond
+			sleepDur := backoff + jitter
+			log.Printf("🔄 [Retry %d/%d] %s (%s) — wait %s", attempt, MAX_RETRY_PER_ITEM, nama, npm, sleepDur)
+			time.Sleep(sleepDur)
 		}
 
 		result := s.syncSingleMahasiswa(idRegPd, nama, npm)
 		if result.Success {
+			if attempt > 0 {
+				log.Printf("✅ [Retry success] %s (%s) on attempt %d/%d", nama, npm, attempt, MAX_RETRY_PER_ITEM)
+			}
 			return result
 		}
 
