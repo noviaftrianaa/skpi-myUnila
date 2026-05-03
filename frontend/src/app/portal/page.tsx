@@ -458,12 +458,16 @@ export default function PortalPage() {
   }
 
   // Function to get user initials
-  const getInitials = (fullName: string) => {
-    const nameParts = fullName.split(",")[0].trim().split(" ");
+  const getInitials = (fullName?: string | null) => {
+    if (!fullName) return "U";
+    const nameParts = fullName.split(",")[0].trim().split(" ").filter(Boolean);
     if (nameParts.length >= 2) {
       return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
     }
-    return nameParts[0].substring(0, 2).toUpperCase();
+    if (nameParts.length === 1 && nameParts[0].length > 0) {
+      return nameParts[0].substring(0, 2).toUpperCase();
+    }
+    return "U";
   };
 
   // Toggle favorite

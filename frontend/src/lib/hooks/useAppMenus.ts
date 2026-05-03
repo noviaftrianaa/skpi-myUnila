@@ -20,6 +20,8 @@ import * as BiIcons from 'react-icons/bi';
 import * as AiIcons from 'react-icons/ai';
 // Import Heroicons v2 OUTLINE for consistent line-style icons
 import * as HeroiconsOutline from '@heroicons/react/24/outline';
+import { Squares2X2Icon as FallbackSquaresIcon } from '@heroicons/react/24/outline';
+import { FiCircle as FallbackCircleIcon } from 'react-icons/fi';
 import React from 'react';
 
 // Map heroicons name to Heroicons v2 Outline component names
@@ -105,6 +107,15 @@ const heroiconsMapping: Record<string, string> = {
   'document-check': 'DocumentCheckIcon',
   'document-magnifying-glass': 'DocumentMagnifyingGlassIcon',
   'clipboard': 'ClipboardIcon',
+  'sparkles': 'SparklesIcon',
+  'bookmark-square': 'BookmarkSquareIcon',
+  'bookmark': 'BookmarkIcon',
+  'star': 'StarIcon',
+  'fire': 'FireIcon',
+  'rocket-launch': 'RocketLaunchIcon',
+  'puzzle-piece': 'PuzzlePieceIcon',
+  'megaphone': 'MegaphoneIcon',
+  'inbox': 'InboxIcon',
 };
 
 // Icon class with proper color inheritance
@@ -186,7 +197,7 @@ const getIconComponent = (iconName: string | null): React.ReactNode => {
     }
 
     // Default for unmapped heroicons
-    return React.createElement(Hi2Icons.HiSquares2X2, { className: ICON_CLASS });
+    return React.createElement(FallbackSquaresIcon, { className: ICON_CLASS });
   }
 
   // Check if it's mdi format (e.g., "mdi:view-dashboard")
@@ -228,7 +239,7 @@ const getIconComponent = (iconName: string | null): React.ReactNode => {
       return React.createElement(IconifyIcon, { icon: normalizedIconName, className: ICON_CLASS });
     }
     // Fallback to default icon if Iconify fails
-    return React.createElement(FiIcons.FiCircle, { className: ICON_CLASS });
+    return React.createElement(FallbackCircleIcon, { className: ICON_CLASS });
   }
 
   // React-icons style (e.g., "FiHome", "MdDashboard")
@@ -251,7 +262,7 @@ const getIconComponent = (iconName: string | null): React.ReactNode => {
 
   // Default icon if not found - use a visible fallback icon
   console.warn(`Icon not found: "${iconName}". Using fallback icon.`);
-  return React.createElement(Hi2Icons.HiSquares2X2, { className: ICON_CLASS });
+  return React.createElement(FallbackSquaresIcon, { className: ICON_CLASS });
 };
 
 // Transform API menu to MenuItem format

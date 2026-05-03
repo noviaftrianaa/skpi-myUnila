@@ -2,8 +2,8 @@
  * Menu Configuration untuk SI Prestasi.
  * Fallback frontend; sumber utama dari auth-service (portal_menus/si-prestasi.json).
  */
-import { FiAward, FiBookmark, FiClock, FiGrid, FiStar, FiTrophy, FiBarChart2 } from "react-icons/fi";
-import { MdDashboard } from "react-icons/md";
+import { FiAward, FiBookmark, FiClock, FiGrid, FiStar, FiBarChart2 } from "react-icons/fi";
+import { MdDashboard, MdEmojiEvents } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
 const allRoles = ["admin", "developer", "admin_kemahasiswaan", "admin_fakultas", "operator_fakultas"];
@@ -18,7 +18,7 @@ export const simPrestasiMenuConfig: MenuItem[] = [
   },
   {
     title: "Prestasi Mandiri",
-    icon: <FiTrophy className="w-5 h-5" />,
+    icon: <MdEmojiEvents className="w-5 h-5" />,
     href: "/dashboard/si-prestasi/prestasi-mandiri",
     roles: allRoles,
   },

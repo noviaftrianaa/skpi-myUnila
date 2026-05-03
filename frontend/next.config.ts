@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Enable standalone output untuk Docker
   output: 'standalone',
 
+  // Enable browser source maps in production for debugging
+  productionBrowserSourceMaps: true,
+
   // Redirect /auth/* to /* because (auth) is a route group (not in URL path)
   async redirects() {
     return [

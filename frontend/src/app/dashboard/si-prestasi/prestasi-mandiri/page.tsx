@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { FiPlus, FiRefreshCw, FiSearch, FiTrophy, FiEdit2, FiTrash2, FiEye, FiSend, FiArrowLeft, FiX, FiUpload } from "react-icons/fi";
+import { FiPlus, FiRefreshCw, FiSearch, FiEdit2, FiTrash2, FiEye, FiSend, FiArrowLeft, FiX, FiUpload } from "react-icons/fi";
+import { MdEmojiEvents } from "react-icons/md";
 import { simPrestasiMenuConfig } from "../config/menuConfig";
 import { prestasiMandiriService, refService, fileService } from "@/lib/services/si-prestasi/prestasiService";
 import type {
@@ -194,7 +195,7 @@ export default function PrestasiMandiriPage() {
   return (
     <DashboardLayoutWithDynamicMenu
       appName="SI Prestasi"
-      appIcon={<FiTrophy className="h-6 w-6" />}
+      appIcon={<MdEmojiEvents className="h-6 w-6" />}
       appKey={APP_KEY}
       fallbackMenus={simPrestasiMenuConfig}
     >
@@ -204,7 +205,7 @@ export default function PrestasiMandiriPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
-              <FiTrophy className="h-7 w-7 text-amber-500" /> Prestasi Mandiri
+              <MdEmojiEvents className="h-7 w-7 text-amber-500" /> Prestasi Mandiri
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Input dan kelola prestasi mahasiswa (lomba/kompetisi) untuk dilaporkan ke SIMKATMAWA.

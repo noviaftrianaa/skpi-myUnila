@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { FiTrophy, FiAward, FiStar, FiClock, FiArrowRight, FiInbox, FiSend, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
+import { FiAward, FiStar, FiClock, FiArrowRight, FiInbox, FiSend, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
+import { MdEmojiEvents } from "react-icons/md";
 import { simPrestasiMenuConfig } from "./config/menuConfig";
 import { prestasiMandiriService, sertifikasiService, rekognisiService } from "@/lib/services/si-prestasi/prestasiService";
 
@@ -116,7 +117,7 @@ export default function SimPrestasiDashboardPage() {
   return (
     <DashboardLayoutWithDynamicMenu
       appName="SI Prestasi"
-      appIcon={<FiTrophy className="h-6 w-6" />}
+      appIcon={<MdEmojiEvents className="h-6 w-6" />}
       appKey={APP_KEY}
       fallbackMenus={simPrestasiMenuConfig}
     >
@@ -126,7 +127,7 @@ export default function SimPrestasiDashboardPage() {
           <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative z-10">
             <h1 className="flex items-center gap-2 text-2xl font-bold">
-              <FiTrophy className="h-7 w-7" /> SI Prestasi — Pelaporan SIMKATMAWA
+              <MdEmojiEvents className="h-7 w-7" /> SI Prestasi — Pelaporan SIMKATMAWA
             </h1>
             <p className="mt-2 max-w-2xl text-sm opacity-95">
               Input prestasi mahasiswa, sertifikasi kompetensi, dan rekognisi dosen — kemudian kirim ke SIMKATMAWA Kemdiktisaintek.
@@ -160,7 +161,7 @@ export default function SimPrestasiDashboardPage() {
             title="Prestasi Mandiri"
             subtitle="Lomba/kompetisi mahasiswa"
             total={prestasi.total}
-            icon={<FiTrophy className="h-6 w-6" />}
+            icon={<MdEmojiEvents className="h-6 w-6" />}
             gradient="from-amber-500 to-orange-500"
             href="/dashboard/si-prestasi/prestasi-mandiri"
             breakdown={prestasi.byStatus}
