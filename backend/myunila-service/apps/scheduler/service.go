@@ -34,6 +34,12 @@ type KerjasamaSyncService interface {
 	SyncKerjasama(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error)
 }
 
+// AkreditasiSyncService interface for BAN-PT akreditasi sync operations.
+// Scheduler memanggil RunSchedule yang langsung apply (mode="apply") tanpa preview.
+type AkreditasiSyncService interface {
+	RunSchedule(ctx context.Context, syncedBy string) (interface{}, error)
+}
+
 // SiakaduSyncRunner runs SIAKADU sync via internal HTTP calls
 type SiakaduSyncRunner struct {
 	BaseURL string
@@ -87,6 +93,7 @@ type Service interface {
 	SetRadiusSyncService(svc RadiusSyncService)
 	SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService)
 	SetKerjasamaSyncService(svc KerjasamaSyncService)
+	SetAkreditasiSyncService(svc AkreditasiSyncService)
 }
 
 type service struct {
@@ -98,6 +105,7 @@ type service struct {
 	radiusSync        RadiusSyncService
 	unitOrgSync       UnitOrganisasiSyncService
 	kerjasamaSync     KerjasamaSyncService
+	akreditasiSync    AkreditasiSyncService
 	siakaduRunner     *SiakaduSyncRunner
 	keuanganRunner    *KeuanganSyncRunner
 }
@@ -144,6 +152,11 @@ func (s *service) SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService) {
 // SetKerjasamaSyncService sets the SIKERMA kerjasama sync service for scheduled syncs
 func (s *service) SetKerjasamaSyncService(svc KerjasamaSyncService) {
 	s.kerjasamaSync = svc
+}
+
+// SetAkreditasiSyncService sets the BAN-PT akreditasi sync service for scheduled syncs
+func (s *service) SetAkreditasiSyncService(svc AkreditasiSyncService) {
+	s.akreditasiSync = svc
 }
 
 // Start loads active schedules and starts the cron scheduler
@@ -293,6 +306,12 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 			return fmt.Errorf("kerjasama sync service not configured")
 		}
 		_, err := s.kerjasamaSync.SyncKerjasama(ctx, nil, syncedBy)
+		return err
+	case "akreditasi":
+		if s.akreditasiSync == nil {
+			return fmt.Errorf("akreditasi sync service not configured")
+		}
+		_, err := s.akreditasiSync.RunSchedule(ctx, syncedBy)
 		return err
 	case "daftar_ukt":
 		// Tahun saat ini (UTC, tetapi server jalan WIB jadi accurate)

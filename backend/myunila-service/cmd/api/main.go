@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/myunila/myunila-service/apps/akreditasi"
 	"github.com/myunila/myunila-service/apps/api_config"
 	"github.com/myunila/myunila-service/apps/kerjasama"
 	"github.com/myunila/myunila-service/apps/logger"
@@ -191,6 +192,10 @@ func main() {
 	kerjasamaSvc := kerjasama.Init(apiV1, db.DB)
 	log.Println("✅ Kerjasama (SIKERMA) module initialized")
 
+	// Initialize Akreditasi (BAN-PT integrator) module
+	akreditasiSvc := akreditasi.Init(apiV1, db.DB)
+	log.Println("✅ Akreditasi (BAN-PT) module initialized")
+
 	// Initialize ManAkses Unit Organisasi module
 	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
 	log.Println("✅ ManAkses Unit Organisasi module initialized")
@@ -217,6 +222,10 @@ func main() {
 
 	// Connect kerjasama sync service to scheduler
 	schedulerSvc.SetKerjasamaSyncService(&kerjasamaSyncAdapter{svc: kerjasamaSvc})
+
+	// Connect akreditasi sync service to scheduler
+	schedulerSvc.SetAkreditasiSyncService(&akreditasiSyncAdapter{svc: akreditasiSvc})
+	log.Println("✅ Akreditasi sync service connected to scheduler")
 	log.Println("✅ Kerjasama sync service connected to scheduler")
 
 	// Start scheduler
@@ -327,4 +336,13 @@ type kerjasamaSyncAdapter struct {
 
 func (a *kerjasamaSyncAdapter) SyncKerjasama(ctx context.Context, filter interface{}, syncedBy string) (interface{}, error) {
 	return a.svc.SyncKerjasama(ctx, filter, syncedBy)
+}
+
+// akreditasiSyncAdapter adapts akreditasi.Service to scheduler.AkreditasiSyncService
+type akreditasiSyncAdapter struct {
+	svc akreditasi.Service
+}
+
+func (a *akreditasiSyncAdapter) RunSchedule(ctx context.Context, syncedBy string) (interface{}, error) {
+	return a.svc.RunSchedule(ctx, syncedBy)
 }
