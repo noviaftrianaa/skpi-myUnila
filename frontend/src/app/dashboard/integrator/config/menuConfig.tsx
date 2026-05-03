@@ -16,6 +16,7 @@ import {
   FiKey,
   FiDollarSign,
   FiBriefcase,
+  FiAward,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -28,6 +29,23 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
     icon: <MdDashboard className="w-5 h-5" />,
     href: "/dashboard/integrator",
     roles: defaultRoles,
+  },
+  {
+    title: "Data Akreditasi",
+    icon: <FiAward className="w-5 h-5" />,
+    roles: defaultRoles,
+    children: [
+      {
+        title: "Akreditasi",
+        href: "/dashboard/integrator/akreditasi",
+        roles: defaultRoles,
+      },
+      {
+        title: "Mapping Unit",
+        href: "/dashboard/integrator/akreditasi/mapping-unit",
+        roles: defaultRoles,
+      },
+    ],
   },
   {
     title: "Data SIKEP",

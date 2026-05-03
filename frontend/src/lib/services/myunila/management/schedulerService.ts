@@ -10,7 +10,7 @@ export interface ScheduledSync {
   id: number;
   name: string;
   description: string;
-  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs' | 'siakadu_referensi' | 'siakadu_mahasiswa' | 'siakadu_akademik' | 'siakadu_kelas' | 'siakadu_kurikulum' | 'siakadu_matakuliah' | 'siakadu_khs' | 'siakadu_kuliah' | 'siakadu_transkrip' | 'siakadu_wisuda';
+  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs' | 'siakadu_referensi' | 'siakadu_mahasiswa' | 'siakadu_akademik' | 'siakadu_kelas' | 'siakadu_kurikulum' | 'siakadu_matakuliah' | 'siakadu_khs' | 'siakadu_kuliah' | 'siakadu_transkrip' | 'siakadu_wisuda' | 'kerjasama' | 'akreditasi';
   endpoint_key?: string | null;
   cron_expression: string;
   schedule_time?: string | null;
@@ -32,7 +32,7 @@ export interface ScheduledSyncListResponse {
 export interface CreateScheduleRequest {
   name: string;
   description: string;
-  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs' | 'siakadu_referensi' | 'siakadu_mahasiswa' | 'siakadu_akademik' | 'siakadu_kelas' | 'siakadu_kurikulum' | 'siakadu_matakuliah' | 'siakadu_khs' | 'siakadu_kuliah' | 'siakadu_transkrip' | 'siakadu_wisuda';
+  sync_type: 'pegawai' | 'radius' | 'unit_organisasi' | 'daftar_ukt' | 'spp_mhs' | 'siakadu_referensi' | 'siakadu_mahasiswa' | 'siakadu_akademik' | 'siakadu_kelas' | 'siakadu_kurikulum' | 'siakadu_matakuliah' | 'siakadu_khs' | 'siakadu_kuliah' | 'siakadu_transkrip' | 'siakadu_wisuda' | 'kerjasama' | 'akreditasi';
   endpoint_key?: string;
   schedule_date: string; // YYYY-MM-DD
   schedule_time: string; // HH:mm
@@ -193,6 +193,8 @@ export const schedulerHelpers = {
       siakadu_kuliah: 'SIAKADU Status Kuliah',
       siakadu_transkrip: 'SIAKADU Transkrip',
       siakadu_wisuda: 'SIAKADU Wisuda',
+      kerjasama: 'SIKERMA Kerjasama',
+      akreditasi: 'Akreditasi BAN-PT',
     };
     return labels[syncType] || syncType;
   },
@@ -217,6 +219,8 @@ export const schedulerHelpers = {
       siakadu_kuliah: 'default',
       siakadu_transkrip: 'success',
       siakadu_wisuda: 'danger',
+      kerjasama: 'success',
+      akreditasi: 'warning',
     };
     return colors[syncType] || 'default';
   },

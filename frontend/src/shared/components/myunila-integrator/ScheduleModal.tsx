@@ -24,7 +24,7 @@ interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  syncType: "pegawai" | "radius" | "unit_organisasi" | "daftar_ukt" | "spp_mhs";
+  syncType: "pegawai" | "radius" | "unit_organisasi" | "daftar_ukt" | "spp_mhs" | "kerjasama" | "akreditasi";
   endpointKey?: string;
   endpointName?: string;
   schedule?: ScheduledSync; // For edit mode
