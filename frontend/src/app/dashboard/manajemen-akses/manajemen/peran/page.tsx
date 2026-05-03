@@ -14,10 +14,12 @@ import {
   FiUsers,
   FiFileText,
   FiCheck,
+  FiZap,
 } from "react-icons/fi";
 import { MdSecurity } from "react-icons/md";
 import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import { type PeranStats } from "@/lib/services/manakses/peranService";
+import RoleSetupWizard from "@/shared/components/manakses/RoleSetupWizard";
 
 const APP_KEY = "manajemen-akses";
 
@@ -26,6 +28,7 @@ export default function PeranPage() {
 
   const [stats, setStats] = useState<PeranStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -73,6 +76,13 @@ export default function PeranPage() {
               Kelola data peran (roles) terdaftar di sistem Manajemen Akses
             </p>
           </div>
+          <button
+            onClick={() => setWizardOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white hover:from-violet-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+          >
+            <FiZap className="w-4 h-4" />
+            Quick Setup Akses
+          </button>
         </div>
 
         {/* Statistics Cards */}
@@ -186,6 +196,12 @@ export default function PeranPage() {
         {/* Data Table */}
         <PeranTable onStatsLoaded={handleStatsLoaded} />
       </div>
+
+      <RoleSetupWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onCompleted={() => setWizardOpen(false)}
+      />
     </DashboardLayoutWithDynamicMenu>
   );
 }

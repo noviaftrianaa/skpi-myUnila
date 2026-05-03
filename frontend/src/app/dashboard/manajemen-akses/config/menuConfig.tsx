@@ -53,6 +53,11 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
         roles: allowedRoles,
       },
       {
+        title: "Matrix Role × Menu",
+        href: "/dashboard/manajemen-akses/manajemen/role-menu-matrix",
+        roles: allowedRoles,
+      },
+      {
         title: "Menu Aplikasi",
         href: "/dashboard/manajemen-akses/manajemen/menu",
         roles: allowedRoles,

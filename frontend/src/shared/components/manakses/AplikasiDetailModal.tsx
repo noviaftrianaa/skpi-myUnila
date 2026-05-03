@@ -17,11 +17,12 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { FiEdit2, FiInfo, FiList, FiUsers, FiDatabase, FiCalendar, FiSettings } from "react-icons/fi";
+import { FiEdit2, FiInfo, FiList, FiUsers, FiDatabase, FiCalendar, FiSettings, FiShield } from "react-icons/fi";
 import { type AplikasiDetail } from "@/lib/services/manakses/aplikasiService";
 import { FiTrash2, FiPlus } from "react-icons/fi";
 import { menuService, type Menu } from "@/lib/services/manakses/menuService";
 import MenuTreeView from "./MenuTreeView";
+import RoleAccessPanel from "./RoleAccessPanel";
 
 interface AplikasiDetailModalProps {
   isOpen: boolean;
@@ -319,6 +320,27 @@ export default function AplikasiDetailModal({
                         loading={menusLoading}
                         readOnly={true}
                       />
+                    </div>
+                  </div>
+                </Tab>
+
+                <Tab
+                  key="role-akses"
+                  title={
+                    <div className="flex items-center gap-1.5">
+                      <FiShield className="w-3.5 h-3.5" />
+                      <span>Role Akses</span>
+                    </div>
+                  }
+                >
+                  <div className="pt-4">
+                    <div className="bg-gradient-to-br from-blue-50/40 to-indigo-50/40 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl p-3 sm:p-4 border border-blue-200/50 dark:border-blue-800/30">
+                      {activeTab === "role-akses" && (
+                        <RoleAccessPanel
+                          appId={aplikasi.id_aplikasi}
+                          appName={aplikasi.nm_aplikasi}
+                        />
+                      )}
                     </div>
                   </div>
                 </Tab>
