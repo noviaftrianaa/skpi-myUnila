@@ -339,6 +339,15 @@ type PimpinanUnit struct {
 	TglMulai   *pk.SQLServerTime `db:"tgl_mulai" json:"tgl_mulai"`
 	TglSelesai *pk.SQLServerTime `db:"tgl_selesai" json:"tgl_selesai"`
 	LastSync   *pk.SQLServerTime `db:"last_sync" json:"last_sync"`
+
+	// Mapping ke schema siakadu (LEFT JOIN — bisa NULL)
+	IDSms          utils.NullUUID `db:"id_sms" json:"id_sms"`
+	NmUnit         *string        `db:"nm_unit" json:"nm_unit"`           // ref_unit.nm_unit (prodi/jurusan/fakultas)
+	JnsUnit        *string        `db:"jns_unit" json:"jns_unit"`         // P=Prodi, J=Jurusan, F=Fakultas
+	IDJenjang      *string        `db:"id_jenjang" json:"id_jenjang"`     // S1, S2, S3, D3 (hanya untuk P)
+	NmUnitLengkap  *string        `db:"nm_unit_lengkap" json:"nm_unit_lengkap"` // jenjang + nm_unit (e.g. "S2 Magister Pendidikan IPA")
+	NmJurusan      *string        `db:"nm_jurusan" json:"nm_jurusan"`     // parent jurusan (hanya untuk P)
+	NmFakultas     *string        `db:"nm_fakultas" json:"nm_fakultas"`   // ancestor fakultas
 }
 
 // ============================================================================

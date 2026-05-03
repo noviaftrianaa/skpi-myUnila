@@ -55,6 +55,9 @@ type Prodi struct {
 	NoTel        *string              `db:"no_tel" json:"no_tel"`
 	Website      *string              `db:"website" json:"website"`
 	LastSync     pk.SQLServerTime     `db:"last_sync" json:"last_sync"`
+
+	// Mapping ke kode unit di SIAKADU (LEFT JOIN siakadu.mapping_unit)
+	KodeUnitSiakadu *string `db:"kode_unit_siakadu" json:"kode_unit_siakadu"`
 }
 
 type SatuanPendidikan struct {
@@ -151,7 +154,8 @@ func (r *repository) GetProdi(ctx context.Context, p types.ProdiParams) ([]Prodi
 		FROM pdrd.sms s
 		LEFT JOIN man_akses.unit_organisasi uo ON CAST(uo.id_organisasi AS VARCHAR(50)) = CAST(s.id_fak_unila AS VARCHAR(50))
 		LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
-		LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = s.id_jns_sms`
+		LEFT JOIN ref.jenis_sms js ON js.id_jns_sms = s.id_jns_sms
+		LEFT JOIN (SELECT id_sms, MIN(kode_siakad) AS kode_siakad FROM siakadu.mapping_unit WHERE id_sms IS NOT NULL GROUP BY id_sms) mu ON mu.id_sms = s.id_sms`
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, "SELECT COUNT(*)"+join+" WHERE "+where, args...).Scan(&total); err != nil {
@@ -173,7 +177,8 @@ func (r *repository) GetProdi(ctx context.Context, p types.ProdiParams) ([]Prodi
 			s.gelar_lulusan, s.sks_lulus, s.smt_mulai,
 			s.tgl_berdiri, s.tgl_tutup,
 			s.sk_selenggara, s.tgl_sk_selenggara,
-			s.email, s.no_tel, s.website, s.last_sync
+			s.email, s.no_tel, s.website, s.last_sync,
+			mu.kode_siakad AS kode_unit_siakadu
 		%s WHERE %s ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
 		join, where, sortBy, order, len(args)+1, len(args)+2)

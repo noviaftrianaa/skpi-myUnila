@@ -1007,10 +1007,33 @@ func (r *repository) ListPimpinanUnit(ctx context.Context, p PimpinanUnitParams)
 		order = "DESC"
 	}
 
+	// Hierarki ref_unit: prodi (P) → jurusan (J) → fakultas (F) → universitas (U).
+	// Beberapa pimpinan langsung di level J atau F, sehingga chain di-COALESCE.
 	q := fmt.Sprintf(`SELECT
 		p.id_pimpinan, p.id_unit, p.id_sdm, p.nip, p.nama, p.jabatan,
-		p.tgl_mulai, p.tgl_selesai, p.last_sync
-		FROM siakadu.pimpinan_unit p WHERE %s ORDER BY %s %s
+		p.tgl_mulai, p.tgl_selesai, p.last_sync,
+		mu.id_sms,
+		ru.nm_unit AS nm_unit,
+		ru.jns_unit AS jns_unit,
+		ru.id_jenjang AS id_jenjang,
+		CASE
+			WHEN ru.id_jenjang IS NOT NULL AND LEN(LTRIM(RTRIM(ru.id_jenjang))) > 0
+				THEN LTRIM(RTRIM(ru.id_jenjang)) + ' ' + ru.nm_unit
+			ELSE ru.nm_unit
+		END AS nm_unit_lengkap,
+		CASE WHEN ru1.jns_unit = 'J' THEN ru1.nm_unit ELSE NULL END AS nm_jurusan,
+		CASE
+			WHEN ru.jns_unit = 'F' THEN ru.nm_unit
+			WHEN ru1.jns_unit = 'F' THEN ru1.nm_unit
+			WHEN ru2.jns_unit = 'F' THEN ru2.nm_unit
+			ELSE NULL
+		END AS nm_fakultas
+		FROM siakadu.pimpinan_unit p
+		LEFT JOIN siakadu.mapping_unit mu ON mu.kode_siakad = p.id_unit
+		LEFT JOIN siakadu.ref_unit ru ON ru.id_unit = p.id_unit
+		LEFT JOIN siakadu.ref_unit ru1 ON ru1.id_unit = ru.id_parent_unit
+		LEFT JOIN siakadu.ref_unit ru2 ON ru2.id_unit = ru1.id_parent_unit
+		WHERE %s ORDER BY %s %s
 		OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
 		where, sortBy, order, len(args)+1, len(args)+2)
 	args = append(args, p.Offset(), p.Limit)
