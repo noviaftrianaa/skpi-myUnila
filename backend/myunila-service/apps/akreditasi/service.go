@@ -134,7 +134,7 @@ func (s *service) MappingStats(ctx context.Context) (*MappingStats, error) {
 // UpsertManualAkreditasi — admin override 1 prodi via halaman Mapping Unit.
 // Reuse repo.UpsertAkreditasi tapi mark asal_data = "2" (manual). Kalau dipanggil
 // dengan parameter banptName + banptJenjang (dari "Map ke pdrd" flow), juga
-// simpan alias BAN-PT → id_sms di tabel myunila.akreditasi_prodi_alias supaya
+// simpan alias BAN-PT → id_sms di tabel akreditasi.akreditasi_prodi_alias supaya
 // sync berikutnya bisa direlay ke id_sms tsb.
 func (s *service) UpsertManualAkreditasi(ctx context.Context, idSms, idLembAkred string, idAkred int, sk string, tglSk, tstSk *time.Time) (string, *AkreditasiCurrent, error) {
 	if strings.TrimSpace(idSms) == "" {
@@ -276,7 +276,7 @@ func (s *service) Sync(ctx context.Context, mode string, triggeredBy *string, tr
 		akredBySms[strings.ToUpper(a.IDSms)] = a
 	}
 
-	// 3b. Load alias BAN-PT name → id_sms dari myunila.akreditasi_prodi_alias.
+	// 3b. Load alias BAN-PT name → id_sms dari akreditasi.akreditasi_prodi_alias.
 	// Admin men-define alias via "Map ke pdrd" di Mapping Unit page.
 	mappingByKey := map[string]string{} // key (nm|jenjang lower) → id_sms
 	if aliases, aErr := s.repo.ListProdiAlias(ctx); aErr == nil {

@@ -227,7 +227,7 @@ func (r *repo) InsertSyncLog(ctx context.Context, l SyncLogRow) (string, error) 
 	// (yang return-nya kadang [16]byte vs string format inconsistent).
 	id := strings.ToUpper(uuid.NewString())
 	q := `
-		INSERT INTO myunila.akreditasi_sync_log
+		INSERT INTO akreditasi.akreditasi_sync_log
 			(id_log, sumber, mode, triggered_by, triggered_username, status, started_at)
 		VALUES (CAST(@p1 AS uniqueidentifier), @p2, @p3, @p4, @p5, @p6, @p7)
 	`
@@ -239,7 +239,7 @@ func (r *repo) InsertSyncLog(ctx context.Context, l SyncLogRow) (string, error) 
 
 func (r *repo) UpdateSyncLogFinish(ctx context.Context, idLog string, res SyncResult) error {
 	q := `
-		UPDATE myunila.akreditasi_sync_log
+		UPDATE akreditasi.akreditasi_sync_log
 		SET finished_at = @p1,
 		    duration_ms = @p2,
 		    status = @p3,
@@ -282,7 +282,7 @@ func (r *repo) InsertSyncLogDetails(ctx context.Context, idLog string, details [
 
 		// Per-row insert dgn prepared stmt — lebih mudah debug error per-record.
 		// Performance trade-off OK karena 100 row per sync masih dalam orde detik.
-		stmt, err := r.db.PreparexContext(ctx, `INSERT INTO myunila.akreditasi_sync_log_detail
+		stmt, err := r.db.PreparexContext(ctx, `INSERT INTO akreditasi.akreditasi_sync_log_detail
 			(id_log, id_sms, nm_prodi_external, jenjang_external, nm_prodi_pdrd, jenjang_pdrd,
 			 action, old_id_akred, new_id_akred, old_nm_akred, new_nm_akred,
 			 old_sk, new_sk, old_tgl_sk, new_tgl_sk, old_tst_sk, new_tst_sk,
@@ -339,7 +339,7 @@ func (r *repo) ListSyncLogs(ctx context.Context, limit, offset int) ([]SyncLogRo
 		offset = 0
 	}
 	var total int64
-	if err := r.db.QueryRowxContext(ctx, "SELECT COUNT(*) FROM myunila.akreditasi_sync_log").Scan(&total); err != nil {
+	if err := r.db.QueryRowxContext(ctx, "SELECT COUNT(*) FROM akreditasi.akreditasi_sync_log").Scan(&total); err != nil {
 		return nil, 0, err
 	}
 	q := `
@@ -350,7 +350,7 @@ func (r *repo) ListSyncLogs(ctx context.Context, limit, offset int) ([]SyncLogRo
 		       started_at, finished_at, duration_ms,
 		       total_fetched, total_matched, total_unmatched,
 		       total_inserted, total_updated, total_unchanged, error_message
-		FROM myunila.akreditasi_sync_log
+		FROM akreditasi.akreditasi_sync_log
 		ORDER BY started_at DESC
 		OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
 	`
@@ -370,7 +370,7 @@ func (r *repo) GetSyncLog(ctx context.Context, idLog string) (*SyncLogRow, error
 		       started_at, finished_at, duration_ms,
 		       total_fetched, total_matched, total_unmatched,
 		       total_inserted, total_updated, total_unchanged, error_message
-		FROM myunila.akreditasi_sync_log
+		FROM akreditasi.akreditasi_sync_log
 		WHERE id_log = CAST(@p1 AS uniqueidentifier)
 	`
 	var l SyncLogRow
@@ -393,7 +393,7 @@ func (r *repo) GetSyncLogDetails(ctx context.Context, idLog string, action strin
 		       old_id_akred, new_id_akred, old_nm_akred, new_nm_akred,
 		       old_sk, new_sk, old_tgl_sk, new_tgl_sk, old_tst_sk, new_tst_sk,
 		       id_lemb_akred, notes
-		FROM myunila.akreditasi_sync_log_detail
+		FROM akreditasi.akreditasi_sync_log_detail
 		WHERE id_log = CAST(@p1 AS uniqueidentifier)
 	`
 	args := []any{idLog}
@@ -671,20 +671,20 @@ func (r *repo) DeactivateAkreditasi(ctx context.Context, idSms string) error {
 	return err
 }
 
-// UpsertProdiAlias — simpan alias BAN-PT name → id_sms ke myunila.akreditasi_prodi_alias.
+// UpsertProdiAlias — simpan alias BAN-PT name → id_sms ke akreditasi.akreditasi_prodi_alias.
 // Idempotent: kalau sudah ada (nm_prodi_banpt+jenjang_banpt), update id_sms-nya.
 func (r *repo) UpsertProdiAlias(ctx context.Context, nmProdiBanpt, jenjangBanpt, idSms string) error {
 	idSms = strings.ToUpper(strings.TrimSpace(idSms))
 	q := `
-		IF EXISTS (SELECT 1 FROM myunila.akreditasi_prodi_alias WHERE nm_prodi_banpt = @p1 AND jenjang_banpt = @p2)
+		IF EXISTS (SELECT 1 FROM akreditasi.akreditasi_prodi_alias WHERE nm_prodi_banpt = @p1 AND jenjang_banpt = @p2)
 		BEGIN
-			UPDATE myunila.akreditasi_prodi_alias
+			UPDATE akreditasi.akreditasi_prodi_alias
 			SET id_sms = CAST(@p3 AS uniqueidentifier), updated_at = SYSDATETIME()
 			WHERE nm_prodi_banpt = @p1 AND jenjang_banpt = @p2
 		END
 		ELSE
 		BEGIN
-			INSERT INTO myunila.akreditasi_prodi_alias (nm_prodi_banpt, jenjang_banpt, id_sms)
+			INSERT INTO akreditasi.akreditasi_prodi_alias (nm_prodi_banpt, jenjang_banpt, id_sms)
 			VALUES (@p1, @p2, CAST(@p3 AS uniqueidentifier))
 		END
 	`
@@ -694,7 +694,7 @@ func (r *repo) UpsertProdiAlias(ctx context.Context, nmProdiBanpt, jenjangBanpt,
 
 // ListProdiAlias — load alias map untuk service.Sync. Key = "nm_normalized|jenjang_kode".
 func (r *repo) ListProdiAlias(ctx context.Context) (map[string]string, error) {
-	q := `SELECT nm_prodi_banpt, jenjang_banpt, CAST(id_sms AS VARCHAR(36)) AS id_sms FROM myunila.akreditasi_prodi_alias`
+	q := `SELECT nm_prodi_banpt, jenjang_banpt, CAST(id_sms AS VARCHAR(36)) AS id_sms FROM akreditasi.akreditasi_prodi_alias`
 	rows, err := r.db.QueryxContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -720,7 +720,7 @@ func (r *repo) GetLatestUnmatched(ctx context.Context) ([]UnmatchedRow, error) {
 	q := `
 		WITH LatestLog AS (
 			SELECT TOP 1 id_log, started_at
-			FROM myunila.akreditasi_sync_log
+			FROM akreditasi.akreditasi_sync_log
 			WHERE status = 'success'
 			ORDER BY started_at DESC
 		)
@@ -732,7 +732,7 @@ func (r *repo) GetLatestUnmatched(ctx context.Context) ([]UnmatchedRow, error) {
 		       CONVERT(VARCHAR(10), d.new_tst_sk, 23) AS new_tst_sk,
 		       CAST(d.id_log AS VARCHAR(36)) AS id_log,
 		       CONVERT(VARCHAR(19), l.started_at, 120) AS started_at
-		FROM myunila.akreditasi_sync_log_detail d
+		FROM akreditasi.akreditasi_sync_log_detail d
 		JOIN LatestLog l ON l.id_log = d.id_log
 		WHERE d.action = 'unmatched'
 		ORDER BY d.nm_prodi_external

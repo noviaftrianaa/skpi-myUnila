@@ -12,7 +12,7 @@
 --
 -- Sync logic (saat dijalankan): trigger BAN-PT fetch → match prodi → apply
 -- update ke pdrd.akreditasi_prodi (mode="apply"), tulis log ke
--- myunila.akreditasi_sync_log + akreditasi_sync_log_detail.
+-- akreditasi.akreditasi_sync_log + akreditasi_sync_log_detail.
 --
 -- IDEMPOTENT: DELETE dulu lalu INSERT. Aman re-run.
 -- ============================================================================
