@@ -6,11 +6,12 @@ import { FiPlus, FiRefreshCw, FiSearch, FiStar, FiEdit2, FiTrash2, FiEye, FiSend
 import { simPrestasiMenuConfig } from "../config/menuConfig";
 import { rekognisiService, refService, fileService } from "@/lib/services/si-prestasi/prestasiService";
 import type {
-  Rekognisi, PesertaMhs, PesertaDosen, WorkflowStatus, RefLevel, RefJenisRekognisi, MahasiswaLookup,
+  Rekognisi, PesertaMhs, PesertaDosen, WorkflowStatus, RefLevel, RefJenisRekognisi, MahasiswaLookup, DosenLookup,
 } from "@/lib/services/si-prestasi/types";
 import { WorkflowBadge } from "../components/WorkflowBadge";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";
+import { DosenAutocomplete } from "../components/DosenAutocomplete";
 import SubmitButton from "../components/SubmitButton";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -338,6 +339,19 @@ function RekognisiForm({ form, setForm, levels, jenis, editingId }: { form: Form
   };
   const removeMhs = (nim: string) => setForm(f => ({ ...f, peserta_mhs: f.peserta_mhs.filter(p => p.nim !== nim) }));
   const addDosen = () => setForm(f => ({ ...f, peserta_dosen: [...f.peserta_dosen, { nm_dosen: "", nuptk: "", nidn: "", url_surat_tugas: "" }] }));
+  const addDosenFromLookup = (d: DosenLookup) => {
+    if (form.peserta_dosen.some(p => (p.nidn && p.nidn === d.nidn) || (p.nuptk && p.nuptk === d.nuptk))) {
+      toast.error("Dosen sudah ditambahkan");
+      return;
+    }
+    setForm(f => ({
+      ...f,
+      peserta_dosen: [...f.peserta_dosen, {
+        nm_dosen: d.nama, nuptk: d.nuptk ?? "", nidn: d.nidn ?? "",
+        url_surat_tugas: "", id_sdm_pdut: d.id_sdm ?? null,
+      }],
+    }));
+  };
   const updateDosen = (i: number, patch: Partial<PesertaDosen>) => setForm(f => ({ ...f, peserta_dosen: f.peserta_dosen.map((d, idx) => idx === i ? { ...d, ...patch } : d) }));
   const removeDosen = (i: number) => setForm(f => ({ ...f, peserta_dosen: f.peserta_dosen.filter((_, idx) => idx !== i) }));
 
@@ -389,7 +403,11 @@ function RekognisiForm({ form, setForm, levels, jenis, editingId }: { form: Form
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Dosen / Pelaku Rekognisi</h4>
-          <button onClick={addDosen} className="rounded-md bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-500/20 dark:text-violet-400">+ Tambah</button>
+          <button onClick={addDosen} className="rounded-md bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-700 hover:bg-violet-500/20 dark:text-violet-400">+ Tambah manual</button>
+        </div>
+        <div className="mb-3">
+          <DosenAutocomplete onSelect={addDosenFromLookup} placeholder="Cari dosen di pdut (NIDN, NUPTK, NIP, atau nama)" />
+          <p className="mt-1 text-[11px] text-slate-400">Pilih dari hasil pencarian untuk auto-isi NUPTK/NIDN.</p>
         </div>
         <div className="space-y-3">
           {form.peserta_dosen.map((d, i) => (

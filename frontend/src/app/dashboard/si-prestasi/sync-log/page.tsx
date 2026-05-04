@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { Button, Chip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
-import { FiActivity, FiRefreshCw, FiCheckCircle, FiXCircle, FiClock, FiZap } from "react-icons/fi";
+import { Button, Chip } from "@heroui/react";
+import { FiActivity, FiRefreshCw, FiCheckCircle, FiXCircle, FiClock, FiZap, FiX } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
 import { simPrestasiMenuConfig } from "../config/menuConfig";
 import { syncService, type SyncSubmission, type SyncSubmissionDetail, type ParentTipe } from "@/lib/services/si-prestasi/prestasiService";
@@ -21,7 +21,9 @@ export default function SyncLogPage() {
   const [successOnly, setSuccessOnly] = useState(false);
 
   // Detail modal
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
+  const onOpen = () => setIsOpen(true);
+  const onClose = () => setIsOpen(false);
   const [detail, setDetail] = useState<SyncSubmissionDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -226,49 +228,78 @@ export default function SyncLogPage() {
         )}
       </div>
 
-      {/* Detail Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
-        <ModalContent>
-          <ModalHeader>Detail Submission</ModalHeader>
-          <ModalBody>
-            {detailLoading ? (
-              <p className="text-slate-500 py-4">Loading...</p>
-            ) : detail ? (
-              <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-2 gap-3">
-                  <div><span className="text-slate-500">Waktu:</span> {new Date(detail.request_at).toLocaleString("id-ID")}</div>
-                  <div><span className="text-slate-500">Tipe:</span> {detail.parent_tipe}</div>
-                  <div><span className="text-slate-500">ID Parent:</span> <span className="font-mono text-xs">{detail.id_parent}</span></div>
-                  <div><span className="text-slate-500">HTTP Status:</span> {detail.http_status ?? "-"}</div>
-                  <div><span className="text-slate-500">SIMKATMAWA ID:</span> {detail.simkatmawa_id ?? "-"}</div>
-                  <div><span className="text-slate-500">Retry:</span> {detail.retry_count}</div>
-                </div>
-                {detail.error_message && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <p className="text-red-700 dark:text-red-300 text-xs font-semibold mb-1">Error Message:</p>
-                    <p className="text-red-700 dark:text-red-300">{detail.error_message}</p>
+      {/* Detail Modal — pure Tailwind */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Detail Submission</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition"
+                aria-label="Tutup"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body (scrollable) */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {detailLoading ? (
+                <p className="text-slate-500 py-4">Loading...</p>
+              ) : detail ? (
+                <div className="space-y-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
+                    <div><span className="text-slate-500">Waktu:</span> {new Date(detail.request_at).toLocaleString("id-ID")}</div>
+                    <div><span className="text-slate-500">Tipe:</span> {detail.parent_tipe}</div>
+                    <div><span className="text-slate-500">ID Parent:</span> <span className="font-mono text-xs">{detail.id_parent}</span></div>
+                    <div><span className="text-slate-500">HTTP Status:</span> {detail.http_status ?? "-"}</div>
+                    <div><span className="text-slate-500">SIMKATMAWA ID:</span> {detail.simkatmawa_id ?? "-"}</div>
+                    <div><span className="text-slate-500">Retry:</span> {detail.retry_count}</div>
                   </div>
-                )}
-                <details>
-                  <summary className="cursor-pointer text-slate-700 dark:text-slate-300 font-semibold">Request Payload</summary>
-                  <pre className="mt-2 bg-slate-100 dark:bg-slate-900 rounded p-3 text-xs overflow-auto max-h-80 text-slate-700 dark:text-slate-300">
-                    {JSON.stringify(detail.request_payload, null, 2)}
-                  </pre>
-                </details>
-                <details>
-                  <summary className="cursor-pointer text-slate-700 dark:text-slate-300 font-semibold">Response Body</summary>
-                  <pre className="mt-2 bg-slate-100 dark:bg-slate-900 rounded p-3 text-xs overflow-auto max-h-80 text-slate-700 dark:text-slate-300">
-                    {JSON.stringify(detail.response_body, null, 2)}
-                  </pre>
-                </details>
-              </div>
-            ) : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onPress={onClose}>Tutup</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+                  {detail.error_message && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                      <p className="text-red-700 dark:text-red-300 text-xs font-semibold mb-1">Error Message:</p>
+                      <p className="text-red-700 dark:text-red-300">{detail.error_message}</p>
+                    </div>
+                  )}
+                  <details className="rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <summary className="cursor-pointer text-slate-700 dark:text-slate-300 font-semibold">Request Payload</summary>
+                    <pre className="mt-2 bg-slate-100 dark:bg-slate-900 rounded p-3 text-xs overflow-auto max-h-80 text-slate-700 dark:text-slate-300">
+                      {JSON.stringify(detail.request_payload, null, 2)}
+                    </pre>
+                  </details>
+                  <details className="rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                    <summary className="cursor-pointer text-slate-700 dark:text-slate-300 font-semibold">Response Body</summary>
+                    <pre className="mt-2 bg-slate-100 dark:bg-slate-900 rounded p-3 text-xs overflow-auto max-h-80 text-slate-700 dark:text-slate-300">
+                      {JSON.stringify(detail.response_body, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayoutWithDynamicMenu>
   );
 }

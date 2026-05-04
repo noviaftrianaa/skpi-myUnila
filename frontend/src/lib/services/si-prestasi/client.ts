@@ -16,10 +16,15 @@ export const simPrestasiClient: AxiosInstance = axios.create({
 
 simPrestasiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("auth_token") || localStorage.getItem("token");
+    // Konsisten dengan TOKEN_KEYS.ACCESS = "auth_access_token" di lib/api/client.ts.
+    // Fallback "auth_token" / "token" untuk legacy session.
+    const token =
+      localStorage.getItem("auth_access_token") ||
+      localStorage.getItem("auth_token") ||
+      localStorage.getItem("token");
     if (token) {
       config.headers = config.headers ?? {};
-      config.headers.Authorization = `Bearer ${token}`;
+      (config.headers as any).Authorization = `Bearer ${token}`;
     }
   }
   return config;

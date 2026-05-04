@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SertifikasiController;
 use App\Http\Controllers\Api\RekognisiController;
 use App\Http\Controllers\Api\FileUploadController;
 use App\Http\Controllers\Api\MasterDataController;
+use App\Http\Controllers\Api\ApiConfigController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,7 +79,7 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::post('files/upload',   [FileUploadController::class, 'upload']);
         Route::delete('files',        [FileUploadController::class, 'delete']);
 
-        // Master Data — referensi SIMKATMAWA (read-only)
+        // Master Data — referensi SIMKATMAWA (read + sync dari pdut + CRUD admin)
         Route::prefix('master-data')->group(function () {
             Route::get('/',                    [MasterDataController::class, 'all']);
             Route::get('level-prestasi',       [MasterDataController::class, 'levels']);
@@ -87,6 +88,23 @@ Route::middleware(['jwt.auth'])->group(function () {
             Route::get('kelompok-prestasi',    [MasterDataController::class, 'kelompok']);
             Route::get('bentuk-pelaksanaan',   [MasterDataController::class, 'bentuk']);
             Route::get('jenis-rekognisi',      [MasterDataController::class, 'jenisRekognisi']);
+
+            // Sync dari pdut.ref.tingkat_prestasi + jenis_prestasi → si_prestasi.ref.*
+            Route::post('sync',                [MasterDataController::class, 'syncFromPdut']);
+
+            // API Config (SIMKATMAWA credentials)
+            Route::get('api-config',           [ApiConfigController::class, 'index']);
+            Route::get('api-config/{kode}',    [ApiConfigController::class, 'show']);
+            Route::put('api-config/{kode}',    [ApiConfigController::class, 'update']);
+            Route::post('api-config/{kode}/toggle', [ApiConfigController::class, 'toggle']);
+
+            // CRUD admin per ref tipe (level|kategori|peringkat|kelompok|bentuk|jenis_rekognisi)
+            Route::post('{type}',              [MasterDataController::class, 'store'])
+                ->where('type', 'level|kategori|peringkat|kelompok|bentuk|jenis_rekognisi');
+            Route::put('{type}/{id}',          [MasterDataController::class, 'update'])
+                ->where('type', 'level|kategori|peringkat|kelompok|bentuk|jenis_rekognisi');
+            Route::delete('{type}/{id}',       [MasterDataController::class, 'destroy'])
+                ->where('type', 'level|kategori|peringkat|kelompok|bentuk|jenis_rekognisi');
         });
 
         // Sync ke SIMKATMAWA (Phase 2 — push payload dengan queue async)

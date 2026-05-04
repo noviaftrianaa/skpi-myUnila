@@ -18,6 +18,8 @@ import { WorkflowBadge } from "../components/WorkflowBadge";
 import SubmitButton from "../components/SubmitButton";
 import { Drawer } from "../components/Drawer";
 import { MahasiswaAutocomplete } from "../components/MahasiswaAutocomplete";
+import { DosenAutocomplete } from "../components/DosenAutocomplete";
+import type { DosenLookup } from "@/lib/services/si-prestasi/types";
 import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "si-prestasi";
@@ -482,6 +484,25 @@ function PrestasiForm({
     ...f,
     peserta_dosen: [...f.peserta_dosen, { nm_dosen: "", nuptk: "", nidn: "", url_surat_tugas: "" }],
   }));
+  const addDosenFromLookup = (d: DosenLookup) => {
+    if (form.peserta_dosen.some(p => (p.nidn && p.nidn === d.nidn) || (p.nuptk && p.nuptk === d.nuptk))) {
+      toast.error("Dosen sudah ditambahkan");
+      return;
+    }
+    setForm(f => ({
+      ...f,
+      peserta_dosen: [
+        ...f.peserta_dosen,
+        {
+          nm_dosen: d.nama,
+          nuptk: d.nuptk ?? "",
+          nidn: d.nidn ?? "",
+          url_surat_tugas: "",
+          id_sdm_pdut: d.id_sdm ?? null,
+        },
+      ],
+    }));
+  };
   const updateDosen = (idx: number, patch: Partial<PesertaDosen>) =>
     setForm(f => ({ ...f, peserta_dosen: f.peserta_dosen.map((d, i) => i === idx ? { ...d, ...patch } : d) }));
   const removeDosen = (idx: number) => setForm(f => ({ ...f, peserta_dosen: f.peserta_dosen.filter((_, i) => i !== idx) }));
@@ -590,7 +611,11 @@ function PrestasiForm({
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Dosen Pembimbing</h4>
-          <button onClick={addDosen} className="rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">+ Tambah dosen</button>
+          <button onClick={addDosen} className="rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">+ Tambah manual</button>
+        </div>
+        <div className="mb-3">
+          <DosenAutocomplete onSelect={addDosenFromLookup} placeholder="Cari dosen di pdut (NIDN, NUPTK, NIP, atau nama)" />
+          <p className="mt-1 text-[11px] text-slate-400">Pilih dari hasil pencarian untuk auto-isi NUPTK/NIDN, atau tambah manual jika dosen belum ada di pdut.</p>
         </div>
         <div className="space-y-3">
           {form.peserta_dosen.map((d, i) => (

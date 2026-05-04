@@ -188,6 +188,15 @@ export const fileService = {
  * Master data referensi — hit endpoint backend (belum ada, akan ditambahkan).
  * Sementara return empty array, atau kalau backend siap bisa hit /v1/master-data/*
  */
+// Tipe ref untuk CRUD param. Used by refService.create/update/delete.
+export type RefTipe = "level" | "kategori" | "peringkat" | "kelompok" | "bentuk" | "jenis_rekognisi";
+
+export interface RefSyncReport {
+  level_prestasi: { fetched: number; inserted: number; matched: number; rows: any[] };
+  kategori_prestasi: { fetched: number; inserted: number; matched: number; rows: any[] };
+  summary: { total_fetched: number; total_inserted: number; total_matched: number; finished_at: string };
+}
+
 export const refService = {
   async levels(): Promise<RefLevel[]> {
     try {
@@ -224,6 +233,84 @@ export const refService = {
       const r = await simPrestasiClient.get<{ data: RefJenisRekognisi[] }>("/v1/master-data/jenis-rekognisi");
       return r.data.data ?? [];
     } catch { return []; }
+  },
+
+  // Sync dari pdut.ref.tingkat_prestasi + jenis_prestasi → si_prestasi.ref.*
+  async syncFromPdut(): Promise<RefSyncReport> {
+    const r = await simPrestasiClient.post<{ success: boolean; data: RefSyncReport }>("/v1/master-data/sync");
+    return r.data.data;
+  },
+
+  // CRUD admin per ref tipe
+  async create(tipe: RefTipe, payload: Record<string, any>): Promise<{ id: string }> {
+    const r = await simPrestasiClient.post<{ success: boolean; data: { id: string } }>(`/v1/master-data/${tipe}`, payload);
+    return r.data.data;
+  },
+  async update(tipe: RefTipe, id: string, payload: Record<string, any>): Promise<void> {
+    await simPrestasiClient.put(`/v1/master-data/${tipe}/${id}`, payload);
+  },
+  async remove(tipe: RefTipe, id: string): Promise<void> {
+    await simPrestasiClient.delete(`/v1/master-data/${tipe}/${id}`);
+  },
+};
+
+// =====================================================================
+// API Config (SIMKATMAWA credentials) — admin setting page
+// =====================================================================
+
+export interface ApiConfig {
+  id_api_config: string;
+  kode: string;
+  nm_api: string;
+  base_url: string;
+  auth_type: string;
+  auth_login_path: string | null;
+  kode_pt: string | null;
+  rate_limit_per_min: number;
+  timeout_seconds: number;
+  retry_policy: any;
+  a_active: boolean;
+  a_dry_run: boolean;
+  deskripsi: string | null;
+  has_username: boolean;
+  has_password: boolean;
+  has_api_key: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiConfigUpdateReq {
+  username?: string;
+  password?: string;
+  api_key?: string;
+  base_url?: string;
+  kode_pt?: string;
+  rate_limit?: number;
+  timeout?: number;
+  a_active?: boolean;
+  a_dry_run?: boolean;
+}
+
+export const apiConfigService = {
+  async list(): Promise<ApiConfig[]> {
+    const r = await simPrestasiClient.get<{ success: boolean; data: ApiConfig[] }>("/v1/master-data/api-config");
+    return r.data.data ?? [];
+  },
+  async get(kode: string): Promise<ApiConfig> {
+    const r = await simPrestasiClient.get<{ success: boolean; data: ApiConfig }>(`/v1/master-data/api-config/${kode}`);
+    return r.data.data;
+  },
+  async update(kode: string, req: ApiConfigUpdateReq): Promise<ApiConfig> {
+    const r = await simPrestasiClient.put<{ success: boolean; data: ApiConfig }>(`/v1/master-data/api-config/${kode}`, req);
+    return r.data.data;
+  },
+  async toggle(kode: string, flag: "a_active" | "a_dry_run", value: boolean): Promise<ApiConfig> {
+    const r = await simPrestasiClient.post<{ success: boolean; data: ApiConfig }>(`/v1/master-data/api-config/${kode}/toggle`, { flag, value });
+    return r.data.data;
+  },
+  async ping(): Promise<any> {
+    const r = await simPrestasiClient.post<{ success: boolean; data: any }>(`/v1/sync/ping`);
+    return r.data;
   },
 };
 

@@ -141,16 +141,21 @@ export interface MahasiswaLookup {
   nama: string;
   prodi: string;
   fakultas?: string;
-  id_reg_pd?: string;
+  jurusan?: string;
+  jenjang?: string;
   id_sms?: string;
+  id_jenj_didik?: string;
+  angkatan?: string;
+  status_mahasiswa?: string | null;
+  id_reg_pd?: string; // legacy fallback, may be undefined in new schema
 }
 
 export interface DosenLookup {
+  id_sdm?: string;
+  nama: string;
   nuptk: string | null;
   nidn: string | null;
-  nama: string;
-  id_sdm?: string;
-  unit?: string;
+  nip?: string | null;
 }
 
 export interface FileUploadResponse {

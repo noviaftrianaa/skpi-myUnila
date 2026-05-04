@@ -17,7 +17,11 @@ export const akrClient: AxiosInstance = axios.create({
 
 akrClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("auth_token") || localStorage.getItem("token");
+    // Konsisten dengan TOKEN_KEYS.ACCESS = "auth_access_token" di lib/api/client.ts
+    const token =
+      localStorage.getItem("auth_access_token") ||
+      localStorage.getItem("auth_token") ||
+      localStorage.getItem("token");
     if (token) {
       config.headers = config.headers ?? {};
       (config.headers as any).Authorization = `Bearer ${token}`;
