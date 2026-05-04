@@ -18,13 +18,14 @@ import {
   Autocomplete,
   AutocompleteItem,
 } from "@heroui/react";
-import { FiGlobe, FiCode, FiGrid, FiHash, FiLayout, FiSearch, FiKey, FiCopy, FiRefreshCw, FiEye, FiEyeOff, FiMenu, FiList, FiBox } from "react-icons/fi";
+import { FiGlobe, FiCode, FiGrid, FiHash, FiLayout, FiSearch, FiKey, FiCopy, FiRefreshCw, FiEye, FiEyeOff, FiMenu, FiList, FiBox, FiPlus, FiTrash2, FiShield } from "react-icons/fi";
 import { Icon } from "@iconify/react";
 import {
   aplikasiService,
   type Aplikasi,
   type AplikasiDetail,
   type AplikasiMenu,
+  type AplikasiOrganisasi,
   type CreateAplikasiRequest,
   type KategoriAplikasi,
 } from "@/lib/services/manakses/aplikasiService";
@@ -475,6 +476,19 @@ export default function AplikasiFormModal({
   const [showAppKey, setShowAppKey] = useState(false);
   const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // Organisasi whitelist
+  const [orgWhitelist, setOrgWhitelist] = useState<AplikasiOrganisasi[]>([]);
+  const [orgLoading, setOrgLoading] = useState(false);
+  const [orgAdding, setOrgAdding] = useState(false);
+  const [orgSearchQuery, setOrgSearchQuery] = useState("");
+  const debouncedOrgSearch = useDebounce(orgSearchQuery, 300);
+  const [orgSearchResults, setOrgSearchResults] = useState<UnitOrganisasiOption[]>([]);
+  const [isLoadingOrgSearch, setIsLoadingOrgSearch] = useState(false);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+  const [includeChildren, setIncludeChildren] = useState(true);
+  const [orgKet, setOrgKet] = useState("");
+
   const [formData, setFormData] = useState<CreateAplikasiRequest & { status?: 'Aktif' | 'Tidak Aktif' }>({
     nm_aplikasi: "",
     ket_aplikasi: "",
@@ -617,6 +631,82 @@ export default function AplikasiFormModal({
       setActiveTab("basic");
     }
   }, [aplikasi, isOpen]);
+
+  // Load organisasi whitelist for edit mode
+  useEffect(() => {
+    const loadOrgWhitelist = async () => {
+      if (!isOpen || !aplikasi?.id_aplikasi) return;
+      setOrgLoading(true);
+      try {
+        const data = await aplikasiService.getOrganisasi(aplikasi.id_aplikasi);
+        setOrgWhitelist(data || []);
+      } catch (error) {
+        console.error("Error loading org whitelist:", error);
+        setOrgWhitelist([]);
+      } finally {
+        setOrgLoading(false);
+      }
+    };
+    loadOrgWhitelist();
+  }, [isOpen, aplikasi?.id_aplikasi]);
+
+  // Search orgs for whitelist add
+  useEffect(() => {
+    const searchOrgs = async () => {
+      if (!debouncedOrgSearch || debouncedOrgSearch.length < 2) {
+        setOrgSearchResults([]);
+        return;
+      }
+      setIsLoadingOrgSearch(true);
+      try {
+        const results = await unitOrganisasiService.getAll({
+          search: debouncedOrgSearch,
+          limit: 20,
+        });
+        const existingIds = new Set(orgWhitelist.map(o => o.id_organisasi));
+        setOrgSearchResults(results.filter(r => !existingIds.has(r.id_organisasi)));
+      } catch (error) {
+        console.error("Error searching orgs:", error);
+      } finally {
+        setIsLoadingOrgSearch(false);
+      }
+    };
+    searchOrgs();
+  }, [debouncedOrgSearch, orgWhitelist]);
+
+  const handleAddOrg = async () => {
+    if (!aplikasi?.id_aplikasi || !selectedOrgId) return;
+    setOrgAdding(true);
+    try {
+      await aplikasiService.addOrganisasi(aplikasi.id_aplikasi, {
+        id_organisasi: selectedOrgId,
+        a_include_children: includeChildren,
+        ket: orgKet || null,
+      });
+      const data = await aplikasiService.getOrganisasi(aplikasi.id_aplikasi);
+      setOrgWhitelist(data || []);
+      setSelectedOrgId(null);
+      setOrgSearchQuery("");
+      setOrgKet("");
+      setIncludeChildren(true);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(err.response?.data?.message || "Gagal menambah organisasi");
+    } finally {
+      setOrgAdding(false);
+    }
+  };
+
+  const handleRemoveOrg = async (orgId: string) => {
+    if (!aplikasi?.id_aplikasi || !confirm("Hapus organisasi dari whitelist?")) return;
+    try {
+      await aplikasiService.removeOrganisasi(aplikasi.id_aplikasi, orgId);
+      setOrgWhitelist(prev => prev.filter(o => o.id_app_org !== orgId));
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(err.response?.data?.message || "Gagal menghapus organisasi");
+    }
+  };
 
   // Copy app key to clipboard
   const handleCopyAppKey = async () => {
@@ -1263,6 +1353,20 @@ export default function AplikasiFormModal({
                           </p>
                         </div>
                       </label>
+                      {formData.a_filter_organisasi && isEditMode && (
+                        <div className="mt-2 px-3 py-2 bg-blue-100/50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/40">
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            Kelola daftar organisasi yang diizinkan di tab <strong>&quot;Akses Organisasi&quot;</strong>.
+                          </p>
+                        </div>
+                      )}
+                      {formData.a_filter_organisasi && !isEditMode && (
+                        <div className="mt-2 px-3 py-2 bg-amber-100/50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/40">
+                          <p className="text-xs text-amber-700 dark:text-amber-300">
+                            Simpan aplikasi terlebih dahulu, lalu edit untuk menambahkan organisasi ke whitelist.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1571,6 +1675,178 @@ export default function AplikasiFormModal({
                         </p>
                         <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                           Menu dapat ditambahkan melalui fitur manajemen menu aplikasi
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </Tab>
+              )}
+
+              {/* Akses Organisasi Tab - Only show in edit mode when filter enabled */}
+              {isEditMode && formData.a_filter_organisasi && (
+                <Tab key="org-access" title="Akses Organisasi">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FiShield className="text-blue-500" />
+                        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                          Whitelist Organisasi
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-full">
+                        {orgWhitelist.length} organisasi
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      Hanya pengguna dari organisasi di bawah yang bisa mengakses aplikasi ini. Role universal (Mahasiswa, Dosen, Tendik, Rektor) tetap bisa akses.
+                    </p>
+
+                    {/* Add new org form */}
+                    <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/30">
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">
+                        Tambah Organisasi
+                      </h4>
+                      <div className="space-y-3">
+                        <Autocomplete
+                          aria-label="Cari organisasi"
+                          placeholder="Ketik nama unit organisasi..."
+                          selectedKey={selectedOrgId}
+                          onSelectionChange={(key) => setSelectedOrgId(key as string || null)}
+                          onInputChange={(value) => setOrgSearchQuery(value)}
+                          isLoading={isLoadingOrgSearch}
+                          variant="bordered"
+                          size="sm"
+                          startContent={<FiSearch className="text-gray-400 flex-shrink-0" />}
+                          classNames={{
+                            base: "w-full",
+                            listboxWrapper: "max-h-[200px]",
+                            popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
+                          }}
+                          inputProps={{
+                            classNames: {
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm",
+                            },
+                          }}
+                          listboxProps={{
+                            emptyContent: isLoadingOrgSearch ? "Memuat..." : "Tidak ada unit ditemukan",
+                          }}
+                        >
+                          {orgSearchResults.map((unit) => (
+                            <AutocompleteItem key={unit.id_organisasi} textValue={unit.display_name || unit.nm_lemb}>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">{unit.nm_lemb}</span>
+                                {unit.nm_jns_lemb && (
+                                  <span className="text-xs text-gray-500">{unit.nm_jns_lemb}</span>
+                                )}
+                              </div>
+                            </AutocompleteItem>
+                          ))}
+                        </Autocomplete>
+
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={includeChildren}
+                              onChange={(e) => setIncludeChildren(e.target.checked)}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-slate-300">Termasuk sub-unit</span>
+                          </label>
+                          <Input
+                            placeholder="Keterangan (opsional)"
+                            value={orgKet}
+                            onChange={(e) => setOrgKet(e.target.value)}
+                            variant="bordered"
+                            size="sm"
+                            className="flex-1"
+                            classNames={{
+                              input: "text-gray-900 dark:text-white",
+                              inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 shadow-sm",
+                            }}
+                          />
+                        </div>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          color="primary"
+                          startContent={<FiPlus size={14} />}
+                          isDisabled={!selectedOrgId}
+                          isLoading={orgAdding}
+                          onPress={handleAddOrg}
+                        >
+                          Tambah ke Whitelist
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Org list */}
+                    {orgLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : orgWhitelist.length > 0 ? (
+                      <div className="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 dark:bg-slate-700/50">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                Organisasi
+                              </th>
+                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                Sub-unit
+                              </th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                Keterangan
+                              </th>
+                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-slate-400 uppercase w-16">
+                                Aksi
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-slate-600">
+                            {orgWhitelist.map((org) => (
+                              <tr key={org.id_app_org} className="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                                  {org.nm_organisasi}
+                                </td>
+                                <td className="px-3 py-2 text-center">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    org.a_include_children
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                                  }`}>
+                                    {org.a_include_children ? "Ya" : "Tidak"}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 text-gray-600 dark:text-slate-400 text-xs">
+                                  {org.ket || "-"}
+                                </td>
+                                <td className="px-3 py-2 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveOrg(org.id_app_org)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                  >
+                                    <FiTrash2 size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 bg-gray-50 dark:bg-slate-700/30 rounded-lg border border-dashed border-gray-300 dark:border-slate-600">
+                        <FiShield className="mx-auto h-10 w-10 text-gray-400 dark:text-slate-500 mb-3" />
+                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                          Belum ada organisasi di whitelist
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                          Tambahkan organisasi yang diizinkan mengakses aplikasi ini
                         </p>
                       </div>
                     )}

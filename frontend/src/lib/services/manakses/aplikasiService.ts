@@ -155,6 +155,22 @@ export interface CreateAplikasiRequest {
 
 export interface UpdateAplikasiRequest extends CreateAplikasiRequest {}
 
+export interface AplikasiOrganisasi {
+  id_app_org: string;
+  id_organisasi: string;
+  a_include_children: boolean;
+  ket: string | null;
+  nm_organisasi: string;
+  tgl_create?: string | null;
+  last_update?: string | null;
+}
+
+export interface AddAplikasiOrganisasiRequest {
+  id_organisasi: string;
+  a_include_children?: boolean;
+  ket?: string | null;
+}
+
 // API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
@@ -253,6 +269,21 @@ export const aplikasiService = {
       `/manakses/aplikasi/${id}/regenerate-app-key`
     );
     return response.data.data;
+  },
+
+  async getOrganisasi(id: string): Promise<AplikasiOrganisasi[]> {
+    const response = await authClient.get<ApiResponse<AplikasiOrganisasi[]>>(
+      `/manakses/aplikasi/${id}/organisasi`
+    );
+    return response.data.data;
+  },
+
+  async addOrganisasi(id: string, data: AddAplikasiOrganisasiRequest): Promise<void> {
+    await authClient.post(`/manakses/aplikasi/${id}/organisasi`, data);
+  },
+
+  async removeOrganisasi(id: string, orgId: string): Promise<void> {
+    await authClient.delete(`/manakses/aplikasi/${id}/organisasi/${orgId}`);
   },
 };
 

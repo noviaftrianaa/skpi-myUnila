@@ -5,12 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   Spinner,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
   Select,
   SelectItem,
 } from "@heroui/react";
@@ -697,70 +691,103 @@ export default function RBACMatrixEditor({ onSaved }: RBACMatrixEditorProps) {
       </AnimatePresence>
 
       {/* ── Add Role Modal */}
-      <Modal
-        isOpen={showAddRoleModal}
-        onClose={() => {
-          setShowAddRoleModal(false);
-          setAddingRoleId("");
-        }}
-        placement="center"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex items-center gap-2">
-                <FiPlus className="w-5 h-5 text-blue-500" />
-                Tambah Role ke Aplikasi
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+      <AnimatePresence>
+        {showAddRoleModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => {
+                setShowAddRoleModal(false);
+                setAddingRoleId("");
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-md mx-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                  <FiPlus className="w-5 h-5 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Tambah Role ke Aplikasi
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddRoleModal(false);
+                    setAddingRoleId("");
+                  }}
+                  className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                   Pilih role yang akan ditambahkan ke matriks permission aplikasi ini.
                 </p>
                 {availableRolesToAdd.length === 0 ? (
-                  <div className="text-center py-6">
-                    <FiAlertCircle className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                    <p className="text-sm text-gray-500">
+                  <div className="text-center py-8">
+                    <FiAlertCircle className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Semua role sudah ada di aplikasi ini
                     </p>
                   </div>
                 ) : (
-                  <Select
-                    placeholder="Pilih role..."
-                    selectedKeys={addingRoleId ? [addingRoleId] : []}
-                    onSelectionChange={(keys) => {
-                      const val = Array.from(keys)[0] as string;
-                      setAddingRoleId(val || "");
-                    }}
-                    label="Role"
-                  >
-                    {availableRolesToAdd.map((role) => (
-                      <SelectItem key={role.id_peran.toString()} textValue={role.nm_peran}>
-                        <div className="flex items-center gap-2">
-                          <FiShield className="w-4 h-4 text-blue-500" />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={addingRoleId}
+                      onChange={(e) => setAddingRoleId(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    >
+                      <option value="">Pilih role...</option>
+                      {availableRolesToAdd.map((role) => (
+                        <option key={role.id_peran.toString()} value={role.id_peran.toString()}>
                           {role.nm_peran}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </Select>
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" onPress={onClose} disabled={addingRole}>
-                  Batal
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
-                  onPress={handleAddRole}
-                  isLoading={addingRole}
-                  disabled={!addingRoleId || addingRole}
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                <button
+                  onClick={() => {
+                    setShowAddRoleModal(false);
+                    setAddingRoleId("");
+                  }}
+                  disabled={addingRole}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
                 >
+                  Batal
+                </button>
+                <button
+                  onClick={handleAddRole}
+                  disabled={!addingRoleId || addingRole}
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+                >
+                  {addingRole && <Spinner size="sm" color="white" />}
                   Tambahkan
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
