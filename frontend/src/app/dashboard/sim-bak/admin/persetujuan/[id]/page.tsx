@@ -11,7 +11,7 @@ import { FiArrowLeft, FiCheck, FiX, FiUser, FiAlertCircle } from "react-icons/fi
 import toast, { Toaster } from "react-hot-toast";
 import { getPengajuanDetail, approvePengajuan, rejectPengajuan, getWorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
-import type { StatusPengajuan, PersetujuanPengajuan } from "@/lib/services/sim-bak/types";
+import type { StatusPengajuan, PersetujuanPengajuan, Pengajuan } from "@/lib/services/sim-bak/types";
 import ApprovalTimeline from "../../../components/ApprovalTimeline";
 import WorkflowStepper from "../../../components/WorkflowStepper";
 
@@ -30,7 +30,7 @@ export default function PersetujuanDetailPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
+  const [detail, setDetail] = useState<Pengajuan | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPanel, setShowPanel] = useState<"approve" | "reject" | null>(null);
   const [actionCatatan, setActionCatatan] = useState("");
@@ -55,9 +55,9 @@ export default function PersetujuanDetailPage() {
     );
   }
 
-  const status = detail.status as StatusPengajuan;
-  const pemohon = detail.data_pemohon as Record<string, unknown> | null;
-  const persetujuan = ((detail.persetujuan as PersetujuanPengajuan[]) ?? []).map(p => ({
+  const status = detail.status;
+  const pemohon = detail.data_pemohon ?? null;
+  const persetujuan = (detail.persetujuan ?? []).map(p => ({
     ...p, id_persetujuan: p.id_persetujuan, role_penyetuju: p.kode_role_approver, nm_penyetuju: p.nm_approver,
     status: p.keputusan === "disetujui" ? "disetujui" as const : p.keputusan === "ditolak" ? "ditolak" as const : "menunggu" as const,
     tgl_respon: p.tgl_keputusan, urutan: 1,

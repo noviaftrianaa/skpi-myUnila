@@ -77,11 +77,8 @@ export default function CreateBatchPage() {
         ...form,
         kriteria_snapshot: JSON.stringify({ jenis: form.jenis_batch, id_smt: form.id_smt }),
       });
-      toast.success(`Batch berhasil dibuat dengan ${(result as Record<string, unknown>).jumlah_kandidat ?? 0} kandidat`);
-      const batchId = (result as Record<string, unknown>).batch
-        ? ((result as Record<string, unknown>).batch as Record<string, unknown>).id_batch_penetapan
-        : (result as Record<string, unknown>).id_batch_penetapan;
-      router.push(`/dashboard/sim-bak/batch/${batchId}`);
+      toast.success(`Batch berhasil dibuat dengan ${result.jumlah_kandidat ?? 0} kandidat`);
+      router.push(`/dashboard/sim-bak/batch/${result.id_batch_penetapan}`);
     } catch {
       toast.error("Gagal membuat batch");
     } finally {

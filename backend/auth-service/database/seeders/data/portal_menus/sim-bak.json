@@ -42,19 +42,19 @@
           "nm_menu": "Semua Pengajuan",
           "nm_file": "/dashboard/sim-bak/admin/pengajuan",
           "urutan": 0,
-          "roles": [1, 107]
+          "roles": [1, 107, 106]
         },
         {
           "nm_menu": "Verifikasi Pengajuan",
           "nm_file": "/dashboard/sim-bak/admin/verifikasi",
           "urutan": 1,
-          "roles": [1, 107, 111]
+          "roles": [1, 107, 106, 111]
         },
         {
           "nm_menu": "Persetujuan",
           "nm_file": "/dashboard/sim-bak/admin/persetujuan",
           "urutan": 2,
-          "roles": [1, 107, 106, 43]
+          "roles": [1, 107, 43]
         }
       ]
     },

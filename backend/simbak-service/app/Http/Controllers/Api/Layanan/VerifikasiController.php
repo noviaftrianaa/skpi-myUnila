@@ -27,6 +27,30 @@ class VerifikasiController extends Controller
     }
 
     /**
+     * Queue verifikasi — filter berdasarkan kode_role user.
+     * Hanya tampilkan pengajuan yang ada di tahapan milik user saat ini.
+     */
+    public function queue(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
+            $params = [
+                'page' => (int) $request->get('page', 1),
+                'limit' => (int) $request->get('limit', 10),
+                'search' => $request->get('search'),
+                'kode_layanan' => $request->get('kode_layanan'),
+                'kode_role' => $kodeRole,
+            ];
+            $result = $this->repository->getApprovalQueueByRole($params);
+            return $this->paginatedResponse($result['data'], $result['total'], $params['page'], $params['limit']);
+        } catch (\Exception $e) {
+            Log::error('Verifikasi.queue: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Verifikasi/proses pengajuan — transisi mengikuti tahapan_layanan.
      *
      * Logika:
@@ -40,7 +64,10 @@ class VerifikasiController extends Controller
             $pengajuan = $this->repository->findById($id);
             if (!$pengajuan) return $this->notFoundResponse();
 
-            $data = $request->validate(['catatan' => 'nullable|string']);
+            $data = $request->validate([
+                'catatan' => 'nullable|string',
+                'surat_pengantar' => 'nullable|file|mimes:pdf|max:20480',
+            ]);
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
 
@@ -87,6 +114,25 @@ class VerifikasiController extends Controller
                 'kode_role_aktor' => $kodeRole,
                 'catatan' => $data['catatan'] ?? null,
             ]);
+
+            // Upload surat pengantar (admin_fakultas)
+            if ($request->hasFile('surat_pengantar')) {
+                $file = $request->file('surat_pengantar');
+                $path = $this->minioService->upload(
+                    "simbak/pengajuan/{$id}/surat-pengantar",
+                    $file
+                );
+                $this->repository->createDokumen([
+                    'id_pengajuan' => $id,
+                    'id_persyaratan' => null,
+                    'nm_dokumen' => 'Surat Pengantar Dekan',
+                    'nama_file_asli' => $file->getClientOriginalName(),
+                    'path_file' => $path,
+                    'tipe_file' => $file->getMimeType(),
+                    'ukuran_byte' => $file->getSize(),
+                    'id_pengunggah' => $user->id_pengguna,
+                ]);
+            }
 
             $this->repository->pgCommit();
 

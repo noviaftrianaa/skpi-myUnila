@@ -47,6 +47,8 @@ export default function SemuaPengajuanPage() {
     getJenisLayananPublic().then(list => setLayananList(list.filter(l => l.kategori !== "monitoring"))).catch(() => {});
   }, []);
 
+  const isAdminFakultas = user?.role?.toLowerCase().includes("admin_fakultas") || user?.role?.toLowerCase().includes("admin fakultas");
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -56,6 +58,7 @@ export default function SemuaPengajuanPage() {
         search: search || undefined,
         status: filterStatus || undefined,
         kode_layanan: filterLayanan || undefined,
+        nm_fakultas: isAdminFakultas ? (user?.fakultas || undefined) : undefined,
       });
       const items = (result.data ?? []).filter(p => p.status !== "draft");
       setData(items);
@@ -97,8 +100,8 @@ export default function SemuaPengajuanPage() {
     { key: "nm_mahasiswa", label: "Pemohon", sortable: true,
       render: (item) => (
         <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{(item as Record<string, unknown>).nm_mahasiswa as string || "-"}</p>
-          <p className="text-xs text-gray-500">{(item as Record<string, unknown>).nim as string || ""}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{item.nm_mahasiswa || "-"}</p>
+          <p className="text-xs text-gray-500">{item.nim || ""}</p>
         </div>
       )
     },
@@ -113,8 +116,8 @@ export default function SemuaPengajuanPage() {
     { key: "nm_prodi", label: "Prodi / Fakultas",
       render: (item) => (
         <div>
-          <p className="text-xs text-gray-700 dark:text-gray-300">{(item as Record<string, unknown>).nm_prodi as string || "-"}</p>
-          <p className="text-xs text-gray-400">{(item as Record<string, unknown>).nm_fakultas as string || ""}</p>
+          <p className="text-xs text-gray-700 dark:text-gray-300">{item.nm_prodi || "-"}</p>
+          <p className="text-xs text-gray-400">{item.nm_fakultas || ""}</p>
         </div>
       )
     },

@@ -12,7 +12,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { getPengajuanDetail, downloadDokumenUrl, downloadDokumenHasilUrl, uploadDokumen, ajukanPengajuan, deletePengajuanDraft } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import { getToken } from "@/lib/api/client";
-import type { StatusPengajuan } from "@/lib/services/sim-bak/types";
+import type { StatusPengajuan, Pengajuan } from "@/lib/services/sim-bak/types";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
 const statusColorMap: Record<StatusPengajuan, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
@@ -30,7 +30,7 @@ export default function DetailPengajuanPage() {
   const router = useRouter();
   const id = params.id as string;
 
-  const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
+  const [detail, setDetail] = useState<Pengajuan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<{ url: string; name: string; type: string } | null>(null);
@@ -115,11 +115,11 @@ export default function DetailPengajuanPage() {
     );
   }
 
-  const status = detail.status as StatusPengajuan;
-  const pemohon = detail.data_pemohon as Record<string, unknown> | null;
-  const riwayat = (detail.riwayat as Array<Record<string, unknown>>) ?? [];
-  const dokumen = (detail.dokumen as Array<Record<string, unknown>>) ?? [];
-  const dokumenHasil = (detail.dokumen_hasil as Array<Record<string, unknown>>) ?? [];
+  const status = detail.status;
+  const pemohon = detail.data_pemohon ?? null;
+  const riwayat = detail.riwayat ?? [];
+  const dokumen = detail.dokumen ?? [];
+  const dokumenHasil = detail.dokumen_hasil ?? [];
 
   return (
     <DashboardLayoutWithDynamicMenu appName="SI MBAK" appIcon={<MdDashboard className="w-6 h-6" />} appKey="sim-bak" fallbackMenus={simBakMenuConfig} pageTitle={`Detail ${detail.nomor_permohonan}`}>

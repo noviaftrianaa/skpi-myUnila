@@ -231,7 +231,7 @@ class WorkflowService
     {
         $lower = strtolower($nmPeran);
 
-        if (str_contains($lower, 'developer') || $lower === 'admin') return 'admin_bak';
+        if (str_contains($lower, 'developer') || $lower === 'admin' || str_contains($lower, 'administrator')) return 'admin_bak';
         if (str_contains($lower, 'admin_bak') || str_contains($lower, 'admin bak') || $lower === 'bak') return 'admin_bak';
         if (str_contains($lower, 'admin_fakultas') || str_contains($lower, 'admin fakultas') || str_contains($lower, 'fakultas')) return 'admin_fakultas';
         if (str_contains($lower, 'pejabat') || str_contains($lower, 'approver') || str_contains($lower, 'dekan') || str_contains($lower, 'rektor') || str_contains($lower, 'wakil rektor')) return 'pejabat';

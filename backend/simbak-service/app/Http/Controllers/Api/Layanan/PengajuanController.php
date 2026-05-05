@@ -41,6 +41,7 @@ class PengajuanController extends Controller
                 'search' => $request->get('search'),
                 'status' => $request->get('status'),
                 'kode_layanan' => $request->get('kode_layanan'),
+                'nm_fakultas' => $request->get('nm_fakultas'),
             ];
             $result = $this->repository->getList($params);
             return $this->paginatedResponse($result['data'], $result['total'], $params['page'], $params['limit']);
