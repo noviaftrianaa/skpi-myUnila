@@ -10,7 +10,7 @@ import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getMyProfile, createPengajuan, uploadDokumen, ajukanPengajuan, deleteDokumen } from "@/lib/services/sim-bak/simBakService";
-import type { JenisLayanan, PersyaratanLayanan } from "@/lib/services/sim-bak/types";
+import type { JenisLayanan, PersyaratanLayanan, DokumenPengajuan } from "@/lib/services/sim-bak/types";
 
 const steps = [
   { no: 1, label: "Data Pemohon" },
@@ -34,7 +34,7 @@ export default function SuratMandiriFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [profileData, setProfileData] = useState<Record<string, unknown> | null>(null);
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(null);
-  const [existingDokumen, setExistingDokumen] = useState<Array<Record<string, unknown>>>([]);
+  const [existingDokumen, setExistingDokumen] = useState<DokumenPengajuan[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +56,7 @@ export default function SuratMandiriFormPage() {
           const { getPengajuanDetail } = await import("@/lib/services/sim-bak/simBakService");
           const detail = await getPengajuanDetail(editId).catch(() => null);
           if (detail?.dokumen) {
-            setExistingDokumen(detail.dokumen as Array<Record<string, unknown>>);
+            setExistingDokumen(detail.dokumen);
           }
         }
       } catch { /* fallback */ }

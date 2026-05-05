@@ -8,7 +8,7 @@ interface ApprovalTimelineProps {
 }
 
 export default function ApprovalTimeline({ approvals }: ApprovalTimelineProps) {
-  const sorted = [...approvals].sort((a, b) => a.urutan - b.urutan);
+  const sorted = [...approvals].sort((a, b) => (a.urutan ?? 0) - (b.urutan ?? 0));
   const firstPendingIdx = sorted.findIndex((a) => a.status === "menunggu");
 
   return (

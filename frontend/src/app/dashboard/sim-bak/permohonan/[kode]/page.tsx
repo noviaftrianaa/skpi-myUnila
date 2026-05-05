@@ -11,7 +11,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { useUserContext } from "@/contexts/UserContextContext";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
-import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan } from "@/lib/services/sim-bak/types";
+import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan } from "@/lib/services/sim-bak/types";
 
 const steps = [
   { no: 1, label: "Data & Alasan" },
@@ -42,7 +42,7 @@ export default function PermohonanFormPage() {
     jenis_kelamin: "", ipk: "", sks_lulus: "", semester_aktif: "",
   });
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File | null>>({});
-  const [existingDokumen, setExistingDokumen] = useState<Array<Record<string, unknown>>>([]);
+  const [existingDokumen, setExistingDokumen] = useState<DokumenPengajuan[]>([]);
   const [layanan, setLayanan] = useState<JenisLayanan | null>(null);
   const [persyaratan, setPersyaratan] = useState<PersyaratanLayanan[]>([]);
   const [tahapan, setTahapan] = useState<TahapanLayanan[]>([]);
@@ -92,9 +92,9 @@ export default function PermohonanFormPage() {
         if (editId) {
           const { getPengajuanDetail } = await import("@/lib/services/sim-bak/simBakService");
           const detail = await getPengajuanDetail(editId).catch(() => null);
-          if (detail?.dokumen) setExistingDokumen(detail.dokumen as Array<Record<string, unknown>>);
-          if (detail?.alasan) setAlasan(String(detail.alasan));
-          if (detail?.catatan_pemohon) setCatatan(String(detail.catatan_pemohon));
+          if (detail?.dokumen) setExistingDokumen(detail.dokumen);
+          if (detail?.alasan) setAlasan(detail.alasan);
+          if (detail?.catatan_pemohon) setCatatan(detail.catatan_pemohon);
         }
       } catch { /* fallback */ }
       finally { setLoading(false); }

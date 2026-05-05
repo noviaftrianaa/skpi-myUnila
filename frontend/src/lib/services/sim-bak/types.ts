@@ -197,6 +197,12 @@ export interface PersetujuanPengajuan {
   hasil_wawancara: string | null;
   daftar_konversi_sks: string | null;
   created_at: string;
+  // timeline fields
+  urutan?: number;
+  status?: string;
+  role_penyetuju?: string;
+  nm_penyetuju?: string | null;
+  tgl_respon?: string | null;
 }
 
 export interface DokumenHasil {

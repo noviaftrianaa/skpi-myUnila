@@ -10,8 +10,8 @@ import { FiClock, FiLoader, FiCheckCircle, FiEye, FiAlertCircle } from "react-ic
 import { useRouter } from "next/navigation";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
-import { getAdminPengajuan, getJenisLayananPublic } from "@/lib/services/sim-bak/simBakService";
-import type { Pengajuan, StatusPengajuan, JenisLayanan } from "@/lib/services/sim-bak/types";
+import { getVerifikasiQueue, getJenisLayananPublic } from "@/lib/services/sim-bak/simBakService";
+import type { Pengajuan, JenisLayanan } from "@/lib/services/sim-bak/types";
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
@@ -28,33 +28,25 @@ export default function VerifikasiPengajuanPage() {
   const [data, setData] = useState<Pengajuan[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("");
   const [filterLayanan, setFilterLayanan] = useState("");
   const [layananList, setLayananList] = useState<JenisLayanan[]>([]);
   const [page, setPage] = useState(1);
 
-  const verifikasiStatuses = ["diajukan", "perlu_perbaikan", "diverifikasi"];
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getAdminPengajuan({
+      const result = await getVerifikasiQueue({
         page, limit: 10,
-        status: filterStatus || undefined,
         kode_layanan: filterLayanan || undefined,
       });
-      // Filter only verifikasi statuses client-side if API returns all
-      const filtered = filterStatus
-        ? result.data
-        : result.data.filter((p: Pengajuan) => verifikasiStatuses.includes(p.status));
-      setData(filtered);
-      setTotal(result.pagination?.total ?? filtered.length);
+      setData(result.data);
+      setTotal(result.pagination?.total ?? result.data.length);
     } catch {
       setData([]);
     } finally {
       setLoading(false);
     }
-  }, [page, filterStatus, filterLayanan]);
+  }, [page, filterLayanan]);
 
   useEffect(() => { getJenisLayananPublic().then(setLayananList).catch(() => {}); }, []);
   useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
@@ -85,8 +77,8 @@ export default function VerifikasiPengajuanPage() {
       <Chip size="sm" variant="flat" color={statusChipColor[item.status] || "default"}>{statusLabel[item.status] || item.status}</Chip>
     )},
     { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => (
-      <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
-        onPress={() => router.push(`/dashboard/sim-bak/admin/verifikasi/${item.id_pengajuan}`)}>Lihat</Button>
+      <Button size="sm" variant="flat" color="primary" startContent={<FiCheckCircle className="w-3.5 h-3.5" />}
+        onPress={() => router.push(`/dashboard/sim-bak/admin/verifikasi/${item.id_pengajuan}`)}>Verifikasi</Button>
     )},
   ];
 
@@ -129,11 +121,6 @@ export default function VerifikasiPengajuanPage() {
             searchPlaceholder="Cari no. pengajuan, pemohon, layanan..." defaultRowsPerPage={10}
             filterSlot={
               <div className="flex flex-wrap gap-3">
-                <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
-                  value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
-                  <option value="">Semua Status</option>
-                  {verifikasiStatuses.map(s => <option key={s} value={s}>{statusLabel[s]}</option>)}
-                </select>
                 <select className="text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]"
                   value={filterLayanan} onChange={(e) => { setFilterLayanan(e.target.value); setPage(1); }}>
                   <option value="">Semua Layanan</option>

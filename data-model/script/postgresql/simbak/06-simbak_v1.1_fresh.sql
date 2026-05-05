@@ -437,11 +437,11 @@ CREATE TABLE IF NOT EXISTS layanan.data_pemohon (
                                         -- L = Laki-laki, P = Perempuan
 
     -- === Unit akademik ===
-    id_fakultas         UUID            NULL,
-                                        -- ref ke man_akses.organisasi di pdut
+    id_fakultas         VARCHAR(50)     NULL,
+                                        -- ref ke man_akses.organisasi di pdut (bukan UUID)
     nm_fakultas         VARCHAR(200)    NULL,
-    id_prodi            UUID            NULL,
-                                        -- ref ke siakadu.sms di pdut
+    id_prodi            VARCHAR(50)     NULL,
+                                        -- ref ke siakadu.mahasiswa.id_unit di pdut (bukan UUID)
     nm_prodi            VARCHAR(200)    NULL,
     id_jenj_didik       INT             NULL,
                                         -- ref ke siakadu.jenjang_pendidikan di pdut

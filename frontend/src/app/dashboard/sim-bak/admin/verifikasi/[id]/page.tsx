@@ -7,12 +7,12 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile, FiUpload } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
 import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
-import type { StatusPengajuan } from "@/lib/services/sim-bak/types";
+import type { Pengajuan } from "@/lib/services/sim-bak/types";
 import WorkflowStepper from "../../../components/WorkflowStepper";
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
@@ -30,11 +30,12 @@ export default function VerifikasiDetailPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
+  const [detail, setDetail] = useState<Pengajuan | null>(null);
   const [loading, setLoading] = useState(true);
   const [catatan, setCatatan] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [progress, setProgress] = useState<WorkflowProgress | null>(null);
+  const [fileSuratPengantar, setFileSuratPengantar] = useState<File | null>(null);
   // Preview dokumen
   const [previewDoc, setPreviewDoc] = useState<{ url: string; name: string; type: string } | null>(null);
   const [previewLoading, setPreviewLoading] = useState("");
@@ -54,6 +55,7 @@ export default function VerifikasiDetailPage() {
   const [showPerbaikanConfirm, setShowPerbaikanConfirm] = useState(false);
   const [showTerbitkanForm, setShowTerbitkanForm] = useState(false);
   const [showTolakForm, setShowTolakForm] = useState(false);
+  const [showSuratPengantarForm, setShowSuratPengantarForm] = useState(false);
   const [alasanTolak, setAlasanTolak] = useState("");
   const [nomorDokumen, setNomorDokumen] = useState("");
   const [tglDokumen, setTglDokumen] = useState(new Date().toISOString().split("T")[0]);
@@ -81,18 +83,41 @@ export default function VerifikasiDetailPage() {
     );
   }
 
-  const status = detail.status as StatusPengajuan;
-  const pemohon = detail.data_pemohon as Record<string, unknown> | null;
-  const dokumen = (detail.dokumen as Array<Record<string, unknown>>) ?? [];
-  const riwayat = (detail.riwayat as Array<Record<string, unknown>>) ?? [];
+  const status = detail.status;
+  const pemohon = detail.data_pemohon ?? null;
+  const dokumen = detail.dokumen ?? [];
+  const riwayat = detail.riwayat ?? [];
 
   // Tahapan aktif dari progress (untuk judul dan tombol)
   const activeTahapan = progress?.tahapan_list?.find(t => t.stage_status === "active") ?? null;
   const isLastStage = activeTahapan?.status_selesai === "terbit";
 
+  // Tentukan kode_role user aktif
+  const userRole = (() => {
+    const r = (user?.role ?? "").toLowerCase();
+    if (r.includes("developer") || r.includes("admin_bak") || r === "admin" || r.includes("administrator")) return "admin_bak";
+    if (r.includes("admin_fakultas") || r.includes("fakultas")) return "admin_fakultas";
+    if (r.includes("pejabat") || r.includes("dekan") || r.includes("wakil_rektor") || r.includes("rektor")) return "pejabat";
+    return r;
+  })();
+  const canActOnThisStage = !activeTahapan || activeTahapan.kode_role === userRole || userRole === "admin_bak";
+
+  // Surat Pengantar: wajib upload jika tahapan admin_fakultas + permohonan_akademik
+  const isTahapanFakultas = activeTahapan?.kode_role === "admin_fakultas" || (!activeTahapan && userRole === "admin_fakultas" && status === "diajukan");
+  const isPermohonanAkademik = detail.kategori === "permohonan_akademik" || (detail.kode_layanan ?? "").startsWith("PM-");
+  const requireSuratPengantar = isTahapanFakultas && isPermohonanAkademik;
+  const suratPengantarUploaded = dokumen.some(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan") || !!fileSuratPengantar;
+
   const handleAction = async (action: "verifikasi" | "perbaikan" | "terbitkan") => {
     if (action === "terbitkan") { setShowTerbitkanForm(true); return; }
-    if (action === "verifikasi") { setShowVerifikasiConfirm(true); return; }
+    if (action === "verifikasi") {
+      if (requireSuratPengantar && !suratPengantarUploaded) {
+        toast.error("Upload surat pengantar dekan terlebih dahulu");
+        return;
+      }
+      setShowVerifikasiConfirm(true);
+      return;
+    }
     if (action === "perbaikan") {
       if (!catatan.trim()) { toast.error("Catatan wajib diisi untuk perbaikan"); return; }
       setShowPerbaikanConfirm(true); return;
@@ -100,15 +125,26 @@ export default function VerifikasiDetailPage() {
   };
 
   const executeAction = async (action: "verifikasi" | "perbaikan") => {
+    if (action === "verifikasi" && requireSuratPengantar && !suratPengantarUploaded) {
+      toast.error("Surat pengantar dekan wajib diupload");
+      return;
+    }
     setActionLoading(true);
     try {
-      if (action === "verifikasi") await verifikasiPengajuan(id, { catatan: catatan || undefined });
-      else await mintaPerbaikan(id, { catatan });
+      if (action === "verifikasi") {
+        await verifikasiPengajuan(id, {
+          catatan: catatan || undefined,
+          surat_pengantar: fileSuratPengantar || undefined,
+        });
+      } else {
+        await mintaPerbaikan(id, { catatan });
+      }
       toast.success(action === "verifikasi" ? "Berhasil diverifikasi" : "Permintaan perbaikan dikirim");
       setCatatan("");
+      setFileSuratPengantar(null);
       setShowVerifikasiConfirm(false);
       setShowPerbaikanConfirm(false);
-      fetchDetail();
+      router.push("/dashboard/sim-bak/admin/verifikasi");
     } catch { toast.error("Gagal memproses"); }
     finally { setActionLoading(false); }
   };
@@ -146,7 +182,8 @@ export default function VerifikasiDetailPage() {
                activeTahapan ? activeTahapan.nm_tahapan :
                "Detail Pengajuan"}
             </h1>
-            <p className="text-sm text-gray-500">{String(detail.nomor_permohonan)} · {String(detail.nm_layanan)}</p>
+            <p className="text-sm text-gray-500">{String(detail.nomor_permohonan)}</p>
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{String(detail.nm_layanan)}</p>
           </div>
           <div className="flex items-center gap-2">
             <Chip size="sm" variant="flat" color={statusChipColor[status] || "default"}>{statusLabel[status] || status}</Chip>
@@ -197,15 +234,19 @@ export default function VerifikasiDetailPage() {
                 {dokumen.map(doc => {
                   const tipe = String(doc.tipe_file ?? "");
                   const canPreview = tipe.startsWith("image/") || tipe === "application/pdf";
+                  const isSuratPengantar = String(doc.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan";
                   return (
-                    <Card key={String(doc.id_dokumen)} className="shadow-sm rounded-xl"><CardBody className="p-4">
+                    <Card key={String(doc.id_dokumen)} className={`shadow-sm rounded-xl ${isSuratPengantar ? "border-2 border-green-200 dark:border-green-800" : ""}`}><CardBody className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                            <FiFile className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isSuratPengantar ? "bg-green-100 dark:bg-green-900/30" : "bg-blue-100 dark:bg-blue-900/30"}`}>
+                            <FiFile className={`w-4 h-4 ${isSuratPengantar ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"}`} />
                           </div>
                           <div>
-                            <p className="font-medium text-sm text-gray-900 dark:text-white">{String(doc.nm_dokumen)}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm text-gray-900 dark:text-white">{String(doc.nm_dokumen)}</p>
+                              {isSuratPengantar && <Chip size="sm" variant="flat" color="success" className="text-xs h-5">Verifikasi Fakultas</Chip>}
+                            </div>
                             <p className="text-xs text-gray-400 mt-0.5">{String(doc.nama_file_asli)} · {doc.ukuran_byte ? `${Math.round(Number(doc.ukuran_byte)/1024)} KB` : ""}</p>
                           </div>
                         </div>
@@ -238,16 +279,18 @@ export default function VerifikasiDetailPage() {
             {/* Catatan — hanya tampil jika masih bisa diproses */}
             {["diajukan", "diverifikasi", "menunggu_persetujuan", "disetujui"].includes(status) && (
               <Card className="shadow-md rounded-xl"><CardBody className="p-5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Verifikasi</label>
-                <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
-                  placeholder="Catatan untuk pemohon atau internal..." />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Verifikasi</label>
+                  <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
+                    placeholder="Catatan untuk pemohon atau internal..." />
+                </div>
               </CardBody></Card>
             )}
 
             {/* Info: Surat Terbit */}
             {status === "terbit" && (() => {
-              const dokumenHasil = (detail.dokumen_hasil as Array<Record<string, unknown>>) ?? [];
+              const dokumenHasil = detail.dokumen_hasil ?? [];
               return (
                 <Card className="shadow-md rounded-xl border-2 border-green-200 dark:border-green-800"><CardBody className="p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -346,8 +389,78 @@ export default function VerifikasiDetailPage() {
           </div>
         </div>
 
-        {/* Action Bar — hanya untuk status yang bisa diproses */}
-        {["diajukan", "diverifikasi", "menunggu_persetujuan", "disetujui"].includes(status) && (
+        {/* Card Surat Pengantar Dekan — hanya untuk admin_fakultas + permohonan_akademik */}
+        {requireSuratPengantar && canActOnThisStage && (
+          <Card className={`shadow-md rounded-xl border-2 ${suratPengantarUploaded ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10" : "border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10"}`}><CardBody className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${suratPengantarUploaded ? "bg-green-100 dark:bg-green-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
+                  {suratPengantarUploaded
+                    ? <FiCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    : <FiUpload className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white">Surat Pengantar Dekan</h2>
+                  <p className={`text-xs mt-0.5 ${suratPengantarUploaded ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    {suratPengantarUploaded
+                      ? fileSuratPengantar
+                        ? `${fileSuratPengantar.name} (${Math.round(fileSuratPengantar.size / 1024)} KB)`
+                        : "Sudah diupload sebelumnya"
+                      : "⚠ Wajib diupload sebelum memproses verifikasi"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {suratPengantarUploaded ? (
+                  <>
+                    <Chip color="success" variant="flat" size="sm" startContent={<FiCheck className="w-3 h-3" />}>Tersedia</Chip>
+                    {fileSuratPengantar && (
+                      <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                        onPress={() => {
+                          const url = URL.createObjectURL(fileSuratPengantar);
+                          setPreviewDoc({ url, name: fileSuratPengantar.name, type: "application/pdf" });
+                        }}>Lihat</Button>
+                    )}
+                    <Button size="sm" variant="flat" startContent={<FiUpload className="w-3.5 h-3.5" />}
+                      onPress={() => setShowSuratPengantarForm(true)}>Ganti</Button>
+                  </>
+                ) : (
+                  <Button size="sm" color="warning" variant="solid" startContent={<FiUpload className="w-3.5 h-3.5" />}
+                    onPress={() => setShowSuratPengantarForm(true)}>Upload Surat Pengantar</Button>
+                )}
+              </div>
+            </div>
+          </CardBody></Card>
+        )}
+
+        {/* Info Surat Pengantar Dekan — untuk admin BAK melihat status upload (read-only) */}
+        {!requireSuratPengantar && isPermohonanAkademik && userRole === "admin_bak" && (
+          (() => {
+            const hasUploaded = dokumen.some(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan");
+            return (
+              <Card className={`shadow-md rounded-xl border-2 ${hasUploaded ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10" : "border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10"}`}><CardBody className="p-5">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${hasUploaded ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
+                    {hasUploaded
+                      ? <FiCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      : <FiAlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">Surat Pengantar Dekan</h2>
+                    <p className={`text-xs mt-0.5 ${hasUploaded ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {hasUploaded ? "Sudah diupload oleh admin fakultas" : "⚠ Belum diupload oleh admin fakultas"}
+                    </p>
+                  </div>
+                  {hasUploaded && <Chip color="success" variant="flat" size="sm" className="ml-auto" startContent={<FiCheck className="w-3 h-3" />}>Tersedia</Chip>}
+                  {!hasUploaded && <Chip color="danger" variant="flat" size="sm" className="ml-auto" startContent={<FiAlertCircle className="w-3 h-3" />}>Belum Ada</Chip>}
+                </div>
+              </CardBody></Card>
+            );
+          })()
+        )}
+
+        {/* Action Bar — hanya jika status bisa diproses DAN role user cocok dengan tahapan aktif */}
+        {["diajukan", "diverifikasi", "menunggu_persetujuan", "disetujui"].includes(status) && canActOnThisStage && (
           <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-wrap gap-3 justify-end shadow-lg">
             {/* Tolak */}
             <Button color="danger" variant="flat" startContent={<FiX className="w-4 h-4" />} onPress={() => setShowTolakForm(true)}>Tolak</Button>
@@ -357,7 +470,9 @@ export default function VerifikasiDetailPage() {
             )}
             {/* Verifikasi/Proses — jika bukan tahap terakhir */}
             {!isLastStage && (
-              <Button color="primary" variant="flat" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading} onPress={() => handleAction("verifikasi")}>
+              <Button color="primary" variant="flat" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading}
+                isDisabled={requireSuratPengantar && !suratPengantarUploaded}
+                onPress={() => handleAction("verifikasi")}>
                 {activeTahapan ? `Proses (${activeTahapan.nm_tahapan})` : "Verifikasi"}
               </Button>
             )}
@@ -398,22 +513,73 @@ export default function VerifikasiDetailPage() {
           </div>
         )}
 
+        {/* Modal Upload Surat Pengantar */}
+        {showSuratPengantarForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowSuratPengantarForm(false)} />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4">
+              <div className="p-6 space-y-4">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Upload Surat Pengantar Dekan</h2>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Surat Pengantar (PDF) <span className="text-red-500">*</span></label>
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                    <input type="file" accept=".pdf" onChange={e => setFileSuratPengantar(e.target.files?.[0] || null)}
+                      className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium file:text-sm file:cursor-pointer" />
+                    {fileSuratPengantar && <p className="mt-2 text-xs text-green-600">{fileSuratPengantar.name} ({Math.round(fileSuratPengantar.size / 1024)} KB)</p>}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="flat" className="flex-1" onPress={() => setShowSuratPengantarForm(false)}>Batal</Button>
+                  <Button color="primary" className="flex-1"
+                    isDisabled={!fileSuratPengantar}
+                    onPress={() => { setShowSuratPengantarForm(false); toast.success("Surat pengantar siap dikirim bersama verifikasi"); }}>
+                    Simpan
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal Konfirmasi Verifikasi */}
         {showVerifikasiConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowVerifikasiConfirm(false)} />
-            <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
-              <div className="p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-4">
-                  <FiCheck className="w-6 h-6 text-blue-500" />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+              <div className="p-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-4">
+                    <FiCheck className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                    {activeTahapan ? activeTahapan.nm_tahapan : "Verifikasi Pengajuan"}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Proses pengajuan ini ke tahapan berikutnya?
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                  {activeTahapan ? activeTahapan.nm_tahapan : "Verifikasi Pengajuan"}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Proses pengajuan ini ke tahapan berikutnya?
-                  {activeTahapan && <span className="block mt-1 text-xs text-gray-400">Status akan berubah: {activeTahapan.status_masuk} → {activeTahapan.status_selesai}</span>}
-                </p>
+                <div className="mt-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">Pastikan:</p>
+                  <ul className="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <FiCheck className={`w-4 h-4 flex-shrink-0 ${dokumen.length > 0 ? "text-green-500" : "text-gray-300"}`} />
+                      Dokumen persyaratan sudah lengkap
+                    </li>
+                    {requireSuratPengantar && (
+                      <li className="flex items-center gap-2">
+                        <FiCheck className={`w-4 h-4 flex-shrink-0 ${suratPengantarUploaded ? "text-green-500" : "text-gray-300"}`} />
+                        Surat pengantar dekan sudah diupload
+                      </li>
+                    )}
+                    <li className="flex items-center gap-2">
+                      <FiCheck className="w-4 h-4 flex-shrink-0 text-green-500" />
+                      Data pemohon sudah diperiksa dan benar
+                    </li>
+                  </ul>
+                </div>
+                {activeTahapan && (
+                  <p className="mt-3 text-center text-xs text-gray-400">Status akan berubah: {activeTahapan.status_masuk} → {activeTahapan.status_selesai}</p>
+                )}
               </div>
               <div className="flex border-t border-gray-200 dark:border-gray-700">
                 <button onClick={() => setShowVerifikasiConfirm(false)} disabled={actionLoading}
@@ -484,7 +650,7 @@ export default function VerifikasiDetailPage() {
                         toast.success("Pengajuan berhasil ditolak");
                         setShowTolakForm(false);
                         setAlasanTolak("");
-                        fetchDetail();
+                        router.push("/dashboard/sim-bak/admin/verifikasi");
                       } catch { toast.error("Gagal menolak pengajuan"); }
                       finally { setActionLoading(false); }
                     }}>

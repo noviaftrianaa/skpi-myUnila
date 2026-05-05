@@ -213,8 +213,8 @@ export const createPengajuan = async (data: {
   return response.data.data;
 };
 
-export const getPengajuanDetail = async (id: string): Promise<Record<string, unknown>> => {
-  const response = await bakClient.get<ApiResponse<Record<string, unknown>>>(`/layanan/pengajuan/${id}`);
+export const getPengajuanDetail = async (id: string): Promise<Pengajuan> => {
+  const response = await bakClient.get<ApiResponse<Pengajuan>>(`/layanan/pengajuan/${id}`);
   return response.data.data;
 };
 
@@ -250,14 +250,30 @@ export const downloadDokumenHasilUrl = (idDokumenHasil: string): string => {
 // ============ Admin: Verifikasi ============
 
 export const getAdminPengajuan = async (params?: {
-  page?: number; limit?: number; search?: string; status?: string; kode_layanan?: string;
+  page?: number; limit?: number; search?: string; status?: string; kode_layanan?: string; nm_fakultas?: string;
 }): Promise<PaginatedResponse<Pengajuan>> => {
   const response = await bakClient.get<PaginatedResponse<Pengajuan>>('/admin/pengajuan', { params });
   return response.data;
 };
 
-export const verifikasiPengajuan = async (id: string, data?: { catatan?: string }): Promise<void> => {
-  await bakClient.post(`/admin/pengajuan/${id}/verifikasi`, data);
+export const getVerifikasiQueue = async (params?: {
+  page?: number; limit?: number; search?: string; kode_layanan?: string;
+}): Promise<PaginatedResponse<Pengajuan>> => {
+  const response = await bakClient.get<PaginatedResponse<Pengajuan>>('/admin/verifikasi/queue', { params });
+  return response.data;
+};
+
+export const verifikasiPengajuan = async (id: string, data?: { catatan?: string; surat_pengantar?: File }): Promise<void> => {
+  if (data?.surat_pengantar) {
+    const formData = new FormData();
+    if (data.catatan) formData.append('catatan', data.catatan);
+    formData.append('surat_pengantar', data.surat_pengantar);
+    await bakClient.post(`/admin/pengajuan/${id}/verifikasi`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  } else {
+    await bakClient.post(`/admin/pengajuan/${id}/verifikasi`, data);
+  }
 };
 
 export const mintaPerbaikan = async (id: string, data: { catatan: string }): Promise<void> => {
@@ -575,7 +591,7 @@ const simBakService = {
   uploadDokumen, ajukanPengajuan, deleteDokumen,
   downloadDokumenUrl, downloadDokumenHasilUrl,
   // Admin
-  getAdminPengajuan, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan,
+  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan,
   // Approval
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch

@@ -17,6 +17,7 @@ class PengajuanRepository extends BaseRepository
         $status = $params['status'] ?? null;
         $kodeLayanan = $params['kode_layanan'] ?? null;
         $idPemohon = $params['id_pemohon'] ?? null;
+        $nmFakultas = $params['nm_fakultas'] ?? null;
         $bindings = [];
 
         $where = "WHERE p.soft_delete = false";
@@ -37,6 +38,10 @@ class PengajuanRepository extends BaseRepository
         if ($idPemohon) {
             $where .= " AND p.id_pemohon = ?";
             $bindings[] = $idPemohon;
+        }
+        if ($nmFakultas) {
+            $where .= " AND LOWER(dp.nm_fakultas) = LOWER(?)";
+            $bindings[] = $nmFakultas;
         }
 
         $countSql = "
@@ -358,12 +363,12 @@ class PengajuanRepository extends BaseRepository
         $limit = $params['limit'] ?? 10;
         $search = $params['search'] ?? null;
         $kodeRole = $params['kode_role'] ?? null;
+        $kodeLayanan = $params['kode_layanan'] ?? null;
         $bindings = [];
 
         $where = "WHERE p.soft_delete = false AND p.status NOT IN ('draft', 'terbit', 'ditolak')";
 
         if ($kodeRole) {
-            // Hanya tampilkan pengajuan yang ada tahapan dengan kode_role ini pada status saat ini
             $where .= "
                 AND EXISTS (
                     SELECT 1 FROM ref.tahapan_layanan t
@@ -376,6 +381,11 @@ class PengajuanRepository extends BaseRepository
             $bindings[] = $kodeRole;
         }
 
+        if ($kodeLayanan) {
+            $where .= " AND jl.kode_layanan = ?";
+            $bindings[] = $kodeLayanan;
+        }
+
         if ($search) {
             $where .= " AND (LOWER(p.nomor_permohonan) LIKE ? OR LOWER(dp.nm_mahasiswa) LIKE ? OR LOWER(dp.nim) LIKE ?)";
             $s = '%' . strtolower($search) . '%';
@@ -385,6 +395,7 @@ class PengajuanRepository extends BaseRepository
         $countSql = "
             SELECT COUNT(*) as total
             FROM layanan.pengajuan p
+            JOIN ref.jenis_layanan jl ON jl.id_jenis_layanan = p.id_jenis_layanan
             LEFT JOIN layanan.data_pemohon dp ON dp.id_pengajuan = p.id_pengajuan AND dp.soft_delete = false
             {$where}
         ";

@@ -106,6 +106,7 @@ Route::prefix('v1')->group(function () {
         // -----------------------------------------
         Route::prefix('admin')->group(function () {
             Route::get('/pengajuan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'index']);
+            Route::get('/verifikasi/queue', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'queue']);
             Route::get('/pengajuan/{id}/progress', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'progress']);
             Route::post('/pengajuan/{id}/verifikasi', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'verifikasi'])->middleware('permission:approve,sim-bak');
             Route::post('/pengajuan/{id}/perbaikan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'mintaPerbaikan'])->middleware('permission:reject,sim-bak');

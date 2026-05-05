@@ -12,7 +12,8 @@ import type { MenuItem } from "@/lib/types/dashboardTypes";
 const allRoles = ["mahasiswa", "admin_bak", "admin_fakultas", "pejabat", "developer", "admin"];
 const adminRoles = ["admin_bak", "developer", "admin"];
 const mahasiswaRoles = ["mahasiswa", "developer", "admin"];
-const approverRoles = ["admin_fakultas", "pejabat", "developer", "admin"];
+const verifierRoles = ["admin_bak", "admin_fakultas", "developer", "admin"];
+const approverRoles = ["pejabat", "developer", "admin"];
 
 export const simBakMenuConfig: MenuItem[] = [
   {
@@ -43,13 +44,13 @@ export const simBakMenuConfig: MenuItem[] = [
     title: "Semua Pengajuan",
     icon: <FiList className="w-5 h-5" />,
     href: "/dashboard/sim-bak/admin/pengajuan",
-    roles: adminRoles,
+    roles: [...adminRoles, "admin_fakultas"],
   },
   {
     title: "Verifikasi",
     icon: <FiCheckSquare className="w-5 h-5" />,
     href: "/dashboard/sim-bak/admin/verifikasi",
-    roles: adminRoles,
+    roles: verifierRoles,
   },
   {
     title: "Persetujuan",
