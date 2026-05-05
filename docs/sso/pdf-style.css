@@ -1,0 +1,96 @@
+@page {
+  size: A4;
+  margin: 2cm 1.8cm 2cm 1.8cm;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  color: #1f2937;
+}
+
+h1 { font-size: 20pt; color: #0f172a; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-top: 20pt; }
+h2 { font-size: 15pt; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-top: 22pt; page-break-after: avoid; }
+h3 { font-size: 12.5pt; color: #1e293b; margin-top: 16pt; page-break-after: avoid; }
+h4 { font-size: 11pt; color: #334155; margin-top: 12pt; page-break-after: avoid; }
+
+p, li { font-size: 10.5pt; }
+
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code {
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", Menlo, monospace;
+  font-size: 9.5pt;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #be185d;
+}
+
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 8.8pt;
+  line-height: 1.45;
+  overflow-x: auto;
+  page-break-inside: avoid;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", Menlo, monospace;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 9.5pt;
+  margin: 10px 0;
+  page-break-inside: avoid;
+}
+
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+tr:nth-child(even) td { background: #f8fafc; }
+
+blockquote {
+  border-left: 3px solid #60a5fa;
+  padding: 4px 12px;
+  background: #eff6ff;
+  margin: 10px 0;
+  color: #1e40af;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #cbd5e1;
+  margin: 20pt 0;
+}
+
+ul, ol { padding-left: 22px; }
+li { margin: 2px 0; }
+
+/* Flow diagram ASCII — keep monospace block readable */
+pre:has(code:not([class])),
+pre > code:not([class]) {
+  font-size: 7.8pt;
+  line-height: 1.35;
+}
