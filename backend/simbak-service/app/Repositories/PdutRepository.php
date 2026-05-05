@@ -377,7 +377,7 @@ class PdutRepository extends BaseRepository
             $offset = ($page - 1) * $limit;
             $bindings = [];
 
-            $where = "WHERE m.soft_delete = 0 AND m.status_mahasiswa = 'Aktif'";
+            $where = "WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Aktif'";
 
             if (!empty($params['id_fakultas'])) {
                 $where .= " AND m.nm_fakultas = ?";
@@ -401,10 +401,16 @@ class PdutRepository extends BaseRepository
                 array_push($bindings, $s, $s, $s);
             }
 
+            $joins = "
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
+                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+            ";
+
             $total = $this->pdutSelectOne("
                 SELECT COUNT(*) as total
                 FROM siakadu.mahasiswa m
-                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                {$joins}
                 {$where}
             ", $bindings)->total ?? 0;
 
@@ -420,12 +426,12 @@ class PdutRepository extends BaseRepository
                     m.ipk,
                     m.sks_lulus,
                     CAST(m.semester AS INT) AS semester_aktif,
-                    m.status_mahasiswa AS status_registrasi,
+                    sm.nm_stat_mhs AS status_registrasi,
                     m.email,
                     m.hp,
                     m.jalur_pendaftaran
                 FROM siakadu.mahasiswa m
-                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                {$joins}
                 {$where}
                 ORDER BY m.nama ASC
                 OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
@@ -453,7 +459,7 @@ class PdutRepository extends BaseRepository
             $offset = ($page - 1) * $limit;
             $bindings = [];
 
-            $where = "WHERE m.soft_delete = 0 AND m.status_mahasiswa = 'Lulus'";
+            $where = "WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'";
 
             if (!empty($params['id_fakultas'])) {
                 $where .= " AND m.nm_fakultas = ?";
@@ -468,8 +474,7 @@ class PdutRepository extends BaseRepository
                 $bindings[] = $params['jenjang'];
             }
             if (!empty($params['tahun_lulus'])) {
-                // Fallback: pakai tgl_keluar jika ada, kalau tidak skip filter ini
-                $where .= " AND YEAR(m.tgl_keluar) = ?";
+                $where .= " AND YEAR(rp.tgl_keluar) = ?";
                 $bindings[] = (int) $params['tahun_lulus'];
             }
             if (!empty($params['search'])) {
@@ -478,10 +483,17 @@ class PdutRepository extends BaseRepository
                 array_push($bindings, $s, $s, $s);
             }
 
+            $joins = "
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
+                LEFT JOIN pdrd.reg_pd rp ON rp.id_reg_pd = m.id_reg_pd
+                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+            ";
+
             $total = $this->pdutSelectOne("
                 SELECT COUNT(*) as total
                 FROM siakadu.mahasiswa m
-                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                {$joins}
                 {$where}
             ", $bindings)->total ?? 0;
 
@@ -494,7 +506,7 @@ class PdutRepository extends BaseRepository
                     m.nm_fakultas,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
-                    YEAR(m.tgl_keluar) AS tahun_lulus,
+                    YEAR(rp.tgl_keluar) AS tahun_lulus,
                     m.ipk,
                     CAST(m.semester AS INT) AS masa_studi_semester,
                     CASE
@@ -506,9 +518,9 @@ class PdutRepository extends BaseRepository
                     END AS tepat_waktu,
                     m.jalur_pendaftaran
                 FROM siakadu.mahasiswa m
-                LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                {$joins}
                 {$where}
-                ORDER BY m.tgl_keluar DESC, m.nama ASC
+                ORDER BY rp.tgl_keluar DESC, m.nama ASC
                 OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
             ", $bindings);
 
@@ -569,28 +581,34 @@ class PdutRepository extends BaseRepository
                 $excludeBindings = $excludedJalur;
             }
 
+            $statusJoin = "
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
+            ";
+
             $aktif = $this->pdutSelectOne("
                 SELECT COUNT(*) as total
-                FROM siakadu.mahasiswa
-                WHERE soft_delete = 0 AND status_mahasiswa = 'Aktif'
+                FROM siakadu.mahasiswa m
+                {$statusJoin}
+                WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Aktif'
             ");
 
-            // Total lulus & rata-rata masa studi: HANYA hitung yang tidak di-exclude
             $lulus = $this->pdutSelectOne("
                 SELECT
                     COUNT(*) as total,
-                    AVG(CAST(semester AS FLOAT)) AS rata_masa_studi
+                    AVG(CAST(m.semester AS FLOAT)) AS rata_masa_studi
                 FROM siakadu.mahasiswa m
-                WHERE m.soft_delete = 0 AND m.status_mahasiswa = 'Lulus'
+                {$statusJoin}
+                WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'
                   {$excludeClause}
             ", $excludeBindings);
 
-            // Tepat waktu: HANYA dari yang tidak di-exclude
             $tepatWaktu = $this->pdutSelectOne("
                 SELECT COUNT(*) as total
                 FROM siakadu.mahasiswa m
+                {$statusJoin}
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
-                WHERE m.soft_delete = 0 AND m.status_mahasiswa = 'Lulus'
+                WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'
                   AND m.semester IS NOT NULL
                   {$excludeClause}
                   AND (
@@ -601,10 +619,11 @@ class PdutRepository extends BaseRepository
                   )
             ", $excludeBindings);
 
-            // Total ALL lulus (untuk transparansi: include excluded)
             $lulusAll = $this->pdutSelectOne("
-                SELECT COUNT(*) as total FROM siakadu.mahasiswa
-                WHERE soft_delete = 0 AND status_mahasiswa = 'Lulus'
+                SELECT COUNT(*) as total
+                FROM siakadu.mahasiswa m
+                {$statusJoin}
+                WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'
             ");
 
             $totalLulusValid = (int) ($lulus->total ?? 0); // tidak termasuk excluded

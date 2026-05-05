@@ -42,6 +42,7 @@ class PeranRepository
                 p.id_peran,
                 p.nm_peran,
                 p.a_perlu_sk,
+                ISNULL(p.a_universal, 0) as a_universal,
                 p.tgl_create,
                 p.last_update,
                 p.expired_date,
@@ -134,6 +135,7 @@ class PeranRepository
                 p.id_peran,
                 p.nm_peran,
                 p.a_perlu_sk,
+                ISNULL(p.a_universal, 0) as a_universal,
                 p.tgl_create,
                 p.last_update,
                 p.expired_date,
@@ -211,14 +213,15 @@ class PeranRepository
 
         $sql = "
             INSERT INTO man_akses.peran (
-                id_peran, nm_peran, a_perlu_sk, tgl_create, last_update, last_sync
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                id_peran, nm_peran, a_perlu_sk, a_universal, tgl_create, last_update, last_sync
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
         ";
 
         DB::insert($sql, [
             $newId,
             $data['nm_peran'],
             $data['a_perlu_sk'] ?? 0,
+            $data['a_universal'] ?? 0,
             $now,
             $now,
             $now,
@@ -242,6 +245,7 @@ class PeranRepository
             UPDATE man_akses.peran SET
                 nm_peran = ?,
                 a_perlu_sk = ?,
+                a_universal = ?,
                 last_update = ?,
                 last_sync = ?
             WHERE id_peran = ?
@@ -250,6 +254,7 @@ class PeranRepository
         $affected = DB::update($sql, [
             $data['nm_peran'],
             $data['a_perlu_sk'] ?? 0,
+            $data['a_universal'] ?? 0,
             $now,
             $now,
             $id,

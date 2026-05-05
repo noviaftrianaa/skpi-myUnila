@@ -502,7 +502,7 @@ class AuthService
             [
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
-                'device_name' => DeviceDetector::detect(request()->userAgent()),
+                'device_name' => DeviceDetector::parse(request()->userAgent())['browser'] ?? 'unknown',
             ]
         );
 

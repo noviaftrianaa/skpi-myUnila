@@ -1831,6 +1831,61 @@ else
 fi
 
 ###############################################################################
+# SIMBAK Service (VM8 - 192.168.120.48 / staging: nginx port 9002)
+# Laravel PHP via Nginx — SI Manajemen BAK (kemahasiswaan)
+# Frontend env: NEXT_PUBLIC_BAK_API_URL=http://kong:9800/simbak-service
+###############################################################################
+echo ""
+echo -e "${BLUE}=== SIMBAK Service ===${NC}"
+
+SIMBAK_SVC=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"name\": \"simbak-service\",
+    \"url\": \"${SIMBAK_SERVICE_URL:-http://192.168.120.48:9002}\",
+    \"connect_timeout\": 60000,
+    \"write_timeout\": 60000,
+    \"read_timeout\": 60000
+  }")
+
+SIMBAK_SVC_ID=$(parse_json_id "$SIMBAK_SVC")
+
+if [ -n "$SIMBAK_SVC_ID" ]; then
+    echo -e "${GREEN}  ✓ simbak-service created: $SIMBAK_SVC_ID${NC}"
+
+    SIMBAK_ROUTE=$(curl -s -X POST "$KONG_ADMIN_URL/services/simbak-service/routes" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "simbak-route",
+        "paths": ["/simbak-service"],
+        "strip_path": true,
+        "preserve_host": false,
+        "protocols": ["http", "https"]
+      }')
+
+    SIMBAK_ROUTE_ID=$(parse_json_id "$SIMBAK_ROUTE")
+
+    if [ -n "$SIMBAK_ROUTE_ID" ]; then
+        curl -s -X POST "$KONG_ADMIN_URL/routes/$SIMBAK_ROUTE_ID/plugins" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "cors",
+            "config": {
+              "origins": ["*"],
+              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+              "headers": ["Accept", "Content-Type", "Authorization", "X-Active-Role"],
+              "exposed_headers": ["Content-Length"],
+              "max_age": 3600
+            }
+          }' > /dev/null
+
+        echo -e "${GREEN}  ✓ simbak-route created with CORS${NC}"
+    fi
+else
+    echo -e "${RED}  ✗ Failed to create simbak-service${NC}"
+fi
+
+###############################################################################
 # Monitoring Services (VM4 - 192.168.120.44)
 # Proxied via Kong — no direct access needed from user network
 ###############################################################################

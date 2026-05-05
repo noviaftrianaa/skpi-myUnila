@@ -155,7 +155,7 @@ create_service_route() {
             "config": {
               "origins": ["*"],
               "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-              "headers": ["Accept", "Authorization", "Content-Type"],
+              "headers": ["Accept", "Authorization", "Content-Type", "X-Active-Role"],
               "exposed_headers": ["X-Auth-Token"],
               "credentials": true,
               "max_age": 3600
@@ -250,6 +250,11 @@ create_service_route "keuangan-service" \
 create_service_route "webmon-service" \
     "${WEBMON_SERVICE_URL:-http://myunila-monitoring-staging:8089}" \
     "webmon-service" 100
+
+# SIMBAK Service (via Nginx port 9002)
+create_service_route "simbak-service" \
+    "${SIMBAK_SERVICE_URL:-http://myunila-nginx-staging:9002}" \
+    "simbak-service" 100
 
 # Monitoring Stack
 # Frontend

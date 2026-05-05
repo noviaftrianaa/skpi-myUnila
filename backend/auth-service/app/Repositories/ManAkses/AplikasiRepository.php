@@ -77,6 +77,7 @@ class AplikasiRepository
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 ISNULL(a.a_live, 0) as a_live,
                 ISNULL(a.a_aktif, 1) as a_aktif,
+                ISNULL(a.a_filter_organisasi, 0) as a_filter_organisasi,
                 (SELECT COUNT(*) FROM man_akses.akses_table_aplikasi ata WHERE ata.id_aplikasi = a.id_aplikasi) as jumlah_table,
                 (SELECT COUNT(*) FROM man_akses.pj_aplikasi pj WHERE pj.id_aplikasi = a.id_aplikasi) as jumlah_pj,
                 (SELECT COUNT(*) FROM man_akses.menu m WHERE m.id_aplikasi = a.id_aplikasi AND m.expired_date IS NULL) as jumlah_menu
@@ -272,6 +273,7 @@ class AplikasiRepository
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 ISNULL(a.a_live, 0) as a_live,
                 ISNULL(a.a_aktif, 1) as a_aktif,
+                ISNULL(a.a_filter_organisasi, 0) as a_filter_organisasi,
                 a.tgl_create,
                 a.last_update,
                 a.expired_date,
@@ -297,6 +299,7 @@ class AplikasiRepository
             $aplikasi->a_terintegrasi = (int) $aplikasi->a_terintegrasi;
             $aplikasi->a_live = (int) $aplikasi->a_live;
             $aplikasi->a_aktif = (int) $aplikasi->a_aktif;
+            $aplikasi->a_filter_organisasi = (int) $aplikasi->a_filter_organisasi;
 
             // Get tables for this application
             $aplikasi->tables = $this->getTables($id);
@@ -476,8 +479,8 @@ class AplikasiRepository
                 icon_name, icon_color, app_slug, urutan,
                 a_generate_menu, a_integrasi_cas, a_sistem_internal_pt,
                 a_tampil_portal, a_maintenance, a_coming_soon, a_terintegrasi, a_live,
-                a_aktif, tgl_create, last_update, last_sync
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                a_filter_organisasi, a_aktif, tgl_create, last_update, last_sync
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         DB::insert($sql, [
@@ -504,6 +507,7 @@ class AplikasiRepository
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
             $data['a_live'] ?? 0,
+            $data['a_filter_organisasi'] ?? 0,
             $aAktif,
             $now,
             $now,
@@ -553,6 +557,7 @@ class AplikasiRepository
                 a_coming_soon = ?,
                 a_terintegrasi = ?,
                 a_live = ?,
+                a_filter_organisasi = ?,
                 a_aktif = ?,
                 last_update = ?,
                 last_sync = ?
@@ -580,6 +585,7 @@ class AplikasiRepository
             $data['a_coming_soon'] ?? 0,
             $data['a_terintegrasi'] ?? 0,
             $data['a_live'] ?? 0,
+            $data['a_filter_organisasi'] ?? 0,
             $aAktif,
             $now,
             $now,
