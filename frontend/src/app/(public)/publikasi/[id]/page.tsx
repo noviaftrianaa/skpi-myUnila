@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiFileText, FiUsers, FiBarChart2, FiExternalLink, FiCalendar, FiHash, FiAward, FiFlask, FiTag } from "react-icons/fi";
+import { FiFileText, FiUsers, FiBarChart2, FiExternalLink, FiCalendar, FiHash, FiAward, FiActivity, FiTag } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { FaMale, FaFemale } from "react-icons/fa";
 import { publikasiService, type PublikasiDetail } from "@/lib/services/public/publikasiService";
@@ -322,7 +322,7 @@ export default function PublikasiDetailPage() {
               {publikasi.litabmas && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FiFlask className="w-6 h-6 text-blue-600" />
+                    <FiActivity className="w-6 h-6 text-blue-600" />
                     Terkait dengan {publikasi.litabmas.jenis}
                   </h2>
 
@@ -332,7 +332,7 @@ export default function PublikasiDetailPage() {
                   >
                     <div className="flex items-start gap-3">
                       <div className="bg-blue-100 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
-                        <FiFlask className="w-5 h-5 text-blue-600" />
+                        <FiActivity className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-gray-600 mb-1">{publikasi.litabmas.jenis}</p>

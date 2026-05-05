@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { monitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/sister/management/monitoringService";
+import { sisterMonitoringService, type SyncProgress, type MonitoringStats } from "@/lib/services/sister/management/monitoringService";
 import { Card, CardBody, Spinner, Progress, Chip } from "@heroui/react";
 import {
   FiActivity,
@@ -32,7 +32,7 @@ export default function MonitoringPage() {
 
   const fetchMonitoringData = useCallback(async () => {
     try {
-      const data = await monitoringService.getActiveSyncs();
+      const data = await sisterMonitoringService.getActiveSyncs();
       setActiveSyncs(data.active_syncs || []);
       setStats(data.stats);
       setLastUpdate(new Date(data.updated_at));

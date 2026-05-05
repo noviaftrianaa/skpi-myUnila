@@ -35,7 +35,7 @@ export interface MonitoringResponse {
   updated_at: string;
 }
 
-class MonitoringService {
+class SisterMonitoringService {
   /**
    * Get all active sync operations
    */
@@ -53,4 +53,4 @@ class MonitoringService {
   }
 }
 
-export const monitoringService = new MonitoringService();
+export const sisterMonitoringService = new SisterMonitoringService();
