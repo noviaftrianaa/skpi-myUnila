@@ -40,9 +40,14 @@ export default function CreateBatchPage() {
     if (!user) return;
     Promise.all([
       getJenisLayananPublic().then(data => setBatchLayanan(data.filter(j => j.kategori === "batch_administrasi"))),
-      getRefSemester().then(setSemesterList),
+      getRefSemester().then(data => {
+        setSemesterList(data);
+        const aktif = data.find(s => s.a_periode_aktif);
+        if (aktif && !form.id_smt) setForm(f => ({ ...f, id_smt: aktif.id_smt }));
+      }),
       getRefFakultas().then(setFakultasList),
     ]).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handlePreview = useCallback(async () => {

@@ -225,8 +225,8 @@ class PdutRepository extends BaseRepository
         try {
             return $this->pdutSelect("
                 SELECT TOP (?) id_smt, nm_smt, smt, tgl_mulai, tgl_selesai, a_periode_aktif
-                FROM siakadu.semester
-                ORDER BY id_smt DESC
+                FROM ref.semester
+                ORDER BY a_periode_aktif DESC, id_smt DESC
             ", [$limit]);
         } catch (\Exception $e) {
             Log::warning('PdutRepository.getSemesterList: ' . $e->getMessage());
@@ -279,9 +279,11 @@ class PdutRepository extends BaseRepository
                     m.hp,
                     {$semesterDariAngkatan} AS masa_studi_semester
                 FROM siakadu.mahasiswa m
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
                 WHERE m.soft_delete = 0
-                  AND m.status_mahasiswa = 'Aktif'
+                  AND sm.nm_stat_mhs = 'Aktif'
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
                   AND (
@@ -302,8 +304,7 @@ class PdutRepository extends BaseRepository
      * Tarik kandidat Putus Studi Akademik.
      * Kriteria: S1/D4 aktif, semester IV (IPK<2 atau SKS<40) atau semester VIII (IPK<2 atau SKS<80).
      *
-     * Catatan: smt dihitung dari kolom semester di tabel mahasiswa.
-     * kuliah_mhs kosong, jadi pakai data agregat di tabel mahasiswa.
+     * Semester dihitung dari angkatan (sama seperti HMM) karena kolom m.semester kosong.
      */
     public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null): array
     {
@@ -314,6 +315,10 @@ class PdutRepository extends BaseRepository
                 $fakultasFilter = "AND m.nm_fakultas = ?";
                 $bindings[] = $idFakultas;
             }
+
+            $tahunNow = (int) date('Y');
+            $bulanNow = (int) date('m');
+            $semesterDariAngkatan = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
 
             return $this->pdutSelect("
                 SELECT
@@ -328,21 +333,23 @@ class PdutRepository extends BaseRepository
                     m.angkatan,
                     m.ipk,
                     m.sks_lulus,
-                    CAST(m.semester AS INT) AS semester_aktif,
+                    {$semesterDariAngkatan} AS semester_aktif,
                     m.email,
                     m.email_kampus,
                     m.hp,
-                    CAST(m.semester AS INT) AS masa_studi_semester
+                    {$semesterDariAngkatan} AS masa_studi_semester
                 FROM siakadu.mahasiswa m
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
                 WHERE m.soft_delete = 0
-                  AND m.status_mahasiswa = 'Aktif'
+                  AND sm.nm_stat_mhs = 'Aktif'
                   AND jp.nm_jenj_didik IN ('S1', 'D4')
-                  AND m.semester IS NOT NULL
+                  AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
                   AND (
-                    (CAST(m.semester AS INT) = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
-                    (CAST(m.semester AS INT) = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
+                    ({$semesterDariAngkatan} = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
+                    ({$semesterDariAngkatan} = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
                   )
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
