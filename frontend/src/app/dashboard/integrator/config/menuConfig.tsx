@@ -17,6 +17,7 @@ import {
   FiDollarSign,
   FiBriefcase,
   FiAward,
+  FiMapPin,
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
@@ -121,6 +122,43 @@ export const myunilaIntegratorMenuConfig: MenuItem[] = [
       //   href: "/dashboard/integrator/siakadu/wisuda",
       //   roles: defaultRoles,
       // },
+    ],
+  },
+  {
+    title: "Data KKN",
+    icon: <FiMapPin className="w-5 h-5" />,
+    roles: defaultRoles,
+    children: [
+      {
+        title: "Statistik",
+        href: "/dashboard/integrator/kkn",
+        roles: defaultRoles,
+      },
+      {
+        title: "Periode & Lokasi",
+        href: "/dashboard/integrator/kkn/periode-lokasi",
+        roles: defaultRoles,
+      },
+      {
+        title: "Pendaftaran",
+        href: "/dashboard/integrator/kkn/pendaftaran",
+        roles: defaultRoles,
+      },
+      {
+        title: "Penempatan",
+        href: "/dashboard/integrator/kkn/penempatan",
+        roles: defaultRoles,
+      },
+      {
+        title: "Nilai",
+        href: "/dashboard/integrator/kkn/nilai",
+        roles: defaultRoles,
+      },
+      {
+        title: "Laporan",
+        href: "/dashboard/integrator/kkn/laporan",
+        roles: defaultRoles,
+      },
     ],
   },
   {

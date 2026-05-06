@@ -14,6 +14,7 @@ import (
 	"github.com/myunila/myunila-service/apps/akreditasi"
 	"github.com/myunila/myunila-service/apps/api_config"
 	"github.com/myunila/myunila-service/apps/kerjasama"
+	"github.com/myunila/myunila-service/apps/kkn"
 	"github.com/myunila/myunila-service/apps/logger"
 	"github.com/myunila/myunila-service/apps/manakses/unit_organisasi"
 	"github.com/myunila/myunila-service/apps/monitoring"
@@ -28,6 +29,7 @@ import (
 	"github.com/myunila/myunila-service/apps/sikep/referensi"
 	"github.com/myunila/myunila-service/docs"
 	"github.com/myunila/myunila-service/external/database"
+	"github.com/myunila/myunila-service/external/kkn_api"
 	"github.com/myunila/myunila-service/external/radius_api"
 	"github.com/myunila/myunila-service/external/siakadu_api"
 	"github.com/myunila/myunila-service/external/sikep_api"
@@ -107,6 +109,14 @@ func main() {
 		log.Printf("⚠️  Failed to initialize SIAKADU API client: %v", err)
 	} else {
 		log.Println("✅ SIAKADU API client initialized")
+	}
+
+	// Initialize KKN API client
+	kknAPI, err := kkn_api.NewKKNClient()
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize KKN API client: %v", err)
+	} else {
+		log.Println("✅ KKN API client initialized")
 	}
 
 	// Initialize Redis client for caching (used by RequireDeveloper middleware)
@@ -196,6 +206,10 @@ func main() {
 	akreditasiSvc := akreditasi.Init(apiV1, db.DB)
 	log.Println("✅ Akreditasi (BAN-PT) module initialized")
 
+	// Initialize KKN module
+	kknSvc := kkn.Init(apiV1, db.DB, kknAPI)
+	log.Println("✅ KKN module initialized")
+
 	// Initialize ManAkses Unit Organisasi module
 	unitOrgSvc := unit_organisasi.RegisterRoutes(apiV1, db.DB)
 	log.Println("✅ ManAkses Unit Organisasi module initialized")
@@ -227,6 +241,10 @@ func main() {
 	schedulerSvc.SetAkreditasiSyncService(&akreditasiSyncAdapter{svc: akreditasiSvc})
 	log.Println("✅ Akreditasi sync service connected to scheduler")
 	log.Println("✅ Kerjasama sync service connected to scheduler")
+
+	// Connect KKN sync service to scheduler
+	schedulerSvc.SetKKNSyncService(&kknSyncAdapter{svc: kknSvc})
+	log.Println("✅ KKN sync service connected to scheduler")
 
 	// Start scheduler
 	if err := schedulerSvc.Start(); err != nil {
@@ -263,6 +281,8 @@ func main() {
 				"kerjasama_mou":       "/api/v1/kerjasama/mou",
 				"kerjasama_mapping":   "/api/v1/kerjasama/unit-mapping",
 				"kerjasama_sync":      "/api/v1/kerjasama/sync",
+				"kkn_stats":          "/api/v1/kkn/stats",
+				"kkn_sync":           "/api/v1/kkn/sync-all",
 				"logger":              "/api/v1/logger",
 				"monitoring":          "/api/v1/monitoring",
 				"scheduler":           "/api/v1/schedules",
@@ -345,4 +365,13 @@ type akreditasiSyncAdapter struct {
 
 func (a *akreditasiSyncAdapter) RunSchedule(ctx context.Context, syncedBy string) (interface{}, error) {
 	return a.svc.RunSchedule(ctx, syncedBy)
+}
+
+// kknSyncAdapter adapts kkn.Service to scheduler.KKNSyncService
+type kknSyncAdapter struct {
+	svc kkn.Service
+}
+
+func (a *kknSyncAdapter) SyncAll(ctx context.Context, syncedBy string) (interface{}, error) {
+	return a.svc.SyncAll(ctx, syncedBy)
 }

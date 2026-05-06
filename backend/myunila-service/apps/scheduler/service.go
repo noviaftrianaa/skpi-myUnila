@@ -40,6 +40,11 @@ type AkreditasiSyncService interface {
 	RunSchedule(ctx context.Context, syncedBy string) (interface{}, error)
 }
 
+// KKNSyncService interface for KKN data sync operations
+type KKNSyncService interface {
+	SyncAll(ctx context.Context, syncedBy string) (interface{}, error)
+}
+
 // SiakaduSyncRunner runs SIAKADU sync via internal HTTP calls
 type SiakaduSyncRunner struct {
 	BaseURL string
@@ -94,6 +99,7 @@ type Service interface {
 	SetUnitOrganisasiSyncService(svc UnitOrganisasiSyncService)
 	SetKerjasamaSyncService(svc KerjasamaSyncService)
 	SetAkreditasiSyncService(svc AkreditasiSyncService)
+	SetKKNSyncService(svc KKNSyncService)
 }
 
 type service struct {
@@ -106,6 +112,7 @@ type service struct {
 	unitOrgSync       UnitOrganisasiSyncService
 	kerjasamaSync     KerjasamaSyncService
 	akreditasiSync    AkreditasiSyncService
+	kknSync           KKNSyncService
 	siakaduRunner     *SiakaduSyncRunner
 	keuanganRunner    *KeuanganSyncRunner
 }
@@ -157,6 +164,11 @@ func (s *service) SetKerjasamaSyncService(svc KerjasamaSyncService) {
 // SetAkreditasiSyncService sets the BAN-PT akreditasi sync service for scheduled syncs
 func (s *service) SetAkreditasiSyncService(svc AkreditasiSyncService) {
 	s.akreditasiSync = svc
+}
+
+// SetKKNSyncService sets the KKN sync service for scheduled syncs
+func (s *service) SetKKNSyncService(svc KKNSyncService) {
+	s.kknSync = svc
 }
 
 // Start loads active schedules and starts the cron scheduler
@@ -312,6 +324,12 @@ func (s *service) executeSync(ctx context.Context, syncType, syncedBy string) er
 			return fmt.Errorf("akreditasi sync service not configured")
 		}
 		_, err := s.akreditasiSync.RunSchedule(ctx, syncedBy)
+		return err
+	case "kkn":
+		if s.kknSync == nil {
+			return fmt.Errorf("kkn sync service not configured")
+		}
+		_, err := s.kknSync.SyncAll(ctx, syncedBy)
 		return err
 	case "daftar_ukt":
 		// Tahun saat ini (UTC, tetapi server jalan WIB jadi accurate)

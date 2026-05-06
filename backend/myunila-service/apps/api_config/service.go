@@ -75,9 +75,18 @@ func (s *service) GetCredentials(apiCode string) (map[string]interface{}, error)
 		return s.getCredentialsFromEnv(apiCode)
 	}
 
-	// Decrypt credentials from database
 	if config.EncryptedCredentials.Valid && config.EncryptedCredentials.String != "" {
-		decrypted, err := s.encryptor.Decrypt(config.EncryptedCredentials.String)
+		raw := config.EncryptedCredentials.String
+
+		if !config.IsEncrypted {
+			var credentials map[string]interface{}
+			if err := json.Unmarshal([]byte(raw), &credentials); err != nil {
+				return nil, fmt.Errorf("failed to parse credentials: %v", err)
+			}
+			return credentials, nil
+		}
+
+		decrypted, err := s.encryptor.Decrypt(raw)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt credentials: %v", err)
 		}

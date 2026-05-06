@@ -60,6 +60,8 @@ services:
           cpus: '0.1'
           memory: 128M
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - myunila-staging-network
     restart: unless-stopped
