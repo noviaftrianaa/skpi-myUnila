@@ -7,11 +7,12 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare, FiTrash2, FiRefreshCw } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, FiDownload, FiMail, FiMessageSquare, FiTrash2, FiRefreshCw, FiEye, FiSend, FiRotateCcw } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat, deleteBatch, pullBatchCandidates } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, deleteSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat, deleteBatch, pullBatchCandidates, sendBatchToFakultas, resetKandidatStatus, returnBatchToFakultas } from "@/lib/services/sim-bak/simBakService";
+import bakClient from "@/lib/api/bakClient";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
 
@@ -36,7 +37,6 @@ export default function BatchDetailPage() {
 
   const [batch, setBatch] = useState<BatchPenetapan | null>(null);
   const [kandidatList, setKandidatList] = useState<KandidatBatch[]>([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("");
@@ -53,6 +53,9 @@ export default function BatchDetailPage() {
   const [excludeDokumen, setExcludeDokumen] = useState<File | null>(null);
   // Finalisasi verifikasi modal
   const [showFinalisasiVerifModal, setShowFinalisasiVerifModal] = useState(false);
+
+  // Preview SK Dekan
+  const [previewSkUrl, setPreviewSkUrl] = useState<string | null>(null);
 
   // Upload SK Dekan
   const [showSkDekanForm, setShowSkDekanForm] = useState(false);
@@ -74,6 +77,64 @@ export default function BatchDetailPage() {
   // Tarik ulang kandidat modal
   const [showPullModal, setShowPullModal] = useState(false);
   const [pulling, setPulling] = useState(false);
+
+  // Kirim ke fakultas modal
+  const [showSendToFakultasModal, setShowSendToFakultasModal] = useState(false);
+  const [sendingToFakultas, setSendingToFakultas] = useState(false);
+
+  // Reset kandidat modal
+  const [resetModal, setResetModal] = useState<{ id: string; nama: string } | null>(null);
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetKandidat = async () => {
+    if (!resetModal) return;
+    setResetting(true);
+    try {
+      await resetKandidatStatus(resetModal.id);
+      toast.success(`Status ${resetModal.nama} berhasil direset ke "masuk"`);
+      setResetModal(null);
+      fetchData();
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal mereset status kandidat";
+      toast.error(msg);
+    } finally { setResetting(false); }
+  };
+
+  // Kembalikan ke fakultas modal
+  const [showReturnToFakultasModal, setShowReturnToFakultasModal] = useState(false);
+  const [returnAlasan, setReturnAlasan] = useState("");
+  const [returning, setReturning] = useState(false);
+
+  const handleSendToFakultas = async () => {
+    setSendingToFakultas(true);
+    try {
+      await sendBatchToFakultas(id);
+      toast.success("Batch berhasil dikirim ke fakultas untuk verifikasi");
+      setShowSendToFakultasModal(false);
+      fetchData();
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal mengirim ke fakultas";
+      toast.error(msg);
+    } finally { setSendingToFakultas(false); }
+  };
+
+  const handleReturnToFakultas = async () => {
+    if (returnAlasan.trim().length < 10) {
+      toast.error("Alasan wajib diisi minimal 10 karakter");
+      return;
+    }
+    setReturning(true);
+    try {
+      await returnBatchToFakultas(id, returnAlasan);
+      toast.success("Batch dikembalikan ke fakultas untuk perbaikan");
+      setShowReturnToFakultasModal(false);
+      setReturnAlasan("");
+      fetchData();
+    } catch (e) {
+      const msg = (e as Record<string, Record<string, Record<string, string>>>)?.response?.data?.message || "Gagal mengembalikan ke fakultas";
+      toast.error(msg);
+    } finally { setReturning(false); }
+  };
 
   const handlePullCandidates = async () => {
     setPulling(true);
@@ -110,11 +171,10 @@ export default function BatchDetailPage() {
     try {
       const [b, k] = await Promise.all([
         getBatchDetail(id),
-        getBatchKandidat(id, { page, limit: 50, status_kandidat: filterStatus || undefined, id_fakultas: filterFakultas || undefined }),
+        getBatchKandidat(id, { page, limit: 1000, status_kandidat: filterStatus || undefined, id_fakultas: filterFakultas || undefined }),
       ]);
       setBatch(b);
       setKandidatList(k.data ?? []);
-      setTotal(k.pagination?.total ?? 0);
     } catch { setBatch(null); }
     finally { setLoading(false); }
   }, [id, page, filterStatus, filterFakultas]);
@@ -167,6 +227,15 @@ export default function BatchDetailPage() {
   }
 
   const cfg = statusConfig[batch.status] ?? statusConfig.draft;
+
+  const userRole = (() => {
+    const r = (user?.role ?? "").toLowerCase();
+    if (r.includes("fakultas")) return "admin_fakultas";
+    if (r.includes("developer") || r.includes("admin_bak") || r === "admin" || r.includes("administrator")) return "admin_bak";
+    if (r.includes("pejabat") || r.includes("dekan") || r.includes("rektor")) return "pejabat";
+    return r;
+  })();
+  const isAdminFakultas = userRole === "admin_fakultas";
 
   const handleVerifikasi = async (idKandidat: string, hasil: "dikonfirmasi" | "dikeluarkan") => {
     setActionLoading(true);
@@ -244,14 +313,19 @@ export default function BatchDetailPage() {
     )},
     { key: "aksi", label: "Aksi", align: "center" as const, render: (item) => (
       <div className="flex gap-1 items-center">
-        {/* Verifikasi buttons */}
-        {item.status_kandidat === "masuk" && !["sk_dekan_terbit", "terbit"].includes(batch?.status ?? "") && (
+        {/* Verifikasi buttons — only for admin fakultas when batch is in verifikasi_fakultas */}
+        {isAdminFakultas && item.status_kandidat === "masuk" && batch?.status === "verifikasi_fakultas" && (
           <>
             <Button size="sm" color="success" variant="flat" isIconOnly isLoading={actionLoading}
               onPress={() => setConfirmKandidat({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Konfirmasi"><FiCheck className="w-3.5 h-3.5" /></Button>
             <Button size="sm" color="danger" variant="flat" isIconOnly isLoading={actionLoading}
               onPress={() => setExcludeModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Keluarkan"><FiX className="w-3.5 h-3.5" /></Button>
           </>
+        )}
+        {/* Reset button — for admin fakultas when kandidat already verified but batch not yet finalized */}
+        {isAdminFakultas && item.status_kandidat !== "masuk" && batch?.status === "verifikasi_fakultas" && (
+          <Button size="sm" color="warning" variant="flat" isIconOnly
+            onPress={() => setResetModal({ id: item.id_kandidat, nama: item.nm_mahasiswa })} title="Batalkan verifikasi"><FiRotateCcw className="w-3.5 h-3.5" /></Button>
         )}
         {/* Kirim Email / WA buttons */}
         <Button size="sm" color="primary" variant="flat" isIconOnly
@@ -279,15 +353,81 @@ export default function BatchDetailPage() {
             <p className="text-sm text-gray-500">{batch.kode_batch} · {batch.nm_layanan}</p>
           </div>
           <Chip size="sm" color={cfg.color} variant="flat">{cfg.label}</Chip>
-          {["draft", "kandidat_ditarik"].includes(batch.status) && (
-            <Button size="sm" color="primary" variant="flat" startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
+          {!isAdminFakultas && ["draft", "kandidat_ditarik"].includes(batch.status) && (
+            <Button size="sm" className="bg-blue-500 text-white font-semibold hover:bg-blue-600" startContent={<FiRefreshCw className="w-3.5 h-3.5" />}
               onPress={() => setShowPullModal(true)}>Tarik Ulang</Button>
           )}
-          {["draft", "kandidat_ditarik", "verifikasi_fakultas"].includes(batch.status) && (
-            <Button size="sm" color="danger" variant="flat" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+          {!isAdminFakultas && batch.status === "kandidat_ditarik" && (
+            <Button size="sm" className="bg-indigo-500 text-white font-semibold hover:bg-indigo-600" startContent={<FiSend className="w-3.5 h-3.5" />}
+              onPress={() => setShowSendToFakultasModal(true)}>Kirim ke Fakultas</Button>
+          )}
+          {!isAdminFakultas && batch.status === "sk_dekan_terbit" && (
+            <>
+              <Button size="sm" className="bg-amber-500 text-white font-semibold hover:bg-amber-600" startContent={<FiRotateCcw className="w-3.5 h-3.5" />}
+                onPress={() => { setShowReturnToFakultasModal(true); setReturnAlasan(""); }}>Kembalikan ke Fakultas</Button>
+              <Button size="sm" className="bg-green-600 text-white font-semibold hover:bg-green-700" startContent={<FiCheck className="w-3.5 h-3.5" />}
+                onPress={() => setShowFinalizeModal(true)}>Finalkan & Terbitkan SK Rektor</Button>
+            </>
+          )}
+          {!isAdminFakultas && ["draft", "kandidat_ditarik", "verifikasi_fakultas"].includes(batch.status) && (
+            <Button size="sm" className="bg-red-500 text-white font-semibold hover:bg-red-600" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
               onPress={() => { setShowDeleteModal(true); setDeleteAlasan(""); }}>Hapus</Button>
           )}
         </div>
+
+        {/* Timeline */}
+        {(() => {
+          const steps = [
+            { key: "draft", label: "Draft" },
+            { key: "kandidat_ditarik", label: "Kandidat Ditarik" },
+            { key: "verifikasi_fakultas", label: "Verifikasi Fakultas" },
+            { key: "sk_dekan_terbit", label: "SK Dekan Terbit" },
+            { key: "terbit", label: "Terbit" },
+          ];
+          const currentIdx = steps.findIndex(s => s.key === batch.status);
+          return (
+            <div className="flex items-center w-full overflow-x-auto py-2">
+              {steps.map((step, i) => {
+                const isDone = i < currentIdx;
+                const isCurrent = i === currentIdx;
+                return (
+                  <div key={step.key} className="flex items-center flex-1 min-w-0">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                        isDone ? "bg-green-500 border-green-500 text-white" :
+                        isCurrent ? "bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/40" :
+                        "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-400"
+                      }`}>
+                        {isDone ? <FiCheck className="w-4 h-4" /> : i + 1}
+                      </div>
+                      <span className={`text-[10px] mt-1.5 text-center leading-tight max-w-[80px] ${
+                        isCurrent ? "font-semibold text-blue-600 dark:text-blue-400" :
+                        isDone ? "text-green-600 dark:text-green-400" :
+                        "text-gray-400 dark:text-gray-500"
+                      }`}>{step.label}</span>
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div className={`flex-1 h-0.5 mx-1.5 rounded ${isDone ? "bg-green-400" : "bg-gray-200 dark:bg-gray-700"}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Banner: Catatan pengembalian dari admin BAK */}
+        {batch.status === "verifikasi_fakultas" && batch.catatan && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl p-4 flex gap-3">
+            <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+              <FiAlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Dikembalikan oleh Admin BAK untuk perbaikan</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">{batch.catatan}</p>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -306,28 +446,90 @@ export default function BatchDetailPage() {
           ))}
         </div>
 
-        {/* SK Dekan Section */}
-        <Card className="shadow-md rounded-xl"><CardBody className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">SK Dekan</h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {batch.nomor_sk_dekan
-                  ? `No. ${batch.nomor_sk_dekan} — ${batch.tgl_sk_dekan ? new Date(batch.tgl_sk_dekan).toLocaleDateString("id-ID") : ""}`
-                  : "Belum diupload"}
-              </p>
+        {/* SK Dekan Section — full controls for admin fakultas (only in verifikasi_fakultas), read-only for others */}
+        {isAdminFakultas && batch.status === "verifikasi_fakultas" ? (
+          <Card className={`shadow-md rounded-xl border-2 ${batch.path_sk_dekan ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10" : "border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10"}`}><CardBody className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${batch.path_sk_dekan ? "bg-green-100 dark:bg-green-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
+                  {batch.path_sk_dekan
+                    ? <FiCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    : <FiUpload className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white">SK Dekan</h2>
+                  <p className={`text-xs mt-0.5 ${batch.path_sk_dekan ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    {batch.nomor_sk_dekan
+                      ? `No. ${batch.nomor_sk_dekan} — ${batch.tgl_sk_dekan ? new Date(batch.tgl_sk_dekan).toLocaleDateString("id-ID") : ""}`
+                      : "⚠ Belum diupload — wajib upload sebelum finalisasi"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {batch.path_sk_dekan ? (
+                  <>
+                    <Chip color="success" variant="flat" size="sm" startContent={<FiFile className="w-3 h-3" />}>Tersedia</Chip>
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                      onPress={async () => {
+                        try {
+                          const resp = await bakClient.get(`/batch/${id}/sk-dekan/download?preview=1`, { responseType: "blob" });
+                          const blob = new Blob([resp.data], { type: "application/pdf" });
+                          setPreviewSkUrl(URL.createObjectURL(blob));
+                        } catch { toast.error("Gagal memuat preview"); }
+                      }}>Lihat</Button>
+                    {!["sk_dekan_terbit", "terbit"].includes(batch.status) && (
+                      <>
+                        <Button size="sm" variant="flat" startContent={<FiUpload className="w-3.5 h-3.5" />}
+                          onPress={() => setShowSkDekanForm(true)}>Ganti</Button>
+                        <Button size="sm" variant="flat" color="danger" startContent={<FiTrash2 className="w-3.5 h-3.5" />}
+                          onPress={async () => {
+                            if (!confirm("Hapus SK Dekan?")) return;
+                            try {
+                              await deleteSkDekan(id);
+                              toast.success("SK Dekan berhasil dihapus");
+                              fetchData();
+                            } catch { toast.error("Gagal menghapus SK Dekan"); }
+                          }}>Hapus</Button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Button size="sm" color="warning" variant="solid" startContent={<FiUpload className="w-3.5 h-3.5" />}
+                    isDisabled={["sk_dekan_terbit", "terbit"].includes(batch.status)}
+                    onPress={() => setShowSkDekanForm(true)}>Upload SK Dekan</Button>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {batch.path_sk_dekan ? (
-                <Chip color="success" variant="flat" size="sm" startContent={<FiFile className="w-3 h-3" />}>Tersedia</Chip>
-              ) : (
-                <Button size="sm" color="primary" variant="flat" startContent={<FiUpload className="w-3.5 h-3.5" />}
-                  isDisabled={["sk_dekan_terbit", "terbit"].includes(batch.status)}
-                  onPress={() => setShowSkDekanForm(true)}>Upload SK Dekan</Button>
+          </CardBody></Card>
+        ) : (
+          <Card className={`shadow-md rounded-xl border ${batch.path_sk_dekan ? "border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-900/10" : "border-gray-200 dark:border-gray-700"}`}><CardBody className="p-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${batch.path_sk_dekan ? "bg-green-100 dark:bg-green-900/30" : "bg-gray-100 dark:bg-gray-800"}`}>
+                {batch.path_sk_dekan
+                  ? <FiCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  : <FiFile className="w-4 h-4 text-gray-400" />}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">SK Dekan</p>
+                <p className={`text-xs ${batch.path_sk_dekan ? "text-green-600 dark:text-green-400" : "text-gray-500"}`}>
+                  {batch.path_sk_dekan
+                    ? `Sudah diupload${batch.nomor_sk_dekan ? ` — No. ${batch.nomor_sk_dekan}` : ""}`
+                    : "Belum diupload oleh admin fakultas"}
+                </p>
+              </div>
+              {batch.path_sk_dekan && (
+                <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                  onPress={async () => {
+                    try {
+                      const resp = await bakClient.get(`/batch/${id}/sk-dekan/download?preview=1`, { responseType: "blob" });
+                      const blob = new Blob([resp.data], { type: "application/pdf" });
+                      setPreviewSkUrl(URL.createObjectURL(blob));
+                    } catch { toast.error("Gagal memuat preview"); }
+                  }}>Lihat</Button>
               )}
             </div>
-          </div>
-        </CardBody></Card>
+          </CardBody></Card>
+        )}
 
         {/* Info: Verifikasi Terkunci */}
         {["sk_dekan_terbit", "terbit"].includes(batch.status) && (
@@ -365,20 +567,12 @@ export default function BatchDetailPage() {
 
         {/* Action Buttons berdasarkan status */}
         <div className="flex flex-wrap gap-3 justify-end">
-          {/* Finalisasi Verifikasi Fakultas — hanya saat masih tahap verifikasi */}
-          {["kandidat_ditarik", "verifikasi_fakultas"].includes(batch.status) && (
-            <Button color="primary" size="lg" startContent={<FiCheck className="w-5 h-5" />}
+          {/* Finalisasi Verifikasi Fakultas — only for admin fakultas when in verifikasi_fakultas */}
+          {isAdminFakultas && batch.status === "verifikasi_fakultas" && (
+            <Button color="primary" variant="solid" size="lg" startContent={<FiCheck className="w-5 h-5" />}
               isLoading={actionLoading}
               onPress={() => setShowFinalisasiVerifModal(true)}>
               Finalisasi Verifikasi Fakultas
-            </Button>
-          )}
-
-          {/* Finalkan & Terbitkan SK Rektor — hanya setelah verifikasi fakultas selesai */}
-          {batch.status === "sk_dekan_terbit" && (
-            <Button color="success" size="lg" startContent={<FiCheck className="w-5 h-5" />}
-              onPress={() => setShowFinalizeModal(true)}>
-              Finalkan & Terbitkan SK Rektor
             </Button>
           )}
         </div>
@@ -534,6 +728,27 @@ export default function BatchDetailPage() {
         );
       })()}
 
+      {/* Modal: Preview SK Dekan */}
+      {previewSkUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => { URL.revokeObjectURL(previewSkUrl); setPreviewSkUrl(null); }} />
+          <div className="relative w-full max-w-4xl mx-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <FiFile className="w-5 h-5 text-blue-500" />
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">SK Dekan — {batch?.nomor_sk_dekan || batch?.kode_batch}</p>
+              </div>
+              <Button isIconOnly variant="light" size="sm" onPress={() => { URL.revokeObjectURL(previewSkUrl); setPreviewSkUrl(null); }}>
+                <FiX className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto p-1 bg-gray-100 dark:bg-gray-800">
+              <iframe src={previewSkUrl} className="w-full h-[75vh] rounded" title="Preview SK Dekan" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal: Upload SK Dekan */}
       {showSkDekanForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -643,6 +858,120 @@ export default function BatchDetailPage() {
               <button onClick={handlePullCandidates} disabled={pulling}
                 className="flex-1 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50">
                 {pulling ? "Menarik data..." : "Ya, Tarik Ulang"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Kirim ke Fakultas */}
+      {showSendToFakultasModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSendToFakultasModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                  <FiSend className="w-5 h-5 text-purple-500" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Kirim ke Fakultas</h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Batch akan dikirim ke admin fakultas untuk proses verifikasi kandidat.
+              </p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-1 text-xs text-blue-700 dark:text-blue-300">
+                <p className="font-semibold">Setelah dikirim:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>Admin fakultas dapat memverifikasi <strong>{batch.jumlah_kandidat}</strong> kandidat</li>
+                  <li>Admin fakultas dapat mengupload SK Dekan</li>
+                  <li>Anda masih dapat menarik ulang kandidat jika diperlukan</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowSendToFakultasModal(false)} disabled={sendingToFakultas}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+                Batal
+              </button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={handleSendToFakultas} disabled={sendingToFakultas}
+                className="flex-1 py-3 text-sm font-semibold text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors disabled:opacity-50">
+                {sendingToFakultas ? "Mengirim..." : "Ya, Kirim ke Fakultas"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Kembalikan ke Fakultas */}
+      {showReturnToFakultasModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowReturnToFakultasModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                  <FiRotateCcw className="w-5 h-5 text-amber-500" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Kembalikan ke Fakultas</h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Batch akan dikembalikan ke admin fakultas untuk perbaikan verifikasi.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
+                <p className="font-semibold">Yang akan terjadi:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>Status batch kembali ke &ldquo;Verifikasi Fakultas&rdquo;</li>
+                  <li>Semua status kandidat direset ke &ldquo;masuk&rdquo;</li>
+                  <li>Admin fakultas dapat melakukan verifikasi ulang</li>
+                </ul>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Alasan Pengembalian <span className="text-red-500">*</span>
+                </label>
+                <textarea rows={3} value={returnAlasan} onChange={e => setReturnAlasan(e.target.value)}
+                  className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                  placeholder="Jelaskan alasan pengembalian ke fakultas (min 10 karakter)..." />
+              </div>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowReturnToFakultasModal(false)} disabled={returning}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+                Batal
+              </button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={handleReturnToFakultas} disabled={returning || returnAlasan.trim().length < 10}
+                className="flex-1 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {returning ? "Mengembalikan..." : "Ya, Kembalikan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Reset Kandidat */}
+      {resetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setResetModal(null)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mx-auto mb-4">
+                <FiRotateCcw className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Batalkan Verifikasi</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Reset status <span className="font-semibold">{resetModal.nama}</span> kembali ke &ldquo;masuk&rdquo;?
+              </p>
+              <p className="text-xs text-gray-500 mt-2">Data verifikasi dan dokumen pendukung akan dihapus.</p>
+            </div>
+            <div className="flex border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setResetModal(null)} disabled={resetting}
+                className="flex-1 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Batal</button>
+              <div className="w-px bg-gray-200 dark:bg-gray-700" />
+              <button onClick={handleResetKandidat} disabled={resetting}
+                className="flex-1 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors disabled:opacity-50">
+                {resetting ? "Mereset..." : "Ya, Reset"}
               </button>
             </div>
           </div>

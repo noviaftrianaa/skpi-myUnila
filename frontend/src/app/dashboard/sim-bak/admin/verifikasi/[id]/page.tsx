@@ -92,11 +92,11 @@ export default function VerifikasiDetailPage() {
   const activeTahapan = progress?.tahapan_list?.find(t => t.stage_status === "active") ?? null;
   const isLastStage = activeTahapan?.status_selesai === "terbit";
 
-  // Tentukan kode_role user aktif
+  // Tentukan kode_role user aktif — check fakultas FIRST (before administrator)
   const userRole = (() => {
     const r = (user?.role ?? "").toLowerCase();
+    if (r.includes("fakultas")) return "admin_fakultas";
     if (r.includes("developer") || r.includes("admin_bak") || r === "admin" || r.includes("administrator")) return "admin_bak";
-    if (r.includes("admin_fakultas") || r.includes("fakultas")) return "admin_fakultas";
     if (r.includes("pejabat") || r.includes("dekan") || r.includes("wakil_rektor") || r.includes("rektor")) return "pejabat";
     return r;
   })();

@@ -33,11 +33,19 @@ class BatchController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $idFakultas = $request->get('id_fakultas');
+
+            // If my_fakultas=1, auto-filter by logged-in user's faculty
+            if ($request->get('my_fakultas') == '1' && !$idFakultas) {
+                $idFakultas = $this->getUserFakultasId($request->user());
+            }
+
             $params = [
                 'page' => (int) $request->get('page', 1),
                 'limit' => (int) $request->get('limit', 10),
                 'jenis_batch' => $request->get('jenis_batch'),
                 'status' => $request->get('status'),
+                'id_fakultas' => $idFakultas,
             ];
             $result = $this->repository->getList($params);
             return $this->paginatedResponse($result['data'], $result['total'], $params['page'], $params['limit']);
@@ -45,6 +53,79 @@ class BatchController extends Controller
             Log::error('Batch.index: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
+    }
+
+    /**
+     * Get user's faculty UUID from role_pengguna → pdrd.sms (id_fak_unila).
+     */
+    private function getUserFakultasId($user): ?string
+    {
+        if (!$user) return null;
+        try {
+            $role = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT TOP 1 rp.id_organisasi
+                FROM man_akses.role_pengguna rp
+                JOIN man_akses.peran p ON p.id_peran = rp.id_peran
+                WHERE rp.id_pengguna = ?
+                  AND rp.soft_delete = 0
+                  AND rp.approval_peran = 1
+                ORDER BY rp.last_active DESC
+            ", [$user->id_pengguna]);
+
+            if (!$role || !$role->id_organisasi) return null;
+
+            // id_organisasi could be prodi UUID → get faculty via id_fak_unila
+            $sms = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT CONVERT(VARCHAR(36), COALESCE(s.id_fak_unila, s.id_sms)) AS id_fakultas
+                FROM pdrd.sms s
+                WHERE s.id_sms = ? AND s.soft_delete = 0
+            ", [$role->id_organisasi]);
+
+            return $sms->id_fakultas ?? null;
+        } catch (\Exception $e) {
+            Log::warning('getUserFakultasId failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get NIMs yang sudah dikonfirmasi di batch terbit sebelumnya (periode & jenis yang sama).
+     */
+    private function getExcludedNims(string $jenisBatch, string $idSmt, ?string $idFakultas): array
+    {
+        $query = "SELECT kb.nim FROM batch.kandidat_batch kb
+                  JOIN batch.batch_penetapan bp ON bp.id_batch_penetapan = kb.id_batch_penetapan
+                  WHERE bp.jenis_batch = ? AND bp.id_smt = ? AND bp.status = 'terbit'
+                    AND kb.status_kandidat = 'dikonfirmasi'
+                    AND kb.soft_delete = false AND bp.soft_delete = false";
+        $params = [$jenisBatch, $idSmt];
+
+        if ($idFakultas) {
+            $query .= " AND bp.id_fakultas = ?";
+            $params[] = $idFakultas;
+        }
+
+        $rows = $this->repository->pgSelect($query, $params);
+        return array_map(fn($r) => $r->nim, $rows);
+    }
+
+    /**
+     * Check apakah sudah ada batch aktif (belum terbit) untuk kombinasi yang sama.
+     */
+    private function checkDuplicateActiveBatch(string $jenisBatch, string $idSmt, string $idFakultas, ?string $excludeBatchId = null): ?object
+    {
+        $query = "SELECT kode_batch, nm_batch, status FROM batch.batch_penetapan
+                  WHERE jenis_batch = ? AND id_smt = ? AND id_fakultas = ?
+                    AND status != 'terbit' AND soft_delete = false";
+        $params = [$jenisBatch, $idSmt, $idFakultas];
+
+        if ($excludeBatchId) {
+            $query .= " AND id_batch_penetapan != ?";
+            $params[] = $excludeBatchId;
+        }
+
+        $query .= " LIMIT 1";
+        return $this->repository->pgSelectOne($query, $params);
     }
 
     /**
@@ -64,6 +145,12 @@ class BatchController extends Controller
                 $candidates = $this->pdutRepository->getKandidatPutusStudi($idSmt, $idFakultas);
             }
 
+            // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
+            $excludedNims = $this->getExcludedNims($jenisBatch, $idSmt, $idFakultas);
+            if (!empty($excludedNims)) {
+                $candidates = array_values(array_filter($candidates, fn($c) => !in_array($c->nim, $excludedNims)));
+            }
+
             // Enrich nm_fakultas
             foreach ($candidates as &$c) {
                 if (!empty($c->id_fakultas) && empty($c->nm_fakultas)) {
@@ -74,6 +161,7 @@ class BatchController extends Controller
             return $this->successResponse([
                 'total' => count($candidates),
                 'candidates' => $candidates,
+                'excluded_count' => count($excludedNims),
                 'kriteria' => $jenisBatch === 'habis_masa_mukim'
                     ? 'D3: ≥13 semester, S1: ≥17 semester, S2: ≥9 semester, S3: ≥13 semester'
                     : 'Semester IV: IPK < 2.00 atau SKS < 40; Semester VIII: IPK < 2.00 atau SKS < 80',
@@ -95,12 +183,29 @@ class BatchController extends Controller
                 'nm_batch' => 'required|string|max:300',
                 'jenis_batch' => 'required|string|in:habis_masa_mukim,putus_studi',
                 'id_smt' => 'required|string|max:10',
+                'id_fakultas' => 'required|uuid',
                 'catatan' => 'nullable|string',
             ]);
 
             $user = $request->user();
             $jenisLayanan = $this->jenisLayananRepo->findById($data['id_jenis_layanan']);
             if (!$jenisLayanan) return $this->notFoundResponse('Jenis layanan tidak ditemukan');
+
+            // Cek duplikasi: sudah ada batch aktif untuk kombinasi yang sama?
+            $existing = $this->checkDuplicateActiveBatch($data['jenis_batch'], $data['id_smt'], $data['id_fakultas']);
+            if ($existing) {
+                return $this->errorResponse(
+                    "Sudah ada batch aktif untuk kombinasi ini: {$existing->kode_batch} ({$existing->nm_batch}) — status: {$existing->status}. Selesaikan atau hapus batch tersebut terlebih dahulu.",
+                    422
+                );
+            }
+
+            // Lookup nama fakultas from pdut
+            $fakultas = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                "SELECT nm_lemb FROM pdrd.sms WHERE id_sms = ? AND soft_delete = 0",
+                [$data['id_fakultas']]
+            );
+            $data['nm_fakultas'] = $fakultas->nm_lemb ?? null;
 
             // Generate kode batch
             $year = date('Y');
@@ -109,12 +214,18 @@ class BatchController extends Controller
             $data['id_pembuat'] = $user->id_pengguna;
             $data['id_creator'] = $user->id_pengguna;
 
-            // Tarik kandidat dari PDUT
+            // Tarik kandidat dari PDUT (filtered by fakultas)
             $candidates = [];
             if ($data['jenis_batch'] === 'habis_masa_mukim') {
-                $candidates = $this->pdutRepository->getKandidatHMM($data['id_smt']);
+                $candidates = $this->pdutRepository->getKandidatHMM($data['id_smt'], $data['id_fakultas']);
             } else {
-                $candidates = $this->pdutRepository->getKandidatPutusStudi($data['id_smt']);
+                $candidates = $this->pdutRepository->getKandidatPutusStudi($data['id_smt'], $data['id_fakultas']);
+            }
+
+            // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
+            $excludedNims = $this->getExcludedNims($data['jenis_batch'], $data['id_smt'], $data['id_fakultas']);
+            if (!empty($excludedNims)) {
+                $candidates = array_values(array_filter($candidates, fn($c) => !in_array($c->nim, $excludedNims)));
             }
 
             // Set kriteria snapshot
@@ -384,17 +495,24 @@ class BatchController extends Controller
             $user = $request->user();
 
             $candidates = [];
+            $batchFakultas = $batch->id_fakultas ?? null;
             if ($batch->jenis_batch === 'habis_masa_mukim') {
-                $candidates = $this->pdutRepository->getKandidatHMM($batch->id_smt);
+                $candidates = $this->pdutRepository->getKandidatHMM($batch->id_smt, $batchFakultas);
             } else {
-                $candidates = $this->pdutRepository->getKandidatPutusStudi($batch->id_smt);
+                $candidates = $this->pdutRepository->getKandidatPutusStudi($batch->id_smt, $batchFakultas);
+            }
+
+            // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
+            $excludedNims = $this->getExcludedNims($batch->jenis_batch, $batch->id_smt, $batchFakultas);
+            if (!empty($excludedNims)) {
+                $candidates = array_values(array_filter($candidates, fn($c) => !in_array($c->nim, $excludedNims)));
             }
 
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
-            // Hapus kandidat lama (soft delete)
+            // Hapus kandidat lama (hard delete — akan di-insert ulang)
             $this->repository->pgUpdate(
-                "UPDATE batch.kandidat_batch SET soft_delete = true WHERE id_batch_penetapan = ?",
+                "DELETE FROM batch.kandidat_batch WHERE id_batch_penetapan = ?",
                 [$id]
             );
 
@@ -554,6 +672,60 @@ class BatchController extends Controller
     }
 
     /**
+     * Reset status kandidat kembali ke "masuk" (undo verifikasi).
+     * Hanya bisa dilakukan sebelum finalisasi verifikasi.
+     */
+    public function resetKandidat(Request $request, string $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $kandidat = $this->repository->pgSelectOne(
+                "SELECT k.*, b.status AS batch_status FROM batch.kandidat_batch k
+                 JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan
+                 WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                [$id]
+            );
+
+            if (!$kandidat) return $this->notFoundResponse('Kandidat tidak ditemukan');
+
+            if (in_array($kandidat->batch_status, ['sk_dekan_terbit', 'terbit'])) {
+                return $this->errorResponse('Tidak bisa mengubah status kandidat setelah verifikasi difinalisasi', 422);
+            }
+
+            if ($kandidat->status_kandidat === 'masuk') {
+                return $this->errorResponse('Kandidat sudah dalam status "masuk"', 422);
+            }
+
+            // Reset status kandidat
+            $this->repository->updateKandidatStatus($id, 'masuk', null, $user->id_pengguna);
+
+            // Hapus dokumen exclude dari Minio jika ada
+            $verif = $this->repository->pgSelectOne(
+                "SELECT path_dokumen_exclude FROM batch.verifikasi_batch WHERE id_kandidat = ?",
+                [$id]
+            );
+            if ($verif && !empty($verif->path_dokumen_exclude)) {
+                $this->minioService->delete($verif->path_dokumen_exclude);
+            }
+
+            // Hapus record verifikasi terkait
+            $this->repository->pgUpdate(
+                "DELETE FROM batch.verifikasi_batch WHERE id_kandidat = ?",
+                [$id]
+            );
+
+            // Update count batch
+            $this->repository->updateBatchCounts($kandidat->id_batch_penetapan);
+
+            return $this->successResponse(null, 'Status kandidat berhasil direset ke "masuk"');
+        } catch (\Exception $e) {
+            Log::error('Batch.resetKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Upload SK Dekan untuk batch.
      */
     public function uploadSkDekan(Request $request, string $id): JsonResponse
@@ -588,6 +760,127 @@ class BatchController extends Controller
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
             Log::error('Batch.uploadSkDekan: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function downloadSkDekan(Request $request, string $id)
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch || empty($batch->path_sk_dekan)) return $this->notFoundResponse('SK Dekan belum diupload');
+
+            $preview = $request->get('preview');
+            return $this->minioService->download($batch->path_sk_dekan, $preview ? null : "SK_Dekan_{$batch->kode_batch}.pdf");
+        } catch (\Exception $e) {
+            Log::error('Batch.downloadSkDekan: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    public function deleteSkDekan(Request $request, string $id): JsonResponse
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+            if (in_array($batch->status, ['sk_dekan_terbit', 'terbit'])) {
+                return $this->errorResponse('SK Dekan tidak bisa dihapus setelah finalisasi', 422);
+            }
+            if (empty($batch->path_sk_dekan)) return $this->errorResponse('SK Dekan belum diupload', 422);
+
+            $this->minioService->delete($batch->path_sk_dekan);
+            $user = $request->user();
+            $this->repository->pgUpdate(
+                "UPDATE batch.batch_penetapan SET path_sk_dekan = NULL, nomor_sk_dekan = NULL, tgl_sk_dekan = NULL, id_updater = ? WHERE id_batch_penetapan = ?",
+                [$user->id_pengguna, $id]
+            );
+
+            return $this->successResponse(null, 'SK Dekan berhasil dihapus');
+        } catch (\Exception $e) {
+            Log::error('Batch.deleteSkDekan: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Admin BAK mengirim batch ke fakultas untuk diverifikasi.
+     * Status batch: kandidat_ditarik → verifikasi_fakultas.
+     */
+    public function sendToFakultas(Request $request, string $id): JsonResponse
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+
+            if ($batch->status !== 'kandidat_ditarik') {
+                return $this->errorResponse('Batch harus dalam status "kandidat_ditarik" untuk dikirim ke fakultas', 422);
+            }
+
+            if ((int) $batch->jumlah_kandidat === 0) {
+                return $this->errorResponse('Batch tidak memiliki kandidat. Tarik kandidat terlebih dahulu.', 422);
+            }
+
+            $user = $request->user();
+            $this->repository->pgUpdate(
+                "UPDATE batch.batch_penetapan SET status = 'verifikasi_fakultas', id_updater = ? WHERE id_batch_penetapan = ?",
+                [$user->id_pengguna, $id]
+            );
+
+            return $this->successResponse(null, 'Batch berhasil dikirim ke fakultas untuk verifikasi');
+        } catch (\Exception $e) {
+            Log::error('Batch.sendToFakultas: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Kembalikan batch dari sk_dekan_terbit → verifikasi_fakultas (admin BAK).
+     */
+    public function returnToFakultas(Request $request, string $id): JsonResponse
+    {
+        try {
+            $batch = $this->repository->findById($id);
+            if (!$batch) return $this->notFoundResponse();
+
+            if ($batch->status !== 'sk_dekan_terbit') {
+                return $this->errorResponse('Batch harus dalam status "SK Dekan Terbit" untuk dikembalikan ke fakultas', 422);
+            }
+
+            $data = $request->validate([
+                'alasan' => 'required|string|min:10',
+            ]);
+
+            $user = $request->user();
+
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            // Reset semua kandidat ke "masuk" agar fakultas bisa verifikasi ulang
+            $this->repository->pgUpdate(
+                "UPDATE batch.kandidat_batch SET status_kandidat = 'masuk', id_updater = ? WHERE id_batch_penetapan = ? AND soft_delete = false",
+                [$user->id_pengguna, $id]
+            );
+
+            // Hapus semua record verifikasi batch ini
+            $this->repository->pgUpdate(
+                "DELETE FROM batch.verifikasi_batch WHERE id_batch_penetapan = ?",
+                [$id]
+            );
+
+            // Update status batch + simpan alasan
+            $this->repository->pgUpdate(
+                "UPDATE batch.batch_penetapan SET status = 'verifikasi_fakultas', catatan = ?, id_updater = ? WHERE id_batch_penetapan = ?",
+                [$data['alasan'], $user->id_pengguna, $id]
+            );
+
+            $this->repository->updateBatchCounts($id);
+            $this->repository->pgCommit();
+
+            return $this->successResponse(null, 'Batch dikembalikan ke fakultas untuk perbaikan verifikasi');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Batch.returnToFakultas: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }

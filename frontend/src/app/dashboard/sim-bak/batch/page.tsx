@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { simBakMenuConfig } from "../config/menuConfig";
@@ -16,7 +16,9 @@ import toast, { Toaster } from "react-hot-toast";
 
 const statusConfig: Record<string, { label: string; color: "default" | "primary" | "warning" | "success" | "danger" }> = {
   draft: { label: "Draft", color: "default" },
+  kandidat_ditarik: { label: "Kandidat Ditarik", color: "primary" },
   verifikasi_fakultas: { label: "Verifikasi Fakultas", color: "warning" },
+  sk_dekan_terbit: { label: "SK Dekan Terbit", color: "primary" },
   finalisasi: { label: "Finalisasi", color: "primary" },
   terbit: { label: "Terbit", color: "success" },
 };
@@ -71,6 +73,14 @@ export default function BatchPage() {
 
   useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
 
+  const userRole = (() => {
+    const r = (user?.role ?? "").toLowerCase();
+    if (r.includes("fakultas")) return "admin_fakultas";
+    if (r.includes("developer") || r.includes("admin_bak") || r === "admin" || r.includes("administrator")) return "admin_bak";
+    return r;
+  })();
+  const isAdminBak = userRole === "admin_bak";
+
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
   const statCards = [
@@ -98,7 +108,7 @@ export default function BatchPage() {
         <div className="flex items-center justify-center gap-1">
           <Button size="sm" variant="flat" color="primary" isIconOnly title="Lihat detail"
             onPress={() => router.push(`/dashboard/sim-bak/batch/${item.id_batch_penetapan}`)}><FiEye className="w-4 h-4" /></Button>
-          {canDelete && (
+          {isAdminBak && canDelete && (
             <Button size="sm" variant="flat" color="danger" isIconOnly title="Hapus batch"
               onPress={() => { setDeleteModal(item); setDeleteAlasan(""); }}><FiTrash2 className="w-4 h-4" /></Button>
           )}
@@ -116,7 +126,7 @@ export default function BatchPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Evaluasi Studi</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Kelola evaluasi penetapan Habis Masa Mukim dan Putus Studi</p>
           </div>
-          <Button color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={() => router.push("/dashboard/sim-bak/batch/create")}>Buat Evaluasi Baru</Button>
+          {isAdminBak && <Button color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={() => router.push("/dashboard/sim-bak/batch/create")}>Buat Evaluasi Baru</Button>}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -65,6 +65,12 @@ export const simBakMenuConfig: MenuItem[] = [
     roles: adminRoles,
   },
   {
+    title: "Verifikasi Evaluasi",
+    icon: <FiCheckSquare className="w-5 h-5" />,
+    href: "/dashboard/sim-bak/batch/verifikasi",
+    roles: ["admin_fakultas"],
+  },
+  {
     title: "Monitoring",
     icon: <FiBarChart2 className="w-5 h-5" />,
     href: "/dashboard/sim-bak/monitoring",

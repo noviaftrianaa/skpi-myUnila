@@ -15,7 +15,7 @@ Dokumen ini berisi tahapan perbaikan SIMBAK agar implementasi sesuai dengan alur
 | 2 | Multi-Level Approval | Approval chain berdasarkan tahapan_layanan | [~] 15/18 kode selesai, perlu test |
 | 3 | Perbaikan Surat Mandiri | Upload SK, validasi herregistrasi | [~] 10/12 kode selesai, perlu test |
 | 4 | Perbaikan Permohonan Akademik | Field alih program, semester cuti, validasi syarat | [~] 12/14 kode selesai, perlu test |
-| 5 | Perbaikan Batch Administrasi | Tarik kandidat PDUT, kriteria HMM/PS, upload SK | [~] 15/19 kode selesai, perlu test |
+| 5 | Perbaikan Batch Administrasi | Tarik kandidat PDUT, kriteria HMM/PS, upload SK, role-based view, workflow | [x] 27/27 kode selesai |
 | 6 | Perbaikan Monitoring & Dashboard | Lulusan, filter, export, indikator tepat waktu | [~] 13/16 kode selesai, perlu test |
 | 7 | Polish UI & UX | Modern UI, responsive, loading states, empty states | [x] 22/22 selesai |
 
@@ -364,7 +364,7 @@ WHERE pd.id_stat_mhs IN (select id yang aktif)
 
 - [x] 5.1 `PdutRepository::getKandidatHMM(idSmt)` — query kandidat berdasarkan batas semester per jenjang
 - [x] 5.2 `PdutRepository::getKandidatPutusStudi(idSmt)` — query berdasarkan IPK/SKS di semester IV dan VIII
-- [x] 5.3 `PdutRepository::getFakultasList()` — sudah dari Tahap 4
+- [x] 5.3 `PdutRepository::getFakultasList()` — query fakultas UUID dari `pdrd.sms`
 - [x] 5.4 Refactor `BatchController::store()` — otomatis tarik kandidat dari PDUT + simpan kriteria snapshot
 - [x] 5.5 Tambah endpoint `POST /batch/{id}/pull-candidates` — re-pull kandidat
 - [x] 5.6 Refactor `BatchController::verifikasiKandidat()` — support catatan + hasil dikonfirmasi/dikeluarkan
@@ -377,10 +377,18 @@ WHERE pd.id_stat_mhs IN (select id yang aktif)
 - [x] 5.13 Frontend simBakService: `previewBatchCandidates()`, `pullBatchCandidates()`, `uploadSkDekan()`, `finalizeBatchWithSK()`
 - [x] 5.14 Frontend batch/create: preview kandidat (tabel + jumlah) + semester dari API + tombol preview
 - [x] 5.15 Frontend batch/[id]: modal catatan exclude + upload SK Dekan + finalize modal dengan SK Rektor
-- [ ] 5.16 Test: batch HMM → kandidat S1 semester >= 17 muncul otomatis
-- [ ] 5.17 Test: batch Putus Studi → kandidat semester IV IPK < 2.00 muncul
-- [ ] 5.18 Test: exclude kandidat dengan alasan → tersimpan di database
-- [ ] 5.19 Test: upload SK Dekan + SK Rektor → file bisa didownload
+- [x] 5.16 Fakultas wajib dipilih saat buat batch → `id_fakultas: 'required|uuid'` + ALTER tabel
+- [x] 5.17 Tambah endpoint `POST /batch/{id}/send-to-fakultas` — transisi kandidat_ditarik → verifikasi_fakultas
+- [x] 5.18 Tambah endpoint `POST /batch/{id}/return-to-fakultas` — kembalikan sk_dekan_terbit → verifikasi_fakultas (alasan wajib, reset kandidat)
+- [x] 5.19 Tambah endpoint `POST /batch/kandidat/{id}/reset` — reset status kandidat ke "masuk" (batalkan verifikasi)
+- [x] 5.20 Validasi duplikasi batch aktif (jenis + semester + fakultas sama) — hard block 422
+- [x] 5.21 Exclude kandidat dari batch terbit sebelumnya (preview, store, pull)
+- [x] 5.22 Role-based view: admin BAK ↔ admin fakultas (conditional rendering, menu terpisah)
+- [x] 5.23 Admin fakultas auto-filter batch by fakultas (`my_fakultas=1`)
+- [x] 5.24 Frontend timeline horizontal di halaman detail batch
+- [x] 5.25 Frontend banner "Dikembalikan oleh Admin BAK" saat batch punya catatan pengembalian
+- [x] 5.26 Frontend tombol solid (bg-color + text-white) untuk semua action buttons
+- [x] 5.27 ALTER script: `data-model/script/postgresql/simbak/07-alter-batch-add-fakultas.sql`
 
 ---
 

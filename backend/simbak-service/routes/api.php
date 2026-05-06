@@ -135,9 +135,14 @@ Route::prefix('v1')->group(function () {
 
             Route::post('/', [\App\Http\Controllers\Api\Batch\BatchController::class, 'store'])->middleware('permission:insert,sim-bak');
             Route::post('/{id}/pull-candidates', [\App\Http\Controllers\Api\Batch\BatchController::class, 'pullCandidates'])->middleware('permission:insert,sim-bak');
+            Route::post('/{id}/send-to-fakultas', [\App\Http\Controllers\Api\Batch\BatchController::class, 'sendToFakultas'])->middleware('permission:approve,sim-bak');
+            Route::post('/{id}/return-to-fakultas', [\App\Http\Controllers\Api\Batch\BatchController::class, 'returnToFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/upload-sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'uploadSkDekan'])->middleware('permission:approve,sim-bak');
+            Route::get('/{id}/sk-dekan/download', [\App\Http\Controllers\Api\Batch\BatchController::class, 'downloadSkDekan']);
+            Route::delete('/{id}/sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'deleteSkDekan'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
+            Route::post('/kandidat/{id}/reset', [\App\Http\Controllers\Api\Batch\BatchController::class, 'resetKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/send-email', [\App\Http\Controllers\Api\Batch\BatchController::class, 'sendEmailKandidat']);
             Route::get('/kandidat/{id}/wa-link', [\App\Http\Controllers\Api\Batch\BatchController::class, 'getWhatsAppLink']);
             Route::post('/{id}/finalize', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalize'])->middleware('permission:approve,sim-bak');

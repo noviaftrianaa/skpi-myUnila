@@ -141,7 +141,47 @@ class PdutRepository extends BaseRepository
      */
     public function getFakultasName(?string $idFakultas): ?string
     {
-        return $idFakultas;
+        if (!$idFakultas) {
+            return null;
+        }
+
+        $fak = $this->pdutSelectOne("
+            SELECT nm_lemb, singkatan FROM pdrd.sms
+            WHERE CONVERT(VARCHAR(36), id_sms) = ? AND soft_delete = 0
+        ", [$idFakultas]);
+
+        if (!$fak) {
+            return null;
+        }
+
+        $nmLemb = $fak->nm_lemb;
+        $keyword = preg_replace('/^Fakultas\s+/i', '', $nmLemb);
+
+        $match = $this->pdutSelectOne("
+            SELECT DISTINCT nm_fakultas FROM siakadu.mahasiswa
+            WHERE nm_fakultas IS NOT NULL AND UPPER(nm_fakultas) = ?
+        ", [strtoupper($keyword)]);
+
+        if ($match) {
+            return $match->nm_fakultas;
+        }
+
+        $match = $this->pdutSelectOne("
+            SELECT DISTINCT nm_fakultas FROM siakadu.mahasiswa
+            WHERE nm_fakultas IS NOT NULL AND UPPER(nm_fakultas) LIKE '%' + ? + '%'
+        ", [strtoupper($keyword)]);
+
+        if ($match) {
+            return $match->nm_fakultas;
+        }
+
+        $refUnit = $this->pdutSelectOne("
+            SELECT nm_unit FROM siakadu.ref_unit
+            WHERE (UPPER(nm_singkat) = ? OR UPPER(nm_singkat) = ?)
+              AND jns_unit = 'F' AND is_aktif = '1'
+        ", [strtoupper($nmLemb), strtoupper($fak->singkatan ?? '')]);
+
+        return $refUnit?->nm_unit;
     }
 
     /**
@@ -165,11 +205,17 @@ class PdutRepository extends BaseRepository
         try {
             return $this->pdutSelect("
                 SELECT DISTINCT
-                    nm_fakultas AS id_fakultas,
-                    nm_fakultas
-                FROM siakadu.mahasiswa
-                WHERE soft_delete = 0 AND nm_fakultas IS NOT NULL
-                ORDER BY nm_fakultas
+                    CONVERT(VARCHAR(36), f.id_sms) AS id_fakultas,
+                    f.nm_lemb AS nm_fakultas
+                FROM pdrd.sms f
+                WHERE f.soft_delete = 0
+                  AND f.id_sms IN (
+                      SELECT DISTINCT id_fak_unila
+                      FROM pdrd.sms
+                      WHERE soft_delete = 0 AND id_fak_unila IS NOT NULL
+                  )
+                  AND (f.nm_lemb LIKE 'Fakultas %' OR f.nm_lemb LIKE 'Program %')
+                ORDER BY f.nm_lemb
             ");
         } catch (\Exception $e) {
             Log::warning('PdutRepository.getFakultasList: ' . $e->getMessage());
@@ -179,38 +225,43 @@ class PdutRepository extends BaseRepository
 
     /**
      * Ambil daftar prodi berdasarkan fakultas.
-     * Filter pakai nama fakultas (karena id_fakultas = nm_fakultas).
+     * Filter by UUID fakultas via pdrd.sms → join siakadu.mahasiswa by nm_fakultas.
      */
     public function getProdiByFakultas(?string $idFakultas = null): array
     {
         try {
             $bindings = [];
-            $where = "WHERE soft_delete = 0 AND nm_prodi IS NOT NULL";
+            $where = "WHERE m.soft_delete = 0 AND m.nm_prodi IS NOT NULL";
 
             if ($idFakultas) {
-                $where .= " AND nm_fakultas = ?";
-                $bindings[] = $idFakultas;
+                $fakName = $this->getFakultasName($idFakultas);
+                if ($fakName) {
+                    $where .= " AND m.nm_fakultas = ?";
+                    $bindings[] = $fakName;
+                } else {
+                    return [];
+                }
             }
 
             return $this->pdutSelect("
                 SELECT DISTINCT
-                    id_unit AS id_prodi,
-                    nm_prodi,
-                    id_unit AS kode_prodi,
-                    nm_fakultas AS id_fakultas,
+                    m.id_unit AS id_prodi,
+                    m.nm_prodi,
+                    m.id_unit AS kode_prodi,
+                    ? AS id_fakultas,
                     CASE
-                        WHEN nm_prodi LIKE 'S1-%' OR nm_prodi LIKE 'S1 %' THEN 'S1'
-                        WHEN nm_prodi LIKE 'S2-%' OR nm_prodi LIKE 'S2 %' OR nm_prodi LIKE 'Magister%' THEN 'S2'
-                        WHEN nm_prodi LIKE 'S3-%' OR nm_prodi LIKE 'S3 %' OR nm_prodi LIKE 'Doktor%' THEN 'S3'
-                        WHEN nm_prodi LIKE 'D3-%' OR nm_prodi LIKE 'D3 %' THEN 'D3'
-                        WHEN nm_prodi LIKE 'D4-%' OR nm_prodi LIKE 'D4 %' THEN 'D4'
-                        WHEN nm_prodi LIKE 'Profesi%' THEN 'Profesi'
+                        WHEN m.nm_prodi LIKE 'S1-%' OR m.nm_prodi LIKE 'S1 %' THEN 'S1'
+                        WHEN m.nm_prodi LIKE 'S2-%' OR m.nm_prodi LIKE 'S2 %' OR m.nm_prodi LIKE 'Magister%' THEN 'S2'
+                        WHEN m.nm_prodi LIKE 'S3-%' OR m.nm_prodi LIKE 'S3 %' OR m.nm_prodi LIKE 'Doktor%' THEN 'S3'
+                        WHEN m.nm_prodi LIKE 'D3-%' OR m.nm_prodi LIKE 'D3 %' THEN 'D3'
+                        WHEN m.nm_prodi LIKE 'D4-%' OR m.nm_prodi LIKE 'D4 %' THEN 'D4'
+                        WHEN m.nm_prodi LIKE 'Profesi%' THEN 'Profesi'
                         ELSE 'Lainnya'
                     END AS nm_jenjang
-                FROM siakadu.mahasiswa
+                FROM siakadu.mahasiswa m
                 {$where}
-                ORDER BY nm_jenjang, nm_prodi
-            ", $bindings);
+                ORDER BY nm_jenjang, m.nm_prodi
+            ", array_merge([$idFakultas], $bindings));
         } catch (\Exception $e) {
             Log::warning('PdutRepository.getProdiByFakultas: ' . $e->getMessage());
             return [];
@@ -226,6 +277,7 @@ class PdutRepository extends BaseRepository
             return $this->pdutSelect("
                 SELECT TOP (?) id_smt, nm_smt, smt, tgl_mulai, tgl_selesai, a_periode_aktif
                 FROM ref.semester
+                WHERE tgl_mulai <= DATEADD(YEAR, 1, GETDATE())
                 ORDER BY a_periode_aktif DESC, id_smt DESC
             ", [$limit]);
         } catch (\Exception $e) {
@@ -251,7 +303,7 @@ class PdutRepository extends BaseRepository
             $bindings = [];
             $fakultasFilter = '';
             if ($idFakultas) {
-                $fakultasFilter = "AND m.nm_fakultas = ?";
+                $fakultasFilter = "AND sms.id_fak_unila = ?";
                 $bindings[] = $idFakultas;
             }
 
@@ -266,9 +318,9 @@ class PdutRepository extends BaseRepository
                     m.id_pd AS id_mahasiswa,
                     m.nim,
                     m.nama AS nm_mahasiswa,
-                    m.nm_fakultas AS id_fakultas,
+                    CONVERT(VARCHAR(36), sms.id_fak_unila) AS id_fakultas,
                     m.nm_fakultas,
-                    m.id_unit AS id_prodi,
+                    CONVERT(VARCHAR(36), m.id_sms) AS id_prodi,
                     m.nm_prodi,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
@@ -282,6 +334,7 @@ class PdutRepository extends BaseRepository
                 INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
                 INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                LEFT JOIN pdrd.sms sms ON sms.id_sms = m.id_sms AND sms.soft_delete = 0
                 WHERE m.soft_delete = 0
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND m.angkatan IS NOT NULL
@@ -312,7 +365,7 @@ class PdutRepository extends BaseRepository
             $bindings = [];
             $fakultasFilter = '';
             if ($idFakultas) {
-                $fakultasFilter = "AND m.nm_fakultas = ?";
+                $fakultasFilter = "AND sms.id_fak_unila = ?";
                 $bindings[] = $idFakultas;
             }
 
@@ -325,9 +378,9 @@ class PdutRepository extends BaseRepository
                     m.id_pd AS id_mahasiswa,
                     m.nim,
                     m.nama AS nm_mahasiswa,
-                    m.nm_fakultas AS id_fakultas,
+                    CONVERT(VARCHAR(36), sms.id_fak_unila) AS id_fakultas,
                     m.nm_fakultas,
-                    m.id_unit AS id_prodi,
+                    CONVERT(VARCHAR(36), m.id_sms) AS id_prodi,
                     m.nm_prodi,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
@@ -342,6 +395,7 @@ class PdutRepository extends BaseRepository
                 INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
                 INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                LEFT JOIN pdrd.sms sms ON sms.id_sms = m.id_sms AND sms.soft_delete = 0
                 WHERE m.soft_delete = 0
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND jp.nm_jenj_didik IN ('S1', 'D4')

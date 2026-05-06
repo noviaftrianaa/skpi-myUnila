@@ -939,10 +939,10 @@ Modal exclude kandidat:
 | Aspek | Status |
 |-------|--------|
 | Plan dicatat | **Ya** (12 April 2026) |
-| ALTER tabel verifikasi_batch | **Belum** |
-| Backend validasi + upload | **Belum** |
-| Frontend select dropdown + conditional upload | **Belum** |
-| Testing | **Belum** |
+| ALTER tabel verifikasi_batch | ✅ |
+| Backend validasi + upload | ✅ |
+| Frontend select dropdown + conditional upload | ✅ |
+| Testing | ✅ (manual) |
 
 ---
 
@@ -1128,3 +1128,81 @@ public function isJalurExcludedFromKtw($jalur, $excludedList): bool
 | Frontend tombol Hapus di batch list & detail | ✅ |
 | Frontend tombol Tarik Ulang di batch detail | ✅ |
 | Modal konfirmasi (native button, bukan HeroUI) | ✅ |
+
+---
+
+## 19. [DONE] Batch Evaluasi — Role-Based View, Workflow, dan Validasi
+
+### Konteks (6 Mei 2026)
+
+Batch evaluasi sebelumnya tidak membedakan tampilan admin BAK vs admin fakultas, tidak ada transisi status eksplisit antar role, dan tidak ada validasi duplikasi batch.
+
+### Perubahan yang Diimplementasi
+
+#### A. Fakultas Wajib + Faculty Scoping
+
+- Fakultas wajib dipilih saat buat batch (UUID dari `pdrd.sms` via `id_fak_unila`)
+- Admin fakultas hanya melihat batch milik fakultasnya (`my_fakultas=1` → lookup `role_pengguna.id_organisasi` → `pdrd.sms`)
+- Query kandidat filter by `sms.id_fak_unila` (UUID), bukan `nm_fakultas` (text)
+- ALTER: `07-alter-batch-add-fakultas.sql` → `id_fakultas UUID`, `nm_fakultas VARCHAR(200)`
+
+#### B. Menu & Role Detection
+
+- Menu terpisah: admin BAK → "Evaluasi Studi" (`/batch`), admin fakultas → "Verifikasi Evaluasi" (`/batch/verifikasi`)
+- Role detection: cek `includes("fakultas")` **sebelum** `includes("administrator")` untuk menghindari konflik role "Admin Fakultas MIPA"
+- Halaman verifikasi hanya tampilkan batch status `verifikasi_fakultas` + auto-filter fakultas
+
+#### C. Transisi Status Eksplisit
+
+| Endpoint | Transisi | Aktor |
+|----------|----------|-------|
+| `POST /batch/{id}/send-to-fakultas` | `kandidat_ditarik` → `verifikasi_fakultas` | Admin BAK |
+| `POST /batch/{id}/finalize-verifikasi` | `verifikasi_fakultas` → `sk_dekan_terbit` | Admin Fakultas |
+| `POST /batch/{id}/return-to-fakultas` | `sk_dekan_terbit` → `verifikasi_fakultas` | Admin BAK |
+| `POST /batch/{id}/finalize` | `sk_dekan_terbit` → `terbit` | Admin BAK |
+
+#### D. Reset/Batalkan Verifikasi Kandidat
+
+- `POST /batch/kandidat/{id}/reset` — reset status ke "masuk", hapus record `verifikasi_batch`, cleanup dokumen Minio
+- Tersedia selama batch masih `verifikasi_fakultas` (sebelum finalisasi)
+- Tombol kuning ↺ di kolom aksi untuk kandidat yang sudah dikonfirmasi/dikeluarkan
+
+#### E. Kembalikan ke Fakultas
+
+- Admin BAK bisa kembalikan batch dari `sk_dekan_terbit` → `verifikasi_fakultas`
+- Alasan wajib (min 10 karakter), disimpan ke field `catatan`
+- Semua status kandidat direset ke "masuk", record verifikasi dihapus
+- Banner kuning tampil di halaman detail batch saat ada catatan pengembalian
+
+#### F. Validasi Duplikasi Batch
+
+- Hard block: tidak bisa buat batch baru jika sudah ada batch aktif (status != `terbit`) untuk `jenis_batch + id_smt + id_fakultas` yang sama
+- Error 422 dengan pesan yang menyebutkan kode batch existing
+
+#### G. Exclude Kandidat dari Batch Terbit
+
+- Kandidat yang sudah `dikonfirmasi` di batch `terbit` sebelumnya (periode + jenis + fakultas sama) otomatis diexclude
+- Berlaku di: `previewCandidates()`, `store()`, `pullCandidates()`
+- Preview mengembalikan `excluded_count`
+
+#### H. UI Improvements
+
+- Timeline horizontal di halaman detail batch (step: draft → kandidat_ditarik → verifikasi_fakultas → sk_dekan_terbit → terbit)
+- Tombol action dengan warna solid (biru/indigo/kuning/hijau/merah) — bukan flat/ghost
+- Stats cards: Total Kandidat, Dikonfirmasi, Dikeluarkan, Belum Diproses
+
+### File yang Diubah
+
+| File | Perubahan |
+|------|-----------|
+| `BatchController.php` | `sendToFakultas()`, `returnToFakultas()`, `resetKandidat()`, validasi duplikasi, exclude kandidat |
+| `PdutRepository.php` | `getFakultasList()` → UUID dari `pdrd.sms`, filter by `sms.id_fak_unila` |
+| `BatchRepository.php` | `id_fakultas` filter di `getList()`, `create()` include `id_fakultas`/`nm_fakultas` |
+| `routes/api.php` | 3 route baru: `send-to-fakultas`, `return-to-fakultas`, `kandidat/{id}/reset` |
+| `simBakService.ts` | `sendBatchToFakultas()`, `returnBatchToFakultas()`, `resetKandidatStatus()` |
+| `batch/page.tsx` | Role-based buttons (hapus hanya admin BAK) |
+| `batch/create/page.tsx` | Fakultas wajib |
+| `batch/[id]/page.tsx` | Timeline, conditional rendering per role, semua modal baru |
+| `batch/verifikasi/page.tsx` | Filter `status: verifikasi_fakultas`, `my_fakultas: 1` |
+| `menuConfig.tsx` | Menu terpisah per role |
+| `07-alter-batch-add-fakultas.sql` | ALTER TABLE `batch.batch_penetapan` |

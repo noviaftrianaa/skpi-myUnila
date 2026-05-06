@@ -30,10 +30,8 @@ export default function BatchVerifikasiPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Ambil batch yang statusnya menunggu verifikasi fakultas
-      const result = await getBatchList({ page: 1, limit: 50, status: "kandidat_ditarik", jenis_batch: filterJenis || undefined });
-      const result2 = await getBatchList({ page: 1, limit: 50, status: "verifikasi_fakultas", jenis_batch: filterJenis || undefined });
-      setData([...(result.data ?? []), ...(result2.data ?? [])]);
+      const result = await getBatchList({ page: 1, limit: 50, status: "verifikasi_fakultas", jenis_batch: filterJenis || undefined, my_fakultas: "1" });
+      setData(result.data ?? []);
     } catch { setData([]); }
     finally { setLoading(false); }
   }, [filterJenis]);

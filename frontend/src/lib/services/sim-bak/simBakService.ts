@@ -316,6 +316,10 @@ export const pullBatchCandidates = async (idBatch: string): Promise<{ jumlah_kan
   return response.data.data;
 };
 
+export const sendBatchToFakultas = async (idBatch: string): Promise<void> => {
+  await bakClient.post(`/batch/${idBatch}/send-to-fakultas`);
+};
+
 export const deleteBatch = async (idBatch: string, alasan?: string): Promise<void> => {
   await bakClient.delete(`/batch/${idBatch}`, { data: alasan ? { alasan } : {} });
 };
@@ -324,6 +328,13 @@ export const uploadSkDekan = async (idBatch: string, formData: FormData): Promis
   await bakClient.post(`/batch/${idBatch}/upload-sk-dekan`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+};
+
+export const downloadSkDekanUrl = (idBatch: string): string =>
+  `${bakClient.defaults.baseURL}/batch/${idBatch}/sk-dekan/download`;
+
+export const deleteSkDekan = async (idBatch: string): Promise<void> => {
+  await bakClient.delete(`/batch/${idBatch}/sk-dekan`);
 };
 
 export const finalizeBatchWithSK = async (idBatch: string, data: {
@@ -352,6 +363,14 @@ export const finalizeVerifikasiFakultas = async (idBatch: string): Promise<void>
   await bakClient.post(`/batch/${idBatch}/finalize-verifikasi`);
 };
 
+export const resetKandidatStatus = async (idKandidat: string): Promise<void> => {
+  await bakClient.post(`/batch/kandidat/${idKandidat}/reset`);
+};
+
+export const returnBatchToFakultas = async (idBatch: string, alasan: string): Promise<void> => {
+  await bakClient.post(`/batch/${idBatch}/return-to-fakultas`, { alasan });
+};
+
 export const getApprovalQueue = async (params?: {
   page?: number; limit?: number;
 }): Promise<PaginatedResponse<Pengajuan>> => {
@@ -370,7 +389,7 @@ export const rejectPengajuan = async (id: string, data: { catatan: string }): Pr
 // ============ Batch ============
 
 export const getBatchList = async (params?: {
-  page?: number; limit?: number; jenis_batch?: string; status?: string;
+  page?: number; limit?: number; jenis_batch?: string; status?: string; id_fakultas?: string; my_fakultas?: string;
 }): Promise<PaginatedResponse<BatchPenetapan>> => {
   const response = await bakClient.get<PaginatedResponse<BatchPenetapan>>('/batch', { params });
   return response.data;
@@ -381,6 +400,7 @@ export const createBatch = async (data: {
   nm_batch: string;
   jenis_batch: string;
   id_smt: string;
+  id_fakultas: string;
   kriteria_snapshot?: string;
   catatan?: string;
 }): Promise<BatchPenetapan> => {
@@ -596,7 +616,7 @@ const simBakService = {
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
   getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
-  previewBatchCandidates, pullBatchCandidates, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
+  previewBatchCandidates, pullBatchCandidates, sendBatchToFakultas, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,
   // Monitoring

@@ -72,18 +72,19 @@ export default function CreateBatchPage() {
   }, [form.jenis_batch, form.id_smt, filterFakultas]);
 
   const handleSubmit = async () => {
-    if (!form.id_jenis_layanan || !form.nm_batch || !form.id_smt) {
-      toast.error("Jenis layanan, nama batch, dan semester wajib diisi");
+    if (!form.id_jenis_layanan || !form.nm_batch || !form.id_smt || !filterFakultas) {
+      toast.error("Jenis layanan, nama batch, semester, dan fakultas wajib diisi");
       return;
     }
     setSaving(true);
     try {
       const result = await createBatch({
         ...form,
-        kriteria_snapshot: JSON.stringify({ jenis: form.jenis_batch, id_smt: form.id_smt }),
-      });
+        id_fakultas: filterFakultas,
+        kriteria_snapshot: JSON.stringify({ jenis: form.jenis_batch, id_smt: form.id_smt, id_fakultas: filterFakultas }),
+      }) as unknown as { batch: { id_batch_penetapan: string }; jumlah_kandidat: number };
       toast.success(`Batch berhasil dibuat dengan ${result.jumlah_kandidat ?? 0} kandidat`);
-      router.push(`/dashboard/sim-bak/batch/${result.id_batch_penetapan}`);
+      router.push(`/dashboard/sim-bak/batch/${result.batch.id_batch_penetapan}`);
     } catch {
       toast.error("Gagal membuat batch");
     } finally {
@@ -145,10 +146,10 @@ export default function CreateBatchPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fakultas (opsional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fakultas *</label>
                 <select value={filterFakultas} onChange={(e) => { setFilterFakultas(e.target.value); setPreviewData(null); }}
                   className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Semua Fakultas</option>
+                  <option value="">Pilih Fakultas</option>
                   {fakultasList.map(f => (
                     <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
                   ))}
@@ -244,7 +245,7 @@ export default function CreateBatchPage() {
           <Button variant="flat" onPress={() => router.push("/dashboard/sim-bak/batch")}>Batal</Button>
           <Button color="primary" isLoading={saving}
             startContent={!saving && <FiCheck className="w-4 h-4" />}
-            isDisabled={!form.id_jenis_layanan || !form.nm_batch || !form.id_smt}
+            isDisabled={!form.id_jenis_layanan || !form.nm_batch || !form.id_smt || !filterFakultas}
             onPress={handleSubmit}>
             Buat Evaluasi & Tarik Data{previewData ? ` (${previewData.total} kandidat)` : ''}
           </Button>

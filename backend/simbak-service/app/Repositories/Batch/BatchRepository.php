@@ -12,6 +12,7 @@ class BatchRepository extends BaseRepository
         $limit = $params['limit'] ?? 10;
         $jenisBatch = $params['jenis_batch'] ?? null;
         $status = $params['status'] ?? null;
+        $idFakultas = $params['id_fakultas'] ?? null;
         $bindings = [];
 
         $where = "WHERE b.soft_delete = false";
@@ -22,6 +23,10 @@ class BatchRepository extends BaseRepository
         if ($status) {
             $where .= " AND b.status = ?";
             $bindings[] = $status;
+        }
+        if ($idFakultas) {
+            $where .= " AND b.id_fakultas = ?::uuid";
+            $bindings[] = $idFakultas;
         }
 
         $countSql = "SELECT COUNT(*) as total FROM batch.batch_penetapan b {$where}";
@@ -55,12 +60,14 @@ class BatchRepository extends BaseRepository
         return $this->pgInsertReturning("
             INSERT INTO batch.batch_penetapan (
                 id_jenis_layanan, kode_batch, nm_batch, jenis_batch, id_smt,
+                id_fakultas, nm_fakultas,
                 status, id_pembuat, kriteria_snapshot, catatan, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?::uuid, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_jenis_layanan'], $data['kode_batch'], $data['nm_batch'],
             $data['jenis_batch'], $data['id_smt'],
+            $data['id_fakultas'] ?? null, $data['nm_fakultas'] ?? null,
             $data['status'] ?? 'draft', $data['id_pembuat'],
             $data['kriteria_snapshot'] ?? '{}', $data['catatan'] ?? null,
             $data['id_creator'] ?? null,
@@ -131,6 +138,7 @@ class BatchRepository extends BaseRepository
                 status_mahasiswa, status_registrasi, status_pembayaran,
                 status_kandidat, id_creator
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (id_batch_penetapan, id_mahasiswa) DO NOTHING
             RETURNING *
         ", [
             $data['id_batch_penetapan'], $data['id_mahasiswa'], $data['nim'], $data['nm_mahasiswa'],

@@ -192,22 +192,24 @@ Admin Fakultas bertugas memverifikasi pengajuan permohonan akademik (Cuti, Undur
 
 ### 4.4. Memverifikasi Kandidat Batch Evaluasi Studi
 
-Saat Admin BAK membuat batch evaluasi (Habis Masa Mukim atau Putus Studi), Admin Fakultas diminta memverifikasi kandidat dari fakultasnya.
+Saat Admin BAK membuat batch evaluasi (Habis Masa Mukim atau Putus Studi) dan mengirimkannya ke fakultas, Admin Fakultas diminta memverifikasi kandidat dari fakultasnya.
 
 **Langkah-langkah:**
 
-1. Buka menu **Verifikasi** — batch yang perlu diverifikasi juga muncul di sini
-2. Untuk setiap kandidat mahasiswa, Anda dapat:
-   - **Konfirmasi** — Kandidat masuk ke penetapan final
-   - **Keluarkan** — Kandidat dikeluarkan dari daftar. Pilih alasan:
-     - Sedang mengajukan cuti
-     - Sedang dalam proses bimbingan akhir/skripsi
-     - Meninggal dunia (wajib unggah dokumen pendukung)
-     - Alasan lainnya (wajib isi keterangan)
-3. Setelah semua kandidat diverifikasi, unggah **SK Dekan** (nomor SK, tanggal, file PDF)
-4. Klik **Finalisasi Verifikasi Fakultas** untuk mengunci data
+1. Buka menu **Verifikasi Evaluasi** — hanya batch dengan status "Verifikasi Fakultas" untuk fakultas Anda yang tampil
+2. Klik batch untuk melihat detail. Jika ada **banner kuning** "Dikembalikan oleh Admin BAK untuk perbaikan", baca catatan alasan pengembalian
+3. Untuk setiap kandidat mahasiswa, Anda dapat:
+   - **Konfirmasi** (tombol hijau ✓) — Kandidat masuk ke penetapan final
+   - **Keluarkan** (tombol merah ✗) — Kandidat dikeluarkan dari daftar. Pilih alasan:
+     - HMM: Sudah mengajukan undur diri / Meninggal dunia / Lainnya
+     - Putus Studi: Mahasiswa double degree / Jalur RPL / Diberi kesempatan lanjut studi / Sudah mengajukan undur diri / Meninggal dunia / Lainnya
+     - Jika "Meninggal dunia" → wajib upload Surat Keterangan Meninggal Dunia (PDF)
+     - Jika "Lainnya" → wajib isi keterangan
+   - **Batalkan** (tombol kuning ↺) — Reset verifikasi kandidat kembali ke "masuk" (hanya jika belum finalisasi). Data verifikasi dan dokumen pendukung akan dihapus
+4. Unggah **SK Dekan** (nomor SK, tanggal, file PDF)
+5. Klik **Finalisasi Verifikasi Fakultas** untuk mengunci data — syarat: semua kandidat sudah diverifikasi dan SK Dekan sudah diupload
 
-> **Catatan:** Setelah finalisasi, data kandidat tidak dapat diubah lagi.
+> **Catatan:** Setelah finalisasi, data kandidat terkunci. Namun Admin BAK masih dapat mengembalikan batch untuk perbaikan jika diperlukan.
 
 ---
 
@@ -267,7 +269,7 @@ Admin BAK dapat membuat batch penetapan untuk dua jenis:
 
 | Jenis | Kriteria Otomatis |
 |-------|-------------------|
-| **Habis Masa Mukim (HMM)** | D3 > 12 semester, S1 > 16 semester, S2 > 8 semester, S3 > 12 semester |
+| **Habis Masa Mukim (HMM)** | D3 >= 13 semester, S1 >= 17 semester, S2 >= 9 semester, S3 >= 13 semester |
 | **Putus Studi Akademik** | Semester IV: IPK < 2.00 atau SKS < 40; Semester VIII: IPK < 2.00 atau SKS < 80 |
 
 **Langkah-langkah:**
@@ -277,35 +279,44 @@ Admin BAK dapat membuat batch penetapan untuk dua jenis:
 3. Isi formulir:
    - **Jenis Penetapan**: Habis Masa Mukim atau Putus Studi Akademik
    - **Semester Akademik**: Pilih semester evaluasi
-   - **Fakultas** (opsional): Filter per fakultas tertentu atau kosongkan untuk semua
-   - **Nama Batch**: Judul evaluasi (contoh: "Penetapan HMM Genap 2025/2026")
+   - **Fakultas** (wajib): Pilih fakultas — batch evaluasi per fakultas, akan diverifikasi admin fakultas terkait
+   - **Nama Batch**: Judul evaluasi (contoh: "Penetapan HMM FMIPA Genap 2025/2026")
    - **Catatan** (opsional)
-4. Klik **Preview Kandidat** untuk melihat sample data
+4. Klik **Preview Kandidat** untuk melihat data kandidat (otomatis exclude mahasiswa yang sudah dikonfirmasi di batch terbit sebelumnya)
 5. Klik **Buat Evaluasi & Tarik Data** untuk membuat batch dan menarik semua kandidat
+
+> **Validasi:** Sistem menolak pembuatan batch jika sudah ada batch aktif (belum terbit) untuk kombinasi jenis + semester + fakultas yang sama.
 
 ### 5.6. Mengelola Batch Evaluasi
 
-Setelah batch dibuat:
+Setelah batch dibuat, alur pengelolaan:
 
-1. **Tahap Verifikasi Fakultas**:
-   - Status batch berubah ke "Verifikasi Fakultas"
-   - Admin Fakultas memverifikasi kandidat dari fakultasnya masing-masing
-   - Pantau progress: berapa kandidat sudah dikonfirmasi/dikeluarkan/belum diproses
+1. **Kirim ke Fakultas** (tombol biru "Kirim ke Fakultas"):
+   - Status batch: `kandidat_ditarik` → `verifikasi_fakultas`
+   - Admin Fakultas terkait dapat mulai memverifikasi kandidat
 
-2. **Tahap Finalisasi**:
-   - Setelah semua Admin Fakultas selesai dan SK Dekan diunggah
-   - Klik **Finalisasi** untuk mengunci data
+2. **Pantau Verifikasi Fakultas**:
+   - Buka detail batch → lihat stats (dikonfirmasi / dikeluarkan / belum diproses)
+   - Admin Fakultas memverifikasi tiap kandidat, upload SK Dekan, lalu finalisasi
+   - Setelah finalisasi fakultas → status: `sk_dekan_terbit`
 
-3. **Penerbitan SK Rektor**:
-   - Isi nomor SK Rektor, tanggal, dan unggah file PDF
-   - Klik **Finalkan & Terbitkan SK Rektor**
-   - Status batch berubah menjadi **Terbit**
+3. **Review Hasil (status SK Dekan Terbit)**:
+   - Lihat hasil verifikasi dan SK Dekan yang diupload
+   - **Kembalikan ke Fakultas** (tombol kuning) — jika ada yang perlu diperbaiki:
+     - Wajib isi alasan (min 10 karakter)
+     - Semua status kandidat direset ke "masuk"
+     - Admin fakultas bisa verifikasi ulang
+     - Banner catatan pengembalian tampil di halaman fakultas
+   - **Finalkan & Terbitkan SK Rektor** (tombol hijau) — jika sudah benar:
+     - Isi nomor SK Rektor, tanggal, dan unggah file PDF
+     - Status batch berubah menjadi **Terbit**
 
 **Tindakan tambahan di halaman detail batch:**
 
-- **Tarik Ulang Data**: Reset kandidat dari database (hanya jika masih draft/kandidat ditarik)
-- **Export CSV**: Unduh daftar kandidat dalam format Excel/CSV
+- **Tarik Ulang Data** (biru): Reset dan tarik ulang kandidat dari PDUT (hanya status draft/kandidat_ditarik). Kandidat dari batch terbit sebelumnya otomatis diexclude
+- **Export CSV**: Unduh daftar kandidat dalam format CSV
 - **Kirim Email/WhatsApp** per kandidat: Notifikasi individual
+- **Hapus** (merah): Hapus batch (hanya status draft/kandidat_ditarik/verifikasi_fakultas, alasan wajib jika sudah verifikasi)
 
 ### 5.7. Monitoring Mahasiswa
 
@@ -422,20 +433,33 @@ Admin BAK           Asal                Tujuan               │                
 ### 7.4. Batch Evaluasi Studi (BA-HMM, BA-PUTUS)
 
 ```
-Admin BAK           Admin Fakultas        Admin Fakultas       Admin BAK         Admin BAK
-   │                     │                     │                  │                 │
-   ├─ Buat batch &      │                     │                  │                 │
-   │  tarik kandidat ──>│                     │                  │                 │
-   │                     ├─ Verifikasi ───────>│                  │                 │
-   │                     │  tiap kandidat      ├─ Upload ────────>│                 │
-   │                     │                     │  SK Dekan         ├─ Finalisasi ──>│
-   │                     │                     │                  │                 ├─ Terbitkan
-   │                     │                     │                  │                 │  SK Rektor
+Admin BAK                    Admin Fakultas                    Admin BAK
+   │                              │                              │
+   ├─ Buat batch &               │                              │
+   │  tarik kandidat             │                              │
+   │  [draft → kandidat_ditarik] │                              │
+   │                              │                              │
+   ├─ Kirim ke Fakultas ────────>│                              │
+   │  [→ verifikasi_fakultas]    │                              │
+   │                              ├─ Verifikasi tiap kandidat   │
+   │                              │  (konfirmasi/keluarkan/     │
+   │                              │   batalkan)                  │
+   │                              ├─ Upload SK Dekan             │
+   │                              ├─ Finalisasi Verifikasi ────>│
+   │                              │  [→ sk_dekan_terbit]         │
+   │                              │                              ├─ Review:
+   │                              │                              │  Kembalikan? ──> (kembali ke
+   │                              │                              │                  verifikasi_fakultas)
+   │                              │                              │  atau
+   │                              │                              │  Finalkan & Terbitkan SK Rektor
+   │                              │                              │  [→ terbit]
 ```
 
-**5 tahapan, 2 peran terlibat (Admin BAK + Admin Fakultas)**
+**2 peran terlibat (Admin BAK + Admin Fakultas)**
 
-Status batch: `draft → kandidat_ditarik → verifikasi_fakultas → sk_dekan_terbit → finalisasi → terbit`
+Status batch: `draft → kandidat_ditarik → verifikasi_fakultas → sk_dekan_terbit → terbit`
+
+> Admin BAK dapat mengembalikan batch dari `sk_dekan_terbit` ke `verifikasi_fakultas` jika ada perbaikan yang diperlukan (dengan alasan wajib). Semua status kandidat direset.
 
 ---
 
