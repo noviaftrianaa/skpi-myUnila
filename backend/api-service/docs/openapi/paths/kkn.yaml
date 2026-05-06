@@ -1,0 +1,154 @@
+# Path definitions untuk modul KKN (Kuliah Kerja Nyata)
+# GET-only, enriched dengan pdrd UUID bridging (id_pd, id_reg_pd, id_sms)
+# + denormalized names (nm_prodi, nm_fakultas, nm_jenjang).
+
+# =============================================================================
+# Peserta KKN
+# =============================================================================
+
+list-kkn-peserta:
+  get:
+    tags: [KKN]
+    summary: List peserta KKN
+    description: |
+      Data peserta KKN dari kkn.registrasi_kkn + kkn.data_pemohon.
+      Include UUID bridging ke pdrd: id_pd, id_reg_pd, id_sms.
+      Denormalized: nm_prodi, nm_fakultas, nm_jenjang, nm_kelompok, nm_desa.
+    operationId: listKknPeserta
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: npm, in: query, schema: { type: string } }
+      - { name: id_reg_pd, in: query, schema: { type: string, format: uuid } }
+      - { name: id_sms, in: query, schema: { type: string, format: uuid } }
+      - { name: angkatan, in: query, schema: { type: integer, example: 2024 } }
+      - { name: id_periode, in: query, schema: { type: string, format: uuid } }
+      - { name: status, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+      - $ref: '../schemas/common.yaml#/parameters/sortBy'
+      - $ref: '../schemas/common.yaml#/parameters/order'
+    responses: { '200': { description: OK } }
+
+detail-kkn-peserta:
+  get:
+    tags: [KKN]
+    summary: Detail peserta KKN (full enrichment per NPM)
+    description: |
+      Detail peserta KKN lengkap: biodata, kelompok, lokasi, nilai DPL/KDPL.
+      Include UUID bridging ke pdrd.
+    operationId: detailKknPeserta
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: npm, in: query, required: true, schema: { type: string } }
+    responses:
+      '200': { description: OK }
+      '404': { description: Peserta tidak ditemukan }
+
+# =============================================================================
+# Kelompok KKN
+# =============================================================================
+
+list-kkn-kelompok:
+  get:
+    tags: [KKN]
+    summary: List kelompok KKN
+    description: |
+      Data kelompok KKN dengan info periode, lokasi (desa/kecamatan/kabupaten),
+      kuota, dan jumlah anggota.
+    operationId: listKknKelompok
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: id_kelompok, in: query, schema: { type: string, format: uuid } }
+      - { name: id_periode, in: query, schema: { type: string, format: uuid } }
+      - { name: id_lokasi, in: query, schema: { type: string, format: uuid } }
+      - { name: status, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# DPL (Dosen Pembimbing Lapangan)
+# =============================================================================
+
+list-kkn-dpl:
+  get:
+    tags: [KKN]
+    summary: List DPL KKN
+    description: |
+      Data Dosen Pembimbing Lapangan, enriched via pdrd.sdm
+      untuk nm_dosen dan NIDN fallback.
+    operationId: listKknDpl
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: nip, in: query, schema: { type: string } }
+      - { name: nidn, in: query, schema: { type: string } }
+      - { name: id_dosen, in: query, schema: { type: string, format: uuid } }
+      - { name: id_periode, in: query, schema: { type: string, format: uuid } }
+      - { name: peran, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# Nilai Mahasiswa KKN
+# =============================================================================
+
+list-kkn-nilai:
+  get:
+    tags: [KKN]
+    summary: List nilai mahasiswa KKN
+    description: |
+      Data nilai KKN per mahasiswa, sumber: dpl / kdpl.
+      Include UUID bridging id_reg_pd, id_sms dari pdrd.
+    operationId: listKknNilai
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: npm, in: query, schema: { type: string } }
+      - { name: id_periode, in: query, schema: { type: string, format: uuid } }
+      - { name: source, in: query, schema: { type: string, enum: [dpl, kdpl] } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# Periode KKN
+# =============================================================================
+
+list-kkn-periode:
+  get:
+    tags: [KKN]
+    summary: List periode KKN
+    description: |
+      Data periode KKN dengan jumlah peserta dan jumlah kelompok per periode.
+    operationId: listKknPeriode
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: tahun, in: query, schema: { type: string, example: "2024/2025" } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }
+
+# =============================================================================
+# Lokasi KKN
+# =============================================================================
+
+list-kkn-lokasi:
+  get:
+    tags: [KKN]
+    summary: List lokasi KKN
+    description: |
+      Data lokasi KKN: desa, kecamatan, kabupaten, provinsi.
+    operationId: listKknLokasi
+    security: [{ BearerAuth: [] }]
+    parameters:
+      - { name: kabupaten, in: query, schema: { type: string } }
+      - { name: kecamatan, in: query, schema: { type: string } }
+      - $ref: '../schemas/common.yaml#/parameters/search'
+      - $ref: '../schemas/common.yaml#/parameters/page'
+      - $ref: '../schemas/common.yaml#/parameters/limit'
+    responses: { '200': { description: OK } }

@@ -21,6 +21,7 @@ import (
 	"github.com/myunila/api-service/apps/diklat"
 	"github.com/myunila/api-service/apps/institusi"
 	"github.com/myunila/api-service/apps/kerjasama"
+	"github.com/myunila/api-service/apps/kkn"
 	"github.com/myunila/api-service/apps/kontribusi"
 	"github.com/myunila/api-service/apps/mbkm"
 	"github.com/myunila/api-service/apps/pdrd"
@@ -253,6 +254,10 @@ func main() {
 	// Kerjasama module (CRUD — mou + sms_kerjasama + dudi untuk LP2M/Bagian Kerjasama)
 	kerjasama.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ Kerjasama module initialized (CRUD, 15 endpoint)")
+
+	// KKN module (GET-only — kkn.* tables di pdut_staging, enriched dgn pdrd UUID)
+	kkn.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
+	log.Println("✅ KKN module initialized (GET-only, 7 endpoint)")
 
 	// MBKM module (GET-only — daftar/periode/mk_konversi/ekuiv/log_book dari pdut.mbkm.*)
 	mbkm.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)

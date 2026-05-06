@@ -361,6 +361,24 @@ paths:
     $ref: './paths/siakadu.yaml#/list-siakadu-pimpinan-unit'
 
   # ==========================================================================
+  # KKN — Kuliah Kerja Nyata (GET-only)
+  # ==========================================================================
+  /v1/kkn/list_peserta:
+    $ref: './paths/kkn.yaml#/list-kkn-peserta'
+  /v1/kkn/detail_peserta:
+    $ref: './paths/kkn.yaml#/detail-kkn-peserta'
+  /v1/kkn/list_kelompok:
+    $ref: './paths/kkn.yaml#/list-kkn-kelompok'
+  /v1/kkn/list_dpl:
+    $ref: './paths/kkn.yaml#/list-kkn-dpl'
+  /v1/kkn/list_nilai:
+    $ref: './paths/kkn.yaml#/list-kkn-nilai'
+  /v1/kkn/list_periode:
+    $ref: './paths/kkn.yaml#/list-kkn-periode'
+  /v1/kkn/list_lokasi:
+    $ref: './paths/kkn.yaml#/list-kkn-lokasi'
+
+  # ==========================================================================
   # KERJASAMA — LP2M/Bagian Kerjasama (CRUD)
   # ==========================================================================
   /v1/kerjasama/mou:
