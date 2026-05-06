@@ -22,6 +22,22 @@ import { toast } from "react-hot-toast";
 
 const APP_KEY = "myunila-integrator";
 
+const API_TO_SQL_MAP: Record<string, string> = {
+  "kkn_periode": "kkn.periode_kkn",
+  "lokasi_desa": "kkn.lokasi_kkn",
+  "mahasiswa_pendaftar": "kkn.registrasi_kkn",
+  "mahasiswa_biodata": "kkn.data_pemohon",
+  "penempatan_mahasiswa": "kkn.kelompok_kkn",
+  "penempatan_dpl": "kkn.dpl_kelompok",
+  "nilai_dpl": "kkn.nilai_mahasiswa",
+  "mahasiswa_laporan_p": "kkn.laporan_kelompok",
+  "mahasiswa_laporan_rk": "kkn.program_kerja",
+};
+
+const SQL_TO_API_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(API_TO_SQL_MAP).map(([k, v]) => [v, k])
+);
+
 export default function KKNStatsPage() {
   useRequireAuth();
   const { user } = useAuth();
@@ -265,10 +281,10 @@ export default function KKNStatsPage() {
                 </thead>
                 <tbody className="divide-y dark:divide-gray-700">
                   {stats.sqlserver_stats?.map((sql) => {
-                    const api = stats.table_stats?.find((t) =>
-                      sql.table.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                      t.table.toLowerCase().includes(sql.table.replace("_kkn", "").toLowerCase())
-                    );
+                    const mappedApiTable = SQL_TO_API_MAP[sql.table];
+                    const api = mappedApiTable
+                      ? stats.table_stats?.find((t) => t.table === mappedApiTable)
+                      : undefined;
                     const apiCount = api?.count || 0;
                     const pct = apiCount > 0 ? Math.round((sql.count / apiCount) * 100) : 0;
                     return (

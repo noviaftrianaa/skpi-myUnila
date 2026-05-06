@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
+
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
 
 type Repository interface {
 	UpsertPeriode(ctx context.Context, data map[string]interface{}) (bool, error)
@@ -30,6 +33,16 @@ type Repository interface {
 	GetDosenUUID(ctx context.Context, nip string) (string, error)
 
 	GetSQLServerStats(ctx context.Context) ([]SQLTableStat, error)
+	EnrichAfterSync(ctx context.Context) error
+
+	// List endpoints
+	ListPeriode(ctx context.Context, f ListFilter) ([]PeriodeKKNRow, int, error)
+	ListLokasi(ctx context.Context, f ListFilter) ([]LokasiKKNRow, int, error)
+	ListRegistrasi(ctx context.Context, f ListFilter) ([]RegistrasiKKNRow, int, error)
+	ListKelompok(ctx context.Context, f ListFilter) ([]KelompokKKNRow, int, error)
+	ListDPL(ctx context.Context, f ListFilter) ([]DPLKelompokRow, int, error)
+	ListNilai(ctx context.Context, f ListFilter) ([]NilaiMahasiswaRow, int, error)
+	ListProgramKerja(ctx context.Context, f ListFilter) ([]ProgramKerjaRow, int, error)
 }
 
 type repository struct {
@@ -154,11 +167,15 @@ func (r *repository) UpsertRegistrasi(ctx context.Context, data map[string]inter
 		return false, err
 	}
 
+	tglDiajukan := getString(data, "created_at")
+
 	if exists > 0 {
 		_, err = r.db.ExecContext(ctx, `
-			UPDATE kkn.registrasi_kkn SET status = @p1, npm = @p2, last_update = GETDATE()
-			WHERE legacy_id = @p3
-		`, mappedStatus, npm, legacyID)
+			UPDATE kkn.registrasi_kkn SET status = @p1, npm = @p2,
+				tgl_diajukan = COALESCE(tgl_diajukan, TRY_CAST(@p3 AS DATETIME)),
+				last_update = GETDATE()
+			WHERE legacy_id = @p4
+		`, mappedStatus, npm, nullIfEmpty(tglDiajukan), legacyID)
 		return false, err
 	}
 
@@ -167,9 +184,9 @@ func (r *repository) UpsertRegistrasi(ctx context.Context, data map[string]inter
 	}
 
 	_, err = r.db.ExecContext(ctx, `
-		INSERT INTO kkn.registrasi_kkn (id_periode_kkn, nomor_registrasi, status, npm, legacy_id)
-		VALUES (@p1, @p2, @p3, @p4, @p5)
-	`, periodeUUID, noReg, mappedStatus, npm, legacyID)
+		INSERT INTO kkn.registrasi_kkn (id_periode_kkn, nomor_registrasi, status, npm, tgl_diajukan, legacy_id)
+		VALUES (@p1, @p2, @p3, @p4, TRY_CAST(@p5 AS DATETIME), @p6)
+	`, periodeUUID, noReg, mappedStatus, npm, nullIfEmpty(tglDiajukan), legacyID)
 	return true, err
 }
 
@@ -205,9 +222,18 @@ func (r *repository) UpsertDataPemohon(ctx context.Context, biodata map[string]i
 
 	if exists > 0 {
 		_, err = r.db.ExecContext(ctx, `
-			UPDATE kkn.data_pemohon SET nm_mahasiswa = @p1, jenis_kelamin = @p2, ipk = @p3,
-				sks_lulus = @p4, no_hp = @p5, email = @p6, last_update = GETDATE()
-			WHERE legacy_id = @p7
+			UPDATE dp SET dp.nm_mahasiswa = @p1, dp.jenis_kelamin = @p2, dp.ipk = @p3,
+				dp.sks_lulus = @p4, dp.no_hp = @p5, dp.email = @p6, dp.last_update = GETDATE(),
+				dp.id_prodi = COALESCE(dp.id_prodi, rp.id_sms),
+				dp.nm_prodi = COALESCE(NULLIF(dp.nm_prodi,''), sms.nm_lemb),
+				dp.id_fakultas = COALESCE(dp.id_fakultas, sms.id_fak_unila),
+				dp.nm_fakultas = COALESCE(NULLIF(dp.nm_fakultas,''), fak.nm_lemb),
+				dp.angkatan = COALESCE(dp.angkatan, rp.angkatan)
+			FROM kkn.data_pemohon dp
+			OUTER APPLY (SELECT TOP 1 r2.id_sms, r2.angkatan FROM pdrd.reg_pd r2 WHERE r2.nipd = dp.nim ORDER BY r2.tgl_masuk_sp DESC) rp
+			OUTER APPLY (SELECT s2.nm_lemb, s2.id_fak_unila FROM pdrd.sms s2 WHERE s2.id_sms = rp.id_sms) sms
+			OUTER APPLY (SELECT f2.nm_lemb FROM man_akses.unit_organisasi f2 WHERE f2.id_organisasi = sms.id_fak_unila) fak
+			WHERE dp.legacy_id = @p7
 		`, nama, jkCode, ipk, sks, telpon, email, legacyID)
 		return false, err
 	}
@@ -217,7 +243,26 @@ func (r *repository) UpsertDataPemohon(ctx context.Context, biodata map[string]i
 			tempat_lahir, jenis_kelamin, ipk, sks_lulus, no_hp, email, legacy_id)
 		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11)
 	`, registrasiUUID, nullIfEmpty(mahasiswaUUID), npm, nama, tempatLahir, jkCode, ipk, sks, telpon, email, legacyID)
-	return true, err
+	if err != nil {
+		return false, err
+	}
+
+	// Enrich newly inserted row with prodi/fakultas/angkatan from pdrd
+	r.db.ExecContext(ctx, `
+		UPDATE dp SET
+			dp.id_prodi = rp.id_sms,
+			dp.nm_prodi = sms.nm_lemb,
+			dp.id_fakultas = sms.id_fak_unila,
+			dp.nm_fakultas = fak.nm_lemb,
+			dp.angkatan = rp.angkatan
+		FROM kkn.data_pemohon dp
+		CROSS APPLY (SELECT TOP 1 r2.id_sms, r2.angkatan FROM pdrd.reg_pd r2 WHERE r2.nipd = dp.nim ORDER BY r2.tgl_masuk_sp DESC) rp
+		CROSS APPLY (SELECT s2.nm_lemb, s2.id_fak_unila FROM pdrd.sms s2 WHERE s2.id_sms = rp.id_sms) sms
+		CROSS APPLY (SELECT f2.nm_lemb FROM man_akses.unit_organisasi f2 WHERE f2.id_organisasi = sms.id_fak_unila) fak
+		WHERE dp.legacy_id = @p1
+	`, legacyID)
+
+	return true, nil
 }
 
 func (r *repository) UpsertKelompok(ctx context.Context, idPeriode string, kelompokNo int, idDesa int, lokasiUUID, periodeUUID string) (string, bool, error) {
@@ -279,26 +324,59 @@ func (r *repository) UpsertDPL(ctx context.Context, data map[string]interface{},
 	}
 	hp := getString(data, "hp")
 
-	dosenUUID, _ := r.GetDosenUUID(ctx, nip)
+	cleanNIP := strings.TrimSuffix(nip, "_x")
+	dosenUUID, _ := r.GetDosenUUID(ctx, cleanNIP)
+
+	// If dosen found in pdrd and name from MySQL is empty/suspicious, use pdrd name
+	if dosenUUID != "" && (nama == "" || strings.Contains(strings.ToUpper(nama), "HACKED")) {
+		var pdrdName string
+		r.db.GetContext(ctx, &pdrdName, "SELECT nm_sdm FROM pdrd.sdm WHERE id_sdm = @p1", dosenUUID)
+		if pdrdName != "" {
+			nama = pdrdName
+		}
+	}
+
+	// Also try to get NIDN from pdrd.sdm
+	nidn := cleanNIP
+	if dosenUUID != "" {
+		var realNIDN string
+		r.db.GetContext(ctx, &realNIDN, "SELECT ISNULL(nidn,'') FROM pdrd.sdm WHERE id_sdm = @p1", dosenUUID)
+		if realNIDN != "" {
+			nidn = realNIDN
+		}
+	}
 
 	var exists int
 	err := r.db.GetContext(ctx, &exists,
-		"SELECT COUNT(1) FROM kkn.dpl_kelompok WHERE id_kelompok = @p1 AND nip = @p2", kelompokUUID, nip)
+		"SELECT COUNT(1) FROM kkn.dpl_kelompok WHERE id_kelompok = @p1 AND nip = @p2", kelompokUUID, cleanNIP)
 	if err != nil {
 		return false, err
 	}
 	if exists > 0 {
 		_, err = r.db.ExecContext(ctx, `
-			UPDATE kkn.dpl_kelompok SET nm_dosen = @p1, no_hp = @p2, id_dosen = @p3, last_update = GETDATE()
-			WHERE id_kelompok = @p4 AND nip = @p5
-		`, nama, hp, nullIfEmpty(dosenUUID), kelompokUUID, nip)
+			UPDATE kkn.dpl_kelompok SET nm_dosen = @p1, no_hp = @p2, id_dosen = @p3, nidn = @p4, last_update = GETDATE()
+			WHERE id_kelompok = @p5 AND nip = @p6
+		`, nama, hp, nullIfEmpty(dosenUUID), nidn, kelompokUUID, cleanNIP)
 		return false, err
+	}
+
+	// Also check with original NIP (in case it was stored with _x before)
+	if nip != cleanNIP {
+		err = r.db.GetContext(ctx, &exists,
+			"SELECT COUNT(1) FROM kkn.dpl_kelompok WHERE id_kelompok = @p1 AND nip = @p2", kelompokUUID, nip)
+		if err == nil && exists > 0 {
+			_, err = r.db.ExecContext(ctx, `
+				UPDATE kkn.dpl_kelompok SET nm_dosen = @p1, no_hp = @p2, id_dosen = @p3, nip = @p4, nidn = @p5, last_update = GETDATE()
+				WHERE id_kelompok = @p6 AND nip = @p7
+			`, nama, hp, nullIfEmpty(dosenUUID), cleanNIP, nidn, kelompokUUID, nip)
+			return false, err
+		}
 	}
 
 	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO kkn.dpl_kelompok (id_kelompok, id_dosen, nm_dosen, nidn, nip, peran, no_hp)
 		VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7)
-	`, kelompokUUID, nullIfEmpty(dosenUUID), nama, nip, nip, peran, hp)
+	`, kelompokUUID, nullIfEmpty(dosenUUID), nama, nidn, cleanNIP, peran, hp)
 	return err == nil, err
 }
 
@@ -350,11 +428,11 @@ func (r *repository) UpsertNilai(ctx context.Context, data map[string]interface{
 
 func (r *repository) UpsertLaporan(ctx context.Context, data map[string]interface{}) (bool, error) {
 	legacyID := getInt(data, "id_laporan")
-	judul := getString(data, "program_kerja")
+	judul := stripHTML(getString(data, "program_kerja"))
 	if len(judul) > 300 {
 		judul = judul[:300]
 	}
-	deskripsi := getString(data, "kegiatan")
+	deskripsi := stripHTML(getString(data, "kegiatan"))
 
 	var exists int
 	r.db.GetContext(ctx, &exists, "SELECT COUNT(1) FROM kkn.laporan_kelompok WHERE legacy_id = @p1", legacyID)
@@ -382,9 +460,19 @@ func (r *repository) UpsertLaporan(ctx context.Context, data map[string]interfac
 	return err == nil, err
 }
 
+func stripHTML(s string) string {
+	s = htmlTagRe.ReplaceAllString(s, "")
+	s = strings.ReplaceAll(s, "&nbsp;", " ")
+	s = strings.ReplaceAll(s, "&amp;", "&")
+	s = strings.ReplaceAll(s, "&lt;", "<")
+	s = strings.ReplaceAll(s, "&gt;", ">")
+	s = strings.TrimSpace(s)
+	return s
+}
+
 func (r *repository) UpsertProgramKerja(ctx context.Context, data map[string]interface{}) (bool, error) {
 	legacyID := getInt(data, "id_laporan_rk")
-	judul := getString(data, "pk_rk")
+	judul := stripHTML(getString(data, "pk_rk"))
 	if len(judul) > 300 {
 		judul = judul[:300]
 	}
@@ -510,4 +598,374 @@ func nullIfEmpty(s string) interface{} {
 		return nil
 	}
 	return s
+}
+
+func (r *repository) EnrichAfterSync(ctx context.Context) error {
+	// Enrich data_pemohon: fill nm_prodi, nm_fakultas, angkatan from pdrd.reg_pd → sms → fak
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE dp SET
+			dp.id_prodi = rp.id_sms,
+			dp.nm_prodi = sms.nm_lemb,
+			dp.id_fakultas = sms.id_fak_unila,
+			dp.nm_fakultas = fak.nm_lemb,
+			dp.angkatan = rp.angkatan
+		FROM kkn.data_pemohon dp
+		CROSS APPLY (SELECT TOP 1 r2.id_sms, r2.angkatan FROM pdrd.reg_pd r2 WHERE r2.nipd = dp.nim ORDER BY r2.tgl_masuk_sp DESC) rp
+		CROSS APPLY (SELECT s2.nm_lemb, s2.id_fak_unila FROM pdrd.sms s2 WHERE s2.id_sms = rp.id_sms) sms
+		CROSS APPLY (SELECT f2.nm_lemb FROM man_akses.unit_organisasi f2 WHERE f2.id_organisasi = sms.id_fak_unila) fak
+		WHERE dp.soft_delete = 0 AND (dp.nm_prodi IS NULL OR dp.nm_prodi = '')
+	`)
+	if err != nil {
+		log.Printf("⚠️  EnrichAfterSync data_pemohon: %v", err)
+	}
+
+	// Enrich dpl_kelompok: fill nm_dosen and id_dosen from pdrd.sdm
+	_, err = r.db.ExecContext(ctx, `
+		UPDATE d SET
+			d.nm_dosen = COALESCE(NULLIF(d.nm_dosen,''), s.nm_sdm),
+			d.id_dosen = COALESCE(d.id_dosen, s.id_sdm)
+		FROM kkn.dpl_kelompok d
+		INNER JOIN pdrd.sdm s ON d.nip = s.nip
+		WHERE d.soft_delete = 0 AND (d.nm_dosen IS NULL OR d.nm_dosen = '' OR d.id_dosen IS NULL)
+	`)
+	if err != nil {
+		log.Printf("⚠️  EnrichAfterSync dpl_kelompok: %v", err)
+	}
+
+	return nil
+}
+
+// ============================================================================
+// LIST ENDPOINTS — paginated queries
+// ============================================================================
+
+func (r *repository) ListPeriode(ctx context.Context, f ListFilter) ([]PeriodeKKNRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.periode_kkn WHERE soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (nm_periode LIKE @p%d OR kode_periode LIKE @p%d OR tahun_akademik LIKE @p%d)`, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(id_periode_kkn AS VARCHAR(36)) AS id_periode_kkn,
+		ISNULL(kode_periode,'') AS kode_periode, ISNULL(nm_periode,'') AS nm_periode,
+		ISNULL(tahun_akademik,'') AS tahun_akademik, ISNULL(gelombang,0) AS gelombang,
+		FORMAT(tgl_daftar_mulai,'yyyy-MM-dd') AS tgl_daftar_mulai,
+		FORMAT(tgl_daftar_selesai,'yyyy-MM-dd') AS tgl_daftar_selesai,
+		FORMAT(tgl_pelaksanaan_mulai,'yyyy-MM-dd') AS tgl_pelaksanaan_mulai,
+		FORMAT(tgl_pelaksanaan_selesai,'yyyy-MM-dd') AS tgl_pelaksanaan_selesai,
+		ISNULL(durasi_hari,0) AS durasi_hari, ISNULL(kuota_total,0) AS kuota_total,
+		ISNULL(a_aktif,0) AS a_aktif
+		FROM kkn.periode_kkn WHERE soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (nm_periode LIKE @p%d OR kode_periode LIKE @p%d OR tahun_akademik LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY tahun_akademik DESC, gelombang DESC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []PeriodeKKNRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListLokasi(ctx context.Context, f ListFilter) ([]LokasiKKNRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.lokasi_kkn WHERE soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (nm_desa LIKE @p%d OR nm_kecamatan LIKE @p%d OR nm_kabupaten LIKE @p%d OR nm_provinsi LIKE @p%d)`, argIdx, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(id_lokasi AS VARCHAR(36)) AS id_lokasi,
+		ISNULL(kode_lokasi,'') AS kode_lokasi, ISNULL(nm_desa,'') AS nm_desa,
+		ISNULL(nm_kecamatan,'') AS nm_kecamatan, ISNULL(nm_kabupaten,'') AS nm_kabupaten,
+		ISNULL(nm_provinsi,'') AS nm_provinsi, ISNULL(kode_pos,'') AS kode_pos,
+		ISNULL(a_aktif,0) AS a_aktif
+		FROM kkn.lokasi_kkn WHERE soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (nm_desa LIKE @p%d OR nm_kecamatan LIKE @p%d OR nm_kabupaten LIKE @p%d OR nm_provinsi LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY nm_kabupaten ASC, nm_kecamatan ASC, nm_desa ASC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []LokasiKKNRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListRegistrasi(ctx context.Context, f ListFilter) ([]RegistrasiKKNRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.registrasi_kkn r
+		LEFT JOIN kkn.data_pemohon dp ON dp.id_registrasi = r.id_registrasi
+		WHERE r.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (r.nomor_registrasi LIKE @p%d OR r.npm LIKE @p%d OR dp.nm_mahasiswa LIKE @p%d OR dp.nm_prodi LIKE @p%d)`, argIdx, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(r.id_registrasi AS VARCHAR(36)) AS id_registrasi,
+		ISNULL(r.nomor_registrasi,'') AS nomor_registrasi,
+		ISNULL(r.npm,'') AS npm,
+		ISNULL(dp.nm_mahasiswa,'') AS nm_mahasiswa,
+		COALESCE(NULLIF(dp.nm_prodi,''), sms.nm_lemb, '') AS nm_prodi,
+		COALESCE(NULLIF(dp.nm_fakultas,''), fak.nm_lemb, '') AS nm_fakultas,
+		ISNULL(r.status,'') AS status,
+		FORMAT(r.tgl_diajukan,'yyyy-MM-dd') AS tgl_diajukan
+		FROM kkn.registrasi_kkn r
+		LEFT JOIN kkn.data_pemohon dp ON dp.id_registrasi = r.id_registrasi
+		OUTER APPLY (SELECT TOP 1 r2.id_sms FROM pdrd.reg_pd r2 WHERE r2.nipd = r.npm ORDER BY r2.tgl_masuk_sp DESC) rp
+		OUTER APPLY (SELECT s2.nm_lemb, s2.id_fak_unila FROM pdrd.sms s2 WHERE s2.id_sms = rp.id_sms) sms
+		OUTER APPLY (SELECT f2.nm_lemb FROM man_akses.unit_organisasi f2 WHERE f2.id_organisasi = sms.id_fak_unila) fak
+		WHERE r.soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (r.nomor_registrasi LIKE @p%d OR r.npm LIKE @p%d OR dp.nm_mahasiswa LIKE @p%d OR dp.nm_prodi LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY r.create_date DESC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []RegistrasiKKNRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListKelompok(ctx context.Context, f ListFilter) ([]KelompokKKNRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.kelompok_kkn k
+		JOIN kkn.periode_kkn p ON p.id_periode_kkn = k.id_periode_kkn
+		LEFT JOIN kkn.lokasi_kkn l ON l.id_lokasi = k.id_lokasi
+		WHERE k.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (k.kode_kelompok LIKE @p%d OR k.nm_kelompok LIKE @p%d OR l.nm_desa LIKE @p%d)`, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(k.id_kelompok AS VARCHAR(36)) AS id_kelompok,
+		ISNULL(k.kode_kelompok,'') AS kode_kelompok,
+		ISNULL(k.nm_kelompok,'') AS nm_kelompok,
+		ISNULL(p.nm_periode,'') AS nm_periode,
+		ISNULL(l.nm_desa,'') AS nm_desa,
+		ISNULL(k.kuota,0) AS kuota,
+		(SELECT COUNT(*) FROM kkn.anggota_kelompok a WHERE a.id_kelompok = k.id_kelompok AND a.soft_delete = 0) AS jumlah_anggota,
+		ISNULL(k.status,'') AS status
+		FROM kkn.kelompok_kkn k
+		JOIN kkn.periode_kkn p ON p.id_periode_kkn = k.id_periode_kkn
+		LEFT JOIN kkn.lokasi_kkn l ON l.id_lokasi = k.id_lokasi
+		WHERE k.soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (k.kode_kelompok LIKE @p%d OR k.nm_kelompok LIKE @p%d OR l.nm_desa LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY p.tahun_akademik DESC, k.kode_kelompok ASC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []KelompokKKNRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListDPL(ctx context.Context, f ListFilter) ([]DPLKelompokRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.dpl_kelompok d
+		JOIN kkn.kelompok_kkn k ON k.id_kelompok = d.id_kelompok
+		WHERE d.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (d.nm_dosen LIKE @p%d OR d.nidn LIKE @p%d OR d.nip LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, argIdx, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(d.id_dpl AS VARCHAR(36)) AS id_dpl,
+		COALESCE(NULLIF(d.nm_dosen,''), s.nm_sdm, '') AS nm_dosen,
+		COALESCE(NULLIF(d.nidn,''), s.nidn, '') AS nidn,
+		ISNULL(d.nip,'') AS nip,
+		ISNULL(d.peran,'') AS peran,
+		ISNULL(k.nm_kelompok,'') AS nm_kelompok,
+		ISNULL(d.a_aktif,0) AS a_aktif
+		FROM kkn.dpl_kelompok d
+		JOIN kkn.kelompok_kkn k ON k.id_kelompok = d.id_kelompok
+		LEFT JOIN pdrd.sdm s ON d.nip = s.nip
+		WHERE d.soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (d.nm_dosen LIKE @p%d OR d.nidn LIKE @p%d OR d.nip LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY CASE WHEN COALESCE(NULLIF(d.nm_dosen,''), s.nm_sdm) IS NULL THEN 1 ELSE 0 END, COALESCE(NULLIF(d.nm_dosen,''), s.nm_sdm, '') ASC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []DPLKelompokRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListNilai(ctx context.Context, f ListFilter) ([]NilaiMahasiswaRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.nilai_mahasiswa n
+		JOIN kkn.anggota_kelompok a ON a.id_anggota = n.id_anggota
+		LEFT JOIN kkn.kelompok_kkn k ON k.id_kelompok = a.id_kelompok
+		WHERE n.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (a.npm LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(n.id_nilai AS VARCHAR(36)) AS id_nilai,
+		ISNULL(a.npm,'') AS npm,
+		ISNULL((SELECT TOP 1 dp.nm_mahasiswa FROM kkn.data_pemohon dp WHERE dp.nim = a.npm),'') AS nm_mahasiswa,
+		ISNULL(k.nm_kelompok,'') AS nm_kelompok,
+		ISNULL(n.nilai,0) AS nilai,
+		ISNULL(n.catatan,'') AS catatan,
+		FORMAT(n.tgl_penilaian,'yyyy-MM-dd') AS tgl_penilaian,
+		ISNULL(n.legacy_source,'') AS legacy_source
+		FROM kkn.nilai_mahasiswa n
+		JOIN kkn.anggota_kelompok a ON a.id_anggota = n.id_anggota
+		LEFT JOIN kkn.kelompok_kkn k ON k.id_kelompok = a.id_kelompok
+		WHERE n.soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (a.npm LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY n.create_date DESC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []NilaiMahasiswaRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+func (r *repository) ListProgramKerja(ctx context.Context, f ListFilter) ([]ProgramKerjaRow, int, error) {
+	countQuery := `SELECT COUNT(*) FROM kkn.program_kerja pk
+		JOIN kkn.kelompok_kkn k ON k.id_kelompok = pk.id_kelompok
+		LEFT JOIN kkn.periode_kkn p ON p.id_periode_kkn = k.id_periode_kkn
+		WHERE pk.soft_delete = 0`
+	args := []interface{}{}
+	argIdx := 1
+	if f.Search != "" {
+		countQuery += fmt.Sprintf(` AND (pk.judul LIKE @p%d OR pk.bidang LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, argIdx, argIdx, argIdx)
+		args = append(args, "%"+f.Search+"%")
+		argIdx++
+	}
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	listQuery := `SELECT CAST(pk.id_proker AS VARCHAR(36)) AS id_proker,
+		ISNULL(k.nm_kelompok,'') AS nm_kelompok,
+		ISNULL(p.nm_periode,'') AS nm_periode,
+		ISNULL(pk.judul,'') AS judul,
+		ISNULL(pk.bidang,'') AS bidang,
+		ISNULL(pk.status,'') AS status,
+		FORMAT(pk.tgl_mulai,'yyyy-MM-dd') AS tgl_mulai,
+		FORMAT(pk.tgl_selesai,'yyyy-MM-dd') AS tgl_selesai
+		FROM kkn.program_kerja pk
+		JOIN kkn.kelompok_kkn k ON k.id_kelompok = pk.id_kelompok
+		LEFT JOIN kkn.periode_kkn p ON p.id_periode_kkn = k.id_periode_kkn
+		WHERE pk.soft_delete = 0`
+	listArgs := []interface{}{}
+	listArgIdx := 1
+	if f.Search != "" {
+		listQuery += fmt.Sprintf(` AND (pk.judul LIKE @p%d OR pk.bidang LIKE @p%d OR k.nm_kelompok LIKE @p%d)`, listArgIdx, listArgIdx, listArgIdx)
+		listArgs = append(listArgs, "%"+f.Search+"%")
+		listArgIdx++
+	}
+	listQuery += ` ORDER BY pk.create_date DESC`
+	listQuery += fmt.Sprintf(` OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`, listArgIdx, listArgIdx+1)
+	listArgs = append(listArgs, (f.Page-1)*f.Limit, f.Limit)
+
+	var rows []ProgramKerjaRow
+	err = r.db.SelectContext(ctx, &rows, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	for i := range rows {
+		rows[i].Judul = stripHTML(rows[i].Judul)
+	}
+	return rows, total, nil
 }

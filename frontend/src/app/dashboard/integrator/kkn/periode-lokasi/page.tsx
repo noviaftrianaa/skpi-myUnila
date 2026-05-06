@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kknService, { KKNStats } from "@/lib/services/kkn/kknService";
+import kknService, { KKNStats, PeriodeKKN, LokasiKKN } from "@/lib/services/kkn/kknService";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 
 import {
@@ -21,7 +22,6 @@ import { MdSync, MdSchool } from "react-icons/md";
 import { toast } from "react-hot-toast";
 
 const APP_KEY = "myunila-integrator";
-const GROUP_TABLES = ["periode_kkn", "lokasi_kkn", "ref_jenis_kkn", "ref_golongan_kkn", "ref_nilai_kkn"];
 
 export default function KKNPeriodeLokasiPage() {
   useRequireAuth();
@@ -36,6 +36,23 @@ export default function KKNPeriodeLokasiPage() {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
 
+  // DataTable state — Periode
+  const [activeTab, setActiveTab] = useState<"periode" | "lokasi">("periode");
+  const [periodeData, setPeriodeData] = useState<PeriodeKKN[]>([]);
+  const [periodeTotal, setPeriodeTotal] = useState(0);
+  const [periodePage, setPeriodePage] = useState(1);
+  const [periodeLimit, setPeriodeLimit] = useState(10);
+  const [periodeSearch, setPeriodeSearch] = useState("");
+  const [periodeLoading, setPeriodeLoading] = useState(false);
+
+  // DataTable state — Lokasi
+  const [lokasiData, setLokasiData] = useState<LokasiKKN[]>([]);
+  const [lokasiTotal, setLokasiTotal] = useState(0);
+  const [lokasiPage, setLokasiPage] = useState(1);
+  const [lokasiLimit, setLokasiLimit] = useState(10);
+  const [lokasiSearch, setLokasiSearch] = useState("");
+  const [lokasiLoading, setLokasiLoading] = useState(false);
+
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
@@ -48,12 +65,57 @@ export default function KKNPeriodeLokasiPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  const fetchPeriode = useCallback(async () => {
+    try {
+      setPeriodeLoading(true);
+      const res = await kknService.listPeriode({ page: periodePage, limit: periodeLimit, search: periodeSearch || undefined });
+      if (res.success) { setPeriodeData(res.data || []); setPeriodeTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error fetching periode:", e); }
+    finally { setPeriodeLoading(false); }
+  }, [periodePage, periodeLimit, periodeSearch]);
+
+  const fetchLokasi = useCallback(async () => {
+    try {
+      setLokasiLoading(true);
+      const res = await kknService.listLokasi({ page: lokasiPage, limit: lokasiLimit, search: lokasiSearch || undefined });
+      if (res.success) { setLokasiData(res.data || []); setLokasiTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error fetching lokasi:", e); }
+    finally { setLokasiLoading(false); }
+  }, [lokasiPage, lokasiLimit, lokasiSearch]);
+
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { if (activeTab === "periode") fetchPeriode(); }, [fetchPeriode, activeTab]);
+  useEffect(() => { if (activeTab === "lokasi") fetchLokasi(); }, [fetchLokasi, activeTab]);
 
   const getCount = (table: string) =>
     stats?.sqlserver_stats?.find((s) => s.table === table || s.table === `kkn.${table}`)?.count || 0;
+
+  const periodeColumns: Column<PeriodeKKN>[] = [
+    { key: "nm_periode", label: "Nama Periode", render: (r) => <span className="font-medium">{r.nm_periode}</span> },
+    { key: "tahun_akademik", label: "Tahun Akademik" },
+    { key: "gelombang", label: "Gel.", align: "center" },
+    { key: "tgl_pelaksanaan_mulai", label: "Pelaksanaan", render: (r) => r.tgl_pelaksanaan_mulai && r.tgl_pelaksanaan_selesai ? `${r.tgl_pelaksanaan_mulai} s/d ${r.tgl_pelaksanaan_selesai}` : "-" },
+    { key: "durasi_hari", label: "Durasi", align: "center", render: (r) => r.durasi_hari ? `${r.durasi_hari} hari` : "-" },
+    { key: "kuota_total", label: "Kuota", align: "center" },
+    { key: "a_aktif", label: "Status", align: "center", render: (r) => (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.a_aktif ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
+        {r.a_aktif ? "Aktif" : "Nonaktif"}
+      </span>
+    )},
+  ];
+
+  const lokasiColumns: Column<LokasiKKN>[] = [
+    { key: "kode_lokasi", label: "Kode", minWidth: "80px" },
+    { key: "nm_desa", label: "Desa/Kelurahan", render: (r) => <span className="font-medium">{r.nm_desa}</span> },
+    { key: "nm_kecamatan", label: "Kecamatan" },
+    { key: "nm_kabupaten", label: "Kabupaten/Kota" },
+    { key: "nm_provinsi", label: "Provinsi" },
+    { key: "a_aktif", label: "Status", align: "center", render: (r) => (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.a_aktif ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
+        {r.a_aktif ? "Aktif" : "Nonaktif"}
+      </span>
+    )},
+  ];
 
   const handleSync = async () => {
     setShowSyncConfirm(false);
@@ -226,56 +288,65 @@ export default function KKNPeriodeLokasiPage() {
         {/* Scheduled Syncs */}
         <ScheduleList syncType="kkn" showCreateButton={false} />
 
-        {/* Table Stats Comparison */}
-        {stats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Perbandingan Data API vs SQL Server
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-400">Tabel</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">API (MySQL)</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">SQL Server</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {stats.sqlserver_stats
-                    ?.filter((sql) => GROUP_TABLES.some((t) => sql.table === t || sql.table === `kkn.${t}`))
-                    .map((sql) => {
-                      const api = stats.table_stats?.find((t) =>
-                        sql.table.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                        t.table.toLowerCase().includes(sql.table.replace("_kkn", "").toLowerCase())
-                      );
-                      const apiCount = api?.count || 0;
-                      const pct = apiCount > 0 ? Math.round((sql.count / apiCount) * 100) : 0;
-                      return (
-                        <tr key={sql.table} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                          <td className="p-3 font-mono text-xs">{sql.table}</td>
-                          <td className="p-3 text-right">{apiCount > 0 ? formatNumber(apiCount) : "-"}</td>
-                          <td className="p-3 text-right font-medium">{formatNumber(sql.count)}</td>
-                          <td className="p-3 text-right">
-                            {apiCount > 0 ? (
-                              <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                                pct >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                                pct >= 50 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                              }`}>{pct}%</span>
-                            ) : "-"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+        {/* Data Tables with Tabs */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <div className="border-b dark:border-gray-700">
+            <div className="flex">
+              <button
+                onClick={() => setActiveTab("periode")}
+                className={`px-6 py-3 text-sm font-semibold transition-colors ${activeTab === "periode" ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400" : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <FiCalendar className="w-4 h-4" />
+                  Periode KKN ({formatNumber(periodeTotal || getCount("periode_kkn"))})
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("lokasi")}
+                className={`px-6 py-3 text-sm font-semibold transition-colors ${activeTab === "lokasi" ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400" : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <FiMapPin className="w-4 h-4" />
+                  Lokasi KKN ({formatNumber(lokasiTotal || getCount("lokasi_kkn"))})
+                </div>
+              </button>
             </div>
           </div>
-        )}
+
+          <div className="p-4">
+            {activeTab === "periode" ? (
+              <DataTable<PeriodeKKN>
+                data={periodeData}
+                columns={periodeColumns}
+                searchable
+                searchPlaceholder="Cari periode (nama, kode, tahun)..."
+                loading={periodeLoading}
+                serverSide
+                totalRecords={periodeTotal}
+                currentPage={periodePage}
+                onPageChange={(p) => setPeriodePage(p)}
+                onRowsPerPageChange={(r) => { setPeriodeLimit(r); setPeriodePage(1); }}
+                onSearchChange={(q) => { setPeriodeSearch(q); setPeriodePage(1); }}
+                emptyMessage="Belum ada data periode KKN"
+              />
+            ) : (
+              <DataTable<LokasiKKN>
+                data={lokasiData}
+                columns={lokasiColumns}
+                searchable
+                searchPlaceholder="Cari lokasi (desa, kecamatan, kabupaten)..."
+                loading={lokasiLoading}
+                serverSide
+                totalRecords={lokasiTotal}
+                currentPage={lokasiPage}
+                onPageChange={(p) => setLokasiPage(p)}
+                onRowsPerPageChange={(r) => { setLokasiLimit(r); setLokasiPage(1); }}
+                onSearchChange={(q) => { setLokasiSearch(q); setLokasiPage(1); }}
+                emptyMessage="Belum ada data lokasi KKN"
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Sync Confirm Dialog */}

@@ -5,8 +5,9 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kknService, { KKNStats } from "@/lib/services/kkn/kknService";
+import kknService, { KKNStats, RegistrasiKKN } from "@/lib/services/kkn/kknService";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 
 import {
   FiUsers,
@@ -22,7 +23,6 @@ import { toast } from "react-hot-toast";
 
 const APP_KEY = "myunila-integrator";
 const SYNC_GROUP = "pendaftaran";
-const SQL_TABLES = ["registrasi_kkn", "data_pemohon"];
 
 export default function KKNPendaftaranPage() {
   useRequireAuth();
@@ -36,6 +36,13 @@ export default function KKNPendaftaranPage() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
+
+  const [tableData, setTableData] = useState<RegistrasiKKN[]>([]);
+  const [tableTotal, setTableTotal] = useState(0);
+  const [tablePage, setTablePage] = useState(1);
+  const [tableLimit, setTableLimit] = useState(10);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -51,8 +58,37 @@ export default function KKNPendaftaranPage() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
+  const fetchData = useCallback(async () => {
+    try {
+      setTableLoading(true);
+      const res = await kknService.listRegistrasi({ page: tablePage, limit: tableLimit, search: tableSearch || undefined });
+      if (res.success) { setTableData(res.data || []); setTableTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error fetching registrasi:", e); }
+    finally { setTableLoading(false); }
+  }, [tablePage, tableLimit, tableSearch]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
   const getCount = (table: string) =>
     stats?.sqlserver_stats?.find((s) => s.table === table || s.table === `kkn.${table}`)?.count || 0;
+
+  const registrasiColumns: Column<RegistrasiKKN>[] = [
+    { key: "nomor_registrasi", label: "No. Registrasi", render: (r) => <span className="font-mono text-xs">{r.nomor_registrasi || "-"}</span> },
+    { key: "npm", label: "NPM", render: (r) => <span className="font-mono text-xs">{r.npm}</span> },
+    { key: "nm_mahasiswa", label: "Nama Mahasiswa", render: (r) => <span className="font-medium">{r.nm_mahasiswa}</span> },
+    { key: "nm_prodi", label: "Program Studi" },
+    { key: "nm_fakultas", label: "Fakultas" },
+    { key: "status", label: "Status", align: "center", render: (r) => {
+      const colors: Record<string, string> = {
+        diterima: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        ditolak: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+        pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+      };
+      const key = (r.status || "").toLowerCase();
+      return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[key] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}>{r.status || "-"}</span>;
+    }},
+    { key: "tgl_diajukan", label: "Tgl Diajukan", render: (r) => r.tgl_diajukan ? new Date(r.tgl_diajukan).toLocaleDateString("id-ID") : "-" },
+  ];
 
   const handleSync = async () => {
     setShowSyncConfirm(false);
@@ -80,6 +116,7 @@ export default function KKNPendaftaranPage() {
         toast.success("Sinkronisasi berhasil!");
         setTimeout(async () => {
           await fetchStats();
+          fetchData();
           setShowProgressModal(false);
           setSyncProgress(0);
           setSyncStatus("idle");
@@ -218,55 +255,30 @@ export default function KKNPendaftaranPage() {
         {/* Scheduled Syncs */}
         <ScheduleList syncType="kkn" showCreateButton={false} />
 
-        {/* Table Stats Comparison */}
-        {stats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Perbandingan Data API vs SQL Server
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-400">Tabel</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">API (MySQL)</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">SQL Server</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {SQL_TABLES.map((tableName) => {
-                    const sqlCount = getCount(tableName);
-                    const api = stats.table_stats?.find((t) =>
-                      tableName.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                      t.table.toLowerCase().includes(tableName.replace("_kkn", "").toLowerCase())
-                    );
-                    const apiCount = api?.count || 0;
-                    const pct = apiCount > 0 ? Math.round((sqlCount / apiCount) * 100) : 0;
-                    return (
-                      <tr key={tableName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="p-3 font-mono text-xs">{tableName}</td>
-                        <td className="p-3 text-right">{apiCount > 0 ? formatNumber(apiCount) : "-"}</td>
-                        <td className="p-3 text-right font-medium">{formatNumber(sqlCount)}</td>
-                        <td className="p-3 text-right">
-                          {apiCount > 0 ? (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                              pct >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                              pct >= 50 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                              "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            }`}>{pct}%</span>
-                          ) : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+        {/* Data Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 border-b dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Data Registrasi KKN
+            </h3>
           </div>
-        )}
+          <div className="p-4">
+            <DataTable<RegistrasiKKN>
+              data={tableData}
+              columns={registrasiColumns}
+              searchable
+              searchPlaceholder="Cari registrasi (NPM, nama, prodi)..."
+              loading={tableLoading}
+              serverSide
+              totalRecords={tableTotal}
+              currentPage={tablePage}
+              onPageChange={(p) => setTablePage(p)}
+              onRowsPerPageChange={(r) => { setTableLimit(r); setTablePage(1); }}
+              onSearchChange={(q) => { setTableSearch(q); setTablePage(1); }}
+              emptyMessage="Belum ada data registrasi KKN"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Sync Confirm Dialog */}

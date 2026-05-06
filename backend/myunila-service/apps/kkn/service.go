@@ -15,6 +15,15 @@ type Service interface {
 	GetStats(ctx context.Context) (*SyncStats, error)
 	SyncGroup(ctx context.Context, group string, syncedBy string) (*SyncResult, error)
 	SyncAll(ctx context.Context, syncedBy string) (*SyncAllResult, error)
+
+	// List endpoints
+	ListPeriode(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListLokasi(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListRegistrasi(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListKelompok(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListDPL(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListNilai(ctx context.Context, f ListFilter) (*ListResponse, error)
+	ListProgramKerja(ctx context.Context, f ListFilter) (*ListResponse, error)
 }
 
 type service struct {
@@ -99,6 +108,10 @@ func (s *service) SyncGroup(ctx context.Context, group string, syncedBy string) 
 		}
 	}
 
+	if group == "pendaftaran" || group == "penempatan" {
+		s.repo.EnrichAfterSync(ctx)
+	}
+
 	result.Duration = time.Since(start).Milliseconds()
 
 	if s.monitorSvc != nil && syncID != "" {
@@ -129,6 +142,13 @@ func (s *service) SyncAll(ctx context.Context, syncedBy string) (*SyncAllResult,
 			continue
 		}
 		allResult.Results = append(allResult.Results, result)
+	}
+
+	log.Printf("🔄 [KKN Sync] Running post-sync enrichment...")
+	if err := s.repo.EnrichAfterSync(ctx); err != nil {
+		log.Printf("⚠️  [KKN Sync] Post-sync enrichment error: %v", err)
+	} else {
+		log.Printf("✅ [KKN Sync] Post-sync enrichment completed")
 	}
 
 	allResult.Duration = time.Since(start).Milliseconds()
@@ -401,6 +421,94 @@ func (s *service) syncLaporan(ctx context.Context, table string, data []map[stri
 		}
 		return
 	}
+}
+
+// ============================================================================
+// LIST SERVICE METHODS
+// ============================================================================
+
+func (s *service) ListPeriode(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListPeriode(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListLokasi(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListLokasi(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListRegistrasi(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListRegistrasi(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListKelompok(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListKelompok(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListDPL(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListDPL(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListNilai(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListNilai(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
+}
+
+func (s *service) ListProgramKerja(ctx context.Context, f ListFilter) (*ListResponse, error) {
+	items, total, err := s.repo.ListProgramKerja(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := (total + f.Limit - 1) / f.Limit
+	return &ListResponse{
+		Items: items,
+		Meta:  ListMeta{Total: total, Page: f.Page, Limit: f.Limit, TotalPages: totalPages},
+	}, nil
 }
 
 func (s *service) logSync(ctx context.Context, group, status, syncedBy string, result *SyncResult) {

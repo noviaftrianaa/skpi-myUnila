@@ -5,7 +5,8 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kknService, { KKNStats } from "@/lib/services/kkn/kknService";
+import kknService, { KKNStats, NilaiMahasiswa } from "@/lib/services/kkn/kknService";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 
 import {
@@ -36,6 +37,13 @@ export default function KKNNilaiPage() {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
 
+  const [tableData, setTableData] = useState<NilaiMahasiswa[]>([]);
+  const [tableTotal, setTableTotal] = useState(0);
+  const [tablePage, setTablePage] = useState(1);
+  const [tableLimit, setTableLimit] = useState(10);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
+
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
@@ -48,10 +56,33 @@ export default function KKNNilaiPage() {
     }
   }, []);
 
+  const fetchData = useCallback(async () => {
+    try {
+      setTableLoading(true);
+      const res = await kknService.listNilai({ page: tablePage, limit: tableLimit, search: tableSearch || undefined });
+      if (res.success) { setTableData(res.data || []); setTableTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error:", e); }
+    finally { setTableLoading(false); }
+  }, [tablePage, tableLimit, tableSearch]);
+
   useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const getCount = (table: string) =>
     stats?.sqlserver_stats?.find((s) => s.table === table || s.table === `kkn.${table}`)?.count || 0;
+
+  const nilaiColumns: Column<NilaiMahasiswa>[] = [
+    { key: "npm", label: "NPM", render: (r) => <span className="font-mono text-xs">{r.npm}</span> },
+    { key: "nm_mahasiswa", label: "Nama Mahasiswa", render: (r) => <span className="font-medium">{r.nm_mahasiswa || "-"}</span> },
+    { key: "nm_kelompok", label: "Kelompok" },
+    { key: "nilai", label: "Nilai", align: "center", render: (r) => (
+      <span className={`font-bold ${r.nilai >= 70 ? "text-green-600" : r.nilai >= 50 ? "text-yellow-600" : "text-red-600"}`}>{r.nilai?.toFixed(1) || "-"}</span>
+    )},
+    { key: "legacy_source", label: "Sumber", align: "center", render: (r) => (
+      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{r.legacy_source || "-"}</span>
+    )},
+    { key: "tgl_penilaian", label: "Tgl Penilaian", render: (r) => r.tgl_penilaian ? new Date(r.tgl_penilaian).toLocaleDateString("id-ID") : "-" },
+  ];
 
   const handleSync = async () => {
     setShowSyncConfirm(false);
@@ -79,6 +110,7 @@ export default function KKNNilaiPage() {
         toast.success("Sinkronisasi berhasil!");
         setTimeout(async () => {
           await fetchStats();
+          await fetchData();
           setShowProgressModal(false);
           setSyncProgress(0);
           setSyncStatus("idle");
@@ -217,55 +249,15 @@ export default function KKNNilaiPage() {
         {/* Scheduled Syncs */}
         <ScheduleList syncType="kkn" showCreateButton={false} />
 
-        {/* Table Stats Comparison */}
-        {stats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Perbandingan Data API vs SQL Server
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-400">Tabel</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">API (MySQL)</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">SQL Server</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {["nilai_mahasiswa", "nilai_akhir"].map((tableName) => {
-                    const sqlCount = getCount(tableName);
-                    const api = stats.table_stats?.find((t) =>
-                      tableName.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                      t.table.toLowerCase().includes(tableName.replace("_kkn", "").toLowerCase())
-                    );
-                    const apiCount = api?.count || 0;
-                    const pct = apiCount > 0 ? Math.round((sqlCount / apiCount) * 100) : 0;
-                    return (
-                      <tr key={tableName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="p-3 font-mono text-xs">{tableName}</td>
-                        <td className="p-3 text-right">{apiCount > 0 ? formatNumber(apiCount) : "-"}</td>
-                        <td className="p-3 text-right font-medium">{formatNumber(sqlCount)}</td>
-                        <td className="p-3 text-right">
-                          {apiCount > 0 ? (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                              pct >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                              pct >= 50 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                              "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            }`}>{pct}%</span>
-                          ) : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+        {/* Data Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 border-b dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Data Nilai Mahasiswa</h3>
           </div>
-        )}
+          <div className="p-4">
+            <DataTable<NilaiMahasiswa> data={tableData} columns={nilaiColumns} searchable searchPlaceholder="Cari nilai (NPM, nama, kelompok)..." loading={tableLoading} serverSide totalRecords={tableTotal} currentPage={tablePage} onPageChange={(p) => setTablePage(p)} onRowsPerPageChange={(r) => { setTableLimit(r); setTablePage(1); }} onSearchChange={(q) => { setTableSearch(q); setTablePage(1); }} emptyMessage="Belum ada data nilai" />
+          </div>
+        </div>
       </div>
 
       {/* Sync Confirm Dialog */}

@@ -88,6 +88,143 @@ func (h *Handler) SyncAll(c *fiber.Ctx) error {
 	})
 }
 
+// ============================================================================
+// LIST HANDLERS
+// ============================================================================
+
+func parseListFilter(c *fiber.Ctx) ListFilter {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	return ListFilter{
+		Page:      page,
+		Limit:     limit,
+		Search:    c.Query("search"),
+		SortBy:    c.Query("sort_by"),
+		SortOrder: c.Query("sort_order", "asc"),
+	}
+}
+
+func (h *Handler) ListPeriode(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListPeriode(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListLokasi(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListLokasi(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListRegistrasi(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListRegistrasi(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListKelompok(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListKelompok(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListDPL(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListDPL(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListNilai(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListNilai(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
+func (h *Handler) ListProgramKerja(c *fiber.Ctx) error {
+	f := parseListFilter(c)
+	result, err := h.service.ListProgramKerja(c.Context(), f)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    result.Items,
+		"meta":    result.Meta,
+	})
+}
+
 func (h *Handler) GetGroups(c *fiber.Ctx) error {
 	groups := make([]fiber.Map, 0, len(SyncOrder))
 	for _, g := range SyncOrder {

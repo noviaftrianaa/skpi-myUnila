@@ -5,7 +5,8 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kknService, { KKNStats } from "@/lib/services/kkn/kknService";
+import kknService, { KKNStats, KelompokKKN, DPLKelompok } from "@/lib/services/kkn/kknService";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
 
 import {
@@ -22,7 +23,6 @@ import { toast } from "react-hot-toast";
 
 const APP_KEY = "myunila-integrator";
 const SYNC_GROUP = "penempatan";
-const SQL_TABLES = ["kelompok_kkn", "anggota_kelompok", "dpl_kelompok"];
 
 export default function KKNPenempatanPage() {
   useRequireAuth();
@@ -37,6 +37,21 @@ export default function KKNPenempatanPage() {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
 
+  const [activeTab, setActiveTab] = useState<"kelompok" | "dpl">("kelompok");
+  const [kelompokData, setKelompokData] = useState<KelompokKKN[]>([]);
+  const [kelompokTotal, setKelompokTotal] = useState(0);
+  const [kelompokPage, setKelompokPage] = useState(1);
+  const [kelompokLimit, setKelompokLimit] = useState(10);
+  const [kelompokSearch, setKelompokSearch] = useState("");
+  const [kelompokLoading, setKelompokLoading] = useState(false);
+
+  const [dplData, setDplData] = useState<DPLKelompok[]>([]);
+  const [dplTotal, setDplTotal] = useState(0);
+  const [dplPage, setDplPage] = useState(1);
+  const [dplLimit, setDplLimit] = useState(10);
+  const [dplSearch, setDplSearch] = useState("");
+  const [dplLoading, setDplLoading] = useState(false);
+
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
@@ -49,10 +64,53 @@ export default function KKNPenempatanPage() {
     }
   }, []);
 
+  const fetchKelompok = useCallback(async () => {
+    try {
+      setKelompokLoading(true);
+      const res = await kknService.listKelompok({ page: kelompokPage, limit: kelompokLimit, search: kelompokSearch || undefined });
+      if (res.success) { setKelompokData(res.data || []); setKelompokTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error:", e); }
+    finally { setKelompokLoading(false); }
+  }, [kelompokPage, kelompokLimit, kelompokSearch]);
+
+  const fetchDPL = useCallback(async () => {
+    try {
+      setDplLoading(true);
+      const res = await kknService.listDPL({ page: dplPage, limit: dplLimit, search: dplSearch || undefined });
+      if (res.success) { setDplData(res.data || []); setDplTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error:", e); }
+    finally { setDplLoading(false); }
+  }, [dplPage, dplLimit, dplSearch]);
+
   useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { if (activeTab === "kelompok") fetchKelompok(); }, [fetchKelompok, activeTab]);
+  useEffect(() => { if (activeTab === "dpl") fetchDPL(); }, [fetchDPL, activeTab]);
 
   const getCount = (table: string) =>
     stats?.sqlserver_stats?.find((s) => s.table === table || s.table === `kkn.${table}`)?.count || 0;
+
+  const kelompokColumns: Column<KelompokKKN>[] = [
+    { key: "kode_kelompok", label: "Kode", render: (r) => <span className="font-mono text-xs">{r.kode_kelompok}</span> },
+    { key: "nm_kelompok", label: "Nama Kelompok", render: (r) => <span className="font-medium">{r.nm_kelompok}</span> },
+    { key: "nm_periode", label: "Periode" },
+    { key: "nm_desa", label: "Lokasi (Desa)" },
+    { key: "kuota", label: "Kuota", align: "center" },
+    { key: "jumlah_anggota", label: "Anggota", align: "center" },
+    { key: "status", label: "Status", align: "center", render: (r) => (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.status === "aktif" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}>{r.status || "-"}</span>
+    )},
+  ];
+
+  const dplColumns: Column<DPLKelompok>[] = [
+    { key: "nm_dosen", label: "Nama Dosen", render: (r) => <span className="font-medium">{r.nm_dosen}</span> },
+    { key: "nidn", label: "NIDN", render: (r) => <span className="font-mono text-xs">{r.nidn || "-"}</span> },
+    { key: "nip", label: "NIP", render: (r) => <span className="font-mono text-xs">{r.nip || "-"}</span> },
+    { key: "peran", label: "Peran" },
+    { key: "nm_kelompok", label: "Kelompok" },
+    { key: "a_aktif", label: "Status", align: "center", render: (r) => (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.a_aktif ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>{r.a_aktif ? "Aktif" : "Nonaktif"}</span>
+    )},
+  ];
 
   const handleSync = async () => {
     setShowSyncConfirm(false);
@@ -80,6 +138,8 @@ export default function KKNPenempatanPage() {
         toast.success("Sinkronisasi penempatan berhasil!");
         setTimeout(async () => {
           await fetchStats();
+          fetchKelompok();
+          fetchDPL();
           setShowProgressModal(false);
           setSyncProgress(0);
           setSyncStatus("idle");
@@ -218,55 +278,26 @@ export default function KKNPenempatanPage() {
         {/* Scheduled Syncs */}
         <ScheduleList syncType="kkn" showCreateButton={false} />
 
-        {/* Table Stats Comparison */}
-        {stats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Perbandingan Data API vs SQL Server
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-400">Tabel</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">API (MySQL)</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">SQL Server</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {SQL_TABLES.map((tableName) => {
-                    const sqlCount = getCount(tableName);
-                    const api = stats.table_stats?.find((t) =>
-                      tableName.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                      t.table.toLowerCase().includes(tableName.replace("_kkn", "").toLowerCase())
-                    );
-                    const apiCount = api?.count || 0;
-                    const pct = apiCount > 0 ? Math.round((sqlCount / apiCount) * 100) : 0;
-                    return (
-                      <tr key={tableName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="p-3 font-mono text-xs">{tableName}</td>
-                        <td className="p-3 text-right">{apiCount > 0 ? formatNumber(apiCount) : "-"}</td>
-                        <td className="p-3 text-right font-medium">{formatNumber(sqlCount)}</td>
-                        <td className="p-3 text-right">
-                          {apiCount > 0 ? (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                              pct >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                              pct >= 50 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                              "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            }`}>{pct}%</span>
-                          ) : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        {/* Data Tables with Tabs */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <div className="border-b dark:border-gray-700">
+            <div className="flex">
+              <button onClick={() => setActiveTab("kelompok")} className={`px-6 py-3 text-sm font-semibold transition-colors ${activeTab === "kelompok" ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400" : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"}`}>
+                Kelompok KKN ({kelompokTotal.toLocaleString("id-ID")})
+              </button>
+              <button onClick={() => setActiveTab("dpl")} className={`px-6 py-3 text-sm font-semibold transition-colors ${activeTab === "dpl" ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400" : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"}`}>
+                DPL ({dplTotal.toLocaleString("id-ID")})
+              </button>
             </div>
           </div>
-        )}
+          <div className="p-4">
+            {activeTab === "kelompok" ? (
+              <DataTable<KelompokKKN> data={kelompokData} columns={kelompokColumns} searchable searchPlaceholder="Cari kelompok (kode, nama, desa)..." loading={kelompokLoading} serverSide totalRecords={kelompokTotal} currentPage={kelompokPage} onPageChange={(p) => setKelompokPage(p)} onRowsPerPageChange={(r) => { setKelompokLimit(r); setKelompokPage(1); }} onSearchChange={(q) => { setKelompokSearch(q); setKelompokPage(1); }} emptyMessage="Belum ada data kelompok" />
+            ) : (
+              <DataTable<DPLKelompok> data={dplData} columns={dplColumns} searchable searchPlaceholder="Cari DPL (nama, NIDN, NIP)..." loading={dplLoading} serverSide totalRecords={dplTotal} currentPage={dplPage} onPageChange={(p) => setDplPage(p)} onRowsPerPageChange={(r) => { setDplLimit(r); setDplPage(1); }} onSearchChange={(q) => { setDplSearch(q); setDplPage(1); }} emptyMessage="Belum ada data DPL" />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Sync Confirm Dialog */}

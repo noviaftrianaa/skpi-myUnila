@@ -5,8 +5,9 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import ScheduleList from "@/shared/components/myunila-integrator/ScheduleList";
-import kknService, { KKNStats } from "@/lib/services/kkn/kknService";
+import kknService, { KKNStats, ProgramKerja } from "@/lib/services/kkn/kknService";
 import { myunilaIntegratorMenuConfig } from "../../config/menuConfig";
+import DataTable, { Column } from "@/shared/components/ui/DataTable";
 
 import {
   FiFileText,
@@ -36,6 +37,13 @@ export default function KKNLaporanPage() {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncMessage, setSyncMessage] = useState("");
 
+  const [tableData, setTableData] = useState<ProgramKerja[]>([]);
+  const [tableTotal, setTableTotal] = useState(0);
+  const [tablePage, setTablePage] = useState(1);
+  const [tableLimit, setTableLimit] = useState(10);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
+
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
@@ -48,10 +56,38 @@ export default function KKNLaporanPage() {
     }
   }, []);
 
+  const fetchData = useCallback(async () => {
+    try {
+      setTableLoading(true);
+      const res = await kknService.listProgramKerja({ page: tablePage, limit: tableLimit, search: tableSearch || undefined });
+      if (res.success) { setTableData(res.data || []); setTableTotal(res.meta?.total || 0); }
+    } catch (e) { console.error("Error:", e); }
+    finally { setTableLoading(false); }
+  }, [tablePage, tableLimit, tableSearch]);
+
   useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const getCount = (table: string) =>
     stats?.sqlserver_stats?.find((s) => s.table === table || s.table === `kkn.${table}`)?.count || 0;
+
+  const prokerColumns: Column<ProgramKerja>[] = [
+    { key: "judul", label: "Judul Program Kerja", render: (r) => <span className="font-medium">{r.judul}</span> },
+    { key: "nm_kelompok", label: "Kelompok" },
+    { key: "bidang", label: "Bidang", render: (r) => (
+      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{r.bidang || "-"}</span>
+    )},
+    { key: "nm_periode", label: "Periode", render: (r) => r.nm_periode || "-" },
+    { key: "status", label: "Status", align: "center", render: (r) => {
+      const colors: Record<string, string> = {
+        selesai: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        berjalan: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+        rencana: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+      };
+      const key = (r.status || "").toLowerCase();
+      return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[key] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}>{r.status || "-"}</span>;
+    }},
+  ];
 
   const handleSync = async () => {
     setShowSyncConfirm(false);
@@ -79,6 +115,7 @@ export default function KKNLaporanPage() {
         toast.success("Sinkronisasi berhasil!");
         setTimeout(async () => {
           await fetchStats();
+          fetchData();
           setShowProgressModal(false);
           setSyncProgress(0);
           setSyncStatus("idle");
@@ -217,55 +254,15 @@ export default function KKNLaporanPage() {
         {/* Scheduled Syncs */}
         <ScheduleList syncType="kkn" showCreateButton={false} />
 
-        {/* Table Stats Comparison */}
-        {stats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-4 border-b dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Perbandingan Data API vs SQL Server
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-400">Tabel</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">API (MySQL)</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">SQL Server</th>
-                    <th className="text-right p-3 font-medium text-gray-600 dark:text-gray-400">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {["laporan_kelompok", "program_kerja"].map((tableName) => {
-                    const sqlCount = getCount(tableName);
-                    const api = stats.table_stats?.find((t) =>
-                      tableName.toLowerCase().includes(t.table.replace("kkn_", "").toLowerCase()) ||
-                      t.table.toLowerCase().includes(tableName.replace("_kkn", "").toLowerCase())
-                    );
-                    const apiCount = api?.count || 0;
-                    const pct = apiCount > 0 ? Math.round((sqlCount / apiCount) * 100) : 0;
-                    return (
-                      <tr key={tableName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="p-3 font-mono text-xs">{tableName}</td>
-                        <td className="p-3 text-right">{apiCount > 0 ? formatNumber(apiCount) : "-"}</td>
-                        <td className="p-3 text-right font-medium">{formatNumber(sqlCount)}</td>
-                        <td className="p-3 text-right">
-                          {apiCount > 0 ? (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                              pct >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                              pct >= 50 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                              "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            }`}>{pct}%</span>
-                          ) : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+        {/* Data Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 border-b dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Data Program Kerja KKN</h3>
           </div>
-        )}
+          <div className="p-4">
+            <DataTable<ProgramKerja> data={tableData} columns={prokerColumns} searchable searchPlaceholder="Cari program kerja (judul, bidang, kelompok)..." loading={tableLoading} serverSide totalRecords={tableTotal} currentPage={tablePage} onPageChange={(p) => setTablePage(p)} onRowsPerPageChange={(r) => { setTableLimit(r); setTablePage(1); }} onSearchChange={(q) => { setTableSearch(q); setTablePage(1); }} emptyMessage="Belum ada data program kerja" />
+          </div>
+        </div>
       </div>
 
       {/* Sync Confirm Dialog */}

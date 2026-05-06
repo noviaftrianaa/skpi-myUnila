@@ -17,6 +17,15 @@ func Init(router fiber.Router, db *sqlx.DB, kknAPI *kkn_api.KKNClient) Service {
 		group.Get("/groups", handler.GetGroups)
 		group.Post("/sync/:group", handler.SyncGroup)
 		group.Post("/sync-all", handler.SyncAll)
+
+		// List endpoints
+		group.Get("/periode", handler.ListPeriode)
+		group.Get("/lokasi", handler.ListLokasi)
+		group.Get("/registrasi", handler.ListRegistrasi)
+		group.Get("/kelompok", handler.ListKelompok)
+		group.Get("/dpl", handler.ListDPL)
+		group.Get("/nilai", handler.ListNilai)
+		group.Get("/program-kerja", handler.ListProgramKerja)
 	}
 
 	return svc
