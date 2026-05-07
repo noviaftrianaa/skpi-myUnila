@@ -52,15 +52,28 @@ func (h *Handler) GetPesertaDidikDetail(c *fiber.Ctx) error {
 	return response.SuccessWithMeta(c, "Berhasil mengambil data peserta didik", data, params.Page, params.Limit, total)
 }
 
-// GetRegPd returns list of reg_pd dengan data peserta didik dan lookup tables
+// GetRegPd returns list of reg_pd dengan data peserta didik dan lookup tables.
+//
+// Pakai paling tidak SATU filter (id_reg_pd / id_pd / id_sms / id_jns_keluar /
+// tahun_lulus / search) untuk hindari unbounded query. Kalau semua kosong
+// dataset bakal puluhan ribu rows (alumni + aktif gabung).
 func (h *Handler) GetRegPd(c *fiber.Ctx) error {
 	var params types.RegPdParams
 	if err := c.QueryParser(&params); err != nil {
 		return response.BadRequest(c, "Parameter tidak valid", map[string]string{"error": err.Error()})
 	}
 
-	if params.IDRegPd == "" {
-		return response.BadRequest(c, "Parameter id_reg_pd wajib diisi", nil)
+	// Wajib ada minimal satu filter (cegah tarik full table)
+	hasFilter := params.IDRegPd != "" ||
+		params.IDPd != nil ||
+		params.IDSms != nil ||
+		params.IDSP != nil ||
+		params.IDJnsKeluar != nil ||
+		params.TahunLulus != nil ||
+		params.Search != ""
+
+	if !hasFilter {
+		return response.BadRequest(c, "Wajib pakai minimal satu filter: id_reg_pd, id_pd, id_sms, id_sp, id_jns_keluar, tahun_lulus, atau search", nil)
 	}
 
 	data, total, err := h.svc.GetRegPd(c.Context(), params)
