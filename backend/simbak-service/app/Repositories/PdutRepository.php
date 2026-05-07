@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\Log;
  * Catatan keterbatasan data (per 13 April 2026):
  * - status_mahasiswa hanya 441 dari 125k yang terisi (sisanya NULL)
  * - tgl_keluar & id_jns_keluar semua NULL → tidak bisa filter by tahun lulus
- * - kuliah_mhs kosong → tidak bisa get IPS per semester
+ * - siakadu.mahasiswa.semester selalu NULL → semester aktual dari pdrd.kuliah_mhs (1.1M rows, 98.6% coverage)
+ * - siakadu.spp_mhs kosong → pembayaran dari keuangan.spp_mhs (flag_by: LUNAS/BELUM)
  * - jalur_pendaftaran ~342 yang terisi (utk KTW exclusion: bisa di-filter)
  */
 class PdutRepository extends BaseRepository
@@ -78,12 +79,8 @@ class PdutRepository extends BaseRepository
 
             $result = (array) $student;
 
-            // Hitung masa studi dari angkatan
-            if ($result['angkatan']) {
-                $result['masa_studi_semester'] = $this->hitungMasaStudiSemester((int) $result['angkatan']);
-            } else {
-                $result['masa_studi_semester'] = null;
-            }
+            // Masa studi: ambil dari pdrd.kuliah_mhs (actual semester count), fallback ke formula angkatan
+            $result['masa_studi_semester'] = $this->getActualSemesterCount($result['id_reg_pd'] ?? null, $result['angkatan'] ?? null);
 
             // Fallback: semester aktif → kalau NULL pakai masa_studi_semester
             if (empty($result['semester_aktif']) && !empty($result['masa_studi_semester'])) {
@@ -98,10 +95,10 @@ class PdutRepository extends BaseRepository
                 $result['status_mahasiswa'] = $result['status_registrasi'];
             }
 
-            // Status pembayaran UKT semester terakhir (jika spp_mhs tersedia)
+            // Status pembayaran UKT semester terakhir dari keuangan.spp_mhs
             $result['status_pembayaran'] = null;
-            if (!empty($result['id_reg_pd']) && !empty($result['id_smt'])) {
-                $result['status_pembayaran'] = $this->getStudentPaymentStatus($result['id_reg_pd'], $result['id_smt']);
+            if (!empty($result['id_reg_pd'])) {
+                $result['status_pembayaran'] = $this->getStudentPaymentStatus($result['id_reg_pd']);
             }
 
             return $result;
@@ -112,21 +109,30 @@ class PdutRepository extends BaseRepository
     }
 
     /**
-     * Cek status pembayaran UKT mahasiswa pada semester tertentu.
-     * Return: 'lunas', 'belum_lunas', atau null jika tidak ditemukan.
+     * Cek status pembayaran UKT mahasiswa (semester terakhir).
+     * Sumber: keuangan.spp_mhs (flag_by: LUNAS/BELUM).
      */
-    public function getStudentPaymentStatus(string $idRegPd, string $idSmt): ?string
+    public function getStudentPaymentStatus(string $idRegPd, ?string $idSmt = null): ?string
     {
         try {
-            $payment = $this->pdutSelectOne("
-                SELECT total_tagihan, sisa_tagihan, tgl_bayar
-                FROM siakadu.spp_mhs
-                WHERE id_reg_pd = ? AND id_smt = ?
-            ", [$idRegPd, $idSmt]);
+            $query = "
+                SELECT TOP 1 flag_by, sisa_tagihan, tgl_bayar, id_smt
+                FROM keuangan.spp_mhs
+                WHERE id_reg_pd = ? AND soft_delete = 0
+            ";
+            $bindings = [$idRegPd];
+
+            if ($idSmt) {
+                $query .= " AND id_smt = ?";
+                $bindings[] = $idSmt;
+            }
+            $query .= " ORDER BY id_smt DESC";
+
+            $payment = $this->pdutSelectOne($query, $bindings);
 
             if (!$payment) return null;
+            if ($payment->flag_by === 'LUNAS') return 'lunas';
             if ($payment->sisa_tagihan !== null && $payment->sisa_tagihan <= 0) return 'lunas';
-            if ($payment->tgl_bayar !== null) return 'lunas';
             return 'belum_lunas';
         } catch (\Exception $e) {
             Log::warning('PdutRepository.getStudentPaymentStatus: ' . $e->getMessage());
@@ -185,8 +191,7 @@ class PdutRepository extends BaseRepository
     }
 
     /**
-     * Hitung masa studi dalam semester berdasarkan tahun angkatan.
-     * Asumsi: masuk September (semester ganjil), 1 semester = 6 bulan.
+     * Hitung masa studi dalam semester berdasarkan tahun angkatan (fallback).
      */
     private function hitungMasaStudiSemester(int $angkatan): int
     {
@@ -194,6 +199,33 @@ class PdutRepository extends BaseRepository
         $bulanMasuk = 9;
         $selisihBulan = ($now->year - $angkatan) * 12 + ($now->month - $bulanMasuk);
         return max(1, (int) ceil($selisihBulan / 6));
+    }
+
+    /**
+     * Ambil jumlah semester aktual dari pdrd.kuliah_mhs.
+     * Fallback ke formula angkatan jika tidak ada data kuliah_mhs.
+     */
+    private function getActualSemesterCount(?string $idRegPd, ?string $angkatan): ?int
+    {
+        if (!$angkatan) return null;
+
+        if ($idRegPd) {
+            try {
+                $km = $this->pdutSelectOne("
+                    SELECT COUNT(*) AS smt_count
+                    FROM pdrd.kuliah_mhs
+                    WHERE id_reg_pd = ? AND soft_delete = 0
+                ", [$idRegPd]);
+
+                if ($km && $km->smt_count > 0) {
+                    return (int) $km->smt_count;
+                }
+            } catch (\Exception $e) {
+                Log::warning('PdutRepository.getActualSemesterCount: ' . $e->getMessage());
+            }
+        }
+
+        return $this->hitungMasaStudiSemester((int) $angkatan);
     }
 
     /**
@@ -295,7 +327,9 @@ class PdutRepository extends BaseRepository
      * Kriteria: mahasiswa aktif, masa studi melebihi batas per jenjang.
      * D3: >= 13 smt, S1: >= 17 smt, S2: >= 9 smt, S3: >= 13 smt
      *
-     * Catatan: hitung masa studi dari kolom angkatan (tahun masuk).
+     * Masa studi dari pdrd.kuliah_mhs (actual semester count), fallback formula angkatan.
+     * IPK/SKS dari kuliah_mhs terbaru, fallback mahasiswa.ipk/sks_lulus.
+     * Status pembayaran dari keuangan.spp_mhs.
      */
     public function getKandidatHMM(string $idSmt, ?string $idFakultas = null): array
     {
@@ -307,11 +341,13 @@ class PdutRepository extends BaseRepository
                 $bindings[] = $idFakultas;
             }
 
-            // Tahun saat ini untuk hitung masa studi
+            // Fallback formula untuk mahasiswa tanpa data kuliah_mhs
             $tahunNow = (int) date('Y');
             $bulanNow = (int) date('m');
-            // Jika sebelum September berarti masih semester genap dari masuk tahun lalu
-            $semesterDariAngkatan = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+            $formulaFallback = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
+            // Semester aktual: prioritas kuliah_mhs, fallback formula
+            $smtExpr = "CASE WHEN ISNULL(km_count.smt_count, 0) > 0 THEN km_count.smt_count ELSE {$formulaFallback} END";
 
             return $this->pdutSelect("
                 SELECT
@@ -324,26 +360,45 @@ class PdutRepository extends BaseRepository
                     m.nm_prodi,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
-                    m.ipk,
-                    m.sks_lulus,
+                    COALESCE(km_latest.km_ipk, m.ipk) AS ipk,
+                    COALESCE(km_latest.km_sks, m.sks_lulus) AS sks_lulus,
                     m.email,
                     m.email_kampus,
                     m.hp,
-                    {$semesterDariAngkatan} AS masa_studi_semester
+                    {$smtExpr} AS masa_studi_semester,
+                    km_count.last_smt_id,
+                    pay.status_pembayaran
                 FROM siakadu.mahasiswa m
                 INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
                 INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
                 LEFT JOIN pdrd.sms sms ON sms.id_sms = m.id_sms AND sms.soft_delete = 0
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count, MAX(km.id_smt) AS last_smt_id
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
+                OUTER APPLY (
+                    SELECT TOP 1 km2.ipk AS km_ipk, km2.total_sks AS km_sks
+                    FROM pdrd.kuliah_mhs km2
+                    WHERE km2.id_reg_pd = m.id_reg_pd AND km2.soft_delete = 0
+                    ORDER BY km2.id_smt DESC
+                ) km_latest
+                OUTER APPLY (
+                    SELECT TOP 1 spp.flag_by AS status_pembayaran
+                    FROM keuangan.spp_mhs spp
+                    WHERE spp.id_reg_pd = m.id_reg_pd AND spp.soft_delete = 0
+                    ORDER BY spp.id_smt DESC
+                ) pay
                 WHERE m.soft_delete = 0
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
                   AND (
-                    (jp.nm_jenj_didik = 'D3' AND {$semesterDariAngkatan} >= 13) OR
-                    (jp.nm_jenj_didik = 'S1' AND {$semesterDariAngkatan} >= 17) OR
-                    (jp.nm_jenj_didik = 'S2' AND {$semesterDariAngkatan} >= 9) OR
-                    (jp.nm_jenj_didik = 'S3' AND {$semesterDariAngkatan} >= 13)
+                    (jp.nm_jenj_didik = 'D3' AND {$smtExpr} >= 13) OR
+                    (jp.nm_jenj_didik = 'S1' AND {$smtExpr} >= 17) OR
+                    (jp.nm_jenj_didik = 'S2' AND {$smtExpr} >= 9) OR
+                    (jp.nm_jenj_didik = 'S3' AND {$smtExpr} >= 13)
                   )
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
@@ -357,7 +412,9 @@ class PdutRepository extends BaseRepository
      * Tarik kandidat Putus Studi Akademik.
      * Kriteria: S1/D4 aktif, semester IV (IPK<2 atau SKS<40) atau semester VIII (IPK<2 atau SKS<80).
      *
-     * Semester dihitung dari angkatan (sama seperti HMM) karena kolom m.semester kosong.
+     * Semester dari pdrd.kuliah_mhs (actual), fallback formula angkatan.
+     * IPK/SKS dari kuliah_mhs terbaru, fallback mahasiswa.
+     * Status pembayaran dari keuangan.spp_mhs.
      */
     public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null): array
     {
@@ -371,7 +428,11 @@ class PdutRepository extends BaseRepository
 
             $tahunNow = (int) date('Y');
             $bulanNow = (int) date('m');
-            $semesterDariAngkatan = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+            $formulaFallback = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
+            $smtExpr = "CASE WHEN ISNULL(km_count.smt_count, 0) > 0 THEN km_count.smt_count ELSE {$formulaFallback} END";
+            $ipkExpr = "COALESCE(km_latest.km_ipk, m.ipk)";
+            $sksExpr = "COALESCE(km_latest.km_sks, m.sks_lulus)";
 
             return $this->pdutSelect("
                 SELECT
@@ -384,26 +445,45 @@ class PdutRepository extends BaseRepository
                     m.nm_prodi,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
-                    m.ipk,
-                    m.sks_lulus,
-                    {$semesterDariAngkatan} AS semester_aktif,
+                    {$ipkExpr} AS ipk,
+                    {$sksExpr} AS sks_lulus,
+                    {$smtExpr} AS semester_aktif,
                     m.email,
                     m.email_kampus,
                     m.hp,
-                    {$semesterDariAngkatan} AS masa_studi_semester
+                    {$smtExpr} AS masa_studi_semester,
+                    km_count.last_smt_id,
+                    pay.status_pembayaran
                 FROM siakadu.mahasiswa m
                 INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = m.id_pd
                 INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = pd.id_stat_mhs
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
                 LEFT JOIN pdrd.sms sms ON sms.id_sms = m.id_sms AND sms.soft_delete = 0
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count, MAX(km.id_smt) AS last_smt_id
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
+                OUTER APPLY (
+                    SELECT TOP 1 km2.ipk AS km_ipk, km2.total_sks AS km_sks
+                    FROM pdrd.kuliah_mhs km2
+                    WHERE km2.id_reg_pd = m.id_reg_pd AND km2.soft_delete = 0
+                    ORDER BY km2.id_smt DESC
+                ) km_latest
+                OUTER APPLY (
+                    SELECT TOP 1 spp.flag_by AS status_pembayaran
+                    FROM keuangan.spp_mhs spp
+                    WHERE spp.id_reg_pd = m.id_reg_pd AND spp.soft_delete = 0
+                    ORDER BY spp.id_smt DESC
+                ) pay
                 WHERE m.soft_delete = 0
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND jp.nm_jenj_didik IN ('S1', 'D4')
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
                   AND (
-                    ({$semesterDariAngkatan} = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
-                    ({$semesterDariAngkatan} = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
+                    ({$smtExpr} = 4 AND ({$ipkExpr} < 2.00 OR {$sksExpr} < 40)) OR
+                    ({$smtExpr} = 8 AND ({$ipkExpr} < 2.00 OR {$sksExpr} < 80))
                   )
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
@@ -484,15 +564,26 @@ class PdutRepository extends BaseRepository
                     m.nm_fakultas,
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
-                    m.ipk,
-                    m.sks_lulus,
-                    CAST(m.semester AS INT) AS semester_aktif,
+                    COALESCE(km_latest.km_ipk, m.ipk) AS ipk,
+                    COALESCE(km_latest.km_sks, m.sks_lulus) AS sks_lulus,
+                    km_count.smt_count AS semester_aktif,
                     sm.nm_stat_mhs AS status_registrasi,
                     m.email,
                     m.hp,
                     m.jalur_pendaftaran
                 FROM siakadu.mahasiswa m
                 {$joins}
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
+                OUTER APPLY (
+                    SELECT TOP 1 km2.ipk AS km_ipk, km2.total_sks AS km_sks
+                    FROM pdrd.kuliah_mhs km2
+                    WHERE km2.id_reg_pd = m.id_reg_pd AND km2.soft_delete = 0
+                    ORDER BY km2.id_smt DESC
+                ) km_latest
                 {$where}
                 ORDER BY m.nama ASC
                 OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
@@ -568,18 +659,29 @@ class PdutRepository extends BaseRepository
                     jp.nm_jenj_didik AS nm_jenjang,
                     m.angkatan,
                     YEAR(rp.tgl_keluar) AS tahun_lulus,
-                    m.ipk,
-                    CAST(m.semester AS INT) AS masa_studi_semester,
+                    COALESCE(km_latest.km_ipk, m.ipk) AS ipk,
+                    km_count.smt_count AS masa_studi_semester,
                     CASE
-                        WHEN jp.nm_jenj_didik = 'D3' AND CAST(m.semester AS INT) <= 6 THEN 1
-                        WHEN jp.nm_jenj_didik = 'S1' AND CAST(m.semester AS INT) <= 8 THEN 1
-                        WHEN jp.nm_jenj_didik = 'S2' AND CAST(m.semester AS INT) <= 4 THEN 1
-                        WHEN jp.nm_jenj_didik = 'S3' AND CAST(m.semester AS INT) <= 6 THEN 1
+                        WHEN jp.nm_jenj_didik = 'D3' AND ISNULL(km_count.smt_count, 0) <= 6 THEN 1
+                        WHEN jp.nm_jenj_didik = 'S1' AND ISNULL(km_count.smt_count, 0) <= 8 THEN 1
+                        WHEN jp.nm_jenj_didik = 'S2' AND ISNULL(km_count.smt_count, 0) <= 4 THEN 1
+                        WHEN jp.nm_jenj_didik = 'S3' AND ISNULL(km_count.smt_count, 0) <= 6 THEN 1
                         ELSE 0
                     END AS tepat_waktu,
                     m.jalur_pendaftaran
                 FROM siakadu.mahasiswa m
                 {$joins}
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
+                OUTER APPLY (
+                    SELECT TOP 1 km2.ipk AS km_ipk
+                    FROM pdrd.kuliah_mhs km2
+                    WHERE km2.id_reg_pd = m.id_reg_pd AND km2.soft_delete = 0
+                    ORDER BY km2.id_smt DESC
+                ) km_latest
                 {$where}
                 ORDER BY rp.tgl_keluar DESC, m.nama ASC
                 OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY
@@ -657,9 +759,14 @@ class PdutRepository extends BaseRepository
             $lulus = $this->pdutSelectOne("
                 SELECT
                     COUNT(*) as total,
-                    AVG(CAST(m.semester AS FLOAT)) AS rata_masa_studi
+                    AVG(CAST(NULLIF(km_count.smt_count, 0) AS FLOAT)) AS rata_masa_studi
                 FROM siakadu.mahasiswa m
                 {$statusJoin}
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
                 WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'
                   {$excludeClause}
             ", $excludeBindings);
@@ -669,14 +776,19 @@ class PdutRepository extends BaseRepository
                 FROM siakadu.mahasiswa m
                 {$statusJoin}
                 LEFT JOIN siakadu.jenjang_pendidikan jp ON jp.id_jenj_didik = m.id_jenj_didik
+                OUTER APPLY (
+                    SELECT COUNT(*) AS smt_count
+                    FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = m.id_reg_pd AND km.soft_delete = 0
+                ) km_count
                 WHERE m.soft_delete = 0 AND sm.nm_stat_mhs = 'Lulus'
-                  AND m.semester IS NOT NULL
+                  AND ISNULL(km_count.smt_count, 0) > 0
                   {$excludeClause}
                   AND (
-                    (jp.nm_jenj_didik = 'D3' AND CAST(m.semester AS INT) <= 6) OR
-                    (jp.nm_jenj_didik = 'S1' AND CAST(m.semester AS INT) <= 8) OR
-                    (jp.nm_jenj_didik = 'S2' AND CAST(m.semester AS INT) <= 4) OR
-                    (jp.nm_jenj_didik = 'S3' AND CAST(m.semester AS INT) <= 6)
+                    (jp.nm_jenj_didik = 'D3' AND km_count.smt_count <= 6) OR
+                    (jp.nm_jenj_didik = 'S1' AND km_count.smt_count <= 8) OR
+                    (jp.nm_jenj_didik = 'S2' AND km_count.smt_count <= 4) OR
+                    (jp.nm_jenj_didik = 'S3' AND km_count.smt_count <= 6)
                   )
             ", $excludeBindings);
 

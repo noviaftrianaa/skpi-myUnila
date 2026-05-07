@@ -76,3 +76,7 @@ deployment/docs/
 *.bak-*
 *.env.bak*
 backend/project-service/.env
+
+# Large MySQL dumps (jangan commit ke git, sync via scp/rsync)
+data-model/script/mysql/*_dump.sql
+data-model/script/mysql/kkn_new_banget.sql

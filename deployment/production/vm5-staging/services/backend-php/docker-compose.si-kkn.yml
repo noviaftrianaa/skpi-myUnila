@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  si-kkn-service:
+    build:
+      context: ../../../../../backend/si-kkn-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=staging
+    image: myunila/si-kkn-service:staging
+    container_name: myunila-si-kkn-staging
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${APP_NAME:-SI KKN Service}"
+      APP_ENV: staging
+      APP_KEY: "${SI_KKN_APP_KEY}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+      APP_TIMEZONE: "${TIMEZONE:-Asia/Jakarta}"
+
+      # PostgreSQL (siknila — primary, native on VM5)
+      DB_CONNECTION: pgsql
+      DB_HOST: "${SI_KKN_PG_HOST:-host.docker.internal}"
+      DB_PORT: "${SI_KKN_PG_PORT:-5432}"
+      DB_DATABASE: "${SI_KKN_PG_DATABASE:-sikkn_myunila}"
+      DB_USERNAME: "${SI_KKN_PG_USERNAME:-myunila_kkn}"
+      DB_PASSWORD: "${SI_KKN_PG_PASSWORD}"
+
+      # SQL Server (pdut — read only)
+      SQLSRV_HOST: "${DB_MSSQL_HOST:-192.168.123.119}"
+      SQLSRV_PORT: "${DB_MSSQL_PORT:-1433}"
+      SQLSRV_DATABASE: "${API_DB_DATABASE:-pdut_staging}"
+      SQLSRV_USERNAME: "${DB_MSSQL_USERNAME}"
+      SQLSRV_PASSWORD: "${DB_MSSQL_PASSWORD}"
+      SQLSRV_TRUST_SERVER_CERTIFICATE: "true"
+
+      # JWT (validation only)
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Redis (shared staging redis)
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      CACHE_PREFIX: kkn_
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # File Storage
+      # Default: local disk (FILESYSTEM_DISK=kkn)
+      # Switch to MinIO: FILESYSTEM_DISK=minio
+      FILESYSTEM_DISK: "${SI_KKN_FILESYSTEM_DISK:-kkn}"
+      KKN_STORAGE_PATH: "/data/si-kkn-storage"
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT:-http://192.168.120.47:9000}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_USE_SSL: "false"
+
+      # KKN WS API (legacy MySQL eKKN, optional)
+      KKN_WS_API_BASE_URL: "${KKN_WS_API_BASE_URL:-}"
+      KKN_WS_API_USERNAME: "${KKN_WS_API_USERNAME:-}"
+      KKN_WS_API_PASSWORD: "${KKN_WS_API_PASSWORD:-}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    volumes:
+      - si-kkn-storage:/data/si-kkn-storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=si-kkn,vm=vm5-staging"
+
+volumes:
+  si-kkn-storage:
+    driver: local
+    name: si-kkn-storage
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

@@ -69,6 +69,14 @@ tags:
       Survei alumni (tracer study) — status kerja, waktu tunggu, income, kesesuaian
       bidang, survei atasan. **Full CRUD** untuk sync dari aplikasi tracer eksternal
       via POST/PUT/DELETE.
+
+      **IKU 2 fields (sync dari tracer):**
+      - `hasil_tracer_study`: jenis_wirausaha (founder/freelancer), c_kerja_terakhir,
+        id_wil_kota, respon_perusahaan, wawancara
+      - `hasil_tracer_atasan`: kepuasan_terhadap_alumni (JSON), kompetensi_perusahaan
+        (JSON), alamat_tmpt_kerja, metode_pembelajaran (JSON)
+
+      **status_lulusan enum:** 1=Bekerja, 2=Wirausaha, 3=Lanjut Studi, 4=Belum Bekerja.
   - name: Siakadu
     description: |
       Data SIAKADU (dipopulate oleh myunila-service sync). **GET-only** — write

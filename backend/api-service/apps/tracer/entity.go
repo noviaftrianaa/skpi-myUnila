@@ -46,6 +46,11 @@ type HasilTracerStudy struct {
 	Ket                  *string           `db:"ket" json:"ket"`
 	LevelPerusahaan      *string           `db:"level_perusahaan" json:"level_perusahaan"`
 	StatusJabatan        *string           `db:"status_jabatan" json:"status_jabatan"`
+	JenisWirausaha       *string           `db:"jenis_wirausaha" json:"jenis_wirausaha"`
+	CKerjaTerakhir       *string           `db:"c_kerja_terakhir" json:"c_kerja_terakhir"`
+	IDWilKota            *string           `db:"id_wil_kota" json:"id_wil_kota"`
+	ResponPerusahaan     *string           `db:"respon_perusahaan" json:"respon_perusahaan"`
+	Wawancara            *string           `db:"wawancara" json:"wawancara"`
 	NmPtLnjt             *string           `db:"nm_pt_lnjt" json:"nm_pt_lnjt"`
 	NmProdiLnjt          *string           `db:"nm_prodi_lnjt" json:"nm_prodi_lnjt"`
 	WktMasuk             *pk.SQLServerTime `db:"wkt_masuk" json:"wkt_masuk"`
@@ -64,11 +69,15 @@ type HasilTracerAtasan struct {
 	JabatanAtasan       *string          `db:"jabatan_atasan" json:"jabatan_atasan"`
 	NmTmptBekerja       *string          `db:"nm_tmpt_bekerja" json:"nm_tmpt_bekerja"`
 	BidangTempatBekerja *string          `db:"bidang_tempat_bekerja" json:"bidang_tempat_bekerja"`
-	Saran               *string          `db:"saran" json:"saran"`
-	Harapan             *string          `db:"harapan" json:"harapan"`
-	CreateDate          pk.SQLServerTime `db:"create_date" json:"create_date"`
-	LastUpdate          pk.SQLServerTime `db:"last_update" json:"last_update"`
-	LastSync            pk.SQLServerTime `db:"last_sync" json:"last_sync"`
+	Saran                  *string          `db:"saran" json:"saran"`
+	Harapan                *string          `db:"harapan" json:"harapan"`
+	KepuasanTerhadapAlumni *string          `db:"kepuasan_terhadap_alumni" json:"kepuasan_terhadap_alumni"`
+	KompetensiPerusahaan   *string          `db:"kompetensi_perusahaan" json:"kompetensi_perusahaan"`
+	AlamatTmptKerja        *string          `db:"alamat_tmpt_kerja" json:"alamat_tmpt_kerja"`
+	MetodePembelajaran     *string          `db:"metode_pembelajaran" json:"metode_pembelajaran"`
+	CreateDate             pk.SQLServerTime `db:"create_date" json:"create_date"`
+	LastUpdate             pk.SQLServerTime `db:"last_update" json:"last_update"`
+	LastSync               pk.SQLServerTime `db:"last_sync" json:"last_sync"`
 }
 
 type UmrWilayah struct {
@@ -163,6 +172,11 @@ type HasilTracerCreate struct {
 	Ket                  *string    `json:"ket"`
 	LevelPerusahaan      *string    `json:"level_perusahaan"`
 	StatusJabatan        *string    `json:"status_jabatan"`
+	JenisWirausaha       *string    `json:"jenis_wirausaha"`
+	CKerjaTerakhir       *string    `json:"c_kerja_terakhir"`
+	IDWilKota            *string    `json:"id_wil_kota"`
+	ResponPerusahaan     *string    `json:"respon_perusahaan"`
+	Wawancara            *string    `json:"wawancara"`
 	NmPtLnjt             *string    `json:"nm_pt_lnjt"`
 	NmProdiLnjt          *string    `json:"nm_prodi_lnjt"`
 	WktMasuk             *time.Time `json:"wkt_masuk"`
@@ -190,6 +204,11 @@ type HasilTracerUpdate struct {
 	Ket                  *string    `json:"ket"`
 	LevelPerusahaan      *string    `json:"level_perusahaan"`
 	StatusJabatan        *string    `json:"status_jabatan"`
+	JenisWirausaha       *string    `json:"jenis_wirausaha"`
+	CKerjaTerakhir       *string    `json:"c_kerja_terakhir"`
+	IDWilKota            *string    `json:"id_wil_kota"`
+	ResponPerusahaan     *string    `json:"respon_perusahaan"`
+	Wawancara            *string    `json:"wawancara"`
 	NmPtLnjt             *string    `json:"nm_pt_lnjt"`
 	NmProdiLnjt          *string    `json:"nm_prodi_lnjt"`
 	WktMasuk             *time.Time `json:"wkt_masuk"`
@@ -207,9 +226,13 @@ type HasilTracerAtasanCreate struct {
 	JabatanAtasan       *string `json:"jabatan_atasan"`
 	NmTmptBekerja       *string `json:"nm_tmpt_bekerja"`
 	BidangTempatBekerja *string `json:"bidang_tempat_bekerja"`
-	Saran               *string `json:"saran"`
-	Harapan             *string `json:"harapan"`
-	IDCreator           string  `json:"id_creator" validate:"required"`
+	Saran                  *string `json:"saran"`
+	Harapan                *string `json:"harapan"`
+	KepuasanTerhadapAlumni *string `json:"kepuasan_terhadap_alumni"`
+	KompetensiPerusahaan   *string `json:"kompetensi_perusahaan"`
+	AlamatTmptKerja        *string `json:"alamat_tmpt_kerja"`
+	MetodePembelajaran     *string `json:"metode_pembelajaran"`
+	IDCreator              string  `json:"id_creator" validate:"required"`
 }
 
 type HasilTracerAtasanUpdate struct {
@@ -220,9 +243,13 @@ type HasilTracerAtasanUpdate struct {
 	JabatanAtasan       *string `json:"jabatan_atasan"`
 	NmTmptBekerja       *string `json:"nm_tmpt_bekerja"`
 	BidangTempatBekerja *string `json:"bidang_tempat_bekerja"`
-	Saran               *string `json:"saran"`
-	Harapan             *string `json:"harapan"`
-	IDUpdater           string  `json:"id_updater" validate:"required"`
+	Saran                  *string `json:"saran"`
+	Harapan                *string `json:"harapan"`
+	KepuasanTerhadapAlumni *string `json:"kepuasan_terhadap_alumni"`
+	KompetensiPerusahaan   *string `json:"kompetensi_perusahaan"`
+	AlamatTmptKerja        *string `json:"alamat_tmpt_kerja"`
+	MetodePembelajaran     *string `json:"metode_pembelajaran"`
+	IDUpdater              string  `json:"id_updater" validate:"required"`
 }
 
 // DeleteBody — body DELETE (untuk trace id_updater)

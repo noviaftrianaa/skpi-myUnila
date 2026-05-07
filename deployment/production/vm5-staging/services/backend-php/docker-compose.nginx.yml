@@ -14,11 +14,14 @@ services:
       - "8093:83"     # Frontend proxy dengan caching
       - "9002:9002"   # SIMBAK service
       - "9003:9003"   # SI-Prestasi service
+      - "9004:9004"   # SI-KKN service
     volumes:
       - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../configs/nginx/conf.d:/etc/nginx/conf.d:ro
       # Serve bukti prestasi via /files/ — volume shared dgn si-prestasi-service
       - siprestasi-storage:/data/siprestasi-storage:ro
+      # Serve dokumen KKN via /files/ — volume shared dgn si-kkn-service
+      - si-kkn-storage:/data/si-kkn-storage:ro
 
     deploy:
       resources:
@@ -53,3 +56,6 @@ volumes:
   siprestasi-storage:
     external: true
     name: siprestasi-storage
+  si-kkn-storage:
+    external: true
+    name: si-kkn-storage

@@ -41,6 +41,9 @@ declare -A SERVICE_MAP=(
     [auth]="backend-php/docker-compose.auth.yml"
     [dashboard]="backend-php/docker-compose.dashboard.yml"
     [public]="backend-php/docker-compose.public.yml"
+    [simbak]="backend-php/docker-compose.simbak.yml"
+    [si-prestasi]="backend-php/docker-compose.si-prestasi.yml"
+    [si-kkn]="backend-php/docker-compose.si-kkn.yml"
     # Backend Go
     [sister]="backend-go/docker-compose.sister.yml"
     [feeder]="backend-go/docker-compose.feeder.yml"
@@ -58,7 +61,7 @@ show_list() {
     echo -e "  ${YELLOW}Infrastructure:${NC}  postgres, redis, meilisearch"
     echo -e "  ${YELLOW}Gateway:${NC}         kong"
     echo -e "  ${YELLOW}Frontend:${NC}        frontend"
-    echo -e "  ${YELLOW}Backend PHP:${NC}     auth, dashboard, public, nginx"
+    echo -e "  ${YELLOW}Backend PHP:${NC}     auth, dashboard, public, simbak, si-prestasi, si-kkn, nginx"
     echo -e "  ${YELLOW}Backend Go:${NC}      sister, feeder, myunila, api, keuangan, monitoring"
     echo ""
     echo "Usage: $0 <service> [service2] [service3] ..."

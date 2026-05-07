@@ -58,6 +58,8 @@ const hasilTracerSelect = `
 		h.income_per_bln, h.total_instansi_dilamar,
 		h.hub_bidang_kerja, h.tkt_kesesuaian, h.alasan_tidak_sesuai,
 		h.a_kerja_sblm_lulus, h.ket, h.level_perusahaan, h.status_jabatan,
+		h.jenis_wirausaha, h.c_kerja_terakhir, h.id_wil_kota,
+		h.respon_perusahaan, h.wawancara,
 		h.nm_pt_lnjt, h.nm_prodi_lnjt, h.wkt_masuk,
 		h.create_date, h.last_update, h.last_sync
 	FROM tracer.hasil_tracer_study h
@@ -150,22 +152,28 @@ func (r *repository) CreateHasilTracer(ctx context.Context, in HasilTracerCreate
 		id_smt, id_jns_jalur_kerja, wkt_pengisian, wkt_tunggu, status_lulusan,
 		jns_tmpt_bekerja, nm_tmpt_bekerja, income_per_bln, total_instansi_dilamar,
 		hub_bidang_kerja, tkt_kesesuaian, alasan_tidak_sesuai, a_kerja_sblm_lulus,
-		ket, level_perusahaan, status_jabatan, nm_pt_lnjt, nm_prodi_lnjt, wkt_masuk,
+		ket, level_perusahaan, status_jabatan,
+		jenis_wirausaha, c_kerja_terakhir, id_wil_kota, respon_perusahaan, wawancara,
+		nm_pt_lnjt, nm_prodi_lnjt, wkt_masuk,
 		create_date, id_creator, last_update, soft_delete, last_sync)
 	VALUES (
 		@p1, @p2, @p3, @p4, @p5,
 		@p6, @p7, @p8, @p9, @p10,
 		@p11, @p12, @p13, @p14,
 		@p15, @p16, @p17, @p18,
-		@p19, @p20, @p21, @p22, @p23, @p24,
-		@p25, @p26, @p27, 0, @p28)`
+		@p19, @p20, @p21,
+		@p22, @p23, @p24, @p25, @p26,
+		@p27, @p28, @p29,
+		@p30, @p31, @p32, 0, @p33)`
 	now := time.Now()
 	_, err := r.db.ExecContext(ctx, q,
 		id, in.IDThnAjaran, in.IDBidKerja, in.IDWil, in.IDRegPd,
 		in.IDSmt, in.IDJnsJalurKerja, in.WktPengisian, in.WktTunggu, in.StatusLulusan,
 		in.JnsTmptBekerja, in.NmTmptBekerja, in.IncomePerBln, in.TotalInstansiDilamar,
 		in.HubBidangKerja, in.TktKesesuaian, in.AlasanTidakSesuai, in.AKerjaSblmLulus,
-		in.Ket, in.LevelPerusahaan, in.StatusJabatan, in.NmPtLnjt, in.NmProdiLnjt, in.WktMasuk,
+		in.Ket, in.LevelPerusahaan, in.StatusJabatan,
+		in.JenisWirausaha, in.CKerjaTerakhir, in.IDWilKota, in.ResponPerusahaan, in.Wawancara,
+		in.NmPtLnjt, in.NmProdiLnjt, in.WktMasuk,
 		now, in.IDCreator, now, now)
 	if err != nil {
 		return "", err
@@ -226,6 +234,11 @@ func (r *repository) UpdateHasilTracer(ctx context.Context, id string, in HasilT
 	addStr("ket", in.Ket)
 	addStr("level_perusahaan", in.LevelPerusahaan)
 	addStr("status_jabatan", in.StatusJabatan)
+	addStr("jenis_wirausaha", in.JenisWirausaha)
+	addStr("c_kerja_terakhir", in.CKerjaTerakhir)
+	addStr("id_wil_kota", in.IDWilKota)
+	addStr("respon_perusahaan", in.ResponPerusahaan)
+	addStr("wawancara", in.Wawancara)
 	addStr("nm_pt_lnjt", in.NmPtLnjt)
 	addStr("nm_prodi_lnjt", in.NmProdiLnjt)
 	addTime("wkt_masuk", in.WktMasuk)
@@ -278,6 +291,10 @@ const hasilTracerAtasanSelect = `
 		a.nm_tmpt_bekerja, a.bidang_tempat_bekerja,
 		CAST(a.saran AS VARCHAR(MAX)) AS saran,
 		CAST(a.harapan AS VARCHAR(MAX)) AS harapan,
+		CAST(a.kepuasan_terhadap_alumni AS VARCHAR(MAX)) AS kepuasan_terhadap_alumni,
+		CAST(a.kompetensi_perusahaan AS VARCHAR(MAX)) AS kompetensi_perusahaan,
+		a.alamat_tmpt_kerja,
+		CAST(a.metode_pembelajaran AS VARCHAR(MAX)) AS metode_pembelajaran,
 		a.create_date, a.last_update, a.last_sync
 	FROM tracer.hasil_tracer_atasan a`
 
@@ -352,17 +369,20 @@ func (r *repository) CreateHasilTracerAtasan(ctx context.Context, in HasilTracer
 		id_hasil_tracer_atasan, id_hasil_tracer_study,
 		id_negara, id_wil, email_atasan, nm_atasan, jabatan_atasan,
 		nm_tmpt_bekerja, bidang_tempat_bekerja, saran, harapan,
+		kepuasan_terhadap_alumni, kompetensi_perusahaan, alamat_tmpt_kerja, metode_pembelajaran,
 		create_date, id_creator, last_update, soft_delete, last_sync)
 	VALUES (
 		@p1, @p2,
 		@p3, @p4, @p5, @p6, @p7,
 		@p8, @p9, @p10, @p11,
-		@p12, @p13, @p14, 0, @p15)`
+		@p12, @p13, @p14, @p15,
+		@p16, @p17, @p18, 0, @p19)`
 	now := time.Now()
 	_, err := r.db.ExecContext(ctx, q,
 		id, in.IDHasilTracerStudy,
 		in.IDNegara, in.IDWil, in.EmailAtasan, in.NmAtasan, in.JabatanAtasan,
 		in.NmTmptBekerja, in.BidangTempatBekerja, in.Saran, in.Harapan,
+		in.KepuasanTerhadapAlumni, in.KompetensiPerusahaan, in.AlamatTmptKerja, in.MetodePembelajaran,
 		now, in.IDCreator, now, now)
 	if err != nil {
 		return "", err
@@ -392,6 +412,10 @@ func (r *repository) UpdateHasilTracerAtasan(ctx context.Context, id string, in 
 	addStr("bidang_tempat_bekerja", in.BidangTempatBekerja)
 	addStr("saran", in.Saran)
 	addStr("harapan", in.Harapan)
+	addStr("kepuasan_terhadap_alumni", in.KepuasanTerhadapAlumni)
+	addStr("kompetensi_perusahaan", in.KompetensiPerusahaan)
+	addStr("alamat_tmpt_kerja", in.AlamatTmptKerja)
+	addStr("metode_pembelajaran", in.MetodePembelajaran)
 
 	sets = append(sets, fmt.Sprintf("last_update = @p%d", i))
 	args = append(args, time.Now())

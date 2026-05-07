@@ -20,7 +20,7 @@ hasil-tracer-collection:
       - { name: id_pd, in: query, schema: { type: string, format: uuid } }
       - { name: id_sms, in: query, schema: { type: string, format: uuid } }
       - { name: id_thn_ajaran, in: query, schema: { type: integer } }
-      - { name: status_lulusan, in: query, description: "1=Bekerja, 2=Wirausaha, 3=Belum, 4=Lanjut Studi", schema: { type: integer } }
+      - { name: status_lulusan, in: query, description: "1=Bekerja, 2=Wirausaha, 3=Lanjut Studi, 4=Belum Bekerja", schema: { type: integer } }
       - { name: tkt_kesesuaian, in: query, description: "1=Sangat Sesuai .. 4=Tidak Sesuai", schema: { type: integer, minimum: 1, maximum: 4 } }
       - { name: hub_bidang_kerja, in: query, schema: { type: integer, minimum: 1, maximum: 5 } }
       - $ref: '../schemas/common.yaml#/parameters/search'
@@ -65,6 +65,11 @@ hasil-tracer-collection:
               ket: { type: string }
               level_perusahaan: { type: string }
               status_jabatan: { type: string }
+              jenis_wirausaha: { type: string, maxLength: 20, description: "IKU 2 — founder/freelancer (bobot IKU berbeda)" }
+              c_kerja_terakhir: { type: string, maxLength: 255, description: "Info pekerjaan terakhir (untuk status_lulusan=4/belum bekerja)" }
+              id_wil_kota: { type: string, maxLength: 8, description: "Kode wilayah kota tempat kerja (lebih spesifik dari id_wil)" }
+              respon_perusahaan: { type: string, maxLength: 10, description: "Kode respons perusahaan terhadap lamaran" }
+              wawancara: { type: string, maxLength: 10, description: "Kode wawancara" }
               nm_pt_lnjt: { type: string }
               nm_prodi_lnjt: { type: string }
               wkt_masuk: { type: string, format: date-time }
@@ -121,6 +126,11 @@ hasil-tracer-item:
               ket: { type: string }
               level_perusahaan: { type: string }
               status_jabatan: { type: string }
+              jenis_wirausaha: { type: string, maxLength: 20 }
+              c_kerja_terakhir: { type: string, maxLength: 255 }
+              id_wil_kota: { type: string, maxLength: 8 }
+              respon_perusahaan: { type: string, maxLength: 10 }
+              wawancara: { type: string, maxLength: 10 }
               nm_pt_lnjt: { type: string }
               nm_prodi_lnjt: { type: string }
               wkt_masuk: { type: string, format: date-time }
@@ -189,6 +199,10 @@ hasil-tracer-atasan-collection:
               bidang_tempat_bekerja: { type: string }
               saran: { type: string }
               harapan: { type: string }
+              kepuasan_terhadap_alumni: { type: string, description: "JSON matrix scoring kepuasan atasan terhadap alumni (NVARCHAR(MAX))" }
+              kompetensi_perusahaan: { type: string, description: "JSON matrix scoring kompetensi yang dibutuhkan perusahaan (NVARCHAR(MAX))" }
+              alamat_tmpt_kerja: { type: string, maxLength: 500, description: "Alamat tempat kerja atasan" }
+              metode_pembelajaran: { type: string, description: "JSON metode pembelajaran yang direkomendasikan atasan (NVARCHAR(MAX))" }
               id_creator: { type: string, format: uuid }
     responses:
       '201': { description: Created }
@@ -229,6 +243,10 @@ hasil-tracer-atasan-item:
               bidang_tempat_bekerja: { type: string }
               saran: { type: string }
               harapan: { type: string }
+              kepuasan_terhadap_alumni: { type: string, description: "JSON matrix scoring (NVARCHAR(MAX))" }
+              kompetensi_perusahaan: { type: string, description: "JSON matrix scoring (NVARCHAR(MAX))" }
+              alamat_tmpt_kerja: { type: string, maxLength: 500 }
+              metode_pembelajaran: { type: string, description: "JSON (NVARCHAR(MAX))" }
     responses:
       '200': { description: OK }
       '404': { description: Not Found }

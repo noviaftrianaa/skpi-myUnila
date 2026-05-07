@@ -1053,10 +1053,10 @@ CREATE INDEX idx_log_aktivitas_id_data ON log.aktivitas_data (id_data);
 -- ############################################################################
 
 -- ----------------------------------------------------------------------------
--- Fungsi: trigger_set_updated_at()
+-- Fungsi: log.trigger_set_updated_at()
 -- Otomatis mengisi kolom updated_at saat UPDATE
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+CREATE OR REPLACE FUNCTION log.trigger_set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -1064,7 +1064,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-COMMENT ON FUNCTION trigger_set_updated_at() IS 'Trigger function: otomatis mengisi updated_at = NOW() pada setiap UPDATE';
+COMMENT ON FUNCTION log.trigger_set_updated_at() IS 'Trigger function: otomatis mengisi updated_at = NOW() pada setiap UPDATE';
 
 -- ----------------------------------------------------------------------------
 -- Fungsi: log.fn_catat_aktivitas_data()
@@ -1157,96 +1157,96 @@ COMMENT ON FUNCTION log.fn_catat_aktivitas_data() IS 'Trigger function: mencatat
 -- ref schema
 CREATE TRIGGER trg_periode_kkn_set_updated_at
     BEFORE UPDATE ON ref.periode_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_lokasi_kkn_set_updated_at
     BEFORE UPDATE ON ref.lokasi_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_wilayah_kkn_set_updated_at
     BEFORE UPDATE ON ref.wilayah_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_jenis_dokumen_set_updated_at
     BEFORE UPDATE ON ref.jenis_dokumen
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_komponen_penilaian_set_updated_at
     BEFORE UPDATE ON ref.komponen_penilaian
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_kriteria_pendaftaran_set_updated_at
     BEFORE UPDATE ON ref.kriteria_pendaftaran
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- pendaftaran schema
 CREATE TRIGGER trg_registrasi_kkn_set_updated_at
     BEFORE UPDATE ON pendaftaran.registrasi_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_data_pemohon_set_updated_at
     BEFORE UPDATE ON pendaftaran.data_pemohon
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- pendaftaran.verifikasi_syarat: created_at only, no updated_at trigger
 
 -- kelompok schema
 CREATE TRIGGER trg_kelompok_kkn_set_updated_at
     BEFORE UPDATE ON kelompok.kelompok_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_anggota_kelompok_set_updated_at
     BEFORE UPDATE ON kelompok.anggota_kelompok
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_dpl_kelompok_set_updated_at
     BEFORE UPDATE ON kelompok.dpl_kelompok
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_pamong_desa_set_updated_at
     BEFORE UPDATE ON kelompok.pamong_desa
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- kegiatan schema
 CREATE TRIGGER trg_program_kerja_set_updated_at
     BEFORE UPDATE ON kegiatan.program_kerja
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_logbook_harian_set_updated_at
     BEFORE UPDATE ON kegiatan.logbook_harian
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_laporan_kelompok_set_updated_at
     BEFORE UPDATE ON kegiatan.laporan_kelompok
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- kegiatan.absensi: created_at only, no updated_at trigger
 
 CREATE TRIGGER trg_catatan_bimbingan_set_updated_at
     BEFORE UPDATE ON kegiatan.catatan_bimbingan
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- penilaian schema
 CREATE TRIGGER trg_nilai_mahasiswa_set_updated_at
     BEFORE UPDATE ON penilaian.nilai_mahasiswa
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_nilai_akhir_set_updated_at
     BEFORE UPDATE ON penilaian.nilai_akhir
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_penilaian_pamong_set_updated_at
     BEFORE UPDATE ON penilaian.penilaian_pamong
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 -- dokumen schema
 CREATE TRIGGER trg_dokumen_kkn_set_updated_at
     BEFORE UPDATE ON dokumen.dokumen_kkn
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 CREATE TRIGGER trg_sertifikat_set_updated_at
     BEFORE UPDATE ON dokumen.sertifikat
-    FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION log.trigger_set_updated_at();
 
 
 -- ############################################################################
@@ -1479,7 +1479,7 @@ STATISTIK DATABASE
     - fn_catat_aktivitas_data: 23  (semua tabel kecuali log schema)
 
   Functions           : 2
-    - trigger_set_updated_at()
+    - log.trigger_set_updated_at()
     - log.fn_catat_aktivitas_data()
 
   Session Context Variables:
