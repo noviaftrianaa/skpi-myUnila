@@ -30,9 +30,16 @@ type KongJWTClaims struct {
 	} `json:"user"` // Nested structure (if exists)
 }
 
-// KongAuth trusts Kong Gateway's JWT validation
-// Kong already validated the JWT, we just extract user info from the token
-// Also supports reading token from cookie for browser-based docs access
+// KongAuth trusts Kong Gateway's JWT validation.
+// Kong already validated the JWT, we just extract user info from the token.
+//
+// Token source priority:
+//  1. Authorization: Bearer <token> header (preferred — server-to-server, SPA)
+//  2. Cookie "token" / "access_token" — HANYA untuk path Scalar UI (/docs, /openapi*).
+//
+// Untuk endpoint API (/v1/*) cookie fallback DIMATIKAN — wajib Bearer header.
+// Ini mencegah skenario "user lain di shared workstation buka api di address bar
+// dengan cookie session orang lain" yang tampak seperti auth bypass.
 func KongAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var tokenString string
@@ -46,18 +53,21 @@ func KongAuth() fiber.Handler {
 			}
 		}
 
-		// Fallback to cookie if no Authorization header
-		// Try both cookie names: "token" (from frontend) and "access_token" (legacy)
-		if tokenString == "" {
-			tokenString = c.Cookies("token")
-		}
-		if tokenString == "" {
-			tokenString = c.Cookies("access_token")
+		// Cookie fallback — HANYA aktif untuk path Scalar Docs UI.
+		// Browser-based "Try it out" di Scalar butuh cookie auth supaya
+		// developer gak perlu paste JWT manual. Tapi endpoint API /v1/*
+		// wajib explicit Authorization header.
+		if tokenString == "" && allowCookieAuth(c.Path()) {
+			if t := c.Cookies("token"); t != "" {
+				tokenString = t
+			} else if t := c.Cookies("access_token"); t != "" {
+				tokenString = t
+			}
 		}
 
 		// If still no token, return unauthorized
 		if tokenString == "" {
-			return response.Unauthorized(c, "Missing authorization header or cookie")
+			return response.Unauthorized(c, "Missing authorization header")
 		}
 
 		// Parse JWT payload without verification (Kong already verified it)
@@ -113,4 +123,15 @@ func KongAuth() fiber.Handler {
 
 		return c.Next()
 	}
+}
+
+// allowCookieAuth returns true kalau path-nya boleh pakai cookie sebagai
+// fallback auth. HANYA Scalar Docs UI (/docs, /openapi*) yang allowed,
+// supaya developer bisa try-it-out tanpa paste JWT manual.
+//
+// Endpoint API (/v1/*, /system/*, dll) wajib pakai Authorization header.
+func allowCookieAuth(path string) bool {
+	return strings.HasPrefix(path, "/docs") ||
+		strings.HasPrefix(path, "/openapi") ||
+		path == "/scalar"
 }
