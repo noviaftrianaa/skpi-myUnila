@@ -265,10 +265,16 @@ func (r *repository) GetRegPd(
 	cb.AppendUUID("rp.id_pt_asal", params.IDPtAsal)
 	cb.AppendUUID("rp.id_prodi_asal", params.IDProdiAsal)
 	cb.AppendString("rp.id_jns_keluar", params.IDJnsKeluar)
+	cb.AppendYear("rp.tgl_keluar", params.TahunLulus)
 	cb.Like("pd.nm_pd", params.Search)
 
 	conds, args := cb.Build()
 	conds = append(conds, "rp.soft_delete = 0", "pd.soft_delete = 0")
+
+	// Filter: hanya alumni yang sudah punya SK yudisium
+	if params.WithSkYudisium != nil && *params.WithSkYudisium {
+		conds = append(conds, "rp.tgl_sk_yudisium IS NOT NULL", "rp.sk_yudisium IS NOT NULL", "rp.sk_yudisium <> ''")
+	}
 
 	whereClause := strings.Join(conds, " AND ")
 

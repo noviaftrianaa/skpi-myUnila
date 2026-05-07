@@ -36,17 +36,19 @@ func (p *PaginationParams) Offset() int {
 
 type RegPdParams struct {
 	PaginationParams
-	IDRegPd       string  `query:"id_reg_pd"`       // Filter by ID registrasi mahasiswa
-	IDSP          *string `query:"id_sp"`           // Filter by ID sekolah/instansi
-	IDSms         *string `query:"id_sms"`          // Filter
-	IDPd          *string `query:"id_pd"`           // Filter by ID peserta didik
-	IDJnsDaftar   *int    `query:"id_jns_daftar"`   // Filter by jenis pendaftaran
-	IDJalurDaftar *int    `query:"id_jalur_daftar"` // Filter by jalur pendaftaran
-	IDPembiayaan  *int    `query:"id_pembiayaan"`   // Filter by pembiayaan
-	IDSmt         *int    `query:"id_smt"`          // Filter by semester
-	IDPtAsal      *string `query:"id_pt_asal"`      // Filter by ID perguruan tinggi asal
-	IDProdiAsal   *string `query:"id_prodi_asal"`   // Filter by ID prodi asal
-	IDJnsKeluar   *string `query:"id_jns_keluar"`   // Filter by jenis keluar
+	IDRegPd        string  `query:"id_reg_pd"`        // Filter by ID registrasi mahasiswa
+	IDSP           *string `query:"id_sp"`            // Filter by ID sekolah/instansi
+	IDSms          *string `query:"id_sms"`           // Filter
+	IDPd           *string `query:"id_pd"`            // Filter by ID peserta didik
+	IDJnsDaftar    *int    `query:"id_jns_daftar"`    // Filter by jenis pendaftaran
+	IDJalurDaftar  *int    `query:"id_jalur_daftar"`  // Filter by jalur pendaftaran
+	IDPembiayaan   *int    `query:"id_pembiayaan"`    // Filter by pembiayaan
+	IDSmt          *int    `query:"id_smt"`           // Filter by semester
+	IDPtAsal       *string `query:"id_pt_asal"`       // Filter by ID perguruan tinggi asal
+	IDProdiAsal    *string `query:"id_prodi_asal"`    // Filter by ID prodi asal
+	IDJnsKeluar    *string `query:"id_jns_keluar"`    // Filter by jenis keluar (1=Lulus)
+	TahunLulus     *int    `query:"tahun_lulus"`      // Filter YEAR(tgl_keluar) = ? (untuk alumni per kohort)
+	WithSkYudisium *bool   `query:"with_sk_yudisium"` // true = hanya yang tgl_sk_yudisium IS NOT NULL
 }
 
 type PesertaDidikDetailParams struct {
