@@ -285,10 +285,32 @@ riwayat-pendidikan-mahasiswa:
           format: uuid
       - name: id_jns_keluar
         in: query
-        description: Filter berdasarkan ID jenis keluar
+        description: |
+          Filter berdasarkan ID jenis keluar.
+          - `1` = Lulus
+          - `2` = Mengundurkan diri
+          - `3` = Putus studi
+          - `4` = Wafat
         schema:
           type: string
           example: "1"
+      - name: tahun_lulus
+        in: query
+        description: |
+          Filter `YEAR(tgl_keluar) = ?` — pakai bersama `id_jns_keluar=1` untuk
+          ambil alumni per kohort tahunan (e.g. lulusan 2024).
+        schema:
+          type: integer
+          example: 2024
+      - name: with_sk_yudisium
+        in: query
+        description: |
+          Kalau `true`, hanya return alumni yang sudah ada SK yudisium
+          (`tgl_sk_yudisium IS NOT NULL` AND `sk_yudisium <> ''`).
+          Pakai untuk pastikan data alumni final, bukan draft.
+        schema:
+          type: boolean
+          example: true
     responses:
       '200':
         description: Berhasil mengambil riwayat pendidikan mahasiswa
