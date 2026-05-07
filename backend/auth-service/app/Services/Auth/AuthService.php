@@ -33,13 +33,63 @@ class AuthService
         $user = $this->userRepo->findByUsername($username);
 
         if (!$user) {
-            throw new \Exception('Username tidak ditemukan', 401);
+            // Pesan error generik (jangan beda dgn 'password salah') untuk
+            // cegah username enumeration via timing/error-message difference.
+            throw new \Exception('Username atau password salah', 401);
+        }
+
+        // Cek lockout state — kalau akun masih lock, tolak sebelum verify password.
+        $lockedUntil = $this->userRepo->getLockoutUntil($user);
+        if ($lockedUntil !== null) {
+            $minutesLeft = max(1, (int) ceil(($lockedUntil->getTimestamp() - time()) / 60));
+            Log::warning('Login attempt on locked account', [
+                'user_id' => $user->id_pengguna,
+                'username' => $user->username,
+                'locked_until' => $lockedUntil->format('Y-m-d H:i:s'),
+                'ip_address' => $ipAddress,
+            ]);
+            throw new \Exception(
+                "Akun sementara dikunci karena terlalu banyak percobaan login gagal. Coba lagi dalam {$minutesLeft} menit.",
+                423   // 423 Locked (WebDAV)
+            );
         }
 
         // Verify password
         if (!$this->userRepo->verifyPassword($user, $password)) {
-            throw new \Exception('Password yang Anda masukkan salah', 401);
+            // Increment failed_login_attempts; bila tembus threshold, set lockout.
+            $result = $this->userRepo->recordFailedLogin($user->id_pengguna);
+
+            $remaining = \App\Repositories\UserRepository::MAX_FAILED_ATTEMPTS - $result['attempts'];
+
+            Log::warning('Failed login attempt', [
+                'user_id' => $user->id_pengguna,
+                'username' => $user->username,
+                'attempts' => $result['attempts'],
+                'remaining' => $remaining,
+                'locked_until' => $result['locked_until'],
+                'ip_address' => $ipAddress,
+            ]);
+
+            // Kalau attempt terakhir tembus threshold → locked sekarang
+            if ($result['locked_until'] !== null) {
+                throw new \Exception(
+                    'Akun dikunci selama ' . \App\Repositories\UserRepository::LOCKOUT_MINUTES .
+                    ' menit karena terlalu banyak percobaan login gagal.',
+                    423
+                );
+            }
+
+            // Kasih tahu sisa attempt (transparan supaya user tahu, defense-in-depth
+            // sudah ada di rate-limit middleware level — info ini gak membantu attacker
+            // selama akun masih bisa login dgn password benar)
+            $msg = $remaining > 0 && $remaining <= 2
+                ? "Username atau password salah. Sisa {$remaining} percobaan."
+                : "Username atau password salah";
+            throw new \Exception($msg, 401);
         }
+
+        // Login sukses — reset failed_login_attempts kalau ada akumulasi sebelumnya.
+        $this->userRepo->resetFailedLogin($user->id_pengguna);
 
         // Debug: Check MFA status
         Log::info('Login MFA Check', [

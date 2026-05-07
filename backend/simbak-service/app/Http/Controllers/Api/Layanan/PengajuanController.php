@@ -8,6 +8,7 @@ use App\Repositories\MasterData\JenisLayananRepository;
 use App\Repositories\PdutRepository;
 use App\Services\MinioService;
 use App\Traits\ApiResponse;
+use App\Traits\ValidatesFileSignature;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 class PengajuanController extends Controller
 {
     use ApiResponse;
+    use ValidatesFileSignature;
 
     protected PengajuanRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
@@ -402,13 +404,22 @@ class PengajuanController extends Controller
             if (!$pengajuan) return $this->notFoundResponse();
 
             $request->validate([
-                'file' => 'required|file|max:10240', // 10MB
+                'file' => 'required|file|max:10240|mimes:pdf,jpg,jpeg,png', // 10MB, whitelist
                 'nm_dokumen' => 'required|string|max:200',
                 'id_persyaratan' => 'nullable|uuid',
             ]);
 
             $user = $request->user();
             $file = $request->file('file');
+
+            // SECURITY: validasi magic number — cegah polyglot / MIME spoofing.
+            $allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!$this->validateFileSignature($file, $allowedMimes)) {
+                return $this->errorResponse(
+                    'File tidak valid (signature tidak match dengan tipe yang dideklarasikan)',
+                    422
+                );
+            }
 
             // Upload ke MinIO
             $kodeDokumen = $request->get('id_persyaratan', 'general');

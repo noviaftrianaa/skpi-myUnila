@@ -9,6 +9,7 @@ use App\Repositories\PdutRepository;
 use App\Services\MinioService;
 use App\Services\NotificationService;
 use App\Traits\ApiResponse;
+use App\Traits\ValidatesFileSignature;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 class BatchController extends Controller
 {
     use ApiResponse;
+    use ValidatesFileSignature;
 
     protected BatchRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
@@ -644,8 +646,13 @@ class BatchController extends Controller
                 // Upload dokumen exclude jika ada
                 $pathDokumenExclude = null;
                 if ($request->hasFile('dokumen_exclude')) {
+                    $dokExclude = $request->file('dokumen_exclude');
+                    // SECURITY: validasi magic number — pastikan benar2 PDF.
+                    if (!$this->validateFileSignature($dokExclude, ['application/pdf'])) {
+                        return $this->errorResponse('Dokumen exclude harus PDF valid (signature mismatch)', 422);
+                    }
                     $pathDokumenExclude = $this->minioService->uploadDokumenExclude(
-                        $kandidat->id_batch_penetapan, $id, $request->file('dokumen_exclude')
+                        $kandidat->id_batch_penetapan, $id, $dokExclude
                     );
                 }
 
@@ -742,6 +749,12 @@ class BatchController extends Controller
 
             $user = $request->user();
             $file = $request->file('file');
+
+            // SECURITY: validasi magic number — pastikan benar2 PDF, bukan polyglot.
+            if (!$this->validateFileSignature($file, ['application/pdf'])) {
+                return $this->errorResponse('SK Dekan harus PDF valid (signature mismatch)', 422);
+            }
+
             $pathFile = $this->minioService->uploadSkBatch($id, 'sk_dekan', $file);
 
             $this->repository->pgUpdate(
@@ -958,6 +971,10 @@ class BatchController extends Controller
             // Upload SK Rektor jika ada
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
+                // SECURITY: validasi magic number — pastikan benar2 PDF.
+                if (!$this->validateFileSignature($file, ['application/pdf'])) {
+                    return $this->errorResponse('SK Rektor harus PDF valid (signature mismatch)', 422);
+                }
                 $pathFile = $this->minioService->uploadSkBatch($id, 'sk_rektor', $file);
                 $updates['path_sk_rektor'] = $pathFile;
             }

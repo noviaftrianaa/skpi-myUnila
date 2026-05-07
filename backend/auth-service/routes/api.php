@@ -57,27 +57,30 @@ Route::prefix('v1')->group(function () {
 
     // Public authentication endpoints (no JWT required)
     Route::prefix('auth')->group(function () {
-        // Standard Authentication
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/login-mfa', [AuthController::class, 'loginWithMfa']); // MFA login
-        Route::post('/refresh', [AuthController::class, 'refresh']);
+        // Standard Authentication — Throttle: 10 attempts per minute per IP+username.
+        // Defense-in-depth: AuthService juga increment failed_login_attempts +
+        // lockout 15 menit setelah 5 fail. Throttle ini cegah credential-stuffing
+        // di IP-level walaupun attacker rotate username.
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+        Route::post('/login-mfa', [AuthController::class, 'loginWithMfa'])->middleware('throttle:10,1');
+        Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,1');
 
         // SSO Authentication (CAS Unila)
         Route::get('/sso/url', [SsoController::class, 'getSsoUrl']); // Get SSO URL for API clients
         Route::get('/sso/redirect', [SsoController::class, 'redirectToSso']); // Direct redirect to SSO
         Route::get('/sso/callback', [SsoController::class, 'handleCallback']); // SSO callback (web)
-        Route::post('/sso/callback', [SsoController::class, 'handleCallbackApi']); // SSO callback (API)
-        Route::post('/sso/validate', [SsoController::class, 'validateToken']); // Validate SSO token only
+        Route::post('/sso/callback', [SsoController::class, 'handleCallbackApi'])->middleware('throttle:20,1'); // SSO callback (API)
+        Route::post('/sso/validate', [SsoController::class, 'validateToken'])->middleware('throttle:30,1'); // Validate SSO token only
 
-        // TODO: Implement these later
-        // Route::post('/register', [AuthController::class, 'register']);
-        // Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-        // Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+        // TODO: Implement these later — JANGAN lupa pasang throttle:5,1 (lebih ketat)
+        // Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+        // Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,15'); // 3/15min
+        // Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
     });
 
     // MFA routes (public - for login verification)
     Route::prefix('mfa')->group(function () {
-        Route::post('/verify', [MfaController::class, 'verify']); // Verify MFA code during login
+        Route::post('/verify', [MfaController::class, 'verify'])->middleware('throttle:10,1'); // Verify MFA code during login
     });
 
     // Protected routes (JWT authentication required - validated by auth service itself)

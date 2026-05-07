@@ -46,9 +46,16 @@ class DokumenController extends Controller
             if ($isPreview) {
                 $response = $this->minioService->inline($dokumen->path_file, $dokumen->nama_file_asli);
                 // Izinkan iframe cross-origin untuk preview
-                $response->headers->set('X-Frame-Options', 'ALLOWALL');
-                $response->headers->set('Content-Security-Policy', 'frame-ancestors *');
-                $response->headers->set('Access-Control-Allow-Origin', '*');
+                // SECURITY: restrict iframe ke domain resmi MyUnila — cegah
+                // clickjacking via embed dari subdomain Unila / pihak luar.
+                // Ganti dgn FRONTEND_ORIGINS env kalau ada multi-frontend.
+                $allowedOrigin = env('FRONTEND_ORIGIN', 'https://my.unila.ac.id');
+                // X-Frame-Options pakai SAMEORIGIN (legacy browser), CSP frame-ancestors
+                // ambil precedence di browser modern.
+                $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+                $response->headers->set('Content-Security-Policy', "frame-ancestors 'self' {$allowedOrigin}");
+                $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+                $response->headers->set('X-Content-Type-Options', 'nosniff');
                 return $response;
             }
 
@@ -81,9 +88,16 @@ class DokumenController extends Controller
             $isPreview = $request->query('preview') === '1';
             if ($isPreview) {
                 $response = $this->minioService->inline($dokumen->path_file, $downloadName);
-                $response->headers->set('X-Frame-Options', 'ALLOWALL');
-                $response->headers->set('Content-Security-Policy', 'frame-ancestors *');
-                $response->headers->set('Access-Control-Allow-Origin', '*');
+                // SECURITY: restrict iframe ke domain resmi MyUnila — cegah
+                // clickjacking via embed dari subdomain Unila / pihak luar.
+                // Ganti dgn FRONTEND_ORIGINS env kalau ada multi-frontend.
+                $allowedOrigin = env('FRONTEND_ORIGIN', 'https://my.unila.ac.id');
+                // X-Frame-Options pakai SAMEORIGIN (legacy browser), CSP frame-ancestors
+                // ambil precedence di browser modern.
+                $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+                $response->headers->set('Content-Security-Policy', "frame-ancestors 'self' {$allowedOrigin}");
+                $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+                $response->headers->set('X-Content-Type-Options', 'nosniff');
                 return $response;
             }
 

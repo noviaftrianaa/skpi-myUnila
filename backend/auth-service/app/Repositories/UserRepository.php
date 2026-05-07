@@ -282,4 +282,89 @@ class UserRepository
             return false;
         }
     }
+
+    // =========================================================================
+    // Brute Force Protection
+    // =========================================================================
+
+    public const MAX_FAILED_ATTEMPTS = 5;
+    public const LOCKOUT_MINUTES = 15;
+
+    /**
+     * Cek apakah akun masih dalam masa lockout (locked_until > NOW).
+     * Return DateTime locked_until kalau locked, null kalau tidak.
+     */
+    public function getLockoutUntil(object $user): ?\DateTime
+    {
+        if (empty($user->locked_until)) {
+            return null;
+        }
+        try {
+            $until = new \DateTime((string) $user->locked_until);
+            if ($until > new \DateTime()) {
+                return $until;
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * Record gagal login: increment failed_login_attempts.
+     * Kalau sudah >= threshold, set locked_until = NOW + LOCKOUT_MINUTES.
+     * Return ['attempts' => int, 'locked_until' => string|null].
+     */
+    public function recordFailedLogin(string $userId): array
+    {
+        $sql = "
+            UPDATE man_akses.pengguna
+            SET failed_login_attempts = ISNULL(failed_login_attempts, 0) + 1,
+                locked_until = CASE
+                    WHEN ISNULL(failed_login_attempts, 0) + 1 >= ? THEN DATEADD(MINUTE, ?, GETDATE())
+                    ELSE locked_until
+                END
+            WHERE id_pengguna = ?
+        ";
+
+        try {
+            DB::update($sql, [self::MAX_FAILED_ATTEMPTS, self::LOCKOUT_MINUTES, $userId]);
+
+            // Re-fetch updated values
+            $row = DB::selectOne(
+                "SELECT failed_login_attempts, locked_until FROM man_akses.pengguna WHERE id_pengguna = ?",
+                [$userId]
+            );
+            return [
+                'attempts'     => (int) ($row->failed_login_attempts ?? 0),
+                'locked_until' => $row->locked_until ?? null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to record failed login', ['user_id' => $userId, 'error' => $e->getMessage()]);
+            return ['attempts' => 0, 'locked_until' => null];
+        }
+    }
+
+    /**
+     * Reset failed_login_attempts ke 0 dan clear locked_until.
+     * Dipanggil setelah login sukses.
+     */
+    public function resetFailedLogin(string $userId): bool
+    {
+        $sql = "
+            UPDATE man_akses.pengguna
+            SET failed_login_attempts = 0,
+                locked_until = NULL
+            WHERE id_pengguna = ?
+              AND (failed_login_attempts > 0 OR locked_until IS NOT NULL)
+        ";
+
+        try {
+            DB::update($sql, [$userId]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to reset failed login', ['user_id' => $userId, 'error' => $e->getMessage()]);
+            return false;
+        }
+    }
 }

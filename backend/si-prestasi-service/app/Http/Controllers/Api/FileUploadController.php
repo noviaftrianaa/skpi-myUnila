@@ -60,6 +60,17 @@ class FileUploadController extends Controller
             );
         }
 
+        // SECURITY: Validasi magic number (file signature) — JANGAN cuma andalkan
+        // Content-Type header / extension karena attacker bisa rename .php ke .pdf
+        // dan kirim Content-Type: application/pdf. Magic number cek byte awal file.
+        if (!$this->validateFileSignature($file->getRealPath(), $mime)) {
+            return $this->errorResponse(
+                'File tidak valid (signature tidak match dengan tipe yang dideklarasikan)',
+                422,
+                ['mime' => $mime]
+            );
+        }
+
         // UUID filename untuk mencegah guessing + preserve extension asli
         $ext = $file->getClientOriginalExtension() ?: $this->extFromMime($mime);
         $uuid = (string) Str::uuid();
@@ -128,6 +139,37 @@ class FileUploadController extends Controller
             'image/jpeg', 'image/jpg' => 'jpg',
             'image/png' => 'png',
             default => 'bin',
+        };
+    }
+
+    /**
+     * Validasi magic number (file signature) — pastikan byte awal file sesuai
+     * dengan MIME type yang dideklarasikan. Cegah serangan polyglot / MIME
+     * spoofing (mis. .php disamarkan sbg .pdf).
+     *
+     * Reference signatures:
+     *   PDF  : 25 50 44 46 ("%PDF")
+     *   JPEG : FF D8 FF
+     *   PNG  : 89 50 4E 47 0D 0A 1A 0A
+     */
+    private function validateFileSignature(string $path, string $declaredMime): bool
+    {
+        $handle = @fopen($path, 'rb');
+        if (!$handle) {
+            return false;
+        }
+        $header = fread($handle, 8);
+        fclose($handle);
+
+        if ($header === false || strlen($header) < 4) {
+            return false;
+        }
+
+        return match ($declaredMime) {
+            'application/pdf' => substr($header, 0, 4) === '%PDF',
+            'image/jpeg', 'image/jpg' => substr($header, 0, 3) === "\xFF\xD8\xFF",
+            'image/png' => substr($header, 0, 8) === "\x89PNG\r\n\x1A\n",
+            default => false,
         };
     }
 }
