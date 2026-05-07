@@ -5,10 +5,10 @@ import AccessDenied from "@/shared/components/auth/AccessDenied";
 import { Spinner } from "@heroui/react";
 import { useCallback, useState } from "react";
 
-// App key untuk SI KKN (slug di man_akses.aplikasi)
-const APP_KEY = "e-kkn";
+// App key untuk Data Unila (slug di man_akses.aplikasi)
+const APP_KEY = "data-unila";
 
-export default function SiKknLayout({
+export default function DataUnilaLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -46,7 +46,7 @@ export default function SiKknLayout({
       <AccessDenied
         message={message}
         requiresContextSelection={requiresContextSelection}
-        appName="SI KKN"
+        appName="Data Unila"
         onRoleChange={handleRoleChange}
       />
     );

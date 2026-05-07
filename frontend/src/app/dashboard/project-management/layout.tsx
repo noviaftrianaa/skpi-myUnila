@@ -1,17 +1,60 @@
 "use client";
 
-import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useRequireAppAccess } from "@/lib/hoc/withAuth";
+import AccessDenied from "@/shared/components/auth/AccessDenied";
 import DashboardNavbar from "@/shared/components/dashboard/DashboardNavbar";
+import { Spinner } from "@heroui/react";
 import Link from "next/link";
+import { useCallback, useState } from "react";
 import { FiArrowLeft, FiFolder } from "react-icons/fi";
 import { ToastProvider } from "./components/ui";
+
+// App key untuk Project Management (slug di man_akses.aplikasi)
+const APP_KEY = "project-management";
 
 export default function ProjectManagementLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  useRequireAuth();
+  const [recheckKey, setRecheckKey] = useState(0);
+
+  const {
+    isLoading,
+    hasAccess,
+    requiresContextSelection,
+    message,
+  } = useRequireAppAccess({
+    appKey: APP_KEY,
+    showAccessDenied: true,
+  });
+
+  const handleRoleChange = useCallback(() => {
+    setRecheckKey(prev => prev + 1);
+    window.location.reload();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="mt-4 text-gray-600">Memeriksa akses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasAccess === false) {
+    return (
+      <AccessDenied
+        message={message}
+        requiresContextSelection={requiresContextSelection}
+        appName="Project Management"
+        onRoleChange={handleRoleChange}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">

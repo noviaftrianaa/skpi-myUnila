@@ -508,23 +508,38 @@ class UserContextService
                     ];
                 }
 
-                $categories[$categoryKey]['apps'][] = [
+                // SECURITY: Field sensitif (url, app_slug, id_organisasi) HANYA dikirim
+                // kalau user punya akses. Cegah info disclosure / URL enumeration —
+                // user yg has_access=false tidak boleh tahu URL utk akses langsung
+                // via address bar. Lihat OWASP A01:2021 — Broken Access Control.
+                $appData = [
                     'id_aplikasi' => $app->id_aplikasi,
                     'nm_aplikasi' => $app->nm_aplikasi,
                     'ket_aplikasi' => $app->ket_aplikasi,
-                    'url' => $app->url,
                     'icon_name' => $app->icon_name,
                     'icon_color' => $app->icon_color,
-                    'app_slug' => $app->app_slug,
                     'urutan' => $app->app_urutan,
-                    'id_organisasi' => $app->id_organisasi,
-                    'nm_organisasi' => $app->nm_organisasi,
                     'a_maintenance' => (bool) $app->a_maintenance,
                     'a_coming_soon' => (bool) $app->a_coming_soon,
                     'a_terintegrasi' => (bool) $app->a_terintegrasi,
                     'a_live' => (bool) $app->a_live,
                     'has_access' => $hasAccess,
                 ];
+
+                if ($hasAccess) {
+                    $appData['url'] = $app->url;
+                    $appData['app_slug'] = $app->app_slug;
+                    $appData['id_organisasi'] = $app->id_organisasi;
+                    $appData['nm_organisasi'] = $app->nm_organisasi;
+                } else {
+                    // Field sensitif dikosongkan untuk user tanpa akses.
+                    $appData['url'] = null;
+                    $appData['app_slug'] = null;
+                    $appData['id_organisasi'] = null;
+                    $appData['nm_organisasi'] = null;
+                }
+
+                $categories[$categoryKey]['apps'][] = $appData;
             }
 
             // Sort categories by urutan and reset keys
