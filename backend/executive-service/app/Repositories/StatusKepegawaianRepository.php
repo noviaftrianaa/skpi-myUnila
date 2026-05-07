@@ -292,8 +292,8 @@ class StatusKepegawaianRepository
             JOIN pdrd.sms fakultas
                 ON fakultas.id_sms = tsms.id_fak_unila
                 AND fakultas.soft_delete = 0
-            LEFT JOIN ref.status_kepegawaian AS tstat_kepeg
-                ON tstat_kepeg.id_stat_pegawai = treg.id_stat_pegawai
+            LEFT JOIN ref.status_kepegawaian AS stat_peg
+                ON stat_peg.id_stat_pegawai = treg.id_stat_pegawai
             WHERE tsdm.soft_delete = 0
                 AND tsdm.id_jns_sdm = 12
                 AND tsdm.id_stat_aktif IN (1, 20, 24, 25, 27)
@@ -571,10 +571,10 @@ class StatusKepegawaianRepository
         ];
 
         if ($statusKepegawaian === 'Lainnya') {
-            return ' AND tstat_kepeg.id_stat_pegawai NOT IN (1, 13, 14, 16, 17, 18)';
+            return ' AND stat_peg.id_stat_pegawai NOT IN (1, 13, 14, 16, 17, 18)';
         } elseif (isset($statusKepegawaianMap[$statusKepegawaian])) {
             $bindings[] = $statusKepegawaianMap[$statusKepegawaian][0];
-            return ' AND tstat_kepeg.id_stat_pegawai = ?';
+            return ' AND stat_peg.id_stat_pegawai = ?';
         }
 
         return '';
