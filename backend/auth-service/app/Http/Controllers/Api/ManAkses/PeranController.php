@@ -4,22 +4,30 @@ namespace App\Http\Controllers\Api\ManAkses;
 
 use App\Http\Controllers\Controller;
 use App\Services\ManAkses\PeranService;
+use App\Services\UserContext\UserContextService;
 use App\Repositories\ManAkses\PeranRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Peran Controller
  * API endpoints for peran (role) management
+ *
+ * Setiap update peran (terutama flag a_universal) otomatis invalidate
+ * cache super_role:<id> di Redis supaya perubahan langsung berlaku
+ * tanpa wait TTL atau service restart.
  */
 class PeranController extends Controller
 {
     protected PeranService $service;
+    protected UserContextService $userContextService;
 
-    public function __construct()
+    public function __construct(UserContextService $userContextService)
     {
         $repository = new PeranRepository();
         $this->service = new PeranService($repository);
+        $this->userContextService = $userContextService;
     }
 
     /**
@@ -200,6 +208,16 @@ class PeranController extends Controller
                     'message' => 'Peran tidak ditemukan',
                     'data' => null
                 ], 404);
+            }
+
+            // Auto-invalidate super_role cache kalau a_universal berubah supaya
+            // peran tsb langsung dapat status baru tanpa wait TTL 5 menit.
+            if (array_key_exists('a_universal', $data)) {
+                try {
+                    $this->userContextService->invalidateSuperRoleCache($id);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to invalidate super role cache: ' . $e->getMessage(), ['id_peran' => $id]);
+                }
             }
 
             return response()->json([

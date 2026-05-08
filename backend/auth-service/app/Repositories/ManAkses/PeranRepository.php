@@ -231,7 +231,11 @@ class PeranRepository
     }
 
     /**
-     * Update existing peran
+     * Update existing peran (PARTIAL update — hanya kolom yg dikirim).
+     *
+     * Penting: kalau caller tidak kirim `a_universal`, kolom tsb TIDAK di-update.
+     * Sebelumnya: `$data['a_universal'] ?? 0` → reset ke 0 (bug, bisa hilangkan
+     * super role status saat admin cuma rename peran).
      *
      * @param int $id
      * @param array $data
@@ -241,24 +245,36 @@ class PeranRepository
     {
         $now = now()->format('Y-m-d H:i:s');
 
-        $sql = "
-            UPDATE man_akses.peran SET
-                nm_peran = ?,
-                a_perlu_sk = ?,
-                a_universal = ?,
-                last_update = ?,
-                last_sync = ?
-            WHERE id_peran = ?
-        ";
+        // Build SET clauses dinamis berdasarkan field yg ada di $data
+        $setClauses = [];
+        $bindings = [];
 
-        $affected = DB::update($sql, [
-            $data['nm_peran'],
-            $data['a_perlu_sk'] ?? 0,
-            $data['a_universal'] ?? 0,
-            $now,
-            $now,
-            $id,
-        ]);
+        if (array_key_exists('nm_peran', $data)) {
+            $setClauses[] = 'nm_peran = ?';
+            $bindings[] = $data['nm_peran'];
+        }
+        if (array_key_exists('a_perlu_sk', $data)) {
+            $setClauses[] = 'a_perlu_sk = ?';
+            $bindings[] = $data['a_perlu_sk'] ? 1 : 0;
+        }
+        if (array_key_exists('a_universal', $data)) {
+            $setClauses[] = 'a_universal = ?';
+            $bindings[] = $data['a_universal'] ? 1 : 0;
+        }
+
+        if (empty($setClauses)) {
+            return false; // Nothing to update
+        }
+
+        // Always update timestamps
+        $setClauses[] = 'last_update = ?';
+        $setClauses[] = 'last_sync = ?';
+        $bindings[] = $now;
+        $bindings[] = $now;
+        $bindings[] = $id; // for WHERE clause
+
+        $sql = "UPDATE man_akses.peran SET " . implode(', ', $setClauses) . " WHERE id_peran = ?";
+        $affected = DB::update($sql, $bindings);
 
         return $affected > 0;
     }
