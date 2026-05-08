@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  si-prestasi-service:
+    build:
+      context: ../../../../backend/si-prestasi-service
+      dockerfile: Dockerfile
+    image: myunila/si-prestasi-service:latest
+    container_name: myunila-si-prestasi-service
+    working_dir: /var/www
+    # Port exposed via nginx (8096:90 -> si-prestasi-service:9000)
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      # App Config
+      APP_NAME: "${SI_PRESTASI_APP_NAME:-SI-Prestasi Service}"
+      APP_ENV: "${SI_PRESTASI_APP_ENV:-local}"
+      APP_KEY: "${SI_PRESTASI_APP_KEY}"
+      APP_DEBUG: "${SI_PRESTASI_APP_DEBUG:-true}"
+      APP_URL: "${SI_PRESTASI_APP_URL:-http://localhost:8096}"
+      APP_APLIKASI_ID: "${APP_APLIKASI_ID}"
+
+      # Primary Database (PostgreSQL - si_prestasi)
+      DB_CONNECTION: "${SI_PRESTASI_DB_CONNECTION:-pgsql}"
+      DB_HOST: "${SI_PRESTASI_DB_HOST:-postgres}"
+      DB_PORT: "${SI_PRESTASI_DB_PORT:-5432}"
+      DB_DATABASE: "${SI_PRESTASI_DB_DATABASE:-si_prestasi}"
+      DB_USERNAME: "${SI_PRESTASI_DB_USERNAME}"
+      DB_PASSWORD: "${SI_PRESTASI_DB_PASSWORD}"
+
+      # Secondary Database (SQL Server - pdut, read-only)
+      SQLSRV_HOST: "${SI_PRESTASI_SQLSRV_HOST}"
+      SQLSRV_PORT: "${SI_PRESTASI_SQLSRV_PORT:-1433}"
+      SQLSRV_DATABASE: "${SI_PRESTASI_SQLSRV_DATABASE:-pdut}"
+      SQLSRV_USERNAME: "${SI_PRESTASI_SQLSRV_USERNAME}"
+      SQLSRV_PASSWORD: "${SI_PRESTASI_SQLSRV_PASSWORD}"
+      DB_ENCRYPT: "${DB_ENCRYPT:-no}"
+      DB_TRUST_SERVER_CERTIFICATE: "${DB_TRUST_SERVER_CERTIFICATE:-yes}"
+
+      # SIMKATMAWA (kredensial di setting.api_config, bukan di sini)
+      SIMKATMAWA_CONFIG_KODE: "${SIMKATMAWA_CONFIG_KODE:-simkatmawa}"
+      SIMKATMAWA_FORCE_DRY_RUN: "${SIMKATMAWA_FORCE_DRY_RUN:-true}"
+      SIMKATMAWA_QUEUE_NAME: "${SIMKATMAWA_QUEUE_NAME:-simkatmawa}"
+
+      # MinIO (S3-compatible)
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT:-http://192.168.120.47:9000}"
+      MINIO_KEY: "${MINIO_KEY}"
+      MINIO_SECRET: "${MINIO_SECRET}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+      MINIO_REGION: "${MINIO_REGION:-us-east-1}"
+
+      # File Storage (default local; switch via env)
+      FILESYSTEM_DISK: "${SI_PRESTASI_FILESYSTEM_DISK:-siprestasi}"
+      SIPRESTASI_STORAGE_PATH: "/var/www/storage/app/siprestasi"
+
+      # Redis
+      REDIS_HOST: "${SI_PRESTASI_REDIS_HOST:-redis}"
+      REDIS_PORT: "${SI_PRESTASI_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      CACHE_DRIVER: redis
+      CACHE_PREFIX: prestasi_
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # JWT Configuration
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Permission
+      BYPASS_PERMISSION_CHECK: "${BYPASS_PERMISSION_CHECK:-false}"
+
+      TZ: "${TZ:-Asia/Jakarta}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - prestasi_storage:/var/www/storage
+      - prestasi_logs:/var/www/storage/logs
+      # Hot reload: mount source code directories (read-only)
+      - ../../../../backend/si-prestasi-service/app:/var/www/app:ro
+      - ../../../../backend/si-prestasi-service/routes:/var/www/routes:ro
+      - ../../../../backend/si-prestasi-service/config:/var/www/config:ro
+      - ../../../../backend/si-prestasi-service/resources:/var/www/resources:ro
+    networks:
+      - myunila-network
+    depends_on:
+      - redis-check
+      - postgres-check
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'php-fpm: master process' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=prestasi"
+
+  # Redis health check
+  redis-check:
+    image: redis:7-alpine
+    container_name: myunila-redis-check-prestasi
+    command: >
+      sh -c "
+      until redis-cli -h redis ping; do
+        echo 'Waiting for Redis...';
+        sleep 2;
+      done;
+      echo 'Redis is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+  # Postgres health check
+  postgres-check:
+    image: postgres:16-alpine
+    container_name: myunila-pg-check-prestasi
+    command: >
+      sh -c "
+      until pg_isready -h ${SI_PRESTASI_DB_HOST:-postgres} -p ${SI_PRESTASI_DB_PORT:-5432} -U ${SI_PRESTASI_DB_USERNAME:-postgres}; do
+        echo 'Waiting for PostgreSQL at ${SI_PRESTASI_DB_HOST:-postgres}...';
+        sleep 2;
+      done;
+      echo 'PostgreSQL is ready!';
+      "
+    networks:
+      - myunila-network
+    restart: "no"
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network
+
+volumes:
+  prestasi_storage:
+    driver: local
+    name: myunila-prestasi-storage
+  prestasi_logs:
+    driver: local
+    name: myunila-prestasi-logs

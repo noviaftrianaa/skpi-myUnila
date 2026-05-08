@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  si-prestasi-service:
+    build:
+      context: ../../../../../backend/si-prestasi-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=production
+    image: myunila/si-prestasi-service:production
+    container_name: myunila-si-prestasi-service
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "${SI_PRESTASI_APP_NAME:-SI-Prestasi Service}"
+      APP_ENV: production
+      APP_KEY: "${SI_PRESTASI_APP_KEY}"
+      APP_DEBUG: "${SI_PRESTASI_APP_DEBUG:-false}"
+      APP_URL: "${SI_PRESTASI_APP_URL}"
+      APP_TIMEZONE: "${TIMEZONE:-Asia/Jakarta}"
+
+      # PostgreSQL (si_prestasi — primary, local container)
+      DB_CONNECTION: pgsql
+      DB_HOST: "${SI_PRESTASI_PG_HOST:-myunila-si-prestasi-postgres}"
+      DB_PORT: "${SI_PRESTASI_PG_PORT:-5432}"
+      DB_DATABASE: "${SI_PRESTASI_PG_DATABASE:-si_prestasi}"
+      DB_USERNAME: "${SI_PRESTASI_PG_USERNAME:-myunila_prestasi}"
+      DB_PASSWORD: "${SI_PRESTASI_PG_PASSWORD}"
+
+      # SQL Server (pdut — read only)
+      SQLSRV_HOST: "${SQLSRV_HOST:-192.168.123.119}"
+      SQLSRV_PORT: "${SQLSRV_PORT:-1433}"
+      SQLSRV_DATABASE: "${SQLSRV_DATABASE:-pdut}"
+      SQLSRV_USERNAME: "${SQLSRV_USERNAME}"
+      SQLSRV_PASSWORD: "${SQLSRV_PASSWORD}"
+      SQLSRV_TRUST_SERVER_CERTIFICATE: "${SQLSRV_TRUST_SERVER_CERTIFICATE:-true}"
+
+      # JWT (validation only — token diterbitkan auth-service)
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ALGO: "${JWT_ALGO:-HS256}"
+
+      # Redis (own container for SI-Prestasi)
+      REDIS_HOST: "${SI_PRESTASI_REDIS_HOST:-myunila-si-prestasi-redis}"
+      REDIS_PORT: "${SI_PRESTASI_REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${SI_PRESTASI_REDIS_PASSWORD:-}"
+      CACHE_STORE: redis
+      CACHE_PREFIX: prestasi_
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      # SIMKATMAWA (kredensial di setting.api_config, bukan di sini)
+      SIMKATMAWA_CONFIG_KODE: "${SIMKATMAWA_CONFIG_KODE:-simkatmawa}"
+      SIMKATMAWA_FORCE_DRY_RUN: "${SIMKATMAWA_FORCE_DRY_RUN:-false}"
+      SIMKATMAWA_QUEUE_NAME: "${SIMKATMAWA_QUEUE_NAME:-simkatmawa}"
+
+      # File Storage (default local; switch to MinIO via env)
+      FILESYSTEM_DISK: "${SI_PRESTASI_FILESYSTEM_DISK:-siprestasi}"
+      SIPRESTASI_STORAGE_PATH: "/data/siprestasi-storage"
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY}"
+      MINIO_BUCKET: "${MINIO_BUCKET:-myunila-storage}"
+
+      # Logging
+      LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    volumes:
+      - siprestasi-storage:/data/siprestasi-storage
+    depends_on:
+      si-prestasi-postgres:
+        condition: service_healthy
+      si-prestasi-redis:
+        condition: service_healthy
+    networks:
+      - si-prestasi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=si-prestasi,vm=vm8"
+
+  # ============================================
+  # Nginx (PHP-FPM proxy, listen 9006)
+  # ============================================
+  si-prestasi-nginx:
+    image: nginx:1.27-alpine
+    container_name: myunila-si-prestasi-nginx
+    ports:
+      - "9006:9006"
+    volumes:
+      - ../../configs/nginx/conf.d/si-prestasi.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - siprestasi-storage:/data/siprestasi-storage:ro
+    depends_on:
+      - si-prestasi-service
+    networks:
+      - si-prestasi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9006/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # PostgreSQL (si_prestasi database — local)
+  # ============================================
+  si-prestasi-postgres:
+    image: postgres:16-alpine
+    container_name: myunila-si-prestasi-postgres
+    environment:
+      POSTGRES_DB: "${SI_PRESTASI_PG_DATABASE:-si_prestasi}"
+      POSTGRES_USER: "${SI_PRESTASI_PG_USERNAME:-myunila_prestasi}"
+      POSTGRES_PASSWORD: "${SI_PRESTASI_PG_PASSWORD}"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+    volumes:
+      - si-prestasi-pg-data:/var/lib/postgresql/data
+      - ../../../../../data-model/script/postgresql/si_prestasi/si_prestasi_v1.0_fresh.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ../../../../../data-model/script/postgresql/si_prestasi/si_prestasi_v1.0_seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    ports:
+      - "5435:5432"
+    networks:
+      - si-prestasi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SI_PRESTASI_PG_USERNAME:-myunila_prestasi} -d ${SI_PRESTASI_PG_DATABASE:-si_prestasi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Redis (cache + queue + session)
+  # ============================================
+  si-prestasi-redis:
+    image: redis:7-alpine
+    container_name: myunila-si-prestasi-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - si-prestasi-redis-data:/data
+    ports:
+      - "6382:6379"
+    networks:
+      - si-prestasi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+volumes:
+  si-prestasi-pg-data:
+    driver: local
+  si-prestasi-redis-data:
+    driver: local
+  siprestasi-storage:
+    driver: local
+
+networks:
+  si-prestasi-network:
+    driver: bridge
+    name: si-prestasi-network
