@@ -41,25 +41,60 @@ class UserContextService
     }
 
     /**
-     * Get super role IDs from config
-     * Configurable via AUTH_SUPER_ROLES env variable
-     *
-     * @return array
+     * TTL cache untuk hasil cek super role per id_peran (5 menit).
+     * Dipanggil sangat frequent di flow check-access, jadi perlu cache.
      */
-    private function getSuperRoles(): array
-    {
-        return config('auth.super_roles', [1, 107]);
-    }
+    private const CACHE_SUPER_ROLE_TTL = 300;
+    private const CACHE_SUPER_ROLE_PREFIX = 'super_role:';
 
     /**
-     * Check if a role ID is a super role
+     * Check apakah role tertentu adalah "super role" (bypass permission check).
+     *
+     * Strategi: DYNAMIC dari kolom `peran.a_universal` di SQL Server.
+     * Tidak ada lagi hardcoded list — admin bisa atur via UI Manajemen Akses
+     * dengan flag `a_universal=1` di tabel peran.
+     *
+     * Fallback: kalau ENV `AUTH_SUPER_ROLES` di-set, role ID di sana tetap
+     * di-treat sebagai super (untuk emergency / migration safety).
+     * Kalau env kosong, murni dari DB.
      *
      * @param int $idPeran
      * @return bool
      */
     private function isSuperRole(int $idPeran): bool
     {
-        return in_array($idPeran, $this->getSuperRoles());
+        // Cek cache dulu (per role)
+        $cacheKey = self::CACHE_SUPER_ROLE_PREFIX . $idPeran;
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return (bool) $cached;
+        }
+
+        // Fallback ENV (kalau di-set, override DB; untuk emergency)
+        $envSuperRoles = config('auth.super_roles', []);
+        if (!empty($envSuperRoles) && in_array($idPeran, $envSuperRoles, true)) {
+            Cache::put($cacheKey, true, self::CACHE_SUPER_ROLE_TTL);
+            return true;
+        }
+
+        // DB-driven: peran.a_universal = 1 → super role
+        $isUniversal = $this->repository->isUniversalRole($idPeran);
+        Cache::put($cacheKey, $isUniversal, self::CACHE_SUPER_ROLE_TTL);
+        return $isUniversal;
+    }
+
+    /**
+     * Invalidate super role cache untuk role tertentu (atau semua).
+     * Dipanggil saat admin ubah flag `a_universal` lewat UI Manajemen Peran.
+     */
+    public function invalidateSuperRoleCache(?int $idPeran = null): void
+    {
+        if ($idPeran !== null) {
+            Cache::forget(self::CACHE_SUPER_ROLE_PREFIX . $idPeran);
+        } else {
+            $this->invalidateCacheByPattern(self::CACHE_SUPER_ROLE_PREFIX . '*');
+        }
+        Log::info('Invalidated super role cache', ['id_peran' => $idPeran]);
     }
 
     /**

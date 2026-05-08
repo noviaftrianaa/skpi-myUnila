@@ -125,13 +125,19 @@ return [
     | even for super roles. This allows fine-grained control over what
     | menus are visible to admin users.
     |
-    | Format: comma-separated role IDs (e.g., "1,107,2009")
-    | Default: 1 (Administrator), 107 (Developer)
+    | DEPRECATED HARDCODE — sekarang super role driven dari DB:
+    |   peran.a_universal = 1   → super role (bypass permission check)
+    |
+    | ENV AUTH_SUPER_ROLES masih bisa dipakai sbg EMERGENCY fallback override
+    | (kalau ada situasi DB belum ke-update tapi perlu set super role cepat).
+    | Default: kosong → murni dari DB.
+    |
+    | Format ENV: comma-separated role IDs (e.g., "107")
     |
     */
 
     'super_roles' => array_map('intval', array_filter(
-        explode(',', env('AUTH_SUPER_ROLES', '1,107'))
+        explode(',', env('AUTH_SUPER_ROLES', ''))
     )),
 
 ];
