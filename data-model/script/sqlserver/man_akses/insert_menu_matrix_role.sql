@@ -16,8 +16,38 @@
 USE pdut;
 GO
 
-DECLARE @app_manakses UNIQUEIDENTIFIER = '5A658A40-FD39-4280-8B3C-FAF52A059D8E';
-DECLARE @group_manajemen UNIQUEIDENTIFIER = 'E91EA750-4978-40E8-B816-D27C51DA16CB';
+-- Cari id_aplikasi Manajemen Akses (kalau di production beda dgn staging,
+-- script tetap jalan karena lookup by app_slug atau nm_aplikasi).
+DECLARE @app_manakses UNIQUEIDENTIFIER;
+SELECT TOP 1 @app_manakses = id_aplikasi
+FROM man_akses.aplikasi
+WHERE app_slug = 'manajemen-akses'
+   OR nm_aplikasi LIKE '%Manajemen Akses myUnila%'
+ORDER BY tgl_create DESC;
+
+IF @app_manakses IS NULL
+BEGIN
+    RAISERROR(N'❌ App "Manajemen Akses" tidak ditemukan di man_akses.aplikasi. Cek dulu app_slug atau nm_aplikasi.', 16, 1);
+    RETURN;
+END
+PRINT N'App Manajemen Akses ditemukan: ' + CAST(@app_manakses AS NVARCHAR(36));
+
+-- Cari id_group_menu untuk parent "Manajemen" (level 0) di app tsb
+DECLARE @group_manajemen UNIQUEIDENTIFIER;
+SELECT TOP 1 @group_manajemen = id_menu
+FROM man_akses.menu
+WHERE id_aplikasi = @app_manakses
+  AND nm_menu = 'Manajemen'
+  AND level_menu = 0
+  AND expired_date IS NULL;
+
+IF @group_manajemen IS NULL
+BEGIN
+    RAISERROR(N'❌ Group menu "Manajemen" (level 0) tidak ditemukan di app Manajemen Akses. Cek tabel man_akses.menu.', 16, 1);
+    RETURN;
+END
+PRINT N'Group "Manajemen" ditemukan: ' + CAST(@group_manajemen AS NVARCHAR(36));
+
 DECLARE @new_menu_id UNIQUEIDENTIFIER = NEWID();
 DECLARE @nm_file VARCHAR(255) = '/dashboard/manajemen-akses/manajemen/role-menu-matrix';
 
