@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip } from "@heroui/react";
 import Link from "next/link";
 
@@ -69,7 +70,7 @@ export default function PublikasiResultCard({ result }: PublikasiResultCardProps
             <h3
               className="text-lg font-bold text-gray-900 mb-2 line-clamp-2"
               dangerouslySetInnerHTML={{
-                __html: result.highlight?.judul || result.judul,
+                __html: sanitizeHighlight(result.highlight?.judul || result.judul),
               }}
             />
 
@@ -78,14 +79,14 @@ export default function PublikasiResultCard({ result }: PublikasiResultCardProps
               {result.penulis.length === 1 ? (
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: result.highlight?.penulis || result.penulis[0],
+                    __html: sanitizeHighlight(result.highlight?.penulis || result.penulis[0]),
                   }}
                 />
               ) : (
                 <>
                   <span
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.penulis || result.penulis[0],
+                      __html: sanitizeHighlight(result.highlight?.penulis || result.penulis[0]),
                     }}
                   />
                   {result.penulis.length === 2 ? (
@@ -104,7 +105,7 @@ export default function PublikasiResultCard({ result }: PublikasiResultCardProps
               <p
                 className="text-sm text-gray-500 mb-3 italic"
                 dangerouslySetInnerHTML={{
-                  __html: result.highlight?.publisher || result.publisher,
+                  __html: sanitizeHighlight(result.highlight?.publisher || result.publisher),
                 }}
               />
             )}

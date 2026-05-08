@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip, Avatar } from "@heroui/react";
 import Link from "next/link";
 
@@ -67,14 +68,14 @@ export default function DosenResultCard({ result }: DosenResultCardProps) {
                     <h3
                       className="text-lg font-bold text-gray-900 mb-1"
                       dangerouslySetInnerHTML={{
-                        __html: result.highlight?.nama || result.nama,
+                        __html: sanitizeHighlight(result.highlight?.nama || result.nama),
                       }}
                     />
                     <div className="flex gap-2 text-sm text-gray-500">
                       {result.nidn && (
                         <span
                           dangerouslySetInnerHTML={{
-                            __html: result.highlight?.nidn || `NIDN: ${result.nidn}`,
+                            __html: sanitizeHighlight(result.highlight?.nidn || `NIDN: ${result.nidn}`),
                           }}
                         />
                       )}
@@ -92,7 +93,7 @@ export default function DosenResultCard({ result }: DosenResultCardProps) {
                   <p
                     className="text-sm text-gray-700 font-medium"
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.prodi || result.prodi,
+                      __html: sanitizeHighlight(result.highlight?.prodi || result.prodi),
                     }}
                   />
                   <p className="text-xs text-gray-500">{result.fakultas}</p>
@@ -113,11 +114,10 @@ export default function DosenResultCard({ result }: DosenResultCardProps) {
                       size="sm"
                       variant="dot"
                       dangerouslySetInnerHTML={{
-                        __html:
-                          result.highlight?.bidang_keahlian &&
+                        __html: sanitizeHighlight(result.highlight?.bidang_keahlian &&
                           index === 0
                             ? result.highlight.bidang_keahlian
-                            : bidang,
+                            : bidang),
                       }}
                     />
                   ))}

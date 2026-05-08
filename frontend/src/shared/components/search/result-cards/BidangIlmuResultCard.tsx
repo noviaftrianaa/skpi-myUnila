@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip, Avatar, AvatarGroup } from "@heroui/react";
 import Link from "next/link";
 
@@ -54,7 +55,7 @@ export default function BidangIlmuResultCard({ result }: BidangIlmuResultCardPro
               <h3
                 className="text-lg font-bold text-gray-900 mb-1"
                 dangerouslySetInnerHTML={{
-                  __html: result.highlight?.nama_bidang || result.nama_bidang,
+                  __html: sanitizeHighlight(result.highlight?.nama_bidang || result.nama_bidang),
                 }}
               />
               <p className="text-xs text-gray-500">
@@ -67,7 +68,7 @@ export default function BidangIlmuResultCard({ result }: BidangIlmuResultCardPro
               <p
                 className="text-sm text-gray-600 mb-3 line-clamp-2"
                 dangerouslySetInnerHTML={{
-                  __html: result.highlight?.deskripsi || result.deskripsi,
+                  __html: sanitizeHighlight(result.highlight?.deskripsi || result.deskripsi),
                 }}
               />
             )}
@@ -106,10 +107,9 @@ export default function BidangIlmuResultCard({ result }: BidangIlmuResultCardPro
                         variant="dot"
                         className="text-xs"
                         dangerouslySetInnerHTML={{
-                          __html:
-                            result.highlight?.dosen && index === 0
+                          __html: sanitizeHighlight(result.highlight?.dosen && index === 0
                               ? result.highlight.dosen
-                              : dosen.nama,
+                              : dosen.nama),
                         }}
                       />
                     ))}

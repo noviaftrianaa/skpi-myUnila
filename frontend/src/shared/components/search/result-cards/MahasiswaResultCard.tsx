@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip, Avatar } from "@heroui/react";
 import Link from "next/link";
 
@@ -71,13 +72,13 @@ export default function MahasiswaResultCard({ result }: MahasiswaResultCardProps
                     <h3
                       className="text-lg font-bold text-gray-900 mb-1"
                       dangerouslySetInnerHTML={{
-                        __html: result.highlight?.nama || result.nama,
+                        __html: sanitizeHighlight(result.highlight?.nama || result.nama),
                       }}
                     />
                     <p
                       className="text-sm text-gray-500"
                       dangerouslySetInnerHTML={{
-                        __html: result.highlight?.nim || `NIM: ${result.nim}`,
+                        __html: sanitizeHighlight(result.highlight?.nim || `NIM: ${result.nim}`),
                       }}
                     />
                   </div>
@@ -91,7 +92,7 @@ export default function MahasiswaResultCard({ result }: MahasiswaResultCardProps
                   <p
                     className="text-sm text-gray-700 font-medium"
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.prodi || result.prodi,
+                      __html: sanitizeHighlight(result.highlight?.prodi || result.prodi),
                     }}
                   />
                   <p className="text-xs text-gray-500">{result.fakultas}</p>

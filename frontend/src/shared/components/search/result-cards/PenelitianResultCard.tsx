@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip, Avatar, AvatarGroup } from "@heroui/react";
 import Link from "next/link";
 
@@ -69,7 +70,7 @@ export default function PenelitianResultCard({ result }: PenelitianResultCardPro
             <h3
               className="text-lg font-bold text-gray-900 mb-2 line-clamp-2"
               dangerouslySetInnerHTML={{
-                __html: result.highlight?.judul || result.judul,
+                __html: sanitizeHighlight(result.highlight?.judul || result.judul),
               }}
             />
 
@@ -91,14 +92,14 @@ export default function PenelitianResultCard({ result }: PenelitianResultCardPro
                 {result.peneliti.length === 1 ? (
                   <span
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.peneliti || result.peneliti[0].nama,
+                      __html: sanitizeHighlight(result.highlight?.peneliti || result.peneliti[0].nama),
                     }}
                   />
                 ) : (
                   <>
                     <span
                       dangerouslySetInnerHTML={{
-                        __html: result.highlight?.peneliti || result.peneliti[0].nama,
+                        __html: sanitizeHighlight(result.highlight?.peneliti || result.peneliti[0].nama),
                       }}
                     />
                     {result.peneliti.length > 1 && (
@@ -128,7 +129,7 @@ export default function PenelitianResultCard({ result }: PenelitianResultCardPro
                 size="sm"
                 variant="dot"
                 dangerouslySetInnerHTML={{
-                  __html: result.highlight?.skema || result.skema,
+                  __html: sanitizeHighlight(result.highlight?.skema || result.skema),
                 }}
               />
               {result.sumber_dana && (

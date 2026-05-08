@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { sanitizeHighlight } from "@/shared/utils/sanitizeHighlight";
 import { Card, CardBody, Chip } from "@heroui/react";
 import Link from "next/link";
 
@@ -80,13 +81,13 @@ export default function ProdiResultCard({ result }: ProdiResultCardProps) {
                   <h3
                     className="text-lg font-bold text-gray-900 mb-1"
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.nama_prodi || result.nama_prodi,
+                      __html: sanitizeHighlight(result.highlight?.nama_prodi || result.nama_prodi),
                     }}
                   />
                   <p
                     className="text-sm text-gray-600"
                     dangerouslySetInnerHTML={{
-                      __html: result.highlight?.fakultas || result.fakultas,
+                      __html: sanitizeHighlight(result.highlight?.fakultas || result.fakultas),
                     }}
                   />
                 </div>

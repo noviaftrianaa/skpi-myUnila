@@ -120,6 +120,18 @@ func main() {
 
 	// Middlewares
 	app.Use(recover.New())
+
+	// Security headers (defense in depth — semua response otomatis dapat header).
+	// nosniff: cegah browser MIME sniff response (mitigasi XSS via wrong content-type)
+	// X-Frame-Options: cegah clickjacking
+	// Referrer-Policy: jangan leak full URL ke external site
+	app.Use(func(c *fiber.Ctx) error {
+		c.Set("X-Content-Type-Options", "nosniff")
+		c.Set("X-Frame-Options", "SAMEORIGIN")
+		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		return c.Next()
+	})
+
 	app.Use(fiberlogger.New(fiberlogger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))

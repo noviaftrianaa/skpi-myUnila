@@ -48,8 +48,11 @@ class AuthService
                 'locked_until' => $lockedUntil->format('Y-m-d H:i:s'),
                 'ip_address' => $ipAddress,
             ]);
+            // Pesan ramah untuk user mahasiswa/dosen — bukan technical
+            $waktu = $minutesLeft === 1 ? '1 menit' : "{$minutesLeft} menit";
             throw new \Exception(
-                "Akun sementara dikunci karena terlalu banyak percobaan login gagal. Coba lagi dalam {$minutesLeft} menit.",
+                "Untuk keamanan, akun Anda terkunci sementara karena beberapa percobaan login gagal. " .
+                "Silakan tunggu {$waktu} lagi, atau klik \"Lupa Password?\" jika Anda lupa password.",
                 423   // 423 Locked (WebDAV)
             );
         }
@@ -72,19 +75,22 @@ class AuthService
 
             // Kalau attempt terakhir tembus threshold → locked sekarang
             if ($result['locked_until'] !== null) {
+                $lockMin = \App\Repositories\UserRepository::LOCKOUT_MINUTES;
                 throw new \Exception(
-                    'Akun dikunci selama ' . \App\Repositories\UserRepository::LOCKOUT_MINUTES .
-                    ' menit karena terlalu banyak percobaan login gagal.',
+                    "Akun terkunci selama {$lockMin} menit karena terlalu banyak percobaan gagal. " .
+                    "Tunggu sebentar dan coba lagi, atau klik \"Lupa Password?\" untuk reset.",
                     423
                 );
             }
 
-            // Kasih tahu sisa attempt (transparan supaya user tahu, defense-in-depth
-            // sudah ada di rate-limit middleware level — info ini gak membantu attacker
-            // selama akun masih bisa login dgn password benar)
-            $msg = $remaining > 0 && $remaining <= 2
-                ? "Username atau password salah. Sisa {$remaining} percobaan."
-                : "Username atau password salah";
+            // Pesan ramah dgn warning kalau tinggal sedikit attempt
+            if ($remaining === 1) {
+                $msg = 'Username atau password salah. Hati-hati, ini percobaan terakhir sebelum akun terkunci sementara.';
+            } elseif ($remaining === 2) {
+                $msg = 'Username atau password salah. Sisa 2 percobaan lagi.';
+            } else {
+                $msg = 'Username atau password salah. Pastikan capslock tidak aktif.';
+            }
             throw new \Exception($msg, 401);
         }
 

@@ -287,8 +287,14 @@ class UserRepository
     // Brute Force Protection
     // =========================================================================
 
+    // Catatan UX: tuned untuk user mahasiswa/dosen (bukan admin technical).
+    //   - 5 percobaan: cukup tolerant utk typo (rata-rata user salah 1-3x sebelum sadar)
+    //   - 5 menit lockout: gak terlalu lama (mahasiswa bisa langsung coba lagi
+    //     setelah istirahat sebentar). Tetap effective deter automated brute force
+    //     (5 menit cooldown × waktu eksploit = >>1 jam untuk 100rb password)
+    //   - Setelah lock expire, counter reset 0 (start fresh, gak akumulasi)
     public const MAX_FAILED_ATTEMPTS = 5;
-    public const LOCKOUT_MINUTES = 15;
+    public const LOCKOUT_MINUTES = 5;
 
     /**
      * Cek apakah akun masih dalam masa lockout (locked_until > NOW).
@@ -313,15 +319,30 @@ class UserRepository
     /**
      * Record gagal login: increment failed_login_attempts.
      * Kalau sudah >= threshold, set locked_until = NOW + LOCKOUT_MINUTES.
+     *
+     * UX: Kalau sebelumnya pernah locked dan sudah expired, counter di-RESET
+     * jadi 1 (start fresh), bukan akumulasi terus. Jadi user gak terus-terusan
+     * locked karena failed_login_attempts numpuk dari sesi sebelumnya.
+     *
      * Return ['attempts' => int, 'locked_until' => string|null].
      */
     public function recordFailedLogin(string $userId): array
     {
         $sql = "
             UPDATE man_akses.pengguna
-            SET failed_login_attempts = ISNULL(failed_login_attempts, 0) + 1,
+            SET failed_login_attempts = CASE
+                    -- Lock expired → reset counter ke 1 (mulai dari awal)
+                    WHEN locked_until IS NOT NULL AND locked_until < GETDATE() THEN 1
+                    ELSE ISNULL(failed_login_attempts, 0) + 1
+                END,
                 locked_until = CASE
-                    WHEN ISNULL(failed_login_attempts, 0) + 1 >= ? THEN DATEADD(MINUTE, ?, GETDATE())
+                    -- Tembus threshold → set lockout baru
+                    WHEN (
+                        CASE WHEN locked_until IS NOT NULL AND locked_until < GETDATE() THEN 1
+                             ELSE ISNULL(failed_login_attempts, 0) + 1 END
+                    ) >= ? THEN DATEADD(MINUTE, ?, GETDATE())
+                    -- Belum threshold → clear lock (kalau sebelumnya expired) atau biarkan
+                    WHEN locked_until IS NOT NULL AND locked_until < GETDATE() THEN NULL
                     ELSE locked_until
                 END
             WHERE id_pengguna = ?
