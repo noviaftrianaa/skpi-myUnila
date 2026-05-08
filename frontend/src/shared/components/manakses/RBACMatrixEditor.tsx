@@ -176,10 +176,11 @@ export default function RBACMatrixEditor({ onSaved }: RBACMatrixEditorProps) {
   }, []);
 
   // ── Fetch apps
+  // Sort: tgl_create DESC, nm_aplikasi ASC (default backend, app terbaru di atas).
   useEffect(() => {
     setLoadingApps(true);
     aplikasiService
-      .getList({ limit: 100, sort_by: "nm_aplikasi" })
+      .getList({ limit: 100 })
       .then((res) => setApps(res.data))
       .catch(() => toast.error("Gagal memuat daftar aplikasi"))
       .finally(() => setLoadingApps(false));

@@ -36,7 +36,8 @@ export default function RoleMenuMatrixPage() {
     (async () => {
       try {
         setLoadingApps(true);
-        const r = await aplikasiService.getList({ limit: 500, status: "aktif", sort_by: "nm_aplikasi", sort_order: "asc" });
+        // Sort: tgl_create DESC, nm_aplikasi ASC (default backend, app terbaru di atas)
+        const r = await aplikasiService.getList({ limit: 500, status: "aktif" });
         setApps(r.data || []);
       } catch (e: any) {
         console.error("Failed loading apps", e);

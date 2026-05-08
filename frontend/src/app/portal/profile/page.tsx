@@ -157,14 +157,14 @@ export default function ProfilePage() {
     agama: dosenData?.agama || mahasiswaData?.agama || "-",
     kewarganegaraan:
       dosenData?.kewarganegaraan || "-",
-    // For position chip under name - show profile type first, then active role
+    // Position chip di bawah nama: WAJIB primary role / identitas user
+    // (Mahasiswa / Dosen / Tenaga Kependidikan), BUKAN active_role yang
+    // di-switch di navbar atas. Active role ditampilkan terpisah di
+    // section "Peran Anda" dengan badge "Aktif".
     position:
       isMahasiswaProfile ? "Mahasiswa" :
       isDosenProfile ? "Dosen" :
-      isTendikProfile ? "Tendik" :
-      profile?.active_role?.nama_peran ||
-      activeContext?.nama_peran ||
-      user?.role ||
+      isTendikProfile ? "Tenaga Kependidikan" :
       "-",
     department: activeDosenHomebase?.nama_unit || tendikData?.unit_kerja?.unit_1 || tendikData?.unit_kerja?.unit_2 || tendikData?.unit_kerja?.unit_3 || profile?.active_role?.nama_unit || activeContext?.nama_unit || "-",
     nik: dosenData?.nik || mahasiswaData?.nik || "-",
@@ -480,25 +480,42 @@ export default function ProfilePage() {
                             </span>
                           </div>
                           <div className="space-y-2">
-                            {profile.roles.map((role) => (
-                              <div
-                                key={role.id_role_pengguna}
-                                className={`p-2 rounded-lg text-left text-sm ${
-                                  role.approval_peran
-                                    ? "bg-green-50 border border-green-200"
-                                    : "bg-gray-50 border border-gray-200"
-                                }`}
-                              >
-                                <p className="font-medium text-gray-800">
-                                  {role.nama_peran}
-                                </p>
-                                {role.nama_unit && (
-                                  <p className="text-xs text-gray-500">
-                                    {role.nama_unit}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
+                            {profile.roles.map((role) => {
+                              // Cek apakah peran ini sedang aktif (sesuai context navbar atas)
+                              const isActive =
+                                activeContext?.id_role_pengguna === role.id_role_pengguna;
+                              return (
+                                <div
+                                  key={role.id_role_pengguna}
+                                  className={`p-2 rounded-lg text-left text-sm ${
+                                    isActive
+                                      ? "bg-blue-50 border-2 border-blue-400 ring-1 ring-blue-200"
+                                      : role.approval_peran
+                                      ? "bg-green-50 border border-green-200"
+                                      : "bg-gray-50 border border-gray-200"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-gray-800">
+                                        {role.nama_peran}
+                                      </p>
+                                      {role.nama_unit && (
+                                        <p className="text-xs text-gray-500 truncate">
+                                          {role.nama_unit}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {isActive && (
+                                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-600 text-white">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                        Aktif
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </>

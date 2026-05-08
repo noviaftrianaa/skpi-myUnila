@@ -79,7 +79,8 @@ export default function RoleSetupWizard({ isOpen, onClose, onCompleted, initialR
       setLoading(true);
       const [rolesData, appsData] = await Promise.all([
         peranService.getAll(),
-        aplikasiService.getList({ limit: 500, status: "aktif", sort_by: "nm_aplikasi", sort_order: "asc" }),
+        // Sort: tgl_create DESC, nm_aplikasi ASC (default backend)
+        aplikasiService.getList({ limit: 500, status: "aktif" }),
       ]);
       setRoles(rolesData);
       setApps(appsData.data || []);

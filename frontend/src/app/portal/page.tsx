@@ -219,7 +219,22 @@ export default function PortalPage() {
     }
     return profile.active_role?.nama_unit || null;
   })();
-  const sidebarPeran = profile?.active_role?.nama_peran || activeContext?.nm_peran || null;
+  // Sidebar peran (di bawah nama user) HARUS tampilkan PRIMARY ROLE / identitas user
+  // (Mahasiswa / Dosen / Tenaga Kependidikan), BUKAN peran yang sedang aktif di
+  // navbar (yg untuk akses apps multi-role). Mapping dari profile_type:
+  //   dosen     → "Dosen"
+  //   mahasiswa → "Mahasiswa"
+  //   tendik    → "Tenaga Kependidikan"
+  // Kalau profile belum loaded, fallback null.
+  const sidebarPeran = (() => {
+    if (!profile) return null;
+    switch (profile.profile_type) {
+      case "dosen":     return "Dosen";
+      case "mahasiswa": return "Mahasiswa";
+      case "tendik":    return "Tenaga Kependidikan";
+      default:          return profile.active_role?.nama_peran || null;
+    }
+  })();
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);

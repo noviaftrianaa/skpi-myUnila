@@ -4,22 +4,59 @@ namespace App\Http\Controllers\Api\ManAkses;
 
 use App\Http\Controllers\Controller;
 use App\Services\ManAkses\RolePenggunaService;
+use App\Services\UserContext\UserContextService;
 use App\Repositories\ManAkses\RolePenggunaRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Role Pengguna Controller
  * API endpoints for role pengguna management
+ *
+ * Setiap mutasi role-pengguna (store/update/destroy) otomatis trigger
+ * cache invalidation untuk user terkait, supaya perubahan langsung terasa
+ * tanpa perlu user logout / wait TTL 60 menit.
  */
 class RolePenggunaController extends Controller
 {
     protected RolePenggunaService $service;
+    protected UserContextService $userContextService;
 
-    public function __construct()
+    public function __construct(UserContextService $userContextService)
     {
         $repository = new RolePenggunaRepository();
         $this->service = new RolePenggunaService($repository);
+        $this->userContextService = $userContextService;
+    }
+
+    /**
+     * Invalidate cache untuk user yang role-nya baru saja berubah.
+     * Dipanggil setelah store/update/destroy supaya frontend user tsb
+     * langsung dapat data baru saat refresh tanpa logout dulu.
+     *
+     * Cache yang di-clear:
+     *   - user_context:<userId>   (peran/organisasi/active context)
+     *   - portal_apps:role:*       (daftar app yang accessible per role)
+     */
+    private function invalidateUserCache(?string $userId, ?string $orgId = null): void
+    {
+        if (!$userId) {
+            return;
+        }
+        try {
+            $this->userContextService->clearContext($userId);
+            $this->userContextService->invalidatePortalAppsCache($orgId);
+            Log::info('Auto-invalidated cache after role-pengguna mutation', [
+                'user_id' => $userId,
+                'org_id' => $orgId,
+            ]);
+        } catch (\Exception $e) {
+            // Cache invalidation failure jangan block response — cuma log warning.
+            Log::warning('Failed to invalidate user cache: ' . $e->getMessage(), [
+                'user_id' => $userId,
+            ]);
+        }
     }
 
     /**
@@ -140,6 +177,9 @@ class RolePenggunaController extends Controller
             $data['id_updater'] = $request->user()->id_pengguna ?? $request->user()->id ?? null;
             $result = $this->service->create($data);
 
+            // Invalidate cache user yg role-nya baru di-tambah supaya realtime
+            $this->invalidateUserCache($data['id_pengguna'] ?? null, $data['id_organisasi'] ?? null);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role pengguna berhasil ditambahkan',
@@ -192,6 +232,12 @@ class RolePenggunaController extends Controller
                 ], 404);
             }
 
+            // Invalidate cache user yg role-nya baru di-update supaya realtime.
+            // id_pengguna dari result (kalau service return), atau dari $data sebagai fallback.
+            $userId = is_array($result) ? ($result['id_pengguna'] ?? null)
+                                         : ($result->id_pengguna ?? null);
+            $this->invalidateUserCache($userId ?? ($data['id_pengguna'] ?? null), $data['id_organisasi'] ?? null);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role pengguna berhasil diperbarui',
@@ -221,6 +267,14 @@ class RolePenggunaController extends Controller
     public function destroy(string $id): JsonResponse
     {
         try {
+            // Ambil id_pengguna SEBELUM delete supaya tahu user mana yg cache-nya
+            // perlu di-invalidate (setelah delete, repository return null).
+            $existing = $this->service->getDetail($id);
+            $affectedUserId = is_array($existing) ? ($existing['id_pengguna'] ?? null)
+                                                   : ($existing->id_pengguna ?? null);
+            $affectedOrgId = is_array($existing) ? ($existing['id_organisasi'] ?? null)
+                                                  : ($existing->id_organisasi ?? null);
+
             $result = $this->service->delete($id);
 
             if (!$result) {
@@ -230,6 +284,9 @@ class RolePenggunaController extends Controller
                     'data' => null
                 ], 404);
             }
+
+            // Invalidate cache user yg role-nya baru di-hapus supaya realtime.
+            $this->invalidateUserCache($affectedUserId, $affectedOrgId);
 
             return response()->json([
                 'success' => true,

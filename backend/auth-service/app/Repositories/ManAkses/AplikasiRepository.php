@@ -28,8 +28,11 @@ class AplikasiRepository
         $ssoCas = $params['sso_cas'] ?? null; // 'ya', 'tidak', null for all
         $maintenance = $params['maintenance'] ?? null; // 'ya', 'tidak', null for all
         $comingSoon = $params['coming_soon'] ?? null; // 'ya', 'tidak', null for all
-        $sortBy = $params['sort_by'] ?? 'last_update'; // column to sort by
-        $sortOrder = $params['sort_order'] ?? 'desc'; // 'asc' or 'desc'
+        // Default sort: aplikasi terbaru dulu (tgl_create DESC) lalu alphabet (nm_aplikasi ASC).
+        // Cocok untuk dropdown pilih app (yg paling baru added muncul di atas, sisanya
+        // alphabetical). Caller bisa override pakai sort_by + sort_order.
+        $sortBy = $params['sort_by'] ?? null;
+        $sortOrder = $params['sort_order'] ?? null;
         $offset = ($page - 1) * $limit;
 
         // Validate sort column to prevent SQL injection
@@ -43,8 +46,17 @@ class AplikasiRepository
             'last_update' => 'a.last_update',
             'urutan' => 'a.urutan',
         ];
-        $sortColumn = $allowedSortColumns[$sortBy] ?? 'a.last_update';
-        $sortDirection = strtolower($sortOrder) === 'asc' ? 'ASC' : 'DESC';
+
+        // Build ORDER BY clause:
+        //   - Kalau caller kasih sort_by → pakai itu (1 column)
+        //   - Kalau tidak → default 2-column: tgl_create DESC, nm_aplikasi ASC
+        if ($sortBy !== null && isset($allowedSortColumns[$sortBy])) {
+            $sortColumn = $allowedSortColumns[$sortBy];
+            $sortDirection = strtolower((string) $sortOrder) === 'asc' ? 'ASC' : 'DESC';
+            $orderByClause = "{$sortColumn} {$sortDirection}";
+        } else {
+            $orderByClause = "a.tgl_create DESC, a.nm_aplikasi ASC";
+        }
 
         // Base query for data from SQL Server
         // Default filter: only show non-deleted records (expired_date IS NULL)
@@ -204,7 +216,7 @@ class AplikasiRepository
         $total = $countResult->total ?? 0;
 
         // Add ordering and pagination
-        $dataSql .= " ORDER BY {$sortColumn} {$sortDirection} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $dataSql .= " ORDER BY {$orderByClause} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $bindings[] = $offset;
         $bindings[] = $limit;
 
