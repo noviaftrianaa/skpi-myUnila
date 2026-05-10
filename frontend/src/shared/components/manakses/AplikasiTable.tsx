@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import DataTable, { Column } from "../ui/DataTable";
 import { Chip, Select, SelectItem, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
-import { FiMoreVertical, FiEdit2, FiTrash2, FiPlus, FiRefreshCw, FiFilter, FiEye } from "react-icons/fi";
+import { FiMoreVertical, FiEdit2, FiTrash2, FiPlus, FiRefreshCw, FiFilter, FiEye, FiUsers } from "react-icons/fi";
 import { aplikasiService, type Aplikasi, type AplikasiDetail, type AplikasiStats, type AplikasiMenu } from "@/lib/services/manakses/aplikasiService";
 import AplikasiFormModal from "./AplikasiFormModal";
 import AplikasiDetailModal from "./AplikasiDetailModal";
@@ -14,6 +15,7 @@ interface AplikasiTableProps {
 }
 
 export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
+  const router = useRouter();
   const [data, setData] = useState<Aplikasi[]>([]);
   const [stats, setStats] = useState<AplikasiStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -424,6 +426,14 @@ export default function AplikasiTable({ onStatsLoaded }: AplikasiTableProps) {
               className="text-gray-700 dark:text-gray-300"
             >
               Edit
+            </DropdownItem>
+            <DropdownItem
+              key="akses-pengguna"
+              startContent={<FiUsers className="w-4 h-4" />}
+              onPress={() => router.push(`/dashboard/manajemen-akses/manajemen/aplikasi/${item.id_aplikasi}/akses-pengguna`)}
+              className="text-gray-700 dark:text-gray-300"
+            >
+              Akses Pengguna
             </DropdownItem>
             <DropdownItem
               key="delete"

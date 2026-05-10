@@ -171,6 +171,71 @@ export interface AddAplikasiOrganisasiRequest {
   ket?: string | null;
 }
 
+// Default-role per aplikasi (Pilar 6 — peran identitas)
+export interface AplikasiDefaultRole {
+  id_peran: number;
+  nm_peran: string;
+  has_default: boolean;
+}
+
+// Akses pengguna per aplikasi (read-only listing)
+export type AksesVia = "identitas" | "fungsional" | "universal";
+
+export interface AksesPenggunaPeranSummary {
+  id_peran: number;
+  nm_peran: string;
+  a_peran_identitas: boolean;
+  a_universal: boolean;
+  akses_via: AksesVia;
+  jumlah_user: number;
+}
+
+export interface AksesPenggunaItem {
+  id_role_pengguna: string;
+  id_pengguna: string;
+  nm_pengguna: string;
+  username: string;
+  email: string | null;
+  id_peran: number;
+  nm_peran: string;
+  a_peran_identitas: boolean;
+  a_universal: boolean;
+  akses_via: AksesVia;
+  id_organisasi: string | null;
+  nm_organisasi: string | null;
+  sk_penugasan: string | null;
+  tgl_sk_penugasan: string | null;
+  approval_peran: number | null;
+  last_active: string | null;
+  tgl_create: string | null;
+}
+
+export interface AksesPenggunaResult {
+  app: { id_aplikasi: string; nm_aplikasi: string; app_slug: string | null };
+  summary: {
+    total_user: number;
+    total_identitas: number;
+    total_fungsional: number;
+    total_universal: number;
+    per_peran: AksesPenggunaPeranSummary[];
+  };
+  pengguna: {
+    data: AksesPenggunaItem[];
+    total: number;
+    page: number;
+    limit: number;
+    total_pages: number;
+  };
+}
+
+export interface AksesPenggunaParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  id_peran?: number;
+  akses_via?: AksesVia;
+}
+
 // API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
@@ -284,6 +349,39 @@ export const aplikasiService = {
 
   async removeOrganisasi(id: string, orgId: string): Promise<void> {
     await authClient.delete(`/manakses/aplikasi/${id}/organisasi/${orgId}`);
+  },
+
+  /**
+   * Default-role per aplikasi (Pilar 6).
+   * Returns SEMUA peran identitas + flag has_default.
+   */
+  async getDefaultRoles(id: string): Promise<AplikasiDefaultRole[]> {
+    const response = await authClient.get<ApiResponse<AplikasiDefaultRole[]>>(
+      `/manakses/aplikasi/${id}/default-roles`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Sync default-role per aplikasi.
+   * Body: array id_peran identitas yg dicentang.
+   */
+  async syncDefaultRoles(id: string, roleIds: number[]): Promise<void> {
+    await authClient.put(`/manakses/aplikasi/${id}/default-roles`, {
+      role_ids: roleIds,
+    });
+  },
+
+  /**
+   * Read-only: list pengguna yg punya akses ke aplikasi.
+   * Sumber UNION: identitas (default-role) + fungsional (menu_role) + universal (a_universal).
+   */
+  async getAksesPengguna(id: string, params: AksesPenggunaParams = {}): Promise<AksesPenggunaResult> {
+    const response = await authClient.get<ApiResponse<AksesPenggunaResult>>(
+      `/manakses/aplikasi/${id}/akses-pengguna`,
+      { params }
+    );
+    return response.data.data;
   },
 };
 

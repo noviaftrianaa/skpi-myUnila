@@ -24,6 +24,7 @@ import {
   aplikasiService,
   type Aplikasi,
   type AplikasiDetail,
+  type AplikasiDefaultRole,
   type AplikasiMenu,
   type AplikasiOrganisasi,
   type CreateAplikasiRequest,
@@ -489,6 +490,13 @@ export default function AplikasiFormModal({
   const [includeChildren, setIncludeChildren] = useState(true);
   const [orgKet, setOrgKet] = useState("");
 
+  // Default-role per aplikasi (Pilar 6 — peran identitas)
+  const [defaultRoles, setDefaultRoles] = useState<AplikasiDefaultRole[]>([]);
+  const [defaultRolesLoading, setDefaultRolesLoading] = useState(false);
+  const [defaultRolesSaving, setDefaultRolesSaving] = useState(false);
+  const [defaultRolesDirty, setDefaultRolesDirty] = useState(false);
+  const [defaultRolesMessage, setDefaultRolesMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const [formData, setFormData] = useState<CreateAplikasiRequest & { status?: 'Aktif' | 'Tidak Aktif' }>({
     nm_aplikasi: "",
     ket_aplikasi: "",
@@ -649,6 +657,56 @@ export default function AplikasiFormModal({
     };
     loadOrgWhitelist();
   }, [isOpen, aplikasi?.id_aplikasi]);
+
+  // Load default-role checklist (peran identitas)
+  useEffect(() => {
+    const load = async () => {
+      if (!isOpen || !aplikasi?.id_aplikasi) return;
+      setDefaultRolesLoading(true);
+      setDefaultRolesMessage(null);
+      try {
+        const data = await aplikasiService.getDefaultRoles(aplikasi.id_aplikasi);
+        setDefaultRoles(data || []);
+        setDefaultRolesDirty(false);
+      } catch (error) {
+        console.error("Error loading default roles:", error);
+        setDefaultRoles([]);
+      } finally {
+        setDefaultRolesLoading(false);
+      }
+    };
+    load();
+  }, [isOpen, aplikasi?.id_aplikasi]);
+
+  const handleToggleDefaultRole = (idPeran: number) => {
+    setDefaultRoles((prev) =>
+      prev.map((r) =>
+        r.id_peran === idPeran ? { ...r, has_default: !r.has_default } : r
+      )
+    );
+    setDefaultRolesDirty(true);
+    setDefaultRolesMessage(null);
+  };
+
+  const handleSaveDefaultRoles = async () => {
+    if (!aplikasi?.id_aplikasi) return;
+    setDefaultRolesSaving(true);
+    setDefaultRolesMessage(null);
+    try {
+      const checked = defaultRoles.filter((r) => r.has_default).map((r) => r.id_peran);
+      await aplikasiService.syncDefaultRoles(aplikasi.id_aplikasi, checked);
+      setDefaultRolesDirty(false);
+      setDefaultRolesMessage({ type: "success", text: "Akses default berhasil disimpan." });
+    } catch (error: any) {
+      console.error("Error saving default roles:", error);
+      setDefaultRolesMessage({
+        type: "error",
+        text: error?.response?.data?.message || "Gagal menyimpan akses default.",
+      });
+    } finally {
+      setDefaultRolesSaving(false);
+    }
+  };
 
   // Search orgs for whitelist add
   useEffect(() => {
@@ -1678,6 +1736,140 @@ export default function AplikasiFormModal({
                         </p>
                       </div>
                     )}
+                  </div>
+                </Tab>
+              )}
+
+              {/* Akses Default Tab — Pilar 6 (peran identitas) */}
+              {isEditMode && (
+                <Tab key="default-access" title="Akses Default">
+                  <div className="space-y-5">
+                    <div className="rounded-xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-indigo-50/50 p-4 dark:border-blue-800/40 dark:from-blue-900/15 dark:to-indigo-900/10">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                          <FiShield size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Akses Default Peran Identitas
+                          </h4>
+                          <p className="mt-1 text-xs leading-relaxed text-gray-600 dark:text-slate-400">
+                            Centang peran identitas yang otomatis mendapat akses ke aplikasi ini tanpa perlu mapping menu satu per satu.
+                            Cocok untuk aplikasi yang ditujukan langsung ke seluruh Mahasiswa, Dosen, atau Tenaga Kependidikan.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {defaultRolesLoading ? (
+                      <div className="flex justify-center py-10">
+                        <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500" />
+                      </div>
+                    ) : defaultRoles.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-6 text-center dark:border-amber-700/50 dark:bg-amber-900/10">
+                        <p className="text-sm text-amber-800 dark:text-amber-300">
+                          Belum ada peran identitas yang terdeklarasi. Pastikan kolom <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900/40">peran.a_peran_identitas</code> sudah di-set untuk peran Mahasiswa/Dosen/Tendik.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        {defaultRoles.map((r) => {
+                          const palette =
+                            r.id_peran === 39
+                              ? { ring: "ring-blue-500", bg: "bg-blue-50", bgDark: "dark:bg-blue-900/20", text: "text-blue-700", textDark: "dark:text-blue-300", icon: "heroicons:academic-cap", iconBg: "bg-blue-500" }
+                              : r.id_peran === 46
+                              ? { ring: "ring-emerald-500", bg: "bg-emerald-50", bgDark: "dark:bg-emerald-900/20", text: "text-emerald-700", textDark: "dark:text-emerald-300", icon: "heroicons:user-group", iconBg: "bg-emerald-500" }
+                              : { ring: "ring-purple-500", bg: "bg-purple-50", bgDark: "dark:bg-purple-900/20", text: "text-purple-700", textDark: "dark:text-purple-300", icon: "heroicons:identification", iconBg: "bg-purple-500" };
+                          return (
+                            <button
+                              key={r.id_peran}
+                              type="button"
+                              onClick={() => handleToggleDefaultRole(r.id_peran)}
+                              className={`group relative flex w-full flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                                r.has_default
+                                  ? `border-transparent ${palette.bg} ${palette.bgDark} ring-2 ${palette.ring} shadow-sm`
+                                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-slate-600"
+                              }`}
+                            >
+                              <div className="flex w-full items-center justify-between">
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-white ${r.has_default ? palette.iconBg : "bg-gray-300 dark:bg-slate-600"}`}>
+                                  <Icon icon={palette.icon} className="h-5 w-5" />
+                                </div>
+                                <div
+                                  className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
+                                    r.has_default
+                                      ? `${palette.iconBg} border-transparent`
+                                      : "border-gray-300 dark:border-slate-600"
+                                  }`}
+                                >
+                                  {r.has_default && (
+                                    <svg viewBox="0 0 20 20" fill="white" className="h-3 w-3">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  className={`text-sm font-semibold ${
+                                    r.has_default ? `${palette.text} ${palette.textDark}` : "text-gray-900 dark:text-white"
+                                  }`}
+                                >
+                                  {r.nm_peran}
+                                </div>
+                                <div className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                  {r.has_default ? "Akses default aktif" : "Klik untuk mengaktifkan"}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {defaultRolesMessage && (
+                      <div
+                        className={`rounded-lg border px-3 py-2 text-sm ${
+                          defaultRolesMessage.type === "success"
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700/50 dark:bg-emerald-900/20 dark:text-emerald-300"
+                            : "border-red-300 bg-red-50 text-red-800 dark:border-red-700/50 dark:bg-red-900/20 dark:text-red-300"
+                        }`}
+                      >
+                        {defaultRolesMessage.text}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-3 dark:bg-slate-800/40">
+                      <div className="text-xs text-gray-600 dark:text-slate-400">
+                        {defaultRolesDirty ? (
+                          <span className="font-medium text-amber-600 dark:text-amber-400">Ada perubahan belum disimpan</span>
+                        ) : (
+                          <span>Pengaturan akses default tersimpan otomatis ketika di-Simpan.</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveDefaultRoles}
+                        disabled={!defaultRolesDirty || defaultRolesSaving || defaultRolesLoading}
+                        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                      >
+                        {defaultRolesSaving ? (
+                          <>
+                            <span className="h-3 w-3 animate-spin rounded-full border-b-2 border-white" />
+                            Menyimpan...
+                          </>
+                        ) : (
+                          <>
+                            <FiShield size={14} />
+                            Simpan Akses Default
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </Tab>
               )}
