@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/myunila/api-service/apps/akademik"
 	"github.com/myunila/api-service/apps/auth"
+	mephoto "github.com/myunila/api-service/apps/me/photo"
 	"github.com/myunila/api-service/apps/dashboard"
 	"github.com/myunila/api-service/apps/dashboard/ktw_raw"
 	"github.com/myunila/api-service/apps/diklat"
@@ -274,6 +275,11 @@ func main() {
 	// MBKM module (GET-only — daftar/periode/mk_konversi/ekuiv/log_book dari pdut.mbkm.*)
 	mbkm.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ MBKM module initialized (GET-only, 6 endpoint)")
+
+	// Me/Foto module — CRUD foto user yang sedang login (GET/POST/DELETE)
+	mePhotoGroup := apiV1.Group("/me", protectedMiddlewares...)
+	mephoto.RegisterRoutes(mePhotoGroup, db)
+	log.Println("✅ Me/Foto module initialized (GET/POST/DELETE /me/foto)")
 
 	// Auto-sync /system/routes → man_akses.ws_endpoint (background).
 	// Supaya setiap rebuild, endpoint terbaru langsung ter-register untuk authorization.
