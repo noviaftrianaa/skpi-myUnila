@@ -14,6 +14,8 @@ import {
   Chip,
   Skeleton,
 } from "@heroui/react";
+import Cropper, { Area } from "react-easy-crop";
+import { getCroppedBlob } from "@/lib/utils/cropImage";
 import {
   FiArrowLeft,
   FiPhone,
@@ -24,12 +26,15 @@ import {
   FiBook,
   FiUsers,
   FiHome,
+  FiCamera,
 } from "react-icons/fi";
 import { HiIdentification } from "react-icons/hi";
 import { FaUserGraduate, FaUserTie, FaGraduationCap } from "react-icons/fa";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserContext } from "@/contexts/UserContextContext";
+import { getToken } from "@/lib/api/client";
 import {
   profileService,
   ProfileResponse,
@@ -40,6 +45,16 @@ import {
   DosenHomebase,
 } from "@/lib/services/profile/profileService";
 
+// Endpoint barrier — backend redirect ke MinIO via JWT user (cookie access_token).
+const ME_PHOTO_URL = `${
+  process.env.NEXT_PUBLIC_PUBLIC_API_URL || "http://localhost:9800/public-service/api/v1"
+}/me/photo`;
+
+// Endpoint upload/hapus foto user (Go api-service via Kong, JWT-protected).
+const API_SERVICE_URL =
+  process.env.NEXT_PUBLIC_API_SERVICE_URL || "http://localhost:9800/api-service";
+const ME_FOTO_ENDPOINT = `${API_SERVICE_URL}/v1/me/foto`;
+
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("informasi");
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -47,6 +62,135 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Foto user — fetch via authenticated XHR (Bearer header) + blob URL.
+  // Pendekatan ini bypass batasan cross-origin <img>: cookie SameSite=Lax kadang
+  // tidak terkirim dari <img> tag ke port berbeda, dan kita perlu Authorization
+  // header eksplisit. photoVersion increment setelah upload untuk re-fetch.
+  const [photoVersion, setPhotoVersion] = useState(0);
+  const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Cropper state — buka modal saat user pilih file. User bisa zoom + drag posisi.
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
+  const [cropCenter, setCropCenter] = useState({ x: 0, y: 0 });
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropPixels, setCropPixels] = useState<Area | null>(null);
+
+  const closeCropper = useCallback(() => {
+    setCropOpen(false);
+    if (cropImageUrl) URL.revokeObjectURL(cropImageUrl);
+    setCropImageUrl(null);
+    setCropCenter({ x: 0, y: 0 });
+    setCropZoom(1);
+    setCropPixels(null);
+  }, [cropImageUrl]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    let createdUrl: string | null = null;
+
+    (async () => {
+      const token = getToken("ACCESS");
+      try {
+        // credentials default 'same-origin' — JANGAN 'include' karena MinIO
+        // ACAO='*' menolak credentials. Authorization header cukup untuk
+        // /me/photo (KongAuth accept header). Pada redirect ke MinIO browser
+        // auto-strip Authorization (security spec) → bucket public-read OK.
+        const res = await fetch(`${ME_PHOTO_URL}?v=${photoVersion}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          redirect: "follow",
+        });
+        if (!res.ok) {
+          if (!cancelled) setPhotoBlobUrl(null);
+          return;
+        }
+        const blob = await res.blob();
+        if (!blob.type.startsWith("image/")) {
+          if (!cancelled) setPhotoBlobUrl(null);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+        } else {
+          createdUrl = url;
+          setPhotoBlobUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return url;
+          });
+        }
+      } catch {
+        if (!cancelled) setPhotoBlobUrl(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [user, photoVersion]);
+
+  // Step 1: user pilih file → buka cropper modal (jangan upload langsung).
+  const handleFilePick = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+
+      const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!allowed.includes(file.type)) {
+        toast.error("Format foto harus JPG, PNG, atau WebP");
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Ukuran foto maksimal 2 MB");
+        return;
+      }
+
+      setCropImageUrl(URL.createObjectURL(file));
+      setCropCenter({ x: 0, y: 0 });
+      setCropZoom(1);
+      setCropPixels(null);
+      setCropOpen(true);
+    },
+    []
+  );
+
+  // Step 2: user klik Simpan → render crop ke 800x800 → upload.
+  const handleCropConfirm = useCallback(async () => {
+    if (!cropImageUrl || !cropPixels) {
+      toast.error("Atur posisi foto dulu");
+      return;
+    }
+    const token = getToken("ACCESS");
+    setIsUploadingPhoto(true);
+    try {
+      const blob = await getCroppedBlob(cropImageUrl, cropPixels, 800, "image/jpeg", 0.9);
+      const fd = new FormData();
+      fd.append("file", blob, "profile.jpg");
+      const res = await fetch(ME_FOTO_ENDPOINT, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: fd,
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`Upload gagal (${res.status}) ${txt.slice(0, 200)}`);
+      }
+      toast.success("Foto berhasil diperbarui");
+      setPhotoVersion((v) => v + 1);
+      closeCropper();
+    } catch (err: any) {
+      console.error("upload foto err:", err);
+      toast.error(err?.message || "Gagal upload foto");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  }, [cropImageUrl, cropPixels, closeCropper]);
+
 
   // Fetch profile data
   const fetchProfile = useCallback(async () => {
@@ -366,12 +510,46 @@ export default function ProfilePage() {
                 <CardBody className="p-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="relative">
-                      <Avatar
-                        className="w-28 h-28 text-3xl bg-gradient-to-br from-myunila to-blue-700 text-white shadow-lg ring-4 ring-blue-50"
-                        name={getInitials(userData.name)}
-                      />
-                      <div className="absolute -bottom-1 -right-1 bg-green-500 w-7 h-7 rounded-full border-4 border-white"></div>
+                      {/* Avatar manual — bypass HeroUI Avatar yang kadang layer fallback di atas image. */}
+                      <div className="relative w-28 h-28 rounded-full overflow-hidden shadow-lg ring-4 ring-blue-50 bg-gradient-to-br from-myunila to-blue-700">
+                        {photoBlobUrl ? (
+                          <img
+                            src={photoBlobUrl}
+                            alt={userData.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white">
+                            {getInitials(userData.name)}
+                          </div>
+                        )}
+                      </div>
+                      {/* Tombol Ganti Foto — overlay di pojok kanan bawah */}
+                      <label
+                        htmlFor="me-photo-upload"
+                        className={`absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-myunila hover:bg-blue-700 text-white flex items-center justify-center cursor-pointer shadow-lg ring-4 ring-white transition-colors ${
+                          isUploadingPhoto ? "opacity-60 cursor-wait" : ""
+                        }`}
+                        title="Ganti foto profil"
+                      >
+                        <FiCamera className="w-4 h-4" />
+                        <input
+                          id="me-photo-upload"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={isUploadingPhoto}
+                          onChange={handleFilePick}
+                        />
+                      </label>
                     </div>
+                    {/* Action link di bawah avatar */}
+                    <label
+                      htmlFor="me-photo-upload"
+                      className="mt-3 text-xs text-myunila hover:underline cursor-pointer"
+                    >
+                      {isUploadingPhoto ? "Mengupload..." : "Ganti Foto"}
+                    </label>
                     <h2 className="mt-5 text-xl font-bold text-gray-800">
                       {userData.name}
                     </h2>
@@ -473,13 +651,19 @@ export default function ProfilePage() {
                       <>
                         <Divider className="my-5" />
                         <div className="w-full">
-                          <div className="flex items-center gap-2 mb-3">
-                            <FiUsers className="w-4 h-4 text-myunila" />
-                            <span className="text-xs font-semibold text-myunila uppercase tracking-wide">
-                              Peran Anda
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <FiUsers className="w-4 h-4 text-myunila" />
+                              <span className="text-xs font-semibold text-myunila uppercase tracking-wide">
+                                Peran Anda
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {profile.roles.length}
                             </span>
                           </div>
-                          <div className="space-y-2">
+                          {/* Scrollable bila peran banyak. max-h ~ 4-5 item terlihat, sisanya scroll. */}
+                          <div className="space-y-2 max-h-72 overflow-y-auto pr-1 -mr-1 scroll-smooth [scrollbar-width:thin] [scrollbar-color:theme(colors.gray.300)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
                             {profile.roles.map((role) => {
                               // Cek apakah peran ini sedang aktif (sesuai context navbar atas)
                               const isActive =
@@ -1471,6 +1655,94 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      {/* === Modal Crop Foto Profil — Tailwind plain === */}
+      {cropOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-myunila/40 backdrop-blur-sm"
+            onClick={() => !isUploadingPhoto && closeCropper()}
+          />
+          {/* Panel */}
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-900">Atur Foto Profil</h3>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Geser foto untuk mengatur posisi, gunakan slider untuk zoom.
+              </p>
+            </div>
+            {/* Body */}
+            <div className="px-6 py-5">
+              <div className="relative w-full h-80 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden">
+                {cropImageUrl && (
+                  <Cropper
+                    image={cropImageUrl}
+                    crop={cropCenter}
+                    zoom={cropZoom}
+                    aspect={1}
+                    cropShape="round"
+                    showGrid={false}
+                    onCropChange={setCropCenter}
+                    onZoomChange={setCropZoom}
+                    onCropComplete={(_, areaPixels) => setCropPixels(areaPixels)}
+                  />
+                )}
+              </div>
+              <div className="mt-5">
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="crop-zoom" className="text-xs font-medium text-gray-700">
+                    Zoom
+                  </label>
+                  <span className="text-xs font-mono text-gray-500">
+                    {cropZoom.toFixed(2)}×
+                  </span>
+                </div>
+                <input
+                  id="crop-zoom"
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.05}
+                  value={cropZoom}
+                  onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-myunila"
+                />
+              </div>
+            </div>
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeCropper}
+                disabled={isUploadingPhoto}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleCropConfirm}
+                disabled={isUploadingPhoto}
+                className="px-5 py-2 text-sm font-semibold text-white bg-myunila rounded-lg hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm transition-colors inline-flex items-center gap-2"
+              >
+                {isUploadingPhoto && (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
+                    <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                )}
+                {isUploadingPhoto ? "Mengupload..." : "Simpan Foto"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
