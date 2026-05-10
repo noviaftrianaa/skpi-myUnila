@@ -47,6 +47,7 @@ import * as HeroIcons from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
+import { getToken } from "@/lib/api/client";
 import { useUserContext } from "@/contexts/UserContextContext";
 import {
   profileService,
@@ -62,6 +63,12 @@ import { useRouter } from "next/navigation";
 import { MdCampaign, MdConstruction } from "react-icons/md";
 import toast, { Toaster } from "react-hot-toast";
 import type { PortalApp, PortalCategory } from "@/lib/services/userContext/userContextService";
+
+// Endpoint barrier — auth via cookie access_token. Backend redirect ke MinIO
+// berdasar id_sdm/id_pd dari JWT user (sembunyikan UUID dari frontend).
+const ME_PHOTO_URL = `${
+  process.env.NEXT_PUBLIC_PUBLIC_API_URL || "http://localhost:9800/public-service/api/v1"
+}/me/photo`;
 
 // Extended app type for local state (with favorites)
 interface AppWithFavorite extends PortalApp {
@@ -162,6 +169,64 @@ export default function PortalPage() {
   // Protect this route - require authentication
   const { isAuthenticated, isLoading: authLoading, user: authUser } = useRequireAuth();
   const { logout } = useAuth();
+
+  // Foto sidebar — strategi 2-tahap:
+  //   1) Set src langsung ke /me/photo (cookie SameSite=Lax sent, browser handle
+  //      redirect + image cache natively → render cepat).
+  //   2) Kalau onError (cookie gagal / browser block), fallback ke fetch+blob
+  //      via Authorization header eksplisit.
+  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const [photoPreviewOpen, setPhotoPreviewOpen] = useState(false);
+
+  // Esc untuk tutup preview foto
+  useEffect(() => {
+    if (!photoPreviewOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPhotoPreviewOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [photoPreviewOpen]);
+
+  useEffect(() => {
+    if (!authUser) return;
+    // tahap 1: direct URL (cepat — single request, browser cache)
+    setPhotoSrc(`${ME_PHOTO_URL}?v=${Date.now()}`);
+    setPhotoFailed(false);
+  }, [authUser?.id]);
+
+  // tahap 2: fallback fetch-blob kalau direct img gagal (auth via cookie tidak diterima)
+  useEffect(() => {
+    if (!authUser || !photoFailed) return;
+    let cancelled = false;
+    let createdUrl: string | null = null;
+    (async () => {
+      const token = getToken("ACCESS");
+      try {
+        const res = await fetch(`${ME_PHOTO_URL}?v=${Date.now()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          redirect: "follow",
+        });
+        if (!res.ok) return;
+        const blob = await res.blob();
+        if (!blob.type.startsWith("image/")) return;
+        const url = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+        } else {
+          createdUrl = url;
+          setPhotoSrc(url);
+        }
+      } catch {
+        /* silent fallback ke initials */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [authUser?.id, photoFailed]);
   const {
     roles,
     activeContext,
@@ -804,7 +869,8 @@ export default function PortalPage() {
   };
 
   // Use authenticated user data
-  const user = authUser || {
+  const user: import("@/lib/types/authTypes").User = authUser || {
+    id: "",
     name: "Guest User",
     email: "",
     role: "Guest",
@@ -1533,12 +1599,30 @@ export default function PortalPage() {
               <Card className="bg-gradient-to-br from-myunila to-blue-700 text-white shadow-lg">
                 <CardBody className="p-6">
                   <div className="flex items-start gap-4">
-                    <Avatar
-                      size="lg"
-                      className="w-16 h-16 border-2 border-white"
-                      name={getInitials(user.name)}
-                      showFallback
-                    />
+                    {/* Avatar manual — bypass HeroUI Avatar fallback overlay. */}
+                    <button
+                      type="button"
+                      onClick={() => photoSrc && !photoFailed && setPhotoPreviewOpen(true)}
+                      className={`relative w-16 h-16 rounded-full overflow-hidden border-2 border-white bg-white/20 shrink-0 transition-transform ${
+                        photoSrc && !photoFailed
+                          ? "hover:scale-105 cursor-zoom-in"
+                          : "cursor-default"
+                      }`}
+                      aria-label={photoSrc && !photoFailed ? "Lihat foto profil" : "Foto profil"}
+                    >
+                      {photoSrc && !photoFailed ? (
+                        <img
+                          src={photoSrc}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                          onError={() => setPhotoFailed(true)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-base font-bold text-white">
+                          {getInitials(user.name)}
+                        </div>
+                      )}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm mb-2">{user.name}</h3>
                       {/* Organization Info — selaras dengan /portal/profile (homebase asli) */}
@@ -2277,6 +2361,43 @@ export default function PortalPage() {
           )}
         </ModalContent>
       </Modal>
+
+      {/* === Modal Preview Foto Profil — Tailwind plain, responsive === */}
+      {photoPreviewOpen && photoSrc && !photoFailed && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pratinjau foto profil"
+          onClick={() => setPhotoPreviewOpen(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+          {/* Tombol close kanan-atas */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPhotoPreviewOpen(false);
+            }}
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            aria-label="Tutup pratinjau"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M6 18L18 6" />
+            </svg>
+          </button>
+
+          {/* Image — click image jangan close */}
+          <img
+            src={photoSrc}
+            alt={user.name}
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain rounded-2xl shadow-2xl ring-1 ring-white/10"
+          />
+        </div>
+      )}
     </div>
   );
 }
