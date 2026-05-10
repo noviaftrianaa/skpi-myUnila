@@ -65,13 +65,19 @@ func NewClient(cfg config.MinIOConfig) (*Client, error) {
 //
 //	photos/                     ← public-read (all entity types)
 //	  sdm/{id_sdm}.jpg          ← dosen profile photo
-//	  pd/{id_pd}.jpg            ← mahasiswa profile photo (future)
+//	  pd/{id_pd}.jpg            ← mahasiswa profile photo
+//	  tendik/{id}.jpg           ← tendik profile photo
 //
 //	documents/                  ← private (all entity types, access via JWT endpoint)
 //	  sdm/{id_sdm}/{jns}/{id}   ← dosen documents
 //	  pd/{id_pd}/{jns}/{id}     ← mahasiswa documents (future)
 //
 // Policy: photos/* → public-read | documents/* → private (no statement = deny)
+//
+// Note on privacy: Foto mahasiswa/tendik di-protect di lapisan endpoint backend
+// (mis. /api/v1/me/photo dengan kong.auth middleware). Frontend portal memanggil
+// endpoint barrier, bukan URL MinIO langsung — UUID id_pd/id_tendik tidak ke-expose
+// di kode frontend. UUID v4 (128 bit) tidak praktis untuk brute-force enumerate.
 func (c *Client) setupBucketPolicy(ctx context.Context) error {
 	type Statement struct {
 		Effect    string            `json:"Effect"`
@@ -84,7 +90,7 @@ func (c *Client) setupBucketPolicy(ctx context.Context) error {
 		Statement []Statement `json:"Statement"`
 	}
 
-	// Only photos/* is public-read — covers sdm, pd, and any future entity type.
+	// Only photos/* is public-read — covers sdm, pd, tendik, and any future entity type.
 	// documents/* has no Allow statement → denied to anonymous (private by default).
 	policy := Policy{
 		Version: "2012-10-17",
