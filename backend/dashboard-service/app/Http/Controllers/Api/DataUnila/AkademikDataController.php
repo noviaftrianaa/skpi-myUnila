@@ -30,6 +30,24 @@ class AkademikDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
+    public function prodiStats(): JsonResponse
+    {
+        try { return $this->success($this->service->getProdiStats(), 'Stats prodi'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function akreditasiStats(): JsonResponse
+    {
+        try { return $this->success($this->service->getAkreditasiStats(), 'Stats akreditasi'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function matkulStats(): JsonResponse
+    {
+        try { return $this->success($this->service->getMatkulStats(), 'Stats matkul'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
     private function p(Request $r): array
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),

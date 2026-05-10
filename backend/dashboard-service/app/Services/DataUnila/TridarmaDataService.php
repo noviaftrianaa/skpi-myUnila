@@ -48,4 +48,10 @@ class TridarmaDataService
         $key = $this->cache->buildKey('data-unila', 'prestasi-list', $params);
         return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getPrestasiList($params));
     }
+
+    public function getPrestasiStats(): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'prestasi-stats', []);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPrestasiStats());
+    }
 }

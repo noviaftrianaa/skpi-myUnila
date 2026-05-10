@@ -66,6 +66,15 @@ class TridarmaDataController extends Controller
         }
     }
 
+    public function prestasiStats(): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getPrestasiStats(), 'Stats prestasi');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     private function extractParams(Request $request): array
     {
         return [

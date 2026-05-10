@@ -87,13 +87,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/publikasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasi']);
             Route::get('/publikasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasiStats']);
             Route::get('/prestasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasi']);
+            Route::get('/prestasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasiStats']);
         });
 
         // Akademik (Prodi, Akreditasi, Matkul)
         Route::prefix('akademik')->group(function () {
             Route::get('/prodi', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'prodi']);
+            Route::get('/prodi/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'prodiStats']);
             Route::get('/akreditasi', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'akreditasi']);
+            Route::get('/akreditasi/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'akreditasiStats']);
             Route::get('/matkul', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkul']);
+            Route::get('/matkul/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkulStats']);
         });
 
         // Kerjasama
@@ -106,6 +110,13 @@ Route::prefix('v1')->group(function () {
         Route::prefix('tracer')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'index']);
             Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'stats']);
+        });
+
+        // KKN (Kuliah Kerja Nyata)
+        Route::prefix('kkn')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\KknDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\KknDataController::class, 'stats']);
+            Route::get('/periode', [\App\Http\Controllers\Api\DataUnila\KknDataController::class, 'periode']);
         });
 
         // Keuangan (UKT + SPP)

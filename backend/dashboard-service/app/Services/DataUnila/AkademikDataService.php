@@ -31,4 +31,19 @@ class AkademikDataService
         $key = $this->cache->buildKey('data-unila', 'matkul-list', $params);
         return $this->cache->remember($key, 15, fn() => $this->repository->getMatkulList($params));
     }
+
+    public function getProdiStats(): array
+    {
+        return $this->cache->remember('data-unila:prodi-stats', 60, fn() => $this->repository->getProdiStats());
+    }
+
+    public function getAkreditasiStats(): array
+    {
+        return $this->cache->remember('data-unila:akreditasi-stats', 60, fn() => $this->repository->getAkreditasiStats());
+    }
+
+    public function getMatkulStats(): array
+    {
+        return $this->cache->remember('data-unila:matkul-stats', 60, fn() => $this->repository->getMatkulStats());
+    }
 }

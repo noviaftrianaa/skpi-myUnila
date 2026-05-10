@@ -143,7 +143,7 @@ class TridarmaDataRepository extends BaseDataRepository
         return (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
-                SUM(CASE WHEN quartile IS NOT NULL AND quartile != '' THEN 1 ELSE 0 END) as ber_quartile,
+                SUM(CASE WHEN quartile IS NOT NULL THEN 1 ELSE 0 END) as ber_quartile,
                 SUM(CASE WHEN doi IS NOT NULL AND doi != '' THEN 1 ELSE 0 END) as ber_doi,
                 COUNT(DISTINCT YEAR(tgl_terbit)) as rentang_tahun
             FROM pdrd.publikasi WHERE soft_delete = 0
@@ -185,5 +185,48 @@ class TridarmaDataRepository extends BaseDataRepository
             ['nama', 'thn_prestasi', 'tingkat', 'tahun'],
             'thn_prestasi', 'DESC'
         );
+    }
+
+    /**
+     * Statistik Prestasi: total + per tingkat (Internasional/Nasional/Regional/Lokal) + tahun ini.
+     */
+    public function getPrestasiStats(): array
+    {
+        $row = $this->select("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN tp.nm_tkt_prestasi LIKE '%Internasional%' THEN 1 ELSE 0 END) AS internasional,
+                SUM(CASE WHEN tp.nm_tkt_prestasi LIKE '%Nasional%' THEN 1 ELSE 0 END) AS nasional,
+                SUM(CASE WHEN tp.nm_tkt_prestasi LIKE '%Regional%' OR tp.nm_tkt_prestasi LIKE '%Provinsi%' THEN 1 ELSE 0 END) AS regional,
+                SUM(CASE WHEN tp.nm_tkt_prestasi LIKE '%Lokal%' OR tp.nm_tkt_prestasi LIKE '%Kabupaten%' OR tp.nm_tkt_prestasi LIKE '%Kota%' THEN 1 ELSE 0 END) AS lokal,
+                SUM(CASE WHEN pr.thn_prestasi = YEAR(GETDATE()) THEN 1 ELSE 0 END) AS tahun_ini
+            FROM pdrd.prestasi pr
+            LEFT JOIN ref.tingkat_prestasi tp ON tp.id_tkt_prestasi = pr.id_tkt_prestasi
+            WHERE pr.soft_delete = 0
+        ");
+
+        $byJenis = $this->select("
+            SELECT
+                ISNULL(jp.nm_jenis_prestasi, 'Tidak Tercatat') AS jenis,
+                COUNT(*) AS jumlah
+            FROM pdrd.prestasi pr
+            LEFT JOIN ref.jenis_prestasi jp ON jp.id_jenis_prestasi = pr.id_jenis_prestasi
+            WHERE pr.soft_delete = 0
+            GROUP BY jp.nm_jenis_prestasi
+            ORDER BY jumlah DESC
+        ");
+
+        $byTahun = $this->select("
+            SELECT TOP 5 thn_prestasi AS tahun, COUNT(*) AS jumlah
+            FROM pdrd.prestasi
+            WHERE soft_delete = 0 AND thn_prestasi IS NOT NULL
+            GROUP BY thn_prestasi
+            ORDER BY thn_prestasi DESC
+        ");
+
+        $stats = (array) ($row[0] ?? []);
+        $stats['by_jenis'] = $byJenis;
+        $stats['by_tahun'] = $byTahun;
+        return $stats;
     }
 }
