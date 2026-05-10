@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { Alert, Select, SelectItem } from "@heroui/react";
 import { FiBarChart2 } from "react-icons/fi";
 import { useQuery } from "@tanstack/react-query";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { pimpinanMenuConfig } from "../config/menuConfig";
 import { executiveRasioService } from "@/lib/services/executive";
 import { RasioStatsCard } from "@/shared/components/pimpinan/rasio/RasioStatsCard";
 import { RasioChart } from "@/shared/components/pimpinan/rasio/RasioChart";
@@ -13,11 +16,14 @@ import { RasioPercentageChart } from "@/shared/components/pimpinan/rasio/RasioPe
 import { RasioDataModal } from "@/shared/components/pimpinan/rasio/RasioDataModal";
 import { useUserContext } from "@/contexts/UserContextContext";
 
+const APP_KEY = "dashboard-pimpinan";
+
 // ========================================
 // Main Page Component
 // ========================================
 
 export default function RasioPage() {
+  useRequireAuth();
   const { activeContext } = useUserContext();
   const [selectedTahunAjaran, setSelectedTahunAjaran] = useState<string>("");
   const [selectedFakultas, setSelectedFakultas] = useState<string>("");
@@ -306,24 +312,26 @@ export default function RasioPage() {
     prodiList.find((p) => p.id === selectedProdi)?.nama_prodi || "";
 
   return (
-    <>
-      <div className="space-y-6">
+    <DashboardLayoutWithDynamicMenu
+      appName="Dashboard Pimpinan"
+      appIcon={<FiBarChart2 className="w-6 h-6" />}
+      appKey={APP_KEY}
+      fallbackMenus={pimpinanMenuConfig}
+    >
+      <div className="p-6 space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Header */}
+          {/* Header — konsisten dgn dashboard pimpinan lainnya */}
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <FiBarChart2 className="w-8 h-8 text-myunila" />
-              <h1 className="text-3xl font-bold text-gray-800">
-                Rasio Dosen-Mahasiswa
-              </h1>
-            </div>
-            <p className="text-gray-600 ml-11">
-              Analisis rasio dosen terhadap mahasiswa per fakultas dan program
-              studi
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <FiBarChart2 className="w-8 h-8 text-blue-600" />
+              Dashboard Rasio Dosen-Mahasiswa
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Analisis rasio dosen terhadap mahasiswa per fakultas dan program studi
             </p>
           </div>
 
@@ -493,6 +501,6 @@ export default function RasioPage() {
         selectedProdi={selectedProdi}
         selectedProdiName={selectedProdiName}
       />
-    </>
+    </DashboardLayoutWithDynamicMenu>
   );
 }

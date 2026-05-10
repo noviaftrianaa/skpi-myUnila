@@ -80,8 +80,8 @@ export default function DashboardKerjasamaPage() {
 
                 {data && (
                     <>
-                        {/* Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                        {/* Stats — 4 metric konsisten dengan dashboard lain */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <StatCard
                                 title="Total Mitra"
                                 value={data.stats.totalMitra.total}
@@ -95,6 +95,30 @@ export default function DashboardKerjasamaPage() {
                                 icon={<FiFileText className="w-6 h-6 text-white" />}
                                 color="green"
                                 trend={{ value: data.stats.mouAktif.trend ?? 0, label: "YoY" }}
+                            />
+                            <StatCard
+                                title="Mitra Internasional"
+                                value={(() => {
+                                    const intl = (data.mitraByScope || []).find((m) =>
+                                        /internasional/i.test(m.name || "")
+                                    );
+                                    return intl?.value ?? 0;
+                                })()}
+                                subtitle="Cakupan global"
+                                icon={<FiBriefcase className="w-6 h-6 text-white" />}
+                                color="cyan"
+                            />
+                            <StatCard
+                                title="DUDI / Industri"
+                                value={(() => {
+                                    const dudi = (data.mitraByType || []).find((m) =>
+                                        /dudi|industri|swasta/i.test(m.name || "")
+                                    );
+                                    return dudi?.value ?? 0;
+                                })()}
+                                subtitle="Mitra industri"
+                                icon={<FiBriefcase className="w-6 h-6 text-white" />}
+                                color="purple"
                             />
                         </div>
 

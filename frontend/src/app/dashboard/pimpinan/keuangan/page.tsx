@@ -107,8 +107,8 @@ export default function DashboardKeuanganPage() {
 
         {data && (
           <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            {/* Stats — 4 metric konsisten dengan dashboard lain */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Total Pendapatan"
                 value={formatCompact(data.stats.pendapatan.total as number)}
@@ -122,6 +122,20 @@ export default function DashboardKeuanganPage() {
                 icon={<FiCreditCard className="w-6 h-6 text-white" />}
                 color="blue"
                 trend={{ value: data.stats.spp.trend ?? 0, label: "YoY" }}
+              />
+              <StatCard
+                title="Sumber Pendapatan"
+                value={data.komposisiPendapatan?.length ?? 0}
+                subtitle="Jenis pendapatan"
+                icon={<FiPieChart className="w-6 h-6 text-white" />}
+                color="indigo"
+              />
+              <StatCard
+                title="Tunggakan Tertinggi"
+                value={formatCompact(Number(data.tunggakanFakultas?.[0]?.value ?? 0))}
+                subtitle={data.tunggakanFakultas?.[0]?.name ?? "—"}
+                icon={<FiActivity className="w-6 h-6 text-white" />}
+                color="red"
               />
             </div>
 

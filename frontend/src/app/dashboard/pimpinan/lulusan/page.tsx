@@ -103,8 +103,8 @@ export default function DashboardLulusanPage() {
 
                 {data && (
                     <>
-                        {/* Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Stats — 4 metric konsisten dengan dashboard lain */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <StatCard
                                 title="Total Lulusan"
                                 value={data.stats.totalLulusan.total}
@@ -125,6 +125,18 @@ export default function DashboardLulusanPage() {
                                 icon={<FiBook className="w-6 h-6 text-white" />}
                                 color="purple"
                                 trend={{ value: data.stats.rataIPK.trend ?? 0, label: "YoY" }}
+                            />
+                            <StatCard
+                                title="Bekerja Sesuai Bidang"
+                                value={(() => {
+                                    const sesuai = (data.kesesuaianBidang || []).find((k) =>
+                                        /sesuai|sangat sesuai/i.test(k.name || "")
+                                    );
+                                    return sesuai?.value ?? 0;
+                                })()}
+                                subtitle="Tracer Study"
+                                icon={<FiBriefcase className="w-6 h-6 text-white" />}
+                                color="cyan"
                             />
                         </div>
 

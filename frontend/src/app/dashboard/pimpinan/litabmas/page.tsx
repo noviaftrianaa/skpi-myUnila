@@ -10,6 +10,8 @@ import {
   FiUsers,
   FiTarget,
   FiLayers,
+  FiDollarSign,
+  FiAward,
 } from "react-icons/fi";
 import { pimpinanMenuConfig } from "../config/menuConfig";
 import {
@@ -96,8 +98,8 @@ export default function DashboardLitabmasPage() {
 
         {data && (
           <>
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            {/* Stats — 4 metric konsisten dengan dashboard lain */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Total Penelitian"
                 value={data.stats.penelitian.total}
@@ -111,6 +113,20 @@ export default function DashboardLitabmasPage() {
                 icon={<FiUsers className="w-6 h-6 text-white" />}
                 color="cyan"
                 trend={{ value: data.stats.pengabdian.trend ?? 0, label: "YoY" }}
+              />
+              <StatCard
+                title="Sumber Dana"
+                value={data.sumberDana?.length ?? 0}
+                subtitle="Skema pendanaan aktif"
+                icon={<FiDollarSign className="w-6 h-6 text-white" />}
+                color="green"
+              />
+              <StatCard
+                title="Top Fakultas"
+                value={data.sebaranFakultas?.[0]?.value ?? 0}
+                subtitle={data.sebaranFakultas?.[0]?.name ?? "—"}
+                icon={<FiAward className="w-6 h-6 text-white" />}
+                color="purple"
               />
             </div>
 

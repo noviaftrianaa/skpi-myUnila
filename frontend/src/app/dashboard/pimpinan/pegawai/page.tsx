@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
@@ -22,7 +22,7 @@ import {
   DashboardSkeleton,
   ErrorAlert,
 } from "../components";
-import { useDashboardData } from "../hooks";
+import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { PegawaiData } from "../types";
 
@@ -31,10 +31,24 @@ const APP_KEY = "dashboard-pimpinan";
 export default function DashboardPegawaiPage() {
   useRequireAuth();
 
+  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
+  const { semester, activeSemesters } = useDashboardReference();
+
+  useEffect(() => {
+    if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
+      setSelectedSemesters(new Set(activeSemesters));
+    }
+  }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<PegawaiData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.PEGAWAI,
-    {}
+    { semester: semesterParam }
   );
+
+  const handleReset = () => {
+    setSelectedSemesters(new Set(activeSemesters));
+  };
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -55,13 +69,23 @@ export default function DashboardPegawaiPage() {
           </p>
         </div>
 
+        {/* Filter — konsisten dgn dashboard lain */}
+        <FilterPanel
+          semester={semester}
+          selectedSemesters={selectedSemesters}
+          onSemesterChange={setSelectedSemesters}
+          showFakultas={false}
+          showProdi={false}
+          onReset={handleReset}
+        />
+
         {loading && <DashboardSkeleton />}
         {error && <ErrorAlert message={error} onRetry={refetch} />}
 
         {data && (
           <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Stats — 4 metric konsisten dengan dashboard lain */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Total Tendik"
                 value={data.stats.total.total}
@@ -82,6 +106,13 @@ export default function DashboardPegawaiPage() {
                 icon={<FiBriefcase className="w-6 h-6 text-white" />}
                 color="purple"
                 trend={undefined}
+              />
+              <StatCard
+                title="Unit Kerja"
+                value={data.sebaranUnitKerja?.length ?? 0}
+                subtitle="Sebaran tendik"
+                icon={<FiAward className="w-6 h-6 text-white" />}
+                color="cyan"
               />
             </div>
 

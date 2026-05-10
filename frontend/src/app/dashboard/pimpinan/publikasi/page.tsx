@@ -88,14 +88,43 @@ export default function DashboardPublikasiPage() {
 
         {data && (
           <>
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+            {/* Stats — 4 metric konsisten dengan dashboard lain */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
                 title="Total Publikasi"
                 value={data.stats.total.total}
                 icon={<FiBook className="w-6 h-6 text-white" />}
                 color="indigo"
                 trend={{ value: data.stats.total.trend ?? 0, label: "YoY" }}
+              />
+              <StatCard
+                title="Top Penulis"
+                value={data.topAuthors?.[0]?.value ?? 0}
+                subtitle={data.topAuthors?.[0]?.name ?? "—"}
+                icon={<FiAward className="w-6 h-6 text-white" />}
+                color="green"
+              />
+              <StatCard
+                title="Fakultas Aktif"
+                value={data.perFakultas?.length ?? 0}
+                subtitle="Memiliki publikasi"
+                icon={<FiGlobe className="w-6 h-6 text-white" />}
+                color="cyan"
+              />
+              <StatCard
+                title="Pertumbuhan"
+                value={(() => {
+                  const t = data.trendPublikasi || [];
+                  if (t.length < 2) return "—";
+                  const last = Number(t[t.length - 1]?.value || 0);
+                  const prev = Number(t[t.length - 2]?.value || 0);
+                  if (!prev) return "—";
+                  const pct = Math.round(((last - prev) / prev) * 100);
+                  return `${pct > 0 ? "+" : ""}${pct}%`;
+                })()}
+                subtitle="Year-over-Year"
+                icon={<FiTrendingUp className="w-6 h-6 text-white" />}
+                color="purple"
               />
             </div>
 
