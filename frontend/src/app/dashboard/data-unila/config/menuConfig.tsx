@@ -1,5 +1,5 @@
 import {
-  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp,
+  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp, FiMapPin,
 } from "react-icons/fi";
 import { MdSchool, MdScience } from "react-icons/md";
 
@@ -46,6 +46,11 @@ export const dataUnilaMenuConfig = [
       { title: "Akreditasi", href: "/dashboard/data-unila/akademik/akreditasi" },
       { title: "Mata Kuliah", href: "/dashboard/data-unila/akademik/matkul" },
     ],
+  },
+  {
+    title: "Data KKN",
+    href: "/dashboard/data-unila/kkn",
+    icon: <FiMapPin className="w-4 h-4" />,
   },
   {
     title: "Data Kerjasama",

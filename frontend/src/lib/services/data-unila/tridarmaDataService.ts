@@ -19,6 +19,12 @@ export interface PrestasiItem {
   penyelenggara: string; tingkat: string; jenis: string;
 }
 
+export interface PrestasiStats {
+  total: number; internasional: number; nasional: number; regional: number; lokal: number; tahun_ini: number;
+  by_jenis: Array<{ jenis: string; jumlah: number }>;
+  by_tahun: Array<{ tahun: number; jumlah: number }>;
+}
+
 export const tridarmaDataService = {
   async getLitabmas(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/litabmas', { params });
@@ -38,6 +44,10 @@ export const tridarmaDataService = {
   },
   async getPrestasi(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/prestasi', { params });
+    return r.data.data;
+  },
+  async getPrestasiStats(): Promise<PrestasiStats> {
+    const r = await dashboardClient.get('/data/tridarma/prestasi/stats');
     return r.data.data;
   },
 };
