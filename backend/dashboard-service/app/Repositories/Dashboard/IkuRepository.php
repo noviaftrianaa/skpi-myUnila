@@ -1363,12 +1363,24 @@ class IkuRepository extends BaseRepository
     // =========================================
 
     /**
-     * Luaran condition: sms_kerjasama has non-empty output fields
+     * Luaran condition: sms_kerjasama dianggap punya luaran jika minimal ada salah satu:
+     *  1. Field output text terisi (hsl_prod_brg / hsl_prod_jasa / prestasi_penghargaan)
+     *  2. Nilai ekonomi terdata (besaran_kerjasama / omzet_barang / omzet_jasa > 0)
+     *  3. Bentuk kegiatan kerjasama tercatat (id_bntk_giat_kerjasama IS NOT NULL)
+     *
+     * Catatan: data luaran detail (poin 1-2) sering belum diisi PIC kerjasama,
+     * jadi poin 3 sebagai fallback supaya semua aktivitas kerjasama terhitung
+     * sebagai "output kerjasama" — sesuai dengan praktik PIC yg minimal mencatat
+     * bentuk kegiatannya saat MoA/MoU disetujui.
      */
     private const LUARAN_CONDITION = "
         (sk.hsl_prod_brg IS NOT NULL AND sk.hsl_prod_brg <> '')
         OR (sk.hsl_prod_jasa IS NOT NULL AND sk.hsl_prod_jasa <> '')
         OR (sk.prestasi_penghargaan IS NOT NULL AND sk.prestasi_penghargaan <> '')
+        OR (sk.besaran_kerjasama IS NOT NULL AND sk.besaran_kerjasama > 0)
+        OR (sk.omzet_barang_per_bulan IS NOT NULL AND sk.omzet_barang_per_bulan > 0)
+        OR (sk.omzet_jasa_per_bulan IS NOT NULL AND sk.omzet_jasa_per_bulan > 0)
+        OR (sk.id_bntk_giat_kerjasama IS NOT NULL)
     ";
 
     /**

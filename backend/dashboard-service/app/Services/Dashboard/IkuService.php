@@ -278,40 +278,99 @@ class IkuService
     // =========================================
 
     /**
-     * Helper: Build drilldown array dari fakultas list (tanpa children/prodi).
-     * Children di-load lazy via endpoint terpisah untuk menghindari N+1 query.
+     * Helper: Build drilldown array dari fakultas list + auto-load prodi children.
+     * Per-fakultas prodi di-load via callback yg dikasih ke method ini, supaya
+     * IKU 1/2/3/5/7/9 bisa share format yg sama tapi tetap pakai query berbeda.
+     *
+     * Children di-cache per fakultas, jadi N+1 query hanya terjadi sekali per
+     * cache window (6 jam). Setelah itu drilldown click langsung dapet data.
+     *
+     * @param array $fakultasList List fakultas hasil repo->getXXXPerFakultas
+     * @param float $target Target IKU (untuk status Tercapai/Belum)
+     * @param string $ikuKey Untuk cache key prefix prodi
+     * @param array $cacheParams Parameter cache (year, semesters, etc)
+     * @param \Closure $prodiLoader fn($idFakultas) → array list prodi
      */
-    private function formatDrilldown(array $fakultasList, float $target): array
-    {
-        return array_map(function ($fak) use ($target) {
+    private function formatDrilldown(
+        array $fakultasList,
+        float $target,
+        string $ikuKey,
+        array $cacheParams,
+        ?\Closure $prodiLoader = null
+    ): array {
+        return array_map(function ($fak) use ($target, $ikuKey, $cacheParams, $prodiLoader) {
+            $children = [];
+            if ($prodiLoader && !empty($fak['id'])) {
+                $cacheKey = $this->cache->buildKey('iku', $ikuKey . '_prodi_' . $fak['id'], $cacheParams);
+                try {
+                    $children = $this->cache->remember($cacheKey, CacheService::TTL_IKU, function () use ($prodiLoader, $fak, $target) {
+                        $prodiList = $prodiLoader($fak['id']);
+                        return array_map(function ($p) use ($target) {
+                            return [
+                                'id' => $p['id'] ?? '',
+                                'name' => $p['name'] ?? '',
+                                'value' => round((float) ($p['value'] ?? 0), 1),
+                                'target' => $target,
+                                'status' => ($p['value'] ?? 0) >= $target ? 'Tercapai' : 'Belum Tercapai',
+                            ];
+                        }, $prodiList);
+                    });
+                } catch (\Exception $e) {
+                    Log::warning("Drilldown prodi {$ikuKey}/{$fak['id']} failed: " . $e->getMessage());
+                }
+            }
+
             return [
                 'id' => $fak['id'],
                 'name' => $fak['name'],
                 'value' => round($fak['value'], 1),
                 'target' => $target,
                 'status' => $fak['value'] >= $target ? 'Tercapai' : 'Belum Tercapai',
+                'children' => $children,
             ];
         }, $fakultasList);
     }
 
     private function buildDrilldownFakultas(array $semesters, array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getAEEPerFakultas($semesters, $years), $target);
+        $fakList = $this->repository->getAEEPerFakultas($semesters, $years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku1',
+            ['semesters' => implode(',', $semesters), 'years' => implode(',', $years)],
+            fn($idFak) => $this->repository->getAEEPerProdi($semesters, $years, $idFak)
+        );
     }
 
     private function buildDrilldownFakultasIKU2(array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getIKU2PerFakultas($years), $target);
+        $fakList = $this->repository->getIKU2PerFakultas($years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku2', ['years' => implode(',', $years)],
+            fn($idFak) => $this->repository->getIKU2PerProdi($years, $idFak)
+        );
     }
 
     private function buildDrilldownFakultasIKU3(array $semesters, array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getIKU3PerFakultas($semesters, $years), $target);
+        $fakList = $this->repository->getIKU3PerFakultas($semesters, $years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku3',
+            ['semesters' => implode(',', $semesters), 'years' => implode(',', $years)],
+            method_exists($this->repository, 'getIKU3PerProdi')
+                ? fn($idFak) => $this->repository->getIKU3PerProdi($semesters, $years, $idFak)
+                : null
+        );
     }
 
     private function buildDrilldownFakultasIKU5(array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getIKU5PerFakultas($years), $target);
+        $fakList = $this->repository->getIKU5PerFakultas($years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku5', ['years' => implode(',', $years)],
+            method_exists($this->repository, 'getIKU5PerProdi')
+                ? fn($idFak) => $this->repository->getIKU5PerProdi($years, $idFak)
+                : null
+        );
     }
 
     // =========================================
@@ -350,7 +409,13 @@ class IkuService
 
     private function buildDrilldownFakultasIKU9(array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getIKU9PerFakultas($years), $target);
+        $fakList = $this->repository->getIKU9PerFakultas($years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku9', ['years' => implode(',', $years)],
+            method_exists($this->repository, 'getIKU9PerProdi')
+                ? fn($idFak) => $this->repository->getIKU9PerProdi($years, $idFak)
+                : null
+        );
     }
 
     // =========================================
@@ -391,6 +456,12 @@ class IkuService
 
     private function buildDrilldownFakultasIKU7(array $years, float $target): array
     {
-        return $this->formatDrilldown($this->repository->getIKU7PerFakultas($years), $target);
+        $fakList = $this->repository->getIKU7PerFakultas($years);
+        return $this->formatDrilldown(
+            $fakList, $target, 'iku7', ['years' => implode(',', $years)],
+            method_exists($this->repository, 'getIKU7PerProdi')
+                ? fn($idFak) => $this->repository->getIKU7PerProdi($years, $idFak)
+                : null
+        );
     }
 }

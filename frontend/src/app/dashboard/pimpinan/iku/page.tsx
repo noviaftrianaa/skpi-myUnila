@@ -12,7 +12,9 @@ import {
   IKUDetailData,
   DashboardSkeleton,
   ErrorAlert,
+  StatCard,
 } from "../components";
+import { FiCheckCircle, FiAlertTriangle, FiTrendingUp, FiTarget as FiTargetIcon } from "react-icons/fi";
 import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { IkuData } from "../types";
@@ -25,19 +27,20 @@ export default function DashboardIkuPage() {
   const [selectedIKU, setSelectedIKU] = useState<IKUDetailData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Tahun IKU options: 3 tahun terakhir
+  // Tahun IKU options: tahun lalu jadi default karena tahun berjalan biasanya
+  // belum ada data lulusan (cycle akademik belum selesai). 3 tahun terakhir + tahun depan.
   const tahunOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    return Array.from({ length: 3 }, (_, i) => {
+    return Array.from({ length: 4 }, (_, i) => {
       const yr = currentYear - i;
       return { key: String(yr), label: String(yr) };
     });
   }, []);
 
-  // Default: tahun berjalan
+  // Default: tahun lalu (data IKU lebih lengkap karena akademik sudah complete)
   useEffect(() => {
-    if (!selectedTahun && tahunOptions.length > 0) {
-      setSelectedTahun(tahunOptions[0].key);
+    if (!selectedTahun && tahunOptions.length > 1) {
+      setSelectedTahun(tahunOptions[1].key);
     }
   }, [tahunOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -312,6 +315,48 @@ export default function DashboardIkuPage() {
         {/* Loading & Error */}
         {loading && <DashboardSkeleton />}
         {error && <ErrorAlert message={error} />}
+
+        {/* Summary StatCard — konsisten dgn dashboard pimpinan lain */}
+        {!loading && allIkuItems.length > 0 && (() => {
+          const total = allIkuItems.length;
+          const tercapai = allIkuItems.filter((i) => i.value >= i.target && i.value > 0).length;
+          const belumTercapai = allIkuItems.filter((i) => i.value < i.target).length;
+          const rataAchievement = total > 0
+            ? Math.round(allIkuItems.reduce((sum, i) => sum + (i.target > 0 ? Math.min((i.value / i.target) * 100, 100) : 0), 0) / total)
+            : 0;
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+              <StatCard
+                title="Total IKU Dipantau"
+                value={total}
+                icon={<FiTargetIcon className="w-6 h-6 text-white" />}
+                color="indigo"
+                subtitle={`${ikuWajibSet.size} IKU Wajib`}
+              />
+              <StatCard
+                title="Tercapai"
+                value={tercapai}
+                icon={<FiCheckCircle className="w-6 h-6 text-white" />}
+                color="green"
+                subtitle="Memenuhi atau lampaui target"
+              />
+              <StatCard
+                title="Belum Tercapai"
+                value={belumTercapai}
+                icon={<FiAlertTriangle className="w-6 h-6 text-white" />}
+                color="red"
+                subtitle="Perlu intervensi"
+              />
+              <StatCard
+                title="Rata Achievement"
+                value={`${rataAchievement}%`}
+                icon={<FiTrendingUp className="w-6 h-6 text-white" />}
+                color="purple"
+                subtitle="Rata-rata progress vs target"
+              />
+            </div>
+          );
+        })()}
 
         {/* Grid IKU 1-11 */}
         {!loading && (
