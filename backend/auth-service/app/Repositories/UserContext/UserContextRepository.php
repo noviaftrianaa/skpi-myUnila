@@ -196,18 +196,26 @@ class UserContextRepository
      */
     public function getPortalApps(?int $idPeran = null): array
     {
-        // Super roles that have access to all apps (from config)
-        $superRoles = config('auth.super_roles', [1, 107]);
+        // Emergency fallback: ENV AUTH_SUPER_ROLES (kalau di-set) treat sbg super.
+        // Default DB-driven via peran.a_universal di EXISTS clause SQL berikutnya.
+        $envSuperRoles = config('auth.super_roles', []);
+        $isEnvSuper = $idPeran && in_array($idPeran, $envSuperRoles, true);
 
-        // Build has_access based on menu_role (RBAC)
-        if ($idPeran && in_array($idPeran, $superRoles)) {
-            // Super roles have access to all apps
+        if ($isEnvSuper) {
             $hasAccessCase = "1 as has_access";
             $params = [];
         } elseif ($idPeran) {
-            // Regular roles: check if they have menu_role for this app
+            // Akses diberikan kalau:
+            // 1. peran.a_universal = 1 (super role DB-driven), ATAU
+            // 2. punya menu_role utk aplikasi ini (peran fungsional), ATAU
+            // 3. punya entry di aplikasi_default_role (peran identitas — Pilar 6)
             $hasAccessCase = "
                 CASE
+                    WHEN EXISTS (
+                        SELECT 1 FROM man_akses.peran p
+                        WHERE p.id_peran = ? AND p.a_universal = 1
+                          AND p.expired_date IS NULL
+                    ) THEN 1
                     WHEN EXISTS (
                         SELECT 1 FROM man_akses.menu_role mr
                         INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
@@ -215,12 +223,18 @@ class UserContextRepository
                           AND mr.id_peran = ?
                           AND ISNULL(mr.soft_delete, 0) = 0
                     ) THEN 1
+                    WHEN EXISTS (
+                        SELECT 1 FROM man_akses.aplikasi_default_role adr
+                        WHERE adr.id_aplikasi = a.id_aplikasi
+                          AND adr.id_peran = ?
+                          AND adr.a_aktif = 1
+                          AND ISNULL(adr.soft_delete, 0) = 0
+                    ) THEN 1
                     ELSE 0
                 END as has_access
             ";
-            $params = [$idPeran];
+            $params = [$idPeran, $idPeran, $idPeran];
         } else {
-            // No role selected - no access to any app
             $hasAccessCase = "0 as has_access";
             $params = [];
         }
@@ -473,6 +487,24 @@ class UserContextRepository
         );
 
         return $result && $result->a_universal == 1;
+    }
+
+    /**
+     * Check if role has default app-level access via aplikasi_default_role.
+     *
+     * Pilar 6: peran identitas (Mahasiswa/Dosen/Tendik) di-grant akses level
+     * aplikasi tanpa perlu mapping menu_role per menu. App-nya sendiri yang
+     * memutuskan apa yg ditampilkan berdasarkan profile_type.
+     */
+    public function hasDefaultRoleAccess(int $idPeran, string $idAplikasi): bool
+    {
+        $r = DB::selectOne(
+            "SELECT 1 AS has_it FROM man_akses.aplikasi_default_role
+             WHERE id_peran = ? AND id_aplikasi = ?
+               AND a_aktif = 1 AND ISNULL(soft_delete, 0) = 0",
+            [$idPeran, $idAplikasi]
+        );
+        return $r !== null;
     }
 
     /**

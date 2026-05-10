@@ -48,6 +48,13 @@ class UserContextService
     private const CACHE_SUPER_ROLE_PREFIX = 'super_role:';
 
     /**
+     * Default app-level access (Pilar 6 — peran identitas).
+     * Cache key: default_access:{id_peran}:{id_aplikasi}
+     */
+    private const CACHE_DEFAULT_ACCESS_PREFIX = 'default_access:';
+    private const CACHE_DEFAULT_ACCESS_TTL = 3600;
+
+    /**
      * Check apakah role tertentu adalah "super role" (bypass permission check).
      *
      * Strategi: DYNAMIC dari kolom `peran.a_universal` di SQL Server.
@@ -95,6 +102,48 @@ class UserContextService
             $this->invalidateCacheByPattern(self::CACHE_SUPER_ROLE_PREFIX . '*');
         }
         Log::info('Invalidated super role cache', ['id_peran' => $idPeran]);
+    }
+
+    /**
+     * Cek default app-level access (Pilar 6) dengan cache.
+     * Berlaku untuk peran identitas (Mahasiswa/Dosen/Tendik) yg di-grant
+     * akses level aplikasi tanpa mapping menu_role per menu.
+     */
+    private function hasDefaultRoleAccess(int $idPeran, string $idAplikasi): bool
+    {
+        $cacheKey = self::CACHE_DEFAULT_ACCESS_PREFIX . $idPeran . ':' . strtolower($idAplikasi);
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return (bool) $cached;
+        }
+        $has = $this->repository->hasDefaultRoleAccess($idPeran, $idAplikasi);
+        Cache::put($cacheKey, $has, self::CACHE_DEFAULT_ACCESS_TTL);
+        return $has;
+    }
+
+    /**
+     * Invalidate default-access cache.
+     * Dipanggil dari CRUD aplikasi_default_role saat admin centang/uncentang.
+     *
+     * @param int|null $idPeran  null = semua peran (wildcard pattern)
+     * @param string|null $idAplikasi  null = semua aplikasi (wildcard pattern)
+     */
+    public function invalidateDefaultAccessCache(?int $idPeran = null, ?string $idAplikasi = null): void
+    {
+        if ($idPeran !== null && $idAplikasi !== null) {
+            Cache::forget(self::CACHE_DEFAULT_ACCESS_PREFIX . $idPeran . ':' . strtolower($idAplikasi));
+        } else {
+            $pattern = self::CACHE_DEFAULT_ACCESS_PREFIX
+                . ($idPeran !== null ? $idPeran . ':' : '')
+                . '*';
+            $this->invalidateCacheByPattern($pattern);
+        }
+        // Portal apps cache juga harus invalid karena has_access bergantung pada default-role
+        $this->invalidateCacheByPattern(self::CACHE_PORTAL_APPS_PREFIX . '*');
+        Log::info('Invalidated default access cache', [
+            'id_peran' => $idPeran,
+            'id_aplikasi' => $idAplikasi,
+        ]);
     }
 
     /**
@@ -445,8 +494,15 @@ class UserContextService
      */
     private function checkMenuRoleAccess(int $idPeran, string $idAplikasi): bool
     {
-        // Super roles always have access
+        // Super roles always have access (DB-driven via peran.a_universal)
         if ($this->isSuperRole($idPeran)) {
+            return true;
+        }
+
+        // Pilar 6: default app-level access untuk peran identitas (Mhs/Dosen/Tendik).
+        // Kalau dicentang di aplikasi, user identitas langsung bisa masuk app
+        // tanpa perlu menu_role mapping per menu.
+        if ($this->hasDefaultRoleAccess($idPeran, $idAplikasi)) {
             return true;
         }
 
@@ -694,6 +750,14 @@ class UserContextService
             'can_approve' => (bool) ($dbPermissions->can_approve ?? false),
             'is_super_role' => false,
         ];
+
+        // Pilar 6: kalau peran identitas punya default access dan tidak ada menu_role,
+        // beri minimum can_show=true supaya user bisa masuk app. App-nya sendiri yg
+        // memutuskan apa yg ditampilkan berdasarkan profile_type (mhs/dosen/tendik).
+        if (!$permissions['can_show'] && $this->hasDefaultRoleAccess($idPeran, $idAplikasi)) {
+            $permissions['can_show'] = true;
+            $permissions['has_default_access'] = true;
+        }
 
         // Store in cache
         Cache::put($cacheKey, $permissions, self::CACHE_PERMISSIONS_TTL);

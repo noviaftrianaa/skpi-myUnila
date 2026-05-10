@@ -186,6 +186,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/{id}/organisasi', [AplikasiController::class, 'addOrganisasi'])->middleware('permission:insert,manajemen-akses');
             Route::delete('/{id}/organisasi/{orgId}', [AplikasiController::class, 'removeOrganisasi'])->middleware('permission:delete,manajemen-akses');
 
+            // Default-role per aplikasi (Pilar 6 — peran identitas Mhs/Dosen/Tendik)
+            Route::get('/{id}/default-roles', [AplikasiController::class, 'getDefaultRoles']);
+            Route::put('/{id}/default-roles', [AplikasiController::class, 'syncDefaultRoles'])->middleware('permission:update,manajemen-akses');
+
+            // Read-only listing siapa yg punya akses ke aplikasi
+            Route::get('/{id}/akses-pengguna', [AplikasiController::class, 'aksesPengguna']);
+
             Route::get('/{id}', [AplikasiController::class, 'show']);
 
             // Write operations
@@ -236,7 +243,16 @@ Route::prefix('v1')->group(function () {
         Route::prefix('role-pengguna')->group(function () {
             // Read operations
             Route::get('/', [RolePenggunaController::class, 'index']);
+            Route::get('/kandidat', [RolePenggunaController::class, 'kandidat']);
             Route::get('/by-pengguna/{idPengguna}', [RolePenggunaController::class, 'byPengguna']);
+            Route::get('/import-template', [RolePenggunaController::class, 'importTemplate']);
+
+            // Lifecycle ops (HARUS sebelum /{id} agar tidak conflict)
+            Route::post('/perpanjang-batch', [RolePenggunaController::class, 'perpanjangBatch'])->middleware('permission:update,manajemen-akses');
+            Route::post('/revoke-batch', [RolePenggunaController::class, 'revokeBatch'])->middleware('permission:delete,manajemen-akses');
+            Route::post('/import', [RolePenggunaController::class, 'importBulk'])->middleware('permission:insert,manajemen-akses');
+            Route::put('/{id}/perpanjang', [RolePenggunaController::class, 'perpanjang'])->middleware('permission:update,manajemen-akses');
+
             Route::get('/{id}', [RolePenggunaController::class, 'show']);
 
             // Write operations - require permission check
