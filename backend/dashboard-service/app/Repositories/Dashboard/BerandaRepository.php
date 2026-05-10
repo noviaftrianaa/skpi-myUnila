@@ -24,11 +24,20 @@ class BerandaRepository extends BaseRepository
 
     public function countMahasiswaCuti(): int
     {
+        // CUTI sebenarnya ada di pdrd.kuliah_mhs.id_stat_mhs='C' (status per semester),
+        // BUKAN di reg_pd.id_jns_keluar (id 4 = "Mengajukan pengunduran diri", id 3 = "Dikeluarkan").
+        // Mhs cuti = mhs dgn latest kuliah_mhs row di-set 'C' (semester berjalan).
         $sql = "
-            SELECT COUNT(rp.id_reg_pd)
-            FROM pdrd.reg_pd rp
-            WHERE rp.id_sp = ? AND rp.soft_delete = 0
-              AND CAST(rp.id_jns_keluar AS VARCHAR) = '4'
+            SELECT COUNT(DISTINCT km.id_reg_pd)
+            FROM pdrd.kuliah_mhs km
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
+                AND rp.id_sp = ? AND rp.soft_delete = 0
+            WHERE km.soft_delete = 0
+              AND km.id_stat_mhs = 'C'
+              AND km.id_smt = (
+                  SELECT MAX(km2.id_smt) FROM pdrd.kuliah_mhs km2
+                  WHERE km2.id_reg_pd = km.id_reg_pd AND km2.soft_delete = 0
+              )
         ";
 
         return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
@@ -168,34 +177,36 @@ class BerandaRepository extends BaseRepository
     public function countPenelitian(array $semesters): int
     {
         $years = $this->extractYears($semesters);
+        if (empty($years)) {
+            // Tidak ada filter tahun → hitung total all-time
+            return (int) $this->selectScalar(
+                "SELECT COUNT(*) FROM pdrd.litabmas WHERE soft_delete = 0 AND jns_litabmas = 'L'"
+            );
+        }
         $bindings = [];
         $inClause = $this->buildInClause($years, $bindings);
-
-        $sql = "
-            SELECT COUNT(*)
-            FROM pdrd.litabmas l
-            WHERE l.soft_delete = 0
-              AND l.jns_litabmas = 'L'
-              AND CAST(l.id_thn_kegiatan AS VARCHAR) IN {$inClause}
-        ";
-
-        return (int) $this->selectScalar($sql, $bindings);
+        return (int) $this->selectScalar(
+            "SELECT COUNT(*) FROM pdrd.litabmas WHERE soft_delete = 0 AND jns_litabmas = 'L'
+             AND CAST(id_thn_kegiatan AS VARCHAR) IN {$inClause}",
+            $bindings
+        );
     }
 
     public function countPublikasi(array $semesters): int
     {
         $years = $this->extractYears($semesters);
+        if (empty($years)) {
+            return (int) $this->selectScalar(
+                "SELECT COUNT(*) FROM pdrd.publikasi WHERE soft_delete = 0"
+            );
+        }
         $bindings = [];
         $inClause = $this->buildInClause($years, $bindings);
-
-        $sql = "
-            SELECT COUNT(*)
-            FROM pdrd.publikasi p
-            WHERE p.soft_delete = 0
-              AND YEAR(p.tgl_terbit) IN {$inClause}
-        ";
-
-        return (int) $this->selectScalar($sql, $bindings);
+        return (int) $this->selectScalar(
+            "SELECT COUNT(*) FROM pdrd.publikasi WHERE soft_delete = 0
+             AND YEAR(tgl_terbit) IN {$inClause}",
+            $bindings
+        );
     }
 
     // =========================================
@@ -204,11 +215,13 @@ class BerandaRepository extends BaseRepository
 
     public function countMitra(): int
     {
+        // Mitra UNIK aktif — by nama DUDI/lembaga (deduplikasi multi-MoU dgn mitra sama)
         $sql = "
-            SELECT COUNT(DISTINCT m.id_mou)
+            SELECT COUNT(DISTINCT m.nm_dudi)
             FROM kerjasama.mou m
             WHERE m.soft_delete = 0
               AND m.tgl_selesai >= GETDATE()
+              AND m.nm_dudi IS NOT NULL AND m.nm_dudi <> ''
         ";
 
         return (int) $this->selectScalar($sql, []);
@@ -216,6 +229,7 @@ class BerandaRepository extends BaseRepository
 
     public function countMou(): int
     {
+        // Total dokumen MoU aktif (1 mitra bisa punya banyak MoU)
         $sql = "
             SELECT COUNT(*)
             FROM kerjasama.mou m

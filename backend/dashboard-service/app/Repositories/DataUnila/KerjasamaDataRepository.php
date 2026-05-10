@@ -32,11 +32,16 @@ class KerjasamaDataRepository extends BaseDataRepository
 
     public function getStats(): array
     {
+        // Konsisten dengan BerandaRepository:
+        //  - mitra_unik (aktif) = COUNT(DISTINCT nm_dudi) yg masa berlaku belum lewat
+        //  - aktif = COUNT(*) MoU yg tgl_selesai >= GETDATE()
         return (array) $this->selectOne("
             SELECT COUNT(*) as total,
                 SUM(CASE WHEN tgl_selesai >= GETDATE() THEN 1 ELSE 0 END) as aktif,
                 SUM(CASE WHEN tgl_selesai < GETDATE() THEN 1 ELSE 0 END) as expired,
-                COUNT(DISTINCT nm_dudi) as mitra_unik
+                (SELECT COUNT(DISTINCT nm_dudi) FROM kerjasama.mou
+                 WHERE soft_delete = 0 AND tgl_selesai >= GETDATE()
+                   AND nm_dudi IS NOT NULL AND nm_dudi <> '') as mitra_unik
             FROM kerjasama.mou WHERE soft_delete = 0
         ");
     }

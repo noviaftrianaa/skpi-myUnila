@@ -133,13 +133,17 @@ class MahasiswaDataRepository extends BaseDataRepository
         $countBindings = [];
         $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
 
+        // Note: id_jns_keluar mapping (ref.jenis_keluar):
+        //   1 = Lulus, 2 = Mutasi, 3 = Dikeluarkan, 4 = Mengajukan pengunduran diri,
+        //   5 = Putus Studi, 6 = Meninggal, 7 = Hilang, dst.
+        // CUTI bukan dari id_jns_keluar — tapi dari kuliah_mhs.id_stat_mhs='C' di latest semester.
         $sql = "
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN rp.id_jns_keluar IS NULL THEN 1 ELSE 0 END) as aktif,
                 SUM(CASE WHEN CAST(rp.id_jns_keluar AS VARCHAR) = '1' THEN 1 ELSE 0 END) as lulus,
-                SUM(CASE WHEN CAST(rp.id_jns_keluar AS VARCHAR) = '2' THEN 1 ELSE 0 END) as do_keluar,
-                SUM(CASE WHEN CAST(rp.id_jns_keluar AS VARCHAR) = '3' THEN 1 ELSE 0 END) as cuti,
+                SUM(CASE WHEN CAST(rp.id_jns_keluar AS VARCHAR) IN ('5','3') THEN 1 ELSE 0 END) as do_keluar,
+                SUM(CASE WHEN CAST(rp.id_jns_keluar AS VARCHAR) = '2' THEN 1 ELSE 0 END) as mutasi,
                 COUNT(DISTINCT rp.id_sms) as total_prodi,
                 COUNT(DISTINCT s.id_fak_unila) as total_fakultas
             FROM pdrd.reg_pd rp
@@ -149,7 +153,23 @@ class MahasiswaDataRepository extends BaseDataRepository
               {$orgFilter}
         ";
 
-        return (array) $this->selectOne($sql, $bindings);
+        $stats = (array) $this->selectOne($sql, $bindings);
+
+        // Cuti diambil dari latest kuliah_mhs.id_stat_mhs='C' — konsisten dgn Pimpinan.
+        $cuti = $this->selectScalar("
+            SELECT COUNT(DISTINCT km.id_reg_pd)
+            FROM pdrd.kuliah_mhs km
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
+                AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND rp.soft_delete = 0
+            WHERE km.soft_delete = 0 AND km.id_stat_mhs = 'C'
+              AND km.id_smt = (
+                  SELECT MAX(km2.id_smt) FROM pdrd.kuliah_mhs km2
+                  WHERE km2.id_reg_pd = km.id_reg_pd AND km2.soft_delete = 0
+              )
+        ");
+        $stats['cuti'] = (int) $cuti;
+
+        return $stats;
     }
 
     /**

@@ -90,24 +90,43 @@ class DosenDataRepository extends BaseDataRepository
 
     public function getStats(array $params): array
     {
-        $bindings = [];
-        $countBindings = [];
-        $orgFilter = $this->buildOrgFilter($params, $bindings, $countBindings);
+        // Konsisten dengan BerandaRepository:
+        //  - id_jns_sdm = 12 → Dosen, !=12 → Tendik (per PDDikti)
+        //  - JOIN reg_ptk active (id_jns_keluar IS NULL) + filter id_sp = Unila
+        //  - Sebelumnya: pakai id_jns_sdm=1 (salah), tidak filter active, JOIN sms bikin double-count
+        $unilaSpId = 'E2B705A7-173E-464A-9FAC-509128709515';
 
-        $sql = "
+        $row = $this->selectOne("
             SELECT
-                COUNT(DISTINCT sdm.id_sdm) as total,
-                SUM(CASE WHEN sdm.id_stat_aktif = 1 THEN 1 ELSE 0 END) as aktif,
-                SUM(CASE WHEN sdm.id_jns_sdm = 1 THEN 1 ELSE 0 END) as dosen,
-                SUM(CASE WHEN sdm.id_jns_sdm != 1 OR sdm.id_jns_sdm IS NULL THEN 1 ELSE 0 END) as tendik,
-                SUM(CASE WHEN sdm.nidn IS NOT NULL AND sdm.nidn != '' THEN 1 ELSE 0 END) as ber_nidn
-            FROM pdrd.sdm sdm
-            LEFT JOIN pdrd.reg_ptk rp ON rp.id_sdm = sdm.id_sdm AND rp.soft_delete = 0
-            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
-            WHERE sdm.soft_delete = 0
-              {$orgFilter}
-        ";
-        return (array) $this->selectOne($sql, $bindings);
+                (SELECT COUNT(DISTINCT sdm.id_sdm)
+                 FROM pdrd.sdm sdm
+                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                 WHERE sdm.soft_delete = 0) AS total,
+                (SELECT COUNT(DISTINCT sdm.id_sdm)
+                 FROM pdrd.sdm sdm
+                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                 WHERE sdm.soft_delete = 0) AS aktif,
+                (SELECT COUNT(DISTINCT sdm.id_sdm)
+                 FROM pdrd.sdm sdm
+                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                 WHERE sdm.soft_delete = 0 AND sdm.id_jns_sdm = 12) AS dosen,
+                (SELECT COUNT(DISTINCT sdm.id_sdm)
+                 FROM pdrd.sdm sdm
+                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                 WHERE sdm.soft_delete = 0 AND (sdm.id_jns_sdm IS NULL OR sdm.id_jns_sdm != 12)) AS tendik,
+                (SELECT COUNT(DISTINCT sdm.id_sdm)
+                 FROM pdrd.sdm sdm
+                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                 WHERE sdm.soft_delete = 0 AND sdm.id_jns_sdm = 12
+                   AND sdm.nidn IS NOT NULL AND sdm.nidn != '') AS ber_nidn
+        ", [$unilaSpId, $unilaSpId, $unilaSpId, $unilaSpId, $unilaSpId]);
+
+        return (array) $row;
     }
 
     public function getRiwayatFungsional(string $idSdm): array
