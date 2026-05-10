@@ -37,4 +37,26 @@ class MahasiswaProfileController extends Controller
             ], 400);
         }
     }
+
+    /**
+     * Redirect ke foto mahasiswa di MinIO via encrypted id_pd.
+     * Hanya dipanggil dari context authenticated (lihat routes/api.php — group kong.auth).
+     */
+    public function photo(string $id)
+    {
+        try {
+            $idPd = Crypt::decryptString($id);
+        } catch (\Exception $e) {
+            abort(404);
+        }
+
+        $photoUrl = sprintf(
+            '%s/%s/photos/pd/%s.jpg',
+            rtrim(env('MINIO_PUBLIC_URL', 'http://192.168.120.47:9000'), '/'),
+            env('MINIO_BUCKET', 'myunila-storage'),
+            $idPd
+        );
+
+        return redirect()->away($photoUrl);
+    }
 }

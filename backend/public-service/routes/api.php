@@ -13,6 +13,7 @@ use App\Http\Controllers\OpenApi\DosenProfileController;
 use App\Http\Controllers\OpenApi\DosenSebaranController;
 use App\Http\Controllers\OpenApi\DosenInfografisController;
 use App\Http\Controllers\OpenApi\MahasiswaProfileController;
+use App\Http\Controllers\OpenApi\MePhotoController;
 use App\Http\Controllers\OpenApi\PublikasiController;
 use App\Http\Controllers\OpenApi\PublikasiSebaranController;
 use App\Http\Controllers\OpenApi\PenelitianController;
@@ -119,9 +120,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/available-semesters', [MahasiswaStatisticsController::class, 'getAvailableSemesters']);
     });
 
-    // Mahasiswa Profile
-    Route::prefix('mahasiswa')->group(function () {
-        Route::get('/{id}', [MahasiswaProfileController::class, 'show']);
+    // === Auth-required endpoints (barrier — JWT via header atau cookie access_token) ===
+    Route::middleware('kong.auth')->group(function () {
+        // Foto user yang sedang login — dipakai profile card portal
+        Route::get('/me/photo', [MePhotoController::class, 'show']);
+
+        // Profil + foto mahasiswa via encrypted id_pd (privasi: hanya user login)
+        Route::get('/mahasiswa/{id}', [MahasiswaProfileController::class, 'show']);
+        Route::get('/mahasiswa/{id}/photo', [MahasiswaProfileController::class, 'photo']);
     });
 
     // Dosen
