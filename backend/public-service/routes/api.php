@@ -120,13 +120,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/available-semesters', [MahasiswaStatisticsController::class, 'getAvailableSemesters']);
     });
 
+    // === Profil mahasiswa: data PUBLIC (NIM/nama/prodi sesuai standar PDDIKTI),
+    //     foto PRIVATE (UU PDP — data pribadi).
+    //     Untuk dosen, baik data maupun foto bersifat publik (academic profile).
+    Route::get('/mahasiswa/{id}', [MahasiswaProfileController::class, 'show']);
+
     // === Auth-required endpoints (barrier — JWT via header atau cookie access_token) ===
     Route::middleware('kong.auth')->group(function () {
         // Foto user yang sedang login — dipakai profile card portal
         Route::get('/me/photo', [MePhotoController::class, 'show']);
 
-        // Profil + foto mahasiswa via encrypted id_pd (privasi: hanya user login)
-        Route::get('/mahasiswa/{id}', [MahasiswaProfileController::class, 'show']);
+        // Foto mahasiswa via encrypted id_pd — data pribadi (UU PDP), butuh login
         Route::get('/mahasiswa/{id}/photo', [MahasiswaProfileController::class, 'photo']);
     });
 

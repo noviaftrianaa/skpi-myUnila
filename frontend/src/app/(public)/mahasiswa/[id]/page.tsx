@@ -7,7 +7,7 @@ import { FiUser, FiBookOpen, FiCalendar, FiBarChart2 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool } from "react-icons/md";
 import { mahasiswaService, type MahasiswaProfile } from "@/lib/services/public/mahasiswaService";
-import { useRequireAuth } from "@/lib/hoc/withAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Foto via endpoint barrier (cookie access_token). Backend decrypt id → redirect ke MinIO.
 const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
@@ -16,8 +16,10 @@ const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
 type TabType = 'overview' | 'status-semester' | 'mata-kuliah';
 
 export default function MahasiswaProfilePage() {
-  // Halaman ini wajib login (privasi data mahasiswa) — useRequireAuth redirect ke /login kalau belum.
-  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
+  // Page profil mahasiswa = PUBLIC (sesuai praktik PDDIKTI: NIM/prodi/status data publik).
+  // Foto = data pribadi (UU PDP No. 27/2022) → hanya tampil utk user yg login.
+  // Backend foto endpoint tetap protected (defense in depth).
+  const { isAuthenticated } = useAuth();
   const params = useParams();
   const router = useRouter();
   const mahasiswaId = params.id as string;
@@ -46,22 +48,10 @@ export default function MahasiswaProfilePage() {
       }
     };
 
-    if (mahasiswaId && isAuthenticated) {
+    if (mahasiswaId) {
       fetchMahasiswaProfile();
     }
-  }, [mahasiswaId, isAuthenticated]);
-
-  // Wait for auth check before rendering anything (avoid flashing data sebelum redirect)
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memverifikasi akses...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [mahasiswaId]);
 
   if (loading) {
     return (
@@ -134,27 +124,43 @@ export default function MahasiswaProfilePage() {
 
             {/* 3 Kolom: Avatar, Info Dasar, Homebase */}
             <div className="grid md:grid-cols-12 gap-4">
-              {/* Kolom 1: Avatar - 2 cols (~17%) */}
+              {/* Kolom 1: Avatar - 2 cols (~17%) — Foto = data pribadi (UU PDP), only visible saat login */}
               <div className="md:col-span-2 flex items-center justify-center md:justify-start">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
-                  <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
-                  <img
-                    src={`${PUBLIC_API_URL}/mahasiswa/${mahasiswaId}/photo`}
-                    alt={mahasiswa.nama}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback to SVG avatar if photo fails to load
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement!.innerHTML = `
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
-                          <svg class="w-32 h-32 text-white/40" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                          </svg>
-                        </div>
-                      `;
-                    }}
-                  />
-                </div>
+                  <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl relative">
+                    {isAuthenticated ? (
+                      <img
+                        src={`${PUBLIC_API_URL}/mahasiswa/${mahasiswaId}/photo`}
+                        alt={mahasiswa.nama}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
+                              <svg class="w-32 h-32 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                              </svg>
+                            </div>
+                          `;
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-400/30 via-blue-500/25 to-indigo-500/30 backdrop-blur-md text-center px-2 border border-white/10"
+                        title="Login untuk melihat foto"
+                      >
+                        <svg className="w-20 h-20 text-white/50 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                        <span className="text-[10px] font-medium text-white/85 leading-tight">
+                          🔒 Foto privat
+                        </span>
+                        <span className="text-[9px] text-white/65 mt-0.5 leading-tight">
+                          Login untuk melihat
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
