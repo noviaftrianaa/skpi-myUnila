@@ -7,14 +7,17 @@ import { FiUser, FiBookOpen, FiCalendar, FiBarChart2 } from "react-icons/fi";
 import { HiAcademicCap } from "react-icons/hi";
 import { MdSchool } from "react-icons/md";
 import { mahasiswaService, type MahasiswaProfile } from "@/lib/services/public/mahasiswaService";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
 
-const SISTER_API_URL = process.env.NEXT_PUBLIC_SISTER_API_URL
-  ? `${process.env.NEXT_PUBLIC_SISTER_API_URL}/public/api/v1`
-  : 'http://localhost:9800/sister-service/public/api/v1';
+// Foto via endpoint barrier (cookie access_token). Backend decrypt id → redirect ke MinIO.
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
+  || 'http://localhost:9800/public-service/api/v1';
 
 type TabType = 'overview' | 'status-semester' | 'mata-kuliah';
 
 export default function MahasiswaProfilePage() {
+  // Halaman ini wajib login (privasi data mahasiswa) — useRequireAuth redirect ke /login kalau belum.
+  const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const params = useParams();
   const router = useRouter();
   const mahasiswaId = params.id as string;
@@ -43,10 +46,22 @@ export default function MahasiswaProfilePage() {
       }
     };
 
-    if (mahasiswaId) {
+    if (mahasiswaId && isAuthenticated) {
       fetchMahasiswaProfile();
     }
-  }, [mahasiswaId]);
+  }, [mahasiswaId, isAuthenticated]);
+
+  // Wait for auth check before rendering anything (avoid flashing data sebelum redirect)
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memverifikasi akses...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -124,7 +139,7 @@ export default function MahasiswaProfilePage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 inline-block">
                   <div className="w-40 h-52 rounded-xl overflow-hidden shadow-2xl">
                   <img
-                    src={`${SISTER_API_URL}/mahasiswa/photo/${mahasiswa.id_pd}`}
+                    src={`${PUBLIC_API_URL}/mahasiswa/${mahasiswaId}/photo`}
                     alt={mahasiswa.nama}
                     className="w-full h-full object-cover"
                     onError={(e) => {

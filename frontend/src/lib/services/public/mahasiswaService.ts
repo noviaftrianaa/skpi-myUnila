@@ -1,13 +1,29 @@
 /**
  * Mahasiswa Service
  * Service untuk mengambil data profil mahasiswa
+ *
+ * Endpoint /api/v1/mahasiswa/{id} require JWT (kong.auth) — privasi mahasiswa.
+ * Authorization header diambil dari localStorage access_token; cookie juga ikut.
  */
 
 import axios from 'axios';
+import { getToken } from '@/lib/api/client';
 
 const API_URL = process.env.NEXT_PUBLIC_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_PUBLIC_API_URL}`
   : 'http://localhost:9800/public-service/api/v1';
+
+const authedAxios = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+});
+authedAxios.interceptors.request.use((config) => {
+  const token = getToken('ACCESS');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export interface MahasiswaProfile {
   id_pd: string;
@@ -57,7 +73,7 @@ export interface MahasiswaProfileResponse {
  * Get mahasiswa profile by ID
  */
 export async function getProfile(idPd: string): Promise<MahasiswaProfileResponse> {
-  const response = await axios.get<MahasiswaProfileResponse>(`${API_URL}/mahasiswa/${idPd}`);
+  const response = await authedAxios.get<MahasiswaProfileResponse>(`/mahasiswa/${idPd}`);
   return response.data;
 }
 
