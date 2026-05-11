@@ -34,6 +34,14 @@ import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeSwitcher from "./ThemeSwitcher";
+import { getToken } from "@/lib/api/client";
+
+// Endpoint foto profil — backend redirect ke MinIO based on JWT (sembunyikan UUID).
+// Mirror dgn portal/page.tsx supaya foto konsisten di navbar dashboard + portal.
+const ME_PHOTO_URL = `${
+  process.env.NEXT_PUBLIC_PUBLIC_API_URL ||
+  "http://localhost:9800/public-service/api/v1"
+}/me/photo`;
 
 interface DashboardNavbarProps {
   title?: string;
@@ -56,6 +64,49 @@ export default function DashboardNavbar({
   const router = useRouter();
   const [notifications, setNotifications] = useState(dummyNotifications);
   const [currentDate, setCurrentDate] = useState<string>("");
+
+  // Foto profil — pola dua-tahap (mirror portal/page.tsx):
+  // 1) direct URL pakai cookie access_token (cepat, single request, cache native)
+  // 2) kalau onError → fallback fetch+blob dgn Authorization header eksplisit
+  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setPhotoSrc(`${ME_PHOTO_URL}?v=${Date.now()}`);
+    setPhotoFailed(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user || !photoFailed) return;
+    let cancelled = false;
+    let createdUrl: string | null = null;
+    (async () => {
+      const token = getToken("ACCESS");
+      try {
+        const res = await fetch(`${ME_PHOTO_URL}?v=${Date.now()}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          redirect: "follow",
+        });
+        if (!res.ok) return;
+        const blob = await res.blob();
+        if (!blob.type.startsWith("image/")) return;
+        const url = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+        } else {
+          createdUrl = url;
+          setPhotoSrc(url);
+        }
+      } catch {
+        /* silent fallback ke initials */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [user?.id, photoFailed]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -301,12 +352,13 @@ export default function DashboardNavbar({
         <Dropdown placement="bottom-end">
           <DropdownTrigger>
             <button className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-1.5 sm:p-2 transition-colors max-w-[280px]">
-              {/* Avatar with initials fallback */}
-              {user?.avatar ? (
+              {/* Avatar with initials fallback — pakai foto /me/photo dulu, kalau gagal fallback initials */}
+              {photoSrc && !photoFailed ? (
                 <Avatar
-                  src={user.avatar}
+                  src={photoSrc}
                   size="sm"
                   className="w-8 h-8 sm:w-9 sm:h-9 ring-2 ring-blue-100 dark:ring-blue-900 flex-shrink-0"
+                  imgProps={{ onError: () => setPhotoFailed(true) }}
                 />
               ) : (
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm ring-2 ring-blue-100 dark:ring-blue-900 flex-shrink-0">
