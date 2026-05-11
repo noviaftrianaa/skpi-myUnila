@@ -1,7 +1,7 @@
 # Laporan Merge Branch `dashboard-pimpinan` (Magang) ke `master`
 
 **Tanggal**: 2026-05-11
-**Author**: UPT TIK Universitas Lampung (lisensi@unila.ac.id)
+**Author**: UPT TIK Universitas Lampung
 **Branch source**: `dashboard-pimpinan` (Arya Dzaky — mahasiswa magang)
 **Branch target**: `master`
 **Commit hasil**: `2b0019d7f..128d2a9b4`

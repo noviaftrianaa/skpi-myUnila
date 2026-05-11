@@ -3,7 +3,7 @@
 **Versi**: 1.0 — 2026-05-08
 **Lingkungan**: Staging (VM5 — pdut_staging)
 **Tester**: UPT TIK Universitas Lampung
-**PIC Implementasi**: lisensi@unila.ac.id (Pak Mizar)
+**PIC Implementasi**: UPT TIK Universitas Lampung
 
 ---
 

@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-myUnila saat ini punya placeholder app **V-Class** (`a_coming_soon=true`) tanpa implementasi. Pak Mizar request membangun LMS yang setara dengan **Moodle / Edlink** dengan fitur: sync mahasiswa-dosen-kelas, CBT/quiz, kumpul tugas, dll.
+myUnila saat ini punya placeholder app **V-Class** (`a_coming_soon=true`) tanpa implementasi. UPT TIK perlu membangun LMS yang setara dengan **Moodle / Edlink** dengan fitur: sync mahasiswa-dosen-kelas, CBT/quiz, kumpul tugas, dll.
 
 **Rekomendasi Akhir**: **Opsi C — Hybrid Moodle Engine + myUnila Wrapper** dengan konsep "Best of Both Worlds":
 - **Moodle** sebagai engine LMS (course content, quiz/CBT, gradebook, assignment) — proven 20+ tahun
@@ -413,5 +413,5 @@ Jika setelah demo OKE → langsung jalan MVP 4 bulan.
 
 ---
 
-**Dokumen ini brainstorming hasil request Pak Mizar (lisensi@unila.ac.id) — perlu validasi & iterasi sebelum eksekusi.**
+**Dokumen ini brainstorming internal UPT TIK — perlu validasi & iterasi sebelum eksekusi.**
 **File**: `/var/www/my-unila/docs/operations/Plan_LMS_myUnila.{md,pdf}`

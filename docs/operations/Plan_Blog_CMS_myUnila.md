@@ -441,5 +441,5 @@ Cost per year:      Free            ~Rp 5-10jt       Internal team
 
 ---
 
-**Dokumen ini brainstorming hasil request Pak Mizar (lisensi@unila.ac.id) — perlu validasi & iterasi sebelum eksekusi.**
+**Dokumen ini brainstorming internal UPT TIK — perlu validasi & iterasi sebelum eksekusi.**
 **File**: `/var/www/my-unila/docs/operations/Plan_Blog_CMS_myUnila.{md,pdf}`
