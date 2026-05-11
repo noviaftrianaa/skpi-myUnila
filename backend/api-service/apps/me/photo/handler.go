@@ -84,25 +84,34 @@ type userPhotoTarget struct {
 
 // resolveTarget query man_akses.pengguna untuk dapat jenis user, lalu (kalau
 // tendik) lookup NIP dari sikep.pegawai.
+//
+// PENTING: kolom UNIQUEIDENTIFIER (id_sdm_pengguna, id_pd_pengguna) di-scan ke
+// *string DIRECT akan dapat raw 16-byte binary (driver go-mssqldb default
+// behavior). Selalu WRAP dgn CONVERT(VARCHAR(36), ...) di SQL supaya hasilnya
+// proper UUID string.
 func (h *Handler) resolveTarget(ctx context.Context, idPengguna string) (*userPhotoTarget, error) {
 	var row struct {
-		IDSdm     *string `db:"id_sdm_pengguna"`
-		IDPd      *string `db:"id_pd_pengguna"`
-		IDUSikep  *string `db:"id_user_sikep"`
+		IDSdm    *string `db:"id_sdm_pengguna"`
+		IDPd     *string `db:"id_pd_pengguna"`
+		IDUSikep *int    `db:"id_user_sikep"`
 	}
-	q := `SELECT id_sdm_pengguna, id_pd_pengguna, id_user_sikep FROM man_akses.pengguna WHERE id_pengguna = @p1`
+	q := `SELECT
+		LOWER(CONVERT(VARCHAR(36), id_sdm_pengguna)) AS id_sdm_pengguna,
+		LOWER(CONVERT(VARCHAR(36), id_pd_pengguna))  AS id_pd_pengguna,
+		id_user_sikep
+		FROM man_akses.pengguna WHERE id_pengguna = @p1`
 	if err := h.db.GetContext(ctx, &row, q, idPengguna); err != nil {
 		return nil, fmt.Errorf("lookup pengguna: %w", err)
 	}
 
-	if row.IDSdm != nil && *row.IDSdm != "" {
-		return &userPhotoTarget{Kind: "sdm", Key: strings.ToLower(*row.IDSdm)}, nil
+	if row.IDSdm != nil && strings.TrimSpace(*row.IDSdm) != "" {
+		return &userPhotoTarget{Kind: "sdm", Key: strings.ToLower(strings.TrimSpace(*row.IDSdm))}, nil
 	}
-	if row.IDPd != nil && *row.IDPd != "" {
+	if row.IDPd != nil && strings.TrimSpace(*row.IDPd) != "" {
 		// id_pd di MinIO disimpan UPPERCASE (mengikuti hasil upload tools FOTOMHS)
-		return &userPhotoTarget{Kind: "pd", Key: strings.ToUpper(*row.IDPd)}, nil
+		return &userPhotoTarget{Kind: "pd", Key: strings.ToUpper(strings.TrimSpace(*row.IDPd))}, nil
 	}
-	if row.IDUSikep != nil && *row.IDUSikep != "" {
+	if row.IDUSikep != nil && *row.IDUSikep != 0 {
 		// Tendik foto naming pakai uuid_pegawai (kolom UNIQUEIDENTIFIER) — stabil
 		// independen dari NIP. NIP bisa berubah/null untuk honorer; UUID generated
 		// otomatis via DEFAULT NEWID(). Lihat data-model/script/sqlserver/
