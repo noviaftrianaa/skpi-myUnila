@@ -92,6 +92,13 @@ export default function VerifikasiDetailPage() {
   const activeTahapan = progress?.tahapan_list?.find(t => t.stage_status === "active") ?? null;
   const isLastStage = activeTahapan?.status_selesai === "terbit";
 
+  const prevTahapan = (() => {
+    if (!activeTahapan || !progress?.tahapan_list) return null;
+    const list = progress.tahapan_list;
+    const idx = list.findIndex(t => t.id_tahapan === activeTahapan.id_tahapan);
+    return idx > 0 ? list[idx - 1] : null;
+  })();
+
   // Tentukan kode_role user aktif — check fakultas FIRST (before administrator)
   const userRole = (() => {
     const r = (user?.role ?? "").toLowerCase();
@@ -604,7 +611,11 @@ export default function VerifikasiDetailPage() {
                   <FiAlertTriangle className="w-6 h-6 text-amber-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Minta Perbaikan</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Kembalikan pengajuan ke mahasiswa untuk diperbaiki?</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {prevTahapan && prevTahapan.kode_role !== "mahasiswa"
+                    ? `Kembalikan pengajuan ke ${prevTahapan.nm_tahapan} untuk diperbaiki?`
+                    : "Kembalikan pengajuan ke mahasiswa untuk diperbaiki?"}
+                </p>
                 {catatan && <p className="mt-2 text-xs text-gray-400 italic bg-gray-50 dark:bg-gray-800 rounded-lg p-2">Catatan: {catatan}</p>}
               </div>
               <div className="flex border-t border-gray-200 dark:border-gray-700">

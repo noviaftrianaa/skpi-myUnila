@@ -134,13 +134,14 @@ function MahasiswaDashboard() {
             { label: "Selesai", value: myStats.selesai, icon: <FiCheckCircle className="w-5 h-5" />, gradient: "from-emerald-500 to-green-600" },
             { label: "Ditolak", value: myStats.ditolak, icon: <FiXCircle className="w-5 h-5" />, gradient: "from-rose-500 to-red-600" },
           ].map(card => (
-            <Card key={card.label} className="border-none shadow-md rounded-xl overflow-hidden dark:bg-gray-800">
-              <CardBody className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${card.gradient} text-white`}>{card.icon}</div>
+            <Card key={card.label} className={`min-w-0 border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
+              <CardBody className="p-4 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-16 h-16 bg-white/10 rounded-full pointer-events-none" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{card.icon}</div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+                    <p className="text-[10px] sm:text-xs font-medium text-white/80 uppercase tracking-wide">{card.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white">{card.value}</p>
                   </div>
                 </div>
               </CardBody>
@@ -317,9 +318,9 @@ function AdminDashboard() {
         {/* Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {statCards.map((card) => (
-            <Card key={card.label} className={`border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
-              <CardBody className="p-4 relative">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
+            <Card key={card.label} className={`min-w-0 border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
+              <CardBody className="p-4 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-16 h-16 bg-white/10 rounded-full pointer-events-none" />
                 <div className="flex items-center gap-3 relative z-10">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{card.icon}</div>
                   <div>

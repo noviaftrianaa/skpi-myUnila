@@ -162,8 +162,10 @@ class VerifikasiController extends Controller
     }
 
     /**
-     * Minta perbaikan — kembalikan ke pemohon.
-     * Bisa dilakukan oleh aktor yang punya tahapan pada status pengajuan saat ini.
+     * Minta perbaikan — kembalikan ke tahapan sebelumnya sesuai hierarki.
+     *
+     * Admin BAK → dikembalikan ke Admin Fakultas
+     * Admin Fakultas → dikembalikan ke Mahasiswa (perlu_perbaikan)
      */
     public function mintaPerbaikan(Request $request, string $id): JsonResponse
     {
@@ -171,7 +173,6 @@ class VerifikasiController extends Controller
             $pengajuan = $this->repository->findById($id);
             if (!$pengajuan) return $this->notFoundResponse();
 
-            // Minta perbaikan hanya valid saat pengajuan sedang diproses (bukan draft/terbit/ditolak)
             if (in_array($pengajuan->status, ['draft', 'terbit', 'ditolak'])) {
                 return $this->errorResponse('Pengajuan tidak dalam status yang bisa diminta perbaikan', 422);
             }
@@ -180,18 +181,39 @@ class VerifikasiController extends Controller
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
 
+            // Cari tahapan saat ini dan tahapan sebelumnya
+            $currentTahapan = $this->workflow->findTahapanForActor($pengajuan, $kodeRole);
+            if (!$currentTahapan && in_array($kodeRole, ['admin_bak', 'admin'])) {
+                $currentTahapan = $this->workflow->getCurrentTahapan($pengajuan);
+            }
+
+            $prevTahapan = $currentTahapan
+                ? $this->workflow->getPreviousTahapan($pengajuan, $currentTahapan)
+                : null;
+
+            // Tentukan status tujuan berdasarkan hierarki:
+            // - Ada tahapan sebelumnya & bukan mahasiswa → kembalikan ke status_masuk tahapan itu
+            // - Tidak ada atau tahapan sebelumnya = mahasiswa → perlu_perbaikan (ke mahasiswa)
+            if ($prevTahapan && $prevTahapan->kode_role !== 'mahasiswa') {
+                $statusTujuan = $prevTahapan->status_masuk;
+                $nmTahapanTarget = "Dikembalikan ke {$prevTahapan->nm_tahapan}";
+            } else {
+                $statusTujuan = 'perlu_perbaikan';
+                $nmTahapanTarget = 'Perlu Perbaikan';
+            }
+
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
             $statusDari = $pengajuan->status;
-            $this->repository->updateStatus($id, 'perlu_perbaikan', $user->id_pengguna);
+            $this->repository->updateStatus($id, $statusTujuan, $user->id_pengguna);
 
             $riwayatCount = count($this->repository->getRiwayat($id));
             $this->repository->createRiwayat([
                 'id_pengajuan' => $id,
                 'urutan' => $riwayatCount + 1,
-                'nm_tahapan' => 'Perlu Perbaikan',
+                'nm_tahapan' => $nmTahapanTarget,
                 'status_dari' => $statusDari,
-                'status_ke' => 'perlu_perbaikan',
+                'status_ke' => $statusTujuan,
                 'id_aktor' => $user->id_pengguna,
                 'nm_aktor' => $user->nm_pengguna ?? $user->nama ?? '',
                 'kode_role_aktor' => $kodeRole,
@@ -200,10 +222,14 @@ class VerifikasiController extends Controller
 
             $this->repository->pgCommit();
 
-            // Trigger notifikasi: perlu_perbaikan
             $this->triggerStatusNotification($pengajuan, 'status_perlu_perbaikan', $data['catatan']);
 
-            return $this->successResponse(null, 'Permintaan perbaikan berhasil dikirim');
+            return $this->successResponse([
+                'status_baru' => $statusTujuan,
+                'dikembalikan_ke' => $prevTahapan && $prevTahapan->kode_role !== 'mahasiswa'
+                    ? $prevTahapan->kode_role
+                    : 'mahasiswa',
+            ], 'Permintaan perbaikan berhasil dikirim');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {

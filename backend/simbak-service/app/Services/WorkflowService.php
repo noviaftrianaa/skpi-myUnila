@@ -74,6 +74,36 @@ class WorkflowService
     }
 
     /**
+     * Cari tahapan sebelumnya berdasarkan tahapan saat ini.
+     */
+    public function getPreviousTahapan(object $pengajuan, ?object $currentTahapan = null): ?object
+    {
+        if (!$currentTahapan) {
+            $currentTahapan = $this->getCurrentTahapan($pengajuan);
+        }
+        if (!$currentTahapan) return null;
+
+        $tahapanList = $this->getTahapanByJenisLayanan($pengajuan->id_jenis_layanan);
+        $isDariLuar = $pengajuan->a_dari_luar ?? false;
+
+        if ($isDariLuar) {
+            $tahapanList = array_values(array_filter($tahapanList, function ($t) {
+                return $t->kode_role !== 'admin_fakultas_asal';
+            }));
+        }
+
+        $prev = null;
+        foreach ($tahapanList as $tahapan) {
+            if ($tahapan->id_tahapan === $currentTahapan->id_tahapan) {
+                return $prev;
+            }
+            $prev = $tahapan;
+        }
+
+        return null;
+    }
+
+    /**
      * Validasi apakah aktor (berdasarkan kode_role) boleh memproses tahapan ini.
      */
     public function canActorProcess(object $tahapan, string $kodeRoleAktor): bool
