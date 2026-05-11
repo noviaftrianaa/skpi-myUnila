@@ -7,6 +7,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiMoreVertical, FiSearch } from "react-icons
 import { rolePenggunaService, type RolePengguna, type RolePenggunaCreateData } from "@/lib/services/manakses/rolePenggunaService";
 import { peranService, type Peran } from "@/lib/services/manakses/peranService";
 import { unitOrganisasiService, type UnitOrganisasiOption } from "@/lib/services/manakses/unitOrganisasiService";
+import { penggunaService, type Pengguna } from "@/lib/services/manakses/penggunaService";
 import { toast } from "react-hot-toast";
 
 export default function RolePenggunaTable() {
@@ -25,7 +26,16 @@ export default function RolePenggunaTable() {
   const [unitOptions, setUnitOptions] = useState<UnitOrganisasiOption[]>([]);
   const [unitSearchQuery, setUnitSearchQuery] = useState("");
   const [unitSearchLoading, setUnitSearchLoading] = useState(false);
+  const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
   const unitSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Pengguna search (cari by username/nama/NIDN/NIP — bukan UUID raw)
+  const [penggunaQuery, setPenggunaQuery] = useState("");
+  const [penggunaResults, setPenggunaResults] = useState<Pengguna[]>([]);
+  const [penggunaLoading, setPenggunaLoading] = useState(false);
+  const [penggunaDropdownOpen, setPenggunaDropdownOpen] = useState(false);
+  const [selectedPenggunaDisplay, setSelectedPenggunaDisplay] = useState<string>("");
+  const penggunaSearchTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Modal states
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
@@ -108,6 +118,53 @@ export default function RolePenggunaTable() {
     searchUnitOrganisasi(value);
   };
 
+  // Search pengguna by username/nama/NIDN/NIP (debounced 300ms)
+  const searchPengguna = useCallback((query: string) => {
+    if (penggunaSearchTimeout.current) clearTimeout(penggunaSearchTimeout.current);
+    if (!query.trim() || query.trim().length < 2) {
+      setPenggunaResults([]);
+      return;
+    }
+    penggunaSearchTimeout.current = setTimeout(async () => {
+      setPenggunaLoading(true);
+      try {
+        const r = await penggunaService.getList({ search: query, limit: 20 });
+        setPenggunaResults(r.data || []);
+      } catch (err) {
+        console.error("Search pengguna error:", err);
+        setPenggunaResults([]);
+      } finally {
+        setPenggunaLoading(false);
+      }
+    }, 300);
+  }, []);
+
+  const handlePenggunaSelect = (pg: Pengguna) => {
+    setFormData((prev) => ({ ...prev, id_pengguna: pg.id_pengguna }));
+    setSelectedPenggunaDisplay(`${pg.nm_pengguna} (${pg.username})`);
+    setPenggunaQuery("");
+    setPenggunaDropdownOpen(false);
+    setPenggunaResults([]);
+  };
+
+  const handleClearPengguna = () => {
+    setFormData((prev) => ({ ...prev, id_pengguna: "" }));
+    setSelectedPenggunaDisplay("");
+    setPenggunaQuery("");
+    setPenggunaResults([]);
+  };
+
+  const handleUnitSelect = (unit: UnitOrganisasiOption) => {
+    setFormData((prev) => ({ ...prev, id_organisasi: unit.id_organisasi }));
+    setUnitSearchQuery(unit.display_name || unit.nm_lemb);
+    setUnitDropdownOpen(false);
+  };
+
+  const handleClearUnit = () => {
+    setFormData((prev) => ({ ...prev, id_organisasi: null }));
+    setUnitSearchQuery("");
+  };
+
   // Load data when filters change
   useEffect(() => {
     const loadData = async () => {
@@ -177,6 +234,10 @@ export default function RolePenggunaTable() {
       tgl_sk_penugasan: null,
       approval_peran: false,
     });
+    setSelectedPenggunaDisplay("");
+    setPenggunaQuery("");
+    setPenggunaResults([]);
+    setUnitSearchQuery("");
     onAddOpen();
   };
 
@@ -620,110 +681,157 @@ export default function RolePenggunaTable() {
           </ModalHeader>
           <ModalBody className="px-6 py-5">
             <div className="space-y-5">
-              {/* Data Pengguna Section */}
+              {/* Data Pengguna Section — Tailwind only, no HeroUI */}
               <div className="bg-gray-50/80 dark:bg-slate-700/20 rounded-xl p-4 border border-gray-200/80 dark:border-slate-600/50">
                 <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                   Data Pengguna
                 </h4>
                 <div className="space-y-4">
+                  {/* Pengguna — combobox cari by username/nama/NIDN/NIP */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                      ID Pengguna <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                      Pengguna <span className="text-red-500">*</span>
                     </label>
-                    <Input
-                      placeholder="Masukkan ID pengguna (UUID)"
-                      value={formData.id_pengguna}
-                      onChange={(e) => setFormData({ ...formData, id_pengguna: e.target.value })}
-                      variant="bordered"
-                      size="sm"
-                      classNames={{
-                        input: "text-gray-900 dark:text-white",
-                        inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                      }}
-                    />
+                    {selectedPenggunaDisplay ? (
+                      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-indigo-300 dark:border-indigo-700/60 bg-indigo-50/60 dark:bg-indigo-900/15">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 text-xs font-bold shrink-0">
+                            {selectedPenggunaDisplay.charAt(0).toUpperCase()}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{selectedPenggunaDisplay}</span>
+                        </div>
+                        <button type="button" onClick={handleClearPengguna} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline shrink-0">
+                          Ganti
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="relative">
+                          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="text"
+                            placeholder="Cari nama, username, NIDN, NIP, atau email..."
+                            value={penggunaQuery}
+                            onChange={(e) => {
+                              setPenggunaQuery(e.target.value);
+                              searchPengguna(e.target.value);
+                              setPenggunaDropdownOpen(true);
+                            }}
+                            onFocus={() => setPenggunaDropdownOpen(true)}
+                            onBlur={() => setTimeout(() => setPenggunaDropdownOpen(false), 200)}
+                            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all shadow-sm"
+                          />
+                          {penggunaLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                            </div>
+                          )}
+                        </div>
+                        {penggunaDropdownOpen && (penggunaResults.length > 0 || penggunaQuery.length >= 2) && (
+                          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-lg">
+                            {penggunaResults.length === 0 && !penggunaLoading && (
+                              <div className="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 text-center">
+                                {penggunaQuery.length < 2 ? "Ketik minimal 2 huruf..." : "Tidak ditemukan."}
+                              </div>
+                            )}
+                            {penggunaResults.map((pg) => (
+                              <button
+                                type="button"
+                                key={pg.id_pengguna}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => handlePenggunaSelect(pg)}
+                                className="w-full px-3 py-2 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border-b border-gray-100 dark:border-slate-700 last:border-b-0 transition-colors"
+                              >
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">{pg.nm_pengguna || "—"}</div>
+                                <div className="text-xs text-gray-500 dark:text-slate-400">
+                                  {pg.username}
+                                  {pg.email && <span className="ml-2 text-gray-400">· {pg.email}</span>}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Peran — native select Tailwind */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                       Peran <span className="text-red-500">*</span>
                     </label>
-                    <Select
-                      aria-label="Pilih Peran"
-                      placeholder="Pilih peran"
-                      selectedKeys={formData.id_peran ? [String(formData.id_peran)] : []}
-                      onChange={(e) => setFormData({ ...formData, id_peran: parseInt(e.target.value) })}
-                      variant="bordered"
-                      size="sm"
-                      classNames={{
-                        trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                        value: "text-gray-900 dark:text-white",
-                        popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg",
-                      }}
+                    <select
+                      value={formData.id_peran || ""}
+                      onChange={(e) => setFormData({ ...formData, id_peran: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all shadow-sm"
                     >
+                      <option value="">— Pilih peran —</option>
                       {peranOptions.map((peran) => (
-                        <SelectItem key={String(peran.id_peran)} value={String(peran.id_peran)}>
+                        <option key={peran.id_peran} value={peran.id_peran}>
                           {peran.nm_peran}
-                        </SelectItem>
+                        </option>
                       ))}
-                    </Select>
+                    </select>
                   </div>
+
+                  {/* Unit Organisasi — combobox cari */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                      Unit Organisasi
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                      Unit Organisasi <span className="text-xs text-gray-400 font-normal">(opsional)</span>
                     </label>
-                    {/* Search Input for Unit */}
-                    <div className="relative mb-2">
-                      <Input
-                        placeholder="Cari unit organisasi..."
-                        value={unitSearchQuery}
-                        onChange={(e) => handleUnitSearchChange(e.target.value)}
-                        variant="bordered"
-                        size="sm"
-                        startContent={<FiSearch className="text-gray-400" />}
-                        endContent={unitSearchLoading && <Spinner size="sm" />}
-                        classNames={{
-                          input: "text-gray-900 dark:text-white",
-                          inputWrapper: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                        }}
-                      />
-                    </div>
-                    <Select
-                      aria-label="Pilih Unit Organisasi"
-                      placeholder="Pilih unit organisasi (opsional)"
-                      selectedKeys={formData.id_organisasi ? [formData.id_organisasi] : []}
-                      onChange={(e) => setFormData({ ...formData, id_organisasi: e.target.value || null })}
-                      variant="bordered"
-                      size="sm"
-                      classNames={{
-                        trigger: "border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm",
-                        value: "text-gray-900 dark:text-white",
-                        popoverContent: "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 shadow-lg max-h-60",
-                      }}
-                      renderValue={(items) => {
-                        if (!items || items.length === 0) return "Pilih unit organisasi (opsional)";
-                        const selectedUnit = unitOptions.find(u => u.id_organisasi === items[0].key);
-                        if (selectedUnit) {
-                          return selectedUnit.display_name || selectedUnit.nm_lemb;
-                        }
-                        return items[0].textValue;
-                      }}
-                    >
-                      {unitOptions.map((unit) => (
-                        <SelectItem key={unit.id_organisasi} value={unit.id_organisasi} textValue={unit.display_name || unit.nm_lemb}>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{unit.nm_lemb}</span>
-                            {(unit.nm_jns_lemb || unit.jenjang) && (
-                              <span className="text-xs text-gray-500">
-                                {unit.nm_jns_lemb}{unit.jenjang ? ` - ${unit.jenjang}` : ''}
-                              </span>
-                            )}
+                    <div className="relative">
+                      <div className="relative">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Cari fakultas, prodi, atau unit kerja..."
+                          value={unitSearchQuery}
+                          onChange={(e) => {
+                            handleUnitSearchChange(e.target.value);
+                            setUnitDropdownOpen(true);
+                          }}
+                          onFocus={() => setUnitDropdownOpen(true)}
+                          onBlur={() => setTimeout(() => setUnitDropdownOpen(false), 200)}
+                          className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all shadow-sm"
+                        />
+                        {unitSearchLoading && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                           </div>
-                        </SelectItem>
-                      ))}
-                    </Select>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Ketik untuk mencari unit organisasi
-                    </p>
+                        )}
+                        {formData.id_organisasi && !unitSearchLoading && (
+                          <button
+                            type="button"
+                            onClick={handleClearUnit}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                            aria-label="Hapus pilihan unit"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {unitDropdownOpen && unitOptions.length > 0 && (
+                        <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-lg">
+                          {unitOptions.map((unit) => (
+                            <button
+                              type="button"
+                              key={unit.id_organisasi}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => handleUnitSelect(unit)}
+                              className="w-full px-3 py-2 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border-b border-gray-100 dark:border-slate-700 last:border-b-0 transition-colors"
+                            >
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{unit.nm_lemb}</div>
+                              {(unit.nm_jns_lemb || unit.jenjang) && (
+                                <div className="text-xs text-gray-500 dark:text-slate-400">
+                                  {unit.nm_jns_lemb}{unit.jenjang ? ` · ${unit.jenjang}` : ""}
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
