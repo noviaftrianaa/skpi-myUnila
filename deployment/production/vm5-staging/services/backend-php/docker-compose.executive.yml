@@ -1,0 +1,81 @@
+version: '3.8'
+
+# Executive Service — Dashboard Pimpinan (Dev) backend
+# Endpoint dipakai oleh /dashboard/pimpinan-dev (akreditasi, dosen, rasio).
+# STAGING ONLY — production deploy belum direncanakan.
+
+services:
+  executive-service:
+    build:
+      context: ../../../../../backend/executive-service
+      dockerfile: Dockerfile
+      args:
+        - APP_ENV=staging
+    image: myunila/executive-service:staging
+    container_name: myunila-executive-staging
+    expose:
+      - "9000"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: "MyUnila Executive (Dev)"
+      APP_ENV: staging
+      APP_KEY: "${EXECUTIVE_APP_KEY:-${DASHBOARD_APP_KEY}}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL}"
+      APP_APLIKASI_ID: "${APP_APLIKASI_ID}"
+
+      # Database (SQL Server) — reuse dashboard credentials (same pdut_staging)
+      DB_CONNECTION: sqlsrv
+      DB_HOST: "${DASHBOARD_DB_HOST}"
+      DB_PORT: "${DASHBOARD_DB_PORT}"
+      DB_DATABASE: "${DASHBOARD_DB_DATABASE}"
+      DB_USERNAME: "${DASHBOARD_DB_USERNAME}"
+      DB_PASSWORD: "${DASHBOARD_DB_PASSWORD}"
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+
+      # JWT Configuration (shared)
+      JWT_SECRET: "${JWT_SECRET}"
+      JWT_ACCESS_TOKEN_TTL: "${JWT_ACCESS_TOKEN_TTL:-15}"
+      JWT_REFRESH_TOKEN_TTL: "${JWT_REFRESH_TOKEN_TTL:-10080}"
+      JWT_ALGO: "${JWT_ALGORITHM:-HS256}"
+
+      # Redis & Cache
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      TZ: "${TIMEZONE:-Asia/Jakarta}"
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - myunila-staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f php-fpm || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=executive,vm=vm5-staging"
+
+networks:
+  myunila-staging-network:
+    external: true
+    name: myunila-staging-network

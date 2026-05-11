@@ -25,6 +25,7 @@ services:
         - NEXT_PUBLIC_BAK_API_URL=${NEXT_PUBLIC_BAK_API_URL}
         - NEXT_PUBLIC_MAN_KONTEN_API_URL=${NEXT_PUBLIC_MAN_KONTEN_API_URL}
         - NEXT_PUBLIC_SI_PRESTASI_API_URL=${NEXT_PUBLIC_SI_PRESTASI_API_URL}
+        - NEXT_PUBLIC_EXECUTIVE_API_URL=${NEXT_PUBLIC_EXECUTIVE_API_URL}
     image: myunila/frontend:staging
     container_name: myunila-frontend-staging
     restart: unless-stopped
@@ -49,6 +50,7 @@ services:
       NEXT_PUBLIC_BAK_API_URL: "${NEXT_PUBLIC_BAK_API_URL}"
       NEXT_PUBLIC_MAN_KONTEN_API_URL: "${NEXT_PUBLIC_MAN_KONTEN_API_URL}"
       NEXT_PUBLIC_SI_PRESTASI_API_URL: "${NEXT_PUBLIC_SI_PRESTASI_API_URL}"
+      NEXT_PUBLIC_EXECUTIVE_API_URL: "${NEXT_PUBLIC_EXECUTIVE_API_URL}"
       # Performance tuning (reduced for staging)
       NODE_OPTIONS: "--max-old-space-size=1024"
       UV_THREADPOOL_SIZE: 4

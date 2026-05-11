@@ -40,6 +40,7 @@ declare -A SERVICE_MAP=(
     [nginx]="backend-php/docker-compose.nginx.yml"
     [auth]="backend-php/docker-compose.auth.yml"
     [dashboard]="backend-php/docker-compose.dashboard.yml"
+    [executive]="backend-php/docker-compose.executive.yml"
     [public]="backend-php/docker-compose.public.yml"
     [simbak]="backend-php/docker-compose.simbak.yml"
     [si-prestasi]="backend-php/docker-compose.si-prestasi.yml"
@@ -61,7 +62,7 @@ show_list() {
     echo -e "  ${YELLOW}Infrastructure:${NC}  postgres, redis, meilisearch"
     echo -e "  ${YELLOW}Gateway:${NC}         kong"
     echo -e "  ${YELLOW}Frontend:${NC}        frontend"
-    echo -e "  ${YELLOW}Backend PHP:${NC}     auth, dashboard, public, simbak, si-prestasi, si-kkn, nginx"
+    echo -e "  ${YELLOW}Backend PHP:${NC}     auth, dashboard, executive, public, simbak, si-prestasi, si-kkn, nginx"
     echo -e "  ${YELLOW}Backend Go:${NC}      sister, feeder, myunila, api, keuangan, monitoring"
     echo ""
     echo "Usage: $0 <service> [service2] [service3] ..."
@@ -98,6 +99,7 @@ rebuild_service() {
     case $svc in
         auth)       container="myunila-auth-staging" ;;
         dashboard)  container="myunila-dashboard-staging" ;;
+        executive)  container="myunila-executive-staging" ;;
         public)     container="myunila-public-staging" ;;
         nginx)      container="myunila-nginx-staging" ;;
         sister)     container="myunila-sister-staging" ;;
