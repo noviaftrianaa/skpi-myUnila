@@ -9,7 +9,7 @@ import { MdScience } from "react-icons/md";
 import { pimpinanDevMenuConfig } from "./config/menuConfig";
 
 // App key — TERPISAH dari Dashboard Pimpinan utama:
-// app baru `dashboard-pimpinan-dev` di portal myUnila utk lab eksperimen magang.
+// app baru `dashboard-pimpinan-dev` di portal myUnila utk versi pengembangan magang.
 const APP_KEY = "dashboard-pimpinan-dev";
 
 export default function PimpinanDevLayout({
@@ -35,7 +35,7 @@ export default function PimpinanDevLayout({
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <div className="text-center">
           <Spinner size="lg" color="warning" />
-          <p className="mt-4 text-gray-600">Memeriksa akses lab eksperimen...</p>
+          <p className="mt-4 text-gray-600">Memeriksa akses Dashboard Pimpinan (Dev)...</p>
         </div>
       </div>
     );
@@ -58,13 +58,13 @@ export default function PimpinanDevLayout({
       appKey={APP_KEY}
       appIcon={<MdScience className="w-6 h-6 text-white" />}
       fallbackMenus={pimpinanDevMenuConfig}
-      pageTitle="Dashboard Pimpinan (Eksperimen)"
+      pageTitle="Dashboard Pimpinan (Dev)"
     >
-      {/* Banner label "Eksperimen" — supaya user sadar ini lab, bukan production */}
+      {/* Banner versi pengembangan — supaya user sadar bukan production */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700/50 px-4 py-2 flex items-center gap-2 text-amber-700 dark:text-amber-300">
         <MdScience className="w-4 h-4 shrink-0" />
         <span className="text-xs font-medium">
-          🧪 LAB EKSPERIMEN — Versi pengembangan oleh mahasiswa magang. Untuk versi production gunakan{" "}
+          Versi pengembangan (Dev) — fitur baru dalam tahap uji coba. Versi production:{" "}
           <a href="/dashboard/pimpinan" className="underline font-semibold hover:text-amber-900">
             Dashboard Pimpinan
           </a>
