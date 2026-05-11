@@ -21,9 +21,10 @@ DECLARE @nm_file VARCHAR(255) = '/dashboard/manajemen-akses/manajemen/kandidat-a
 DECLARE @new_menu_id UNIQUEIDENTIFIER;
 
 -- 1. Lookup id_aplikasi by app_slug
+-- Note: man_akses.aplikasi pakai expired_date utk soft-delete (kolom soft_delete tidak ada).
 SELECT @app_manakses = id_aplikasi
 FROM man_akses.aplikasi
-WHERE app_slug = 'manajemen-akses' AND ISNULL(soft_delete, 0) = 0;
+WHERE app_slug = 'manajemen-akses' AND expired_date IS NULL;
 
 IF @app_manakses IS NULL
 BEGIN
@@ -105,8 +106,23 @@ GO
 -- ============================================================================
 -- Tambahan: Menu "Bulk Import Akses"
 -- ============================================================================
+-- GO di atas mengakhiri batch sebelumnya — variable @app_manakses/@group_manajemen
+-- harus di-declare ulang di batch baru ini.
+DECLARE @app_manakses UNIQUEIDENTIFIER;
+DECLARE @group_manajemen UNIQUEIDENTIFIER;
 DECLARE @nm_file_import VARCHAR(255) = '/dashboard/manajemen-akses/manajemen/import-akses';
 DECLARE @import_menu_id UNIQUEIDENTIFIER;
+
+SELECT @app_manakses = id_aplikasi
+FROM man_akses.aplikasi
+WHERE app_slug = 'manajemen-akses' AND expired_date IS NULL;
+
+SELECT @group_manajemen = id_menu
+FROM man_akses.menu
+WHERE id_aplikasi = @app_manakses
+  AND nm_menu = 'Manajemen'
+  AND level_menu = 0
+  AND expired_date IS NULL;
 
 IF NOT EXISTS (
     SELECT 1 FROM man_akses.menu WHERE nm_file = @nm_file_import AND expired_date IS NULL
