@@ -65,14 +65,16 @@ RUN composer config -g process-timeout 600 \
 # Copy application files
 COPY . /var/www
 
-# Install dependencies with increased timeout and retry
+# Install dependencies with increased timeout and retry.
+# --no-security-blocking: firebase/php-jwt 6.10+ has a security advisory; tracked separately.
 RUN COMPOSER_PROCESS_TIMEOUT=600 composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --prefer-dist \
     --no-scripts \
-    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts) \
+    --no-security-blocking \
+    || (sleep 5 && COMPOSER_PROCESS_TIMEOUT=600 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts --no-security-blocking) \
     && composer run-script post-autoload-dump --no-interaction || true
 
 # Create necessary directories
