@@ -151,9 +151,10 @@ class PengajuanRepository extends BaseRepository
         return $this->pgInsertReturning("
             INSERT INTO layanan.pengajuan (
                 id_jenis_layanan, nomor_permohonan, id_pemohon, status, alasan, catatan_pemohon,
-                id_smt_mulai_cuti, jumlah_semester_cuti, id_prodi_tujuan, id_fakultas_tujuan,
+                id_smt_mulai_cuti, id_smt_akhir_cuti, jumlah_semester_cuti, kategori_cuti,
+                id_prodi_tujuan, id_fakultas_tujuan,
                 a_dari_luar, nm_pt_asal, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_jenis_layanan'],
@@ -163,7 +164,9 @@ class PengajuanRepository extends BaseRepository
             $data['alasan'] ?? null,
             $data['catatan_pemohon'] ?? null,
             $data['id_smt_mulai_cuti'] ?? null,
+            $data['id_smt_akhir_cuti'] ?? null,
             $data['jumlah_semester_cuti'] ?? null,
+            $data['kategori_cuti'] ?? null,
             $data['id_prodi_tujuan'] ?? null,
             $data['id_fakultas_tujuan'] ?? null,
             $data['a_dari_luar'] ?? false,
@@ -248,14 +251,17 @@ class PengajuanRepository extends BaseRepository
         return $this->pgInsertReturning("
             INSERT INTO layanan.dokumen_pengajuan (
                 id_pengajuan, id_persyaratan, nm_dokumen, nama_file_asli, path_file,
-                tipe_file, ukuran_byte, id_pengunggah, keterangan, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                tipe_file, ukuran_byte, id_pengunggah, keterangan,
+                nomor_dokumen, tgl_dokumen, id_creator
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_pengajuan'], $data['id_persyaratan'] ?? null,
             $data['nm_dokumen'], $data['nama_file_asli'], $data['path_file'],
             $data['tipe_file'], $data['ukuran_byte'], $data['id_pengunggah'],
-            $data['keterangan'] ?? null, $data['id_creator'] ?? null,
+            $data['keterangan'] ?? null,
+            $data['nomor_dokumen'] ?? null, $data['tgl_dokumen'] ?? null,
+            $data['id_creator'] ?? null,
         ]);
     }
 
@@ -415,5 +421,27 @@ class PengajuanRepository extends BaseRepository
         $data = $this->pgSelect($dataSql, $bindings);
 
         return ['data' => $data, 'total' => $total];
+    }
+
+    public function getRiwayatCutiByPemohon(string $idPemohon, ?string $excludeId = null): array
+    {
+        $bindings = [$idPemohon];
+        $excludeClause = '';
+        if ($excludeId) {
+            $excludeClause = 'AND p.id_pengajuan != ?';
+            $bindings[] = $excludeId;
+        }
+
+        return $this->pgSelect("
+            SELECT
+                p.nomor_permohonan, p.status, p.kategori_cuti,
+                p.id_smt_mulai_cuti, p.id_smt_akhir_cuti, p.jumlah_semester_cuti,
+                p.tgl_diajukan, p.tgl_selesai
+            FROM layanan.pengajuan p
+            JOIN ref.jenis_layanan jl ON jl.id_jenis_layanan = p.id_jenis_layanan
+            WHERE p.id_pemohon = ? AND jl.kode_layanan = 'PM-CUTI'
+              AND p.soft_delete = false {$excludeClause}
+            ORDER BY p.created_at DESC
+        ", $bindings);
     }
 }

@@ -82,6 +82,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/fakultas', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refFakultas']);
             Route::get('/prodi', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refProdi']);
             Route::get('/semester', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refSemester']);
+            Route::get('/kategori-cuti', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'active']);
+        });
+
+        // -----------------------------------------
+        // Master Data: Kategori Cuti
+        // -----------------------------------------
+        Route::prefix('master-data/kategori-cuti')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'store'])->middleware('permission:insert,sim-bak');
+            Route::put('/{id}', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'update'])->middleware('permission:update,sim-bak');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
         // -----------------------------------------
@@ -101,6 +112,9 @@ Route::prefix('v1')->group(function () {
             Route::delete('/pengajuan/{id}', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
+        // Cek KRS aktif (untuk validasi cuti tidak terencana)
+        Route::get('/layanan/pengajuan/{id}/cek-krs', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'cekKrs']);
+
         // -----------------------------------------
         // Admin: Verifikasi & Penerbitan
         // -----------------------------------------
@@ -108,6 +122,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/pengajuan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'index']);
             Route::get('/verifikasi/queue', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'queue']);
             Route::get('/pengajuan/{id}/progress', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'progress']);
+            Route::get('/pengajuan/{id}/riwayat-cuti', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'riwayatCuti']);
             Route::post('/pengajuan/{id}/verifikasi', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'verifikasi'])->middleware('permission:approve,sim-bak');
             Route::post('/pengajuan/{id}/perbaikan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'mintaPerbaikan'])->middleware('permission:reject,sim-bak');
             Route::post('/pengajuan/{id}/terbitkan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'terbitkan'])->middleware('permission:approve,sim-bak');

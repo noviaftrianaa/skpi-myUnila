@@ -185,6 +185,50 @@ class PdutRepository extends BaseRepository
     }
 
     /**
+     * Cek KRS aktif mahasiswa pada semester tertentu.
+     * Return: jumlah mata kuliah (sks_semester) atau null jika tidak ditemukan.
+     */
+    public function getKrsAktif(string $nim, string $idSmt): ?array
+    {
+        try {
+            $row = $this->pdutSelectOne("
+                SELECT id_stat_mhs, sks_semester, ips
+                FROM siakadu.kuliah_mhs
+                WHERE nim = ? AND id_smt = ?
+            ", [$nim, $idSmt]);
+
+            if (!$row) return null;
+
+            return [
+                'ada_krs' => true,
+                'id_stat_mhs' => $row->id_stat_mhs,
+                'sks_semester' => $row->sks_semester,
+                'ips' => $row->ips,
+            ];
+        } catch (\Exception $e) {
+            Log::warning('PdutRepository.getKrsAktif: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getRiwayatCutiSiakad(string $nim): array
+    {
+        try {
+            return $this->pdutSelect("
+                SELECT km.id_smt, s.nm_smt, sm.nm_stat_mhs
+                FROM siakadu.kuliah_mhs km
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = km.id_stat_mhs
+                INNER JOIN ref.semester s ON s.id_smt = km.id_smt
+                WHERE km.nim = ? AND sm.nm_stat_mhs LIKE '%Cuti%'
+                ORDER BY km.id_smt DESC
+            ", [$nim]);
+        } catch (\Exception $e) {
+            Log::warning('PdutRepository.getRiwayatCutiSiakad: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Hitung masa studi dalam semester berdasarkan tahun angkatan.
      * Asumsi: masuk September (semester ganjil), 1 semester = 6 bulan.
      */

@@ -12,6 +12,8 @@ import type {
   PersyaratanLayanan,
   TahapanLayanan,
   TemplateDokumen,
+  KategoriCuti,
+  RiwayatCutiResponse,
   Pengajuan,
   DokumenPengajuan,
   RiwayatPengajuan,
@@ -205,7 +207,9 @@ export const createPengajuan = async (data: {
   alasan?: string;
   catatan_pemohon?: string;
   id_smt_mulai_cuti?: string;
+  id_smt_akhir_cuti?: string;
   jumlah_semester_cuti?: number;
+  kategori_cuti?: string;
   id_prodi_tujuan?: string;
   id_fakultas_tujuan?: string;
 }): Promise<Pengajuan> => {
@@ -215,6 +219,16 @@ export const createPengajuan = async (data: {
 
 export const getPengajuanDetail = async (id: string): Promise<Pengajuan> => {
   const response = await bakClient.get<ApiResponse<Pengajuan>>(`/layanan/pengajuan/${id}`);
+  return response.data.data;
+};
+
+export const cekKrsPengajuan = async (id: string): Promise<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }> => {
+  const response = await bakClient.get<ApiResponse<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }>>(`/layanan/pengajuan/${id}/cek-krs`);
+  return response.data.data;
+};
+
+export const getRiwayatCutiPengajuan = async (id: string): Promise<RiwayatCutiResponse> => {
+  const response = await bakClient.get<ApiResponse<RiwayatCutiResponse>>(`/admin/pengajuan/${id}/riwayat-cuti`);
   return response.data.data;
 };
 
@@ -263,11 +277,18 @@ export const getVerifikasiQueue = async (params?: {
   return response.data;
 };
 
-export const verifikasiPengajuan = async (id: string, data?: { catatan?: string; surat_pengantar?: File }): Promise<void> => {
+export const verifikasiPengajuan = async (id: string, data?: {
+  catatan?: string;
+  surat_pengantar?: File;
+  nomor_surat_pengantar?: string;
+  tgl_surat_pengantar?: string;
+}): Promise<void> => {
   if (data?.surat_pengantar) {
     const formData = new FormData();
     if (data.catatan) formData.append('catatan', data.catatan);
     formData.append('surat_pengantar', data.surat_pengantar);
+    if (data.nomor_surat_pengantar) formData.append('nomor_surat_pengantar', data.nomor_surat_pengantar);
+    if (data.tgl_surat_pengantar) formData.append('tgl_surat_pengantar', data.tgl_surat_pengantar);
     await bakClient.post(`/admin/pengajuan/${id}/verifikasi`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -591,6 +612,32 @@ export const deleteKtwExclusion = async (id: string): Promise<void> => {
   await bakClient.delete(`/monitoring/ktw-exclusions/${id}`);
 };
 
+// ============ Kategori Cuti ============
+
+export const getKategoriCutiActive = async (): Promise<KategoriCuti[]> => {
+  const response = await bakClient.get<ApiResponse<KategoriCuti[]>>('/layanan/referensi/kategori-cuti');
+  return response.data.data;
+};
+
+export const getKategoriCuti = async (params?: { page?: number; limit?: number; search?: string }): Promise<{ data: KategoriCuti[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KategoriCuti>>('/master-data/kategori-cuti', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKategoriCuti = async (data: { id_kategori_cuti: string; nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriCuti> => {
+  const response = await bakClient.post<ApiResponse<KategoriCuti>>('/master-data/kategori-cuti', data);
+  return response.data.data;
+};
+
+export const updateKategoriCuti = async (id: string, data: { nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriCuti> => {
+  const response = await bakClient.put<ApiResponse<KategoriCuti>>(`/master-data/kategori-cuti/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKategoriCuti = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/kategori-cuti/${id}`);
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -600,6 +647,7 @@ const simBakService = {
   getJenisLayanan, getJenisLayananById, createJenisLayanan, updateJenisLayanan, deleteJenisLayanan,
   getPersyaratanByLayanan, getTahapanByLayanan,
   getPersyaratan, createPersyaratan, updatePersyaratan, deletePersyaratan,
+  getKategoriCutiActive, getKategoriCuti, createKategoriCuti, updateKategoriCuti, deleteKategoriCuti,
   getTahapan, createTahapan, updateTahapan, deleteTahapan,
   getTemplate, createTemplate, updateTemplate, deleteTemplate,
   // Profil & Workflow
@@ -607,7 +655,7 @@ const simBakService = {
   // Referensi PDUT
   getRefFakultas, getRefProdi, getRefSemester, terimaTujuanAlihProgram,
   // Pengajuan
-  getMyPengajuan, createPengajuan, getPengajuanDetail,
+  getMyPengajuan, createPengajuan, getPengajuanDetail, cekKrsPengajuan, getRiwayatCutiPengajuan,
   uploadDokumen, ajukanPengajuan, deleteDokumen,
   downloadDokumenUrl, downloadDokumenHasilUrl,
   // Admin

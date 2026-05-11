@@ -10,14 +10,29 @@ import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { useUserContext } from "@/contexts/UserContextContext";
-import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
-import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan } from "@/lib/services/sim-bak/types";
+import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, getKategoriCutiActive, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
+import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan, KategoriCuti } from "@/lib/services/sim-bak/types";
 
 const steps = [
   { no: 1, label: "Data & Alasan" },
   { no: 2, label: "Upload Dokumen" },
   { no: 3, label: "Review & Submit" },
 ];
+
+function computeSemesterAkhir(idSmtMulai: string, jumlah: number): string {
+  let year = parseInt(idSmtMulai.substring(0, 4));
+  let sem = parseInt(idSmtMulai.substring(4, 5));
+  for (let i = 1; i < jumlah; i++) {
+    if (sem === 1) { sem = 2; } else { sem = 1; year++; }
+  }
+  return `${year}${sem}`;
+}
+
+function formatSemesterName(idSmt: string): string {
+  const year = parseInt(idSmt.substring(0, 4));
+  const sem = parseInt(idSmt.substring(4, 5));
+  return `${year}/${year + 1} ${sem === 1 ? "Ganjil" : "Genap"}`;
+}
 
 export default function PermohonanFormPage() {
   const { user } = useAuth();
@@ -55,6 +70,18 @@ export default function PermohonanFormPage() {
   const [jumlahSemesterCuti, setJumlahSemesterCuti] = useState<number>(1);
   const [semesterMulaiCuti, setSemesterMulaiCuti] = useState("");
   const [semesterList, setSemesterList] = useState<Array<{ id_smt: string; nm_smt: string; a_periode_aktif: boolean }>>([]);
+  const [kategoriCuti, setKategoriCuti] = useState("terencana");
+  const [kategoriCutiList, setKategoriCutiList] = useState<KategoriCuti[]>([]);
+  const semesterAkhirCuti = semesterMulaiCuti ? computeSemesterAkhir(semesterMulaiCuti, jumlahSemesterCuti) : "";
+
+  const [flaggedFields, setFlaggedFields] = useState<Set<string>>(new Set());
+  const fieldWrapStyle = (field: string, valid: boolean): React.CSSProperties => {
+    const base: React.CSSProperties = { borderRadius: "0.5rem", border: "1px solid #d1d5db" };
+    if (!flaggedFields.has(field)) return base;
+    return valid
+      ? { ...base, border: "2px solid #22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.15)" }
+      : { ...base, border: "2px solid #ef4444", boxShadow: "0 0 0 3px rgba(239,68,68,0.15)" };
+  };
   // Alih Program-specific
   const [fakultasList, setFakultasList] = useState<Array<{ id_fakultas: string; nm_fakultas: string }>>([]);
   const [prodiList, setProdiList] = useState<Array<{ id_prodi: string; nm_prodi: string; nm_jenjang: string }>>([]);
@@ -84,6 +111,7 @@ export default function PermohonanFormPage() {
         // Load referensi untuk PM-CUTI dan PM-ALIH
         if (kode === "PM-CUTI") {
           getRefSemester().then(setSemesterList).catch(() => {});
+          getKategoriCutiActive().then(setKategoriCutiList).catch(() => {});
         }
         if (kode === "PM-ALIH") {
           getRefFakultas().then(setFakultasList).catch(() => {});
@@ -166,6 +194,7 @@ export default function PermohonanFormPage() {
 
   const handleSubmit = async (isDraft: boolean) => {
     if (!isDraft && !alasan.trim()) { toast.error("Alasan permohonan wajib diisi"); return; }
+    if (!isDraft && isCuti && !semesterMulaiCuti) { toast.error("Semester mulai cuti wajib dipilih"); return; }
     if (!isDraft && isAlih && !selectedProdi) { toast.error("Prodi tujuan wajib dipilih"); return; }
     if (!isDraft && isAlih && !isDariLuar && syaratAlih && !syaratAlih.allPass) { toast.error("Anda belum memenuhi syarat akademik untuk Alih Program"); return; }
     if (!isDraft && isDariLuar && (!manualData.nm_mahasiswa.trim() || !manualData.nim_asal.trim() || !manualData.nm_pt_asal.trim())) {
@@ -180,6 +209,8 @@ export default function PermohonanFormPage() {
         catatan_pemohon: catatan || undefined,
         jumlah_semester_cuti: isCuti ? jumlahSemesterCuti : undefined,
         id_smt_mulai_cuti: isCuti ? semesterMulaiCuti || undefined : undefined,
+        id_smt_akhir_cuti: isCuti ? semesterAkhirCuti || undefined : undefined,
+        kategori_cuti: isCuti ? kategoriCuti : undefined,
         id_prodi_tujuan: isAlih ? selectedProdi || undefined : undefined,
         id_fakultas_tujuan: isAlih ? selectedFakultas || undefined : undefined,
       };
@@ -306,77 +337,97 @@ export default function PermohonanFormPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nama Lengkap *</label>
-                      <input type="text" value={manualData.nm_mahasiswa} onChange={e => setManualData(d => ({ ...d, nm_mahasiswa: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Nama lengkap pemohon" />
+                      <div style={fieldWrapStyle("nm_mahasiswa", !!manualData.nm_mahasiswa.trim())} className="overflow-hidden">
+                        <input type="text" value={manualData.nm_mahasiswa} onChange={e => setManualData(d => ({ ...d, nm_mahasiswa: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="Nama lengkap pemohon" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">NIM Asal *</label>
-                      <input type="text" value={manualData.nim_asal} onChange={e => setManualData(d => ({ ...d, nim_asal: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="NIM dari PT asal" />
+                      <div style={fieldWrapStyle("nim_asal", !!manualData.nim_asal.trim())} className="overflow-hidden">
+                        <input type="text" value={manualData.nim_asal} onChange={e => setManualData(d => ({ ...d, nim_asal: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="NIM dari PT asal" />
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Perguruan Tinggi Asal *</label>
-                      <input type="text" value={manualData.nm_pt_asal} onChange={e => setManualData(d => ({ ...d, nm_pt_asal: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Nama perguruan tinggi asal" />
+                      <div style={fieldWrapStyle("nm_pt_asal", !!manualData.nm_pt_asal.trim())} className="overflow-hidden">
+                        <input type="text" value={manualData.nm_pt_asal} onChange={e => setManualData(d => ({ ...d, nm_pt_asal: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="Nama perguruan tinggi asal" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Program Studi Asal</label>
-                      <input type="text" value={manualData.nm_prodi_asal} onChange={e => setManualData(d => ({ ...d, nm_prodi_asal: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Prodi di PT asal" />
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <input type="text" value={manualData.nm_prodi_asal} onChange={e => setManualData(d => ({ ...d, nm_prodi_asal: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="Prodi di PT asal" />
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jenjang</label>
-                      <select value={manualData.nm_jenjang} onChange={e => setManualData(d => ({ ...d, nm_jenjang: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih</option>
-                        <option value="D3">D3</option>
-                        <option value="S1">S1</option>
-                        <option value="S2">S2</option>
-                        <option value="S3">S3</option>
-                      </select>
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <select value={manualData.nm_jenjang} onChange={e => setManualData(d => ({ ...d, nm_jenjang: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          <option value="">Pilih</option>
+                          <option value="D3">D3</option>
+                          <option value="S1">S1</option>
+                          <option value="S2">S2</option>
+                          <option value="S3">S3</option>
+                        </select>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Akreditasi Prodi Asal</label>
-                      <input type="text" value={manualData.akreditasi_prodi_asal} onChange={e => setManualData(d => ({ ...d, akreditasi_prodi_asal: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="A / B / Unggul" />
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <input type="text" value={manualData.akreditasi_prodi_asal} onChange={e => setManualData(d => ({ ...d, akreditasi_prodi_asal: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="A / B / Unggul" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Jenis Kelamin</label>
-                      <select value={manualData.jenis_kelamin} onChange={e => setManualData(d => ({ ...d, jenis_kelamin: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih</option>
-                        <option value="L">Laki-laki</option>
-                        <option value="P">Perempuan</option>
-                      </select>
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <select value={manualData.jenis_kelamin} onChange={e => setManualData(d => ({ ...d, jenis_kelamin: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          <option value="">Pilih</option>
+                          <option value="L">Laki-laki</option>
+                          <option value="P">Perempuan</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">IPK</label>
-                      <input type="number" step="0.01" min="0" max="4" value={manualData.ipk} onChange={e => setManualData(d => ({ ...d, ipk: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="0.00" />
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <input type="number" step="0.01" min="0" max="4" value={manualData.ipk} onChange={e => setManualData(d => ({ ...d, ipk: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="0.00" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">SKS Lulus</label>
-                      <input type="number" min="0" value={manualData.sks_lulus} onChange={e => setManualData(d => ({ ...d, sks_lulus: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="0" />
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <input type="number" min="0" value={manualData.sks_lulus} onChange={e => setManualData(d => ({ ...d, sks_lulus: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="0" />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Semester Aktif</label>
-                      <input type="number" min="1" value={manualData.semester_aktif} onChange={e => setManualData(d => ({ ...d, semester_aktif: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="1" />
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <input type="number" min="1" value={manualData.semester_aktif} onChange={e => setManualData(d => ({ ...d, semester_aktif: e.target.value }))}
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none"
+                          placeholder="1" />
+                      </div>
                     </div>
                   </div>
                   <p className="text-xs text-gray-400 italic">Validasi syarat akademik dilakukan manual berdasarkan transkrip PT asal</p>
@@ -428,32 +479,69 @@ export default function PermohonanFormPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Permohonan *</label>
-                  <textarea value={alasan} onChange={e => setAlasan(e.target.value)} rows={4}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    placeholder="Jelaskan alasan permohonan Anda..." />
+                  <div style={fieldWrapStyle("alasan", !!alasan.trim())} className="overflow-hidden">
+                    <textarea value={alasan} onChange={e => setAlasan(e.target.value)} rows={4}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none resize-none"
+                      placeholder="Jelaskan alasan permohonan Anda..." />
+                  </div>
                 </div>
 
-                {/* PM-CUTI: Semester mulai cuti + jumlah */}
+                {/* PM-CUTI: Kategori + Semester */}
                 {isCuti && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester Mulai Cuti</label>
-                      <select value={semesterMulaiCuti} onChange={e => setSemesterMulaiCuti(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Semester</option>
-                        {semesterList.map(s => (
-                          <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
-                        ))}
-                      </select>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori Cuti *</label>
+                      <div style={fieldWrapStyle("kategoriCuti", !!kategoriCuti)} className="overflow-hidden">
+                        <select value={kategoriCuti} onChange={e => setKategoriCuti(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          {kategoriCutiList.length > 0
+                            ? kategoriCutiList.map(k => <option key={k.id_kategori_cuti} value={k.id_kategori_cuti}>{k.nm_kategori}</option>)
+                            : <>
+                                <option value="terencana">Cuti Terencana</option>
+                                <option value="kecelakaan">Cuti Tidak Terencana — Kecelakaan</option>
+                                <option value="sakit">Cuti Tidak Terencana — Sakit</option>
+                                <option value="melahirkan">Cuti Tidak Terencana — Melahirkan</option>
+                              </>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                    {kategoriCuti !== "terencana" && (
+                      <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                        <FiAlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-amber-700 dark:text-amber-300">Untuk cuti tidak terencana, pastikan menyertakan dokumen pendukung (surat keterangan dokter/RS, laporan kecelakaan, dll.) pada langkah berikutnya.</p>
+                      </div>
+                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester Mulai Cuti *</label>
+                      <div style={fieldWrapStyle("semesterMulaiCuti", !!semesterMulaiCuti)} className="overflow-hidden">
+                        <select value={semesterMulaiCuti} onChange={e => setSemesterMulaiCuti(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          <option value="">Pilih Semester</option>
+                          {semesterList.map(s => (
+                            <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah Semester Cuti</label>
-                      <select value={jumlahSemesterCuti} onChange={e => setJumlahSemesterCuti(Number(e.target.value))}
-                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value={1}>1 Semester</option>
-                        <option value={2}>2 Semester</option>
-                      </select>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jumlah Semester *</label>
+                      <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                        <select value={jumlahSemesterCuti} onChange={e => setJumlahSemesterCuti(Number(e.target.value))}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          <option value={1}>1 Semester</option>
+                          <option value={2}>2 Semester</option>
+                        </select>
+                      </div>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester Akhir Cuti</label>
+                      <div className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300">
+                        {semesterAkhirCuti ? formatSemesterName(semesterAkhirCuti) : <span className="text-gray-400">Otomatis terisi</span>}
+                      </div>
+                    </div>
+                  </div>
                   </div>
                 )}
 
@@ -462,33 +550,39 @@ export default function PermohonanFormPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fakultas Tujuan *</label>
-                      <select value={selectedFakultas} onChange={e => setSelectedFakultas(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Fakultas</option>
-                        {fakultasList.map(f => (
-                          <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
-                        ))}
-                      </select>
+                      <div style={fieldWrapStyle("selectedFakultas", !!selectedFakultas)} className="overflow-hidden">
+                        <select value={selectedFakultas} onChange={e => setSelectedFakultas(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          <option value="">Pilih Fakultas</option>
+                          {fakultasList.map(f => (
+                            <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Program Studi Tujuan *</label>
-                      <select value={selectedProdi} onChange={e => setSelectedProdi(e.target.value)}
-                        disabled={!selectedFakultas}
-                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
-                        <option value="">{selectedFakultas ? (prodiList.length ? 'Pilih Prodi' : 'Memuat...') : 'Pilih fakultas terlebih dahulu'}</option>
-                        {prodiList.map(p => (
-                          <option key={p.id_prodi} value={p.id_prodi}>{p.nm_prodi} ({p.nm_jenjang})</option>
-                        ))}
-                      </select>
+                      <div style={fieldWrapStyle("selectedProdi", !!selectedProdi)} className="overflow-hidden">
+                        <select value={selectedProdi} onChange={e => setSelectedProdi(e.target.value)}
+                          disabled={!selectedFakultas}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none disabled:opacity-50">
+                          <option value="">{selectedFakultas ? (prodiList.length ? 'Pilih Prodi' : 'Memuat...') : 'Pilih fakultas terlebih dahulu'}</option>
+                          {prodiList.map(p => (
+                            <option key={p.id_prodi} value={p.id_prodi}>{p.nm_prodi} ({p.nm_jenjang})</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan Tambahan</label>
-                  <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={2}
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    placeholder="Catatan tambahan (opsional)..." />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                    <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={2}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none resize-none"
+                      placeholder="Catatan tambahan (opsional)..." />
+                  </div>
                 </div>
               </div>
             </CardBody></Card>
@@ -558,7 +652,22 @@ export default function PermohonanFormPage() {
                 <p className="text-xs text-gray-500 mb-1">Alasan:</p>
                 <p className="text-sm text-gray-900 dark:text-white">{alasan || "-"}</p>
               </div>
-              {isCuti && <p className="text-sm text-gray-600 mb-4">Jumlah semester cuti: <strong>{jumlahSemesterCuti}</strong></p>}
+              {isCuti && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4 space-y-2">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Kategori Cuti:</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{kategoriCutiList.find(k => k.id_kategori_cuti === kategoriCuti)?.nm_kategori || kategoriCuti}</p>
+                  </div>
+                  {semesterMulaiCuti && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Periode Cuti:</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {formatSemesterName(semesterMulaiCuti)} — {semesterAkhirCuti ? formatSemesterName(semesterAkhirCuti) : "-"} ({jumlahSemesterCuti} semester)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dokumen ({Object.values(uploadedFiles).filter(Boolean).length + existingDokumen.length}/{persyaratan.length})</h3>
               <div className="space-y-2">
                 {persyaratan.map(req => {
@@ -616,20 +725,19 @@ export default function PermohonanFormPage() {
         <div className="flex justify-between pt-2">
           <Button variant="flat" startContent={<FiChevronLeft className="w-4 h-4" />} isDisabled={currentStep === 1} onPress={() => setCurrentStep(s => Math.max(1, s - 1))}>Sebelumnya</Button>
           {currentStep < 3 && <Button color="primary" endContent={<FiChevronRight className="w-4 h-4" />} onPress={() => {
-            // Validasi step 1: alasan wajib diisi
-            if (currentStep === 1 && !alasan.trim()) {
-              toast.error("Alasan permohonan wajib diisi");
-              return;
-            }
-            // Validasi step 1 PM-ALIH: prodi tujuan wajib dipilih
-            if (currentStep === 1 && isAlih && !selectedProdi) {
-              toast.error("Program studi tujuan wajib dipilih");
-              return;
-            }
-            // Validasi step 1 PM-ALIH: syarat akademik
-            if (currentStep === 1 && isAlih && syaratAlih && !syaratAlih.allPass) {
-              toast.error("Anda belum memenuhi syarat akademik untuk Alih Program");
-              return;
+            if (currentStep === 1) {
+              const errors: string[] = [];
+              const flags = new Set(flaggedFields);
+              if (!alasan.trim()) { errors.push("Alasan permohonan wajib diisi"); flags.add("alasan"); }
+              if (isCuti && !semesterMulaiCuti) { errors.push("Semester mulai cuti wajib dipilih"); flags.add("semesterMulaiCuti"); }
+              if (isAlih && !selectedFakultas) { errors.push("Fakultas tujuan wajib dipilih"); flags.add("selectedFakultas"); }
+              if (isAlih && !selectedProdi) { errors.push("Program studi tujuan wajib dipilih"); flags.add("selectedProdi"); }
+              if (isAlih && !isDariLuar && syaratAlih && !syaratAlih.allPass) errors.push("Anda belum memenuhi syarat akademik untuk Alih Program");
+              if (isDariLuar && !manualData.nm_mahasiswa.trim()) { errors.push("Nama lengkap wajib diisi"); flags.add("nm_mahasiswa"); }
+              if (isDariLuar && !manualData.nim_asal.trim()) { errors.push("NIM asal wajib diisi"); flags.add("nim_asal"); }
+              if (isDariLuar && !manualData.nm_pt_asal.trim()) { errors.push("Perguruan tinggi asal wajib diisi"); flags.add("nm_pt_asal"); }
+              setFlaggedFields(flags);
+              if (errors.length > 0) { errors.forEach(e => toast.error(e)); return; }
             }
             // Validasi step 2: dokumen wajib harus diupload
             if (currentStep === 2 && !allRequiredUploaded) {

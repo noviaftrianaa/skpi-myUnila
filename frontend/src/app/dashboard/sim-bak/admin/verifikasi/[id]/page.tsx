@@ -9,11 +9,17 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile, FiUpload } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
-import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl } from "@/lib/services/sim-bak/simBakService";
+import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl, cekKrsPengajuan, getRiwayatCutiPengajuan } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
-import type { Pengajuan } from "@/lib/services/sim-bak/types";
+import type { Pengajuan, RiwayatCutiResponse } from "@/lib/services/sim-bak/types";
 import WorkflowStepper from "../../../components/WorkflowStepper";
+
+function formatSemesterName(idSmt: string): string {
+  const year = parseInt(idSmt.substring(0, 4));
+  const sem = parseInt(idSmt.substring(4, 5));
+  return `${year}/${year + 1} ${sem === 1 ? "Ganjil" : "Genap"}`;
+}
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
@@ -36,6 +42,8 @@ export default function VerifikasiDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [progress, setProgress] = useState<WorkflowProgress | null>(null);
   const [fileSuratPengantar, setFileSuratPengantar] = useState<File | null>(null);
+  const [nomorSuratPengantar, setNomorSuratPengantar] = useState("");
+  const [tglSuratPengantar, setTglSuratPengantar] = useState(new Date().toISOString().split("T")[0]);
   // Preview dokumen
   const [previewDoc, setPreviewDoc] = useState<{ url: string; name: string; type: string } | null>(null);
   const [previewLoading, setPreviewLoading] = useState("");
@@ -62,10 +70,20 @@ export default function VerifikasiDetailPage() {
   const [fileSK, setFileSK] = useState<File | null>(null);
   const [filePenolakan, setFilePenolakan] = useState<File | null>(null);
   const [nomorPenolakan, setNomorPenolakan] = useState("");
+  const [krsInfo, setKrsInfo] = useState<{ ada_krs: boolean; sks_semester?: number; message: string } | null>(null);
+  const [riwayatCuti, setRiwayatCuti] = useState<RiwayatCutiResponse | null>(null);
 
   const fetchDetail = () => {
     if (!user || !id) return;
-    getPengajuanDetail(id).then(setDetail).catch(() => setDetail(null)).finally(() => setLoading(false));
+    getPengajuanDetail(id).then((d) => {
+      setDetail(d);
+      if (d.kode_layanan === "PM-CUTI") {
+        getRiwayatCutiPengajuan(id).then(setRiwayatCuti).catch(() => {});
+        if (d.kategori_cuti && d.kategori_cuti !== "terencana") {
+          cekKrsPengajuan(id).then(setKrsInfo).catch(() => {});
+        }
+      }
+    }).catch(() => setDetail(null)).finally(() => setLoading(false));
     getWorkflowProgress(id).then(setProgress).catch(() => {});
   };
 
@@ -122,6 +140,10 @@ export default function VerifikasiDetailPage() {
         toast.error("Upload surat pengantar dekan terlebih dahulu");
         return;
       }
+      if (krsInfo?.ada_krs) {
+        toast.error("KRS aktif masih terdeteksi. Pastikan KRS sudah dihapus melalui SIAKAD.");
+        return;
+      }
       setShowVerifikasiConfirm(true);
       return;
     }
@@ -142,6 +164,8 @@ export default function VerifikasiDetailPage() {
         await verifikasiPengajuan(id, {
           catatan: catatan || undefined,
           surat_pengantar: fileSuratPengantar || undefined,
+          nomor_surat_pengantar: nomorSuratPengantar || undefined,
+          tgl_surat_pengantar: tglSuratPengantar || undefined,
         });
       } else {
         await mintaPerbaikan(id, { catatan });
@@ -149,6 +173,8 @@ export default function VerifikasiDetailPage() {
       toast.success(action === "verifikasi" ? "Berhasil diverifikasi" : "Permintaan perbaikan dikirim");
       setCatatan("");
       setFileSuratPengantar(null);
+      setNomorSuratPengantar("");
+      setTglSuratPengantar(new Date().toISOString().split("T")[0]);
       setShowVerifikasiConfirm(false);
       setShowPerbaikanConfirm(false);
       router.push("/dashboard/sim-bak/admin/verifikasi");
@@ -234,6 +260,148 @@ export default function VerifikasiDetailPage() {
               </CardBody></Card>
             )}
 
+            {/* Detail Pengajuan: alasan + info cuti/alih */}
+            {(detail.alasan || detail.id_smt_mulai_cuti || detail.kode_layanan === "PM-CUTI") && (
+              <Card className="shadow-md rounded-xl border-none"><CardBody className="p-5">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Detail Pengajuan</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {detail.alasan && (
+                    <div className="sm:col-span-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Alasan Permohonan</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.alasan)}</p>
+                    </div>
+                  )}
+                  {detail.kode_layanan === "PM-CUTI" && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Kategori Cuti</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white capitalize">
+                        {detail.kategori_cuti ? String(detail.kategori_cuti).replace(/_/g, " ") : "Terencana"}
+                      </p>
+                    </div>
+                  )}
+                  {detail.jumlah_semester_cuti && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Jumlah Semester Cuti</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{detail.jumlah_semester_cuti} semester</p>
+                    </div>
+                  )}
+                  {detail.id_smt_mulai_cuti && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Semester Mulai Cuti</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{formatSemesterName(String(detail.id_smt_mulai_cuti))}</p>
+                    </div>
+                  )}
+                  {(detail.id_smt_akhir_cuti || (detail.id_smt_mulai_cuti && detail.jumlah_semester_cuti)) && (
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Semester Akhir Cuti</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                        {formatSemesterName(detail.id_smt_akhir_cuti
+                          ? String(detail.id_smt_akhir_cuti)
+                          : (() => { let y = parseInt(String(detail.id_smt_mulai_cuti).substring(0,4)), s = parseInt(String(detail.id_smt_mulai_cuti).charAt(4)); for (let i = 1; i < Number(detail.jumlah_semester_cuti); i++) { if (s===1) s=2; else { s=1; y++; } } return `${y}${s}`; })()
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardBody></Card>
+            )}
+
+            {/* Riwayat Cuti Mahasiswa */}
+            {riwayatCuti && (
+              (() => {
+                const total = riwayatCuti.total_semester_cuti;
+                const hasSimbak = riwayatCuti.simbak.length > 0;
+                const hasPdut = riwayatCuti.pdut.length > 0;
+                const isEmpty = !hasSimbak && !hasPdut;
+                const borderColor = isEmpty || total === 0
+                  ? "border-green-300 dark:border-green-700"
+                  : total >= 4
+                    ? "border-red-300 dark:border-red-700"
+                    : "border-amber-300 dark:border-amber-700";
+                const chipColor = isEmpty || total === 0 ? "success" : total >= 4 ? "danger" : "warning";
+                const statusColors: Record<string, string> = {
+                  draft: "bg-gray-100 text-gray-600", diajukan: "bg-blue-100 text-blue-700",
+                  diverifikasi: "bg-indigo-100 text-indigo-700", menunggu_persetujuan: "bg-amber-100 text-amber-700",
+                  disetujui: "bg-emerald-100 text-emerald-700", terbit: "bg-green-100 text-green-700",
+                  ditolak: "bg-red-100 text-red-700", perlu_perbaikan: "bg-orange-100 text-orange-700",
+                };
+                return (
+                  <Card className={`shadow-md rounded-xl border-2 ${borderColor}`}><CardBody className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Riwayat Cuti Mahasiswa</h2>
+                      <Chip color={chipColor as "success" | "danger" | "warning"} variant="flat" size="sm">{total} semester cuti</Chip>
+                    </div>
+                    {total >= 4 && (
+                      <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                        <p className="text-sm text-red-700 dark:text-red-300">⚠ Mahasiswa telah mengambil cuti {total} semester. Perhatikan batas maksimal cuti akademik.</p>
+                      </div>
+                    )}
+                    {isEmpty ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada riwayat cuti sebelumnya.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {hasSimbak && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Data SI MBAK</p>
+                            <div className="space-y-2">
+                              {riwayatCuti.simbak.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[item.status] || "bg-gray-100 text-gray-600"}`}>
+                                      {item.status === "terbit" ? "Terbit" : item.status === "ditolak" ? "Ditolak" : item.status === "draft" ? "Draft" : item.status.replace(/_/g, " ")}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.nomor_permohonan}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {item.kategori_cuti ? item.kategori_cuti.replace(/_/g, " ") : "terencana"}
+                                        {item.id_smt_mulai_cuti && ` · ${formatSemesterName(item.id_smt_mulai_cuti)}`}
+                                        {item.id_smt_akhir_cuti && ` — ${formatSemesterName(item.id_smt_akhir_cuti)}`}
+                                        {item.jumlah_semester_cuti && ` (${item.jumlah_semester_cuti} smt)`}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {item.tgl_diajukan && <span className="text-xs text-gray-400 flex-shrink-0">{new Date(item.tgl_diajukan).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {hasPdut && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Data SIAKAD</p>
+                            <div className="space-y-2">
+                              {riwayatCuti.pdut.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">{item.nm_smt}</p>
+                                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">{item.nm_stat_mhs}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardBody></Card>
+                );
+              })()
+            )}
+
+            {/* KRS Warning — cuti tidak terencana */}
+            {krsInfo?.ada_krs && (
+              <Card className="shadow-md rounded-xl border-2 border-red-300 dark:border-red-700"><CardBody className="p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                    <FiAlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-red-700 dark:text-red-400">KRS Aktif Terdeteksi</h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{krsInfo.message}</p>
+                    <p className="text-xs text-gray-500 mt-2">Verifikasi tidak dapat dilanjutkan sampai KRS dihapus. Setelah KRS dihapus di SIAKAD, refresh halaman ini untuk melanjutkan.</p>
+                  </div>
+                </div>
+              </CardBody></Card>
+            )}
+
             {/* Dokumen */}
             <div>
               <div className="flex items-center gap-2 mb-4"><FiFileText className="w-5 h-5 text-blue-500" /><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Dokumen ({dokumen.length})</h2></div>
@@ -255,6 +423,9 @@ export default function VerifikasiDetailPage() {
                               {isSuratPengantar && <Chip size="sm" variant="flat" color="success" className="text-xs h-5">Verifikasi Fakultas</Chip>}
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">{String(doc.nama_file_asli)} · {doc.ukuran_byte ? `${Math.round(Number(doc.ukuran_byte)/1024)} KB` : ""}</p>
+                            {isSuratPengantar && doc.nomor_dokumen && (
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">No. {String(doc.nomor_dokumen)}{doc.tgl_dokumen ? ` — ${new Date(String(doc.tgl_dokumen)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}` : ""}</p>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -288,9 +459,11 @@ export default function VerifikasiDetailPage() {
               <Card className="shadow-md rounded-xl"><CardBody className="p-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Verifikasi</label>
-                  <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
-                    placeholder="Catatan untuk pemohon atau internal..." />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                    <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none resize-none"
+                      placeholder="Catatan untuk pemohon atau internal..." />
+                  </div>
                 </div>
               </CardBody></Card>
             )}
@@ -411,8 +584,8 @@ export default function VerifikasiDetailPage() {
                   <p className={`text-xs mt-0.5 ${suratPengantarUploaded ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
                     {suratPengantarUploaded
                       ? fileSuratPengantar
-                        ? `${fileSuratPengantar.name} (${Math.round(fileSuratPengantar.size / 1024)} KB)`
-                        : "Sudah diupload sebelumnya"
+                        ? `${fileSuratPengantar.name} (${Math.round(fileSuratPengantar.size / 1024)} KB)${nomorSuratPengantar ? ` — No. ${nomorSuratPengantar}` : ""}`
+                        : (() => { const sp = dokumen.find(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan"); return sp?.nomor_dokumen ? `No. ${sp.nomor_dokumen} — ${sp.tgl_dokumen ? new Date(String(sp.tgl_dokumen)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : ""}` : "Sudah diupload sebelumnya"; })()
                       : "⚠ Wajib diupload sebelum memproses verifikasi"}
                   </p>
                 </div>
@@ -443,7 +616,8 @@ export default function VerifikasiDetailPage() {
         {/* Info Surat Pengantar Dekan — untuk admin BAK melihat status upload (read-only) */}
         {!requireSuratPengantar && isPermohonanAkademik && userRole === "admin_bak" && (
           (() => {
-            const hasUploaded = dokumen.some(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan");
+            const spDoc = dokumen.find(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan");
+            const hasUploaded = !!spDoc;
             return (
               <Card className={`shadow-md rounded-xl border-2 ${hasUploaded ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10" : "border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10"}`}><CardBody className="p-5">
                 <div className="flex items-center gap-3">
@@ -455,7 +629,11 @@ export default function VerifikasiDetailPage() {
                   <div>
                     <h2 className="text-base font-semibold text-gray-900 dark:text-white">Surat Pengantar Dekan</h2>
                     <p className={`text-xs mt-0.5 ${hasUploaded ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                      {hasUploaded ? "Sudah diupload oleh admin fakultas" : "⚠ Belum diupload oleh admin fakultas"}
+                      {hasUploaded
+                        ? spDoc?.nomor_dokumen
+                          ? `No. ${spDoc.nomor_dokumen} — ${spDoc.tgl_dokumen ? new Date(String(spDoc.tgl_dokumen)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : ""}`
+                          : "Sudah diupload oleh admin fakultas"
+                        : "⚠ Belum diupload oleh admin fakultas"}
                     </p>
                   </div>
                   {hasUploaded && <Chip color="success" variant="flat" size="sm" className="ml-auto" startContent={<FiCheck className="w-3 h-3" />}>Tersedia</Chip>}
@@ -478,7 +656,7 @@ export default function VerifikasiDetailPage() {
             {/* Verifikasi/Proses — jika bukan tahap terakhir */}
             {!isLastStage && (
               <Button color="primary" variant="flat" startContent={<FiCheck className="w-4 h-4" />} isLoading={actionLoading}
-                isDisabled={requireSuratPengantar && !suratPengantarUploaded}
+                isDisabled={(requireSuratPengantar && !suratPengantarUploaded) || !!krsInfo?.ada_krs}
                 onPress={() => handleAction("verifikasi")}>
                 {activeTahapan ? `Proses (${activeTahapan.nm_tahapan})` : "Verifikasi"}
               </Button>
@@ -528,6 +706,21 @@ export default function VerifikasiDetailPage() {
               <div className="p-6 space-y-4">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Upload Surat Pengantar Dekan</h2>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Surat Pengantar <span className="text-red-500">*</span></label>
+                  <div style={{ border: "1px solid #d1d5db", borderRadius: 8 }}>
+                    <input type="text" value={nomorSuratPengantar} onChange={e => setNomorSuratPengantar(e.target.value)}
+                      placeholder="cth: 001/UN26.FMIPA/PP/2026"
+                      className="w-full px-3 py-2 text-sm bg-transparent rounded-lg focus:outline-none" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Surat Pengantar <span className="text-red-500">*</span></label>
+                  <div style={{ border: "1px solid #d1d5db", borderRadius: 8 }}>
+                    <input type="date" value={tglSuratPengantar} onChange={e => setTglSuratPengantar(e.target.value)}
+                      className="w-full px-3 py-2 text-sm bg-transparent rounded-lg focus:outline-none" />
+                  </div>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File Surat Pengantar (PDF) <span className="text-red-500">*</span></label>
                   <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
                     <input type="file" accept=".pdf" onChange={e => setFileSuratPengantar(e.target.files?.[0] || null)}
@@ -538,7 +731,7 @@ export default function VerifikasiDetailPage() {
                 <div className="flex gap-3">
                   <Button variant="flat" className="flex-1" onPress={() => setShowSuratPengantarForm(false)}>Batal</Button>
                   <Button color="primary" className="flex-1"
-                    isDisabled={!fileSuratPengantar}
+                    isDisabled={!fileSuratPengantar || !nomorSuratPengantar.trim()}
                     onPress={() => { setShowSuratPengantarForm(false); toast.success("Surat pengantar siap dikirim bersama verifikasi"); }}>
                     Simpan
                   </Button>
@@ -646,9 +839,11 @@ export default function VerifikasiDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Penolakan <span className="text-red-500">*</span></label>
-                  <textarea rows={4} value={alasanTolak} onChange={e => setAlasanTolak(e.target.value)}
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                    placeholder="Jelaskan alasan penolakan pengajuan..." />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                    <textarea rows={4} value={alasanTolak} onChange={e => setAlasanTolak(e.target.value)}
+                      className="w-full text-sm px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none resize-none"
+                      placeholder="Jelaskan alasan penolakan pengajuan..." />
+                  </div>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="flat" className="flex-1" onPress={() => setShowTolakForm(false)}>Batal</Button>
@@ -690,15 +885,19 @@ export default function VerifikasiDetailPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Surat</label>
-                  <input type="text" value={nomorDokumen} onChange={e => setNomorDokumen(e.target.value)}
-                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Contoh: 001/UN26.BAK/SK/2026" />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #9ca3af" }} className="overflow-hidden shadow-sm">
+                    <input type="text" value={nomorDokumen} onChange={e => setNomorDokumen(e.target.value)}
+                      className="w-full text-sm px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none"
+                      placeholder="Contoh: 001/UN26.BAK/SK/2026" />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Surat</label>
-                  <input type="date" value={tglDokumen} onChange={e => setTglDokumen(e.target.value)}
-                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #9ca3af" }} className="overflow-hidden shadow-sm">
+                    <input type="date" value={tglDokumen} onChange={e => setTglDokumen(e.target.value)}
+                      className="w-full text-sm px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none" />
+                  </div>
                 </div>
 
                 <div>
@@ -721,9 +920,11 @@ export default function VerifikasiDetailPage() {
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">Nomor Surat Penolakan</label>
-                        <input type="text" value={nomorPenolakan} onChange={e => setNomorPenolakan(e.target.value)}
-                          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Nomor surat penolakan (opsional)" />
+                        <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                          <input type="text" value={nomorPenolakan} onChange={e => setNomorPenolakan(e.target.value)}
+                            className="w-full text-sm px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none"
+                            placeholder="Nomor surat penolakan (opsional)" />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-xs text-gray-500 mb-1">File Surat Penolakan (PDF)</label>
@@ -739,9 +940,11 @@ export default function VerifikasiDetailPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan (opsional)</label>
-                  <textarea rows={2} value={catatan} onChange={e => setCatatan(e.target.value)}
-                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    placeholder="Catatan penerbitan..." />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                    <textarea rows={2} value={catatan} onChange={e => setCatatan(e.target.value)}
+                      className="w-full text-sm px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none resize-none"
+                      placeholder="Catatan penerbitan..." />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">

@@ -85,7 +85,9 @@ class PengajuanController extends Controller
                 'alasan' => 'nullable|string',
                 'catatan_pemohon' => 'nullable|string',
                 'id_smt_mulai_cuti' => 'nullable|string|max:10',
+                'id_smt_akhir_cuti' => 'nullable|string|max:10',
                 'jumlah_semester_cuti' => 'nullable|integer|in:1,2',
+                'kategori_cuti' => 'nullable|string|max:30',
                 'id_prodi_tujuan' => 'nullable|uuid',
                 'id_fakultas_tujuan' => 'nullable|uuid',
                 'a_dari_luar' => 'nullable|boolean',
@@ -161,8 +163,22 @@ class PengajuanController extends Controller
                 }
 
                 if ($jenisLayanan->kode_layanan === 'PM-CUTI') {
+                    if (empty($data['kategori_cuti'])) {
+                        $data['kategori_cuti'] = 'terencana';
+                    }
+                    if (empty($data['id_smt_mulai_cuti'])) {
+                        return $this->errorResponse('Semester mulai cuti wajib dipilih', 422);
+                    }
                     if (empty($data['jumlah_semester_cuti'])) {
                         return $this->errorResponse('Jumlah semester cuti wajib diisi (1 atau 2)', 422);
+                    }
+                    if (empty($data['id_smt_akhir_cuti'])) {
+                        return $this->errorResponse('Semester akhir cuti wajib diisi', 422);
+                    }
+                    // Validasi konsistensi: hitung akhir dari mulai + jumlah
+                    $expectedAkhir = $this->computeSemesterAkhir($data['id_smt_mulai_cuti'], (int) $data['jumlah_semester_cuti']);
+                    if ($expectedAkhir && $data['id_smt_akhir_cuti'] !== $expectedAkhir) {
+                        return $this->errorResponse('Semester akhir cuti tidak sesuai dengan semester mulai dan jumlah semester', 422);
                     }
                     if ($pdutData && !empty($pdutData['semester_aktif']) && (int)$pdutData['semester_aktif'] <= 1) {
                         return $this->errorResponse('Cuti akademik tidak dapat diajukan pada semester 1', 422);
@@ -393,6 +409,81 @@ class PengajuanController extends Controller
     }
 
     /**
+     * Cek KRS aktif mahasiswa pada semester tertentu (untuk validasi cuti tidak terencana).
+     */
+    public function cekKrs(Request $request, string $id): JsonResponse
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $pemohon = $this->repository->getDataPemohon($id);
+            if (!$pemohon || empty($pemohon->nim)) {
+                return $this->successResponse(['ada_krs' => false, 'message' => 'Data pemohon tidak ditemukan']);
+            }
+
+            $idSmt = $pengajuan->id_smt_mulai_cuti;
+            if (empty($idSmt)) {
+                return $this->successResponse(['ada_krs' => false, 'message' => 'Semester cuti belum ditentukan']);
+            }
+
+            $krs = $this->pdutRepository->getKrsAktif($pemohon->nim, $idSmt);
+
+            if ($krs && $krs['ada_krs']) {
+                return $this->successResponse([
+                    'ada_krs' => true,
+                    'nim' => $pemohon->nim,
+                    'id_smt' => $idSmt,
+                    'sks_semester' => $krs['sks_semester'],
+                    'message' => "Mahasiswa memiliki KRS aktif pada semester ini ({$krs['sks_semester']} SKS). Pastikan KRS sudah dihapus melalui SIAKAD sebelum memproses cuti.",
+                ]);
+            }
+
+            return $this->successResponse(['ada_krs' => false, 'message' => 'Tidak ditemukan KRS aktif']);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.cekKrs: ' . $e->getMessage());
+            return $this->successResponse(['ada_krs' => false, 'message' => 'Gagal mengecek KRS']);
+        }
+    }
+
+    public function riwayatCuti(string $id): JsonResponse
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $simbak = [];
+            if ($pengajuan->id_pemohon) {
+                $simbak = $this->repository->getRiwayatCutiByPemohon($pengajuan->id_pemohon, $id);
+            }
+
+            $pdut = [];
+            $pemohon = $this->repository->getDataPemohon($id);
+            if ($pemohon && !empty($pemohon->nim)) {
+                $pdut = $this->pdutRepository->getRiwayatCutiSiakad($pemohon->nim);
+            }
+
+            $totalSimbak = 0;
+            foreach ($simbak as $item) {
+                if ($item->status === 'terbit' && $item->jumlah_semester_cuti) {
+                    $totalSimbak += (int) $item->jumlah_semester_cuti;
+                }
+            }
+            $totalPdut = count($pdut);
+            $total = $totalSimbak + $totalPdut;
+
+            return $this->successResponse([
+                'simbak' => $simbak,
+                'pdut' => $pdut,
+                'total_semester_cuti' => $total,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.riwayatCuti: ' . $e->getMessage());
+            return $this->successResponse(['simbak' => [], 'pdut' => [], 'total_semester_cuti' => 0]);
+        }
+    }
+
+    /**
      * Upload dokumen persyaratan.
      */
     public function uploadDokumen(Request $request, string $id): JsonResponse
@@ -572,5 +663,19 @@ class PengajuanController extends Controller
             Log::error('Pengajuan.ajukan: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
+    }
+
+    private function computeSemesterAkhir(string $idSmtMulai, int $jumlah): ?string
+    {
+        if (strlen($idSmtMulai) < 5) return null;
+        $year = (int) substr($idSmtMulai, 0, 4);
+        $sem = (int) substr($idSmtMulai, 4, 1);
+        if ($sem < 1 || $sem > 2) return null;
+
+        for ($i = 1; $i < $jumlah; $i++) {
+            if ($sem === 1) { $sem = 2; } else { $sem = 1; $year++; }
+        }
+
+        return $year . $sem;
     }
 }

@@ -70,6 +70,8 @@ class VerifikasiController extends Controller
             $data = $request->validate([
                 'catatan' => 'nullable|string',
                 'surat_pengantar' => 'nullable|file|mimes:pdf|max:20480',
+                'nomor_surat_pengantar' => 'nullable|string|max:100',
+                'tgl_surat_pengantar' => 'nullable|date',
             ]);
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
@@ -134,6 +136,8 @@ class VerifikasiController extends Controller
                     'tipe_file' => $file->getMimeType(),
                     'ukuran_byte' => $file->getSize(),
                     'id_pengunggah' => $user->id_pengguna,
+                    'nomor_dokumen' => $data['nomor_surat_pengantar'] ?? null,
+                    'tgl_dokumen' => $data['tgl_surat_pengantar'] ?? null,
                 ]);
             }
 

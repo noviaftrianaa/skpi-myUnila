@@ -7,13 +7,19 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiUser, FiAlertCircle } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiUser, FiAlertCircle, FiFileText } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
 import { getPengajuanDetail, approvePengajuan, rejectPengajuan, getWorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { StatusPengajuan, PersetujuanPengajuan, Pengajuan } from "@/lib/services/sim-bak/types";
 import ApprovalTimeline from "../../../components/ApprovalTimeline";
 import WorkflowStepper from "../../../components/WorkflowStepper";
+
+function formatSemesterName(idSmt: string): string {
+  const year = parseInt(idSmt.substring(0, 4));
+  const sem = parseInt(idSmt.substring(4, 5));
+  return `${year}/${year + 1} ${sem === 1 ? "Ganjil" : "Genap"}`;
+}
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
@@ -57,6 +63,8 @@ export default function PersetujuanDetailPage() {
 
   const status = detail.status;
   const pemohon = detail.data_pemohon ?? null;
+  const dokumen = detail.dokumen ?? [];
+  const suratPengantarDoc = dokumen.find(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan");
   const persetujuan = (detail.persetujuan ?? []).map(p => ({
     ...p, id_persetujuan: p.id_persetujuan, role_penyetuju: p.kode_role_approver, nm_penyetuju: p.nm_approver,
     status: p.keputusan === "disetujui" ? "disetujui" as const : p.keputusan === "ditolak" ? "ditolak" as const : "menunggu" as const,
@@ -113,8 +121,16 @@ export default function PersetujuanDetailPage() {
           <Card className="shadow-md rounded-xl"><CardBody className="p-5">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Detail Pengajuan</h2>
             <div className="space-y-3 text-sm">
-              {[["No. Pengajuan", detail.nomor_permohonan], ["Jenis", detail.nm_layanan], ["Tanggal", detail.tgl_diajukan ? new Date(String(detail.tgl_diajukan)).toLocaleDateString("id-ID") : "-"]].map(([l, v]) => (
-                <div key={String(l)} className="flex justify-between"><span className="text-gray-500">{String(l)}</span><span className="font-medium text-gray-900 dark:text-white">{String(v ?? "-")}</span></div>
+              {[
+                ["No. Pengajuan", detail.nomor_permohonan],
+                ["Jenis", detail.nm_layanan],
+                ["Tanggal", detail.tgl_diajukan ? new Date(String(detail.tgl_diajukan)).toLocaleDateString("id-ID") : "-"],
+                ...(detail.kode_layanan === "PM-CUTI" ? [["Kategori Cuti", detail.kategori_cuti ? String(detail.kategori_cuti).replace(/_/g, ' ') : "Terencana"]] : []),
+                ...(detail.jumlah_semester_cuti ? [["Jumlah Semester Cuti", `${detail.jumlah_semester_cuti} semester`]] : []),
+                ...(detail.id_smt_mulai_cuti ? [["Semester Mulai Cuti", formatSemesterName(String(detail.id_smt_mulai_cuti))]] : []),
+                ...((detail.id_smt_akhir_cuti || (detail.id_smt_mulai_cuti && detail.jumlah_semester_cuti)) ? [["Semester Akhir Cuti", formatSemesterName(detail.id_smt_akhir_cuti ? String(detail.id_smt_akhir_cuti) : (() => { let y = parseInt(String(detail.id_smt_mulai_cuti).substring(0,4)), s = parseInt(String(detail.id_smt_mulai_cuti).charAt(4)); for (let i = 1; i < Number(detail.jumlah_semester_cuti); i++) { if (s===1) s=2; else { s=1; y++; } } return `${y}${s}`; })())]] : []),
+              ].map(([l, v]) => (
+                <div key={String(l)} className="flex justify-between"><span className="text-gray-500">{String(l)}</span><span className="font-medium text-gray-900 dark:text-white capitalize">{String(v ?? "-")}</span></div>
               ))}
               {detail.alasan && <div><span className="text-gray-500 block mb-1">Alasan</span><p className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 text-sm italic">{String(detail.alasan)}</p></div>}
             </div>
@@ -131,6 +147,26 @@ export default function PersetujuanDetailPage() {
             </CardBody></Card>
           )}
         </div>
+
+        {/* Info Surat Pengantar Dekan */}
+        {suratPengantarDoc && (
+          <Card className="shadow-md rounded-xl border-2 border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10"><CardBody className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                <FiFileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Surat Pengantar Dekan</h2>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                  {suratPengantarDoc.nomor_dokumen
+                    ? `No. ${String(suratPengantarDoc.nomor_dokumen)} — ${suratPengantarDoc.tgl_dokumen ? new Date(String(suratPengantarDoc.tgl_dokumen)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : ""}`
+                    : String(suratPengantarDoc.nama_file_asli)}
+                </p>
+              </div>
+              <Chip color="success" variant="flat" size="sm" className="ml-auto" startContent={<FiCheck className="w-3 h-3" />}>Tersedia</Chip>
+            </div>
+          </CardBody></Card>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 justify-end">
@@ -153,9 +189,11 @@ export default function PersetujuanDetailPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan {showPanel === "reject" && <span className="text-red-500">*</span>}</label>
-                  <textarea rows={4} value={actionCatatan} onChange={e => setActionCatatan(e.target.value)}
-                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    placeholder={showPanel === "approve" ? "Catatan (opsional)..." : "Alasan penolakan (wajib)..."} />
+                  <div style={{ borderRadius: "0.5rem", border: "1px solid #9ca3af" }} className="overflow-hidden shadow-sm">
+                    <textarea rows={4} value={actionCatatan} onChange={e => setActionCatatan(e.target.value)}
+                      className="w-full text-sm px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none resize-none"
+                      placeholder={showPanel === "approve" ? "Catatan (opsional)..." : "Alasan penolakan (wajib)..."} />
+                  </div>
                 </div>
                 <div className="flex gap-3">
                   <Button variant="flat" className="flex-1" onPress={() => setShowPanel(null)}>Batal</Button>
