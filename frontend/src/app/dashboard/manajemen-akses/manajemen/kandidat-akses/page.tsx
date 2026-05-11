@@ -4,12 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { MdSecurity } from "react-icons/md";
+import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import {
   rolePenggunaService,
   type KandidatItem,
   type KandidatKategori,
   type KandidatResult,
 } from "@/lib/services/manakses/rolePenggunaService";
+
+const APP_KEY = "manajemen-akses";
 
 type KategoriMeta = {
   key: KandidatKategori;
@@ -112,6 +118,7 @@ function useDebounced<T>(value: T, delay = 300) {
 }
 
 export default function KandidatAksesPage() {
+  useRequireAuth();
   const [kategori, setKategori] = useState<KandidatKategori>("alumni");
   const [data, setData] = useState<KandidatResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -224,7 +231,14 @@ export default function KandidatAksesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 p-4 lg:p-6">
+    <DashboardLayoutWithDynamicMenu
+      appName="Manajemen Akses"
+      appIcon={<MdSecurity className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
+      pageTitle="Kandidat Review Akses"
+    >
+      <div className="space-y-5">
       {/* Header */}
       <div className="space-y-2">
         <nav className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
@@ -236,8 +250,8 @@ export default function KandidatAksesPage() {
         </nav>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Kandidat Review Akses</h1>
-            <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Kandidat Review Akses</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               Review pengguna yang perlu di-perpanjang, di-cabut, atau di-set masa berlakunya — by kategori.
             </p>
           </div>
@@ -632,7 +646,8 @@ export default function KandidatAksesPage() {
           </div>
         </Modal>
       )}
-    </div>
+      </div>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
 

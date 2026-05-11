@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { MdSecurity } from "react-icons/md";
+import { manajemenAksesMenuConfig } from "../../config/menuConfig";
 import {
   rolePenggunaService,
   type ImportPreviewRow,
@@ -11,7 +15,10 @@ import {
 } from "@/lib/services/manakses/rolePenggunaService";
 import { aplikasiService, type Aplikasi } from "@/lib/services/manakses/aplikasiService";
 
+const APP_KEY = "manajemen-akses";
+
 export default function ImportAksesPage() {
+  useRequireAuth();
   const [appList, setAppList] = useState<Aplikasi[]>([]);
   const [appLoading, setAppLoading] = useState(false);
   const [idAplikasi, setIdAplikasi] = useState<string>("");
@@ -98,7 +105,14 @@ export default function ImportAksesPage() {
   }, [preview, filterStatus]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-4 lg:p-6">
+    <DashboardLayoutWithDynamicMenu
+      appName="Manajemen Akses"
+      appIcon={<MdSecurity className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
+      pageTitle="Bulk Import Akses"
+    >
+      <div className="space-y-5">
       {/* Header */}
       <div className="space-y-2">
         <nav className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
@@ -109,8 +123,8 @@ export default function ImportAksesPage() {
           <span className="text-gray-700 dark:text-slate-300">Bulk Import Akses</span>
         </nav>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Bulk Import Akses Pengguna</h1>
-          <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Bulk Import Akses Pengguna</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Upload CSV untuk assign role secara batch. Hanya untuk peran fungsional —
             peran identitas (Mhs/Dosen/Tendik) auto-sync via SSO.
           </p>
@@ -352,7 +366,8 @@ export default function ImportAksesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
 
