@@ -276,10 +276,14 @@ func main() {
 	mbkm.RegisterRoutesWithMiddleware(apiV1, db, redis.Client, protectedMiddlewares)
 	log.Println("✅ MBKM module initialized (GET-only, 6 endpoint)")
 
-	// Me/Foto module — CRUD foto user yang sedang login (GET/POST/DELETE)
-	mePhotoGroup := apiV1.Group("/me", protectedMiddlewares...)
+	// Me/Foto module — CRUD foto user yang sedang login (GET/POST/DELETE).
+	// PAKAI HANYA KongAuth (JWT validation), SKIP WsAuthorization — endpoint
+	// /me/* hanya operasi self-data: user query/upload/delete foto MILIK SENDIRI
+	// (resolveTarget pakai id_pengguna dari JWT). Tidak perlu ws_authorization
+	// per-user karena tiap user otomatis hanya bisa akses data sendiri.
+	mePhotoGroup := apiV1.Group("/me", middleware.KongAuth())
 	mephoto.RegisterRoutes(mePhotoGroup, db)
-	log.Println("✅ Me/Foto module initialized (GET/POST/DELETE /me/foto)")
+	log.Println("✅ Me/Foto module initialized (KongAuth-only, GET/POST/DELETE /me/foto)")
 
 	// Auto-sync /system/routes → man_akses.ws_endpoint (background).
 	// Supaya setiap rebuild, endpoint terbaru langsung ter-register untuk authorization.
