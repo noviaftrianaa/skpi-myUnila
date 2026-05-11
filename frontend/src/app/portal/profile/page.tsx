@@ -51,8 +51,11 @@ const ME_PHOTO_URL = `${
 }/me/photo`;
 
 // Endpoint upload/hapus foto user (Go api-service via Kong, JWT-protected).
+// NOTE: nama env consistent dgn rest of codebase + Dockerfile + .env =
+// NEXT_PUBLIC_ONEDATA_API_URL (bukan NEXT_PUBLIC_API_SERVICE_URL yg gak pernah
+// di-set di mana-mana, akibatnya fallback ke localhost & upload hit Kong salah).
 const API_SERVICE_URL =
-  process.env.NEXT_PUBLIC_API_SERVICE_URL || "http://localhost:9800/api-service";
+  process.env.NEXT_PUBLIC_ONEDATA_API_URL || "http://localhost:9800/api-service";
 const ME_FOTO_ENDPOINT = `${API_SERVICE_URL}/v1/me/foto`;
 
 export default function ProfilePage() {
