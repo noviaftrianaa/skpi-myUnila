@@ -27,11 +27,13 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { DosenData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardDosenPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
 
@@ -43,15 +45,29 @@ export default function DashboardDosenPage() {
     }
   }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-set fakultas dari activeContext (Dekan/Kaprodi)
+  useEffect(() => {
+    if (scope.forcedFakultas && !selectedFakultas) {
+      setSelectedFakultas(scope.forcedFakultas);
+    }
+  }, [scope.forcedFakultas]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const semesterParam = Array.from(selectedSemesters).join(",");
+  // Efektif fakultas: kalau scope dipaksa, pakai itu (override manual)
+  const effectiveFakultas = scope.forcedFakultas || selectedFakultas;
   const { data, loading, error, refetch } = useDashboardData<DosenData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.DOSEN,
-    { semester: semesterParam, ...(selectedFakultas && { fakultas: selectedFakultas }) }
+    {
+      semester: semesterParam,
+      ...(effectiveFakultas && { fakultas: effectiveFakultas }),
+      ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+    }
   );
 
   const handleReset = () => {
     setSelectedSemesters(new Set(activeSemesters));
-    setSelectedFakultas("");
+    // Hanya reset selectedFakultas kalau user boleh ubah (Rektor)
+    if (scope.canChangeFakultas) setSelectedFakultas("");
   };
 
   return (
@@ -77,10 +93,12 @@ export default function DashboardDosenPage() {
             semester={semester}
             selectedSemesters={selectedSemesters}
             onSemesterChange={setSelectedSemesters}
-            selectedFakultas={selectedFakultas}
+            selectedFakultas={effectiveFakultas}
             onFakultasChange={setSelectedFakultas}
             fakultas={fakultas}
+            showFakultas={scope.canChangeFakultas}
             showProdi={false}
+            scopeBadge={scope.scopeName}
             onReset={handleReset}
           />
         </div>

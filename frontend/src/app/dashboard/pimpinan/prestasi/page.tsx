@@ -25,11 +25,13 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { PrestasiData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardPrestasiPage() {
   useRequireAuth();
+    const scope = useRoleBasedScope();
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
@@ -45,7 +47,7 @@ export default function DashboardPrestasiPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<PrestasiData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.PRESTASI,
-    { semester: semesterParam, ...(selectedFakultas && { fakultas: selectedFakultas }) }
+    { semester: semesterParam, ...(scope.forcedFakultas ? { fakultas: scope.forcedFakultas } : (selectedFakultas && { fakultas: selectedFakultas })), ...(scope.forcedProdi && { prodi: scope.forcedProdi }) }
   );
 
   const handleReset = () => {
@@ -79,6 +81,8 @@ export default function DashboardPrestasiPage() {
           onSemesterChange={setSelectedSemesters}
           fakultas={fakultas}
           selectedFakultas={selectedFakultas}
+          showFakultas={scope.canChangeFakultas}
+          scopeBadge={scope.scopeName}
           onFakultasChange={setSelectedFakultas}
           showProdi={false}
           onReset={handleReset}

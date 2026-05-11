@@ -26,6 +26,7 @@ import type { Column } from "@/shared/components/ui/DataTable";
 import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { AkreditasiData, AkreditasiDetail, AkreditasiIntlDetail } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -65,9 +66,14 @@ const intlDetailColumns: Column<AkreditasiIntlDetail>[] = [
 
 export default function DashboardAkreditasiPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
 
   const { data, loading, error, refetch } = useDashboardData<AkreditasiData>(
-    ENDPOINTS.DASHBOARD_PIMPINAN.AKREDITASI
+    ENDPOINTS.DASHBOARD_PIMPINAN.AKREDITASI,
+    {
+      ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
+      ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+    }
   );
 
   return (

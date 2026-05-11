@@ -28,12 +28,15 @@ import {
 import { useDashboardData, useDashboardReference } from "./hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { BerandaData } from "./types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardBerandaPage() {
   useRequireAuth();
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
+  // Role-based scoping (Dekan/Kaprodi auto-filter, Rektor bebas)
+  const scope = useRoleBasedScope();
 
   const { semester, activeSemesters } = useDashboardReference();
 
@@ -46,7 +49,12 @@ export default function DashboardBerandaPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<BerandaData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.BERANDA,
-    { semester: semesterParam }
+    {
+      semester: semesterParam,
+      // Auto-scope ke fakultas/prodi user kalau Dekan/Kaprodi
+      ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
+      ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+    }
   );
 
   const handleReset = () => {
@@ -90,6 +98,7 @@ export default function DashboardBerandaPage() {
             selectedSemesters={selectedSemesters}
             onSemesterChange={setSelectedSemesters}
             showProdi={false}
+            scopeBadge={scope.scopeName}
             onReset={handleReset}
           />
         </div>

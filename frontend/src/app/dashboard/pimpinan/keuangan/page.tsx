@@ -25,6 +25,7 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { KeuanganData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -48,6 +49,7 @@ const formatCompact = (value: number) => {
 
 export default function DashboardKeuanganPage() {
   useRequireAuth();
+    const scope = useRoleBasedScope();
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
@@ -63,7 +65,7 @@ export default function DashboardKeuanganPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<KeuanganData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.KEUANGAN,
-    { semester: semesterParam, ...(selectedFakultas && { fakultas: selectedFakultas }) }
+    { semester: semesterParam, ...(scope.forcedFakultas ? { fakultas: scope.forcedFakultas } : (selectedFakultas && { fakultas: selectedFakultas })), ...(scope.forcedProdi && { prodi: scope.forcedProdi }) }
   );
 
   const handleReset = () => {
@@ -97,6 +99,8 @@ export default function DashboardKeuanganPage() {
           onSemesterChange={setSelectedSemesters}
           fakultas={fakultas}
           selectedFakultas={selectedFakultas}
+          showFakultas={scope.canChangeFakultas}
+          scopeBadge={scope.scopeName}
           onFakultasChange={setSelectedFakultas}
           showProdi={false}
           onReset={handleReset}

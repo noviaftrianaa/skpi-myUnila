@@ -26,6 +26,7 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { LitabmasData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -39,6 +40,7 @@ const formatCurrency = (value: number) => {
 
 export default function DashboardLitabmasPage() {
   useRequireAuth();
+    const scope = useRoleBasedScope();
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
@@ -54,7 +56,7 @@ export default function DashboardLitabmasPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<LitabmasData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.LITABMAS,
-    { semester: semesterParam, ...(selectedFakultas && { fakultas: selectedFakultas }) }
+    { semester: semesterParam, ...(scope.forcedFakultas ? { fakultas: scope.forcedFakultas } : (selectedFakultas && { fakultas: selectedFakultas })), ...(scope.forcedProdi && { prodi: scope.forcedProdi }) }
   );
 
   const handleReset = () => {
@@ -88,6 +90,8 @@ export default function DashboardLitabmasPage() {
           onSemesterChange={setSelectedSemesters}
           fakultas={fakultas}
           selectedFakultas={selectedFakultas}
+          showFakultas={scope.canChangeFakultas}
+          scopeBadge={scope.scopeName}
           onFakultasChange={setSelectedFakultas}
           showProdi={false}
           onReset={handleReset}

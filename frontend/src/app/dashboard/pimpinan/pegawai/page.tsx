@@ -25,11 +25,13 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { PegawaiData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardPegawaiPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const { semester, activeSemesters } = useDashboardReference();
@@ -43,7 +45,10 @@ export default function DashboardPegawaiPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<PegawaiData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.PEGAWAI,
-    { semester: semesterParam }
+    {
+      semester: semesterParam,
+      ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
+    }
   );
 
   const handleReset = () => {
@@ -76,6 +81,7 @@ export default function DashboardPegawaiPage() {
           onSemesterChange={setSelectedSemesters}
           showFakultas={false}
           showProdi={false}
+          scopeBadge={scope.scopeName}
           onReset={handleReset}
         />
 

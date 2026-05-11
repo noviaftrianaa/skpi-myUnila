@@ -21,7 +21,10 @@ export interface FilterPanelProps {
   prodi?: FilterOption[];
   selectedProdi?: string;
   onProdiChange?: (value: string) => void;
+  showFakultas?: boolean;
   showProdi?: boolean;
+  /** Optional badge label di sebelah "Filter" — utk menampilkan scope role-based (mis. "Fakultas Teknik") */
+  scopeBadge?: string | null;
   onReset?: () => void;
   onExport?: () => void;
 }
@@ -39,7 +42,9 @@ export default function FilterPanel({
   prodi = [],
   selectedProdi,
   onProdiChange,
+  showFakultas = true,
   showProdi = true,
+  scopeBadge,
   onReset,
   onExport,
 }: FilterPanelProps) {
@@ -50,6 +55,12 @@ export default function FilterPanel({
       <div className="flex items-center gap-2 text-gray-500 mr-2">
         <FiFilter className="w-4 h-4" />
         <span className="text-sm font-medium">Filter</span>
+        {scopeBadge && (
+          <span className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/50">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd"/></svg>
+            {scopeBadge}
+          </span>
+        )}
       </div>
 
       {/* Tahun IKU (single-select) */}
@@ -121,7 +132,7 @@ export default function FilterPanel({
       )}
 
       {/* Fakultas */}
-      {fakultas.length > 0 && (
+      {showFakultas && fakultas.length > 0 && (
         <Select
           size="sm"
           placeholder="Pilih Fakultas"

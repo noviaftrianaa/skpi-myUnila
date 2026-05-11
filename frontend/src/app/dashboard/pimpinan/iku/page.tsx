@@ -18,11 +18,13 @@ import { FiCheckCircle, FiAlertTriangle, FiTrendingUp, FiTarget as FiTargetIcon 
 import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { IkuData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardIkuPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
   const [selectedTahun, setSelectedTahun] = useState<string>("");
   const [selectedIKU, setSelectedIKU] = useState<IKUDetailData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,10 +46,15 @@ export default function DashboardIkuPage() {
     }
   }, [tahunOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch IKU data - kirim tahun, backend resolve semester dari config
+  // Fetch IKU data — kirim tahun + scope role-based (Dekan/Kaprodi auto-filter fakultas/prodi).
+  // Backend resolve semester dari config.
   const { data: ikuData, loading, error } = useDashboardData<IkuData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.IKU,
-    { tahun: selectedTahun }
+    {
+      tahun: selectedTahun,
+      ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
+      ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+    }
   );
 
   // Set IKU wajib dari config backend (fallback ke default)
@@ -308,6 +315,7 @@ export default function DashboardIkuPage() {
             tahun={tahunOptions}
             selectedTahun={selectedTahun}
             onTahunChange={setSelectedTahun}
+            scopeBadge={scope.scopeName}
             onReset={handleReset}
           />
         </div>

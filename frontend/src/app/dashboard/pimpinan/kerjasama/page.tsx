@@ -22,11 +22,13 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { KerjasamaData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardKerjasamaPage() {
     useRequireAuth();
+    const scope = useRoleBasedScope();
 
     const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
 
@@ -41,7 +43,11 @@ export default function DashboardKerjasamaPage() {
     const semesterParam = Array.from(selectedSemesters).join(",");
     const { data, loading, error, refetch } = useDashboardData<KerjasamaData>(
         ENDPOINTS.DASHBOARD_PIMPINAN.KERJASAMA,
-        { semester: semesterParam }
+        {
+            semester: semesterParam,
+            ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
+            ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+        }
     );
 
     const handleReset = () => {
@@ -72,6 +78,7 @@ export default function DashboardKerjasamaPage() {
                     semester={semester}
                     selectedSemesters={selectedSemesters}
                     onSemesterChange={setSelectedSemesters}
+                    scopeBadge={scope.scopeName}
                     onReset={handleReset}
                 />
 

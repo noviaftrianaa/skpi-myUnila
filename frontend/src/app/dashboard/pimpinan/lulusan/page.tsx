@@ -25,11 +25,13 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { LulusanData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 
 const APP_KEY = "dashboard-pimpinan";
 
 export default function DashboardLulusanPage() {
     useRequireAuth();
+    const scope = useRoleBasedScope();
 
     const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
     const [selectedFakultas, setSelectedFakultas] = useState("");
@@ -90,6 +92,8 @@ export default function DashboardLulusanPage() {
                     onSemesterChange={setSelectedSemesters}
                     fakultas={fakultas}
                     selectedFakultas={selectedFakultas}
+          showFakultas={scope.canChangeFakultas}
+          scopeBadge={scope.scopeName}
                     onFakultasChange={handleFakultasChange}
                     prodi={selectedFakultas ? getProdiByFakultas(selectedFakultas) : []}
                     selectedProdi={selectedProdi}
