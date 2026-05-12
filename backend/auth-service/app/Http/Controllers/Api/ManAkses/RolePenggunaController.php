@@ -10,6 +10,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxWriter;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * Role Pengguna Controller
@@ -610,90 +617,301 @@ class RolePenggunaController extends Controller
     /**
      * GET /role-pengguna/import-template?id_aplikasi=...
      *
-     * Download CSV template untuk bulk import role pengguna.
-     * Kalau id_aplikasi diberikan, list peran valid difilter ke peran yg punya
-     * menu_role di app tsb. Peran identitas (a_peran_identitas=1) DIKECUALIKAN
-     * (lifecycle-nya via SSO sync, bukan import manual).
+     * Download Excel (.xlsx) template untuk bulk import role pengguna.
+     * Wajib id_aplikasi — supaya peran ter-filter ke role yg relevan utk app tsb.
+     *
+     * Output Excel berisi 3 sheet:
+     *   1. "Import Template"  — header + sample rows per peran (admin tinggal isi username + id_organisasi)
+     *   2. "Referensi Unit"   — daftar UUID unit organisasi level 3-5 (filterable)
+     *   3. "Petunjuk"         — instruksi step-by-step + helper note
      */
     public function importTemplate(Request $request)
     {
         try {
             $idAplikasi = $request->get('id_aplikasi');
-
-            // Build daftar peran valid (untuk hint admin saat fill CSV)
-            $peranSql = "
-                SELECT p.id_peran, p.nm_peran
-                FROM man_akses.peran p
-                WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())
-                  AND ISNULL(p.a_peran_identitas, 0) = 0
-            ";
-            $params = [];
-            if ($idAplikasi) {
-                $peranSql .= " AND EXISTS (
-                    SELECT 1 FROM man_akses.menu_role mr
-                    INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
-                    WHERE mr.id_peran = p.id_peran
-                      AND m.id_aplikasi = ?
-                      AND ISNULL(mr.soft_delete, 0) = 0
-                )";
-                $params[] = $idAplikasi;
-            }
-            $peranSql .= " ORDER BY p.nm_peran";
-            $peran = DB::select($peranSql, $params);
-
-            $appName = '';
-            if ($idAplikasi) {
-                $app = DB::selectOne(
-                    "SELECT nm_aplikasi FROM man_akses.aplikasi WHERE id_aplikasi = ?",
-                    [$idAplikasi]
-                );
-                if ($app) $appName = $app->nm_aplikasi;
+            if (!$idAplikasi) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pilih aplikasi target dulu untuk download template.',
+                ], 400);
             }
 
-            // Tahun depan (default tgl_kadaluarsa)
-            $defaultExpiry = date('Y-m-d', strtotime('+1 year'));
+            $app = DB::selectOne(
+                "SELECT nm_aplikasi, app_slug FROM man_akses.aplikasi WHERE id_aplikasi = ?",
+                [$idAplikasi]
+            );
+            if (!$app) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aplikasi tidak ditemukan.',
+                ], 404);
+            }
+            $appName = $app->nm_aplikasi;
+            $appSlug = $app->app_slug ?: preg_replace('/[^a-z0-9]+/i', '-', strtolower($appName));
+
+            // Peran fungsional valid utk aplikasi ini (exclude peran identitas)
+            $peran = DB::select(
+                "SELECT p.id_peran, p.nm_peran
+                 FROM man_akses.peran p
+                 WHERE (p.expired_date IS NULL OR p.expired_date > GETDATE())
+                   AND ISNULL(p.a_peran_identitas, 0) = 0
+                   AND EXISTS (
+                       SELECT 1 FROM man_akses.menu_role mr
+                       INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+                       WHERE mr.id_peran = p.id_peran
+                         AND m.id_aplikasi = ?
+                         AND ISNULL(mr.soft_delete, 0) = 0
+                   )
+                 ORDER BY p.nm_peran",
+                [$idAplikasi]
+            );
+
+            // Referensi unit_organisasi level 3-5 (Universitas / Fakultas / Prodi)
+            $units = DB::select(
+                "SELECT
+                    LOWER(CONVERT(VARCHAR(36), uo.id_organisasi)) AS id_organisasi,
+                    uo.nm_lemb,
+                    uo.level_organisasi,
+                    ISNULL(parent.nm_lemb, '') AS induk_nama
+                 FROM man_akses.unit_organisasi uo
+                 LEFT JOIN man_akses.unit_organisasi parent ON parent.id_organisasi = uo.id_induk_organisasi
+                 WHERE uo.a_aktif = 1
+                   AND (uo.soft_delete IS NULL OR uo.soft_delete = 0)
+                   AND uo.level_organisasi BETWEEN 3 AND 5
+                 ORDER BY uo.level_organisasi, ISNULL(parent.nm_lemb, '0'), uo.nm_lemb"
+            );
+
             $today = date('Y-m-d');
+            $defaultExpiry = date('Y-m-d', strtotime('+1 year'));
 
-            // Build CSV
-            $output = fopen('php://temp', 'r+');
-            // BOM UTF-8 untuk Excel
-            fwrite($output, "\xEF\xBB\xBF");
+            // ── Build Excel ────────────────────────────────────────────────
+            $spreadsheet = new Spreadsheet();
 
-            // Comment lines (akan di-skip oleh parser)
-            fputcsv($output, ['# Template Bulk Import Role Pengguna' . ($appName ? " - $appName" : '')]);
-            fputcsv($output, ['# Petunjuk:']);
-            fputcsv($output, ['# 1. username = NIM (mahasiswa) / NIP (dosen-tendik) / username login']);
-            fputcsv($output, ['# 2. id_peran = ID peran fungsional (lihat daftar di bawah)']);
-            fputcsv($output, ['# 3. id_organisasi = UUID unit organisasi (kosong = pakai homebase user)']);
-            fputcsv($output, ['# 4. tgl_sk dan tgl_kadaluarsa format YYYY-MM-DD']);
-            fputcsv($output, ['# 5. tgl_kadaluarsa kosong = default 1 tahun dari hari ini']);
-            fputcsv($output, ['#']);
-            fputcsv($output, ['# Daftar peran fungsional yg valid:']);
-            foreach ($peran as $p) {
-                fputcsv($output, ["# id_peran=$p->id_peran : $p->nm_peran"]);
+            // Sheet 1: Import Template
+            $ws = $spreadsheet->getActiveSheet();
+            $ws->setTitle('Import Template');
+
+            // Title section (rows 1-13 — instruksi singkat)
+            $instructions = [
+                "TEMPLATE BULK IMPORT ROLE — {$appName}",
+                "",
+                "CARA PAKAI:",
+                "  1. ISI kolom 'username' (NIP / NIDN / username SSO)",
+                "  2. ISI kolom 'id_organisasi' (UUID dari sheet 'Referensi Unit')",
+                "  3. Tambah baris baru utk multiple user per peran (copy-paste)",
+                "  4. Hapus baris contoh yg gak dipakai",
+                "  5. Save As .xlsx, lalu upload ke import-akses",
+                "",
+                "TIPS:",
+                "  • Pakai sheet 'Referensi Unit' utk cari UUID (filter by nama)",
+                "  • id_organisasi WAJIB — kosong = user jadi super-user universal",
+            ];
+            foreach ($instructions as $i => $line) {
+                $row = $i + 1;
+                $ws->setCellValue("A{$row}", $line);
+                $ws->mergeCells("A{$row}:G{$row}");
+                if ($i === 0) {
+                    $ws->getStyle("A{$row}")->getFont()->setBold(true)->setSize(13)->getColor()->setRGB("1F4E78");
+                } elseif (str_ends_with($line, ':')) {
+                    $ws->getStyle("A{$row}")->getFont()->setBold(true)->getColor()->setRGB("1F4E78");
+                } else {
+                    $ws->getStyle("A{$row}")->getFont()->setSize(10)->getColor()->setRGB("555555");
+                }
             }
-            fputcsv($output, ['#']);
 
-            // Header
-            fputcsv($output, ['username', 'id_peran', 'id_organisasi', 'no_sk', 'tgl_sk', 'tgl_kadaluarsa', 'keterangan']);
+            // Header row (row 14)
+            $dataStartRow = count($instructions) + 2;
+            $headers = ['username', 'id_peran', 'id_organisasi', 'no_sk', 'tgl_sk', 'tgl_kadaluarsa', 'keterangan'];
+            foreach ($headers as $c => $h) {
+                $col = chr(65 + $c);
+                $cell = "{$col}{$dataStartRow}";
+                $ws->setCellValue($cell, $h);
+                $ws->getStyle($cell)->getFont()->setBold(true)->setSize(11)->getColor()->setRGB("FFFFFF");
+                $ws->getStyle($cell)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB("1F4E78");
+                $ws->getStyle($cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+                $ws->getStyle($cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            }
+            $ws->getRowDimension($dataStartRow)->setRowHeight(28);
 
-            // 1 sample row
-            $sampleIdPeran = $peran[0]->id_peran ?? 1;
-            fputcsv($output, ['1234567890', $sampleIdPeran, '', 'SK-12345/UN26/2026', $today, $defaultExpiry, 'Sample row — hapus baris ini sebelum upload']);
+            // Sample rows — 1 per peran
+            $rowIdx = $dataStartRow + 1;
+            $unilaUuid = 'e2b705a7-173e-464a-9fac-509128709515';
+            foreach ($peran as $p) {
+                // Pre-fill id_organisasi only kalau peran adalah "Admin Data" atau peran universal lainnya
+                $isUnilaScope = str_contains(strtolower($p->nm_peran), 'admin data')
+                              || str_contains(strtolower($p->nm_peran), 'rektor')
+                              || str_contains(strtolower($p->nm_peran), 'developer');
 
-            rewind($output);
-            $csv = stream_get_contents($output);
-            fclose($output);
+                $row = [
+                    '',                                       // username — diisi admin
+                    $p->id_peran,
+                    $isUnilaScope ? $unilaUuid : '',         // id_organisasi
+                    '',                                       // no_sk
+                    $today,
+                    $defaultExpiry,
+                    "Akses {$appName} — {$p->nm_peran}",
+                ];
+                foreach ($row as $c => $val) {
+                    $col = chr(65 + $c);
+                    $cell = "{$col}{$rowIdx}";
+                    $ws->setCellValue($cell, $val);
+                    $ws->getStyle($cell)->getFont()->setSize(10);
+                    $ws->getStyle($cell)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+                    $ws->getStyle($cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB("D0D0D0");
+                }
+                // Side note kolom H
+                $ws->setCellValue("H{$rowIdx}", "← {$p->nm_peran}");
+                $ws->getStyle("H{$rowIdx}")->getFont()->setItalic(true)->setSize(9)->getColor()->setRGB("666666");
+                $rowIdx++;
+            }
 
-            $filename = 'template_import_role'
-                . ($appName ? '_' . preg_replace('/[^a-z0-9]+/i', '-', strtolower($appName)) : '')
-                . '_' . date('Ymd') . '.csv';
+            // Column widths
+            $widths = ['A' => 22, 'B' => 10, 'C' => 38, 'D' => 22, 'E' => 13, 'F' => 15, 'G' => 38, 'H' => 30];
+            foreach ($widths as $col => $w) {
+                $ws->getColumnDimension($col)->setWidth($w);
+            }
 
-            return response($csv, 200, [
-                'Content-Type'        => 'text/csv; charset=UTF-8',
+            // Dropdown validation id_peran (kolom B)
+            if (count($peran) > 0) {
+                $peranList = implode(',', array_map(fn($p) => $p->id_peran, $peran));
+                $dvCol = 'B';
+                $dvRange = "{$dvCol}" . ($dataStartRow + 1) . ":{$dvCol}" . ($dataStartRow + 200);
+                $dv = $ws->getDataValidation($dvRange);
+                $dv->setType(DataValidation::TYPE_LIST);
+                $dv->setErrorStyle(DataValidation::STYLE_INFORMATION);
+                $dv->setAllowBlank(true);
+                $dv->setShowDropDown(true);
+                $dv->setFormula1('"' . $peranList . '"');
+            }
+
+            // ── Sheet 2: Referensi Unit ───────────────────────────────────
+            $ws2 = $spreadsheet->createSheet();
+            $ws2->setTitle('Referensi Unit');
+
+            $ws2->setCellValue('A1', "REFERENSI UNIT ORGANISASI — Universitas Lampung");
+            $ws2->getStyle('A1')->getFont()->setBold(true)->setSize(12)->getColor()->setRGB("1F4E78");
+            $ws2->mergeCells('A1:E1');
+
+            $ws2->setCellValue('A2', "Total: " . count($units) . " unit aktif (level 3-5). Pakai filter atau Ctrl+F utk cari unit.");
+            $ws2->getStyle('A2')->getFont()->setItalic(true)->setSize(9)->getColor()->setRGB("555555");
+            $ws2->mergeCells('A2:E2');
+
+            // Header row 4
+            $hdr2 = ['id_organisasi (UUID)', 'Nama Unit', 'Level', 'Induk', 'Tipe'];
+            foreach ($hdr2 as $c => $h) {
+                $col = chr(65 + $c);
+                $cell = "{$col}4";
+                $ws2->setCellValue($cell, $h);
+                $ws2->getStyle($cell)->getFont()->setBold(true)->setSize(11)->getColor()->setRGB("FFFFFF");
+                $ws2->getStyle($cell)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB("1F4E78");
+                $ws2->getStyle($cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+                $ws2->getStyle($cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            }
+            $ws2->getRowDimension(4)->setRowHeight(26);
+
+            $levelLabel = [
+                3 => ['Universitas',                  'E3F2FD', '0D47A1'],
+                4 => ['Fakultas/Jurusan/Rektorat/UPT', 'FFF8E1', 'F57F17'],
+                5 => ['Program Studi',                 'F3E5F5', '6A1B9A'],
+            ];
+
+            foreach ($units as $i => $u) {
+                $r = 5 + $i;
+                $ws2->setCellValue("A{$r}", $u->id_organisasi);
+                $ws2->getStyle("A{$r}")->getFont()->setName("Consolas")->setSize(9);
+
+                $ws2->setCellValue("B{$r}", $u->nm_lemb);
+                $ws2->getStyle("B{$r}")->getFont()->setSize(10);
+
+                $ws2->setCellValue("C{$r}", $u->level_organisasi);
+                $ws2->getStyle("C{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                if (isset($levelLabel[$u->level_organisasi])) {
+                    [$_, $bg, $fg] = $levelLabel[$u->level_organisasi];
+                    $ws2->getStyle("C{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($bg);
+                    $ws2->getStyle("C{$r}")->getFont()->setBold(true)->setSize(10)->getColor()->setRGB($fg);
+                }
+
+                $ws2->setCellValue("D{$r}", $u->induk_nama);
+                $ws2->getStyle("D{$r}")->getFont()->setSize(10);
+
+                $ws2->setCellValue("E{$r}", $levelLabel[$u->level_organisasi][0] ?? '-');
+                $ws2->getStyle("E{$r}")->getFont()->setItalic(true)->setSize(9);
+                if (isset($levelLabel[$u->level_organisasi])) {
+                    $ws2->getStyle("E{$r}")->getFont()->getColor()->setRGB($levelLabel[$u->level_organisasi][2]);
+                }
+
+                // Border
+                $ws2->getStyle("A{$r}:E{$r}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB("D0D0D0");
+            }
+
+            // Column widths
+            foreach (['A' => 42, 'B' => 50, 'C' => 8, 'D' => 36, 'E' => 28] as $col => $w) {
+                $ws2->getColumnDimension($col)->setWidth($w);
+            }
+
+            // Freeze + auto-filter
+            $ws2->freezePane('A5');
+            $ws2->setAutoFilter('A4:E' . (4 + count($units)));
+
+            // ── Sheet 3: Petunjuk ─────────────────────────────────────────
+            $ws3 = $spreadsheet->createSheet();
+            $ws3->setTitle('Petunjuk');
+            $ws3->getColumnDimension('A')->setWidth(30);
+            $ws3->getColumnDimension('B')->setWidth(80);
+
+            $petunjuk = [
+                ['PETUNJUK', ''],
+                ['Target Aplikasi', $appName],
+                ['', ''],
+                ['LANGKAH:', ''],
+                ['1.', "Buka sheet 'Import Template' — daftar peran fungsional sudah pre-filled"],
+                ['2.', "Untuk SETIAP baris, isi:"],
+                ['   a.', "Kolom 'username' = NIP/NIDN/username SSO target user"],
+                ['   b.', "Kolom 'id_organisasi' = UUID dari sheet 'Referensi Unit'"],
+                ['   c.', "Boleh duplikat baris kalau satu peran utk multi user (copy-paste)"],
+                ['3.', "Save file (Ctrl+S) — tetap format .xlsx"],
+                ['4.', "Upload via portal: /dashboard/manajemen-akses/manajemen/import-akses"],
+                ['', ''],
+                ['CARA CARI UUID UNIT:', ''],
+                ['A. Filter Excel', "Di sheet 'Referensi Unit' klik panah filter kolom 'Nama Unit', ketik kata kunci"],
+                ['B. Ctrl+F', "Ctrl+F → ketik nama unit → copy UUID dari kolom A"],
+                ['', ''],
+                ['⚠️ PENTING:', ''],
+                ['id_organisasi WAJIB', "Untuk role scoped (Dekan/Kaprodi/Admin Fakultas/Prodi), id_organisasi WAJIB diisi. Kosong = user jadi super-user universal (bypass role-based filter di Dashboard Pimpinan / Data Unila)."],
+                ['Validasi Dry-Run', "Sebelum commit, sistem akan tampilkan preview hasil validasi — fix error dulu sebelum apply final."],
+            ];
+            foreach ($petunjuk as $i => [$label, $desc]) {
+                $row = $i + 1;
+                $ws3->setCellValue("A{$row}", $label);
+                $ws3->setCellValue("B{$row}", $desc);
+                $ws3->getStyle("A{$row}:B{$row}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+                if ($label && (str_ends_with($label, ':') || $label === '⚠️ PENTING:') && !$desc) {
+                    $ws3->getStyle("A{$row}")->getFont()->setBold(true)->setSize(11)->getColor()->setRGB("1F4E78");
+                    $ws3->getStyle("A{$row}:B{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB("E8EFF7");
+                } elseif (strtoupper($label) === $label && $label && !$desc) {
+                    $ws3->getStyle("A{$row}")->getFont()->setBold(true)->setSize(12)->getColor()->setRGB("1F4E78");
+                } elseif ($label) {
+                    $ws3->getStyle("A{$row}")->getFont()->setBold(true)->setSize(10);
+                    $ws3->getStyle("B{$row}")->getFont()->setSize(10);
+                }
+                $ws3->getRowDimension($row)->setRowHeight(22);
+            }
+
+            // ── Write & return ────────────────────────────────────────────
+            $writer = new XlsxWriter($spreadsheet);
+            $tmp = tempnam(sys_get_temp_dir(), 'import_template_') . '.xlsx';
+            $writer->save($tmp);
+            $content = file_get_contents($tmp);
+            unlink($tmp);
+
+            $filename = 'template_import_role_' . $appSlug . '_' . date('Ymd') . '.xlsx';
+
+            return response($content, 200, [
+                'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ]);
         } catch (\Exception $e) {
+            Log::error('importTemplate error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal generate template: ' . $e->getMessage(),

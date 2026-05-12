@@ -45,19 +45,23 @@ export default function ImportAksesPage() {
   }, []);
 
   const downloadTemplate = async () => {
+    if (!idAplikasi) {
+      toast.error("Pilih aplikasi target terlebih dahulu");
+      return;
+    }
     setDownloading(true);
     try {
-      const blob = await rolePenggunaService.getImportTemplate(idAplikasi || undefined);
+      const blob = await rolePenggunaService.getImportTemplate(idAplikasi);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const appName =
         appList.find((x) => x.id_aplikasi === idAplikasi)?.nm_aplikasi?.replace(/\s+/g, "-").toLowerCase() ||
-        "umum";
+        "app";
       a.href = url;
-      a.download = `template_import_role_${appName}.csv`;
+      a.download = `template_import_role_${appName}_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Template berhasil diunduh");
+      toast.success("Template Excel berhasil diunduh");
     } catch (e: any) {
       toast.error(e?.response?.data?.message || "Gagal download template");
     } finally {
@@ -142,8 +146,8 @@ export default function ImportAksesPage() {
           </h3>
         </div>
         <p className="mb-3 text-xs text-gray-500 dark:text-slate-400">
-          Template berisi daftar peran fungsional yang valid untuk aplikasi yang dipilih.
-          Kosongkan kalau mau import lintas aplikasi.
+          Pilih aplikasi target terlebih dahulu — template Excel akan berisi daftar peran fungsional
+          yang valid + sheet referensi UUID unit organisasi.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[280px] flex-1">
@@ -156,7 +160,7 @@ export default function ImportAksesPage() {
               disabled={appLoading}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-700/50 dark:text-white"
             >
-              <option value="">— Semua aplikasi (tanpa filter peran) —</option>
+              <option value="">— Pilih aplikasi target —</option>
               {appList.map((a) => (
                 <option key={a.id_aplikasi} value={a.id_aplikasi}>
                   {a.nm_aplikasi}
@@ -164,19 +168,21 @@ export default function ImportAksesPage() {
               ))}
             </select>
           </div>
-          <button
-            type="button"
-            onClick={downloadTemplate}
-            disabled={downloading}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            {downloading ? (
-              <span className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />
-            ) : (
-              <Icon icon="heroicons:arrow-down-tray" className="h-4 w-4" />
-            )}
-            Download Template CSV
-          </button>
+          {idAplikasi && (
+            <button
+              type="button"
+              onClick={downloadTemplate}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:shadow-md transition disabled:opacity-50"
+            >
+              {downloading ? (
+                <span className="h-3 w-3 animate-spin rounded-full border-b-2 border-current" />
+              ) : (
+                <Icon icon="heroicons:arrow-down-tray" className="h-4 w-4" />
+              )}
+              Download Template Excel
+            </button>
+          )}
         </div>
       </div>
 
