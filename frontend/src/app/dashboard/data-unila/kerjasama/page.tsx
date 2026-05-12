@@ -8,6 +8,7 @@ import { MdSchool } from "react-icons/md";
 import { FiGlobe, FiCheckCircle, FiXCircle, FiUsers , FiDownload } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import kerjasamaDataService from "@/lib/services/data-unila/kerjasamaDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -64,6 +65,7 @@ export default function KerjasamaPage() {
             ))}
           </div>
         )}
+        <ScopeBadge />
         <Card className="border-none shadow-lg rounded-xl overflow-hidden"><CardBody className="p-0">
           <motion.div initial={{opacity:0}} animate={{opacity:1}}>
             <DataTable columns={columns} data={data} loading={loading} serverSide totalRecords={total}

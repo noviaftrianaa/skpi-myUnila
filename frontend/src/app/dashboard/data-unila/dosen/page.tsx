@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { Card, CardBody, Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Divider, Spinner } from "@heroui/react";
 import { FiUsers, FiDownload, FiUser, FiMail, FiPhone, FiCalendar, FiAward, FiBookOpen } from "react-icons/fi";
@@ -117,6 +118,7 @@ export default function DosenDataPage() {
             ))}
           </div>
         )}
+        <ScopeBadge />
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

@@ -9,6 +9,7 @@ import { MdSchool } from "react-icons/md";
 import { FiUsers, FiMapPin, FiCalendar, FiHome, FiDownload } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import kknDataService, { type KknItem, type KknStats, type KknPeriode } from "@/lib/services/data-unila/kknDataService";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -115,6 +116,7 @@ export default function KknPage() {
           </div>
         )}
 
+        <ScopeBadge />
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

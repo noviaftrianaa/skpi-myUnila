@@ -26,17 +26,26 @@ use App\Http\Controllers\Api\Dashboard\IkuController;
 Route::get('/health', [HealthController::class, 'check']);
 
 // API version 1
-// `scope` middleware: auto-inject id_fakultas/id_prodi dari active context user
-// (server-authoritative, override query param dari client) — Dekan/Kaprodi ter-scope
-// otomatis tanpa edit per-endpoint. Universal role (Rektor/Admin/Dev) bypass.
-Route::prefix('v1')->middleware('scope')->group(function () {
+Route::prefix('v1')->group(function () {
 
-    // Reference data (dropdown filters)
+    // UNSCOPED (universal) endpoints — diluar `scope` middleware
+    // ──────────────────────────────────────────────────────────
+    // Reference dropdowns: harus universal supaya kalau Rektor switch ke
+    // universal view, daftar fakultas/prodi lengkap.
     Route::prefix('reference')->group(function () {
         Route::get('/fakultas', [ReferenceController::class, 'fakultas']);
         Route::get('/prodi', [ReferenceController::class, 'prodi']);
         Route::get('/semester', [ReferenceController::class, 'semester']);
     });
+
+    // Overview totals: beranda Data Unila tampilkan total Universitas Lampung
+    // keseluruhan (intentional — sebagai pintu masuk/navigasi).
+    Route::get('/data/overview/totals', [\App\Http\Controllers\Api\DataUnila\OverviewController::class, 'totals']);
+
+    // SCOPED endpoints — id_fakultas/id_prodi auto-inject berdasarkan
+    // active context user (server-authoritative). Universal role bypass.
+    // ──────────────────────────────────────────────────────────
+    Route::middleware('scope')->group(function () {
 
     // Dashboard endpoints
     Route::prefix('dashboard')->group(function () {
@@ -132,4 +141,6 @@ Route::prefix('v1')->middleware('scope')->group(function () {
             Route::get('/spp/filters', [\App\Http\Controllers\Api\DataUnila\KeuanganDataController::class, 'sppFilters']);
         });
     });
-});
+
+    }); // end scope middleware group
+}); // end v1 prefix

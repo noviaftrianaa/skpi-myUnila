@@ -9,6 +9,7 @@ import { FiTrendingUp, FiUsers, FiDollarSign, FiBriefcase, FiDownload } from "re
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import tracerDataService from "@/lib/services/data-unila/tracerDataService";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import toast from "react-hot-toast";
@@ -76,6 +77,7 @@ export default function TracerPage() {
             ))}
           </div>
         )}
+        <ScopeBadge />
         <Card className="border-none shadow-lg rounded-xl overflow-hidden"><CardBody className="p-0">
           <motion.div initial={{opacity:0}} animate={{opacity:1}}>
             <DataTable columns={columns} data={data} loading={loading} serverSide totalRecords={total}
