@@ -41,9 +41,12 @@ import {
   FiCheck,
   FiLock,
   FiFileText,
+  FiCalendar,
+  FiClock,
 } from "react-icons/fi";
 import { Icon } from "@iconify/react";
 import * as HeroIcons from "@heroicons/react/24/outline";
+import PengumumanPopupModal from "@/shared/components/portal/PengumumanPopupModal";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -110,6 +113,9 @@ function FeedList({
               year: "numeric",
             })
           : "";
+        const waktu = b.tgl_terbit
+          ? new Date(b.tgl_terbit).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+          : "";
         const isFresh = b.tgl_terbit
           ? new Date(b.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
           : false;
@@ -152,8 +158,16 @@ function FeedList({
                 {ringkasan && (
                   <p className="text-xs text-gray-500 line-clamp-2 mb-1">{ringkasan}</p>
                 )}
-                <p className="text-[11px] text-gray-400">
-                  {tanggal}
+                <p className="text-[11px] text-gray-400 flex items-center gap-1 flex-wrap">
+                  <FiCalendar className="w-2.5 h-2.5" />
+                  <span>{tanggal}</span>
+                  {waktu && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <FiClock className="w-2.5 h-2.5" />
+                      <span>{waktu}</span>
+                    </>
+                  )}
                   {b.author && <span> · {b.author}</span>}
                 </p>
               </div>
@@ -511,10 +525,16 @@ export default function PortalPage() {
 
   const announcements = pengumumanList.map((it) => ({
     id: it.id_pengumuman,
+    slug: (it as any).slug,                                      // slug-friendly URL
     title: it.judul,
     description: it.ringkasan || (it.isi ? it.isi.replace(/<[^>]+>/g, "").substring(0, 200) : ""),
     category: it.nama_kategori || "Pengumuman",
-    date: it.tgl_terbit ? new Date(it.tgl_terbit).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "",
+    date: it.tgl_terbit
+      ? new Date(it.tgl_terbit).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+      : "",
+    time: it.tgl_terbit
+      ? new Date(it.tgl_terbit).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+      : "",
     isNew:
       it.tgl_terbit
         ? new Date(it.tgl_terbit).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
@@ -990,6 +1010,9 @@ export default function PortalPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       {/* Toast Container */}
       <Toaster position="top-right" />
+
+      {/* Popup pengumuman pinned (sekali per sesi, dgn opsi "jangan tampilkan lagi") */}
+      <PengumumanPopupModal items={pengumumanList} />
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
@@ -1786,9 +1809,10 @@ export default function PortalPage() {
                       <p className="text-xs text-gray-400 text-center py-4">Belum ada pengumuman</p>
                     ) : (
                       announcements.map((announcement) => (
-                        <div
+                        <Link
                           key={announcement.id}
-                          className="pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+                          href={`/portal/pengumuman/${announcement.slug || announcement.id}`}
+                          className="block pb-4 border-b border-gray-100 last:border-0 last:pb-0 group rounded-lg -mx-2 px-2 py-2 hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-start gap-2 mb-2">
                             <Chip
@@ -1809,16 +1833,24 @@ export default function PortalPage() {
                               </Chip>
                             )}
                           </div>
-                          <h4 className="font-semibold text-sm text-gray-800 mb-1">
+                          <h4 className="font-semibold text-sm text-gray-800 mb-1 group-hover:text-myunila group-hover:underline transition-colors">
                             {announcement.title}
                           </h4>
                           <p className="text-xs text-gray-500 line-clamp-2 mb-2">
                             {announcement.description}
                           </p>
-                          <p className="text-xs text-gray-400">
-                            {announcement.date}
-                          </p>
-                        </div>
+                          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                            <FiCalendar className="w-3 h-3" />
+                            <span>{announcement.date}</span>
+                            {announcement.time && (
+                              <>
+                                <span className="text-gray-300">·</span>
+                                <FiClock className="w-3 h-3" />
+                                <span>{announcement.time}</span>
+                              </>
+                            )}
+                          </div>
+                        </Link>
                       ))
                     )}
                   </div>

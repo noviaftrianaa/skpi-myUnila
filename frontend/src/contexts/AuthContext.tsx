@@ -139,6 +139,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       await authService.logout();
       setUser(null);
+      // Cleanup popup tracking — supaya pengumuman muncul lagi saat login berikutnya.
+      // Permanent dismiss (`pengumuman_dismissed_*`) TIDAK di-clear, biar tetap
+      // "jangan tampilkan lagi" kalau user sudah memilih opsi itu.
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith('pengumuman_last_shown_'))
+          .forEach((k) => localStorage.removeItem(k));
+        // Reset juga "dismissed all pinned" — supaya kalau user pakai device
+        // bersama, login baru tetap dapat info pengumuman penting (kecuali user
+        // tetap centang "jangan tampilkan lagi" lagi).
+        localStorage.removeItem('pengumuman_dismissed_all_pinned');
+      }
       router.push('/login');
     } catch (err) {
       // Clear user even if API call fails
