@@ -250,6 +250,16 @@ class UserContextService
             $cacheKey = self::CACHE_PREFIX . $userId;
             Cache::put($cacheKey, $context, self::CACHE_TTL);
 
+            // Dual-write: JSON sibling key utk konsumsi cross-service (Go middleware
+            // tidak praktis parse PHP-serialize). Pakai rawCommand utk bypass
+            // Laravel cache prefix → key konsisten antar service.
+            try {
+                \Illuminate\Support\Facades\Redis::connection('cache')
+                    ->rawCommand('SET', 'user_context_json:' . $userId, json_encode($context), 'EX', self::CACHE_TTL);
+            } catch (\Throwable $e) {
+                Log::warning('UserContextService dual-write JSON failed', ['err' => $e->getMessage()]);
+            }
+
             // Build and cache full permissions for this user's role
             $this->cacheUserPermissions($userId, (int)$role->id_peran);
 

@@ -26,7 +26,10 @@ use App\Http\Controllers\Api\Dashboard\IkuController;
 Route::get('/health', [HealthController::class, 'check']);
 
 // API version 1
-Route::prefix('v1')->group(function () {
+// `scope` middleware: auto-inject id_fakultas/id_prodi dari active context user
+// (server-authoritative, override query param dari client) — Dekan/Kaprodi ter-scope
+// otomatis tanpa edit per-endpoint. Universal role (Rektor/Admin/Dev) bypass.
+Route::prefix('v1')->middleware('scope')->group(function () {
 
     // Reference data (dropdown filters)
     Route::prefix('reference')->group(function () {
