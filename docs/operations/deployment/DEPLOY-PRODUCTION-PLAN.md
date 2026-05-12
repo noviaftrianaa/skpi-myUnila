@@ -34,13 +34,13 @@ b9966081b fix(dashboard): IKU 9 binding order
 ```
 
 ## Detailed Guides
-- PostgreSQL VM3: `docs/VM3-POSTGRESQL-SETUP.md`
-- VM6 Replica + Kong LB: `docs/VM6-REPLICA-SETUP.md`
-- RBAC: `docs/RBAC-ENFORCEMENT-PLAN.md`
-- SIAKADU Integration: `docs/SIAKADU-INTEGRATION-PLAN.md`
-- SIAKADU Field Mapping: `docs/SIAKADU-FIELD-MAPPING.md`
-- Project Contribution: `docs/PROJECT-CONTRIBUTION-PLAN.md`
-- Org Structure: `docs/PROJECT-MANAGEMENT-ORG-PLAN.md`
+- PostgreSQL VM3: `docs/operations/setup/VM3-POSTGRESQL-SETUP.md`
+- VM6 Replica + Kong LB: `docs/operations/deployment/VM6-REPLICA-SETUP.md`
+- RBAC: `docs/security/RBAC-ENFORCEMENT-PLAN.md`
+- SIAKADU Integration: `docs/integrations/siakadu/SIAKADU-INTEGRATION-PLAN.md`
+- SIAKADU Field Mapping: `docs/integrations/siakadu/SIAKADU-FIELD-MAPPING.md`
+- Project Contribution: `docs/project-management/PROJECT-CONTRIBUTION-PLAN.md`
+- Org Structure: `docs/project-management/PROJECT-MANAGEMENT-ORG-PLAN.md`
 
 ## Config Files Ready
 - `deployment/production/vm3-backend2/services/project/docker-compose.yml`
@@ -161,7 +161,7 @@ Atau insert via portal ManAkses → Settings → API Config.
 
 ## Phase 4: Install PostgreSQL + Project Service di VM3
 
-### Panduan: `docs/VM3-POSTGRESQL-SETUP.md`
+### Panduan: `docs/operations/setup/VM3-POSTGRESQL-SETUP.md`
 ```bash
 # Install PostgreSQL native
 sudo apt install -y postgresql postgresql-contrib
@@ -216,7 +216,7 @@ NEXT_PUBLIC_PROJECT_API_URL=http://192.168.120.43:8095/api/v1
 
 ## Phase 6: VM6 Replica (Optional)
 
-### Panduan: `docs/VM6-REPLICA-SETUP.md`
+### Panduan: `docs/operations/deployment/VM6-REPLICA-SETUP.md`
 1. Install Docker di VM6
 2. Clone repo
 3. Copy .env dari VM3 (PROJECT_PG_HOST=192.168.120.43)
