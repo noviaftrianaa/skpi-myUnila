@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import { Card, CardBody, Chip, Select, SelectItem, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Divider, Spinner } from "@heroui/react";
 import { FiUsers, FiDownload, FiUser, FiMail, FiPhone, FiCalendar, FiAward, FiBookOpen } from "react-icons/fi";
@@ -18,6 +19,7 @@ const APP_KEY = "data-unila";
 
 export default function DosenDataPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
   const [data, setData] = useState<DosenItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -31,21 +33,36 @@ export default function DosenDataPage() {
   const [filterFak, setFilterFak] = useState("");
   const [filterProdi, setFilterProdi] = useState("");
 
+  // Auto-force fakultas/prodi dari role scope (Dekan=fakultas, Kaprodi=prodi)
+  useEffect(() => {
+    if (scope.forcedFakultas) setFilterFak(scope.forcedFakultas);
+    if (scope.forcedProdi) setFilterProdi(scope.forcedProdi);
+  }, [scope.forcedFakultas, scope.forcedProdi]);
+
+  // Effective filters — selalu override pakai scope kalau ada
+  const effFak = scope.forcedFakultas || filterFak;
+  const effProdi = scope.forcedProdi || filterProdi;
+
   // Detail
   const [detailId, setDetailId] = useState<string|null>(null);
   const [detail, setDetail] = useState<DosenDetail|null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  useEffect(() => { dosenDataService.getStats({}).then(setStats).catch(console.error); }, []);
+  useEffect(() => {
+    dosenDataService.getStats({
+      id_fakultas: effFak || undefined,
+      id_prodi: effProdi || undefined,
+    } as any).then(setStats).catch(console.error);
+  }, [effFak, effProdi]);
   useEffect(() => { mahasiswaDataService.getFilters({}).then(setFilters).catch(console.error); }, []);
 
   useEffect(() => {
     setLoading(true);
-    dosenDataService.getList({ page, limit, search: search||undefined, sort_by: sortBy, sort_order: sortOrder, id_fakultas: filterFak||undefined, id_prodi: filterProdi||undefined })
+    dosenDataService.getList({ page, limit, search: search||undefined, sort_by: sortBy, sort_order: sortOrder, id_fakultas: effFak||undefined, id_prodi: effProdi||undefined })
       .then(r => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi]);
+  }, [page, limit, search, sortBy, sortOrder, effFak, effProdi]);
 
   const handleSort = useCallback((k: string, o: "asc"|"desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
   const openDetail = async (item: DosenItem) => {
@@ -109,18 +126,31 @@ export default function DosenDataPage() {
                 searchPlaceholder="Cari NIDN, nama, NIP..." defaultRowsPerPage={20}
                 filterSlot={
                   <div className="flex flex-wrap gap-2 w-full">
-                    <Select aria-label="Fakultas" placeholder="Semua Fakultas" selectedKeys={filterFak?[filterFak]:[]}
-                      onSelectionChange={k => { setFilterFak(Array.from(k)[0] as string||""); setFilterProdi(""); setPage(1); }}
-                      size="sm" variant="bordered" classNames={{ base: "w-[200px]", trigger: "h-10" }}>
-                      {(filters?.fakultas||[]).map(f => <SelectItem key={f.id_fakultas}>{f.nm_fakultas}</SelectItem>)}
-                    </Select>
-                    <Select aria-label="Prodi" placeholder="Semua Prodi" selectedKeys={filterProdi?[filterProdi]:[]}
-                      onSelectionChange={k => { setFilterProdi(Array.from(k)[0] as string||""); setPage(1); }}
-                      size="sm" variant="bordered" classNames={{ base: "w-[220px]", trigger: "h-10" }}>
-                      {(filters?.prodi||[]).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
-                    </Select>
+                    {scope.scopeName ? (
+                      <div className="inline-flex items-center gap-1.5 h-10 px-3 rounded-lg bg-indigo-50 text-indigo-700 text-xs border border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300">
+                        <FiUsers className="w-3.5 h-3.5" />
+                        <span><strong>{scope.scopeName}</strong> (auto-scoped)</span>
+                      </div>
+                    ) : (
+                      <>
+                        {scope.canChangeFakultas && (
+                          <Select aria-label="Fakultas" placeholder="Semua Fakultas" selectedKeys={filterFak?[filterFak]:[]}
+                            onSelectionChange={k => { setFilterFak(Array.from(k)[0] as string||""); setFilterProdi(""); setPage(1); }}
+                            size="sm" variant="bordered" classNames={{ base: "w-[200px]", trigger: "h-10" }}>
+                            {(filters?.fakultas||[]).map(f => <SelectItem key={f.id_fakultas}>{f.nm_fakultas}</SelectItem>)}
+                          </Select>
+                        )}
+                        {scope.canChangeProdi && (
+                          <Select aria-label="Prodi" placeholder="Semua Prodi" selectedKeys={filterProdi?[filterProdi]:[]}
+                            onSelectionChange={k => { setFilterProdi(Array.from(k)[0] as string||""); setPage(1); }}
+                            size="sm" variant="bordered" classNames={{ base: "w-[220px]", trigger: "h-10" }}>
+                            {(filters?.prodi||[]).map(p => <SelectItem key={p.id_sms}>{p.nm_prodi}</SelectItem>)}
+                          </Select>
+                        )}
+                      </>
+                    )}
                     <Button size="sm" variant="flat" color="success" startContent={<FiDownload className="w-4 h-4" />}
-                      onPress={() => window.open(dosenDataService.getExportUrl({ search, id_fakultas: filterFak, id_prodi: filterProdi }), "_blank")}
+                      onPress={() => window.open(dosenDataService.getExportUrl({ search, id_fakultas: effFak, id_prodi: effProdi }), "_blank")}
                       className="h-10 font-medium ml-auto">Export CSV</Button>
                     <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
                       onPress={() => exportToExcel(

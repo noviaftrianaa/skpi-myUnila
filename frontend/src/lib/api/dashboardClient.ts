@@ -43,6 +43,41 @@ const createDashboardClient = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
+      // ── Auto-inject role-based scope params (homebase filter) ─────────
+      // Untuk Dekan (level 4) / Kaprodi (level 5), inject id_fakultas + id_prodi
+      // ke query params kalau caller belum set manual. Dengan ini SEMUA page
+      // dashboard/data-unila otomatis ter-scope tanpa edit per-page.
+      try {
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem('myunila_active_context');
+          if (raw) {
+            const ctx = JSON.parse(raw);
+            const level = Number(ctx?.level_organisasi);
+            const idOrg = ctx?.id_organisasi;
+            const idInduk = ctx?.id_induk_organisasi;
+            const namaPeran = String(ctx?.nm_peran || '').toLowerCase();
+
+            // Skip kalau peran universal (admin/developer/helpdesk/dll)
+            const isUniversal = !level || level <= 3
+              || ['administrator', 'developer', 'helpdesk', 'service api'].some((k) => namaPeran.includes(k));
+
+            if (!isUniversal && idOrg) {
+              config.params = config.params || {};
+              if (level === 4) {
+                // Dekan → scope fakultas (id_organisasi-nya adalah fakultas)
+                if (config.params.id_fakultas === undefined) config.params.id_fakultas = idOrg;
+              } else if (level === 5) {
+                // Kaprodi → scope prodi (parent fakultas via id_induk)
+                if (config.params.id_prodi === undefined) config.params.id_prodi = idOrg;
+                if (config.params.id_fakultas === undefined && idInduk) config.params.id_fakultas = idInduk;
+              }
+            }
+          }
+        }
+      } catch {
+        /* silent — fallback ke request tanpa scope */
+      }
+
       return config;
     },
     (error) => {

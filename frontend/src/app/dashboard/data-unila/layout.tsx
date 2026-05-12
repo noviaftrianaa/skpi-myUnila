@@ -2,6 +2,7 @@
 
 import { useRequireAppAccess } from "@/lib/hoc/withAuth";
 import AccessDenied from "@/shared/components/auth/AccessDenied";
+import ScopeGuard from "@/shared/components/dashboard/ScopeGuard";
 import { Spinner } from "@heroui/react";
 import { useCallback, useState } from "react";
 
@@ -52,5 +53,5 @@ export default function DataUnilaLayout({
     );
   }
 
-  return <>{children}</>;
+  return <ScopeGuard>{children}</ScopeGuard>;
 }

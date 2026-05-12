@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import MahasiswaDataTable from "@/shared/components/data-unila/MahasiswaDataTable";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import { Card, CardBody, Spinner } from "@heroui/react";
 import { FiUsers, FiCheckCircle, FiXCircle, FiClock, FiTrendingUp } from "react-icons/fi";
 import { MdSchool } from "react-icons/md";
@@ -45,15 +46,20 @@ function StatCard({ icon, label, value, color, subtext }: StatCardProps) {
 
 export default function MahasiswaDataPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
   const [stats, setStats] = useState<MahasiswaStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    mahasiswaDataService.getStats({})
+    setLoadingStats(true);
+    mahasiswaDataService.getStats({
+      ...(scope.forcedFakultas && { id_fakultas: scope.forcedFakultas }),
+      ...(scope.forcedProdi && { id_prodi: scope.forcedProdi }),
+    } as any)
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoadingStats(false));
-  }, []);
+  }, [scope.forcedFakultas, scope.forcedProdi]);
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -111,10 +117,27 @@ export default function MahasiswaDataPage() {
           </div>
         )}
 
+        {/* Scope badge — supaya user paham data yang ditampilkan sudah ter-filter */}
+        {scope.scopeName && (
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50 dark:border-indigo-800/40 dark:bg-indigo-900/20 px-4 py-2.5 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40">
+              <FiUsers className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-300" />
+            </span>
+            <span className="text-xs sm:text-sm text-indigo-900 dark:text-indigo-200">
+              Scope: <strong>{scope.scopeName}</strong> — data otomatis ter-filter sesuai peran aktif Anda
+            </span>
+          </div>
+        )}
+
         {/* Data Table */}
         <Card className="border-none shadow-lg rounded-xl overflow-hidden">
           <CardBody className="p-0">
-            <MahasiswaDataTable />
+            <MahasiswaDataTable
+              orgFilter={{
+                id_fakultas: scope.forcedFakultas || undefined,
+                id_prodi: scope.forcedProdi || undefined,
+              }}
+            />
           </CardBody>
         </Card>
       </div>

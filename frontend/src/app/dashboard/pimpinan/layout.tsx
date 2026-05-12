@@ -2,6 +2,7 @@
 
 import { useRequireAppAccess } from "@/lib/hoc/withAuth";
 import AccessDenied from "@/shared/components/auth/AccessDenied";
+import ScopeGuard from "@/shared/components/dashboard/ScopeGuard";
 import { Spinner } from "@heroui/react";
 import { useCallback, useState } from "react";
 
@@ -57,6 +58,6 @@ export default function PimpinanLayout({
     );
   }
 
-  // Render children if access granted
-  return <>{children}</>;
+  // Render children if access granted (wrap dgn ScopeGuard utk homebase validation)
+  return <ScopeGuard>{children}</ScopeGuard>;
 }
