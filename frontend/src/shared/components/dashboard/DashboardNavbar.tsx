@@ -15,6 +15,7 @@ import {
   FiSettings,
   FiLogOut,
   FiHome,
+  FiSend,
   FiChevronDown,
   FiBell,
   FiMenu,
@@ -465,6 +466,16 @@ export default function DashboardNavbar({
             >
               <Link href="/portal" className="w-full">
                 Portal Aplikasi
+              </Link>
+            </DropdownItem>
+            <DropdownItem
+              key="pengajuan-akses"
+              startContent={<FiSend className="w-4 h-4" />}
+              textValue="Ajukan Akses Aplikasi"
+              className="bg-white dark:bg-gray-800"
+            >
+              <Link href="/pengajuan-akses" className="w-full">
+                Ajukan Akses Aplikasi
               </Link>
             </DropdownItem>
             <DropdownItem

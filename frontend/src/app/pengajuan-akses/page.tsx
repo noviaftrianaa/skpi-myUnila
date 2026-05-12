@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserContext } from "@/contexts/UserContextContext";
 import { useRouter } from "next/navigation";
 import { pengajuanAksesService, type PengajuanAkses, type AutoFlag } from "@/lib/services/manakses/pengajuanAksesService";
 import { aplikasiService, type Aplikasi } from "@/lib/services/manakses/aplikasiService";
@@ -139,12 +140,20 @@ function PengajuanForm() {
   }, []);
   const captchaValid = parseInt(captchaInput || "0", 10) === captchaA + captchaB;
 
-  // Load apps on mount
+  // Load apps on mount — filter ke aplikasi yg tampil di portal + aktif saja
+  // (mencegah pemohon pilih aplikasi internal/test yg gak relevan utk user umum)
   useEffect(() => {
     (async () => {
       setAppsLoading(true);
       try {
-        const res = await aplikasiService.getList({ limit: 200, page: 1 });
+        const res = await aplikasiService.getList({
+          limit: 200,
+          page: 1,
+          portal: "ya",
+          status: "aktif",
+          sort_by: "nm_aplikasi",
+          sort_order: "asc",
+        });
         setApps(res.data || []);
       } catch {
         toast.error("Gagal load daftar aplikasi");
@@ -153,6 +162,22 @@ function PengajuanForm() {
       }
     })();
   }, []);
+
+  // Searchable app combobox state
+  const [appSearch, setAppSearch] = useState("");
+  const [appOpen, setAppOpen] = useState(false);
+  const filteredApps = useMemo(() => {
+    if (!appSearch.trim()) return apps;
+    const q = appSearch.toLowerCase();
+    return apps.filter((a: any) =>
+      (a.nm_aplikasi || "").toLowerCase().includes(q)
+      || (a.app_slug || "").toLowerCase().includes(q)
+    );
+  }, [apps, appSearch]);
+  const selectedApp = useMemo(
+    () => apps.find((a: any) => a.id_aplikasi === form.id_aplikasi),
+    [apps, form.id_aplikasi]
+  );
 
   // Load perans saat app dipilih
   useEffect(() => {
@@ -317,26 +342,110 @@ function PengajuanForm() {
         </div>
       </Card>
 
+      {/* Akses Saya — display peran yg sudah dimiliki sebagai info utk pemohon */}
+      <ExistingRolesCard />
+
       {/* Pengajuan */}
       <Card title="Detail Pengajuan" icon="heroicons:clipboard-document-list" desc="Pilih aplikasi target + peran + unit organisasi">
         <div className="space-y-4">
-          {/* Aplikasi */}
+          {/* Aplikasi — searchable combobox, filter ke yg tampil portal */}
           <div>
             <Label required>Aplikasi Target</Label>
-            <select
-              required
-              value={form.id_aplikasi}
-              disabled={appsLoading}
-              onChange={(e) => setForm((p) => ({ ...p, id_aplikasi: e.target.value, id_peran: 0 }))}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700/50 dark:text-white"
-            >
-              <option value="">— Pilih aplikasi —</option>
-              {apps.map((a) => (
-                <option key={a.id_aplikasi} value={a.id_aplikasi}>
-                  {a.nm_aplikasi}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <Icon icon="heroicons:magnifying-glass" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={selectedApp ? selectedApp.nm_aplikasi : appSearch}
+                placeholder={appsLoading ? "Memuat aplikasi…" : "Ketik nama aplikasi (mis. Dashboard / SIAKADU)"}
+                disabled={appsLoading}
+                onChange={(e) => {
+                  setAppSearch(e.target.value);
+                  setAppOpen(true);
+                  if (selectedApp) {
+                    // user editing — clear selection
+                    setForm((p) => ({ ...p, id_aplikasi: "", id_peran: 0 }));
+                  }
+                }}
+                onFocus={() => setAppOpen(true)}
+                onBlur={() => setTimeout(() => setAppOpen(false), 200)}
+                className="block w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-9 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-100 dark:border-slate-600 dark:bg-slate-700/50 dark:text-white"
+              />
+              {(selectedApp || appSearch) && !appsLoading && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAppSearch("");
+                    setForm((p) => ({ ...p, id_aplikasi: "", id_peran: 0 }));
+                    setAppOpen(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label="Hapus pilihan"
+                >
+                  ✕
+                </button>
+              )}
+              {appOpen && filteredApps.length > 0 && (
+                <div className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                  {filteredApps.map((a: any) => {
+                    const isComingSoon = a.a_coming_soon;
+                    const isMaintenance = a.a_maintenance;
+                    const disabled = isComingSoon || isMaintenance;
+                    return (
+                      <button
+                        key={a.id_aplikasi}
+                        type="button"
+                        disabled={disabled}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          if (disabled) return;
+                          setForm((p) => ({ ...p, id_aplikasi: a.id_aplikasi, id_peran: 0 }));
+                          setAppSearch("");
+                          setAppOpen(false);
+                        }}
+                        title={isComingSoon ? "Aplikasi belum tersedia (Coming Soon)" : isMaintenance ? "Aplikasi sedang maintenance" : undefined}
+                        className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition ${
+                          disabled
+                            ? "cursor-not-allowed opacity-60 bg-gray-50/50 dark:bg-slate-800/30"
+                            : "hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                        }`}
+                      >
+                        <Icon icon={a.icon_name || "heroicons:rectangle-stack"} className={`h-5 w-5 flex-shrink-0 ${disabled ? "text-gray-400" : "text-indigo-600 dark:text-indigo-400"}`} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`font-medium truncate ${disabled ? "text-gray-500 dark:text-slate-500" : "text-gray-900 dark:text-white"}`}>
+                              {a.nm_aplikasi}
+                            </span>
+                            {isComingSoon && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-cyan-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-700 ring-1 ring-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300">
+                                <Icon icon="heroicons:clock" className="h-2.5 w-2.5" />
+                                Soon
+                              </span>
+                            )}
+                            {isMaintenance && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-300">
+                                <Icon icon="heroicons:wrench-screwdriver" className="h-2.5 w-2.5" />
+                                Maintenance
+                              </span>
+                            )}
+                          </div>
+                          {a.ket_aplikasi && (
+                            <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{a.ket_aplikasi}</div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {appOpen && appSearch && filteredApps.length === 0 && (
+                <div className="absolute z-30 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-xs text-gray-500 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                  Aplikasi tidak ditemukan
+                </div>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              Hanya menampilkan aplikasi aktif yang muncul di portal myUnila.
+            </p>
           </div>
 
           {/* Peran */}
@@ -721,4 +830,47 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
 
 function Value({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`text-sm font-medium text-gray-900 dark:text-white ${className}`}>{children}</div>;
+}
+
+// ============================================================================
+// ExistingRolesCard — info peran yang sudah dimiliki user di akun SSO-nya
+// (membantu pemohon supaya tidak ajukan role yang duplikat)
+// ============================================================================
+function ExistingRolesCard() {
+  const { roles, isLoadingContext } = useUserContext();
+  const list = roles || [];
+
+  return (
+    <Card title="Akses Aplikasi Saat Ini" icon="heroicons:key" desc={`${list.length} peran terdaftar di akun Anda`}>
+      {isLoadingContext ? (
+        <div className="flex items-center justify-center py-4">
+          <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-indigo-500" />
+        </div>
+      ) : list.length === 0 ? (
+        <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+          <Icon icon="heroicons:information-circle" className="mr-1 inline h-4 w-4" />
+          Belum ada peran terdaftar selain peran identitas (Mhs/Dosen/Tendik).
+          Ajukan akses untuk aplikasi yang Bapak/Ibu butuhkan.
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {list.map((r: any) => (
+            <span
+              key={r.id_role_pengguna}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 px-3 py-1.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 dark:from-indigo-900/30 dark:to-purple-900/30 dark:text-indigo-300 dark:ring-indigo-800/40"
+              title={r.nm_organisasi || ""}
+            >
+              <Icon icon="heroicons:shield-check" className="h-3 w-3" />
+              <strong>{r.nm_peran}</strong>
+              {r.nm_organisasi && <span className="opacity-75">· {r.nm_organisasi}</span>}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-xs text-gray-500 dark:text-slate-400">
+        💡 Pengajuan untuk peran yang sudah dimiliki akan auto-flag warning. Pertimbangkan{" "}
+        <Link href="/portal/profile" className="text-indigo-600 hover:underline">Profil Saya</Link> untuk perpanjang.
+      </p>
+    </Card>
+  );
 }

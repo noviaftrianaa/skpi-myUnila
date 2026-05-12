@@ -1748,7 +1748,7 @@ export default function PortalPage() {
                           Berita & Artikel
                         </p>
                         <p className="text-[11px] text-gray-500 truncate">
-                          Liputan & wawasan Unila
+                          Liputan & wawasan myUnila
                         </p>
                       </div>
                       <FiChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
