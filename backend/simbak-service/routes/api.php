@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     // =========================================
     // PROTECTED: Semua endpoint butuh JWT auth
     // =========================================
-    Route::middleware(['jwt.auth'])->group(function () {
+    Route::middleware(['jwt.auth', 'scope'])->group(function () {
 
         // -----------------------------------------
         // Master Data (admin only)

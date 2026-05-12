@@ -41,7 +41,7 @@ use App\Http\Controllers\Api\ApiConfigController;
 Route::get('/health', [HealthController::class, 'check']);
 
 // JWT-protected routes (reuse jwt.auth middleware dari SIMBAK)
-Route::middleware(['jwt.auth'])->group(function () {
+Route::middleware(['jwt.auth', 'scope'])->group(function () {
     Route::prefix('lookup')->group(function () {
         Route::get('mahasiswa',          [LookupController::class, 'mahasiswaByNim']);
         Route::get('mahasiswa/search',   [LookupController::class, 'searchMahasiswa']);

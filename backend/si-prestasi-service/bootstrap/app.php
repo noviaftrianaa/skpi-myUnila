@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
             'permission' => \App\Http\Middleware\CheckCrudPermission::class,
+            'scope' => \App\Http\Middleware\RoleScopeFilter::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
