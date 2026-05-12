@@ -4,12 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@iconify/react";
+import { useRequireAuth } from "@/lib/hoc/withAuth";
+import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
+import { MdSecurity } from "react-icons/md";
+import { manajemenAksesMenuConfig } from "../../../../config/menuConfig";
 import {
   aplikasiService,
   type AksesPenggunaResult,
   type AksesVia,
   type AksesPenggunaPeranSummary,
 } from "@/lib/services/manakses/aplikasiService";
+
+const APP_KEY = "manajemen-akses";
 
 const VIA_META: Record<AksesVia, { label: string; pill: string; chip: string; ring: string }> = {
   identitas: {
@@ -51,6 +57,7 @@ function useDebounced<T>(value: T, delay = 300): T {
 }
 
 export default function AksesPenggunaPage() {
+  useRequireAuth();
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const router = useRouter();
@@ -105,7 +112,14 @@ export default function AksesPenggunaPage() {
   }, [data]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 lg:p-6">
+    <DashboardLayoutWithDynamicMenu
+      appName="Manajemen Akses"
+      appIcon={<MdSecurity className="w-6 h-6 text-white" />}
+      appKey={APP_KEY}
+      fallbackMenus={manajemenAksesMenuConfig}
+      pageTitle="Akses Pengguna per Aplikasi"
+    >
+      <div className="space-y-6">
       {/* Breadcrumb + Title */}
       <div className="flex flex-col gap-2">
         <nav className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
@@ -420,7 +434,8 @@ export default function AksesPenggunaPage() {
           </span>
         </div>
       </div>
-    </div>
+      </div>
+    </DashboardLayoutWithDynamicMenu>
   );
 }
 

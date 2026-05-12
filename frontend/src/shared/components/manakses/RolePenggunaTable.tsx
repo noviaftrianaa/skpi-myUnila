@@ -259,6 +259,15 @@ export default function RolePenggunaTable() {
     onDeleteOpen();
   };
 
+  // Toast error helper — konsisten style
+  const showError = (msg: string, duration = 3000) => {
+    toast.error(msg, {
+      duration,
+      style: { borderRadius: "12px", background: "#EF4444", color: "#fff", fontWeight: "500" },
+      iconTheme: { primary: "#fff", secondary: "#EF4444" },
+    });
+  };
+
   const handleSubmitAdd = async () => {
     if (!formData.id_pengguna.trim()) {
       toast.error('ID Pengguna harus diisi', {
@@ -277,19 +286,14 @@ export default function RolePenggunaTable() {
       return;
     }
     if (!formData.id_peran) {
-      toast.error('Peran harus dipilih', {
-        duration: 3000,
-        style: {
-          borderRadius: "12px",
-          background: "#EF4444",
-          color: "#fff",
-          fontWeight: "500",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#EF4444",
-        },
-      });
+      showError('Peran harus dipilih');
+      return;
+    }
+    // Unit Organisasi WAJIB — supaya scope filter homebase di Dashboard
+    // Pimpinan / Data Unila kerja benar. Kalau kosong, user dianggap super-user
+    // universal (bypass role-based filter, lihat semua data lintas unit).
+    if (!formData.id_organisasi) {
+      showError('Unit Organisasi harus dipilih — wajib untuk role-based scope filter', 4500);
       return;
     }
     setIsSubmitting(true);
@@ -334,19 +338,11 @@ export default function RolePenggunaTable() {
   const handleSubmitEdit = async () => {
     if (!selectedItem) return;
     if (!formData.id_peran) {
-      toast.error('Peran harus dipilih', {
-        duration: 3000,
-        style: {
-          borderRadius: "12px",
-          background: "#EF4444",
-          color: "#fff",
-          fontWeight: "500",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#EF4444",
-        },
-      });
+      showError('Peran harus dipilih');
+      return;
+    }
+    if (!formData.id_organisasi) {
+      showError('Unit Organisasi harus dipilih — wajib untuk role-based scope filter', 4500);
       return;
     }
     setIsSubmitting(true);
@@ -778,7 +774,8 @@ export default function RolePenggunaTable() {
                   {/* Unit Organisasi — combobox cari */}
                   <div className="space-y-1.5">
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                      Unit Organisasi <span className="text-xs text-gray-400 font-normal">(opsional)</span>
+                      Unit Organisasi <span className="text-red-500">*</span>
+                      <span className="ml-1 text-xs font-normal text-gray-500">(wajib — utk scope homebase)</span>
                     </label>
                     <div className="relative">
                       <div className="relative">
