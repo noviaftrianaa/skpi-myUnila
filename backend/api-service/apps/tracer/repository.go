@@ -97,12 +97,15 @@ func (r *repository) ListHasilTracer(ctx context.Context, p HasilTracerParams) (
 		return nil, 0, err
 	}
 
-	sortBy, order := "h.wkt_pengisian DESC", p.Order
+	// sortBy = nama kolom saja (tanpa arah); arah dipisah di `order` supaya
+	// fmt.Sprintf tidak menghasilkan "ORDER BY col DESC ASC" yang invalid.
+	sortBy := "h.wkt_pengisian"
 	if p.SortBy != "" {
 		sortBy = p.SortBy
 	}
-	if order == "" {
-		order = "ASC"
+	order := strings.ToUpper(strings.TrimSpace(p.Order))
+	if order != "ASC" && order != "DESC" {
+		order = "DESC" // newest first by default
 	}
 
 	q := fmt.Sprintf(`%s WHERE %s ORDER BY %s %s OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
@@ -316,12 +319,13 @@ func (r *repository) ListHasilTracerAtasan(ctx context.Context, p HasilTracerAta
 		return nil, 0, err
 	}
 
-	sortBy, order := "a.create_date DESC", p.Order
+	sortBy := "a.create_date"
 	if p.SortBy != "" {
 		sortBy = p.SortBy
 	}
-	if order == "" {
-		order = "ASC"
+	order := strings.ToUpper(strings.TrimSpace(p.Order))
+	if order != "ASC" && order != "DESC" {
+		order = "DESC"
 	}
 
 	q := fmt.Sprintf(`%s WHERE %s ORDER BY %s %s OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
@@ -481,12 +485,13 @@ func (r *repository) ListUmrWilayah(ctx context.Context, p UmrWilayahParams) ([]
 		return nil, 0, err
 	}
 
-	sortBy, order := "u.id_tahun_anggaran DESC", p.Order
+	sortBy := "u.id_tahun_anggaran"
 	if p.SortBy != "" {
 		sortBy = p.SortBy
 	}
-	if order == "" {
-		order = "ASC"
+	order := strings.ToUpper(strings.TrimSpace(p.Order))
+	if order != "ASC" && order != "DESC" {
+		order = "DESC"
 	}
 
 	q := fmt.Sprintf(`%s WHERE %s ORDER BY %s %s OFFSET @p%d ROWS FETCH NEXT @p%d ROWS ONLY`,
