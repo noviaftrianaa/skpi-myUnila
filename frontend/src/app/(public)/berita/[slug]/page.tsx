@@ -6,35 +6,44 @@ import Link from "next/link";
 import { FiArrowLeft, FiAlertCircle } from "react-icons/fi";
 import KontenDetail from "@/shared/components/manajemen-konten/KontenDetail";
 import KontenDetailSkeleton from "@/shared/components/manajemen-konten/KontenDetailSkeleton";
+import ShareButtons from "@/shared/components/manajemen-konten/ShareButtons";
 import manajemenKontenService, { Konten } from "@/lib/services/manajemen-konten/manajemenKontenService";
 
-export default function PengumumanDetailPage() {
+/**
+ * Public detail Berita — accessible tanpa login, SEO indexable + shareable.
+ * URL: /berita/{slug}
+ */
+export default function PublicBeritaDetailPage() {
   const params = useParams();
-  // [id] param accepts BOTH UUID and slug (slug-friendly URL utk shareability)
-  const idOrSlug = params?.id as string;
+  const slug = params?.slug as string;
   const [data, setData] = useState<Konten | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!idOrSlug) return;
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+    if (!slug) return;
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
     const fetcher = isUUID
-      ? manajemenKontenService.getKonten(idOrSlug, true)
-      : manajemenKontenService.getKontenBySlug(idOrSlug, true);
+      ? manajemenKontenService.getKonten(slug, true)
+      : manajemenKontenService.getKontenBySlug(slug, true);
     fetcher
       .then((r) => {
         if (r.success) setData(r.data);
-        else setError("Pengumuman tidak ditemukan");
+        else setError("Berita tidak ditemukan");
       })
       .catch((err) => setError(err?.response?.data?.message || err.message))
       .finally(() => setLoading(false));
-  }, [idOrSlug]);
+  }, [slug]);
+
+  // Set page title dynamically utk SEO
+  useEffect(() => {
+    if (data?.judul) {
+      document.title = `${data.judul} — Berita Universitas Lampung`;
+    }
+  }, [data?.judul]);
 
   if (loading) {
-    return (
-      <KontenDetailSkeleton backLabel="Daftar Pengumuman" backHref="/portal/announcements" />
-    );
+    return <KontenDetailSkeleton backLabel="Daftar Berita" backHref="/berita" />;
   }
 
   if (error || !data) {
@@ -44,21 +53,29 @@ export default function PengumumanDetailPage() {
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center">
             <FiAlertCircle className="w-7 h-7" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-1">Pengumuman tidak ditemukan</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-1">Berita tidak ditemukan</h2>
           <p className="text-sm text-gray-500 mb-5">
             {error || "Halaman yang Anda cari tidak tersedia atau telah dihapus."}
           </p>
           <Link
-            href="/portal/announcements"
+            href="/berita"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" />
-            Daftar Pengumuman
+            Daftar Berita
           </Link>
         </div>
       </div>
     );
   }
 
-  return <KontenDetail data={data} backLabel="Daftar Pengumuman" backHref="/portal/announcements" />;
+  return (
+    <>
+      <KontenDetail data={data} backLabel="Daftar Berita" backHref="/berita" />
+      <ShareButtons
+        title={data.judul}
+        text={data.ringkasan || data.judul}
+      />
+    </>
+  );
 }

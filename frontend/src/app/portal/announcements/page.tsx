@@ -231,7 +231,7 @@ export default function AnnouncementsPage() {
                   transition={{ delay: Math.min(idx * 0.03, 0.3) }}
                 >
                   <Link
-                    href={`/portal/pengumuman/${it.id_pengumuman}`}
+                    href={`/portal/pengumuman/${it.slug || it.id_pengumuman}`}
                     className={`group block bg-white rounded-2xl shadow-sm hover:shadow-md border ${
                       isFresh ? "border-blue-200 ring-1 ring-blue-100" : "border-gray-100"
                     } overflow-hidden transition-all hover:-translate-y-0.5`}
@@ -311,7 +311,7 @@ function FeaturedCard({
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <Link
-        href={`/portal/pengumuman/${item.id_pengumuman}`}
+        href={`/portal/pengumuman/${item.slug || item.id_pengumuman}`}
         className="group block relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
       >
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white_0%,transparent_50%)]" />
