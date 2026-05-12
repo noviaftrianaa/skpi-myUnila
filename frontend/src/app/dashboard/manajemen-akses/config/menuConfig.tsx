@@ -92,6 +92,11 @@ export const manajemenAksesMenuConfig: MenuItem[] = [
         href: "/dashboard/manajemen-akses/manajemen/ws-authorization",
         roles: allowedRoles,
       },
+      {
+        title: "Pengajuan Akses",
+        href: "/dashboard/manajemen-akses/manajemen/pengajuan",
+        roles: allowedRoles,
+      },
     ],
   },
   {

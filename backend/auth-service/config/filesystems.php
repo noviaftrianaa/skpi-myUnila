@@ -60,6 +60,21 @@ return [
             'report' => false,
         ],
 
+        // MinIO disk untuk SK Penugasan (SSAR — Self-Service Access Request).
+        // Bucket private (no public read). Akses lewat backend signed URL only.
+        'minio_sk' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => 'us-east-1',
+            'bucket' => env('MINIO_SK_BUCKET', 'myunila-sk-storage'),
+            'endpoint' => 'http://' . env('MINIO_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

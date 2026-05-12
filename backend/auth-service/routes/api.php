@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ManAkses\AplikasiController;
 use App\Http\Controllers\Api\ManAkses\UnitOrganisasiController;
 use App\Http\Controllers\Api\ManAkses\PeranController;
 use App\Http\Controllers\Api\ManAkses\RolePenggunaController;
+use App\Http\Controllers\Api\ManAkses\PengajuanAksesController;
 use App\Http\Controllers\Api\ManAkses\EndpointController;
 use App\Http\Controllers\Api\ManAkses\KategoriAplikasiController;
 use App\Http\Controllers\Api\ManAkses\PjAplikasiController;
@@ -259,6 +260,23 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [RolePenggunaController::class, 'store'])->middleware('permission:insert,manajemen-akses');
             Route::put('/{id}', [RolePenggunaController::class, 'update'])->middleware('permission:update,manajemen-akses');
             Route::delete('/{id}', [RolePenggunaController::class, 'destroy'])->middleware('permission:delete,manajemen-akses');
+        });
+
+        // SSAR — Self-Service Access Request
+        Route::prefix('pengajuan-akses')->group(function () {
+            // ─── User-facing (any authenticated) ───
+            Route::get('/my-requests',         [PengajuanAksesController::class, 'myRequests']);
+            Route::post('/upload-sk',          [PengajuanAksesController::class, 'uploadSk']);
+            Route::get('/preview-sk/{id}',     [PengajuanAksesController::class, 'previewSk']);
+            Route::post('/',                   [PengajuanAksesController::class, 'store']);
+            Route::put('/{id}/cancel',         [PengajuanAksesController::class, 'cancel']);
+
+            // ─── Admin-facing (RBAC checked in controller) ───
+            Route::get('/queue/count',         [PengajuanAksesController::class, 'queueCount']);
+            Route::put('/{id}/approve',        [PengajuanAksesController::class, 'approve']);
+            Route::put('/{id}/reject',         [PengajuanAksesController::class, 'reject']);
+            Route::get('/',                    [PengajuanAksesController::class, 'index']);
+            Route::get('/{id}',                [PengajuanAksesController::class, 'show']);
         });
 
         // Endpoint (WS Endpoint Management)
