@@ -9,6 +9,7 @@ import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiBell, FiMail, FiMessageSquare, FiSave, FiSend, FiFileText, FiList, FiEye, FiCheck, FiX, FiAlertCircle, FiSettings, FiPlus, FiEdit, FiTrash2, FiActivity } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
+import CKEditorClassic from "@/shared/components/ui/CKEditorClassic";
 import toast, { Toaster } from "react-hot-toast";
 import {
   getSmtpList, createSmtp, updateSmtp, deleteSmtp, testSmtp,
@@ -546,8 +547,12 @@ export default function NotifikasiPage() {
                 <input type="text" value={String(editingTemplate.subject_email ?? "")} onChange={e => setEditingTemplate(t => t ? ({ ...t, subject_email: e.target.value }) : null)} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Body Email (HTML)</label>
-                <textarea rows={8} value={String(editingTemplate.body_email ?? "")} onChange={e => setEditingTemplate(t => t ? ({ ...t, body_email: e.target.value }) : null)} className={`${inputClass} font-mono text-xs resize-y`} />
+                <label className="block text-xs font-medium text-gray-600 mb-1">Body Email</label>
+                <CKEditorClassic
+                  value={String(editingTemplate.body_email ?? "")}
+                  onChange={(html) => setEditingTemplate(t => t ? ({ ...t, body_email: html }) : null)}
+                  minHeight={260}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Body WhatsApp (Plain Text)</label>
