@@ -35,6 +35,11 @@ export default function SuratMandiriFormPage() {
   const [profileData, setProfileData] = useState<Record<string, unknown> | null>(null);
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(null);
   const [existingDokumen, setExistingDokumen] = useState<DokumenPengajuan[]>([]);
+  // Surat pendukung untuk SK-PKKMB & SK-KTM (dokumen hilang)
+  const [nomorSuratPolisi, setNomorSuratPolisi] = useState("");
+  const [tglSuratPolisi, setTglSuratPolisi] = useState("");
+  const [nomorSuratKetAktif, setNomorSuratKetAktif] = useState("");
+  const [tglSuratKetAktif, setTglSuratKetAktif] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -58,6 +63,10 @@ export default function SuratMandiriFormPage() {
           if (detail?.dokumen) {
             setExistingDokumen(detail.dokumen);
           }
+          if (detail?.nomor_surat_polisi) setNomorSuratPolisi(detail.nomor_surat_polisi);
+          if (detail?.tgl_surat_polisi) setTglSuratPolisi(String(detail.tgl_surat_polisi).split("T")[0]);
+          if (detail?.nomor_surat_ket_aktif) setNomorSuratKetAktif(detail.nomor_surat_ket_aktif);
+          if (detail?.tgl_surat_ket_aktif) setTglSuratKetAktif(String(detail.tgl_surat_ket_aktif).split("T")[0]);
         }
       } catch { /* fallback */ }
       finally { setLoading(false); }
@@ -95,18 +104,33 @@ export default function SuratMandiriFormPage() {
   const isPdutConnected = profileData?._pdut_connected === true;
   const statusRegistrasi = String(profileData?.status_registrasi ?? "").toLowerCase();
   const isHerregBlocked = kode === "SK-HERREG" && isPdutConnected && statusRegistrasi && !["aktif", "active", "a"].includes(statusRegistrasi);
+  const isPenggantiHilang = kode === "SK-PKKMB" || kode === "SK-KTM";
 
   const handleFileChange = (kodeDokumen: string, file: File | null) => {
     setUploadedFiles(prev => ({ ...prev, [kodeDokumen]: file }));
   };
 
   const handleSubmit = async (isDraft: boolean) => {
+    // Validasi nomor surat untuk SK-PKKMB & SK-KTM (saat submit, bukan draft)
+    if (!isDraft && isPenggantiHilang) {
+      if (!nomorSuratPolisi.trim()) { toast.error("Nomor Surat Kehilangan dari Kepolisian wajib diisi"); return; }
+      if (!nomorSuratKetAktif.trim()) { toast.error("Nomor Surat Keterangan Mahasiswa Aktif wajib diisi"); return; }
+    }
     setSubmitting(true);
     try {
       // 1. Create pengajuan (skip jika mode edit — sudah ada)
       const pengajuanId = editId
         ? editId
-        : (await createPengajuan({ id_jenis_layanan: layanan.id_jenis_layanan, catatan_pemohon: `Pengajuan ${layanan.nm_layanan}` })).id_pengajuan;
+        : (await createPengajuan({
+            id_jenis_layanan: layanan.id_jenis_layanan,
+            catatan_pemohon: `Pengajuan ${layanan.nm_layanan}`,
+            ...(isPenggantiHilang ? {
+              nomor_surat_polisi: nomorSuratPolisi || undefined,
+              tgl_surat_polisi: tglSuratPolisi || undefined,
+              nomor_surat_ket_aktif: nomorSuratKetAktif || undefined,
+              tgl_surat_ket_aktif: tglSuratKetAktif || undefined,
+            } : {}),
+          })).id_pengajuan;
 
       // 2. Upload dokumen baru (yang dipilih user)
       for (const [kodeDok, file] of Object.entries(uploadedFiles)) {
@@ -196,6 +220,45 @@ export default function SuratMandiriFormPage() {
                 </div>
               ))}
             </div>
+
+            {/* SK-PKKMB / SK-KTM: Surat Pendukung */}
+            {isPenggantiHilang && (
+              <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-5">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Surat Pendukung</h3>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                    {kode === "SK-KTM"
+                      ? "Untuk pengajuan KTM pengganti, lampirkan nomor Surat Kehilangan dari Kepolisian dan Surat Keterangan Mahasiswa Aktif dari Fakultas."
+                      : "Untuk pengajuan Sertifikat PKKMB pengganti, lampirkan nomor Surat Kehilangan dari Kepolisian dan Surat Keterangan Mahasiswa Aktif dari Fakultas."}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Surat Kehilangan (Kepolisian) <span className="text-red-500">*</span></label>
+                    <input type="text" value={nomorSuratPolisi} onChange={e => setNomorSuratPolisi(e.target.value)}
+                      placeholder="Contoh: STPLK/123/V/2026/POLRES"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Surat Kehilangan</label>
+                    <input type="date" value={tglSuratPolisi} onChange={e => setTglSuratPolisi(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Surat Keterangan Mahasiswa Aktif (Fakultas) <span className="text-red-500">*</span></label>
+                    <input type="text" value={nomorSuratKetAktif} onChange={e => setNomorSuratKetAktif(e.target.value)}
+                      placeholder="Contoh: 045/UN26.FMIPA/SKM/2026"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Surat Keterangan Aktif</label>
+                    <input type="date" value={tglSuratKetAktif} onChange={e => setTglSuratKetAktif(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">File PDF surat-surat tersebut tetap di-upload pada langkah berikutnya sesuai persyaratan dokumen.</p>
+              </div>
+            )}
           </CardBody></Card>
         )}
 
@@ -251,6 +314,27 @@ export default function SuratMandiriFormPage() {
                   </div>
                 ))}
               </div>
+              {isPenggantiHilang && (nomorSuratPolisi || nomorSuratKetAktif) && (
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-2">Surat Pendukung</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {nomorSuratPolisi && (
+                      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                        <p className="text-xs text-gray-500 mb-0.5">Surat Kehilangan (Kepolisian)</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{nomorSuratPolisi}</p>
+                        {tglSuratPolisi && <p className="text-xs text-gray-500 mt-0.5">{new Date(tglSuratPolisi).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                      </div>
+                    )}
+                    {nomorSuratKetAktif && (
+                      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                        <p className="text-xs text-gray-500 mb-0.5">Surat Keterangan Aktif (Fakultas)</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{nomorSuratKetAktif}</p>
+                        {tglSuratKetAktif && <p className="text-xs text-gray-500 mt-0.5">{new Date(tglSuratKetAktif).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardBody></Card>
 
             <Card className="shadow-md rounded-xl"><CardBody className="p-6">
@@ -321,6 +405,11 @@ export default function SuratMandiriFormPage() {
             if (currentStep === 1 && isHerregBlocked) {
               toast.error("Anda tidak memenuhi syarat untuk layanan ini");
               return;
+            }
+            // Validasi step 1 SK-PKKMB / SK-KTM: nomor surat wajib
+            if (currentStep === 1 && isPenggantiHilang) {
+              if (!nomorSuratPolisi.trim()) { toast.error("Nomor Surat Kehilangan dari Kepolisian wajib diisi"); return; }
+              if (!nomorSuratKetAktif.trim()) { toast.error("Nomor Surat Keterangan Mahasiswa Aktif wajib diisi"); return; }
             }
             setCurrentStep(s => Math.min(3, s + 1));
           }}>Selanjutnya</Button>}
