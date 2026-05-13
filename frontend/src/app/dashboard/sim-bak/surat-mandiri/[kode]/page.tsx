@@ -11,6 +11,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getMyProfile, createPengajuan, uploadDokumen, ajukanPengajuan, deleteDokumen } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan, PersyaratanLayanan, DokumenPengajuan } from "@/lib/services/sim-bak/types";
+import TemplateBlankoDownloadCard from "../../components/TemplateBlankoDownloadCard";
 
 const steps = [
   { no: 1, label: "Data Pemohon" },
@@ -206,7 +207,11 @@ export default function SuratMandiriFormPage() {
 
         {/* Step 1: Data Pemohon */}
         {currentStep === 1 && (
-          <Card className="shadow-md rounded-xl"><CardBody className="p-6">
+          <div className="space-y-4">
+            {/* Template Blanko yang perlu di-download */}
+            <TemplateBlankoDownloadCard idJenisLayanan={layanan.id_jenis_layanan} />
+
+            <Card className="shadow-md rounded-xl"><CardBody className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Pemohon</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Data berikut diambil dari profil akademik Anda.</p>
 
@@ -299,7 +304,8 @@ export default function SuratMandiriFormPage() {
                 </div>
               </div>
             )}
-          </CardBody></Card>
+            </CardBody></Card>
+          </div>
         )}
 
         {/* Step 2: Upload Dokumen */}

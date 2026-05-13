@@ -11,6 +11,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, getKategoriCutiActive, getKategoriUndurActive, getKetentuanByLayanan, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
 import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan, KategoriCuti, KategoriUndur, KetentuanLayanan } from "@/lib/services/sim-bak/types";
+import TemplateBlankoDownloadCard from "../../components/TemplateBlankoDownloadCard";
 
 const steps = [
   { no: 1, label: "Data & Alasan" },
@@ -313,6 +314,9 @@ export default function PermohonanFormPage() {
         {/* Step 1: Data + Alasan */}
         {currentStep === 1 && (
           <div className="space-y-4">
+            {/* Template Blanko yang perlu di-download */}
+            <TemplateBlankoDownloadCard idJenisLayanan={layanan.id_jenis_layanan} />
+
             {/* Tahapan info */}
             {tahapan.length > 0 && (
               <Card className="shadow-sm rounded-xl border border-blue-100 dark:border-blue-900">
