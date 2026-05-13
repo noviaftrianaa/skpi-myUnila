@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Layanan;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
+use App\Services\DraftSuratService;
 use App\Services\MinioService;
 use App\Services\NotificationService;
 use App\Services\WorkflowService;
@@ -419,6 +420,37 @@ class VerifikasiController extends Controller
         } catch (\Exception $e) {
             Log::error('Verifikasi.whatsappLink: ' . $e->getMessage());
             return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Download draft surat keterangan (PDF unsigned) untuk dikirim ke pimpinan.
+     * Berlaku untuk SK-* (surat mandiri) sebelum tanda tangan elektronik.
+     */
+    public function downloadDraft(string $id)
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            // Hanya berlaku untuk surat_mandiri yang punya template
+            $kode = $pengajuan->kode_layanan ?? '';
+            if (!in_array($kode, ['SK-KTM', 'SK-PKKMB', 'SK-HERREG', 'SK-LOA'])) {
+                return $this->errorResponse('Draft surat hanya tersedia untuk surat keterangan (SK-*)', 422);
+            }
+
+            $service = new DraftSuratService();
+            $pdfContent = $service->generate($id);
+            $filename = $service->filename($id);
+
+            return response($pdfContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control' => 'no-store, no-cache',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Verifikasi.downloadDraft: ' . $e->getMessage());
+            return $this->errorResponse('Gagal generate draft: ' . $e->getMessage(), 500);
         }
     }
 

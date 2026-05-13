@@ -79,6 +79,34 @@ export interface KategoriCuti {
   updated_at: string;
 }
 
+export interface TemplateSurat {
+  id_template: string;
+  id_jenis_layanan: string;
+  kode_layanan?: string;
+  nm_layanan?: string;
+  nm_template: string;
+  versi: string;
+  body_html: string | null;
+  body_default: string | null;
+  a_aktif: boolean;
+  is_modified?: boolean;
+  updated_at?: string;
+}
+
+export interface TemplateBlanko {
+  id_template: string;
+  id_jenis_layanan: string;
+  kode_layanan?: string;
+  nm_layanan?: string;
+  nm_template: string;
+  versi: string;
+  path_file: string;
+  tipe_file: string;
+  a_aktif: boolean;
+  keterangan: string | null;
+  updated_at?: string;
+}
+
 export interface KategoriUndur {
   id_kategori_undur: string;
   nm_kategori: string;

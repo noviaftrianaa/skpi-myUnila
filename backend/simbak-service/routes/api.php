@@ -104,6 +104,24 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
+        Route::prefix('master-data/template-surat')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\MasterData\TemplateSuratController::class, 'index']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\MasterData\TemplateSuratController::class, 'show']);
+            Route::put('/{id}', [\App\Http\Controllers\Api\MasterData\TemplateSuratController::class, 'update'])->middleware('permission:update,sim-bak');
+            Route::post('/{id}/reset', [\App\Http\Controllers\Api\MasterData\TemplateSuratController::class, 'reset'])->middleware('permission:update,sim-bak');
+            Route::post('/{id}/preview', [\App\Http\Controllers\Api\MasterData\TemplateSuratController::class, 'preview']);
+        });
+
+        // Template Blanko: file Word/PDF yang bisa di-download mahasiswa untuk diisi
+        Route::prefix('master-data/template-blanko')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'store'])->middleware('permission:insert,sim-bak');
+            Route::post('/{id}', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'update'])->middleware('permission:update,sim-bak');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'destroy'])->middleware('permission:delete,sim-bak');
+        });
+        Route::get('/layanan/template-blanko/by-layanan/{idJenisLayanan}', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'listForMahasiswa']);
+        Route::get('/layanan/template-blanko/{id}/download', [\App\Http\Controllers\Api\MasterData\TemplateBlankoController::class, 'download']);
+
         Route::prefix('master-data/ketentuan-layanan')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'index']);
             Route::get('/{id}', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'show']);
@@ -142,6 +160,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/pengajuan/{id}/progress', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'progress']);
             Route::get('/pengajuan/{id}/riwayat-cuti', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'riwayatCuti']);
             Route::get('/pengajuan/{id}/wa-link', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'whatsappLink']);
+            Route::get('/pengajuan/{id}/draft-surat', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'downloadDraft']);
             Route::post('/pengajuan/eksternal', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'storeEksternal'])->middleware('permission:insert,sim-bak');
             Route::post('/pengajuan/{id}/verifikasi', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'verifikasi'])->middleware('permission:approve,sim-bak');
             Route::post('/pengajuan/{id}/perbaikan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'mintaPerbaikan'])->middleware('permission:reject,sim-bak');

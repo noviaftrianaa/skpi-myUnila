@@ -14,6 +14,8 @@ import type {
   TemplateDokumen,
   KategoriCuti,
   KategoriUndur,
+  TemplateSurat,
+  TemplateBlanko,
   KetentuanLayanan,
   KetentuanByLayananResponse,
   RiwayatCutiResponse,
@@ -270,6 +272,21 @@ export const getWhatsAppLinkPengajuan = async (
     { params: { event } }
   );
   return response.data.data;
+};
+
+/**
+ * Download draft surat PDF untuk pengajuan (SK-*) sebelum TTD pimpinan.
+ * Return: blob URL yang bisa langsung dibuka/download.
+ */
+export const downloadDraftSurat = async (id: string): Promise<{ url: string; filename: string }> => {
+  const response = await bakClient.get(`/admin/pengajuan/${id}/draft-surat`, { responseType: 'blob' });
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  // Coba ambil filename dari Content-Disposition
+  const cd = response.headers?.['content-disposition'] ?? '';
+  const match = /filename="?([^"]+)"?/i.exec(cd);
+  const filename = match ? match[1] : `Draft-Surat-${id}.pdf`;
+  return { url, filename };
 };
 
 export const uploadDokumen = async (idPengajuan: string, formData: FormData): Promise<DokumenPengajuan> => {
@@ -751,6 +768,84 @@ export const deleteKetentuan = async (id: string): Promise<void> => {
   await bakClient.delete(`/master-data/ketentuan-layanan/${id}`);
 };
 
+// ============ Template Surat (Draft PDF editable) ============
+
+export const getTemplateSuratList = async (): Promise<TemplateSurat[]> => {
+  const response = await bakClient.get<ApiResponse<TemplateSurat[]>>('/master-data/template-surat');
+  return response.data.data;
+};
+
+export const getTemplateSurat = async (id: string): Promise<TemplateSurat> => {
+  const response = await bakClient.get<ApiResponse<TemplateSurat>>(`/master-data/template-surat/${id}`);
+  return response.data.data;
+};
+
+export const updateTemplateSurat = async (id: string, data: { body_html: string; nm_template?: string; a_aktif?: boolean }): Promise<void> => {
+  await bakClient.put(`/master-data/template-surat/${id}`, data);
+};
+
+export const resetTemplateSurat = async (id: string): Promise<void> => {
+  await bakClient.post(`/master-data/template-surat/${id}/reset`);
+};
+
+export const previewTemplateSurat = async (id: string, bodyHtml?: string): Promise<{ url: string }> => {
+  const response = await bakClient.post(
+    `/master-data/template-surat/${id}/preview`,
+    bodyHtml ? { body_html: bodyHtml } : {},
+    { responseType: 'blob' }
+  );
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  return { url: URL.createObjectURL(blob) };
+};
+
+// ============ Template Blanko (file Word/PDF yang diunduh mahasiswa) ============
+
+export const getTemplateBlankoList = async (idJenisLayanan?: string): Promise<TemplateBlanko[]> => {
+  const params = idJenisLayanan ? { id_jenis_layanan: idJenisLayanan } : {};
+  const response = await bakClient.get<ApiResponse<TemplateBlanko[]>>('/master-data/template-blanko', { params });
+  return response.data.data;
+};
+
+export const getTemplateBlankoByLayanan = async (idJenisLayanan: string): Promise<TemplateBlanko[]> => {
+  const response = await bakClient.get<ApiResponse<TemplateBlanko[]>>(`/layanan/template-blanko/by-layanan/${idJenisLayanan}`);
+  return response.data.data;
+};
+
+export const uploadTemplateBlanko = async (formData: FormData): Promise<{ id_template: string }> => {
+  const response = await bakClient.post<ApiResponse<{ id_template: string }>>(
+    '/master-data/template-blanko',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return response.data.data;
+};
+
+export const updateTemplateBlanko = async (id: string, formData: FormData): Promise<void> => {
+  await bakClient.post(`/master-data/template-blanko/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const deleteTemplateBlanko = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/template-blanko/${id}`);
+};
+
+export const downloadTemplateBlankoUrl = (id: string): string => {
+  // Returns full URL with auth token query for direct download via window.open
+  return `/layanan/template-blanko/${id}/download`;
+};
+
+export const downloadTemplateBlanko = async (id: string, filename?: string): Promise<void> => {
+  const response = await bakClient.get(`/layanan/template-blanko/${id}/download`, { responseType: 'blob' });
+  const blob = new Blob([response.data]);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `template-${id}`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -763,6 +858,8 @@ const simBakService = {
   getKategoriCutiActive, getKategoriCuti, createKategoriCuti, updateKategoriCuti, deleteKategoriCuti,
   getKategoriUndurActive, getKategoriUndur, createKategoriUndur, updateKategoriUndur, deleteKategoriUndur,
   getKetentuanByLayanan, getKetentuan, createKetentuan, updateKetentuan, deleteKetentuan,
+  getTemplateSuratList, getTemplateSurat, updateTemplateSurat, resetTemplateSurat, previewTemplateSurat,
+  getTemplateBlankoList, getTemplateBlankoByLayanan, uploadTemplateBlanko, updateTemplateBlanko, deleteTemplateBlanko, downloadTemplateBlanko,
   getTahapan, createTahapan, updateTahapan, deleteTahapan,
   getTemplate, createTemplate, updateTemplate, deleteTemplate,
   // Profil & Workflow
@@ -774,7 +871,7 @@ const simBakService = {
   uploadDokumen, ajukanPengajuan, deleteDokumen,
   downloadDokumenUrl, downloadDokumenHasilUrl,
   // Admin
-  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, getWhatsAppLinkPengajuan,
+  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, getWhatsAppLinkPengajuan, downloadDraftSurat,
   // Approval
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch

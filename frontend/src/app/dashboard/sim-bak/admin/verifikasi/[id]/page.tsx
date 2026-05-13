@@ -9,7 +9,7 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile, FiUpload, FiMessageCircle } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
-import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl, cekKrsPengajuan, getRiwayatCutiPengajuan, getWhatsAppLinkPengajuan } from "@/lib/services/sim-bak/simBakService";
+import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl, cekKrsPengajuan, getRiwayatCutiPengajuan, getWhatsAppLinkPengajuan, downloadDraftSurat } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { Pengajuan, RiwayatCutiResponse } from "@/lib/services/sim-bak/types";
@@ -522,6 +522,51 @@ export default function VerifikasiDetailPage() {
                     <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
                       className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none resize-none"
                       placeholder="Catatan untuk pemohon atau internal..." />
+                  </div>
+                </div>
+              </CardBody></Card>
+            )}
+
+            {/* Draft Surat — untuk SK-* sebelum diterbitkan (TTD elektronik pimpinan) */}
+            {["SK-KTM", "SK-PKKMB", "SK-HERREG", "SK-LOA"].includes(String(detail.kode_layanan)) &&
+              ["diverifikasi", "menunggu_persetujuan", "disetujui"].includes(status) && (
+              <Card className="shadow-md rounded-xl border-2 border-blue-200 dark:border-blue-800"><CardBody className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                      <FiFile className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-blue-700 dark:text-blue-400">Draft Surat (Belum Ditandatangani)</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Download draft PDF untuk dikirim ke pimpinan untuk ditandatangani elektronik (BSrE), kemudian upload kembali saat klik <strong>Terbitkan</strong>.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="flat" color="primary" startContent={<FiEye className="w-3.5 h-3.5" />}
+                      onPress={async () => {
+                        try {
+                          const { url } = await downloadDraftSurat(id);
+                          window.open(url, "_blank");
+                        } catch (e) {
+                          const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal generate draft";
+                          toast.error(msg);
+                        }
+                      }}>Preview</Button>
+                    <Button size="sm" color="primary" startContent={<FiDownload className="w-3.5 h-3.5" />}
+                      onPress={async () => {
+                        try {
+                          const { url, filename } = await downloadDraftSurat(id);
+                          const a = document.createElement("a");
+                          a.href = url; a.download = filename; a.click();
+                          setTimeout(() => URL.revokeObjectURL(url), 1000);
+                          toast.success("Draft berhasil diunduh");
+                        } catch (e) {
+                          const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal generate draft";
+                          toast.error(msg);
+                        }
+                      }}>Download Draft</Button>
                   </div>
                 </div>
               </CardBody></Card>
