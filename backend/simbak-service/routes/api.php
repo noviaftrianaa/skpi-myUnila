@@ -83,6 +83,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/prodi', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refProdi']);
             Route::get('/semester', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'refSemester']);
             Route::get('/kategori-cuti', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'active']);
+            Route::get('/kategori-undur', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'active']);
+            Route::get('/ketentuan/{idJenisLayanan}', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'byJenisLayanan']);
         });
 
         // -----------------------------------------
@@ -95,12 +97,28 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\Api\Ref\KategoriCutiController::class, 'destroy'])->middleware('permission:delete,sim-bak');
         });
 
+        Route::prefix('master-data/kategori-undur')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'store'])->middleware('permission:insert,sim-bak');
+            Route::put('/{id}', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'update'])->middleware('permission:update,sim-bak');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\Ref\KategoriUndurController::class, 'destroy'])->middleware('permission:delete,sim-bak');
+        });
+
+        Route::prefix('master-data/ketentuan-layanan')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'index']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'show']);
+            Route::post('/', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'store'])->middleware('permission:insert,sim-bak');
+            Route::put('/{id}', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'update'])->middleware('permission:update,sim-bak');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\Ref\KetentuanLayananController::class, 'destroy'])->middleware('permission:delete,sim-bak');
+        });
+
         // -----------------------------------------
         // Layanan: Pengajuan (mahasiswa)
         // -----------------------------------------
         Route::prefix('layanan')->group(function () {
             Route::get('/my-profile', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'myProfile']);
             Route::get('/my-pengajuan', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'myPengajuan']);
+            Route::get('/my-stats', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'myStats']);
             Route::get('/pengajuan/{id}', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'show']);
             Route::get('/dokumen/{id}/download', [\App\Http\Controllers\Api\Layanan\DokumenController::class, 'download']);
             Route::get('/dokumen-hasil/{id}/download', [\App\Http\Controllers\Api\Layanan\DokumenController::class, 'downloadHasil']);
@@ -123,6 +141,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/verifikasi/queue', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'queue']);
             Route::get('/pengajuan/{id}/progress', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'progress']);
             Route::get('/pengajuan/{id}/riwayat-cuti', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'riwayatCuti']);
+            Route::get('/pengajuan/{id}/wa-link', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'whatsappLink']);
+            Route::post('/pengajuan/eksternal', [\App\Http\Controllers\Api\Layanan\PengajuanController::class, 'storeEksternal'])->middleware('permission:insert,sim-bak');
             Route::post('/pengajuan/{id}/verifikasi', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'verifikasi'])->middleware('permission:approve,sim-bak');
             Route::post('/pengajuan/{id}/perbaikan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'mintaPerbaikan'])->middleware('permission:reject,sim-bak');
             Route::post('/pengajuan/{id}/terbitkan', [\App\Http\Controllers\Api\Layanan\VerifikasiController::class, 'terbitkan'])->middleware('permission:approve,sim-bak');
@@ -157,6 +177,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}/sk-dekan', [\App\Http\Controllers\Api\Batch\BatchController::class, 'deleteSkDekan'])->middleware('permission:approve,sim-bak');
             Route::post('/{id}/finalize-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'finalizeVerifikasiFakultas'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'verifikasiKandidat'])->middleware('permission:approve,sim-bak');
+            Route::post('/kandidat/bulk-verifikasi', [\App\Http\Controllers\Api\Batch\BatchController::class, 'bulkVerifikasiKandidat'])->middleware('permission:approve,sim-bak');
+            Route::post('/kandidat/bulk-reset', [\App\Http\Controllers\Api\Batch\BatchController::class, 'bulkResetKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/reset', [\App\Http\Controllers\Api\Batch\BatchController::class, 'resetKandidat'])->middleware('permission:approve,sim-bak');
             Route::post('/kandidat/{id}/send-email', [\App\Http\Controllers\Api\Batch\BatchController::class, 'sendEmailKandidat']);
             Route::get('/kandidat/{id}/wa-link', [\App\Http\Controllers\Api\Batch\BatchController::class, 'getWhatsAppLink']);

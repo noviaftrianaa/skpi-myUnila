@@ -7,9 +7,9 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../../../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
-import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile, FiUpload } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiX, FiAlertTriangle, FiFileText, FiUser, FiAlertCircle, FiEye, FiDownload, FiFile, FiUpload, FiMessageCircle } from "react-icons/fi";
 import toast, { Toaster } from "react-hot-toast";
-import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl, cekKrsPengajuan, getRiwayatCutiPengajuan } from "@/lib/services/sim-bak/simBakService";
+import { getPengajuanDetail, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, rejectPengajuan, getWorkflowProgress, downloadDokumenUrl, cekKrsPengajuan, getRiwayatCutiPengajuan, getWhatsAppLinkPengajuan } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import type { WorkflowProgress } from "@/lib/services/sim-bak/simBakService";
 import type { Pengajuan, RiwayatCutiResponse } from "@/lib/services/sim-bak/types";
@@ -23,12 +23,14 @@ function formatSemesterName(idSmt: string): string {
 
 const statusChipColor: Record<string, "default" | "primary" | "warning" | "secondary" | "success" | "danger"> = {
   draft: "default", diajukan: "primary", perlu_perbaikan: "warning", diverifikasi: "secondary",
-  menunggu_persetujuan: "warning", disetujui: "success", ditolak: "danger", terbit: "success",
+  diperiksa_fakultas: "secondary", menunggu_persetujuan: "warning", disetujui: "success", ditolak: "danger", terbit: "success",
 };
 const statusLabel: Record<string, string> = {
   draft: "Draft", diajukan: "Diajukan", perlu_perbaikan: "Perlu Perbaikan", diverifikasi: "Diverifikasi",
-  menunggu_persetujuan: "Menunggu Persetujuan", disetujui: "Disetujui", ditolak: "Ditolak", terbit: "Terbit",
+  diperiksa_fakultas: "Diperiksa Fakultas", menunggu_persetujuan: "Menunggu Persetujuan", disetujui: "Disetujui", ditolak: "Ditolak", terbit: "Terbit",
 };
+
+const DEFAULT_CATATAN_PM_ALIH_TERBIT = "Setelah SK Rektor diterbitkan, mahasiswa diwajibkan melapor ke Loket BAK Universitas Lampung untuk proses administrasi lanjutan.";
 
 export default function VerifikasiDetailPage() {
   const { user } = useAuth();
@@ -134,7 +136,13 @@ export default function VerifikasiDetailPage() {
   const suratPengantarUploaded = dokumen.some(d => (d.nm_dokumen ?? "").toLowerCase() === "surat pengantar dekan") || !!fileSuratPengantar;
 
   const handleAction = async (action: "verifikasi" | "perbaikan" | "terbitkan") => {
-    if (action === "terbitkan") { setShowTerbitkanForm(true); return; }
+    if (action === "terbitkan") {
+      if (detail.kode_layanan === "PM-ALIH" && !catatan.trim()) {
+        setCatatan(DEFAULT_CATATAN_PM_ALIH_TERBIT);
+      }
+      setShowTerbitkanForm(true);
+      return;
+    }
     if (action === "verifikasi") {
       if (requireSuratPengantar && !suratPengantarUploaded) {
         toast.error("Upload surat pengantar dekan terlebih dahulu");
@@ -260,8 +268,31 @@ export default function VerifikasiDetailPage() {
               </CardBody></Card>
             )}
 
-            {/* Detail Pengajuan: alasan + info cuti/alih */}
-            {(detail.alasan || detail.id_smt_mulai_cuti || detail.kode_layanan === "PM-CUTI") && (
+            {/* Surat Pendukung — SK-PKKMB & SK-KTM */}
+            {(detail.kode_layanan === "SK-PKKMB" || detail.kode_layanan === "SK-KTM") && (detail.nomor_surat_polisi || detail.nomor_surat_ket_aktif) && (
+              <Card className="shadow-md rounded-xl border-amber-200 dark:border-amber-800 border"><CardBody className="p-5">
+                <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-300 mb-4">Surat Pendukung</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {detail.nomor_surat_polisi && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                      <p className="text-xs text-gray-500 mb-0.5">Surat Kehilangan (Kepolisian)</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nomor_surat_polisi)}</p>
+                      {detail.tgl_surat_polisi && <p className="text-xs text-gray-500 mt-0.5">{new Date(String(detail.tgl_surat_polisi)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                    </div>
+                  )}
+                  {detail.nomor_surat_ket_aktif && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                      <p className="text-xs text-gray-500 mb-0.5">Surat Keterangan Aktif (Fakultas)</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nomor_surat_ket_aktif)}</p>
+                      {detail.tgl_surat_ket_aktif && <p className="text-xs text-gray-500 mt-0.5">{new Date(String(detail.tgl_surat_ket_aktif)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                    </div>
+                  )}
+                </div>
+              </CardBody></Card>
+            )}
+
+            {/* Detail Pengajuan: alasan + info cuti/alih/undur */}
+            {(detail.alasan || detail.id_smt_mulai_cuti || detail.kode_layanan === "PM-CUTI" || detail.kode_layanan === "PM-UNDUR") && (
               <Card className="shadow-md rounded-xl border-none"><CardBody className="p-5">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Detail Pengajuan</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -270,6 +301,22 @@ export default function VerifikasiDetailPage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Alasan Permohonan</p>
                       <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.alasan)}</p>
                     </div>
+                  )}
+                  {detail.kode_layanan === "PM-UNDUR" && (
+                    <>
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Kategori Pengunduran</p>
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                          {detail.kategori_undur === "pindah_pt" ? "Pindah ke Universitas Lain" : "Pengunduran Diri"}
+                        </p>
+                      </div>
+                      {detail.kategori_undur === "pindah_pt" && detail.nm_pt_tujuan && (
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Perguruan Tinggi Tujuan</p>
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nm_pt_tujuan)}</p>
+                        </div>
+                      )}
+                    </>
                   )}
                   {detail.kode_layanan === "PM-CUTI" && (
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
@@ -506,6 +553,19 @@ export default function VerifikasiDetailPage() {
                             window.open(token ? `${url}?token=${token}` : url, "_blank");
                           }}>
                           Download
+                        </Button>
+                        <Button size="sm" className="bg-[#25D366] text-white hover:bg-[#1ebe57]" startContent={<FiMessageCircle className="w-3.5 h-3.5" />}
+                          onPress={async () => {
+                            try {
+                              const result = await getWhatsAppLinkPengajuan(id, "status_terbit");
+                              window.open(result.wa_url, "_blank");
+                              toast.success(`WhatsApp terbuka untuk ${result.nama}`);
+                            } catch (e) {
+                              const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal membuat link WhatsApp";
+                              toast.error(msg);
+                            }
+                          }}>
+                          Kirim WA
                         </Button>
                       </div>
                     )}
@@ -945,6 +1005,7 @@ export default function VerifikasiDetailPage() {
                       className="w-full text-sm px-3 py-2 bg-gray-50 dark:bg-gray-800 focus:outline-none resize-none"
                       placeholder="Catatan penerbitan..." />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">Catatan ini akan disertakan di SK dan notifikasi ke mahasiswa.</p>
                 </div>
 
                 <div className="flex gap-3 pt-2">

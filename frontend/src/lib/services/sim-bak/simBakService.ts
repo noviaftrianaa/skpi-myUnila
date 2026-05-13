@@ -13,6 +13,9 @@ import type {
   TahapanLayanan,
   TemplateDokumen,
   KategoriCuti,
+  KategoriUndur,
+  KetentuanLayanan,
+  KetentuanByLayananResponse,
   RiwayatCutiResponse,
   Pengajuan,
   DokumenPengajuan,
@@ -202,6 +205,15 @@ export const getMyPengajuan = async (params?: {
   return response.data;
 };
 
+export const getMyStats = async (): Promise<{
+  total: number; draft: number; proses: number; selesai: number; ditolak: number; perbaikan: number;
+}> => {
+  const response = await bakClient.get<ApiResponse<{
+    total: number; draft: number; proses: number; selesai: number; ditolak: number; perbaikan: number;
+  }>>('/layanan/my-stats');
+  return response.data.data;
+};
+
 export const createPengajuan = async (data: {
   id_jenis_layanan: string;
   alasan?: string;
@@ -210,8 +222,14 @@ export const createPengajuan = async (data: {
   id_smt_akhir_cuti?: string;
   jumlah_semester_cuti?: number;
   kategori_cuti?: string;
+  kategori_undur?: string;
+  nm_pt_tujuan?: string;
   id_prodi_tujuan?: string;
   id_fakultas_tujuan?: string;
+  nomor_surat_polisi?: string;
+  tgl_surat_polisi?: string;
+  nomor_surat_ket_aktif?: string;
+  tgl_surat_ket_aktif?: string;
 }): Promise<Pengajuan> => {
   const response = await bakClient.post<ApiResponse<Pengajuan>>('/layanan/pengajuan', data);
   return response.data.data;
@@ -222,6 +240,15 @@ export const getPengajuanDetail = async (id: string): Promise<Pengajuan> => {
   return response.data.data;
 };
 
+export const createPengajuanEksternal = async (formData: FormData): Promise<Pengajuan> => {
+  const response = await bakClient.post<ApiResponse<Pengajuan>>(
+    '/admin/pengajuan/eksternal',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return response.data.data;
+};
+
 export const cekKrsPengajuan = async (id: string): Promise<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }> => {
   const response = await bakClient.get<ApiResponse<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }>>(`/layanan/pengajuan/${id}/cek-krs`);
   return response.data.data;
@@ -229,6 +256,17 @@ export const cekKrsPengajuan = async (id: string): Promise<{ ada_krs: boolean; n
 
 export const getRiwayatCutiPengajuan = async (id: string): Promise<RiwayatCutiResponse> => {
   const response = await bakClient.get<ApiResponse<RiwayatCutiResponse>>(`/admin/pengajuan/${id}/riwayat-cuti`);
+  return response.data.data;
+};
+
+export const getWhatsAppLinkPengajuan = async (
+  id: string,
+  event: string = 'status_terbit'
+): Promise<{ telepon: string; wa_url: string; pesan: string; nama: string }> => {
+  const response = await bakClient.get<ApiResponse<{ telepon: string; wa_url: string; pesan: string; nama: string }>>(
+    `/admin/pengajuan/${id}/wa-link`,
+    { params: { event } }
+  );
   return response.data.data;
 };
 
@@ -451,6 +489,27 @@ export const verifikasiKandidat = async (idKandidat: string, data: FormData | {
   await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data, { headers });
 };
 
+export const bulkVerifikasiKandidat = async (data: {
+  id_kandidat: string[];
+  hasil: 'dikonfirmasi' | 'dikeluarkan';
+  alasan_exclude?: string;
+  alasan_exclude_lainnya?: string;
+}): Promise<{ sukses: number; gagal: number; errors: string[] }> => {
+  const response = await bakClient.post<ApiResponse<{ sukses: number; gagal: number; errors: string[] }>>(
+    `/batch/kandidat/bulk-verifikasi`,
+    data
+  );
+  return response.data.data;
+};
+
+export const bulkResetKandidat = async (idKandidat: string[]): Promise<{ sukses: number; gagal: number; errors: string[] }> => {
+  const response = await bakClient.post<ApiResponse<{ sukses: number; gagal: number; errors: string[] }>>(
+    `/batch/kandidat/bulk-reset`,
+    { id_kandidat: idKandidat }
+  );
+  return response.data.data;
+};
+
 export const finalizeBatch = async (id: string, data?: {
   nomor_sk_rektor?: string;
   tgl_sk_rektor?: string;
@@ -638,6 +697,58 @@ export const deleteKategoriCuti = async (id: string): Promise<void> => {
   await bakClient.delete(`/master-data/kategori-cuti/${id}`);
 };
 
+// ============ Kategori Undur Diri ============
+
+export const getKategoriUndurActive = async (): Promise<KategoriUndur[]> => {
+  const response = await bakClient.get<ApiResponse<KategoriUndur[]>>('/layanan/referensi/kategori-undur');
+  return response.data.data;
+};
+
+export const getKategoriUndur = async (params?: { page?: number; limit?: number; search?: string }): Promise<{ data: KategoriUndur[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KategoriUndur>>('/master-data/kategori-undur', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKategoriUndur = async (data: { id_kategori_undur: string; nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriUndur> => {
+  const response = await bakClient.post<ApiResponse<KategoriUndur>>('/master-data/kategori-undur', data);
+  return response.data.data;
+};
+
+export const updateKategoriUndur = async (id: string, data: { nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriUndur> => {
+  const response = await bakClient.put<ApiResponse<KategoriUndur>>(`/master-data/kategori-undur/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKategoriUndur = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/kategori-undur/${id}`);
+};
+
+// ============ Ketentuan Layanan (Akademik) ============
+
+export const getKetentuanByLayanan = async (idJenisLayanan: string): Promise<KetentuanByLayananResponse> => {
+  const response = await bakClient.get<ApiResponse<KetentuanByLayananResponse>>(`/layanan/referensi/ketentuan/${idJenisLayanan}`);
+  return response.data.data;
+};
+
+export const getKetentuan = async (params?: { page?: number; limit?: number; search?: string; id_jenis_layanan?: string }): Promise<{ data: KetentuanLayanan[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KetentuanLayanan>>('/master-data/ketentuan-layanan', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKetentuan = async (data: Partial<KetentuanLayanan>): Promise<KetentuanLayanan> => {
+  const response = await bakClient.post<ApiResponse<KetentuanLayanan>>('/master-data/ketentuan-layanan', data);
+  return response.data.data;
+};
+
+export const updateKetentuan = async (id: string, data: Partial<KetentuanLayanan>): Promise<KetentuanLayanan> => {
+  const response = await bakClient.put<ApiResponse<KetentuanLayanan>>(`/master-data/ketentuan-layanan/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKetentuan = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/ketentuan-layanan/${id}`);
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -648,6 +759,8 @@ const simBakService = {
   getPersyaratanByLayanan, getTahapanByLayanan,
   getPersyaratan, createPersyaratan, updatePersyaratan, deletePersyaratan,
   getKategoriCutiActive, getKategoriCuti, createKategoriCuti, updateKategoriCuti, deleteKategoriCuti,
+  getKategoriUndurActive, getKategoriUndur, createKategoriUndur, updateKategoriUndur, deleteKategoriUndur,
+  getKetentuanByLayanan, getKetentuan, createKetentuan, updateKetentuan, deleteKetentuan,
   getTahapan, createTahapan, updateTahapan, deleteTahapan,
   getTemplate, createTemplate, updateTemplate, deleteTemplate,
   // Profil & Workflow
@@ -655,15 +768,15 @@ const simBakService = {
   // Referensi PDUT
   getRefFakultas, getRefProdi, getRefSemester, terimaTujuanAlihProgram,
   // Pengajuan
-  getMyPengajuan, createPengajuan, getPengajuanDetail, cekKrsPengajuan, getRiwayatCutiPengajuan,
+  getMyPengajuan, getMyStats, createPengajuan, createPengajuanEksternal, getPengajuanDetail, cekKrsPengajuan, getRiwayatCutiPengajuan,
   uploadDokumen, ajukanPengajuan, deleteDokumen,
   downloadDokumenUrl, downloadDokumenHasilUrl,
   // Admin
-  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan,
+  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, getWhatsAppLinkPengajuan,
   // Approval
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
-  getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
+  getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, bulkVerifikasiKandidat, bulkResetKandidat, finalizeBatch,
   previewBatchCandidates, pullBatchCandidates, sendBatchToFakultas, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,

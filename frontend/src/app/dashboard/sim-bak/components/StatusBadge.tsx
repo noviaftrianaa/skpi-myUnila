@@ -10,6 +10,7 @@ const statusConfig: Record<string, { label: string; color: 'default' | 'primary'
   diajukan: { label: 'Diajukan', color: 'primary' },
   perlu_perbaikan: { label: 'Perlu Perbaikan', color: 'warning' },
   diverifikasi: { label: 'Diverifikasi', color: 'secondary' },
+  diperiksa_fakultas: { label: 'Diperiksa Fakultas', color: 'secondary' },
   menunggu_persetujuan: { label: 'Menunggu Persetujuan', color: 'warning' },
   disetujui: { label: 'Disetujui', color: 'success' },
   ditolak: { label: 'Ditolak', color: 'danger' },

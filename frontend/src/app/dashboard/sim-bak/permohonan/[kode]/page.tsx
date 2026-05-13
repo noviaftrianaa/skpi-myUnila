@@ -9,9 +9,8 @@ import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiX, FiSave, FiSend, FiAlertCircle, FiInfo, FiEye } from "react-icons/fi";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { useUserContext } from "@/contexts/UserContextContext";
-import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, getKategoriCutiActive, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
-import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan, KategoriCuti } from "@/lib/services/sim-bak/types";
+import { getJenisLayananPublic, getPersyaratanByLayanan, getTahapanByLayanan, getMyProfile, getRefFakultas, getRefProdi, getRefSemester, getKategoriCutiActive, getKategoriUndurActive, getKetentuanByLayanan, createPengajuan, uploadDokumen, ajukanPengajuan } from "@/lib/services/sim-bak/simBakService";
+import type { JenisLayanan, PersyaratanLayanan, TahapanLayanan, DokumenPengajuan, KategoriCuti, KategoriUndur, KetentuanLayanan } from "@/lib/services/sim-bak/types";
 
 const steps = [
   { no: 1, label: "Data & Alasan" },
@@ -36,21 +35,16 @@ function formatSemesterName(idSmt: string): string {
 
 export default function PermohonanFormPage() {
   const { user } = useAuth();
-  const { activeContext } = useUserContext();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const kode = params.kode as string;
   const editId = searchParams.get("edit");
 
-  const isAdminRole = (() => {
-    const role = (activeContext?.nm_peran ?? "").toLowerCase();
-    return role.includes("developer") || role.includes("admin");
-  })();
-
   const [currentStep, setCurrentStep] = useState(editId ? 2 : 1);
-  // PM-ALIH dari luar Unila (hanya visible untuk admin)
-  const [isDariLuar, setIsDariLuar] = useState(false);
+  // PM-ALIH dari luar Unila — dipindah ke /dashboard/sim-bak/admin/pendaftaran-alih (oleh admin BAK/fakultas).
+  // Form mahasiswa selalu untuk pemohon internal (login SSO).
+  const isDariLuar = false;
   const [manualData, setManualData] = useState({
     nm_mahasiswa: "", nim_asal: "", nm_pt_asal: "", nm_prodi_asal: "",
     nm_jenjang: "", akreditasi_prodi_asal: "", tempat_lahir: "", tgl_lahir: "",
@@ -73,6 +67,12 @@ export default function PermohonanFormPage() {
   const [kategoriCuti, setKategoriCuti] = useState("terencana");
   const [kategoriCutiList, setKategoriCutiList] = useState<KategoriCuti[]>([]);
   const semesterAkhirCuti = semesterMulaiCuti ? computeSemesterAkhir(semesterMulaiCuti, jumlahSemesterCuti) : "";
+  // Undur-specific
+  const [kategoriUndur, setKategoriUndur] = useState("undur_diri");
+  const [kategoriUndurList, setKategoriUndurList] = useState<KategoriUndur[]>([]);
+  const [nmPtTujuan, setNmPtTujuan] = useState("");
+  // Ketentuan akademik dinamis (per jenis layanan)
+  const [ketentuanRules, setKetentuanRules] = useState<KetentuanLayanan[]>([]);
 
   const [flaggedFields, setFlaggedFields] = useState<Set<string>>(new Set());
   const fieldWrapStyle = (field: string, valid: boolean): React.CSSProperties => {
@@ -115,6 +115,10 @@ export default function PermohonanFormPage() {
         }
         if (kode === "PM-ALIH") {
           getRefFakultas().then(setFakultasList).catch(() => {});
+          if (found) getKetentuanByLayanan(found.id_jenis_layanan).then(r => setKetentuanRules(r.rules)).catch(() => {});
+        }
+        if (kode === "PM-UNDUR") {
+          getKategoriUndurActive().then(setKategoriUndurList).catch(() => {});
         }
         // Mode edit: load dokumen existing
         if (editId) {
@@ -172,29 +176,47 @@ export default function PermohonanFormPage() {
   const sks = Number(profileData?.sks_lulus ?? 0);
   const sem = Number(profileData?.semester_aktif ?? 0);
   const jenjang = String(profileData?.nm_jenjang ?? "").toLowerCase();
-  const syaratAlih = isAlih && profileData ? (() => {
-    const isS1 = ["s1", "sarjana"].includes(jenjang);
-    const isD3 = ["d3", "diploma"].includes(jenjang);
-    const isS2S3 = ["s2", "s3", "magister", "doktor"].includes(jenjang);
-    const rules = isS1 ? [
-      { label: "IPK >= 2.75", pass: ipk >= 2.75, detail: `IPK Anda: ${ipk}` },
-      { label: "SKS Lulus >= 40", pass: sks >= 40, detail: `SKS Anda: ${sks}` },
-      { label: "Semester <= 5", pass: sem <= 5, detail: `Semester Anda: ${sem}` },
-    ] : isD3 ? [
-      { label: "IPK >= 2.50", pass: ipk >= 2.50, detail: `IPK Anda: ${ipk}` },
-      { label: "SKS Lulus >= 36", pass: sks >= 36, detail: `SKS Anda: ${sks}` },
-      { label: "Semester <= 5", pass: sem <= 5, detail: `Semester Anda: ${sem}` },
-    ] : isS2S3 ? [
-      { label: "IPK >= 3.00", pass: ipk >= 3.00, detail: `IPK Anda: ${ipk}` },
-      { label: "SKS Lulus >= 12", pass: sks >= 12, detail: `SKS Anda: ${sks}` },
-      { label: "Semester <= 3", pass: sem <= 3, detail: `Semester Anda: ${sem}` },
-    ] : [];
+  const isPascasarjana = ["s2", "s3", "magister", "doktor"].includes(jenjang);
+  const isS1Asal = ["s1", "sarjana"].includes(jenjang);
+  const isD3Asal = ["d3", "diploma"].includes(jenjang);
+  const allowedJenjangTujuan: string[] = isS1Asal
+    ? ["s1", "sarjana", "d3", "diploma"]
+    : isD3Asal
+      ? ["d3", "diploma"]
+      : [];
+  const prodiListFiltered = isAlih && !isDariLuar
+    ? prodiList.filter(p => allowedJenjangTujuan.includes(String(p.nm_jenjang).toLowerCase()))
+    : prodiList;
+  const jenjangNorm = isS1Asal ? "S1" : isD3Asal ? "D3" : "";
+  const syaratAlih = isAlih && !isDariLuar && profileData && !isPascasarjana && ketentuanRules.length > 0 ? (() => {
+    // Filter rules sesuai jenjang mahasiswa
+    const applicable = ketentuanRules.filter(r => !r.nm_jenjang || r.nm_jenjang.toUpperCase() === jenjangNorm);
+    const rules = applicable.map(r => {
+      const actualValue = r.kode_ketentuan === "ipk_min" ? ipk
+        : r.kode_ketentuan === "sks_min" ? sks
+        : r.kode_ketentuan === "semester_max" || r.kode_ketentuan === "masa_studi_min" ? sem
+        : 0;
+      const target = Number(r.nilai);
+      const op = r.operator;
+      const pass = op === ">=" ? actualValue >= target
+        : op === ">" ? actualValue > target
+        : op === "<=" ? actualValue <= target
+        : op === "<" ? actualValue < target
+        : op === "=" ? actualValue === target
+        : true;
+      const unit = r.kode_ketentuan === "ipk_min" ? "" : "";
+      const label = `${r.nm_ketentuan} ${r.operator} ${target}${unit}`;
+      const detail = `Anda: ${actualValue}${unit}`;
+      return { label, pass, detail };
+    });
     return { rules, allPass: rules.every(r => r.pass) };
   })() : null;
 
   const handleSubmit = async (isDraft: boolean) => {
     if (!isDraft && !alasan.trim()) { toast.error("Alasan permohonan wajib diisi"); return; }
+    if (!isDraft && isUndur && kategoriUndur === "pindah_pt" && !nmPtTujuan.trim()) { toast.error("Nama perguruan tinggi tujuan wajib diisi"); return; }
     if (!isDraft && isCuti && !semesterMulaiCuti) { toast.error("Semester mulai cuti wajib dipilih"); return; }
+    if (!isDraft && isAlih && !isDariLuar && isPascasarjana) { toast.error("Mahasiswa Pascasarjana tidak dapat mengajukan Alih Program"); return; }
     if (!isDraft && isAlih && !selectedProdi) { toast.error("Prodi tujuan wajib dipilih"); return; }
     if (!isDraft && isAlih && !isDariLuar && syaratAlih && !syaratAlih.allPass) { toast.error("Anda belum memenuhi syarat akademik untuk Alih Program"); return; }
     if (!isDraft && isDariLuar && (!manualData.nm_mahasiswa.trim() || !manualData.nim_asal.trim() || !manualData.nm_pt_asal.trim())) {
@@ -211,6 +233,8 @@ export default function PermohonanFormPage() {
         id_smt_mulai_cuti: isCuti ? semesterMulaiCuti || undefined : undefined,
         id_smt_akhir_cuti: isCuti ? semesterAkhirCuti || undefined : undefined,
         kategori_cuti: isCuti ? kategoriCuti : undefined,
+        kategori_undur: isUndur ? kategoriUndur : undefined,
+        nm_pt_tujuan: isUndur && kategoriUndur === "pindah_pt" ? nmPtTujuan || undefined : undefined,
         id_prodi_tujuan: isAlih ? selectedProdi || undefined : undefined,
         id_fakultas_tujuan: isAlih ? selectedFakultas || undefined : undefined,
       };
@@ -310,26 +334,8 @@ export default function PermohonanFormPage() {
               </Card>
             )}
 
-            {/* Toggle: Dari Luar Unila (hanya admin, hanya PM-ALIH) */}
-            {isAlih && isAdminRole && (
-              <Card className="shadow-sm rounded-xl border border-violet-100 dark:border-violet-900">
-                <CardBody className="p-4">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={isDariLuar} onChange={e => setIsDariLuar(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
-                    <div>
-                      <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Pengajuan dari Luar Unila</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Calon mahasiswa tidak memiliki akun SSO — data diinput manual oleh Admin BAK</p>
-                    </div>
-                  </label>
-                </CardBody>
-              </Card>
-            )}
-
             <Card className="shadow-md rounded-xl"><CardBody className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                {isDariLuar ? "Data Pemohon (Input Manual)" : "Data Pemohon"}
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Pemohon</h2>
 
               {isDariLuar ? (
                 /* Form input manual untuk pemohon dari luar Unila */
@@ -444,6 +450,14 @@ export default function PermohonanFormPage() {
                 </div>
               )}
 
+              {/* Blokade Pascasarjana — khusus Alih Program internal */}
+              {isAlih && !isDariLuar && isPascasarjana && (
+                <div className="rounded-lg p-4 mb-6 border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                  <h3 className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">Alih Program Tidak Tersedia</h3>
+                  <p className="text-xs text-red-700 dark:text-red-400">Mahasiswa Pascasarjana ({String(dataPemohon.jenjang)}) tidak dapat mengajukan Alih Program. Layanan ini hanya tersedia untuk mahasiswa jenjang D3 dan S1.</p>
+                </div>
+              )}
+
               {/* Syarat Akademik Card — khusus Alih Program internal */}
               {isAlih && !isDariLuar && syaratAlih && (
                 <div className={`rounded-lg p-4 mb-6 border ${syaratAlih.allPass ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
@@ -468,15 +482,53 @@ export default function PermohonanFormPage() {
                 </div>
               )}
 
-              {/* Konfirmasi Undur Diri */}
+              {/* Konfirmasi Undur Diri / Pindah PT */}
               {isUndur && (
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
-                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Perhatian: Pengunduran Diri</h3>
-                  <p className="text-xs text-amber-700 dark:text-amber-400">Pengunduran diri bersifat permanen. Setelah SK terbit, Anda tidak dapat mendaftar kembali di program studi yang sama. Pastikan keputusan ini sudah dipertimbangkan dengan matang.</p>
-                </div>
+                kategoriUndur === "pindah_pt" ? (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                    <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">Perhatian: Pindah ke Universitas Lain</h3>
+                    <p className="text-xs text-blue-700 dark:text-blue-400">Setelah SK terbit, status Anda di Unila berakhir. Pastikan Anda sudah diterima di perguruan tinggi tujuan sebelum mengajukan permohonan ini.</p>
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                    <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Perhatian: Pengunduran Diri</h3>
+                    <p className="text-xs text-amber-700 dark:text-amber-400">Pengunduran diri bersifat permanen. Setelah SK terbit, Anda tidak dapat mendaftar kembali di program studi yang sama. Pastikan keputusan ini sudah dipertimbangkan dengan matang.</p>
+                  </div>
+                )
               )}
 
               <div className="space-y-4">
+                {/* PM-UNDUR: Kategori + PT Tujuan (jika pindah_pt) */}
+                {isUndur && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori Pengunduran *</label>
+                      <div style={fieldWrapStyle("kategoriUndur", !!kategoriUndur)} className="overflow-hidden">
+                        <select value={kategoriUndur} onChange={e => setKategoriUndur(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                          {kategoriUndurList.length > 0
+                            ? kategoriUndurList.map(k => <option key={k.id_kategori_undur} value={k.id_kategori_undur}>{k.nm_kategori}</option>)
+                            : <>
+                                <option value="undur_diri">Pengunduran Diri</option>
+                                <option value="pindah_pt">Pindah ke Universitas Lain</option>
+                              </>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                    {kategoriUndur === "pindah_pt" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Perguruan Tinggi Tujuan *</label>
+                        <div style={fieldWrapStyle("nmPtTujuan", !!nmPtTujuan.trim())} className="overflow-hidden">
+                          <input type="text" value={nmPtTujuan} onChange={e => setNmPtTujuan(e.target.value)}
+                            placeholder="Contoh: Universitas Indonesia"
+                            className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alasan Permohonan *</label>
                   <div style={fieldWrapStyle("alasan", !!alasan.trim())} className="overflow-hidden">
@@ -566,12 +618,15 @@ export default function PermohonanFormPage() {
                         <select value={selectedProdi} onChange={e => setSelectedProdi(e.target.value)}
                           disabled={!selectedFakultas}
                           className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none disabled:opacity-50">
-                          <option value="">{selectedFakultas ? (prodiList.length ? 'Pilih Prodi' : 'Memuat...') : 'Pilih fakultas terlebih dahulu'}</option>
-                          {prodiList.map(p => (
+                          <option value="">{selectedFakultas ? (prodiListFiltered.length ? 'Pilih Prodi' : (prodiList.length ? 'Tidak ada prodi yang sesuai jenjang' : 'Memuat...')) : 'Pilih fakultas terlebih dahulu'}</option>
+                          {prodiListFiltered.map(p => (
                             <option key={p.id_prodi} value={p.id_prodi}>{p.nm_prodi} ({p.nm_jenjang})</option>
                           ))}
                         </select>
                       </div>
+                      {!isDariLuar && isAlih && (isS1Asal || isD3Asal) && (
+                        <p className="text-xs text-gray-500 mt-1">{isS1Asal ? "Hanya menampilkan prodi jenjang D3 dan S1 sesuai aturan alih program." : "Hanya menampilkan prodi jenjang D3 sesuai aturan alih program."}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -668,6 +723,32 @@ export default function PermohonanFormPage() {
                   )}
                 </div>
               )}
+              {isUndur && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4 space-y-2">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Kategori Pengunduran:</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{kategoriUndurList.find(k => k.id_kategori_undur === kategoriUndur)?.nm_kategori || (kategoriUndur === "pindah_pt" ? "Pindah ke Universitas Lain" : "Pengunduran Diri")}</p>
+                  </div>
+                  {kategoriUndur === "pindah_pt" && nmPtTujuan && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Perguruan Tinggi Tujuan:</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{nmPtTujuan}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {isAlih && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4 space-y-2">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Fakultas Tujuan:</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{fakultasList.find(f => f.id_fakultas === selectedFakultas)?.nm_fakultas || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Program Studi Tujuan:</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{prodiList.find(p => p.id_prodi === selectedProdi)?.nm_prodi || "-"}</p>
+                  </div>
+                </div>
+              )}
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dokumen ({Object.values(uploadedFiles).filter(Boolean).length + existingDokumen.length}/{persyaratan.length})</h3>
               <div className="space-y-2">
                 {persyaratan.map(req => {
@@ -716,7 +797,7 @@ export default function PermohonanFormPage() {
             </CardBody></Card>
             <div className="flex gap-3 justify-end">
               <Button variant="flat" startContent={<FiSave className="w-4 h-4" />} isLoading={submitting} onPress={() => handleSubmit(true)}>Simpan Draft</Button>
-              <Button color="primary" startContent={<FiSend className="w-4 h-4" />} isDisabled={!allRequiredUploaded || !alasan.trim()} isLoading={submitting} onPress={() => handleSubmit(false)}>Ajukan</Button>
+              <Button color="primary" startContent={<FiSend className="w-4 h-4" />} isDisabled={!allRequiredUploaded || !alasan.trim() || (isAlih && !isDariLuar && isPascasarjana)} isLoading={submitting} onPress={() => handleSubmit(false)}>Ajukan</Button>
             </div>
           </div>
         )}
@@ -730,8 +811,10 @@ export default function PermohonanFormPage() {
               const flags = new Set(flaggedFields);
               if (!alasan.trim()) { errors.push("Alasan permohonan wajib diisi"); flags.add("alasan"); }
               if (isCuti && !semesterMulaiCuti) { errors.push("Semester mulai cuti wajib dipilih"); flags.add("semesterMulaiCuti"); }
+              if (isUndur && kategoriUndur === "pindah_pt" && !nmPtTujuan.trim()) { errors.push("Nama perguruan tinggi tujuan wajib diisi"); flags.add("nmPtTujuan"); }
               if (isAlih && !selectedFakultas) { errors.push("Fakultas tujuan wajib dipilih"); flags.add("selectedFakultas"); }
               if (isAlih && !selectedProdi) { errors.push("Program studi tujuan wajib dipilih"); flags.add("selectedProdi"); }
+              if (isAlih && !isDariLuar && isPascasarjana) errors.push("Mahasiswa Pascasarjana tidak dapat mengajukan Alih Program");
               if (isAlih && !isDariLuar && syaratAlih && !syaratAlih.allPass) errors.push("Anda belum memenuhi syarat akademik untuk Alih Program");
               if (isDariLuar && !manualData.nm_mahasiswa.trim()) { errors.push("Nama lengkap wajib diisi"); flags.add("nm_mahasiswa"); }
               if (isDariLuar && !manualData.nim_asal.trim()) { errors.push("NIM asal wajib diisi"); flags.add("nim_asal"); }

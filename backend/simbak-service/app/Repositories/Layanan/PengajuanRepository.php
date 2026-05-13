@@ -56,6 +56,8 @@ class PengajuanRepository extends BaseRepository
         $dataSql = "
             SELECT
                 p.id_pengajuan, p.nomor_permohonan, p.status, p.alasan, p.catatan_pemohon,
+                p.kategori_cuti, p.kategori_undur, p.nm_pt_tujuan,
+                p.nomor_surat_polisi, p.tgl_surat_polisi, p.nomor_surat_ket_aktif, p.tgl_surat_ket_aktif,
                 p.tgl_diajukan, p.tgl_selesai, p.nomor_dokumen_hasil, p.tgl_dokumen_hasil,
                 p.created_at, p.updated_at,
                 jl.id_jenis_layanan, jl.kode_layanan, jl.nm_layanan, jl.kategori, jl.sla_hari,
@@ -129,6 +131,34 @@ class PengajuanRepository extends BaseRepository
     }
 
     /**
+     * Ambil jenjang prodi dari PDUT berdasarkan id_prodi (id_sms).
+     * Pattern jenjang diturunkan dari nm_prodi (S1-, S2-, D3-, dst).
+     */
+    public function getJenjangProdi(string $idProdi): ?string
+    {
+        try {
+            $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT TOP 1
+                    CASE
+                        WHEN nm_lemb LIKE 'S1-%' OR nm_lemb LIKE 'S1 %' THEN 'S1'
+                        WHEN nm_lemb LIKE 'S2-%' OR nm_lemb LIKE 'S2 %' OR nm_lemb LIKE 'Magister%' THEN 'S2'
+                        WHEN nm_lemb LIKE 'S3-%' OR nm_lemb LIKE 'S3 %' OR nm_lemb LIKE 'Doktor%' THEN 'S3'
+                        WHEN nm_lemb LIKE 'D3-%' OR nm_lemb LIKE 'D3 %' THEN 'D3'
+                        WHEN nm_lemb LIKE 'D4-%' OR nm_lemb LIKE 'D4 %' THEN 'D4'
+                        WHEN nm_lemb LIKE 'Profesi%' THEN 'Profesi'
+                        ELSE 'Lainnya'
+                    END AS nm_jenjang
+                FROM pdrd.sms
+                WHERE id_sms = ? AND soft_delete = 0
+            ", [$idProdi]);
+            return $row->nm_jenjang ?? null;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('PengajuanRepository.getJenjangProdi: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Generate nomor permohonan: BAK/KODE/YYYY/NNNN
      */
     public function generateNomor(string $kodeLayanan): string
@@ -152,9 +182,12 @@ class PengajuanRepository extends BaseRepository
             INSERT INTO layanan.pengajuan (
                 id_jenis_layanan, nomor_permohonan, id_pemohon, status, alasan, catatan_pemohon,
                 id_smt_mulai_cuti, id_smt_akhir_cuti, jumlah_semester_cuti, kategori_cuti,
+                kategori_undur, nm_pt_tujuan,
                 id_prodi_tujuan, id_fakultas_tujuan,
-                a_dari_luar, nm_pt_asal, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                a_dari_luar, nm_pt_asal,
+                nomor_surat_polisi, tgl_surat_polisi, nomor_surat_ket_aktif, tgl_surat_ket_aktif,
+                id_creator
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_jenis_layanan'],
@@ -167,10 +200,16 @@ class PengajuanRepository extends BaseRepository
             $data['id_smt_akhir_cuti'] ?? null,
             $data['jumlah_semester_cuti'] ?? null,
             $data['kategori_cuti'] ?? null,
+            $data['kategori_undur'] ?? null,
+            $data['nm_pt_tujuan'] ?? null,
             $data['id_prodi_tujuan'] ?? null,
             $data['id_fakultas_tujuan'] ?? null,
             $data['a_dari_luar'] ?? false,
             $data['nm_pt_asal'] ?? null,
+            $data['nomor_surat_polisi'] ?? null,
+            $data['tgl_surat_polisi'] ?? null,
+            $data['nomor_surat_ket_aktif'] ?? null,
+            $data['tgl_surat_ket_aktif'] ?? null,
             $data['id_creator'] ?? null,
         ]);
     }
@@ -212,8 +251,10 @@ class PengajuanRepository extends BaseRepository
                 id_fakultas, nm_fakultas, id_prodi, nm_prodi, id_jenj_didik, nm_jenjang,
                 angkatan, semester_aktif, id_smt, ipk, sks_lulus, masa_studi_semester,
                 status_mahasiswa, status_registrasi, status_pembayaran,
-                nm_pt_asal, akreditasi_prodi_asal, id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                nm_pt_asal, akreditasi_prodi_asal,
+                nm_jenjang_asal, nm_prodi_asal, email_pemohon, no_hp_pemohon,
+                id_creator
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_pengajuan'], $data['id_mahasiswa'] ?? null, $data['nim'] ?? null, $data['nm_mahasiswa'] ?? '',
@@ -225,6 +266,8 @@ class PengajuanRepository extends BaseRepository
             $data['ipk'] ?? null, $data['sks_lulus'] ?? null, $data['masa_studi_semester'] ?? null,
             $data['status_mahasiswa'] ?? null, $data['status_registrasi'] ?? null, $data['status_pembayaran'] ?? null,
             $data['nm_pt_asal'] ?? null, $data['akreditasi_prodi_asal'] ?? null,
+            $data['nm_jenjang_asal'] ?? null, $data['nm_prodi_asal'] ?? null,
+            $data['email_pemohon'] ?? null, $data['no_hp_pemohon'] ?? null,
             $data['id_creator'] ?? null,
         ]);
     }
@@ -312,6 +355,34 @@ class PengajuanRepository extends BaseRepository
     {
         $params['id_pemohon'] = $idPemohon;
         return $this->getList($params);
+    }
+
+    /**
+     * Statistik agregat pengajuan mahasiswa (semua, tanpa paginasi).
+     * Return: total, draft, proses, selesai, ditolak, perbaikan
+     */
+    public function getMyStats(string $idPemohon): array
+    {
+        $row = $this->pgSelectOne("
+            SELECT
+                COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE status = 'draft') AS draft,
+                COUNT(*) FILTER (WHERE status IN ('diajukan','diverifikasi','diperiksa_fakultas','menunggu_persetujuan')) AS proses,
+                COUNT(*) FILTER (WHERE status IN ('disetujui','terbit')) AS selesai,
+                COUNT(*) FILTER (WHERE status = 'ditolak') AS ditolak,
+                COUNT(*) FILTER (WHERE status = 'perlu_perbaikan') AS perbaikan
+            FROM layanan.pengajuan
+            WHERE id_pemohon = ? AND soft_delete = false
+        ", [$idPemohon]);
+
+        return [
+            'total' => (int) ($row->total ?? 0),
+            'draft' => (int) ($row->draft ?? 0),
+            'proses' => (int) ($row->proses ?? 0),
+            'selesai' => (int) ($row->selesai ?? 0),
+            'ditolak' => (int) ($row->ditolak ?? 0),
+            'perbaikan' => (int) ($row->perbaikan ?? 0),
+        ];
     }
 
     /**

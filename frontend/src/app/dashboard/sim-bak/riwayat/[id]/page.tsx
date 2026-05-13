@@ -241,8 +241,33 @@ export default function DetailPengajuanPage() {
           </Card>
         )}
 
-        {/* Detail Pengajuan (alasan, kategori cuti, periode cuti) */}
-        {(detail.alasan || detail.id_smt_mulai_cuti || detail.kode_layanan === "PM-CUTI") && (
+        {/* Surat Pendukung — SK-PKKMB & SK-KTM */}
+        {(detail.kode_layanan === "SK-PKKMB" || detail.kode_layanan === "SK-KTM") && (detail.nomor_surat_polisi || detail.nomor_surat_ket_aktif) && (
+          <Card className="shadow-md rounded-xl border-amber-200 dark:border-amber-800 border">
+            <CardBody className="p-6">
+              <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-300 mb-4">Surat Pendukung</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {detail.nomor_surat_polisi && (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Surat Kehilangan (Kepolisian)</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nomor_surat_polisi)}</p>
+                    {detail.tgl_surat_polisi && <p className="text-xs text-gray-500 mt-0.5">{new Date(String(detail.tgl_surat_polisi)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                  </div>
+                )}
+                {detail.nomor_surat_ket_aktif && (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Surat Keterangan Aktif (Fakultas)</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nomor_surat_ket_aktif)}</p>
+                    {detail.tgl_surat_ket_aktif && <p className="text-xs text-gray-500 mt-0.5">{new Date(String(detail.tgl_surat_ket_aktif)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                  </div>
+                )}
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Detail Pengajuan (alasan, kategori cuti, periode cuti, kategori undur) */}
+        {(detail.alasan || detail.id_smt_mulai_cuti || detail.kode_layanan === "PM-CUTI" || detail.kode_layanan === "PM-UNDUR") && (
           <Card className="shadow-md rounded-xl">
             <CardBody className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Detail Pengajuan</h2>
@@ -252,6 +277,22 @@ export default function DetailPengajuanPage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Alasan Permohonan</p>
                     <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.alasan)}</p>
                   </div>
+                )}
+                {detail.kode_layanan === "PM-UNDUR" && (
+                  <>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Kategori Pengunduran</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                        {detail.kategori_undur === "pindah_pt" ? "Pindah ke Universitas Lain" : "Pengunduran Diri"}
+                      </p>
+                    </div>
+                    {detail.kategori_undur === "pindah_pt" && detail.nm_pt_tujuan && (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Perguruan Tinggi Tujuan</p>
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nm_pt_tujuan)}</p>
+                      </div>
+                    )}
+                  </>
                 )}
                 {detail.kode_layanan === "PM-CUTI" && (
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">

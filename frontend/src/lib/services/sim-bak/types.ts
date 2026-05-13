@@ -79,6 +79,53 @@ export interface KategoriCuti {
   updated_at: string;
 }
 
+export interface KategoriUndur {
+  id_kategori_undur: string;
+  nm_kategori: string;
+  deskripsi: string | null;
+  a_aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KetentuanLayanan {
+  id_ketentuan: string;
+  id_jenis_layanan: string;
+  nm_jenjang: string | null;
+  kondisi_semester: number | null;
+  kode_ketentuan: string;
+  nm_ketentuan: string;
+  operator: string;
+  nilai: number;
+  pesan_gagal: string | null;
+  deskripsi: string | null;
+  a_aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
+  // joined
+  kode_layanan?: string;
+  nm_layanan?: string;
+}
+
+export interface KetentuanRuleItem {
+  nm_ketentuan: string;
+  operator: string;
+  nilai: number;
+  kode: string;
+}
+
+export interface KetentuanGroup {
+  label: string;
+  rules: KetentuanRuleItem[];
+}
+
+export interface KetentuanByLayananResponse {
+  rules: KetentuanLayanan[];
+  groups: KetentuanGroup[];
+}
+
 // ============ layanan schema ============
 
 export type StatusPengajuan =
@@ -86,6 +133,7 @@ export type StatusPengajuan =
   | 'diajukan'
   | 'perlu_perbaikan'
   | 'diverifikasi'
+  | 'diperiksa_fakultas'
   | 'menunggu_persetujuan'
   | 'disetujui'
   | 'ditolak'
@@ -103,10 +151,16 @@ export interface Pengajuan {
   id_smt_akhir_cuti: string | null;
   jumlah_semester_cuti: number | null;
   kategori_cuti: string | null;
+  kategori_undur?: string | null;
+  nm_pt_tujuan?: string | null;
   id_prodi_tujuan: string | null;
   id_fakultas_tujuan: string | null;
   a_dari_luar?: boolean;
   nm_pt_asal?: string | null;
+  nomor_surat_polisi?: string | null;
+  tgl_surat_polisi?: string | null;
+  nomor_surat_ket_aktif?: string | null;
+  tgl_surat_ket_aktif?: string | null;
   tgl_diajukan: string | null;
   tgl_selesai: string | null;
   nomor_dokumen_hasil: string | null;
@@ -157,6 +211,10 @@ export interface DataPemohon {
   status_pembayaran: string | null;
   nm_pt_asal?: string | null;
   akreditasi_prodi_asal?: string | null;
+  nm_jenjang_asal?: string | null;
+  nm_prodi_asal?: string | null;
+  email_pemohon?: string | null;
+  no_hp_pemohon?: string | null;
   tgl_snapshot: string;
 }
 

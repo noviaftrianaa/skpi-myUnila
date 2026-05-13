@@ -9,7 +9,7 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip } from "@heroui/react";
 import { FiFileText, FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiClipboard, FiUsers, FiArrowRight, FiAlertCircle, FiAlertTriangle, FiEye } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity, getMyPengajuan, getMyProfile } from "@/lib/services/sim-bak/simBakService";
+import { getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity, getMyPengajuan, getMyProfile, getMyStats } from "@/lib/services/sim-bak/simBakService";
 // dummy data removed — dashboard uses real API only
 import type { DashboardStats, Pengajuan } from "@/lib/services/sim-bak/types";
 import { StatusBadge } from "./components";
@@ -54,23 +54,18 @@ function MahasiswaDashboard() {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const [profileData, pengajuanData] = await Promise.allSettled([
+        const [profileData, pengajuanData, statsData] = await Promise.allSettled([
           getMyProfile(),
           getMyPengajuan({ page: 1, limit: 5 }),
+          getMyStats(),
         ]);
 
         if (profileData.status === "fulfilled") setProfile(profileData.value);
         if (pengajuanData.status === "fulfilled") {
-          const data = pengajuanData.value.data ?? [];
-          setRecentPengajuan(data);
-          setMyStats({
-            total: data.length,
-            draft: data.filter(p => p.status === "draft").length,
-            proses: data.filter(p => ["diajukan", "diverifikasi", "menunggu_persetujuan"].includes(p.status)).length,
-            selesai: data.filter(p => ["disetujui", "terbit"].includes(p.status)).length,
-            ditolak: data.filter(p => p.status === "ditolak").length,
-            perbaikan: data.filter(p => p.status === "perlu_perbaikan").length,
-          });
+          setRecentPengajuan(pengajuanData.value.data ?? []);
+        }
+        if (statsData.status === "fulfilled") {
+          setMyStats(statsData.value);
         }
       } catch { /* fallback */ }
       finally { setLoading(false); }

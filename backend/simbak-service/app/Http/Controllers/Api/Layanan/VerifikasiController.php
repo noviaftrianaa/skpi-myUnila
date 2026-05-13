@@ -367,6 +367,62 @@ class VerifikasiController extends Controller
     }
 
     /**
+     * Ambil WhatsApp link untuk notifikasi pemohon (manual via wa.me).
+     * Pesan dirender dari template DB (ref.template_notifikasi.body_whatsapp).
+     */
+    public function whatsappLink(Request $request, string $id): JsonResponse
+    {
+        try {
+            $kodeEvent = $request->get('event', 'status_terbit');
+
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $dataPemohon = $this->repository->getDataPemohon($id);
+            if (!$dataPemohon) return $this->errorResponse('Data pemohon tidak ditemukan', 422);
+
+            $telepon = null;
+            // Eksternal: ambil dari data_pemohon.no_hp_pemohon
+            if (($pengajuan->a_dari_luar ?? false) && !empty($dataPemohon->no_hp_pemohon)) {
+                $telepon = $dataPemohon->no_hp_pemohon;
+            } elseif ($dataPemohon->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT no_hp_1 FROM siakadu.peserta_didik WHERE id_pd = ?",
+                    [$dataPemohon->id_mahasiswa]
+                );
+                $telepon = $row->no_hp_1 ?? null;
+            }
+            if (!$telepon) {
+                return $this->errorResponse('Nomor HP pemohon tidak ditemukan', 422);
+            }
+            $telepon = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $telepon));
+
+            $template = $this->notificationService->getTemplate($kodeEvent);
+            $body = $template ? $this->notificationService->renderTemplate($template->body_whatsapp ?? '', [
+                'nama' => $dataPemohon->nm_mahasiswa ?? '',
+                'npm' => $dataPemohon->nim ?? '',
+                'prodi' => $dataPemohon->nm_prodi ?? '',
+                'fakultas' => $dataPemohon->nm_fakultas ?? '',
+                'layanan' => $pengajuan->nm_layanan ?? '',
+                'nomor' => $pengajuan->nomor_permohonan ?? '',
+                'catatan' => '-',
+            ]) : "Halo {$dataPemohon->nm_mahasiswa}, surat {$pengajuan->nm_layanan} (No. {$pengajuan->nomor_permohonan}) telah diterbitkan. Silakan cek di aplikasi MyUnila.";
+
+            $waUrl = 'https://wa.me/' . $telepon . '?text=' . urlencode($body);
+
+            return $this->successResponse([
+                'telepon' => $telepon,
+                'wa_url' => $waUrl,
+                'pesan' => $body,
+                'nama' => $dataPemohon->nm_mahasiswa,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Verifikasi.whatsappLink: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Ambil info progress tahapan untuk suatu pengajuan.
      * Digunakan frontend untuk menampilkan stepper.
      */
@@ -392,13 +448,14 @@ class VerifikasiController extends Controller
     private function triggerStatusNotification(object $pengajuan, string $kodeEvent, ?string $catatan = null): void
     {
         try {
-            // Skip jika dari luar Unila (pemohon tidak punya akun/email di sistem)
-            if ($pengajuan->a_dari_luar ?? false) return;
-
             $dataPemohon = $this->repository->getDataPemohon($pengajuan->id_pengajuan);
             if (!$dataPemohon) return;
 
-            $email = $this->resolveEmail($pengajuan->id_pemohon);
+            // Eksternal (a_dari_luar): ambil email dari data_pemohon.email_pemohon
+            // Internal: ambil email dari man_akses.pengguna (SSO)
+            $email = ($pengajuan->a_dari_luar ?? false)
+                ? ($dataPemohon->email_pemohon ?? null)
+                : $this->resolveEmail($pengajuan->id_pemohon);
             if (!$email) return;
 
             $this->notificationService->send($kodeEvent, [
