@@ -233,12 +233,23 @@ class WorkflowService
     }
 
     /**
+     * Daftar ID peran resmi (dari PDUT man_akses.peran) yang dipakai SIMBAK.
+     */
+    private const PERAN_ID_MAP = [
+        1    => 'admin_bak',      // Administrator
+        39   => 'mahasiswa',      // Mahasiswa
+        106  => 'admin_fakultas', // Admin Fakultas
+        4006 => 'kabag',          // Kepala Bagian/Koordinator/PJ
+    ];
+
+    /**
      * Determine kode_role user berdasarkan data dari man_akses.
      *
      * Prioritas:
      * 1. Header X-Active-Role (dari frontend active context)
-     * 2. Query role_pengguna dari database
-     * 3. Fallback: mahasiswa
+     * 2. Property user jika tersedia (id_peran > nm_peran)
+     * 3. Query role_pengguna dari database (priority by id_peran)
+     * 4. Fallback: mahasiswa
      */
     public function determineUserRole(?object $user, ?string $activeRoleHeader = null): string
     {
@@ -254,16 +265,17 @@ class WorkflowService
             return $this->mapPeranToKodeRole($activeRoleHeader);
         }
 
-        // 2. Dari property user jika tersedia (sudah di-set oleh middleware)
+        // 2. Dari property user (id_peran prioritas, lalu nm_peran)
+        $idPeran = $user->id_peran ?? null;
         $roleName = $user->nm_peran ?? $user->role ?? $user->kode_role ?? '';
-        if ($roleName) {
-            return $this->mapPeranToKodeRole($roleName);
+        if ($idPeran || $roleName) {
+            return $this->mapPeranToKodeRole((string) $roleName, $idPeran ? (int) $idPeran : null);
         }
 
         // 3. Query dari database — ambil role untuk app sim-bak
         try {
             $roles = DB::connection('sqlsrv')->select("
-                SELECT p.nm_peran
+                SELECT p.id_peran, p.nm_peran
                 FROM man_akses.role_pengguna rp
                 JOIN man_akses.peran p ON p.id_peran = rp.id_peran
                 WHERE rp.id_pengguna = ?
@@ -274,12 +286,12 @@ class WorkflowService
 
             // Ambil role tertinggi (bukan mahasiswa jika ada role lain)
             foreach ($roles as $r) {
-                $mapped = $this->mapPeranToKodeRole($r->nm_peran);
+                $mapped = $this->mapPeranToKodeRole($r->nm_peran, (int) $r->id_peran);
                 if ($mapped !== 'mahasiswa') return $mapped;
             }
 
             if (count($roles) > 0) {
-                return $this->mapPeranToKodeRole($roles[0]->nm_peran);
+                return $this->mapPeranToKodeRole($roles[0]->nm_peran, (int) $roles[0]->id_peran);
             }
         } catch (\Exception $e) {
             Log::warning('WorkflowService.determineUserRole query failed: ' . $e->getMessage());
@@ -289,16 +301,29 @@ class WorkflowService
     }
 
     /**
-     * Map nm_peran dari man_akses.peran ke kode_role yang dipakai di tahapan_layanan.
+     * Map peran ke kode_role yang dipakai di tahapan_layanan.
+     *
+     * Prioritas:
+     * 1. ID-based via PERAN_ID_MAP (paling robust)
+     * 2. Fallback pattern matching nm_peran (untuk role yang belum di-whitelist)
      */
-    private function mapPeranToKodeRole(string $nmPeran): string
+    private function mapPeranToKodeRole(string $nmPeran, ?int $idPeran = null): string
     {
+        // 1. Mapping by ID (priority)
+        if ($idPeran !== null && isset(self::PERAN_ID_MAP[$idPeran])) {
+            return self::PERAN_ID_MAP[$idPeran];
+        }
+
+        // 2. Fallback: pattern matching nm_peran
         $lower = strtolower($nmPeran);
 
         if (str_contains($lower, 'developer') || $lower === 'admin' || str_contains($lower, 'administrator')) return 'admin_bak';
         if (str_contains($lower, 'admin_bak') || str_contains($lower, 'admin bak') || $lower === 'bak') return 'admin_bak';
         if (str_contains($lower, 'admin_fakultas') || str_contains($lower, 'admin fakultas') || str_contains($lower, 'fakultas')) return 'admin_fakultas';
-        if (str_contains($lower, 'pejabat') || str_contains($lower, 'approver') || str_contains($lower, 'dekan') || str_contains($lower, 'rektor') || str_contains($lower, 'wakil rektor')) return 'pejabat';
+        // Kepala Bagian/Koordinator/PJ (id_peran 4006) - approver semua persetujuan (PM-* & SK-*)
+        if (str_contains($lower, 'kepala bagian') || str_contains($lower, 'kabag') || str_contains($lower, 'koordinator') || $lower === 'pj' || str_contains($lower, 'penanggung jawab')) return 'kabag';
+        // Legacy pattern (pejabat/dekan/rektor) - di-map ke kabag karena role 'pejabat' sudah di-unify
+        if (str_contains($lower, 'pejabat') || str_contains($lower, 'approver') || str_contains($lower, 'dekan') || str_contains($lower, 'rektor') || str_contains($lower, 'wakil rektor')) return 'kabag';
         if (str_contains($lower, 'mahasiswa')) return 'mahasiswa';
 
         return 'mahasiswa';
