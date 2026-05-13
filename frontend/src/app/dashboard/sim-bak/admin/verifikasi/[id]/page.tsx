@@ -268,6 +268,18 @@ export default function VerifikasiDetailPage() {
               </CardBody></Card>
             )}
 
+            {/* Informasi SK Cuti — SK-HERREG */}
+            {detail.kode_layanan === "SK-HERREG" && (detail.nomor_sk_cuti || detail.tgl_sk_cuti) && (
+              <Card className="shadow-md rounded-xl border-blue-200 dark:border-blue-800 border"><CardBody className="p-5">
+                <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4">Informasi SK Cuti</h2>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-gray-500 mb-0.5">SK Cuti Akademik</p>
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{String(detail.nomor_sk_cuti ?? "-")}</p>
+                  {detail.tgl_sk_cuti && <p className="text-xs text-gray-500 mt-0.5">{new Date(String(detail.tgl_sk_cuti)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</p>}
+                </div>
+              </CardBody></Card>
+            )}
+
             {/* Surat Pendukung — SK-PKKMB & SK-KTM */}
             {(detail.kode_layanan === "SK-PKKMB" || detail.kode_layanan === "SK-KTM") && (detail.nomor_surat_polisi || detail.nomor_surat_ket_aktif) && (
               <Card className="shadow-md rounded-xl border-amber-200 dark:border-amber-800 border"><CardBody className="p-5">

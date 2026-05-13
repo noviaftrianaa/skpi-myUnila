@@ -161,6 +161,8 @@ export interface Pengajuan {
   tgl_surat_polisi?: string | null;
   nomor_surat_ket_aktif?: string | null;
   tgl_surat_ket_aktif?: string | null;
+  nomor_sk_cuti?: string | null;
+  tgl_sk_cuti?: string | null;
   tgl_diajukan: string | null;
   tgl_selesai: string | null;
   nomor_dokumen_hasil: string | null;

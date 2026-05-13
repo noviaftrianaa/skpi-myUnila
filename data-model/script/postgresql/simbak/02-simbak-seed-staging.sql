@@ -59,7 +59,8 @@ WHERE kode_layanan = 'SK-PKKMB';
 INSERT INTO ref.persyaratan_layanan (id_jenis_layanan, kode_dokumen, nm_dokumen, a_wajib, urutan)
 SELECT id_jenis_layanan, kode, nm, true, v.urutan
 FROM ref.jenis_layanan, (VALUES
-  ('DOC-BUKTI-UKT', 'Bukti Pembayaran UKT Semester Berjalan', 1)
+  ('DOC-BUKTI-UKT', 'Bukti Pembayaran UKT Semester Berjalan', 1),
+  ('DOC-SK-CUTI',   'SK Cuti Akademik',                      2)
 ) AS v(kode, nm, urutan)
 WHERE kode_layanan = 'SK-HERREG';
 

@@ -230,6 +230,8 @@ export const createPengajuan = async (data: {
   tgl_surat_polisi?: string;
   nomor_surat_ket_aktif?: string;
   tgl_surat_ket_aktif?: string;
+  nomor_sk_cuti?: string;
+  tgl_sk_cuti?: string;
 }): Promise<Pengajuan> => {
   const response = await bakClient.post<ApiResponse<Pengajuan>>('/layanan/pengajuan', data);
   return response.data.data;

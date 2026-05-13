@@ -115,6 +115,8 @@ class PengajuanController extends Controller
                 'tgl_surat_polisi' => 'nullable|date',
                 'nomor_surat_ket_aktif' => 'nullable|string|max:100',
                 'tgl_surat_ket_aktif' => 'nullable|date',
+                'nomor_sk_cuti' => 'nullable|string|max:100',
+                'tgl_sk_cuti' => 'nullable|date',
             ];
 
             // Validasi tambahan untuk pengajuan dari luar Unila
@@ -278,6 +280,16 @@ class PengajuanController extends Controller
                     }
                     if (empty($data['nomor_surat_ket_aktif'])) {
                         return $this->errorResponse('Nomor Surat Keterangan Mahasiswa Aktif dari Fakultas wajib diisi', 422);
+                    }
+                }
+
+                // SK-HERREG: wajib nomor & tanggal SK Cuti
+                if ($jenisLayanan->kode_layanan === 'SK-HERREG') {
+                    if (empty($data['nomor_sk_cuti'])) {
+                        return $this->errorResponse('Nomor SK Cuti Akademik wajib diisi', 422);
+                    }
+                    if (empty($data['tgl_sk_cuti'])) {
+                        return $this->errorResponse('Tanggal SK Cuti Akademik wajib diisi', 422);
                     }
                 }
             } else {

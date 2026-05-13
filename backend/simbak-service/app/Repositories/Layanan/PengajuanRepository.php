@@ -58,6 +58,7 @@ class PengajuanRepository extends BaseRepository
                 p.id_pengajuan, p.nomor_permohonan, p.status, p.alasan, p.catatan_pemohon,
                 p.kategori_cuti, p.kategori_undur, p.nm_pt_tujuan,
                 p.nomor_surat_polisi, p.tgl_surat_polisi, p.nomor_surat_ket_aktif, p.tgl_surat_ket_aktif,
+                p.nomor_sk_cuti, p.tgl_sk_cuti,
                 p.tgl_diajukan, p.tgl_selesai, p.nomor_dokumen_hasil, p.tgl_dokumen_hasil,
                 p.created_at, p.updated_at,
                 jl.id_jenis_layanan, jl.kode_layanan, jl.nm_layanan, jl.kategori, jl.sla_hari,
@@ -186,8 +187,9 @@ class PengajuanRepository extends BaseRepository
                 id_prodi_tujuan, id_fakultas_tujuan,
                 a_dari_luar, nm_pt_asal,
                 nomor_surat_polisi, tgl_surat_polisi, nomor_surat_ket_aktif, tgl_surat_ket_aktif,
+                nomor_sk_cuti, tgl_sk_cuti,
                 id_creator
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *
         ", [
             $data['id_jenis_layanan'],
@@ -210,6 +212,8 @@ class PengajuanRepository extends BaseRepository
             $data['tgl_surat_polisi'] ?? null,
             $data['nomor_surat_ket_aktif'] ?? null,
             $data['tgl_surat_ket_aktif'] ?? null,
+            $data['nomor_sk_cuti'] ?? null,
+            $data['tgl_sk_cuti'] ?? null,
             $data['id_creator'] ?? null,
         ]);
     }
