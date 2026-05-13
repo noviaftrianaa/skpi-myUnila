@@ -46,10 +46,9 @@ const CKEditorInner = dynamic(
             toolbar: {
               items: [
                 "heading", "|",
-                "bold", "italic", "underline", "|",
+                "bold", "italic", "|",
                 "link", "bulletedList", "numberedList", "|",
-                "fontColor", "fontBackgroundColor", "|",
-                "alignment", "|",
+                "blockQuote", "insertTable", "|",
                 "outdent", "indent", "|",
                 "undo", "redo",
               ],
