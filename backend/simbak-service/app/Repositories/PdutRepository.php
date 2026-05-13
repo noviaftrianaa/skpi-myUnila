@@ -341,7 +341,7 @@ class PdutRepository extends BaseRepository
      *
      * Catatan: hitung masa studi dari kolom angkatan (tahun masuk).
      */
-    public function getKandidatHMM(string $idSmt, ?string $idFakultas = null): array
+    public function getKandidatHMM(string $idSmt, ?string $idFakultas = null, ?string $kriteriaWhere = null): array
     {
         try {
             $bindings = [];
@@ -356,6 +356,15 @@ class PdutRepository extends BaseRepository
             $bulanNow = (int) date('m');
             // Jika sebelum September berarti masih semester genap dari masuk tahun lalu
             $semesterDariAngkatan = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
+            // Default kriteria (fallback jika tidak ada di ref.ketentuan_layanan)
+            $defaultKriteria = "(
+                (jp.nm_jenj_didik = 'D3' AND {$semesterDariAngkatan} >= 13) OR
+                (jp.nm_jenj_didik = 'S1' AND {$semesterDariAngkatan} >= 17) OR
+                (jp.nm_jenj_didik = 'S2' AND {$semesterDariAngkatan} >= 9) OR
+                (jp.nm_jenj_didik = 'S3' AND {$semesterDariAngkatan} >= 13)
+            )";
+            $kriteriaClause = $kriteriaWhere ?: $defaultKriteria;
 
             return $this->pdutSelect("
                 SELECT
@@ -383,12 +392,7 @@ class PdutRepository extends BaseRepository
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
-                  AND (
-                    (jp.nm_jenj_didik = 'D3' AND {$semesterDariAngkatan} >= 13) OR
-                    (jp.nm_jenj_didik = 'S1' AND {$semesterDariAngkatan} >= 17) OR
-                    (jp.nm_jenj_didik = 'S2' AND {$semesterDariAngkatan} >= 9) OR
-                    (jp.nm_jenj_didik = 'S3' AND {$semesterDariAngkatan} >= 13)
-                  )
+                  AND {$kriteriaClause}
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
         } catch (\Exception $e) {
@@ -403,7 +407,7 @@ class PdutRepository extends BaseRepository
      *
      * Semester dihitung dari angkatan (sama seperti HMM) karena kolom m.semester kosong.
      */
-    public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null): array
+    public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null, ?string $kriteriaWhere = null): array
     {
         try {
             $bindings = [];
@@ -416,6 +420,12 @@ class PdutRepository extends BaseRepository
             $tahunNow = (int) date('Y');
             $bulanNow = (int) date('m');
             $semesterDariAngkatan = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
+            $defaultKriteria = "(
+                ({$semesterDariAngkatan} = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
+                ({$semesterDariAngkatan} = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
+            )";
+            $kriteriaClause = $kriteriaWhere ?: $defaultKriteria;
 
             return $this->pdutSelect("
                 SELECT
@@ -445,10 +455,7 @@ class PdutRepository extends BaseRepository
                   AND jp.nm_jenj_didik IN ('S1', 'D4')
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
-                  AND (
-                    ({$semesterDariAngkatan} = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
-                    ({$semesterDariAngkatan} = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
-                  )
+                  AND {$kriteriaClause}
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
         } catch (\Exception $e) {

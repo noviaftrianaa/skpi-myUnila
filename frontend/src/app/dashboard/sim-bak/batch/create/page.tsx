@@ -34,6 +34,7 @@ export default function CreateBatchPage() {
     total: number;
     candidates: Array<Record<string, unknown>>;
     kriteria: string;
+    kriteria_groups?: Array<{ label: string; rules: Array<{ nm_ketentuan: string; operator: string; nilai: number; kode: string }> }>;
   } | null>(null);
 
   useEffect(() => {
@@ -200,13 +201,30 @@ export default function CreateBatchPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preview Kandidat</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Kriteria: {previewData.kriteria}</p>
                 </div>
                 <Chip color={previewData.total > 0 ? "primary" : "default"} variant="flat" size="lg">
                   <FiUsers className="w-4 h-4 mr-1 inline" />
                   {previewData.total} mahasiswa
                 </Chip>
               </div>
+
+              {previewData.kriteria_groups && previewData.kriteria_groups.length > 0 ? (
+                <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-2">Kriteria Tarik Kandidat:</p>
+                  <div className="space-y-1.5">
+                    {previewData.kriteria_groups.map((g, i) => (
+                      <div key={i} className="text-xs text-blue-700 dark:text-blue-400">
+                        <span className="font-semibold">{g.label}:</span>{" "}
+                        {g.rules.map((r, j) => (
+                          <span key={j}>{r.nm_ketentuan} {r.operator} {r.nilai}{j < g.rules.length - 1 ? " / " : ""}</span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : previewData.kriteria ? (
+                <p className="text-xs text-gray-500 mb-3">Kriteria: {previewData.kriteria}</p>
+              ) : null}
 
               {previewData.total === 0 ? (
                 <div className="text-center py-8">

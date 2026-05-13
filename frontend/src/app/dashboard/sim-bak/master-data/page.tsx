@@ -6,17 +6,21 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import { simBakMenuConfig } from "../config/menuConfig";
 import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody } from "@heroui/react";
-import { FiDatabase, FiList, FiGitBranch, FiCalendar } from "react-icons/fi";
+import { FiDatabase, FiList, FiGitBranch, FiCalendar, FiLogOut, FiCheckSquare } from "react-icons/fi";
 import JenisLayananTab from "./components/JenisLayananTab";
 import PersyaratanTab from "./components/PersyaratanTab";
 import TahapanTab from "./components/TahapanTab";
 import KategoriCutiTab from "./components/KategoriCutiTab";
+import KategoriUndurTab from "./components/KategoriUndurTab";
+import KetentuanLayananTab from "./components/KetentuanLayananTab";
 
 const tabs = [
   { key: "jenis", label: "Jenis Layanan", icon: <FiDatabase className="w-4 h-4" /> },
   { key: "persyaratan", label: "Persyaratan", icon: <FiList className="w-4 h-4" /> },
   { key: "tahapan", label: "Tahapan", icon: <FiGitBranch className="w-4 h-4" /> },
+  { key: "ketentuan", label: "Ketentuan Akademik", icon: <FiCheckSquare className="w-4 h-4" /> },
   { key: "kategori-cuti", label: "Kategori Cuti", icon: <FiCalendar className="w-4 h-4" /> },
+  { key: "kategori-undur", label: "Kategori Undur", icon: <FiLogOut className="w-4 h-4" /> },
 ];
 
 export default function MasterDataPage() {
@@ -74,7 +78,9 @@ export default function MasterDataPage() {
             {activeTab === "jenis" && <JenisLayananTab />}
             {activeTab === "persyaratan" && <PersyaratanTab />}
             {activeTab === "tahapan" && <TahapanTab />}
+            {activeTab === "ketentuan" && <KetentuanLayananTab />}
             {activeTab === "kategori-cuti" && <KategoriCutiTab />}
+            {activeTab === "kategori-undur" && <KategoriUndurTab />}
           </CardBody>
         </Card>
       </div>
