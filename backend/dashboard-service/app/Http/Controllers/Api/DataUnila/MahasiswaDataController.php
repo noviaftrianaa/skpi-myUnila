@@ -68,6 +68,32 @@ class MahasiswaDataController extends Controller
     }
 
     /**
+     * GET /v1/data/mahasiswa/{id}/profile
+     * Full profile (SIAKADU + PDDikti + keluarga + riwayat semester)
+     */
+    public function profile(string $id): JsonResponse
+    {
+        try {
+            $data = $this->service->getFullProfile($id);
+            return $this->success($data, 'Profil lengkap mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal mengambil profil: ' . $e->getMessage());
+        }
+    }
+
+    public function resolveByNim(Request $request): JsonResponse
+    {
+        try {
+            $nim = $request->query('nim');
+            if (!$nim) return $this->error('Parameter nim wajib diisi', 400);
+            $idPd = $this->service->resolveByNim($nim);
+            return $this->success(['id_pd' => $idPd], $idPd ? 'Ditemukan' : 'Tidak ditemukan');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * GET /v1/data/mahasiswa/filters
      * Filter options (angkatan, fakultas, prodi)
      */
@@ -129,6 +155,20 @@ class MahasiswaDataController extends Controller
         try {
             $data = $this->service->getAktivitasStats($this->extractParams($request));
             return $this->success($data, 'Statistik aktivitas mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * GET /v1/data/mahasiswa/aktivitas/filters
+     * Filter options (tahun + jenis aktivitas)
+     */
+    public function aktivitasFilters(): JsonResponse
+    {
+        try {
+            $data = $this->service->getAktivitasFilterOptions();
+            return $this->success($data, 'Filter options aktivitas');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
         }
@@ -201,6 +241,14 @@ class MahasiswaDataController extends Controller
             'angkatan' => $request->query('angkatan'),
             'semester' => $request->query('semester'),
             'status' => $request->query('status'),
+            'tahun_lulus' => $request->query('tahun_lulus'),
+            'tahun' => $request->query('tahun'),
+            'id_jns_akt_mhs' => $request->query('id_jns_akt_mhs'),
+            'id_jurusan' => $request->query('id_jurusan'),
+            'id_jalur_daftar' => $request->query('id_jalur_daftar'),
+            'ipk_min' => $request->query('ipk_min'),
+            'ipk_max' => $request->query('ipk_max'),
+            'unit_filter' => $request->query('unit_filter'),
         ];
     }
 }
