@@ -47,10 +47,10 @@ class TridarmaDataController extends Controller
         }
     }
 
-    public function publikasiStats(): JsonResponse
+    public function publikasiStats(Request $request): JsonResponse
     {
         try {
-            return $this->success($this->service->getPublikasiStats(), 'Stats publikasi');
+            return $this->success($this->service->getPublikasiStats($this->extractParams($request)), 'Stats publikasi');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
         }
@@ -66,10 +66,29 @@ class TridarmaDataController extends Controller
         }
     }
 
-    public function prestasiStats(): JsonResponse
+    public function prestasiStats(Request $request): JsonResponse
     {
         try {
-            return $this->success($this->service->getPrestasiStats(), 'Stats prestasi');
+            return $this->success($this->service->getPrestasiStats($this->extractParams($request)), 'Stats prestasi');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function pengajaran(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getPengajaran($this->extractParams($request));
+            return $this->success($data, 'Data pengajaran');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function pengajaranStats(Request $request): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getPengajaranStats($this->extractParams($request)), 'Stats pengajaran');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
         }
@@ -85,6 +104,11 @@ class TridarmaDataController extends Controller
             'sort_order' => $request->query('sort_order', 'desc'),
             'jenis' => $request->query('jenis'),
             'tahun' => $request->query('tahun'),
+            'id_fakultas' => $request->query('id_fakultas'),
+            'id_prodi' => $request->query('id_prodi'),
+            'id_sms' => $request->query('id_sms'),
+            'id_jurusan' => $request->query('id_jurusan'),
+            'unit_filter' => $request->query('unit_filter'),
         ];
     }
 }

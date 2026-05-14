@@ -46,20 +46,27 @@ class KeuanganDataRepository extends BaseDataRepository
         );
     }
 
-    public function getUktStats(): array
+    public function getUktStats(array $params = []): array
     {
+        $bindings = [];
+        $dummy = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $dummy);
+        $joinSms = $orgFilter ? 'LEFT JOIN pdrd.sms s ON s.id_sms = u.id_sms AND s.soft_delete = 0' : '';
+
         return (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
-                MIN(tahun) as tahun_awal,
-                MAX(tahun) as tahun_akhir,
-                COUNT(DISTINCT tahun) as total_tahun,
-                COUNT(DISTINCT nama_prodi) as total_prodi,
-                AVG(CAST(nominal AS DECIMAL(18,2))) as avg_nominal,
-                MAX(CAST(nominal AS DECIMAL(18,2))) as max_nominal
-            FROM keuangan.daftar_ukt
-            WHERE soft_delete = 0
-        ");
+                MIN(u.tahun) as tahun_awal,
+                MAX(u.tahun) as tahun_akhir,
+                COUNT(DISTINCT u.tahun) as total_tahun,
+                COUNT(DISTINCT u.nama_prodi) as total_prodi,
+                AVG(CAST(u.nominal AS DECIMAL(18,2))) as avg_nominal,
+                MAX(CAST(u.nominal AS DECIMAL(18,2))) as max_nominal
+            FROM keuangan.daftar_ukt u
+            {$joinSms}
+            WHERE u.soft_delete = 0
+              {$orgFilter}
+        ", $bindings);
     }
 
     public function getUktTahunList(): array
@@ -152,6 +159,13 @@ class KeuanganDataRepository extends BaseDataRepository
             $bindings[] = $params['id_fakultas'];
             $countBindings[] = $params['id_fakultas'];
         }
+        if (!empty($params['id_jurusan'])) {
+            $whereExtra .= ' AND s.id_jur_unila = ?';
+            $bindings[] = $params['id_jurusan'];
+            $countBindings[] = $params['id_jurusan'];
+        }
+        // Multi-unit filter
+        $whereExtra .= $this->buildUnitFilter($params, $bindings, $countBindings);
 
         $totalSql = str_replace('{WHERE_EXTRA}', $whereExtra, $countSql);
         $total = (int) $this->selectScalar($totalSql, $countBindings);
@@ -179,6 +193,24 @@ class KeuanganDataRepository extends BaseDataRepository
             $bindings[] = $params['tahun'];
         }
 
+        // Org filter konsisten dengan list query
+        $orgFilter = '';
+        if (!empty($params['id_prodi']) || !empty($params['id_sms'])) {
+            $orgFilter = ' AND s.id_sms = ?';
+            $bindings[] = $params['id_prodi'] ?? $params['id_sms'];
+        } elseif (!empty($params['id_fakultas'])) {
+            $orgFilter = ' AND s.id_fak_unila = ?';
+            $bindings[] = $params['id_fakultas'];
+        }
+        if (!empty($params['id_jurusan'])) {
+            $orgFilter .= ' AND s.id_jur_unila = ?';
+            $bindings[] = $params['id_jurusan'];
+        }
+        $dummy = [];
+        $orgFilter .= $this->buildUnitFilter($params, $bindings, $dummy);
+
+        $joinSms = $orgFilter ? 'LEFT JOIN pdrd.reg_pd rp ON rp.id_reg_pd = sp.id_reg_pd AND rp.soft_delete = 0 LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0' : '';
+
         return (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
@@ -187,7 +219,8 @@ class KeuanganDataRepository extends BaseDataRepository
                 SUM(CASE WHEN CAST(sp.sisa_tagihan AS DECIMAL(18,2)) = 0 THEN 1 ELSE 0 END) as lunas,
                 SUM(CASE WHEN sp.a_cicil = 1 THEN 1 ELSE 0 END) as cicilan
             FROM keuangan.spp_mhs sp
-            WHERE sp.soft_delete = 0 {$thnFilter}
+            {$joinSms}
+            WHERE sp.soft_delete = 0 {$thnFilter} {$orgFilter}
         ", $bindings);
     }
 

@@ -74,6 +74,101 @@ abstract class BaseDataRepository extends BaseRepository
             $whereExtra .= $this->buildStatusFilter($params['status'], $bindings, $countBindings);
         }
 
+        // Tahun lulus filter (YEAR(rp.tgl_keluar))
+        if (!empty($params['tahun_lulus'])) {
+            $whereExtra .= ' AND YEAR(rp.tgl_keluar) = ?';
+            $bindings[] = $params['tahun_lulus'];
+            $countBindings[] = $params['tahun_lulus'];
+        }
+
+        // Jurusan filter (id_jur_unila pada pdrd.sms)
+        if (!empty($params['id_jurusan'])) {
+            $whereExtra .= ' AND s.id_jur_unila = ?';
+            $bindings[] = $params['id_jurusan'];
+            $countBindings[] = $params['id_jurusan'];
+        }
+
+        // Multi-unit filter (Filter Unit multi-select) — di-OR antar-level, AND dgn forced.
+        $whereExtra .= $this->buildUnitFilter($params, $bindings, $countBindings);
+
+        // Jabfung filter (untuk page Jabfung) — match j.nm_jabfung kalau tersedia di query
+        if (!empty($params['nm_jabfung']) || !empty($params['id_jabfung'])) {
+            $val = $params['nm_jabfung'] ?? $params['id_jabfung'];
+            $whereExtra .= ' AND j.nm_jabfung = ?';
+            $bindings[] = $val;
+            $countBindings[] = $val;
+        }
+
+        // Jenis sertifikasi filter (untuk page Sertifikasi) — JOIN ref.jenis_sert js di query
+        if (!empty($params['jenis_sertifikasi'])) {
+            $whereExtra .= ' AND js.nm_jns_sert = ?';
+            $bindings[] = $params['jenis_sertifikasi'];
+            $countBindings[] = $params['jenis_sertifikasi'];
+        }
+
+        // Tahun sertifikasi filter (page Sertifikasi)
+        if (!empty($params['tahun'])) {
+            $whereExtra .= ' AND rs.thn_sert = ?';
+            $bindings[] = $params['tahun'];
+            $countBindings[] = $params['tahun'];
+        }
+
+        // Jenjang Pendidikan filter (page Riwayat Pendidikan) — JOIN ref.jenjang_pendidikan jp
+        if (!empty($params['jenjang'])) {
+            $whereExtra .= ' AND jp.nm_jenj_didik = ?';
+            $bindings[] = $params['jenjang'];
+            $countBindings[] = $params['jenjang'];
+        }
+
+        // Golongan filter (page Riwayat Kepangkatan) — JOIN ref.pangkat_golongan pg
+        if (!empty($params['golongan'])) {
+            $whereExtra .= ' AND pg.kode_gol = ?';
+            $bindings[] = $params['golongan'];
+            $countBindings[] = $params['golongan'];
+        }
+
+        // Jabatan Tambahan filter (page Tugas Tambahan) — JOIN ref.jab_tgs jt
+        if (!empty($params['jabatan_tambahan'])) {
+            $whereExtra .= ' AND jt.nm_jab_tgs = ?';
+            $bindings[] = $params['jabatan_tambahan'];
+            $countBindings[] = $params['jabatan_tambahan'];
+        }
+
+        // Akreditasi expiring filter (page Akreditasi) — refs `ap.tst_sk_akreditasi_prodi` + `ap.a_aktif`
+        // mode: soon (akan expire ≤90 hari), expired (sudah lewat), alert (gabungan)
+        if (!empty($params['expiring'])) {
+            $mode = strtolower(trim((string) $params['expiring']));
+            if ($mode === 'soon') {
+                $whereExtra .= ' AND ap.a_aktif = 1 AND ap.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(DAY, 90, GETDATE())';
+            } elseif ($mode === 'expired') {
+                $whereExtra .= ' AND ap.a_aktif = 1 AND ap.tst_sk_akreditasi_prodi < GETDATE()';
+            } elseif ($mode === 'alert') {
+                $whereExtra .= ' AND ap.a_aktif = 1 AND ap.tst_sk_akreditasi_prodi <= DATEADD(DAY, 90, GETDATE())';
+            }
+        }
+
+        // Jalur masuk filter (id_jalur_daftar pada pdrd.reg_pd)
+        if (!empty($params['id_jalur_daftar'])) {
+            $whereExtra .= ' AND rp.id_jalur_daftar = ?';
+            $bindings[] = $params['id_jalur_daftar'];
+            $countBindings[] = $params['id_jalur_daftar'];
+        }
+
+        // IPK range filter (pakai latest km.ipk via subquery)
+        if (!empty($params['ipk_min']) || !empty($params['ipk_max'])) {
+            $ipkMin = !empty($params['ipk_min']) ? (float) $params['ipk_min'] : 0;
+            $ipkMax = !empty($params['ipk_max']) ? (float) $params['ipk_max'] : 4.0;
+            $whereExtra .= " AND EXISTS (
+                SELECT 1 FROM pdrd.kuliah_mhs km
+                WHERE km.id_reg_pd = rp.id_reg_pd AND km.soft_delete = 0
+                  AND km.ipk BETWEEN ? AND ?
+            )";
+            $bindings[] = $ipkMin;
+            $bindings[] = $ipkMax;
+            $countBindings[] = $ipkMin;
+            $countBindings[] = $ipkMax;
+        }
+
         // Validate sort column
         if (!in_array($sortBy, $sortableCols)) {
             $sortBy = $defaultSort;
@@ -101,6 +196,43 @@ abstract class BaseDataRepository extends BaseRepository
     }
 
     /**
+     * Build "Filter Unit" multi-select clause.
+     * Param `unit_filter` = list of "lvl:id" pairs (fak|jur|prd), dipisah koma.
+     * Setiap level di-IN dan antar-level di-OR (mis. (fak IN ... OR jur IN ... OR prd IN ...)).
+     */
+    protected function buildUnitFilter(array $params, array &$bindings, array &$countBindings): string
+    {
+        if (empty($params['unit_filter'])) return '';
+        $fakIds = []; $jurIds = []; $prdIds = [];
+        foreach (explode(',', $params['unit_filter']) as $part) {
+            $part = trim($part);
+            if (!$part || !str_contains($part, ':')) continue;
+            [$lvl, $id] = explode(':', $part, 2);
+            if ($lvl === 'fak') $fakIds[] = $id;
+            elseif ($lvl === 'jur') $jurIds[] = $id;
+            elseif ($lvl === 'prd') $prdIds[] = $id;
+        }
+        $or = [];
+        if (!empty($fakIds)) {
+            $ph = implode(',', array_fill(0, count($fakIds), '?'));
+            $or[] = "s.id_fak_unila IN ({$ph})";
+            foreach ($fakIds as $v) { $bindings[] = $v; $countBindings[] = $v; }
+        }
+        if (!empty($jurIds)) {
+            $ph = implode(',', array_fill(0, count($jurIds), '?'));
+            $or[] = "s.id_jur_unila IN ({$ph})";
+            foreach ($jurIds as $v) { $bindings[] = $v; $countBindings[] = $v; }
+        }
+        if (!empty($prdIds)) {
+            $ph = implode(',', array_fill(0, count($prdIds), '?'));
+            $or[] = "s.id_sms IN ({$ph})";
+            foreach ($prdIds as $v) { $bindings[] = $v; $countBindings[] = $v; }
+        }
+        if (empty($or)) return '';
+        return ' AND (' . implode(' OR ', $or) . ')';
+    }
+
+    /**
      * Build organization filter based on user context
      * Supports: id_fakultas (fakultas level), id_prodi/id_sms (prodi level)
      */
@@ -118,30 +250,74 @@ abstract class BaseDataRepository extends BaseRepository
             $bindings[] = $params['id_fakultas'];
             $countBindings[] = $params['id_fakultas'];
         }
+        if (!empty($params['id_jurusan'])) {
+            $where .= ' AND s.id_jur_unila = ?';
+            $bindings[] = $params['id_jurusan'];
+            $countBindings[] = $params['id_jurusan'];
+        }
+
+        // Multi-unit filter (UnitFilter component) — sama dgn paginate()
+        $where .= $this->buildUnitFilter($params, $bindings, $countBindings);
 
         return $where;
     }
 
     /**
      * Build status filter for mahasiswa (aktif/lulus/cuti/do)
+     *
+     * Mapping id_jns_keluar (ref.jenis_keluar) — konsisten dgn stat card di getStats():
+     *   1 = Lulus
+     *   2 = Mutasi
+     *   3 = Dikeluarkan  → DO
+     *   5 = Putus Studi  → DO
+     *
+     * CUTI bukan dari id_jns_keluar — dari latest kuliah_mhs.id_stat_mhs='C'
      */
     protected function buildStatusFilter(string $status, array &$bindings, array &$countBindings): string
     {
-        switch (strtolower($status)) {
+        $s = strtolower(trim($status));
+        // Numeric id_jns_keluar langsung (lookup ref.jenis_keluar) — pattern KTW:
+        // 1=Lulus, 2=Mutasi, 3=Dikeluarkan, 4=Mengundurkan Diri, 5=Putus Studi, 6=Wafat, 7=Hilang
+        if (preg_match('/^[0-9A-Z]$/', strtoupper($s))) {
+            $bindings[] = strtoupper($s);
+            $countBindings[] = strtoupper($s);
+            return " AND CAST(rp.id_jns_keluar AS VARCHAR) = ?";
+        }
+        switch ($s) {
             case 'aktif':
-                return ' AND rp.id_jns_keluar IS NULL';
+                // KTW dual-confirm: belum SK keluar AND status master 'A'
+                return " AND rp.id_jns_keluar IS NULL AND pd.id_stat_mhs = 'A'";
             case 'lulus':
                 $bindings[] = '1';
                 $countBindings[] = '1';
                 return " AND CAST(rp.id_jns_keluar AS VARCHAR) = ?";
-            case 'do':
+            case 'mutasi':
                 $bindings[] = '2';
                 $countBindings[] = '2';
                 return " AND CAST(rp.id_jns_keluar AS VARCHAR) = ?";
-            case 'cuti':
+            case 'do':
+                // Backward compat: bucket 'do' = Dikeluarkan + Putus Studi.
                 $bindings[] = '3';
+                $bindings[] = '5';
                 $countBindings[] = '3';
-                return " AND CAST(rp.id_jns_keluar AS VARCHAR) = ?";
+                $countBindings[] = '5';
+                return " AND CAST(rp.id_jns_keluar AS VARCHAR) IN (?, ?)";
+            case 'keluar':
+                // Bucket "Keluar" — semua yang punya SK keluar TAPI bukan Lulus (id_jns_keluar != '1')
+                $bindings[] = '1';
+                $countBindings[] = '1';
+                return " AND rp.id_jns_keluar IS NOT NULL AND CAST(rp.id_jns_keluar AS VARCHAR) <> ?";
+            case 'cuti':
+                // Cuti = latest kuliah_mhs.id_stat_mhs='C' (per-semester, BUKAN id_jns_keluar)
+                return " AND EXISTS (
+                    SELECT 1 FROM pdrd.kuliah_mhs km
+                    WHERE km.id_reg_pd = rp.id_reg_pd AND km.soft_delete = 0
+                      AND km.id_stat_mhs = 'C'
+                      AND km.id_smt = (
+                          SELECT MAX(km2.id_smt) FROM pdrd.kuliah_mhs km2
+                          WHERE km2.id_reg_pd = km.id_reg_pd AND km2.soft_delete = 0
+                      )
+                )";
             default:
                 return '';
         }

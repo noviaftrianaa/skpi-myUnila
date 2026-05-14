@@ -12,7 +12,7 @@ class CacheService
      */
     const TTL_REFERENCE  = 1440; // 24 hours
     const TTL_STATS      = 30;   // 30 minutes (dikurangi dari 60 — data lebih segar untuk pimpinan)
-    const TTL_IKU        = 360;  // 6 hours
+    const TTL_IKU        = 1440; // 24 hours — IKU tahunan, jarang berubah; di-warm via scheduler tiap jam
     const TTL_KEUANGAN   = 30;   // 30 minutes
 
     /**

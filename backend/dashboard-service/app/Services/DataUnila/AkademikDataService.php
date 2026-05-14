@@ -32,18 +32,21 @@ class AkademikDataService
         return $this->cache->remember($key, 15, fn() => $this->repository->getMatkulList($params));
     }
 
-    public function getProdiStats(): array
+    public function getProdiStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:prodi-stats', 60, fn() => $this->repository->getProdiStats());
+        $key = $this->cache->buildKey('data-unila', 'prodi-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getProdiStats($params));
     }
 
-    public function getAkreditasiStats(): array
+    public function getAkreditasiStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:akreditasi-stats', 60, fn() => $this->repository->getAkreditasiStats());
+        $key = $this->cache->buildKey('data-unila', 'akreditasi-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getAkreditasiStats($params));
     }
 
-    public function getMatkulStats(): array
+    public function getMatkulStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:matkul-stats', 60, fn() => $this->repository->getMatkulStats());
+        $key = $this->cache->buildKey('data-unila', 'matkul-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getMatkulStats($params));
     }
 }

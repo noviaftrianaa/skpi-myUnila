@@ -31,10 +31,10 @@ class KeuanganDataController extends Controller
         }
     }
 
-    public function uktStats(): JsonResponse
+    public function uktStats(Request $request): JsonResponse
     {
         try {
-            $data = $this->service->getUktStats();
+            $data = $this->service->getUktStats($this->extractParams($request));
             return $this->success($data, 'Statistik UKT');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
@@ -96,6 +96,8 @@ class KeuanganDataController extends Controller
             'id_fakultas'=> $request->query('id_fakultas'),
             'id_prodi'   => $request->query('id_prodi'),
             'id_sms'     => $request->query('id_sms'),
+            'id_jurusan' => $request->query('id_jurusan'),
+            'unit_filter'=> $request->query('unit_filter'),
             'tahun'      => $request->query('tahun'),
         ];
     }

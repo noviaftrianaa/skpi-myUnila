@@ -13,8 +13,10 @@ class KknDataRepository extends BaseDataRepository
             SELECT
                 CONVERT(VARCHAR(36), ak.id_anggota) AS id_anggota,
                 ak.npm,
-                p.nm_pemohon AS nm_mahasiswa,
-                p.id_pendaftar AS id_pemohon,
+                p.nm_mahasiswa AS nm_mahasiswa,
+                CONVERT(VARCHAR(36), p.id_data_pemohon) AS id_pemohon,
+                p.nm_fakultas,
+                p.nm_prodi,
                 kel.nm_kelompok,
                 kel.kode_kelompok,
                 lok.nm_kabupaten,
@@ -31,7 +33,7 @@ class KknDataRepository extends BaseDataRepository
             INNER JOIN kkn.periode_kkn per ON per.id_periode_kkn = kel.id_periode_kkn AND ISNULL(per.soft_delete, 0) = 0
             LEFT JOIN kkn.lokasi_kkn lok ON lok.id_lokasi = kel.id_lokasi AND ISNULL(lok.soft_delete, 0) = 0
             LEFT JOIN kkn.registrasi_kkn reg ON reg.id_registrasi = ak.id_registrasi
-            LEFT JOIN kkn.data_pemohon p ON p.id_pendaftar = reg.id_pemohon
+            LEFT JOIN kkn.data_pemohon p ON p.id_data_pemohon = reg.id_pemohon
             WHERE ISNULL(ak.soft_delete, 0) = 0
               {WHERE_EXTRA}
         ";
@@ -41,7 +43,7 @@ class KknDataRepository extends BaseDataRepository
             INNER JOIN kkn.periode_kkn per ON per.id_periode_kkn = kel.id_periode_kkn AND ISNULL(per.soft_delete, 0) = 0
             LEFT JOIN kkn.lokasi_kkn lok ON lok.id_lokasi = kel.id_lokasi
             LEFT JOIN kkn.registrasi_kkn reg ON reg.id_registrasi = ak.id_registrasi
-            LEFT JOIN kkn.data_pemohon p ON p.id_pendaftar = reg.id_pemohon
+            LEFT JOIN kkn.data_pemohon p ON p.id_data_pemohon = reg.id_pemohon
             WHERE ISNULL(ak.soft_delete, 0) = 0
               {WHERE_EXTRA}
         ";
@@ -62,7 +64,7 @@ class KknDataRepository extends BaseDataRepository
             $bindings[] = $params['status'];
         }
         if (!empty($params['search'])) {
-            $whereExtra .= ' AND (ak.npm LIKE ? OR p.nm_pemohon LIKE ? OR kel.nm_kelompok LIKE ? OR lok.nm_desa LIKE ?)';
+            $whereExtra .= ' AND (ak.npm LIKE ? OR p.nm_mahasiswa LIKE ? OR kel.nm_kelompok LIKE ? OR lok.nm_desa LIKE ?)';
             $bindings[] = '%' . $params['search'] . '%';
             $bindings[] = '%' . $params['search'] . '%';
             $bindings[] = '%' . $params['search'] . '%';
