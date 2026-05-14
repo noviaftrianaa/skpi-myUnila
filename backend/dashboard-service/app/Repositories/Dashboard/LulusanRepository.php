@@ -10,12 +10,12 @@ class LulusanRepository extends BaseRepository
     // STAT CARDS
     // =========================================
 
-    public function countLulusan(array $semesters, ?string $fakultas = null): int
+    public function countLulusan(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
@@ -30,12 +30,12 @@ class LulusanRepository extends BaseRepository
         return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function getTepatWaktuPersen(array $semesters, ?string $fakultas = null): float
+    public function getTepatWaktuPersen(array $semesters, ?string $fakultas = null, ?string $prodi = null): float
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -55,12 +55,12 @@ class LulusanRepository extends BaseRepository
         return round((float) $this->selectScalar($sql, $bindings), 1);
     }
 
-    public function getRataIPK(array $semesters, ?string $fakultas = null): float
+    public function getRataIPK(array $semesters, ?string $fakultas = null, ?string $prodi = null): float
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT ROUND(AVG(rp.ipk), 2)
@@ -80,17 +80,12 @@ class LulusanRepository extends BaseRepository
     // TREND KELULUSAN (5 tahun)
     // =========================================
 
-    public function getTrendKelulusan(array $semesters, ?string $fakultas = null): array
+    public function getTrendKelulusan(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
-        $fakFilter = '';
         $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -119,12 +114,12 @@ class LulusanRepository extends BaseRepository
     // KETEPATAN WAKTU (PieChart)
     // =========================================
 
-    public function getKetepatanWaktu(array $semesters, ?string $fakultas = null): array
+    public function getKetepatanWaktu(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -154,12 +149,12 @@ class LulusanRepository extends BaseRepository
     // DISTRIBUSI IPK LULUSAN (BarChart)
     // =========================================
 
-    public function getDistribusiIPK(array $semesters, ?string $fakultas = null): array
+    public function getDistribusiIPK(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -194,12 +189,12 @@ class LulusanRepository extends BaseRepository
     // TRACER STUDY
     // =========================================
 
-    public function getTracerStudyStatus(array $semesters, ?string $fakultas = null): array
+    public function getTracerStudyStatus(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -227,12 +222,12 @@ class LulusanRepository extends BaseRepository
         return $this->select($sql, $bindings);
     }
 
-    public function getMasaTungguKerja(array $semesters, ?string $fakultas = null): array
+    public function getMasaTungguKerja(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -266,12 +261,12 @@ class LulusanRepository extends BaseRepository
         return $this->select($sql, $bindings);
     }
 
-    public function getIncomeDistribusi(array $semesters, ?string $fakultas = null): array
+    public function getIncomeDistribusi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -309,12 +304,12 @@ class LulusanRepository extends BaseRepository
         return $this->select($sql, $bindings);
     }
 
-    public function getKesesuaianBidangKerja(array $semesters, ?string $fakultas = null): array
+    public function getKesesuaianBidangKerja(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -371,12 +366,12 @@ class LulusanRepository extends BaseRepository
         return $this->select($sql, $bindings);
     }
 
-    public function getLulusanPerJenjang(array $semesters, ?string $fakultas = null): array
+    public function getLulusanPerJenjang(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT

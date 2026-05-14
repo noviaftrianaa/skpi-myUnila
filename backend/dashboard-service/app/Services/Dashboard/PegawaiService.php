@@ -18,12 +18,14 @@ class PegawaiService
     public function getData(array $params): array
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
-        $filters = ['semester' => implode(',', $semesters)];
+        $fakultas = $params['fakultas'] ?? null;
+        $prodi    = $params['prodi'] ?? null;
+        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
         $key = $this->cache->buildKey('pegawai', 'full', $filters);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () {
-            $total = $this->repository->countTotal();
-            $pns = $this->repository->countPNS();
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($fakultas, $prodi) {
+            $total = $this->repository->countTotal($fakultas, $prodi);
+            $pns = $this->repository->countPNS($fakultas, $prodi);
 
             return [
                 'stats' => [
@@ -31,10 +33,11 @@ class PegawaiService
                     'pns' => ['total' => $pns],
                     'nonPns' => ['total' => $total - $pns],
                 ],
-                'statusKepegawaian' => $this->buildSimpleList($this->repository->getStatusKepegawaian()),
+                'statusKepegawaian' => $this->buildSimpleList($this->repository->getStatusKepegawaian($fakultas, $prodi)),
+                // sebaranUnitKerja: aggregate breakdown — TIDAK narrow.
                 'sebaranUnitKerja' => $this->buildSimpleList($this->repository->getSebaranUnitKerja()),
-                'genderUsia' => $this->buildGenderList($this->repository->getGenderUsia()),
-                'pendidikan' => $this->buildSimpleList($this->repository->getPendidikan()),
+                'genderUsia' => $this->buildGenderList($this->repository->getGenderUsia($fakultas, $prodi)),
+                'pendidikan' => $this->buildSimpleList($this->repository->getPendidikan($fakultas, $prodi)),
             ];
         });
     }

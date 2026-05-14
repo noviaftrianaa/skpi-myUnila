@@ -24,6 +24,11 @@ class KerjasamaController extends Controller
         try {
             $params = [
                 'semester' => $request->query('semester'),
+                // Kerjasama tidak terikat fakultas/prodi (data MoU bersifat institusional),
+                // tapi controller tetap menerima alias agar konsisten cross-app & tidak break
+                // ketika FE forcedScope mengirim params. Filter di service/repo = no-op.
+                'fakultas' => $request->query('fakultas') ?? $request->query('id_fakultas'),
+                'prodi'    => $request->query('prodi') ?? $request->query('id_prodi') ?? $request->query('id_sms'),
             ];
             $data = $this->service->getData($params);
             return $this->success($data, 'Data kerjasama berhasil diambil');

@@ -6,105 +6,187 @@ use App\Repositories\BaseRepository;
 
 class BerandaRepository extends BaseRepository
 {
+    /**
+     * Build extra JOIN + WHERE untuk filter fakultas/prodi via pdrd.sms.
+     * Pakai alias kustom kalau caller butuh (default 's').
+     */
+    private function buildMhsOrgFilter(?string $fakultas, ?string $prodi, array &$bindings, string $smsAlias = 's'): array
+    {
+        if (!$fakultas && !$prodi) {
+            return ['', ''];
+        }
+        $join = " INNER JOIN pdrd.sms {$smsAlias} ON rp.id_sms = {$smsAlias}.id_sms AND {$smsAlias}.soft_delete = 0 ";
+        $where = '';
+        if ($prodi) {
+            $where = " AND {$smsAlias}.id_sms = ?";
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $where = " AND {$smsAlias}.id_fak_unila = ?";
+            $bindings[] = $fakultas;
+        }
+        return [$join, $where];
+    }
+
+    private function buildSdmOrgFilter(?string $fakultas, ?string $prodi, array &$bindings, string $smsAlias = 's'): array
+    {
+        if (!$fakultas && !$prodi) {
+            return ['', ''];
+        }
+        $join = " INNER JOIN pdrd.sms {$smsAlias} ON ptk.id_sms = {$smsAlias}.id_sms AND {$smsAlias}.soft_delete = 0 ";
+        $where = '';
+        if ($prodi) {
+            $where = " AND {$smsAlias}.id_sms = ?";
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $where = " AND {$smsAlias}.id_fak_unila = ?";
+            $bindings[] = $fakultas;
+        }
+        return [$join, $where];
+    }
+
+    private function buildSmsOrgFilter(?string $fakultas, ?string $prodi, array &$bindings, string $smsAlias = 's'): string
+    {
+        if ($prodi) {
+            $bindings[] = $prodi;
+            return " AND {$smsAlias}.id_sms = ?";
+        }
+        if ($fakultas) {
+            $bindings[] = $fakultas;
+            return " AND {$smsAlias}.id_fak_unila = ?";
+        }
+        return '';
+    }
+
     // =========================================
     // MAHASISWA STATS
     // =========================================
 
-    public function countMahasiswaAktif(): int
+    public function countMahasiswaAktif(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
             FROM pdrd.reg_pd rp
+            {$joinSql}
             WHERE rp.id_sp = ? AND rp.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
+              {$whereSql}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countMahasiswaCuti(): int
+    public function countMahasiswaCuti(?string $fakultas = null, ?string $prodi = null): int
     {
         // CUTI sebenarnya ada di pdrd.kuliah_mhs.id_stat_mhs='C' (status per semester),
-        // BUKAN di reg_pd.id_jns_keluar (id 4 = "Mengajukan pengunduran diri", id 3 = "Dikeluarkan").
-        // Mhs cuti = mhs dgn latest kuliah_mhs row di-set 'C' (semester berjalan).
+        // BUKAN di reg_pd.id_jns_keluar.
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT km.id_reg_pd)
             FROM pdrd.kuliah_mhs km
             INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
                 AND rp.id_sp = ? AND rp.soft_delete = 0
+            {$joinSql}
             WHERE km.soft_delete = 0
               AND km.id_stat_mhs = 'C'
               AND km.id_smt = (
                   SELECT MAX(km2.id_smt) FROM pdrd.kuliah_mhs km2
                   WHERE km2.id_reg_pd = km.id_reg_pd AND km2.soft_delete = 0
               )
+              {$whereSql}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countTotalMahasiswa(): int
+    public function countTotalMahasiswa(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
             FROM pdrd.reg_pd rp
+            {$joinSql}
             WHERE rp.id_sp = ? AND rp.soft_delete = 0
+              {$whereSql}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     // =========================================
     // SDM STATS
     // =========================================
 
-    public function countDosen(): int
+    public function countDosen(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm = 12
+              {$whereSql}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countTendik(): int
+    public function countTendik(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
+              {$whereSql}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     // =========================================
     // AKADEMIK STATS
     // =========================================
 
-    public function countProdiAktif(): int
+    public function countProdiAktif(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(s.id_sms)
             FROM pdrd.sms s
             WHERE s.soft_delete = 0
               AND s.stat_prodi = 'A'
               AND s.id_sp = ?
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countProdiUnggul(): int
+    public function countProdiUnggul(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH latest_akred AS (
                 SELECT
@@ -122,13 +204,17 @@ class BerandaRepository extends BaseRepository
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND na.nm_akred IN ('Unggul', 'A')
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countAkreditasiInternasional(): int
+    public function countAkreditasiInternasional(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH latest_akred AS (
                 SELECT
@@ -146,13 +232,14 @@ class BerandaRepository extends BaseRepository
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     // =========================================
-    // KEUANGAN STATS
+    // KEUANGAN STATS (institusional — no scope narrow)
     // =========================================
 
     public function getTotalPendapatanUKT(array $semesters): int
@@ -171,14 +258,13 @@ class BerandaRepository extends BaseRepository
     }
 
     // =========================================
-    // PENELITIAN STATS
+    // PENELITIAN STATS (institusional)
     // =========================================
 
     public function countPenelitian(array $semesters): int
     {
         $years = $this->extractYears($semesters);
         if (empty($years)) {
-            // Tidak ada filter tahun → hitung total all-time
             return (int) $this->selectScalar(
                 "SELECT COUNT(*) FROM pdrd.litabmas WHERE soft_delete = 0 AND jns_litabmas = 'L'"
             );
@@ -210,12 +296,11 @@ class BerandaRepository extends BaseRepository
     }
 
     // =========================================
-    // KERJASAMA STATS
+    // KERJASAMA STATS (institusional)
     // =========================================
 
     public function countMitra(): int
     {
-        // Mitra UNIK aktif — by nama DUDI/lembaga (deduplikasi multi-MoU dgn mitra sama)
         $sql = "
             SELECT COUNT(DISTINCT m.nm_dudi)
             FROM kerjasama.mou m
@@ -229,7 +314,6 @@ class BerandaRepository extends BaseRepository
 
     public function countMou(): int
     {
-        // Total dokumen MoU aktif (1 mitra bisa punya banyak MoU)
         $sql = "
             SELECT COUNT(*)
             FROM kerjasama.mou m
@@ -244,10 +328,12 @@ class BerandaRepository extends BaseRepository
     // CHARTS
     // =========================================
 
-    public function getPopulasiTrend(array $semesters): array
+    public function getPopulasiTrend(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
+        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -259,20 +345,25 @@ class BerandaRepository extends BaseRepository
                 (
                     SELECT COUNT(rp.id_reg_pd)
                     FROM pdrd.reg_pd rp
+                    {$joinSql}
                     WHERE rp.id_sp = ? AND rp.soft_delete = 0
                       AND rp.id_jns_keluar IS NULL
                       AND YEAR(rp.tgl_masuk_sp) <= y.yr
+                      {$whereSql}
                 ) as value,
                 'Mahasiswa' as category
             FROM years y
             ORDER BY y.yr
         ";
 
-        return $this->select($sql, [$startYear, $maxYear, self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
-    public function getAkreditasiDist(): array
+    public function getAkreditasiDist(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH latest_akred AS (
                 SELECT
@@ -291,11 +382,12 @@ class BerandaRepository extends BaseRepository
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
+              {$orgFilter}
             GROUP BY na.nm_akred
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     public function getFakultasData(): array

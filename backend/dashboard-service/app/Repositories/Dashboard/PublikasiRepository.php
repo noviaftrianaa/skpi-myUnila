@@ -6,25 +6,54 @@ use App\Repositories\BaseRepository;
 
 class PublikasiRepository extends BaseRepository
 {
-    public function countTotal(array $semesters): int
+    /**
+     * Build EXISTS clause utk filter fakultas/prodi via tulis_pub → sdm → reg_ptk → sms.
+     * Append bindings ke array yang di-pass by ref.
+     */
+    private function buildOrgExists(?string $fakultas, ?string $prodi, array &$bindings): string
+    {
+        if (!$fakultas && !$prodi) return '';
+        $extra = '';
+        if ($prodi) {
+            $extra .= ' AND s.id_sms = ?';
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $extra .= ' AND s.id_fak_unila = ?';
+            $bindings[] = $fakultas;
+        }
+        return " AND EXISTS (
+            SELECT 1 FROM pdrd.tulis_pub tp
+            INNER JOIN pdrd.reg_ptk rpt ON rpt.id_sdm = tp.id_sdm AND rpt.soft_delete = 0
+                AND rpt.id_jns_keluar IS NULL AND CAST(rpt.id_sp AS VARCHAR(50)) = '" . self::UNILA_ID_SP . "'
+            INNER JOIN pdrd.sms s ON s.id_sms = rpt.id_sms AND s.soft_delete = 0
+            WHERE tp.id_publikasi = p.id_publikasi AND tp.soft_delete = 0
+              {$extra}
+        )";
+    }
+
+    public function countTotal(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $years = $this->extractYears($semesters);
         $bindings = [];
         $inClause = $this->buildInClause($years, $bindings);
+        $orgExists = $this->buildOrgExists($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(*)
             FROM pdrd.publikasi p
             WHERE p.soft_delete = 0
               AND YEAR(p.tgl_terbit) IN {$inClause}
+              {$orgExists}
         ";
         return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function getTrendPublikasi(array $semesters): array
+    public function getTrendPublikasi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
+        $bindings = [$startYear, $maxYear];
+        $orgExists = $this->buildOrgExists($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -33,19 +62,26 @@ class PublikasiRepository extends BaseRepository
             )
             SELECT
                 CAST(y.yr AS VARCHAR) as name,
-                (SELECT COUNT(*) FROM pdrd.publikasi p WHERE p.soft_delete = 0 AND YEAR(p.tgl_terbit) = y.yr) as value
+                (
+                    SELECT COUNT(*)
+                    FROM pdrd.publikasi p
+                    WHERE p.soft_delete = 0
+                      AND YEAR(p.tgl_terbit) = y.yr
+                      {$orgExists}
+                ) as value
             FROM years y
             ORDER BY y.yr
         ";
 
-        return $this->select($sql, [$startYear, $maxYear]);
+        return $this->select($sql, $bindings);
     }
 
-    public function getJenisPublikasi(array $semesters): array
+    public function getJenisPublikasi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [];
         $inClause = $this->buildInClause($years, $bindings);
+        $orgExists = $this->buildOrgExists($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -55,6 +91,7 @@ class PublikasiRepository extends BaseRepository
             LEFT JOIN ref.jenis_publikasi jp ON p.id_jns_pub = jp.id_jns_pub
             WHERE p.soft_delete = 0
               AND YEAR(p.tgl_terbit) IN {$inClause}
+              {$orgExists}
             GROUP BY jp.nm_jns_pub
             ORDER BY value DESC
         ";
@@ -62,11 +99,12 @@ class PublikasiRepository extends BaseRepository
         return $this->select($sql, $bindings);
     }
 
-    public function getTopAuthors(array $semesters): array
+    public function getTopAuthors(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [];
         $inClause = $this->buildInClause($years, $bindings);
+        $orgExists = $this->buildOrgExists($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT TOP 10
@@ -77,6 +115,7 @@ class PublikasiRepository extends BaseRepository
             INNER JOIN pdrd.sdm sdm ON tp2.id_sdm = sdm.id_sdm AND sdm.soft_delete = 0
             WHERE p.soft_delete = 0
               AND YEAR(p.tgl_terbit) IN {$inClause}
+              {$orgExists}
             GROUP BY sdm.nm_sdm
             ORDER BY value DESC
         ";

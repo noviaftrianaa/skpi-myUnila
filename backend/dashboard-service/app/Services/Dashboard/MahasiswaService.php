@@ -23,33 +23,32 @@ class MahasiswaService
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
         $fakultas = $params['fakultas'] ?? null;
-        $prodi = $params['prodi'] ?? null;
+        $prodi    = $params['prodi'] ?? null;
         $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
 
         $key = $this->cache->buildKey('mahasiswa', 'full', $filters);
 
         return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
-            // Use prodi instead of fakultas when prodi is specified
-            $effFak = $prodi ? null : $fakultas;
-
             return [
-                'stats'                => $this->buildStats($semesters, $effFak),
-                'trendMahasiswa'       => $this->buildTrend($semesters, $effFak),
-                'trendMahasiswaBaru'   => $this->buildSimpleList($this->repository->getTrendMahasiswaBaru($semesters, $effFak)),
+                'stats'                => $this->buildStats($semesters, $fakultas, $prodi),
+                'trendMahasiswa'       => $this->buildTrend($semesters, $fakultas, $prodi),
+                'trendMahasiswaBaru'   => $this->buildSimpleList($this->repository->getTrendMahasiswaBaru($semesters, $fakultas, $prodi)),
+                // sebaranFakultas: aggregate breakdown — TIDAK narrow.
                 'sebaranFakultas'      => $this->buildSebaranFakultas($semesters),
-                'distribusiJenjang'    => $this->buildSimpleList($this->repository->getDistribusiJenjang($semesters, $effFak)),
-                'jalurMasuk'           => $this->buildSimpleList($this->repository->getJalurMasuk($semesters, $effFak)),
-                'pembiayaan'           => $this->buildSimpleList($this->repository->getPembiayaan($semesters, $effFak)),
-                'distribusiIPK'        => $this->buildSimpleList($this->repository->getDistribusiIPK($semesters, $effFak)),
+                'distribusiJenjang'    => $this->buildSimpleList($this->repository->getDistribusiJenjang($semesters, $fakultas, $prodi)),
+                'jalurMasuk'           => $this->buildSimpleList($this->repository->getJalurMasuk($semesters, $fakultas, $prodi)),
+                'pembiayaan'           => $this->buildSimpleList($this->repository->getPembiayaan($semesters, $fakultas, $prodi)),
+                'distribusiIPK'        => $this->buildSimpleList($this->repository->getDistribusiIPK($semesters, $fakultas, $prodi)),
+                // ipkPerFakultas: aggregate breakdown — TIDAK narrow.
                 'ipkPerFakultas'       => $this->buildIPKFakultas($semesters),
-                'masaStudi'            => $this->buildSimpleList($this->repository->getMasaStudi($semesters, $effFak)),
-                'beasiswa'             => $this->buildSimpleList($this->repository->getBeasiswa($semesters, $effFak)),
+                'masaStudi'            => $this->buildSimpleList($this->repository->getMasaStudi($semesters, $fakultas, $prodi)),
+                'beasiswa'             => $this->buildSimpleList($this->repository->getBeasiswa($semesters, $fakultas, $prodi)),
                 'tugasAkhir'           => $this->buildSimpleList($this->repository->getTugasAkhir($semesters)),
-                'asalProvinsi'         => $this->buildSimpleList($this->repository->getAsalProvinsi($semesters, $effFak)),
+                'asalProvinsi'         => $this->buildSimpleList($this->repository->getAsalProvinsi($semesters, $fakultas, $prodi)),
                 'mahasiswaAsing'       => $this->buildSimpleList($this->repository->getMahasiswaAsing($semesters)),
                 'warningMasaStudi'     => $this->buildSimpleList($this->repository->getWarningMasaStudi()),
-                'genderDistribusi'     => $this->buildSimpleList($this->repository->getGenderDistribusi($semesters, $effFak)),
-                'statusMahasiswa'      => $this->buildSimpleList($this->repository->getStatusMahasiswa($semesters, $effFak)),
+                'genderDistribusi'     => $this->buildSimpleList($this->repository->getGenderDistribusi($semesters, $fakultas, $prodi)),
+                'statusMahasiswa'      => $this->buildSimpleList($this->repository->getStatusMahasiswa($semesters, $fakultas, $prodi)),
                 'rasioDosenMahasiswa'  => $this->buildSimpleList($this->repository->getRasioDosenMahasiswa($semesters)),
             ];
         });
@@ -58,23 +57,23 @@ class MahasiswaService
     /**
      * Build stats with YoY trend
      */
-    private function buildStats(array $semesters, ?string $fakultas): array
+    private function buildStats(array $semesters, ?string $fakultas, ?string $prodi): array
     {
         $prevSemesters = $this->repository->getPreviousSemesters($semesters);
 
         // Current semesters counts
-        $aktif = $this->repository->countAktif($semesters, $fakultas);
-        $baru  = $this->repository->countBaru($semesters, $fakultas);
-        $lulus = $this->repository->countLulus($semesters, $fakultas);
-        $cuti  = $this->repository->countCuti($semesters, $fakultas);
-        $do    = $this->repository->countDO($semesters, $fakultas);
+        $aktif = $this->repository->countAktif($semesters, $fakultas, $prodi);
+        $baru  = $this->repository->countBaru($semesters, $fakultas, $prodi);
+        $lulus = $this->repository->countLulus($semesters, $fakultas, $prodi);
+        $cuti  = $this->repository->countCuti($semesters, $fakultas, $prodi);
+        $do    = $this->repository->countDO($semesters, $fakultas, $prodi);
 
         // Previous semesters counts (for trend)
-        $prevAktif = $this->repository->countAktif($prevSemesters, $fakultas);
-        $prevBaru  = $this->repository->countBaru($prevSemesters, $fakultas);
-        $prevLulus = $this->repository->countLulus($prevSemesters, $fakultas);
-        $prevCuti  = $this->repository->countCuti($prevSemesters, $fakultas);
-        $prevDO    = $this->repository->countDO($prevSemesters, $fakultas);
+        $prevAktif = $this->repository->countAktif($prevSemesters, $fakultas, $prodi);
+        $prevBaru  = $this->repository->countBaru($prevSemesters, $fakultas, $prodi);
+        $prevLulus = $this->repository->countLulus($prevSemesters, $fakultas, $prodi);
+        $prevCuti  = $this->repository->countCuti($prevSemesters, $fakultas, $prodi);
+        $prevDO    = $this->repository->countDO($prevSemesters, $fakultas, $prodi);
 
         return [
             'aktif' => [
@@ -103,9 +102,9 @@ class MahasiswaService
     /**
      * Build trend data (5 years)
      */
-    private function buildTrend(array $semesters, ?string $fakultas): array
+    private function buildTrend(array $semesters, ?string $fakultas, ?string $prodi): array
     {
-        $results = $this->repository->getTrend($semesters, $fakultas);
+        $results = $this->repository->getTrend($semesters, $fakultas, $prodi);
         return array_map(function ($item) {
             return [
                 'name'  => (string) $item->name,

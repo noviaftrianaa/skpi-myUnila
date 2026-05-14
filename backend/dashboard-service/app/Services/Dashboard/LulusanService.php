@@ -20,21 +20,20 @@ class LulusanService
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
         $fakultas = $params['fakultas'] ?? null;
-        $prodi = $params['prodi'] ?? null;
+        $prodi    = $params['prodi'] ?? null;
         $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
 
         $key = $this->cache->buildKey('lulusan', 'full', $filters);
 
         return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
-            $effFak = $prodi ? null : $fakultas;
             $prevSemesters = $this->repository->getPreviousSemesters($semesters);
 
-            $total = $this->repository->countLulusan($semesters, $effFak);
-            $prevTotal = $this->repository->countLulusan($prevSemesters, $effFak);
-            $tepatWaktu = $this->repository->getTepatWaktuPersen($semesters, $effFak);
-            $prevTepatWaktu = $this->repository->getTepatWaktuPersen($prevSemesters, $effFak);
-            $rataIPK = $this->repository->getRataIPK($semesters, $effFak);
-            $prevRataIPK = $this->repository->getRataIPK($prevSemesters, $effFak);
+            $total = $this->repository->countLulusan($semesters, $fakultas, $prodi);
+            $prevTotal = $this->repository->countLulusan($prevSemesters, $fakultas, $prodi);
+            $tepatWaktu = $this->repository->getTepatWaktuPersen($semesters, $fakultas, $prodi);
+            $prevTepatWaktu = $this->repository->getTepatWaktuPersen($prevSemesters, $fakultas, $prodi);
+            $rataIPK = $this->repository->getRataIPK($semesters, $fakultas, $prodi);
+            $prevRataIPK = $this->repository->getRataIPK($prevSemesters, $fakultas, $prodi);
 
             return [
                 'stats' => [
@@ -51,15 +50,16 @@ class LulusanService
                         'trend' => round($rataIPK - $prevRataIPK, 2),
                     ],
                 ],
-                'trendKelulusan'     => $this->buildSimpleList($this->repository->getTrendKelulusan($semesters, $effFak)),
-                'ketepatanWaktu'     => $this->buildSimpleList($this->repository->getKetepatanWaktu($semesters, $effFak)),
-                'ipkLulusan'         => $this->buildSimpleList($this->repository->getDistribusiIPK($semesters, $effFak)),
-                'tracerStudyStatus'  => $this->buildSimpleList($this->repository->getTracerStudyStatus($semesters, $effFak)),
-                'masaTungguKerja'    => $this->buildSimpleList($this->repository->getMasaTungguKerja($semesters, $effFak)),
-                'incomeDistribusi'   => $this->buildSimpleList($this->repository->getIncomeDistribusi($semesters, $effFak)),
-                'kesesuaianBidang'   => $this->buildSimpleList($this->repository->getKesesuaianBidangKerja($semesters, $effFak)),
+                'trendKelulusan'     => $this->buildSimpleList($this->repository->getTrendKelulusan($semesters, $fakultas, $prodi)),
+                'ketepatanWaktu'     => $this->buildSimpleList($this->repository->getKetepatanWaktu($semesters, $fakultas, $prodi)),
+                'ipkLulusan'         => $this->buildSimpleList($this->repository->getDistribusiIPK($semesters, $fakultas, $prodi)),
+                'tracerStudyStatus'  => $this->buildSimpleList($this->repository->getTracerStudyStatus($semesters, $fakultas, $prodi)),
+                'masaTungguKerja'    => $this->buildSimpleList($this->repository->getMasaTungguKerja($semesters, $fakultas, $prodi)),
+                'incomeDistribusi'   => $this->buildSimpleList($this->repository->getIncomeDistribusi($semesters, $fakultas, $prodi)),
+                'kesesuaianBidang'   => $this->buildSimpleList($this->repository->getKesesuaianBidangKerja($semesters, $fakultas, $prodi)),
+                // lulusanPerFakultas: aggregate breakdown — TIDAK narrow.
                 'lulusanPerFakultas' => $this->buildSimpleList($this->repository->getLulusanPerFakultas($semesters)),
-                'lulusanPerJenjang'  => $this->buildSimpleList($this->repository->getLulusanPerJenjang($semesters, $effFak)),
+                'lulusanPerJenjang'  => $this->buildSimpleList($this->repository->getLulusanPerJenjang($semesters, $fakultas, $prodi)),
             ];
         });
     }

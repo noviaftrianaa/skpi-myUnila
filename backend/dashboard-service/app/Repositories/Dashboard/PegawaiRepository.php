@@ -8,39 +8,80 @@ class PegawaiRepository extends BaseRepository
 {
     /**
      * Tendik base: id_jns_sdm != 12 (bukan dosen)
+     *
+     * Filter chain untuk fakultas/prodi:
+     * sdm → pdrd.reg_ptk → pdrd.sms s (LEFT JOIN ketika filter aktif).
+     * Tendik yang tidak punya assignment ke prodi tertentu otomatis ter-exclude
+     * ketika prodi diberikan (sesuai harapan: scope sempit = data sempit).
+     * Untuk fakultas, LEFT JOIN sms dengan id_fak_unila yang sesuai.
      */
 
-    public function countTotal(): int
+    /**
+     * Build extra JOIN + WHERE fragment untuk filter fakultas/prodi.
+     * Returns array [joinSql, whereSql] yang siap di-interpolate.
+     * Append bindings ke array yang di-pass by ref.
+     */
+    private function buildOrgFilter(?string $fakultas, ?string $prodi, array &$bindings): array
     {
+        if (!$fakultas && !$prodi) {
+            return ['', ''];
+        }
+        $join = " INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0 ";
+        $where = '';
+        if ($prodi) {
+            $where = " AND s.id_sms = ?";
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $where = " AND s.id_fak_unila = ?";
+            $bindings[] = $fakultas;
+        }
+        return [$join, $where];
+    }
+
+    public function countTotal(?string $fakultas = null, ?string $prodi = null): int
+    {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              {$whereSql}
         ";
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function countPNS(): int
+    public function countPNS(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
               AND ptk.id_stat_pegawai = 1
+              {$whereSql}
         ";
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
-    public function getStatusKepegawaian(): array
+    public function getStatusKepegawaian(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT
                 CASE
@@ -51,10 +92,12 @@ class PegawaiRepository extends BaseRepository
                 COUNT(DISTINCT sdm.id_sdm) as value
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              {$whereSql}
             GROUP BY
                 CASE
                     WHEN ptk.id_stat_pegawai = 1 THEN 'PNS'
@@ -63,11 +106,14 @@ class PegawaiRepository extends BaseRepository
                 END
             ORDER BY value DESC
         ";
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
-    public function getGenderUsia(): array
+    public function getGenderUsia(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT
                 CASE
@@ -81,10 +127,12 @@ class PegawaiRepository extends BaseRepository
                 SUM(CASE WHEN sdm.jk = 'P' THEN 1 ELSE 0 END) as female
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+            {$joinSql}
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm != 12
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              {$whereSql}
             GROUP BY
                 CASE
                     WHEN DATEDIFF(YEAR, sdm.tgl_lahir, GETDATE()) < 30 THEN '20-29'
@@ -95,17 +143,21 @@ class PegawaiRepository extends BaseRepository
                 END
             ORDER BY ageGroup
         ";
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
-    public function getPendidikan(): array
+    public function getPendidikan(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT
                 jp.nm_jenj_didik as name,
                 COUNT(DISTINCT sdm.id_sdm) as value
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+            {$joinSql}
             INNER JOIN pdrd.rwy_pend_formal rpf ON rpf.id_sdm = sdm.id_sdm AND rpf.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan jp ON rpf.id_jenj_didik = jp.id_jenj_didik
             WHERE sdm.soft_delete = 0
@@ -117,10 +169,11 @@ class PegawaiRepository extends BaseRepository
                   FROM pdrd.rwy_pend_formal rpf2
                   WHERE rpf2.id_sdm = sdm.id_sdm AND rpf2.soft_delete = 0
               )
+              {$whereSql}
             GROUP BY jp.nm_jenj_didik
             ORDER BY value DESC
         ";
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     public function getSebaranUnitKerja(): array

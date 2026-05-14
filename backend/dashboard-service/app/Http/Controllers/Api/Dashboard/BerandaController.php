@@ -27,6 +27,8 @@ class BerandaController extends Controller
         try {
             $params = [
                 'semester' => $request->query('semester'),
+                'fakultas' => $request->query('fakultas') ?? $request->query('id_fakultas'),
+                'prodi'    => $request->query('prodi') ?? $request->query('id_prodi') ?? $request->query('id_sms'),
             ];
             $data = $this->service->getData($params);
             return $this->success($data, 'Data beranda berhasil diambil');
