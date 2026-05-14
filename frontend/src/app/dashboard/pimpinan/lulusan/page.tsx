@@ -26,6 +26,14 @@ import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { LulusanData } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -36,6 +44,16 @@ export default function DashboardLulusanPage() {
     const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
     const [selectedFakultas, setSelectedFakultas] = useState("");
     const [selectedProdi, setSelectedProdi] = useState("");
+    const [unitItems, setUnitItems] = useState<string[]>([]);
+    const unitFilterStr = unitItems.join(",");
+    const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+    useEffect(() => {
+        mahasiswaDataService.getFilters({
+            id_fakultas: scope.forcedFakultas || undefined,
+            id_jurusan: scope.forcedJurusan || undefined,
+        }).then(setOrgFilters).catch(console.error);
+    }, [scope.forcedFakultas, scope.forcedJurusan]);
 
     const { fakultas, semester, activeSemesters, getProdiByFakultas } = useDashboardReference();
 
@@ -52,6 +70,7 @@ export default function DashboardLulusanPage() {
             semester: semesterParam,
             ...(selectedFakultas && { fakultas: selectedFakultas }),
             ...(selectedProdi && { prodi: selectedProdi }),
+            ...(unitFilterStr && { unit_filter: unitFilterStr }),
         }
     );
 
@@ -64,6 +83,20 @@ export default function DashboardLulusanPage() {
         setSelectedSemesters(new Set(activeSemesters));
         setSelectedFakultas("");
         setSelectedProdi("");
+        setUnitItems([]);
+    };
+
+    const handleExport = (fmtType: ExportFormat) => {
+        if (!data) { toast.error("Data belum dimuat"); return; }
+        const rows = (data.lulusanPerFakultas || []).map((r) => ({ fakultas: r.name, jumlah: r.value }));
+        if (!rows.length) { toast.error("Tidak ada data"); return; }
+        const baseName = `lulusan-fakultas-${semesterParam || "all"}`;
+        const headers = { fakultas: "Fakultas", jumlah: "Jumlah Lulusan" } as const;
+        if (fmtType === "excel") { exportToExcel(rows as unknown as Record<string, unknown>[], baseName, "Lulusan", headers); toast.success("Excel di-download"); }
+        else if (fmtType === "csv-client") { exportToCsv(rows as unknown as Record<string, unknown>[], baseName, headers); toast.success("CSV di-download"); }
+        else if (fmtType === "pdf") { exportToPdf(rows as unknown as Record<string, unknown>[], baseName, { title: "Lulusan per Fakultas", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
+        else if (fmtType === "json") { exportToJson(rows, baseName); toast.success("JSON di-download"); }
+        else { toast("Server export belum tersedia"); }
     };
 
     return (
@@ -73,7 +106,9 @@ export default function DashboardLulusanPage() {
             appKey={APP_KEY}
             fallbackMenus={pimpinanMenuConfig}
         >
+            <Toaster position="top-right" />
             <div className="p-6 space-y-6">
+                <ScopeBadge />
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -102,6 +137,20 @@ export default function DashboardLulusanPage() {
                     onReset={handleReset}
                 />
 
+                <div className="flex flex-wrap gap-3 items-end p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+                    <div className="flex-1 min-w-[240px]">
+                        <UnitFilter
+                            data={orgFilters}
+                            value={unitItems}
+                            onChange={(next) => setUnitItems(next)}
+                            forcedFakultas={scope.forcedFakultas || undefined}
+                            forcedJurusan={scope.forcedJurusan || undefined}
+                            forcedProdi={scope.forcedProdi || undefined}
+                        />
+                    </div>
+                    <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
+                </div>
+
                 {loading && <DashboardSkeleton />}
                 {error && <ErrorAlert message={error} onRetry={refetch} />}
 
@@ -115,6 +164,8 @@ export default function DashboardLulusanPage() {
                                 icon={<FiUsers className="w-6 h-6 text-white" />}
                                 color="blue"
                                 trend={{ value: data.stats.totalLulusan.trend ?? 0, label: "YoY" }}
+                                href="/dashboard/data-unila/mahasiswa/lulusan"
+                                hint="Lihat detail data lulusan / alumni"
                             />
                             <StatCard
                                 title="Lulus Tepat Waktu"

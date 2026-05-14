@@ -29,6 +29,9 @@ import { useDashboardData, useDashboardReference } from "./hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { BerandaData } from "./types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -37,6 +40,16 @@ export default function DashboardBerandaPage() {
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   // Role-based scoping (Dekan/Kaprodi auto-filter, Rektor bebas)
   const scope = useRoleBasedScope();
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   const { semester, activeSemesters } = useDashboardReference();
 
@@ -54,11 +67,13 @@ export default function DashboardBerandaPage() {
       // Auto-scope ke fakultas/prodi user kalau Dekan/Kaprodi
       ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
       ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+      ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
 
   const handleReset = () => {
     setSelectedSemesters(new Set(activeSemesters));
+    setUnitItems([]);
   };
 
   return (
@@ -91,8 +106,11 @@ export default function DashboardBerandaPage() {
           </div>
         </div>
 
+        {/* Scope Badge */}
+        <ScopeBadge />
+
         {/* Global Filter */}
-        <div>
+        <div className="space-y-3">
           <FilterPanel
             semester={semester}
             selectedSemesters={selectedSemesters}
@@ -101,6 +119,16 @@ export default function DashboardBerandaPage() {
             scopeBadge={scope.scopeName}
             onReset={handleReset}
           />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+            <UnitFilter
+              data={orgFilters}
+              value={unitItems}
+              onChange={(next) => setUnitItems(next)}
+              forcedFakultas={scope.forcedFakultas || undefined}
+              forcedJurusan={scope.forcedJurusan || undefined}
+              forcedProdi={scope.forcedProdi || undefined}
+            />
+          </div>
         </div>
 
         {loading && <DashboardSkeleton />}
@@ -121,6 +149,8 @@ export default function DashboardBerandaPage() {
                   color="blue"
                   trend={{ value: data.summaryStats.mahasiswa.trend ?? 0, label: "vs Semester Lalu" }}
                   description={`${data.summaryStats.mahasiswa.total.toLocaleString('id-ID')} Terdaftar`}
+                  href="/dashboard/data-unila/mahasiswa?status=aktif"
+                  hint="Klik untuk daftar mahasiswa aktif"
                 />
                 <StatCard
                   title="Total SDM"
@@ -129,6 +159,8 @@ export default function DashboardBerandaPage() {
                   color="green"
                   trend={{ value: data.summaryStats.sdm.trend ?? 0, label: "YoY" }}
                   description={`${data.summaryStats.sdm.dosen} Dosen, ${data.summaryStats.sdm.tendik} Tendik`}
+                  href="/dashboard/data-unila/dosen"
+                  hint="Klik untuk daftar dosen"
                 />
                 <StatCard
                   title="Serapan Anggaran"
@@ -136,6 +168,8 @@ export default function DashboardBerandaPage() {
                   icon={<FiDollarSign className="w-6 h-6 text-white" />}
                   color="yellow"
                   description={`Rp ${(data.summaryStats.keuangan.total / 1000000000).toFixed(0)} Miliar`}
+                  href="/dashboard/data-unila/keuangan/spp"
+                  hint="Klik untuk detail keuangan SPP"
                 />
                 <StatCard
                   title="Prodi Unggul/A"
@@ -143,6 +177,8 @@ export default function DashboardBerandaPage() {
                   icon={<FiBriefcase className="w-6 h-6 text-white" />}
                   color="purple"
                   description={`${data.summaryStats.akademik.akrUnggul + 35} dari ${data.summaryStats.akademik.prodi} Prodi`}
+                  href="/dashboard/data-unila/akademik/akreditasi"
+                  hint="Klik untuk daftar akreditasi prodi"
                 />
               </div>
             </div>

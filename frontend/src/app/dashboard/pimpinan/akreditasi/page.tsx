@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
@@ -27,6 +27,14 @@ import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { AkreditasiData, AkreditasiDetail, AkreditasiIntlDetail } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -67,14 +75,38 @@ const intlDetailColumns: Column<AkreditasiIntlDetail>[] = [
 export default function DashboardAkreditasiPage() {
   useRequireAuth();
   const scope = useRoleBasedScope();
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   const { data, loading, error, refetch } = useDashboardData<AkreditasiData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.AKREDITASI,
     {
       ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
       ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+      ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
+
+  const handleExport = (fmtType: ExportFormat) => {
+    if (!data) { toast.error("Data belum dimuat"); return; }
+    const rows = (data.detailTable || []) as unknown as Record<string, unknown>[];
+    if (!rows.length) { toast.error("Tidak ada data"); return; }
+    const baseName = `akreditasi-prodi`;
+    const headers = { fak: "Fakultas", prodi: "Program Studi", strata: "Jenjang", rank: "Peringkat", int: "Internasional", exp: "Masa Berlaku" } as const;
+    if (fmtType === "excel") { exportToExcel(rows, baseName, "Akreditasi", headers); toast.success("Excel di-download"); }
+    else if (fmtType === "csv-client") { exportToCsv(rows, baseName, headers); toast.success("CSV di-download"); }
+    else if (fmtType === "pdf") { exportToPdf(rows, baseName, { title: "Akreditasi Prodi Universitas Lampung", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
+    else if (fmtType === "json") { exportToJson(rows, baseName); toast.success("JSON di-download"); }
+    else { toast("Server export belum tersedia"); }
+  };
 
   return (
     <DashboardLayoutWithDynamicMenu
@@ -83,7 +115,9 @@ export default function DashboardAkreditasiPage() {
       appKey={APP_KEY}
       fallbackMenus={pimpinanMenuConfig}
     >
+      <Toaster position="top-right" />
       <div className="p-6 space-y-6">
+        <ScopeBadge />
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -95,11 +129,49 @@ export default function DashboardAkreditasiPage() {
           </p>
         </div>
 
+        <div className="flex flex-wrap gap-3 items-end p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+          <div className="flex-1 min-w-[240px]">
+            <UnitFilter
+              data={orgFilters}
+              value={unitItems}
+              onChange={(next) => setUnitItems(next)}
+              forcedFakultas={scope.forcedFakultas || undefined}
+              forcedJurusan={scope.forcedJurusan || undefined}
+              forcedProdi={scope.forcedProdi || undefined}
+            />
+          </div>
+          <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
+        </div>
+
         {loading && <DashboardSkeleton />}
         {error && <ErrorAlert message={error} onRetry={refetch} />}
 
         {data && (
           <>
+            {/* Alert banner kalau ada prodi yg expire ≤ 90 hari atau sudah expired */}
+            {((data.stats.akanExpire?.total ?? 0) > 0 || (data.stats.expired?.total ?? 0) > 0) && (
+              <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-rose-50 dark:from-amber-950/30 dark:to-rose-950/30 dark:border-amber-800/50 p-4 sm:p-5 flex items-start gap-3">
+                <FiAlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-semibold text-amber-900 dark:text-amber-200">Peringatan Akreditasi</span>
+                    <span className="text-xs text-amber-700 dark:text-amber-400">— masa berlaku akreditasi prodi</span>
+                  </div>
+                  <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
+                    {(data.stats.akanExpire?.total ?? 0) > 0 && (
+                      <span><strong>{data.stats.akanExpire?.total}</strong> prodi akan kadaluarsa dalam 90 hari. </span>
+                    )}
+                    {(data.stats.expired?.total ?? 0) > 0 && (
+                      <span><strong>{data.stats.expired?.total}</strong> prodi sudah lewat masa berlaku — perlu re-akreditasi segera.</span>
+                    )}
+                  </p>
+                  <a href="/dashboard/data-unila/akademik/akreditasi?expiring=alert" className="inline-block mt-2 text-sm font-medium text-amber-700 dark:text-amber-300 underline decoration-amber-300 decoration-dotted hover:decoration-solid">
+                    Lihat detail prodi terkait →
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <StatCard
@@ -108,6 +180,8 @@ export default function DashboardAkreditasiPage() {
                 icon={<FiList className="w-6 h-6 text-white" />}
                 color="cyan"
                 trend={undefined}
+                href="/dashboard/data-unila/akademik/prodi"
+                hint="Klik untuk daftar program studi"
               />
               <StatCard
                 title="Unggul / A"

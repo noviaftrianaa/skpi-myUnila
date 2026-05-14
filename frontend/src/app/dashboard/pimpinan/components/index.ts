@@ -1,5 +1,7 @@
 export { default as StatCard } from "./StatCard";
 export { default as FilterPanel } from "./FilterPanel";
+export { default as PimpinanPageHeader } from "./PimpinanPageHeader";
+export type { PimpinanPageHeaderProps } from "./PimpinanPageHeader";
 export { default as IKUCard } from "./IKUCard";
 export { default as IKUDetailModal } from "./IKUDetailModal";
 

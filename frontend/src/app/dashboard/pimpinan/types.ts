@@ -119,6 +119,8 @@ export interface AkreditasiData {
     baikSekali: StatValue;
     baik: StatValue;
     internasional: StatValue;
+    akanExpire?: StatValue;
+    expired?: StatValue;
   };
   distribusiAkreditasi: SimpleData[];
   statusKadaluarsa: SimpleData[];
