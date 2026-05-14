@@ -1,6 +1,6 @@
 {
   "app_slug": "data-unila",
-  "roles": [1, 107, 42, 43, 46, 33, 38, 34, 35, 36, 37],
+  "roles": [1, 107, 42, 43, 46, 33, 38, 34, 35, 36, 37, 6, 44, 47, 106],
   "menus": [
     {
       "nm_menu": "Dashboard",
@@ -21,14 +21,18 @@
       ]
     },
     {
-      "nm_menu": "Data Dosen & SDM",
+      "nm_menu": "Data Dosen & Tendik",
       "nm_file": "#data-dosen",
       "icon": "heroicons:user-group",
       "urutan": 3,
       "children": [
         {"nm_menu": "Daftar Dosen", "nm_file": "/dashboard/data-unila/dosen", "urutan": 1},
         {"nm_menu": "Jabatan Fungsional", "nm_file": "/dashboard/data-unila/dosen/jabfung", "urutan": 2},
-        {"nm_menu": "Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 3}
+        {"nm_menu": "Riwayat Pendidikan", "nm_file": "/dashboard/data-unila/dosen/pendidikan", "urutan": 3},
+        {"nm_menu": "Riwayat Kepangkatan", "nm_file": "/dashboard/data-unila/dosen/kepangkatan", "urutan": 4},
+        {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/data-unila/dosen/tugas-tambahan", "urutan": 5},
+        {"nm_menu": "Riwayat Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 6},
+        {"nm_menu": "Daftar Tendik", "nm_file": "/dashboard/data-unila/dosen/tendik", "urutan": 7}
       ]
     },
     {

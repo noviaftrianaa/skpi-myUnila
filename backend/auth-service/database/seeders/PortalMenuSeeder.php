@@ -41,9 +41,34 @@ class PortalMenuSeeder extends Seeder
 
     /**
      * Run the database seeds.
+     *
+     * PRODUCTION SAFETY:
+     * - APP_ENV=production refuse run kecuali env SEED_MENU_ALLOW_PRODUCTION=1
+     * - Default mode IDEMPOTENT (skip kalau menu sudah ada via nm_file unique check)
+     * - Opt-in reset via SEED_MENU_RESET=1 (development only)
      */
     public function run(): void
     {
+        $env = strtolower(app()->environment() ?: 'production');
+        $allowProd = (bool) env('SEED_MENU_ALLOW_PRODUCTION', false);
+        $resetMode = (bool) env('SEED_MENU_RESET', false);
+
+        if ($env === 'production' && !$allowProd) {
+            $this->command->error('⛔ ABORT: APP_ENV=production. Set SEED_MENU_ALLOW_PRODUCTION=1 untuk override.');
+            $this->command->warn('Recommended: backup man_akses.menu + man_akses.menu_role dulu:');
+            $this->command->warn('  SELECT * INTO menu_backup_YYYYMMDD FROM menu;');
+            $this->command->warn('  SELECT * INTO menu_role_backup_YYYYMMDD FROM menu_role;');
+            return;
+        }
+        if ($env === 'production' && $resetMode) {
+            $this->command->error('⛔ ABORT: SEED_MENU_RESET=1 di production akan WIPE semua menu + menu_role.');
+            return;
+        }
+        if ($resetMode) {
+            $this->command->warn('⚠️  RESET MODE: existing menu + menu_role akan DI-DELETE. Ctrl+C dalam 5 detik untuk batal...');
+            sleep(5);
+        }
+
         $this->perAppDir = database_path('seeders/data/portal_menus');
         $this->legacyConfigPath = database_path('seeders/data/portal_menus.json');
 
@@ -55,6 +80,7 @@ class PortalMenuSeeder extends Seeder
         }
 
         $this->command->info('Seeding Portal Menus from JSON configuration...');
+        $this->command->info('Mode: ' . ($resetMode ? 'RESET (destructive)' : 'IDEMPOTENT (additive only)'));
         $this->command->info('');
 
         $totalMenus = 0;
@@ -219,26 +245,28 @@ class PortalMenuSeeder extends Seeder
         $appId = $app->id_aplikasi;
         $now = now()->format('Y-m-d H:i:s');
         $menuCount = 0;
+        $resetMode = (bool) env('SEED_MENU_RESET', false);
 
-        // Clean up existing menus for this app (to avoid duplicates)
-        $existingMenuIds = DB::select(
-            "SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?",
-            [$appId]
-        );
-
-        if (!empty($existingMenuIds)) {
-            $menuIds = array_map(fn($m) => $m->id_menu, $existingMenuIds);
-
-            // Delete role assignments first (FK constraint)
-            DB::delete(
-                "DELETE FROM man_akses.menu_role WHERE id_menu IN (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?)",
+        // SAFETY: hanya hapus existing kalau RESET MODE diset eksplisit.
+        // Default IDEMPOTENT — menu yang sudah ada di-SKIP, hanya tambahan baru di-INSERT.
+        if ($resetMode) {
+            $existingMenuIds = DB::select(
+                "SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?",
                 [$appId]
             );
 
-            // Delete all menus
-            DB::delete("DELETE FROM man_akses.menu WHERE id_aplikasi = ?", [$appId]);
+            if (!empty($existingMenuIds)) {
+                $menuIds = array_map(fn($m) => $m->id_menu, $existingMenuIds);
 
-            $this->command->line("  ~ Cleaned up " . count($menuIds) . " existing menus");
+                DB::delete(
+                    "DELETE FROM man_akses.menu_role WHERE id_menu IN (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi = ?)",
+                    [$appId]
+                );
+                DB::delete("DELETE FROM man_akses.menu WHERE id_aplikasi = ?", [$appId]);
+                $this->command->warn("  ⚠️  RESET: cleaned up " . count($menuIds) . " existing menus + menu_role");
+            }
+        } else {
+            $this->command->line("  → Idempotent mode (skip existing menus via nm_file match)");
         }
 
         // Process each menu (level 0)
@@ -269,7 +297,7 @@ class PortalMenuSeeder extends Seeder
     }
 
     /**
-     * Create a menu record (always INSERT since we clean up first)
+     * Create a menu record — IDEMPOTENT (skip if existing nm_file for this app).
      */
     private function createMenu(array $menu, string $appId, ?string $parentId, string $now, int $level): string
     {
@@ -277,6 +305,16 @@ class PortalMenuSeeder extends Seeder
         $nmMenu = $menu['nm_menu'] ?? 'Untitled';
         $icon = $menu['icon'] ?? null;
         $urutan = $menu['urutan'] ?? 99;
+
+        // Idempotent: cari existing menu utk nm_file + app_id
+        $existing = DB::selectOne(
+            "SELECT CONVERT(VARCHAR(36), id_menu) AS id FROM man_akses.menu WHERE nm_file = ? AND id_aplikasi = ?",
+            [$nmFile, $appId]
+        );
+        if ($existing) {
+            $this->command->line("  = Kept: {$nmMenu} (existing)");
+            return $existing->id;
+        }
 
         $menuId = Str::uuid()->toString();
         DB::insert(

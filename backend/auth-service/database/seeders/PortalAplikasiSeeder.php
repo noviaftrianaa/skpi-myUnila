@@ -24,10 +24,25 @@ class PortalAplikasiSeeder extends Seeder
 
     /**
      * Run the database seeds.
+     *
+     * PRODUCTION SAFETY:
+     * - APP_ENV=production refuse run kecuali env SEED_APPS_ALLOW_PRODUCTION=1
+     * - Default idempotent (UPDATE-or-INSERT, tidak DELETE)
      */
     public function run(): void
     {
+        $env = strtolower(app()->environment() ?: 'production');
+        $allowProd = (bool) env('SEED_APPS_ALLOW_PRODUCTION', false);
+
+        if ($env === 'production' && !$allowProd) {
+            $this->command->error('⛔ ABORT: APP_ENV=production. Set SEED_APPS_ALLOW_PRODUCTION=1 untuk override.');
+            $this->command->warn('Recommended: backup man_akses.aplikasi + kategori_aplikasi dulu:');
+            $this->command->warn('  SELECT * INTO aplikasi_backup_YYYYMMDD FROM aplikasi;');
+            return;
+        }
+
         $this->command->info('Seeding Portal Aplikasi data...');
+        $this->command->info('Mode: IDEMPOTENT (UPDATE-or-INSERT, no DELETE)');
 
         // Step 1: Seed Kategori
         $kategoris = $this->seedKategori();
