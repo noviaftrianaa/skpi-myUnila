@@ -59,7 +59,8 @@ WHERE kode_layanan = 'SK-PKKMB';
 INSERT INTO ref.persyaratan_layanan (id_jenis_layanan, kode_dokumen, nm_dokumen, a_wajib, urutan)
 SELECT id_jenis_layanan, kode, nm, true, v.urutan
 FROM ref.jenis_layanan, (VALUES
-  ('DOC-BUKTI-UKT', 'Bukti Pembayaran UKT Semester Berjalan', 1)
+  ('DOC-BUKTI-UKT', 'Bukti Pembayaran UKT Semester Berjalan', 1),
+  ('DOC-SK-CUTI',   'SK Cuti Akademik',                      2)
 ) AS v(kode, nm, urutan)
 WHERE kode_layanan = 'SK-HERREG';
 
@@ -103,13 +104,14 @@ WHERE kode_layanan = 'PM-ALIH';
 -- Columns: id_jenis_layanan, urutan, nm_tahapan, kode_role, status_masuk, status_selesai, a_opsional, deskripsi
 -- =====================================================
 
--- Surat Mandiri (SK-LOA, SK-KTM, SK-PKKMB, SK-HERREG)
+-- Surat Mandiri (SK-LOA, SK-KTM, SK-PKKMB, SK-HERREG) — 4 tahap (revisi 13 Mei 2026: tambah Persetujuan Pimpinan)
 INSERT INTO ref.tahapan_layanan (id_jenis_layanan, urutan, nm_tahapan, kode_role, status_masuk, status_selesai, deskripsi)
 SELECT jl.id_jenis_layanan, v.urutan, v.nm, v.kode_role, v.status_masuk, v.status_selesai, v.deskripsi
 FROM ref.jenis_layanan jl, (VALUES
-  (1, 'Pengajuan oleh Mahasiswa', 'mahasiswa',  'draft',        'diajukan',     'Mahasiswa mengisi formulir dan mengunggah dokumen'),
-  (2, 'Verifikasi Admin BAK',    'admin_bak',   'diajukan',     'diverifikasi', 'Admin BAK memverifikasi kelengkapan dokumen'),
-  (3, 'Penerbitan Surat',        'admin_bak',   'diverifikasi', 'terbit',       'Admin BAK membuat dan menerbitkan surat keterangan')
+  (1, 'Pengajuan oleh Mahasiswa', 'mahasiswa',  'draft',                'diajukan',              'Mahasiswa mengisi formulir dan mengunggah dokumen'),
+  (2, 'Verifikasi Admin BAK',    'admin_bak',   'diajukan',             'menunggu_persetujuan',  'Admin BAK memverifikasi kelengkapan dokumen'),
+  (3, 'Persetujuan Pimpinan',    'kabag',       'menunggu_persetujuan', 'disetujui',             'Kepala Bagian/Koordinator/PJ memberikan persetujuan atas surat sebelum diterbitkan'),
+  (4, 'Penerbitan Surat',        'admin_bak',   'disetujui',            'terbit',                'Admin BAK menerbitkan surat setelah disetujui pimpinan')
 ) AS v(urutan, nm, kode_role, status_masuk, status_selesai, deskripsi)
 WHERE jl.kategori = 'surat_mandiri';
 
@@ -120,20 +122,21 @@ FROM ref.jenis_layanan jl, (VALUES
   (1, 'Pengajuan oleh Mahasiswa',    'mahasiswa',       'draft',                  'diajukan',              'Mahasiswa mengisi formulir dan mengunggah dokumen persyaratan'),
   (2, 'Verifikasi Admin Fakultas',   'admin_fakultas',  'diajukan',               'diverifikasi',          'Admin Fakultas memverifikasi dan mengunggah surat pengantar'),
   (3, 'Verifikasi Admin BAK',        'admin_bak',       'diverifikasi',           'menunggu_persetujuan',  'Admin BAK melakukan verifikasi akhir'),
-  (4, 'Persetujuan Pejabat',         'pejabat',         'menunggu_persetujuan',   'disetujui',             'Pejabat universitas memberikan persetujuan'),
+  (4, 'Persetujuan Pimpinan',        'kabag',           'menunggu_persetujuan',   'disetujui',             'Kepala Bagian/Koordinator/PJ memberikan persetujuan'),
   (5, 'Penerbitan Dokumen',          'admin_bak',       'disetujui',              'terbit',                'Admin BAK menerbitkan surat keterangan/SK')
 ) AS v(urutan, nm, kode_role, status_masuk, status_selesai, deskripsi)
 WHERE jl.kode_layanan IN ('PM-CUTI', 'PM-UNDUR');
 
--- Alih Program — 5 tahapan (revisi 9 April 2026, tahap Pejabat dihilangkan)
+-- Alih Program — 6 tahapan (revisi 12 Mei 2026: tambah tahap Persetujuan Pimpinan)
 INSERT INTO ref.tahapan_layanan (id_jenis_layanan, urutan, nm_tahapan, kode_role, status_masuk, status_selesai, deskripsi)
 SELECT jl.id_jenis_layanan, v.urutan, v.nm, v.kode_role, v.status_masuk, v.status_selesai, v.deskripsi
 FROM ref.jenis_layanan jl, (VALUES
   (1, 'Pengajuan oleh Mahasiswa',                  'mahasiswa',       'draft',                  'diajukan',              'Mahasiswa memilih prodi tujuan dan mengunggah dokumen'),
   (2, 'Verifikasi Admin Fakultas Asal',            'admin_fakultas',  'diajukan',               'diverifikasi',          'Verifikasi dokumen, upload surat pengantar Dekan ke SIMBAK'),
-  (3, 'Proses Penerimaan Fakultas Tujuan',         'admin_fakultas',  'diverifikasi',           'menunggu_persetujuan',  'Wawancara, keputusan diterima/ditolak, upload konversi SKS dan surat balasan'),
-  (4, 'Verifikasi Akhir Admin BAK',                'admin_bak',       'menunggu_persetujuan',   'disetujui',             'Verifikasi semua dokumen lintas fakultas, buat SK Rektor atau Surat Penolakan'),
-  (5, 'Penerbitan SK Rektor / Surat Penolakan',    'admin_bak',       'disetujui',              'terbit',                'Upload SK Rektor (diterima) atau Surat Penolakan WR (ditolak)')
+  (3, 'Verifikasi & Penerimaan Fakultas Tujuan',   'admin_fakultas',  'diverifikasi',           'diperiksa_fakultas',    'Wawancara, keputusan diterima/ditolak, upload konversi SKS dan surat balasan'),
+  (4, 'Verifikasi Admin BAK',                      'admin_bak',       'diperiksa_fakultas',     'menunggu_persetujuan',  'Admin BAK memverifikasi kelengkapan dokumen dan SK Dekan dari fakultas tujuan'),
+  (5, 'Persetujuan Pimpinan',                      'kabag',           'menunggu_persetujuan',   'disetujui',             'Kepala Bagian/Koordinator/PJ memberikan persetujuan'),
+  (6, 'Penerbitan SK Rektor / Surat Penolakan',    'admin_bak',       'disetujui',              'terbit',                'Upload SK Rektor (diterima) atau Surat Penolakan WR (ditolak)')
 ) AS v(urutan, nm, kode_role, status_masuk, status_selesai, deskripsi)
 WHERE jl.kode_layanan = 'PM-ALIH';
 

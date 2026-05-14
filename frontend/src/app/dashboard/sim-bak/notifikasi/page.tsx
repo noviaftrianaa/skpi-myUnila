@@ -9,6 +9,7 @@ import { Spinner, Card, CardBody, Chip, Button } from "@heroui/react";
 import { FiBell, FiMail, FiMessageSquare, FiSave, FiSend, FiFileText, FiList, FiEye, FiCheck, FiX, FiAlertCircle, FiSettings, FiPlus, FiEdit, FiTrash2, FiActivity } from "react-icons/fi";
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
+import CKEditorClassic from "@/shared/components/ui/CKEditorClassic";
 import toast, { Toaster } from "react-hot-toast";
 import {
   getSmtpList, createSmtp, updateSmtp, deleteSmtp, testSmtp,
@@ -324,6 +325,41 @@ export default function NotifikasiPage() {
               </div>
             </CardBody></Card>
 
+            {/* Pejabat Penandatangan Surat */}
+            <Card className="shadow-md rounded-xl"><CardBody className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <FiFileText className="w-5 h-5 text-amber-500" />
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">Pejabat Penandatangan Surat</h2>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Data pejabat yang menandatangani draft surat (SK-KTM, SK-PKKMB, SK-HERREG, SK-LOA). Akan tampil di template draft PDF.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Pejabat</label>
+                  <input type="text" value={settingValues.pejabat_nama ?? ""} onChange={e => setSettingValues(v => ({ ...v, pejabat_nama: e.target.value }))}
+                    placeholder="Contoh: Hero Satrian Arief, S.E., M.H."
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">NIP</label>
+                  <input type="text" value={settingValues.pejabat_nip ?? ""} onChange={e => setSettingValues(v => ({ ...v, pejabat_nip: e.target.value }))}
+                    placeholder="Contoh: 196802251987031001"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jabatan</label>
+                  <input type="text" value={settingValues.pejabat_jabatan ?? ""} onChange={e => setSettingValues(v => ({ ...v, pejabat_jabatan: e.target.value }))}
+                    placeholder="Contoh: Kepala Biro Akademik dan Kemahasiswaan"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tempat Terbit</label>
+                  <input type="text" value={settingValues.tempat_terbit ?? ""} onChange={e => setSettingValues(v => ({ ...v, tempat_terbit: e.target.value }))}
+                    placeholder="Contoh: Bandar Lampung"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+              </div>
+            </CardBody></Card>
+
             <div className="flex justify-end">
               <Button color="primary" isLoading={saving} startContent={<FiSave className="w-4 h-4" />} onPress={handleSaveSettings}>
                 Simpan Pengaturan
@@ -546,8 +582,12 @@ export default function NotifikasiPage() {
                 <input type="text" value={String(editingTemplate.subject_email ?? "")} onChange={e => setEditingTemplate(t => t ? ({ ...t, subject_email: e.target.value }) : null)} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Body Email (HTML)</label>
-                <textarea rows={8} value={String(editingTemplate.body_email ?? "")} onChange={e => setEditingTemplate(t => t ? ({ ...t, body_email: e.target.value }) : null)} className={`${inputClass} font-mono text-xs resize-y`} />
+                <label className="block text-xs font-medium text-gray-600 mb-1">Body Email</label>
+                <CKEditorClassic
+                  value={String(editingTemplate.body_email ?? "")}
+                  onChange={(html) => setEditingTemplate(t => t ? ({ ...t, body_email: html }) : null)}
+                  minHeight={260}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Body WhatsApp (Plain Text)</label>

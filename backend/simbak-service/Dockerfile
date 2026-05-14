@@ -83,8 +83,12 @@ RUN composer run-script post-autoload-dump --no-interaction || true
 RUN test -f /var/www/vendor/autoload.php || (echo "ERROR: vendor/autoload.php not found! Composer install failed." && exit 1)
 
 # Create necessary directories
-RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
+# NOTE: /bin/sh (Alpine) does NOT support brace expansion — must list paths explicitly
+RUN mkdir -p /var/www/storage/framework/sessions \
+    && mkdir -p /var/www/storage/framework/views \
+    && mkdir -p /var/www/storage/framework/cache/data \
     && mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/storage/fonts \
     && mkdir -p /var/www/bootstrap/cache \
     && mkdir -p /data/simbak-storage
 

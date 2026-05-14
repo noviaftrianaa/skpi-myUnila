@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Layanan;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
+use App\Services\DraftSuratService;
 use App\Services\MinioService;
 use App\Services\NotificationService;
 use App\Services\WorkflowService;
@@ -70,6 +71,8 @@ class VerifikasiController extends Controller
             $data = $request->validate([
                 'catatan' => 'nullable|string',
                 'surat_pengantar' => 'nullable|file|mimes:pdf|max:20480',
+                'nomor_surat_pengantar' => 'nullable|string|max:100',
+                'tgl_surat_pengantar' => 'nullable|date',
             ]);
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
@@ -134,6 +137,8 @@ class VerifikasiController extends Controller
                     'tipe_file' => $file->getMimeType(),
                     'ukuran_byte' => $file->getSize(),
                     'id_pengunggah' => $user->id_pengguna,
+                    'nomor_dokumen' => $data['nomor_surat_pengantar'] ?? null,
+                    'tgl_dokumen' => $data['tgl_surat_pengantar'] ?? null,
                 ]);
             }
 
@@ -162,8 +167,10 @@ class VerifikasiController extends Controller
     }
 
     /**
-     * Minta perbaikan — kembalikan ke pemohon.
-     * Bisa dilakukan oleh aktor yang punya tahapan pada status pengajuan saat ini.
+     * Minta perbaikan — kembalikan ke tahapan sebelumnya sesuai hierarki.
+     *
+     * Admin BAK → dikembalikan ke Admin Fakultas
+     * Admin Fakultas → dikembalikan ke Mahasiswa (perlu_perbaikan)
      */
     public function mintaPerbaikan(Request $request, string $id): JsonResponse
     {
@@ -171,7 +178,6 @@ class VerifikasiController extends Controller
             $pengajuan = $this->repository->findById($id);
             if (!$pengajuan) return $this->notFoundResponse();
 
-            // Minta perbaikan hanya valid saat pengajuan sedang diproses (bukan draft/terbit/ditolak)
             if (in_array($pengajuan->status, ['draft', 'terbit', 'ditolak'])) {
                 return $this->errorResponse('Pengajuan tidak dalam status yang bisa diminta perbaikan', 422);
             }
@@ -180,18 +186,39 @@ class VerifikasiController extends Controller
             $user = $request->user();
             $kodeRole = $this->workflow->determineUserRole($user, $request->header('X-Active-Role'));
 
+            // Cari tahapan saat ini dan tahapan sebelumnya
+            $currentTahapan = $this->workflow->findTahapanForActor($pengajuan, $kodeRole);
+            if (!$currentTahapan && in_array($kodeRole, ['admin_bak', 'admin'])) {
+                $currentTahapan = $this->workflow->getCurrentTahapan($pengajuan);
+            }
+
+            $prevTahapan = $currentTahapan
+                ? $this->workflow->getPreviousTahapan($pengajuan, $currentTahapan)
+                : null;
+
+            // Tentukan status tujuan berdasarkan hierarki:
+            // - Ada tahapan sebelumnya & bukan mahasiswa → kembalikan ke status_masuk tahapan itu
+            // - Tidak ada atau tahapan sebelumnya = mahasiswa → perlu_perbaikan (ke mahasiswa)
+            if ($prevTahapan && $prevTahapan->kode_role !== 'mahasiswa') {
+                $statusTujuan = $prevTahapan->status_masuk;
+                $nmTahapanTarget = "Dikembalikan ke {$prevTahapan->nm_tahapan}";
+            } else {
+                $statusTujuan = 'perlu_perbaikan';
+                $nmTahapanTarget = 'Perlu Perbaikan';
+            }
+
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
 
             $statusDari = $pengajuan->status;
-            $this->repository->updateStatus($id, 'perlu_perbaikan', $user->id_pengguna);
+            $this->repository->updateStatus($id, $statusTujuan, $user->id_pengguna);
 
             $riwayatCount = count($this->repository->getRiwayat($id));
             $this->repository->createRiwayat([
                 'id_pengajuan' => $id,
                 'urutan' => $riwayatCount + 1,
-                'nm_tahapan' => 'Perlu Perbaikan',
+                'nm_tahapan' => $nmTahapanTarget,
                 'status_dari' => $statusDari,
-                'status_ke' => 'perlu_perbaikan',
+                'status_ke' => $statusTujuan,
                 'id_aktor' => $user->id_pengguna,
                 'nm_aktor' => $user->nm_pengguna ?? $user->nama ?? '',
                 'kode_role_aktor' => $kodeRole,
@@ -200,10 +227,14 @@ class VerifikasiController extends Controller
 
             $this->repository->pgCommit();
 
-            // Trigger notifikasi: perlu_perbaikan
             $this->triggerStatusNotification($pengajuan, 'status_perlu_perbaikan', $data['catatan']);
 
-            return $this->successResponse(null, 'Permintaan perbaikan berhasil dikirim');
+            return $this->successResponse([
+                'status_baru' => $statusTujuan,
+                'dikembalikan_ke' => $prevTahapan && $prevTahapan->kode_role !== 'mahasiswa'
+                    ? $prevTahapan->kode_role
+                    : 'mahasiswa',
+            ], 'Permintaan perbaikan berhasil dikirim');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
@@ -337,6 +368,93 @@ class VerifikasiController extends Controller
     }
 
     /**
+     * Ambil WhatsApp link untuk notifikasi pemohon (manual via wa.me).
+     * Pesan dirender dari template DB (ref.template_notifikasi.body_whatsapp).
+     */
+    public function whatsappLink(Request $request, string $id): JsonResponse
+    {
+        try {
+            $kodeEvent = $request->get('event', 'status_terbit');
+
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $dataPemohon = $this->repository->getDataPemohon($id);
+            if (!$dataPemohon) return $this->errorResponse('Data pemohon tidak ditemukan', 422);
+
+            $telepon = null;
+            // Eksternal: ambil dari data_pemohon.no_hp_pemohon
+            if (($pengajuan->a_dari_luar ?? false) && !empty($dataPemohon->no_hp_pemohon)) {
+                $telepon = $dataPemohon->no_hp_pemohon;
+            } elseif ($dataPemohon->id_mahasiswa) {
+                $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne(
+                    "SELECT no_hp_1 FROM siakadu.peserta_didik WHERE id_pd = ?",
+                    [$dataPemohon->id_mahasiswa]
+                );
+                $telepon = $row->no_hp_1 ?? null;
+            }
+            if (!$telepon) {
+                return $this->errorResponse('Nomor HP pemohon tidak ditemukan', 422);
+            }
+            $telepon = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $telepon));
+
+            $template = $this->notificationService->getTemplate($kodeEvent);
+            $body = $template ? $this->notificationService->renderTemplate($template->body_whatsapp ?? '', [
+                'nama' => $dataPemohon->nm_mahasiswa ?? '',
+                'npm' => $dataPemohon->nim ?? '',
+                'prodi' => $dataPemohon->nm_prodi ?? '',
+                'fakultas' => $dataPemohon->nm_fakultas ?? '',
+                'layanan' => $pengajuan->nm_layanan ?? '',
+                'nomor' => $pengajuan->nomor_permohonan ?? '',
+                'catatan' => '-',
+            ]) : "Halo {$dataPemohon->nm_mahasiswa}, surat {$pengajuan->nm_layanan} (No. {$pengajuan->nomor_permohonan}) telah diterbitkan. Silakan cek di aplikasi MyUnila.";
+
+            $waUrl = 'https://wa.me/' . $telepon . '?text=' . urlencode($body);
+
+            return $this->successResponse([
+                'telepon' => $telepon,
+                'wa_url' => $waUrl,
+                'pesan' => $body,
+                'nama' => $dataPemohon->nm_mahasiswa,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Verifikasi.whatsappLink: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Download draft surat keterangan (PDF unsigned) untuk dikirim ke pimpinan.
+     * Berlaku untuk SK-* (surat mandiri) sebelum tanda tangan elektronik.
+     */
+    public function downloadDraft(string $id)
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            // Hanya berlaku untuk surat_mandiri yang punya template
+            $kode = $pengajuan->kode_layanan ?? '';
+            if (!in_array($kode, ['SK-KTM', 'SK-PKKMB', 'SK-HERREG', 'SK-LOA'])) {
+                return $this->errorResponse('Draft surat hanya tersedia untuk surat keterangan (SK-*)', 422);
+            }
+
+            $service = new DraftSuratService();
+            $pdfContent = $service->generate($id);
+            $filename = $service->filename($id);
+
+            return response($pdfContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control' => 'no-store, no-cache',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Verifikasi.downloadDraft: ' . $e->getMessage());
+            return $this->errorResponse('Gagal generate draft: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Ambil info progress tahapan untuk suatu pengajuan.
      * Digunakan frontend untuk menampilkan stepper.
      */
@@ -362,13 +480,14 @@ class VerifikasiController extends Controller
     private function triggerStatusNotification(object $pengajuan, string $kodeEvent, ?string $catatan = null): void
     {
         try {
-            // Skip jika dari luar Unila (pemohon tidak punya akun/email di sistem)
-            if ($pengajuan->a_dari_luar ?? false) return;
-
             $dataPemohon = $this->repository->getDataPemohon($pengajuan->id_pengajuan);
             if (!$dataPemohon) return;
 
-            $email = $this->resolveEmail($pengajuan->id_pemohon);
+            // Eksternal (a_dari_luar): ambil email dari data_pemohon.email_pemohon
+            // Internal: ambil email dari man_akses.pengguna (SSO)
+            $email = ($pengajuan->a_dari_luar ?? false)
+                ? ($dataPemohon->email_pemohon ?? null)
+                : $this->resolveEmail($pengajuan->id_pemohon);
             if (!$email) return;
 
             $this->notificationService->send($kodeEvent, [

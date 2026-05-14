@@ -191,7 +191,52 @@ class PdutRepository extends BaseRepository
     }
 
     /**
+     * Cek KRS aktif mahasiswa pada semester tertentu.
+     * Return: jumlah mata kuliah (sks_semester) atau null jika tidak ditemukan.
+     */
+    public function getKrsAktif(string $nim, string $idSmt): ?array
+    {
+        try {
+            $row = $this->pdutSelectOne("
+                SELECT id_stat_mhs, sks_semester, ips
+                FROM siakadu.kuliah_mhs
+                WHERE nim = ? AND id_smt = ?
+            ", [$nim, $idSmt]);
+
+            if (!$row) return null;
+
+            return [
+                'ada_krs' => true,
+                'id_stat_mhs' => $row->id_stat_mhs,
+                'sks_semester' => $row->sks_semester,
+                'ips' => $row->ips,
+            ];
+        } catch (\Exception $e) {
+            Log::warning('PdutRepository.getKrsAktif: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getRiwayatCutiSiakad(string $nim): array
+    {
+        try {
+            return $this->pdutSelect("
+                SELECT km.id_smt, s.nm_smt, sm.nm_stat_mhs
+                FROM siakadu.kuliah_mhs km
+                INNER JOIN siakadu.status_mahasiswa sm ON sm.id_stat_mhs = km.id_stat_mhs
+                INNER JOIN ref.semester s ON s.id_smt = km.id_smt
+                WHERE km.nim = ? AND sm.nm_stat_mhs LIKE '%Cuti%'
+                ORDER BY km.id_smt DESC
+            ", [$nim]);
+        } catch (\Exception $e) {
+            Log::warning('PdutRepository.getRiwayatCutiSiakad: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Hitung masa studi dalam semester berdasarkan tahun angkatan (fallback).
+     * Asumsi: masuk September (semester ganjil), 1 semester = 6 bulan.
      */
     private function hitungMasaStudiSemester(int $angkatan): int
     {
@@ -331,7 +376,7 @@ class PdutRepository extends BaseRepository
      * IPK/SKS dari kuliah_mhs terbaru, fallback mahasiswa.ipk/sks_lulus.
      * Status pembayaran dari keuangan.spp_mhs.
      */
-    public function getKandidatHMM(string $idSmt, ?string $idFakultas = null): array
+    public function getKandidatHMM(string $idSmt, ?string $idFakultas = null, ?string $kriteriaWhere = null): array
     {
         try {
             $bindings = [];
@@ -348,6 +393,15 @@ class PdutRepository extends BaseRepository
 
             // Semester aktual: prioritas kuliah_mhs, fallback formula
             $smtExpr = "CASE WHEN ISNULL(km_count.smt_count, 0) > 0 THEN km_count.smt_count ELSE {$formulaFallback} END";
+
+            // Default kriteria (fallback jika tidak ada di ref.ketentuan_layanan)
+            $defaultKriteria = "(
+                (jp.nm_jenj_didik = 'D3' AND {$semesterDariAngkatan} >= 13) OR
+                (jp.nm_jenj_didik = 'S1' AND {$semesterDariAngkatan} >= 17) OR
+                (jp.nm_jenj_didik = 'S2' AND {$semesterDariAngkatan} >= 9) OR
+                (jp.nm_jenj_didik = 'S3' AND {$semesterDariAngkatan} >= 13)
+            )";
+            $kriteriaClause = $kriteriaWhere ?: $defaultKriteria;
 
             return $this->pdutSelect("
                 SELECT
@@ -394,12 +448,7 @@ class PdutRepository extends BaseRepository
                   AND sm.nm_stat_mhs = 'Aktif'
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
-                  AND (
-                    (jp.nm_jenj_didik = 'D3' AND {$smtExpr} >= 13) OR
-                    (jp.nm_jenj_didik = 'S1' AND {$smtExpr} >= 17) OR
-                    (jp.nm_jenj_didik = 'S2' AND {$smtExpr} >= 9) OR
-                    (jp.nm_jenj_didik = 'S3' AND {$smtExpr} >= 13)
-                  )
+                  AND {$kriteriaClause}
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
         } catch (\Exception $e) {
@@ -416,7 +465,7 @@ class PdutRepository extends BaseRepository
      * IPK/SKS dari kuliah_mhs terbaru, fallback mahasiswa.
      * Status pembayaran dari keuangan.spp_mhs.
      */
-    public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null): array
+    public function getKandidatPutusStudi(string $idSmt, ?string $idFakultas = null, ?string $kriteriaWhere = null): array
     {
         try {
             $bindings = [];
@@ -433,6 +482,12 @@ class PdutRepository extends BaseRepository
             $smtExpr = "CASE WHEN ISNULL(km_count.smt_count, 0) > 0 THEN km_count.smt_count ELSE {$formulaFallback} END";
             $ipkExpr = "COALESCE(km_latest.km_ipk, m.ipk)";
             $sksExpr = "COALESCE(km_latest.km_sks, m.sks_lulus)";
+
+            $defaultKriteria = "(
+                ({$semesterDariAngkatan} = 4 AND (m.ipk < 2.00 OR m.sks_lulus < 40)) OR
+                ({$semesterDariAngkatan} = 8 AND (m.ipk < 2.00 OR m.sks_lulus < 80))
+            )";
+            $kriteriaClause = $kriteriaWhere ?: $defaultKriteria;
 
             return $this->pdutSelect("
                 SELECT
@@ -481,10 +536,7 @@ class PdutRepository extends BaseRepository
                   AND jp.nm_jenj_didik IN ('S1', 'D4')
                   AND m.angkatan IS NOT NULL
                   {$fakultasFilter}
-                  AND (
-                    ({$smtExpr} = 4 AND ({$ipkExpr} < 2.00 OR {$sksExpr} < 40)) OR
-                    ({$smtExpr} = 8 AND ({$ipkExpr} < 2.00 OR {$sksExpr} < 80))
-                  )
+                  AND {$kriteriaClause}
                 ORDER BY m.nm_prodi, m.nama
             ", $bindings);
         } catch (\Exception $e) {

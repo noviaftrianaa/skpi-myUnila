@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Batch\BatchRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
 use App\Repositories\PdutRepository;
+use App\Repositories\Ref\KetentuanLayananRepository;
 use App\Services\MinioService;
 use App\Services\NotificationService;
 use App\Traits\ApiResponse;
@@ -22,6 +23,7 @@ class BatchController extends Controller
     protected BatchRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
     protected PdutRepository $pdutRepository;
+    protected KetentuanLayananRepository $ketentuanRepository;
     protected MinioService $minioService;
 
     public function __construct()
@@ -29,6 +31,7 @@ class BatchController extends Controller
         $this->repository = new BatchRepository();
         $this->jenisLayananRepo = new JenisLayananRepository();
         $this->pdutRepository = new PdutRepository();
+        $this->ketentuanRepository = new KetentuanLayananRepository();
         $this->minioService = new MinioService();
     }
 
@@ -140,11 +143,37 @@ class BatchController extends Controller
             $idSmt = $request->get('id_smt', '');
             $idFakultas = $request->get('id_fakultas');
 
+            // Load kriteria dinamis dari ref.ketentuan_layanan
+            $kodeLayanan = $jenisBatch === 'habis_masa_mukim' ? 'BA-HMM' : 'BA-PUTUS';
+            $rules = $this->ketentuanRepository->getByKodeLayanan($kodeLayanan);
+
             $candidates = [];
             if ($jenisBatch === 'habis_masa_mukim') {
-                $candidates = $this->pdutRepository->getKandidatHMM($idSmt, $idFakultas);
+                $tahunNow = (int) date('Y');
+                $bulanNow = (int) date('m');
+                $semExpr = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+                $fieldMap = [
+                    'jenjang' => 'jp.nm_jenj_didik',
+                    'masa_studi_min' => $semExpr,
+                ];
+                $kriteriaWhere = !empty($rules)
+                    ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'AND')
+                    : null;
+                $candidates = $this->pdutRepository->getKandidatHMM($idSmt, $idFakultas, $kriteriaWhere);
             } elseif ($jenisBatch === 'putus_studi') {
-                $candidates = $this->pdutRepository->getKandidatPutusStudi($idSmt, $idFakultas);
+                $tahunNow = (int) date('Y');
+                $bulanNow = (int) date('m');
+                $semExpr = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+                $fieldMap = [
+                    'jenjang' => 'jp.nm_jenj_didik',
+                    'semester' => $semExpr,
+                    'ipk_min' => 'm.ipk',
+                    'sks_min' => 'm.sks_lulus',
+                ];
+                $kriteriaWhere = !empty($rules)
+                    ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'OR')
+                    : null;
+                $candidates = $this->pdutRepository->getKandidatPutusStudi($idSmt, $idFakultas, $kriteriaWhere);
             }
 
             // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
@@ -160,18 +189,37 @@ class BatchController extends Controller
                 }
             }
 
+            // Generate teks kriteria terstruktur untuk UI
+            $kriteriaGroups = $this->ketentuanRepository->formatForDisplay($rules);
+            $kriteriaText = $this->renderKriteriaText($kriteriaGroups);
+
             return $this->successResponse([
                 'total' => count($candidates),
                 'candidates' => $candidates,
                 'excluded_count' => count($excludedNims),
-                'kriteria' => $jenisBatch === 'habis_masa_mukim'
-                    ? 'D3: ≥13 semester, S1: ≥17 semester, S2: ≥9 semester, S3: ≥13 semester'
-                    : 'Semester IV: IPK < 2.00 atau SKS < 40; Semester VIII: IPK < 2.00 atau SKS < 80',
+                'kriteria' => $kriteriaText,
+                'kriteria_groups' => $kriteriaGroups,
             ]);
         } catch (\Exception $e) {
             Log::error('Batch.previewCandidates: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
+    }
+
+    /**
+     * Render groups ke teks ringkas untuk display fallback.
+     */
+    private function renderKriteriaText(array $groups): string
+    {
+        $parts = [];
+        foreach ($groups as $group) {
+            $rulesText = array_map(
+                fn($r) => "{$r['nm_ketentuan']} {$r['operator']} {$r['nilai']}",
+                $group['rules']
+            );
+            $parts[] = "{$group['label']}: " . implode(' / ', $rulesText);
+        }
+        return implode('; ', $parts);
     }
 
     /**
@@ -216,12 +264,23 @@ class BatchController extends Controller
             $data['id_pembuat'] = $user->id_pengguna;
             $data['id_creator'] = $user->id_pengguna;
 
-            // Tarik kandidat dari PDUT (filtered by fakultas)
+            // Load kriteria dinamis dari ref.ketentuan_layanan
+            $kodeLayanan = $data['jenis_batch'] === 'habis_masa_mukim' ? 'BA-HMM' : 'BA-PUTUS';
+            $rules = $this->ketentuanRepository->getByKodeLayanan($kodeLayanan);
+            $tahunNow = (int) date('Y');
+            $bulanNow = (int) date('m');
+            $semExpr = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
+            // Tarik kandidat dari PDUT (filtered by fakultas + kriteria dinamis)
             $candidates = [];
             if ($data['jenis_batch'] === 'habis_masa_mukim') {
-                $candidates = $this->pdutRepository->getKandidatHMM($data['id_smt'], $data['id_fakultas']);
+                $fieldMap = ['jenjang' => 'jp.nm_jenj_didik', 'masa_studi_min' => $semExpr];
+                $kriteriaWhere = !empty($rules) ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'AND') : null;
+                $candidates = $this->pdutRepository->getKandidatHMM($data['id_smt'], $data['id_fakultas'], $kriteriaWhere);
             } else {
-                $candidates = $this->pdutRepository->getKandidatPutusStudi($data['id_smt'], $data['id_fakultas']);
+                $fieldMap = ['jenjang' => 'jp.nm_jenj_didik', 'semester' => $semExpr, 'ipk_min' => 'm.ipk', 'sks_min' => 'm.sks_lulus'];
+                $kriteriaWhere = !empty($rules) ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'OR') : null;
+                $candidates = $this->pdutRepository->getKandidatPutusStudi($data['id_smt'], $data['id_fakultas'], $kriteriaWhere);
             }
 
             // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
@@ -230,15 +289,13 @@ class BatchController extends Controller
                 $candidates = array_values(array_filter($candidates, fn($c) => !in_array($c->nim, $excludedNims)));
             }
 
-            // Set kriteria snapshot
+            // Set kriteria snapshot (dari rules aktif di DB pada saat batch dibuat)
             $data['kriteria_snapshot'] = json_encode([
                 'jenis_batch' => $data['jenis_batch'],
                 'id_smt' => $data['id_smt'],
                 'tgl_tarik' => date('Y-m-d H:i:s'),
                 'jumlah_kandidat' => count($candidates),
-                'kriteria' => $data['jenis_batch'] === 'habis_masa_mukim'
-                    ? ['D3' => '>=13 smt', 'S1' => '>=17 smt', 'S2' => '>=9 smt', 'S3' => '>=13 smt']
-                    : ['Sem_IV' => 'IPK<2.00 atau SKS<40', 'Sem_VIII' => 'IPK<2.00 atau SKS<80'],
+                'kriteria_groups' => $this->ketentuanRepository->formatForDisplay($rules),
             ]);
 
             $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
@@ -496,12 +553,23 @@ class BatchController extends Controller
 
             $user = $request->user();
 
+            // Load kriteria dinamis dari ref.ketentuan_layanan
+            $kodeLayanan = $batch->jenis_batch === 'habis_masa_mukim' ? 'BA-HMM' : 'BA-PUTUS';
+            $rules = $this->ketentuanRepository->getByKodeLayanan($kodeLayanan);
+            $tahunNow = (int) date('Y');
+            $bulanNow = (int) date('m');
+            $semExpr = "(({$tahunNow} - CAST(m.angkatan AS INT)) * 2) + " . ($bulanNow >= 9 ? 1 : 0);
+
             $candidates = [];
             $batchFakultas = $batch->id_fakultas ?? null;
             if ($batch->jenis_batch === 'habis_masa_mukim') {
-                $candidates = $this->pdutRepository->getKandidatHMM($batch->id_smt, $batchFakultas);
+                $fieldMap = ['jenjang' => 'jp.nm_jenj_didik', 'masa_studi_min' => $semExpr];
+                $kriteriaWhere = !empty($rules) ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'AND') : null;
+                $candidates = $this->pdutRepository->getKandidatHMM($batch->id_smt, $batchFakultas, $kriteriaWhere);
             } else {
-                $candidates = $this->pdutRepository->getKandidatPutusStudi($batch->id_smt, $batchFakultas);
+                $fieldMap = ['jenjang' => 'jp.nm_jenj_didik', 'semester' => $semExpr, 'ipk_min' => 'm.ipk', 'sks_min' => 'm.sks_lulus'];
+                $kriteriaWhere = !empty($rules) ? $this->ketentuanRepository->compileToSqlWhere($rules, $fieldMap, 'OR') : null;
+                $candidates = $this->pdutRepository->getKandidatPutusStudi($batch->id_smt, $batchFakultas, $kriteriaWhere);
             }
 
             // Exclude kandidat yang sudah dikonfirmasi di batch terbit sebelumnya
@@ -620,9 +688,13 @@ class BatchController extends Controller
                     $alasanFinal = $alasanExclude;
                 }
 
-                // Validasi: jika meninggal dunia, wajib upload dokumen
-                if (str_contains(strtolower($alasanExclude), 'meninggal dunia') && !$request->hasFile('dokumen_exclude')) {
+                // Validasi: alasan tertentu wajib upload dokumen pendukung
+                $alasanLower = strtolower($alasanExclude);
+                if (str_contains($alasanLower, 'meninggal dunia') && !$request->hasFile('dokumen_exclude')) {
                     return $this->errorResponse('Surat Keterangan Meninggal Dunia dari RS/Aparat Desa wajib diupload', 422);
+                }
+                if (str_contains($alasanLower, 'pindah studi') && !$request->hasFile('dokumen_exclude')) {
+                    return $this->errorResponse('SK Pindah Studi/Mutasi wajib diupload', 422);
                 }
             }
 
@@ -679,6 +751,123 @@ class BatchController extends Controller
     }
 
     /**
+     * Bulk verifikasi kandidat — proses banyak sekaligus.
+     * Untuk dikeluarkan: alasan tidak boleh yang butuh dokumen (Pindah Studi, Meninggal Dunia).
+     */
+    public function bulkVerifikasiKandidat(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'id_kandidat' => 'required|array|min:1',
+                'id_kandidat.*' => 'uuid',
+                'hasil' => 'required|string|in:dikonfirmasi,dikeluarkan',
+                'alasan_exclude' => 'required_if:hasil,dikeluarkan|nullable|string',
+                'alasan_exclude_lainnya' => 'nullable|string',
+            ]);
+
+            $user = $request->user();
+
+            $alasanFinal = null;
+            if ($data['hasil'] === 'dikeluarkan') {
+                $alasanExclude = $data['alasan_exclude'] ?? '';
+                $alasanLower = strtolower($alasanExclude);
+
+                // Bulk tidak mendukung alasan yang butuh dokumen
+                if (str_contains($alasanLower, 'meninggal dunia') || str_contains($alasanLower, 'pindah studi')) {
+                    return $this->errorResponse(
+                        'Alasan ini membutuhkan dokumen pendukung — silakan proses per kandidat satu per satu.',
+                        422
+                    );
+                }
+
+                if ($alasanExclude === 'Lainnya') {
+                    if (empty($data['alasan_exclude_lainnya'])) {
+                        return $this->errorResponse('Keterangan alasan wajib diisi jika memilih "Lainnya"', 422);
+                    }
+                    $alasanFinal = $data['alasan_exclude_lainnya'];
+                } else {
+                    $alasanFinal = $alasanExclude;
+                }
+            }
+
+            $statusKandidat = $data['hasil'] === 'dikeluarkan' ? 'dikeluarkan' : 'dikonfirmasi';
+            $sukses = 0;
+            $gagal = 0;
+            $errors = [];
+            $batchIdsAffected = [];
+
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            foreach ($data['id_kandidat'] as $idKandidat) {
+                try {
+                    $kandidat = $this->repository->pgSelectOne(
+                        "SELECT * FROM batch.kandidat_batch WHERE id_kandidat = ? AND soft_delete = false",
+                        [$idKandidat]
+                    );
+                    if (!$kandidat) {
+                        $gagal++;
+                        $errors[] = "Kandidat {$idKandidat} tidak ditemukan";
+                        continue;
+                    }
+                    if ($kandidat->status_kandidat !== 'masuk') {
+                        $gagal++;
+                        $errors[] = "{$kandidat->nm_mahasiswa}: sudah diverifikasi";
+                        continue;
+                    }
+
+                    // Cek apakah sudah pernah diverifikasi
+                    $existing = $this->repository->pgSelectOne(
+                        "SELECT id_verifikasi FROM batch.verifikasi_batch WHERE id_kandidat = ?", [$idKandidat]
+                    );
+                    if ($existing) {
+                        $gagal++;
+                        $errors[] = "{$kandidat->nm_mahasiswa}: sudah diverifikasi";
+                        continue;
+                    }
+
+                    $this->repository->updateKandidatStatus($idKandidat, $statusKandidat, $alasanFinal, $user->id_pengguna);
+                    $this->repository->createVerifikasi([
+                        'id_batch_penetapan' => $kandidat->id_batch_penetapan,
+                        'id_kandidat' => $idKandidat,
+                        'id_verifikator' => $user->id_pengguna,
+                        'nm_verifikator' => $user->nm_pengguna ?? $user->nama ?? '',
+                        'id_fakultas' => $kandidat->id_fakultas,
+                        'hasil' => $data['hasil'],
+                        'catatan' => $alasanFinal,
+                        'path_dokumen_exclude' => null,
+                    ]);
+
+                    $batchIdsAffected[$kandidat->id_batch_penetapan] = true;
+                    $sukses++;
+                } catch (\Exception $e) {
+                    $gagal++;
+                    $errors[] = "Error: " . $e->getMessage();
+                    Log::warning("bulkVerifikasiKandidat single error: " . $e->getMessage());
+                }
+            }
+
+            // Update batch counts untuk semua batch yang terdampak
+            foreach (array_keys($batchIdsAffected) as $idBatch) {
+                $this->repository->updateBatchCounts($idBatch);
+            }
+
+            $this->repository->pgCommit();
+
+            return $this->successResponse([
+                'sukses' => $sukses,
+                'gagal' => $gagal,
+                'errors' => $errors,
+            ], "{$sukses} kandidat berhasil diproses" . ($gagal > 0 ? ", {$gagal} gagal" : ''));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Batch.bulkVerifikasiKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Reset status kandidat kembali ke "masuk" (undo verifikasi).
      * Hanya bisa dilakukan sebelum finalisasi verifikasi.
      */
@@ -728,6 +917,94 @@ class BatchController extends Controller
             return $this->successResponse(null, 'Status kandidat berhasil direset ke "masuk"');
         } catch (\Exception $e) {
             Log::error('Batch.resetKandidat: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
+     * Bulk reset banyak kandidat ke status "masuk".
+     */
+    public function bulkResetKandidat(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'id_kandidat' => 'required|array|min:1',
+                'id_kandidat.*' => 'uuid',
+            ]);
+
+            $user = $request->user();
+            $sukses = 0;
+            $gagal = 0;
+            $errors = [];
+            $batchIdsAffected = [];
+
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            foreach ($data['id_kandidat'] as $idKandidat) {
+                try {
+                    $kandidat = $this->repository->pgSelectOne(
+                        "SELECT k.*, b.status AS batch_status FROM batch.kandidat_batch k
+                         JOIN batch.batch_penetapan b ON b.id_batch_penetapan = k.id_batch_penetapan
+                         WHERE k.id_kandidat = ? AND k.soft_delete = false",
+                        [$idKandidat]
+                    );
+                    if (!$kandidat) {
+                        $gagal++;
+                        $errors[] = "Kandidat {$idKandidat} tidak ditemukan";
+                        continue;
+                    }
+                    if (in_array($kandidat->batch_status, ['sk_dekan_terbit', 'terbit'])) {
+                        $gagal++;
+                        $errors[] = "{$kandidat->nm_mahasiswa}: batch sudah difinalisasi";
+                        continue;
+                    }
+                    if ($kandidat->status_kandidat === 'masuk') {
+                        $gagal++;
+                        $errors[] = "{$kandidat->nm_mahasiswa}: sudah dalam status masuk";
+                        continue;
+                    }
+
+                    // Hapus dokumen exclude jika ada
+                    $verif = $this->repository->pgSelectOne(
+                        "SELECT path_dokumen_exclude FROM batch.verifikasi_batch WHERE id_kandidat = ?",
+                        [$idKandidat]
+                    );
+                    if ($verif && !empty($verif->path_dokumen_exclude)) {
+                        try { $this->minioService->delete($verif->path_dokumen_exclude); } catch (\Exception $e) { /* ignore */ }
+                    }
+
+                    $this->repository->pgUpdate(
+                        "DELETE FROM batch.verifikasi_batch WHERE id_kandidat = ?",
+                        [$idKandidat]
+                    );
+
+                    $this->repository->updateKandidatStatus($idKandidat, 'masuk', null, $user->id_pengguna);
+
+                    $batchIdsAffected[$kandidat->id_batch_penetapan] = true;
+                    $sukses++;
+                } catch (\Exception $e) {
+                    $gagal++;
+                    $errors[] = "Error: " . $e->getMessage();
+                    Log::warning("bulkResetKandidat single error: " . $e->getMessage());
+                }
+            }
+
+            foreach (array_keys($batchIdsAffected) as $idBatch) {
+                $this->repository->updateBatchCounts($idBatch);
+            }
+
+            $this->repository->pgCommit();
+
+            return $this->successResponse([
+                'sukses' => $sukses,
+                'gagal' => $gagal,
+                'errors' => $errors,
+            ], "{$sukses} kandidat berhasil di-reset" . ($gagal > 0 ? ", {$gagal} gagal" : ''));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Batch.bulkResetKandidat: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
     }

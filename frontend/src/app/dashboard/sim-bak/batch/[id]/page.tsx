@@ -11,7 +11,7 @@ import { FiArrowLeft, FiCheck, FiX, FiUsers, FiAlertCircle, FiUpload, FiFile, Fi
 import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import toast, { Toaster } from "react-hot-toast";
-import { getBatchDetail, getBatchKandidat, verifikasiKandidat, uploadSkDekan, deleteSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat, deleteBatch, pullBatchCandidates, sendBatchToFakultas, resetKandidatStatus, returnBatchToFakultas } from "@/lib/services/sim-bak/simBakService";
+import { getBatchDetail, getBatchKandidat, verifikasiKandidat, bulkVerifikasiKandidat, bulkResetKandidat, uploadSkDekan, deleteSkDekan, finalizeBatchWithSK, finalizeVerifikasiFakultas, exportBatchKandidatUrl, getRefFakultas, sendEmailKandidat, getWhatsAppLinkKandidat, deleteBatch, pullBatchCandidates, sendBatchToFakultas, resetKandidatStatus, returnBatchToFakultas } from "@/lib/services/sim-bak/simBakService";
 import bakClient from "@/lib/api/bakClient";
 import { getToken } from "@/lib/api/client";
 import type { BatchPenetapan, KandidatBatch } from "@/lib/services/sim-bak/types";
@@ -51,6 +51,13 @@ export default function BatchDetailPage() {
   const [excludeAlasan, setExcludeAlasan] = useState("");
   const [excludeAlasanLainnya, setExcludeAlasanLainnya] = useState("");
   const [excludeDokumen, setExcludeDokumen] = useState<File | null>(null);
+  // Bulk action
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showBulkConfirmModal, setShowBulkConfirmModal] = useState(false);
+  const [showBulkExcludeModal, setShowBulkExcludeModal] = useState(false);
+  const [showBulkResetModal, setShowBulkResetModal] = useState(false);
+  const [bulkAlasan, setBulkAlasan] = useState("");
+  const [bulkAlasanLainnya, setBulkAlasanLainnya] = useState("");
   // Finalisasi verifikasi modal
   const [showFinalisasiVerifModal, setShowFinalisasiVerifModal] = useState(false);
 
@@ -267,6 +274,55 @@ export default function BatchDetailPage() {
       toast.error(msg);
     }
     finally { setActionLoading(false); }
+  };
+
+  const handleBulkConfirm = async () => {
+    setActionLoading(true);
+    try {
+      const result = await bulkVerifikasiKandidat({ id_kandidat: selectedIds, hasil: "dikonfirmasi" });
+      toast.success(`${result.sukses} kandidat dikonfirmasi${result.gagal > 0 ? `, ${result.gagal} gagal` : ""}`);
+      setShowBulkConfirmModal(false);
+      setSelectedIds([]);
+      fetchData();
+    } catch (e) {
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses bulk";
+      toast.error(msg);
+    } finally { setActionLoading(false); }
+  };
+
+  const handleBulkReset = async () => {
+    setActionLoading(true);
+    try {
+      const result = await bulkResetKandidat(selectedIds);
+      toast.success(`${result.sukses} kandidat di-reset${result.gagal > 0 ? `, ${result.gagal} gagal` : ""}`);
+      setShowBulkResetModal(false);
+      setSelectedIds([]);
+      fetchData();
+    } catch (e) {
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses bulk reset";
+      toast.error(msg);
+    } finally { setActionLoading(false); }
+  };
+
+  const handleBulkExclude = async () => {
+    setActionLoading(true);
+    try {
+      const result = await bulkVerifikasiKandidat({
+        id_kandidat: selectedIds,
+        hasil: "dikeluarkan",
+        alasan_exclude: bulkAlasan,
+        alasan_exclude_lainnya: bulkAlasan === "Lainnya" ? bulkAlasanLainnya : undefined,
+      });
+      toast.success(`${result.sukses} kandidat dikeluarkan${result.gagal > 0 ? `, ${result.gagal} gagal` : ""}`);
+      setShowBulkExcludeModal(false);
+      setBulkAlasan("");
+      setBulkAlasanLainnya("");
+      setSelectedIds([]);
+      fetchData();
+    } catch (e) {
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses bulk";
+      toast.error(msg);
+    } finally { setActionLoading(false); }
   };
 
   const handleUploadSkDekan = async () => {
@@ -538,9 +594,56 @@ export default function BatchDetailPage() {
           </div>
         )}
 
+        {/* Sticky Bulk Action Bar */}
+        {isAdminFakultas && batch.status === "verifikasi_fakultas" && selectedIds.length > 0 && (() => {
+          const selSet = new Set(selectedIds);
+          const selectedKandidat = kandidatList.filter(k => selSet.has(k.id_kandidat));
+          const allMasuk = selectedKandidat.every(k => k.status_kandidat === "masuk");
+          const allVerified = selectedKandidat.every(k => k.status_kandidat !== "masuk");
+          return (
+            <div className="sticky top-2 z-30 bg-blue-600 text-white shadow-lg rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top">
+              <div className="flex items-center gap-3">
+                <Chip size="sm" variant="solid" className="bg-white text-blue-700 font-bold">{selectedIds.length}</Chip>
+                <span className="text-sm font-medium">kandidat dipilih</span>
+                {!allMasuk && !allVerified && (
+                  <span className="text-xs text-amber-200">(campuran status — pilih salah satu saja)</span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {allMasuk && (
+                  <>
+                    <Button size="sm" color="success" variant="solid" startContent={<FiCheck className="w-4 h-4" />}
+                      onPress={() => setShowBulkConfirmModal(true)}>
+                      Konfirmasi Massal
+                    </Button>
+                    <Button size="sm" color="danger" variant="solid" startContent={<FiX className="w-4 h-4" />}
+                      onPress={() => setShowBulkExcludeModal(true)}>
+                      Keluarkan Massal
+                    </Button>
+                  </>
+                )}
+                {allVerified && (
+                  <Button size="sm" color="warning" variant="solid" startContent={<FiRotateCcw className="w-4 h-4" />}
+                    onPress={() => setShowBulkResetModal(true)}>
+                    Batal Verifikasi Massal
+                  </Button>
+                )}
+                <Button size="sm" variant="flat" className="bg-white/20 text-white"
+                  onPress={() => setSelectedIds([])}>
+                  Batal Pilih
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Kandidat Table */}
         <DataTable data={kandidatList} columns={columns} searchable searchKeys={["nim", "nm_mahasiswa", "nm_prodi", "nm_fakultas"]}
           searchPlaceholder="Cari kandidat..." defaultRowsPerPage={50}
+          selectable={isAdminFakultas && batch.status === "verifikasi_fakultas"}
+          getRowId={(item) => item.id_kandidat}
+          selectedIds={selectedIds}
+          onSelectionChange={(ids) => setSelectedIds(ids)}
           filterSlot={
             <div className="flex flex-wrap gap-2 items-center">
               <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
@@ -659,11 +762,13 @@ export default function BatchDetailPage() {
       {excludeModal && (() => {
         const isHMM = batch?.jenis_batch === "habis_masa_mukim";
         const opsiAlasan = isHMM
-          ? ["Sudah mengajukan undur diri", "Meninggal dunia", "Lainnya"]
-          : ["Mahasiswa double degree", "Jalur RPL (Rekognisi Pembelajaran Lampau)", "Diberi kesempatan lanjut studi", "Sudah mengajukan undur diri", "Meninggal dunia", "Lainnya"];
+          ? ["Sudah mengajukan undur diri", "Pindah Studi/Mutasi", "Meninggal dunia", "Lainnya"]
+          : ["Mahasiswa double degree", "Jalur RPL (Rekognisi Pembelajaran Lampau)", "Diberi kesempatan lanjut studi", "Sudah mengajukan undur diri", "Pindah Studi/Mutasi", "Meninggal dunia", "Lainnya"];
         const isMeninggal = excludeAlasan.toLowerCase().includes("meninggal dunia");
+        const isPindahStudi = excludeAlasan.toLowerCase().includes("pindah studi");
         const isLainnya = excludeAlasan === "Lainnya";
-        const isValid = excludeAlasan && (!isLainnya || excludeAlasanLainnya.trim()) && (!isMeninggal || excludeDokumen);
+        const needsDokumen = isMeninggal || isPindahStudi;
+        const isValid = excludeAlasan && (!isLainnya || excludeAlasanLainnya.trim()) && (!needsDokumen || excludeDokumen);
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -696,15 +801,17 @@ export default function BatchDetailPage() {
                   </div>
                 )}
 
-                {isMeninggal && (
+                {needsDokumen && (
                   <div>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-2">
-                      <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-                        Wajib upload Surat Keterangan Meninggal Dunia dari RS / Aparat Desa
+                    <div className={`${isPindahStudi ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800" : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"} border rounded-lg p-3 mb-2`}>
+                      <p className={`text-xs font-medium ${isPindahStudi ? "text-blue-700 dark:text-blue-300" : "text-amber-700 dark:text-amber-300"}`}>
+                        {isPindahStudi
+                          ? "Wajib upload SK Pindah Studi/Mutasi dari instansi terkait"
+                          : "Wajib upload Surat Keterangan Meninggal Dunia dari RS / Aparat Desa"}
                       </p>
                     </div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Dokumen Pendukung (PDF) <span className="text-red-500">*</span>
+                      {isPindahStudi ? "SK Pindah Studi/Mutasi (PDF)" : "Dokumen Pendukung (PDF)"} <span className="text-red-500">*</span>
                     </label>
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center">
                       <input type="file" accept=".pdf" onChange={e => setExcludeDokumen(e.target.files?.[0] || null)}
@@ -720,6 +827,116 @@ export default function BatchDetailPage() {
                     isDisabled={!isValid}
                     onPress={() => handleVerifikasi(excludeModal.id, "dikeluarkan")}>
                     Keluarkan
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal: Bulk Batal Verifikasi (Reset) */}
+      {showBulkResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkResetModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4">
+            <div className="p-6 space-y-4">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Batal Verifikasi Massal</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Reset status <span className="font-semibold">{selectedIds.length}</span> kandidat kembali ke <strong>masuk</strong>?
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Verifikasi sebelumnya akan dihapus. Dokumen pendukung (SK Pindah/Meninggal) yang sudah diupload juga ikut terhapus.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="flat" className="flex-1" onPress={() => setShowBulkResetModal(false)}>Batal</Button>
+                <Button color="warning" className="flex-1" isLoading={actionLoading}
+                  onPress={handleBulkReset}>
+                  Reset {selectedIds.length} Kandidat
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Bulk Konfirmasi */}
+      {showBulkConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkConfirmModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4">
+            <div className="p-6 space-y-4">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Konfirmasi Massal</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Konfirmasi <span className="font-semibold">{selectedIds.length}</span> kandidat sebagai masuk dalam daftar penetapan?
+              </p>
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  Semua kandidat terpilih akan ditandai <strong>dikonfirmasi</strong>. Tindakan ini dapat dibatalkan per kandidat selama batch belum difinalkan.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="flat" className="flex-1" onPress={() => setShowBulkConfirmModal(false)}>Batal</Button>
+                <Button color="success" className="flex-1" isLoading={actionLoading}
+                  onPress={handleBulkConfirm}>
+                  Konfirmasi {selectedIds.length} Kandidat
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Bulk Keluarkan */}
+      {showBulkExcludeModal && (() => {
+        const isHMM = batch?.jenis_batch === "habis_masa_mukim";
+        // Opsi tanpa alasan yang butuh dokumen
+        const opsiBulk = isHMM
+          ? ["Sudah mengajukan undur diri", "Lainnya"]
+          : ["Mahasiswa double degree", "Jalur RPL (Rekognisi Pembelajaran Lampau)", "Diberi kesempatan lanjut studi", "Sudah mengajukan undur diri", "Lainnya"];
+        const isBulkLainnya = bulkAlasan === "Lainnya";
+        const isBulkValid = bulkAlasan && (!isBulkLainnya || bulkAlasanLainnya.trim());
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkExcludeModal(false)} />
+            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6 space-y-4">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Keluarkan Massal</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Keluarkan <span className="font-semibold">{selectedIds.length}</span> kandidat dari batch ini dengan alasan yang sama?
+                </p>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    Untuk alasan <strong>Pindah Studi/Mutasi</strong> atau <strong>Meninggal Dunia</strong> yang butuh upload dokumen, silakan proses per kandidat satu per satu.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Alasan Pengeluaran <span className="text-red-500">*</span>
+                  </label>
+                  <select value={bulkAlasan} onChange={e => { setBulkAlasan(e.target.value); setBulkAlasanLainnya(""); }}
+                    className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <option value="">-- Pilih Alasan --</option>
+                    {opsiBulk.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                {isBulkLainnya && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Keterangan <span className="text-red-500">*</span>
+                    </label>
+                    <textarea rows={3} value={bulkAlasanLainnya} onChange={e => setBulkAlasanLainnya(e.target.value)}
+                      className="w-full text-sm ring-1 !ring-gray-400 !border !border-gray-400 shadow-sm rounded-lg px-3 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                      placeholder="Jelaskan alasan mengeluarkan kandidat..." />
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <Button variant="flat" className="flex-1" onPress={() => { setShowBulkExcludeModal(false); setBulkAlasan(""); setBulkAlasanLainnya(""); }}>Batal</Button>
+                  <Button color="danger" className="flex-1" isLoading={actionLoading} isDisabled={!isBulkValid}
+                    onPress={handleBulkExclude}>
+                    Keluarkan {selectedIds.length} Kandidat
                   </Button>
                 </div>
               </div>

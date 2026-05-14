@@ -34,6 +34,7 @@ export default function CreateBatchPage() {
     total: number;
     candidates: Array<Record<string, unknown>>;
     kriteria: string;
+    kriteria_groups?: Array<{ label: string; rules: Array<{ nm_ketentuan: string; operator: string; nilai: number; kode: string }> }>;
   } | null>(null);
 
   useEffect(() => {
@@ -122,53 +123,63 @@ export default function CreateBatchPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Jenis Penetapan *</label>
-                <select value={form.id_jenis_layanan}
-                  onChange={(e) => {
-                    const jl = batchLayanan.find(j => j.id_jenis_layanan === e.target.value);
-                    setForm({ ...form, id_jenis_layanan: e.target.value, jenis_batch: jl?.kode_layanan === "BA-HMM" ? "habis_masa_mukim" : "putus_studi" });
-                    setPreviewData(null);
-                  }}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Pilih Jenis Penetapan</option>
-                  {batchLayanan.map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
-                </select>
+                <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                  <select value={form.id_jenis_layanan}
+                    onChange={(e) => {
+                      const jl = batchLayanan.find(j => j.id_jenis_layanan === e.target.value);
+                      setForm({ ...form, id_jenis_layanan: e.target.value, jenis_batch: jl?.kode_layanan === "BA-HMM" ? "habis_masa_mukim" : "putus_studi" });
+                      setPreviewData(null);
+                    }}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                    <option value="">Pilih Jenis Penetapan</option>
+                    {batchLayanan.map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Semester Akademik *</label>
-                <select value={form.id_smt} onChange={(e) => { setForm({ ...form, id_smt: e.target.value }); setPreviewData(null); }}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Pilih Semester</option>
-                  {semesterList.map(s => (
-                    <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
-                  ))}
-                </select>
+                <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                  <select value={form.id_smt} onChange={(e) => { setForm({ ...form, id_smt: e.target.value }); setPreviewData(null); }}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                    <option value="">Pilih Semester</option>
+                    {semesterList.map(s => (
+                      <option key={s.id_smt} value={s.id_smt}>{s.nm_smt}{s.a_periode_aktif ? ' (aktif)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fakultas *</label>
-                <select value={filterFakultas} onChange={(e) => { setFilterFakultas(e.target.value); setPreviewData(null); }}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Pilih Fakultas</option>
-                  {fakultasList.map(f => (
-                    <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
-                  ))}
-                </select>
+                <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                  <select value={filterFakultas} onChange={(e) => { setFilterFakultas(e.target.value); setPreviewData(null); }}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none">
+                    <option value="">Pilih Fakultas</option>
+                    {fakultasList.map(f => (
+                      <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nama Batch *</label>
-              <input type="text" value={form.nm_batch} onChange={(e) => setForm({ ...form, nm_batch: e.target.value })}
-                placeholder="cth: Penetapan HMM Semester Genap 2024/2025"
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                <input type="text" value={form.nm_batch} onChange={(e) => setForm({ ...form, nm_batch: e.target.value })}
+                  placeholder="cth: Penetapan HMM Semester Genap 2024/2025"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none" />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Catatan</label>
-              <textarea value={form.catatan} onChange={(e) => setForm({ ...form, catatan: e.target.value })} rows={2}
-                placeholder="Catatan tambahan (opsional)..."
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              <div style={{ borderRadius: "0.5rem", border: "1px solid #d1d5db" }} className="overflow-hidden">
+                <textarea value={form.catatan} onChange={(e) => setForm({ ...form, catatan: e.target.value })} rows={2}
+                  placeholder="Catatan tambahan (opsional)..."
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none resize-none" />
+              </div>
             </div>
 
             {/* Preview Button */}
@@ -190,13 +201,30 @@ export default function CreateBatchPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preview Kandidat</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Kriteria: {previewData.kriteria}</p>
                 </div>
                 <Chip color={previewData.total > 0 ? "primary" : "default"} variant="flat" size="lg">
                   <FiUsers className="w-4 h-4 mr-1 inline" />
                   {previewData.total} mahasiswa
                 </Chip>
               </div>
+
+              {previewData.kriteria_groups && previewData.kriteria_groups.length > 0 ? (
+                <div className="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-2">Kriteria Tarik Kandidat:</p>
+                  <div className="space-y-1.5">
+                    {previewData.kriteria_groups.map((g, i) => (
+                      <div key={i} className="text-xs text-blue-700 dark:text-blue-400">
+                        <span className="font-semibold">{g.label}:</span>{" "}
+                        {g.rules.map((r, j) => (
+                          <span key={j}>{r.nm_ketentuan} {r.operator} {r.nilai}{j < g.rules.length - 1 ? " / " : ""}</span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : previewData.kriteria ? (
+                <p className="text-xs text-gray-500 mb-3">Kriteria: {previewData.kriteria}</p>
+              ) : null}
 
               {previewData.total === 0 ? (
                 <div className="text-center py-8">
