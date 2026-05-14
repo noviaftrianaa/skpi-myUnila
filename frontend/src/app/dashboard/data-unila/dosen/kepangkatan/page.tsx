@@ -12,14 +12,12 @@ import DosenProfileModal from "@/shared/components/data-unila/DosenProfileModal"
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import { MdSchool } from "react-icons/md";
-import {
-  FiFileText, FiUsers, FiCalendar, FiGrid, FiFilter, FiRotateCcw, FiX,
-} from "react-icons/fi";
+import { FiAward, FiUsers, FiCalendar, FiGrid, FiFilter, FiX } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import dosenDataService, {
-  type SertifikasiItem, type SertifikasiStats,
+  type KepangkatanItem, type KepangkatanStats,
 } from "@/lib/services/data-unila/dosenDataService";
 import mahasiswaDataService, {
   type MahasiswaFilters,
@@ -36,15 +34,19 @@ function num(v?: string | number | null): number {
   return Number.isNaN(n) ? 0 : n;
 }
 function fmt(n: number): string { return n.toLocaleString("id-ID"); }
-function pct(part: number, total: number): string {
-  if (!total) return "—";
-  return `${((part / total) * 100).toFixed(1)}%`;
+function fmtDate(s?: string | null): string {
+  if (!s) return "—";
+  try {
+    const d = new Date(s.replace(" ", "T"));
+    if (Number.isNaN(d.getTime())) return s;
+    return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  } catch { return s; }
 }
 
 function StatCard({
   icon, label, value, gradient, subtext,
 }: { icon: React.ReactNode; label: string; value: string | number; gradient: string; subtext?: string }) {
-  const display = typeof value === "number" ? fmt(value) : fmt(num(value));
+  const display = typeof value === "number" ? fmt(value) : (/^[\d.,\s/–-]+$/.test(value) ? value : fmt(num(value)));
   return (
     <div className={`relative overflow-hidden rounded-2xl shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br ${gradient}`}>
       <div className="absolute -top-10 -right-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
@@ -62,31 +64,30 @@ function StatCard({
   );
 }
 
-export default function SertifikasiPage() {
+export default function KepangkatanPage() {
   useRequireAuth();
   const scope = useRoleBasedScope();
   const forcedFak = scope.forcedFakultas || "";
   const forcedJur = scope.forcedJurusan || "";
   const forcedProdi = scope.forcedProdi || "";
 
-  const [data, setData] = useState<SertifikasiItem[]>([]);
+  const [data, setData] = useState<KepangkatanItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<SertifikasiStats | null>(null);
+  const [stats, setStats] = useState<KepangkatanStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState("tahun");
+  const [sortBy, setSortBy] = useState("tmt_sk_pangkat");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
   const [filterProdi, setFilterProdi] = useState(forcedProdi);
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
-  const [filterTahun, setFilterTahun] = useState("");
-  const [filterJenisSert, setFilterJenisSert] = useState("");
+  const [filterGolongan, setFilterGolongan] = useState("");
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
   const [selectedSdm, setSelectedSdm] = useState<string | null>(null);
@@ -95,14 +96,12 @@ export default function SertifikasiPage() {
   useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
   useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
-  // URL param init — deep-link from Pimpinan / external (e.g. ?tahun=2024&jenis_sertifikasi=Serdos)
+  // URL param init — deep-link from Pimpinan / external (e.g. ?golongan=IV)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const usp = new URLSearchParams(window.location.search);
-    const t = usp.get("tahun");
-    if (t) setFilterTahun(t);
-    const j = usp.get("jenis_sertifikasi");
-    if (j) setFilterJenisSert(j);
+    const v = usp.get("golongan");
+    if (v) setFilterGolongan(v);
   }, []);
 
   useEffect(() => {
@@ -112,21 +111,21 @@ export default function SertifikasiPage() {
 
   useEffect(() => {
     setLoadingStats(true);
-    dosenDataService.getSertifikasiStats({
+    dosenDataService.getKepangkatanStats({
       id_fakultas: filterFak || undefined,
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
-      jenis_sertifikasi: filterJenisSert || undefined,
+      golongan: filterGolongan || undefined,
     } as Record<string, string>)
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoadingStats(false));
-  }, [filterFak, filterProdi, filterJurusan, unitFilterStr, filterJenisSert]);
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr, filterGolongan]);
 
   useEffect(() => {
     setLoading(true);
-    dosenDataService.getSertifikasiList({
+    dosenDataService.getKepangkatanList({
       page, limit,
       search: search || undefined,
       sort_by: sortBy, sort_order: sortOrder,
@@ -134,45 +133,35 @@ export default function SertifikasiPage() {
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
-      tahun: filterTahun || undefined,
-      jenis_sertifikasi: filterJenisSert || undefined,
+      golongan: filterGolongan || undefined,
     } as Record<string, any>)
-      .then((r: { data: SertifikasiItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
-      .catch(() => toast.error("Gagal memuat data sertifikasi"))
+      .then((r: { data: KepangkatanItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
+      .catch(() => toast.error("Gagal memuat data kepangkatan"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterTahun, filterJenisSert]);
+  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterGolongan]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => {
     setSortBy(k); setSortOrder(o); setPage(1);
   }, []);
 
-  const fakOptions: DropdownOption[] = (orgFilters?.fakultas || []).map((f) => ({ value: f.id_fakultas, label: f.nm_fakultas }));
-  const prodiOptions: DropdownOption[] = (orgFilters?.prodi || []).map((p) => ({ value: p.id_sms, label: p.nm_prodi, sublabel: p.jenjang }));
-  // Generate tahun options from current year - 20 years
-  const currentYear = new Date().getFullYear();
-  const tahunOptions: DropdownOption[] = Array.from({ length: 20 }, (_, i) => {
-    const y = String(currentYear - i);
-    return { value: y, label: y };
-  });
-
-  // Derive jenis sertifikasi options dari stats jika tersedia (fallback: cari by_jenis_sertifikasi)
-  const jenisSertOptions: DropdownOption[] = ((stats as unknown as { by_jenis_sertifikasi?: Array<{ nm_jenis_sertifikasi: string }> })?.by_jenis_sertifikasi || [])
-    .map((j) => ({ value: j.nm_jenis_sertifikasi, label: j.nm_jenis_sertifikasi }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const golonganOptions: DropdownOption[] = (stats?.by_golongan || [])
+    .map((g) => ({ value: g.kode_gol, label: `${g.kode_gol} – ${g.nm_pangkat}`, sublabel: `${g.jumlah}` }));
 
   const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
-  if (filterTahun) activeChips.push({ key: "thn", label: `Tahun ${filterTahun}`, clear: () => { setFilterTahun(""); setPage(1); } });
-  if (filterJenisSert) activeChips.push({ key: "js", label: `Jenis: ${filterJenisSert}`, clear: () => { setFilterJenisSert(""); setPage(1); } });
+  if (filterGolongan) activeChips.push({ key: "gol", label: `Golongan: ${filterGolongan}`, clear: () => { setFilterGolongan(""); setPage(1); } });
   const hasFilter = activeChips.length > 0;
 
   const EXPORT_HEADERS = {
     nm_sdm: "Nama Dosen",
     nidn: "NIDN",
     nip: "NIP",
-    no_sert: "No SK Sertifikasi",
-    tahun: "Tahun",
-    nrg: "NRG",
-    bidang_studi: "Bidang Studi",
+    golongan: "Golongan",
+    pangkat: "Pangkat",
+    sk_pangkat: "No SK",
+    tgl_sk_pangkat: "Tgl SK",
+    tmt_sk_pangkat: "TMT SK",
+    masa_kerja_gol_thn: "Masa Kerja (Thn)",
+    masa_kerja_gol_bln: "Masa Kerja (Bln)",
     nm_prodi: "Program Studi",
     nm_fakultas: "Fakultas",
   } as const;
@@ -182,16 +171,16 @@ export default function SertifikasiPage() {
   const handleExport = (fmtType: ExportFormat) => {
     if (fmtType === "csv-server") { toast("Server export belum tersedia"); return; }
     if (!data.length) { toast.error("Tidak ada data"); return; }
-    const baseName = `sertifikasi-dosen-${filterTahun || "all"}`;
+    const baseName = `kepangkatan-dosen-${filterGolongan || "all"}`;
     if (fmtType === "excel") {
-      exportToExcel(dataForExport as unknown as Record<string, unknown>[], baseName, "Sertifikasi", EXPORT_HEADERS);
+      exportToExcel(dataForExport as unknown as Record<string, unknown>[], baseName, "Kepangkatan", EXPORT_HEADERS);
       toast.success("Excel berhasil di-download");
     } else if (fmtType === "csv-client") {
       exportToCsv(dataForExport as unknown as Record<string, unknown>[], baseName, EXPORT_HEADERS);
       toast.success("CSV berhasil di-download");
     } else if (fmtType === "pdf") {
       exportToPdf(dataForExport as unknown as Record<string, unknown>[], baseName, {
-        title: "Sertifikasi Dosen Universitas Lampung",
+        title: "Riwayat Kepangkatan Dosen Universitas Lampung",
         headers: EXPORT_HEADERS,
         orientation: "landscape",
       });
@@ -202,17 +191,7 @@ export default function SertifikasiPage() {
     }
   };
 
-  const handleReset = () => {
-    setFilterTahun("");
-    setFilterJenisSert("");
-    setUnitItems([]);
-    if (!forcedFak) setFilterFak("");
-    if (!forcedJur) setFilterJurusan("");
-    if (!forcedProdi) setFilterProdi("");
-    setPage(1);
-  };
-
-  const columns: Column<SertifikasiItem>[] = [
+  const columns: Column<KepangkatanItem>[] = [
     {
       key: "nm_sdm", label: "NAMA DOSEN", sortable: true,
       render: (i) => (
@@ -225,69 +204,51 @@ export default function SertifikasiPage() {
       ),
     },
     {
-      key: "jenis_sertifikasi", label: "JENIS", width: "140px", sortable: false,
+      key: "pangkat", label: "PANGKAT / GOLONGAN", sortable: true,
       render: (i) => {
-        const j = i.jenis_sertifikasi || "—";
+        const g = i.golongan || "—";
         const tone =
-          /Dosen/i.test(j) ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300" :
-          /Profesi/i.test(j) ? "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300" :
-          /Kompetensi/i.test(j) ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300" :
-          /Asesor/i.test(j) ? "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300" :
+          /^IV/i.test(g) ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300" :
+          /^III/i.test(g) ? "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300" :
+          /^II/i.test(g) ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300" :
           "bg-slate-50 text-slate-700 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300";
         return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold ring-1 ring-inset ${tone}`} title={j}>
-            {j}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold font-mono ring-1 ring-inset ${tone}`}>{g}</span>
+            <span className="text-sm text-gray-800 dark:text-gray-200 line-clamp-1">{i.pangkat || "—"}</span>
+          </div>
         );
       },
     },
     {
-      key: "bidang_studi", label: "BIDANG STUDI", sortable: true,
+      key: "sk_pangkat", label: "NO SK", width: "160px",
+      render: (i) => (
+        <span className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate max-w-[150px] block" title={i.sk_pangkat}>
+          {i.sk_pangkat || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "tmt_sk_pangkat", label: "TMT SK", width: "120px", sortable: true,
+      render: (i) => <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{fmtDate(i.tmt_sk_pangkat)}</span>,
+    },
+    {
+      key: "masa_kerja_gol_thn", label: "MASA KERJA", width: "100px", align: "center" as const,
+      render: (i) => (
+        <span className="text-xs font-mono text-emerald-700 dark:text-emerald-300 tabular-nums">
+          {i.masa_kerja_gol_thn != null ? `${i.masa_kerja_gol_thn} thn` : "—"}
+          {i.masa_kerja_gol_bln != null && i.masa_kerja_gol_bln > 0 ? ` ${i.masa_kerja_gol_bln} bln` : ""}
+        </span>
+      ),
+    },
+    {
+      key: "nm_prodi", label: "HOMEBASE",
       render: (i) => (
         <div>
-          <div className="text-sm text-gray-800 dark:text-gray-200 line-clamp-1">{i.bidang_studi || "—"}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{i.nm_prodi || "—"} · {i.nm_fakultas || "—"}</div>
+          <div className="text-sm text-gray-800 dark:text-gray-200 line-clamp-1">{i.nm_prodi || "—"}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{i.nm_fakultas || "—"}</div>
         </div>
       ),
-    },
-    {
-      key: "no_sert", label: "NO SK", width: "160px",
-      render: (i) => (
-        <span className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate max-w-[150px] block" title={i.no_sert}>
-          {i.no_sert || "—"}
-        </span>
-      ),
-    },
-    {
-      key: "tahun", label: "TAHUN", width: "80px", align: "center" as const, sortable: true,
-      render: (i) => (
-        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300">
-          {i.tahun || "—"}
-        </span>
-      ),
-    },
-    {
-      key: "nrg", label: "NRG", width: "120px",
-      render: (i) => (
-        <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{i.nrg || "—"}</span>
-      ),
-    },
-    {
-      key: "status_dosen", label: "STATUS", width: "120px", align: "center" as const,
-      render: (i) => {
-        const s = i.status_dosen || "—";
-        const tone =
-          s === "Aktif" ? "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300" :
-          s === "Pensiun" ? "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300" :
-          s === "Non-Aktif" ? "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300" :
-          s === "—" ? "bg-gray-100 text-gray-500 ring-gray-200 dark:bg-gray-500/10 dark:text-gray-400" :
-          "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300";
-        return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 ring-inset ${tone}`}>
-            {s}
-          </span>
-        );
-      },
     },
   ];
 
@@ -297,14 +258,14 @@ export default function SertifikasiPage() {
       appIcon={<MdSchool className="w-6 h-6 text-white" />}
       appKey={APP_KEY}
       fallbackMenus={dataUnilaMenuConfig}
-      pageTitle="Sertifikasi Dosen"
+      pageTitle="Riwayat Kepangkatan Dosen"
     >
       <Toaster position="top-right" />
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Sertifikasi Dosen</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Riwayat sertifikasi pendidik dosen Unila — SK, NRG, dan bidang studi</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Riwayat Kepangkatan Dosen</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Riwayat pangkat & golongan dosen — SK pangkat, TMT, dan masa kerja</p>
           </div>
           {hasFilter && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/30">
@@ -320,19 +281,15 @@ export default function SertifikasiPage() {
           const totalDosen = num(stats.total_dosen);
           return (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard icon={<FiFileText className="w-6 h-6" />} label="Total Sertifikasi" value={total} gradient="from-blue-500 to-indigo-600" />
-              <StatCard icon={<FiUsers className="w-6 h-6" />} label="Dosen Tersertifikasi" value={totalDosen} gradient="from-emerald-500 to-teal-600" subtext={`${fmt(total - totalDosen)} sertifikat duplikat`} />
-              <StatCard icon={<FiGrid className="w-6 h-6" />} label="Jenis Sertifikasi" value={num(stats.total_jenis)} gradient="from-violet-500 to-purple-600" />
+              <StatCard icon={<FiAward className="w-6 h-6" />} label="Total Riwayat" value={total} gradient="from-blue-500 to-indigo-600" />
+              <StatCard icon={<FiUsers className="w-6 h-6" />} label="Dosen Tercatat" value={totalDosen} gradient="from-emerald-500 to-teal-600" subtext={`rata-rata ${total && totalDosen ? (total / totalDosen).toFixed(1) : "—"} pangkat/dosen`} />
+              <StatCard icon={<FiGrid className="w-6 h-6" />} label="Jumlah Golongan" value={num(stats.total_golongan)} gradient="from-violet-500 to-purple-600" />
               <StatCard
                 icon={<FiCalendar className="w-6 h-6" />}
-                label="Rentang Tahun"
-                value={
-                  (stats as unknown as { tahun_min?: number; tahun_max?: number }).tahun_min && (stats as unknown as { tahun_min?: number; tahun_max?: number }).tahun_max
-                    ? `${(stats as unknown as { tahun_min: number }).tahun_min} – ${(stats as unknown as { tahun_max: number }).tahun_max}`
-                    : "—"
-                }
+                label="Rentang TMT"
+                value={stats.tmt_min && stats.tmt_max ? `${new Date(stats.tmt_min).getFullYear()} – ${new Date(stats.tmt_max).getFullYear()}` : "—"}
                 gradient="from-amber-500 to-orange-500"
-                subtext={`${num(stats.total_tahun)} tahun berbeda`}
+                subtext="tahun min-max"
               />
             </div>
           );
@@ -354,7 +311,7 @@ export default function SertifikasiPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                 <UnitFilter
                   data={orgFilters}
                   value={unitItems}
@@ -363,13 +320,10 @@ export default function SertifikasiPage() {
                   forcedJurusan={forcedJur || undefined}
                   forcedProdi={forcedProdi || undefined}
                 />
-                <Dropdown label="Tahun Sertifikasi" value={filterTahun}
-                  onChange={(v) => { setFilterTahun(v); setPage(1); }}
-                  options={tahunOptions} placeholder="Semua Tahun" />
-                {jenisSertOptions.length > 0 && (
-                  <Dropdown label="Jenis Sertifikasi" value={filterJenisSert}
-                    onChange={(v) => { setFilterJenisSert(v); setPage(1); }}
-                    options={jenisSertOptions} placeholder="Semua Jenis" searchable />
+                {golonganOptions.length > 0 && (
+                  <Dropdown label="Golongan" value={filterGolongan}
+                    onChange={(v) => { setFilterGolongan(v); setPage(1); }}
+                    options={golonganOptions} placeholder="Semua Golongan" searchable />
                 )}
               </div>
 
@@ -393,7 +347,7 @@ export default function SertifikasiPage() {
               onRowsPerPageChange={(n) => { setLimit(n); setPage(1); }}
               onSearchChange={(q) => { setSearch(q); setPage(1); }}
               onSortChange={handleSort}
-              searchPlaceholder="Cari nama dosen, NIDN, NRG..."
+              searchPlaceholder="Cari nama dosen, NIDN, SK pangkat..."
               defaultRowsPerPage={10}
             />
           </motion.div>

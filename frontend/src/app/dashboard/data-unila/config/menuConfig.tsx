@@ -20,18 +20,23 @@ export const dataUnilaMenuConfig = [
     ],
   },
   {
-    title: "Data Dosen & SDM",
+    title: "Data Dosen & Tendik",
     icon: <FiUsers className="w-4 h-4" />,
     children: [
       { title: "Daftar Dosen", href: "/dashboard/data-unila/dosen" },
       { title: "Jabatan Fungsional", href: "/dashboard/data-unila/dosen/jabfung" },
-      { title: "Sertifikasi", href: "/dashboard/data-unila/dosen/sertifikasi" },
+      { title: "Riwayat Pendidikan", href: "/dashboard/data-unila/dosen/pendidikan" },
+      { title: "Riwayat Kepangkatan", href: "/dashboard/data-unila/dosen/kepangkatan" },
+      { title: "Tugas Tambahan", href: "/dashboard/data-unila/dosen/tugas-tambahan" },
+      { title: "Riwayat Sertifikasi", href: "/dashboard/data-unila/dosen/sertifikasi" },
+      { title: "Daftar Tendik", href: "/dashboard/data-unila/dosen/tendik" },
     ],
   },
   {
     title: "Data Tridarma",
     icon: <MdScience className="w-4 h-4" />,
     children: [
+      { title: "Pengajaran", href: "/dashboard/data-unila/tridarma/pengajaran" },
       { title: "Penelitian", href: "/dashboard/data-unila/tridarma/penelitian" },
       { title: "Pengabdian", href: "/dashboard/data-unila/tridarma/pengabdian" },
       { title: "Publikasi", href: "/dashboard/data-unila/tridarma/publikasi" },
@@ -68,11 +73,6 @@ export const dataUnilaMenuConfig = [
   {
     title: "Tracer Study",
     href: "/dashboard/data-unila/tracer",
-    icon: <FiTrendingUp className="w-4 h-4" />,
-  },
-  {
-    title: "Dashboard IKU",
-    href: "/dashboard/data-unila/iku",
     icon: <FiTrendingUp className="w-4 h-4" />,
   },
 ];
