@@ -37,10 +37,10 @@ class TridarmaDataService
         return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getPublikasiList($params));
     }
 
-    public function getPublikasiStats(): array
+    public function getPublikasiStats(array $params = []): array
     {
-        $key = $this->cache->buildKey('data-unila', 'publikasi-stats', []);
-        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPublikasiStats());
+        $key = $this->cache->buildKey('data-unila', 'publikasi-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPublikasiStats($params));
     }
 
     public function getPrestasi(array $params): array
@@ -49,9 +49,21 @@ class TridarmaDataService
         return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getPrestasiList($params));
     }
 
-    public function getPrestasiStats(): array
+    public function getPrestasiStats(array $params = []): array
     {
-        $key = $this->cache->buildKey('data-unila', 'prestasi-stats', []);
-        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPrestasiStats());
+        $key = $this->cache->buildKey('data-unila', 'prestasi-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPrestasiStats($params));
+    }
+
+    public function getPengajaran(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'pengajaran-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getPengajaranList($params));
+    }
+
+    public function getPengajaranStats(array $params = []): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'pengajaran-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPengajaranStats($params));
     }
 }

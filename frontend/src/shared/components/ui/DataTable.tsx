@@ -242,12 +242,13 @@ export default function DataTable<T extends Record<string, any>>({
                 }
               }}
               classNames={{
-                base: "w-[70px] sm:w-[80px]",
-                trigger: "bg-white h-8 sm:h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200 px-2 sm:px-3",
-                value: "text-xs sm:text-sm font-semibold text-gray-700 pr-1",
-                innerWrapper: "pr-5",
-                selectorIcon: "text-gray-500 right-2",
-                popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-100",
+                base: "w-[80px] sm:w-[90px]",
+                trigger: "!bg-white !h-9 sm:!h-10 !min-h-0 !rounded-xl !border !border-gray-300 !shadow-sm hover:!border-blue-500 hover:!shadow-md transition-all duration-200 !px-3",
+                value: "!text-sm sm:!text-base !font-bold !text-gray-900 !pr-1",
+                innerWrapper: "!pr-6",
+                selectorIcon: "!text-gray-600 !right-2 !w-4 !h-4",
+                popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-200",
+                listbox: "!font-medium",
               }}
             >
               {selectItems.map((item) => (

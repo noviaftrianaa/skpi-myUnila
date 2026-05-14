@@ -9,10 +9,20 @@
 import { dashboardClient } from "@/lib/api/dashboardClient";
 
 export interface OverviewTotals {
-  mahasiswa: { total: number; aktif: number; lulus: number };
+  mahasiswa: { total: number; aktif: number };
   dosen: { total: number; aktif: number };
+  tendik: { total: number };
   kerjasama: { total: number; aktif: number };
   tracer: { total: number };
+  tridarma: {
+    total: number;
+    pengajaran: number;
+    penelitian: number;
+    pengabdian: number;
+    publikasi: number;
+  };
+  prodi: { total: number };
+  keuangan: { total: number };
 }
 
 export default {

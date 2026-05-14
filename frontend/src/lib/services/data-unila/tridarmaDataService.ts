@@ -25,6 +25,27 @@ export interface PrestasiStats {
   by_tahun: Array<{ tahun: number; jumlah: number }>;
 }
 
+export interface PengajaranItem {
+  id_kls: string;
+  nama_kelas: string;
+  mata_kuliah: string;
+  kode_mk: string | null;
+  sks_mk: number | null;
+  semester: string;
+  prodi: string;
+  fakultas: string | null;
+  jumlah_dosen: number;
+}
+
+export interface PengajaranStats {
+  total_kelas: number;
+  total_matkul: number;
+  total_prodi: number;
+  total_dosen: number;
+  total_sks: number;
+  semester_aktif: string;
+}
+
 export const tridarmaDataService = {
   async getLitabmas(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/litabmas', { params });
@@ -38,16 +59,24 @@ export const tridarmaDataService = {
     const r = await dashboardClient.get('/data/tridarma/publikasi', { params });
     return r.data.data;
   },
-  async getPublikasiStats(): Promise<PublikasiStats> {
-    const r = await dashboardClient.get('/data/tridarma/publikasi/stats');
+  async getPublikasiStats(params: Record<string, any> = {}): Promise<PublikasiStats> {
+    const r = await dashboardClient.get('/data/tridarma/publikasi/stats', { params });
     return r.data.data;
   },
   async getPrestasi(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/prestasi', { params });
     return r.data.data;
   },
-  async getPrestasiStats(): Promise<PrestasiStats> {
-    const r = await dashboardClient.get('/data/tridarma/prestasi/stats');
+  async getPrestasiStats(params: Record<string, any> = {}): Promise<PrestasiStats> {
+    const r = await dashboardClient.get('/data/tridarma/prestasi/stats', { params });
+    return r.data.data;
+  },
+  async getPengajaran(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/tridarma/pengajaran', { params });
+    return r.data.data;
+  },
+  async getPengajaranStats(params: Record<string, any> = {}): Promise<PengajaranStats> {
+    const r = await dashboardClient.get('/data/tridarma/pengajaran/stats', { params });
     return r.data.data;
   },
 };
