@@ -61,6 +61,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/prestasi', [PrestasiController::class, 'index']);
         Route::get('/kerjasama', [KerjasamaController::class, 'index']);
         Route::get('/iku', [IkuController::class, 'index']);
+        Route::get('/iku/meta', [IkuController::class, 'meta']);
+        Route::get('/iku/{id}', [IkuController::class, 'single'])->whereNumber('id');
     });
 
     // ================================================================
@@ -77,7 +79,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/lulusan/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'lulusanStats']);
             Route::get('/aktivitas', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitas']);
             Route::get('/aktivitas/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitasStats']);
+            Route::get('/aktivitas/filters', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitasFilters']);
+            Route::get('/resolve-nim', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'resolveByNim']);
+            Route::get('/{id}/profile', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'profile']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'show']);
+        });
+
+        // Tendik (sumber: sikep.pegawai)
+        Route::prefix('tendik')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DataUnila\TendikDataController::class, 'index']);
+            Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\TendikDataController::class, 'stats']);
+            Route::get('/filters', [\App\Http\Controllers\Api\DataUnila\TendikDataController::class, 'filters']);
         });
 
         // Dosen & SDM
@@ -89,6 +101,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/jabfung/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'jabfungStats']);
             Route::get('/sertifikasi', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'sertifikasi']);
             Route::get('/sertifikasi/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'sertifikasiStats']);
+            Route::get('/pendidikan', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'pendidikan']);
+            Route::get('/pendidikan/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'pendidikanStats']);
+            Route::get('/kepangkatan', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'kepangkatan']);
+            Route::get('/kepangkatan/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'kepangkatanStats']);
+            Route::get('/tugas-tambahan', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'tugasTambahan']);
+            Route::get('/tugas-tambahan/stats', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'tugasTambahanStats']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\DosenDataController::class, 'show']);
         });
 
@@ -100,6 +118,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/publikasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasiStats']);
             Route::get('/prestasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasi']);
             Route::get('/prestasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasiStats']);
+            Route::get('/pengajaran', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaran']);
+            Route::get('/pengajaran/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaranStats']);
         });
 
         // Akademik (Prodi, Akreditasi, Matkul)

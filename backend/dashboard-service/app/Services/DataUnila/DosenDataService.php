@@ -37,6 +37,8 @@ class DosenDataService
                 'riwayat_fungsional' => $this->repository->getRiwayatFungsional($id),
                 'riwayat_pendidikan' => $this->repository->getRiwayatPendidikan($id),
                 'sertifikasi' => $this->repository->getSertifikasi($id),
+                'riwayat_kepangkatan' => $this->repository->getRiwayatKepangkatan($id),
+                'tugas_tambahan' => $this->repository->getTugasTambahan($id),
             ];
         });
     }
@@ -74,5 +76,41 @@ class DosenDataService
     {
         $key = $this->cache->buildKey('data-unila', 'sertifikasi-stats', $params);
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getSertifikasiStats($params));
+    }
+
+    public function getPendidikanList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'pendidikan-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getPendidikanList($params));
+    }
+
+    public function getPendidikanStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'pendidikan-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPendidikanStats($params));
+    }
+
+    public function getKepangkatanList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kepangkatan-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getKepangkatanList($params));
+    }
+
+    public function getKepangkatanStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kepangkatan-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getKepangkatanStats($params));
+    }
+
+    public function getTugasTambahanList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'tugas-tambahan-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getTugasTambahanList($params));
+    }
+
+    public function getTugasTambahanStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'tugas-tambahan-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getTugasTambahanStats($params));
     }
 }
