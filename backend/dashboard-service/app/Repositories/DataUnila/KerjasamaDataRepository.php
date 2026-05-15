@@ -6,6 +6,10 @@ class KerjasamaDataRepository extends BaseDataRepository
 {
     public function getList(array $params): array
     {
+        // kerjasama.mou tidak punya kolom unit (id_sp = Universitas saja).
+        // Strip org filter agar paginate() tidak inject `s.id_fak_unila` ke SQL.
+        $params = array_diff_key($params, array_flip(['id_fakultas', 'id_prodi', 'id_sms', 'id_jurusan', 'unit_filter']));
+
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), m.id_mou) as id_mou,

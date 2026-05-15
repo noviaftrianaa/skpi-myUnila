@@ -147,6 +147,8 @@ export default function BimbinganPage() {
     nm_mahasiswa: "Mahasiswa",
     nipd_mahasiswa: "NIM",
     urutan_promotor: "Urutan Promotor",
+    no_sk: "No. SK",
+    tgl_sk: "Tgl SK",
     tgl_mulai: "Tgl Mulai",
     tgl_selesai: "Tgl Selesai",
     nm_prodi: "Program Studi",
@@ -239,8 +241,18 @@ export default function BimbinganPage() {
       ),
     },
     {
-      key: "tgl_mulai", label: "TGL MULAI", width: "110px", sortable: true,
-      render: (i) => <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{i.tgl_mulai || "—"}</span>,
+      key: "no_sk", label: "NO. SK / TGL", width: "180px",
+      render: (i) => {
+        const noSk = (i as unknown as { no_sk?: string | null }).no_sk;
+        const tglSk = (i as unknown as { tgl_sk?: string | null }).tgl_sk;
+        if (!noSk && !tglSk) return <span className="text-xs text-gray-400">—</span>;
+        return (
+          <div className="text-xs leading-tight">
+            {noSk && <div className="font-mono text-gray-800 dark:text-gray-200 break-words">{noSk}</div>}
+            {tglSk && <div className="text-gray-500 dark:text-gray-400 font-mono mt-0.5">{tglSk}</div>}
+          </div>
+        );
+      },
     },
   ];
 

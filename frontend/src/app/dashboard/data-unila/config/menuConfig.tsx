@@ -1,5 +1,5 @@
 import {
-  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp, FiMapPin,
+  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp, FiMapPin, FiAward,
 } from "react-icons/fi";
 import { MdSchool, MdScience } from "react-icons/md";
 
@@ -14,7 +14,6 @@ export const dataUnilaMenuConfig = [
     icon: <MdSchool className="w-4 h-4" />,
     children: [
       { title: "Daftar Mahasiswa", href: "/dashboard/data-unila/mahasiswa" },
-      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
       { title: "KTW", href: "/dashboard/data-unila/mahasiswa/ktw" },
       { title: "Aktivitas Mahasiswa", href: "/dashboard/data-unila/mahasiswa/aktivitas" },
     ],
@@ -75,8 +74,12 @@ export const dataUnilaMenuConfig = [
     ],
   },
   {
-    title: "Tracer Study",
-    href: "/dashboard/data-unila/tracer",
-    icon: <FiTrendingUp className="w-4 h-4" />,
+    title: "Data Alumni",
+    icon: <FiAward className="w-4 h-4" />,
+    children: [
+      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
+      { title: "Tracer Study", href: "/dashboard/data-unila/tracer" },
+      { title: "User Survey", href: "/dashboard/data-unila/alumni/user-survey" },
+    ],
   },
 ];

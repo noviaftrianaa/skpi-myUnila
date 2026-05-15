@@ -25,10 +25,10 @@ class TridarmaDataService
         return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getLitabmasList($params));
     }
 
-    public function getLitabmasStats(): array
+    public function getLitabmasStats(array $params = []): array
     {
-        $key = $this->cache->buildKey('data-unila', 'litabmas-stats', []);
-        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getLitabmasStats());
+        $key = $this->cache->buildKey('data-unila', 'litabmas-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getLitabmasStats($params));
     }
 
     public function getLitabmasAnggota(string $idLitabmas, int $mhsLimit = 100, int $mhsOffset = 0): array

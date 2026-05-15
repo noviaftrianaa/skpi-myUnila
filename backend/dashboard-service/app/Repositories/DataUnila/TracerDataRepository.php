@@ -9,6 +9,7 @@ class TracerDataRepository extends BaseDataRepository
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), t.id_hasil_tracer_study) as id,
+                CONVERT(VARCHAR(36), pd.id_pd) as id_pd,
                 pd.nm_pd as nama_lulusan,
                 rp.nipd as nim,
                 s.nm_lemb as nm_prodi,

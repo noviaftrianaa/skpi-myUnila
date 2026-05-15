@@ -88,8 +88,14 @@ export default function MatkulPage() {
   const unitFilterStr = unitItems.join(",");
 
   useEffect(() => {
-    akademikDataService.getMatkulStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
-  }, []);
+    setLoadingStats(true);
+    akademikDataService.getMatkulStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined }).then(setFilters).catch(console.error);

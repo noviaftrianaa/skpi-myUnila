@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
 import tracerDataService from "@/lib/services/data-unila/tracerDataService";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import MahasiswaProfileModal from "@/shared/components/data-unila/MahasiswaProfileModal";
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
@@ -58,6 +59,7 @@ function StatCard({ icon, label, value, gradient, subtext }: { icon: React.React
 }
 
 interface TracerItem {
+  id_pd?: string | null;
   nama_lulusan: string;
   nim: string;
   nm_prodi: string;
@@ -75,6 +77,7 @@ export default function TracerPage() {
   const [stats, setStats] = useState<Record<string, number | string> | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
   const [filters, setFilters] = useState<MahasiswaFilters | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -154,11 +157,17 @@ export default function TracerPage() {
 
   const columns: Column<TracerItem>[] = [
     { key: "nama_lulusan", label: "NAMA LULUSAN", sortable: true, render: (i) => (
-      <div>
-        <div className="font-medium text-gray-900 dark:text-white">{i.nama_lulusan}</div>
+      <button
+        type="button"
+        onClick={() => i.id_pd && setSelectedId(i.id_pd)}
+        disabled={!i.id_pd}
+        className="text-left hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
+        title={i.id_pd ? "Lihat profil lulusan" : "Profil tidak tersedia"}
+      >
+        <div className="font-medium text-gray-900 dark:text-white hover:text-pink-600 dark:hover:text-pink-400">{i.nama_lulusan}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">{i.nim || "—"}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{i.nm_prodi}</div>
-      </div>
+      </button>
     )},
     { key: "status_lulusan", label: "STATUS", width: "140px", render: (i) => i.status_lulusan ? (
       <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ring-inset
@@ -265,6 +274,7 @@ export default function TracerPage() {
           </motion.div>
         </div>
       </div>
+      <MahasiswaProfileModal idPd={selectedId} onClose={() => setSelectedId(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

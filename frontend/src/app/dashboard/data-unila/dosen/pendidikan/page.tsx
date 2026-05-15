@@ -232,7 +232,7 @@ export default function PendidikanPage() {
       key: "ipk", label: "IPK", width: "80px", align: "right" as const,
       render: (i) => (
         <span className="font-mono text-xs text-emerald-700 dark:text-emerald-300 tabular-nums">
-          {i.ipk ? Number(i.ipk).toFixed(2) : "—"}
+          {(() => { const v = Number(i.ipk || 0); return v > 0 ? v.toFixed(2) : "-"; })()}
         </span>
       ),
     },

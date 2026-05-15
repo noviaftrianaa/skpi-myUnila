@@ -28,10 +28,10 @@ class TridarmaDataController extends Controller
         }
     }
 
-    public function litabmasStats(): JsonResponse
+    public function litabmasStats(Request $request): JsonResponse
     {
         try {
-            return $this->success($this->service->getLitabmasStats(), 'Stats litabmas');
+            return $this->success($this->service->getLitabmasStats($this->extractParams($request)), 'Stats litabmas');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
         }
@@ -131,6 +131,10 @@ class TridarmaDataController extends Controller
             'id_sms' => $request->query('id_sms'),
             'id_jurusan' => $request->query('id_jurusan'),
             'unit_filter' => $request->query('unit_filter'),
+            'jenis_publikasi' => $request->query('jenis_publikasi'),
+            'jenis_prestasi' => $request->query('jenis_prestasi'),
+            'tingkat_prestasi' => $request->query('tingkat_prestasi'),
+            'skim' => $request->query('skim'),
         ];
     }
 }

@@ -100,8 +100,8 @@ export const tridarmaDataService = {
     const r = await dashboardClient.get('/data/tridarma/litabmas', { params });
     return r.data.data;
   },
-  async getLitabmasStats(): Promise<LitabmasStats> {
-    const r = await dashboardClient.get('/data/tridarma/litabmas/stats');
+  async getLitabmasStats(params: Record<string, any> = {}): Promise<LitabmasStats & { by_skim?: Array<{ skim: string; jumlah: number }> }> {
+    const r = await dashboardClient.get('/data/tridarma/litabmas/stats', { params });
     return r.data.data;
   },
   async getLitabmasAnggota(idLitabmas: string, params: { limit?: number; offset?: number } = {}): Promise<LitabmasAnggotaResponse> {

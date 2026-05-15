@@ -71,6 +71,8 @@ export default function PrestasiPage() {
   const [sortBy, setSortBy] = useState("thn_prestasi");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterTahun, setFilterTahun] = useState("");
+  const [filterJenisPrestasi, setFilterJenisPrestasi] = useState("");
+  const [filterTingkat, setFilterTingkat] = useState("");
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
@@ -107,6 +109,8 @@ export default function PrestasiPage() {
       search: search || undefined,
       sort_by: sortBy, sort_order: sortOrder,
       tahun: filterTahun || undefined,
+      jenis_prestasi: filterJenisPrestasi || undefined,
+      tingkat_prestasi: filterTingkat || undefined,
       id_fakultas: filterFak || undefined,
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
@@ -115,7 +119,21 @@ export default function PrestasiPage() {
       .then((r: { data: PrestasiItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data prestasi"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterJenisPrestasi, filterTingkat, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+
+  const jenisOptions: DropdownOption[] = useMemo(() => {
+    const arr = (stats as unknown as { by_jenis?: Array<{ jenis: string; jumlah: number }> })?.by_jenis || [];
+    return arr.filter(j => j.jenis).map(j => ({ value: j.jenis, label: `${j.jenis} (${j.jumlah.toLocaleString("id-ID")})` }));
+  }, [stats]);
+  const tingkatOptions: DropdownOption[] = [
+    { value: "Internasional", label: "Internasional" },
+    { value: "Nasional", label: "Nasional" },
+    { value: "Regional", label: "Regional" },
+    { value: "Provinsi", label: "Provinsi" },
+    { value: "Lokal", label: "Lokal" },
+    { value: "Kabupaten", label: "Kabupaten" },
+    { value: "Kota", label: "Kota" },
+  ];
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -220,6 +238,10 @@ export default function PrestasiPage() {
                   forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Tahun Prestasi" value={filterTahun} onChange={(v) => { setFilterTahun(v); setPage(1); }} options={tahunOptions} placeholder="Semua Tahun" />
+                {jenisOptions.length > 0 && (
+                  <Dropdown label="Jenis Prestasi" value={filterJenisPrestasi} onChange={(v) => { setFilterJenisPrestasi(v); setPage(1); }} options={jenisOptions} placeholder="Semua Jenis" searchable />
+                )}
+                <Dropdown label="Tingkat" value={filterTingkat} onChange={(v) => { setFilterTingkat(v); setPage(1); }} options={tingkatOptions} placeholder="Semua Tingkat" />
               </div>
               {filterTahun && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

@@ -72,6 +72,7 @@ export default function UktPage() {
   const [sortBy, setSortBy] = useState("tahun");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterTahun, setFilterTahun] = useState("");
+  const [filterKelas, setFilterKelas] = useState("");
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
@@ -103,6 +104,7 @@ export default function UktPage() {
       search: search || undefined,
       sort_by: sortBy, sort_order: sortOrder,
       tahun: filterTahun || undefined,
+      kelas_ukt: filterKelas || undefined,
       id_fakultas: filterFak || undefined,
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
@@ -111,7 +113,11 @@ export default function UktPage() {
       .then((r: { data: UktItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data UKT"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterKelas, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+
+  const kelasOptions: DropdownOption[] = (((stats as unknown as { by_kelas?: Array<{ kelas: string; jumlah: number }> })?.by_kelas) || [])
+    .filter(k => k.kelas)
+    .map(k => ({ value: k.kelas, label: `${k.kelas} (${k.jumlah.toLocaleString("id-ID")})` }));
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -214,6 +220,9 @@ export default function UktPage() {
                   forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Tahun UKT" value={filterTahun} onChange={(v) => { setFilterTahun(v); setPage(1); }} options={tahunOptions} placeholder="Semua Tahun" />
+                {kelasOptions.length > 0 && (
+                  <Dropdown label="Kelas UKT" value={filterKelas} onChange={(v) => { setFilterKelas(v); setPage(1); }} options={kelasOptions} placeholder="Semua Kelas" searchable />
+                )}
               </div>
               {filterTahun && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

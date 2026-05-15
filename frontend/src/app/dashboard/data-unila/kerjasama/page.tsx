@@ -233,15 +233,11 @@ export default function KerjasamaPage() {
                   <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
                 </div>
               </div>
+              <div className="rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 px-3 py-2 text-[11px] text-sky-700 dark:text-sky-300 flex items-center gap-2">
+                <FiFilter className="w-3 h-3" />
+                Data MoU bersifat institusional (id_sp = Universitas) — filter unit tidak diterapkan; pakai filter Status & pencarian untuk menyaring.
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                <UnitFilter
-                  data={orgFilters}
-                  value={unitItems}
-                  onChange={(next) => { setUnitItems(next); setPage(1); }}
-                  forcedFakultas={forcedFak || undefined}
-                  forcedJurusan={forcedJur || undefined}
-                  forcedProdi={forcedProdi || undefined}
-                />
                 <Dropdown label="Status" value={filterStatus} onChange={(v) => { setFilterStatus(v); setPage(1); }} options={statusOptions} placeholder="Semua Status" />
               </div>
               {activeChips.length > 0 && (

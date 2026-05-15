@@ -6,7 +6,10 @@ class AkademikDataRepository extends BaseDataRepository
 {
     public function getProdiList(array $params): array
     {
-        // Filter stat_prodi='A' agar konsisten dgn count Prodi di Dashboard Pimpinan
+        // Filter stat_prodi='A' agar konsisten dgn count Prodi di Dashboard Pimpinan.
+        // Mahasiswa: dedup via ROW_NUMBER PARTITION BY id_pd + filter pd.id_stat_mhs='A'.
+        // Dosen: filter ikatan_kerja tetap/honorer (kode publik), dedup per id_sdm+id_sms.
+        // Selaras dengan public-service ProgramStudiRepository.
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), s.id_sms) as id_sms,
@@ -18,16 +21,43 @@ class AkademikDataRepository extends BaseDataRepository
                  JOIN ref.nilai_akred la ON la.id_akred = ap.id_akred
                  WHERE ap.id_sms = s.id_sms AND ap.soft_delete = 0 AND ap.a_aktif = 1
                  ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) as akreditasi,
-                (SELECT COUNT(*) FROM pdrd.reg_pd rp WHERE rp.id_sms = s.id_sms AND rp.soft_delete = 0 AND rp.id_jns_keluar IS NULL) as mhs_aktif,
-                (SELECT COUNT(DISTINCT rpt.id_sdm) FROM pdrd.reg_ptk rpt WHERE rpt.id_sms = s.id_sms AND rpt.soft_delete = 0 AND rpt.id_jns_keluar IS NULL) as jml_dosen
+                ISNULL(mhs.total_mahasiswa, 0) as mhs_aktif,
+                ISNULL(dosen.dosen_tetap, 0) + ISNULL(dosen.dosen_tidak_tetap, 0) as jml_dosen,
+                ISNULL(dosen.dosen_tetap, 0) as dosen_tetap,
+                ISNULL(dosen.dosen_tidak_tetap, 0) as dosen_tidak_tetap
             FROM pdrd.sms s
             LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            LEFT JOIN (
+                SELECT id_sms, COUNT(*) AS total_mahasiswa
+                FROM (
+                    SELECT reg.id_sms, pd.id_pd,
+                           ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
+                    FROM pdrd.reg_pd reg
+                    JOIN pdrd.peserta_didik pd ON pd.id_pd = reg.id_pd AND pd.soft_delete = 0
+                    WHERE reg.soft_delete = 0 AND reg.id_jns_keluar IS NULL AND pd.id_stat_mhs = 'A'
+                ) dedup WHERE rn = 1
+                GROUP BY id_sms
+            ) mhs ON mhs.id_sms = s.id_sms
+            LEFT JOIN (
+                SELECT pf.id_sms,
+                    SUM(CASE WHEN pf.id_ikatan_kerja IN ('A','B','E','F','H','I','N') THEN 1 ELSE 0 END) AS dosen_tetap,
+                    SUM(CASE WHEN pf.id_ikatan_kerja = 'G' THEN 1 ELSE 0 END) AS dosen_tidak_tetap
+                FROM (
+                    SELECT ptk.id_sms, ptk.id_sdm, ptk.id_ikatan_kerja,
+                           ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm, ptk.id_sms ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
+                    FROM pdrd.reg_ptk ptk
+                    JOIN pdrd.sdm sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0 AND sdm.id_jns_sdm = '12'
+                    WHERE ptk.soft_delete = 0 AND ptk.id_jns_keluar IS NULL
+                      AND CAST(ptk.id_sp AS VARCHAR(50)) = 'E2B705A7-173E-464A-9FAC-509128709515'
+                ) pf WHERE pf.rn = 1
+                GROUP BY pf.id_sms
+            ) dosen ON dosen.id_sms = s.id_sms
             WHERE s.soft_delete = 0 AND s.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND s.stat_prodi = 'A'
               {WHERE_EXTRA}
         ";
         $countSql = "SELECT COUNT(*) FROM pdrd.sms s WHERE s.soft_delete = 0 AND s.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND s.stat_prodi = 'A' {WHERE_EXTRA}";
 
-        return $this->paginate($baseSql, $countSql, $params, ['s.nm_lemb'], ['nm_prodi','nm_fakultas','akreditasi','mhs_aktif'], 'nm_prodi', 'ASC');
+        return $this->paginate($baseSql, $countSql, $params, ['s.nm_lemb'], ['nm_prodi','nm_fakultas','akreditasi','mhs_aktif','jml_dosen'], 'nm_prodi', 'ASC');
     }
 
     public function getAkreditasiList(array $params): array

@@ -93,6 +93,7 @@ export default function TugasTambahanPage() {
   const [filterProdi, setFilterProdi] = useState(forcedProdi);
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
   const [filterJabatan, setFilterJabatan] = useState("");
+  const [filterTtStatus, setFilterTtStatus] = useState<"" | "aktif" | "tidak_aktif">("aktif");
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
   const [selectedSdm, setSelectedSdm] = useState<string | null>(null);
@@ -114,11 +115,12 @@ export default function TugasTambahanPage() {
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
       jabatan_tambahan: filterJabatan || undefined,
+      tt_status: filterTtStatus || undefined,
     } as Record<string, string>)
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoadingStats(false));
-  }, [filterFak, filterProdi, filterJurusan, unitFilterStr, filterJabatan]);
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr, filterJabatan, filterTtStatus]);
 
   useEffect(() => {
     setLoading(true);
@@ -131,11 +133,12 @@ export default function TugasTambahanPage() {
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
       jabatan_tambahan: filterJabatan || undefined,
+      tt_status: filterTtStatus || undefined,
     } as Record<string, any>)
       .then((r: { data: TugasTambahanItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data tugas tambahan"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterJabatan]);
+  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterJabatan, filterTtStatus]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => {
     setSortBy(k); setSortOrder(o); setPage(1);
@@ -146,6 +149,7 @@ export default function TugasTambahanPage() {
 
   const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
   if (filterJabatan) activeChips.push({ key: "jab", label: `Jabatan: ${filterJabatan}`, clear: () => { setFilterJabatan(""); setPage(1); } });
+  if (filterTtStatus && filterTtStatus !== "aktif") activeChips.push({ key: "tts", label: `Status: ${filterTtStatus === "tidak_aktif" ? "Selesai" : filterTtStatus}`, clear: () => { setFilterTtStatus("aktif"); setPage(1); } });
   const hasFilter = activeChips.length > 0;
 
   const EXPORT_HEADERS = {
@@ -322,6 +326,13 @@ export default function TugasTambahanPage() {
                     onChange={(v) => { setFilterJabatan(v); setPage(1); }}
                     options={jabatanOptions} placeholder="Semua Jabatan" searchable />
                 )}
+                <Dropdown label="Status" value={filterTtStatus}
+                  onChange={(v) => { setFilterTtStatus(v as "" | "aktif" | "tidak_aktif"); setPage(1); }}
+                  options={[
+                    { value: "aktif", label: "Aktif" },
+                    { value: "tidak_aktif", label: "Selesai/Tidak Aktif" },
+                  ]}
+                  placeholder="Semua" />
               </div>
 
               {activeChips.length > 0 && (

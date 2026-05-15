@@ -53,7 +53,7 @@ class KeuanganDataRepository extends BaseDataRepository
         $orgFilter = $this->buildOrgFilter($params, $bindings, $dummy);
         $joinSms = $orgFilter ? 'LEFT JOIN pdrd.sms s ON s.id_sms = u.id_sms AND s.soft_delete = 0' : '';
 
-        return (array) $this->selectOne("
+        $main = (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
                 MIN(u.tahun) as tahun_awal,
@@ -67,6 +67,18 @@ class KeuanganDataRepository extends BaseDataRepository
             WHERE u.soft_delete = 0
               {$orgFilter}
         ", $bindings);
+
+        $byKelas = $this->select("
+            SELECT u.nama_kelas AS kelas, COUNT(*) AS jumlah
+            FROM keuangan.daftar_ukt u
+            {$joinSms}
+            WHERE u.soft_delete = 0 AND u.nama_kelas IS NOT NULL
+              {$orgFilter}
+            GROUP BY u.nama_kelas
+            ORDER BY u.nama_kelas
+        ", $bindings);
+        $main['by_kelas'] = array_map(fn($r) => (array) $r, $byKelas);
+        return $main;
     }
 
     public function getUktTahunList(): array
@@ -126,6 +138,7 @@ class KeuanganDataRepository extends BaseDataRepository
             SELECT COUNT(*)
             FROM keuangan.spp_mhs sp
             LEFT JOIN pdrd.reg_pd rp ON rp.id_reg_pd = sp.id_reg_pd AND rp.soft_delete = 0
+            LEFT JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
             LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
             WHERE sp.soft_delete = 0 {$thnFilter}
               {WHERE_EXTRA}

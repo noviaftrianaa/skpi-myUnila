@@ -32,26 +32,37 @@ class TridarmaDataRepository extends BaseDataRepository
             $countBindings[] = $params['tahun'];
         }
 
+        // Skim filter (ref.skim_kegiatan) — sub-jenis penelitian/pengabdian
+        $skimFilter = '';
+        if (!empty($params['skim'])) {
+            $skimFilter = " AND sk.nm_skim = ?";
+            $bindings[] = $params['skim'];
+            $countBindings[] = $params['skim'];
+        }
+
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), lt.id_litabmas) as id_litabmas,
                 lt.judul_litabmas as judul,
                 CASE WHEN lt.jns_litabmas = 'L' THEN 'Penelitian' ELSE 'Pengabdian' END as jenis,
                 lt.id_thn_kegiatan as tahun,
-                lt.dana_dikti, lt.dana_pt, lt.dana_institusi_lain,
-                (ISNULL(lt.dana_dikti,0) + ISNULL(lt.dana_pt,0) + ISNULL(lt.dana_institusi_lain,0)) as total_dana,
+                CAST(ISNULL(lt.dana_dikti,0) AS BIGINT) as dana_dikti,
+                CAST(ISNULL(lt.dana_pt,0) AS BIGINT) as dana_pt,
+                CAST(ISNULL(lt.dana_institusi_lain,0) AS BIGINT) as dana_institusi_lain,
+                (CAST(ISNULL(lt.dana_dikti,0) AS BIGINT) + CAST(ISNULL(lt.dana_pt,0) AS BIGINT) + CAST(ISNULL(lt.dana_institusi_lain,0) AS BIGINT)) as total_dana,
                 sk.nm_skim as skim,
                 lt.lokasi_kegiatan
             FROM pdrd.litabmas lt
             LEFT JOIN ref.skim_kegiatan sk ON sk.id_skim = lt.id_skim
-            WHERE lt.soft_delete = 0 {$jnsFilter} {$thnFilter}
+            WHERE lt.soft_delete = 0 {$jnsFilter} {$thnFilter} {$skimFilter}
               {WHERE_EXTRA}
         ";
 
         $countSql = "
             SELECT COUNT(*)
             FROM pdrd.litabmas lt
-            WHERE lt.soft_delete = 0 {$jnsFilter} {$thnFilter}
+            LEFT JOIN ref.skim_kegiatan sk ON sk.id_skim = lt.id_skim
+            WHERE lt.soft_delete = 0 {$jnsFilter} {$thnFilter} {$skimFilter}
               {WHERE_EXTRA}
         ";
 
@@ -88,16 +99,40 @@ class TridarmaDataRepository extends BaseDataRepository
         ];
     }
 
-    public function getLitabmasStats(): array
+    public function getLitabmasStats(array $params = []): array
     {
-        return (array) $this->selectOne("
+        $jnsFilter = '';
+        $bindings = [];
+        if (!empty($params['jenis'])) {
+            $jns = strtolower($params['jenis']);
+            if ($jns === 'penelitian') $jnsFilter = " AND jns_litabmas = 'L'";
+            elseif ($jns === 'pengabdian') $jnsFilter = " AND jns_litabmas = 'M'";
+        }
+        $thnFilter = '';
+        if (!empty($params['tahun'])) {
+            $thnFilter = " AND id_thn_kegiatan = ?";
+            $bindings[] = $params['tahun'];
+        }
+
+        $main = (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN jns_litabmas = 'L' THEN 1 ELSE 0 END) as penelitian,
                 SUM(CASE WHEN jns_litabmas = 'M' THEN 1 ELSE 0 END) as pengabdian,
                 SUM(CAST(ISNULL(dana_dikti,0) AS BIGINT) + CAST(ISNULL(dana_pt,0) AS BIGINT) + CAST(ISNULL(dana_institusi_lain,0) AS BIGINT)) as total_dana
-            FROM pdrd.litabmas WHERE soft_delete = 0
-        ");
+            FROM pdrd.litabmas WHERE soft_delete = 0 {$jnsFilter} {$thnFilter}
+        ", $bindings);
+
+        $bySkim = $this->select("
+            SELECT TOP 30 ISNULL(sk.nm_skim, '(Tidak Tercatat)') AS skim, COUNT(*) AS jumlah
+            FROM pdrd.litabmas lt
+            LEFT JOIN ref.skim_kegiatan sk ON sk.id_skim = lt.id_skim
+            WHERE lt.soft_delete = 0 {$jnsFilter} {$thnFilter}
+            GROUP BY sk.nm_skim
+            ORDER BY COUNT(*) DESC
+        ", $bindings);
+        $main['by_skim'] = array_map(fn($r) => (array) $r, $bySkim);
+        return $main;
     }
 
     /**
@@ -325,6 +360,7 @@ class TridarmaDataRepository extends BaseDataRepository
         $countSql = "
             SELECT COUNT(*)
             FROM pdrd.publikasi p
+            LEFT JOIN ref.jenis_publikasi jp ON jp.id_jns_pub = p.id_jns_pub
             WHERE p.soft_delete = 0
               {$orgExists}
               {WHERE_EXTRA}
@@ -349,6 +385,14 @@ class TridarmaDataRepository extends BaseDataRepository
             $extraBindings[] = "%{$search}%";
             $extraBindings[] = "%{$search}%";
         }
+        if (!empty($params['jenis_publikasi'])) {
+            $whereExtra .= ' AND jp.nm_jns_pub = ?';
+            $extraBindings[] = $params['jenis_publikasi'];
+        }
+        if (!empty($params['tahun'])) {
+            $whereExtra .= ' AND YEAR(p.tgl_terbit) = ?';
+            $extraBindings[] = $params['tahun'];
+        }
 
         $totalSql = str_replace('{WHERE_EXTRA}', $whereExtra, $countSql);
         $total = (int) $this->selectScalar($totalSql, array_merge($bindings, $extraBindings));
@@ -371,7 +415,7 @@ class TridarmaDataRepository extends BaseDataRepository
         $bindings = [];
         $orgExists = $this->buildPublikasiOrgExists($params, $bindings);
 
-        return (array) $this->selectOne("
+        $main = (array) $this->selectOne("
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN p.quartile IS NOT NULL THEN 1 ELSE 0 END) as ber_quartile,
@@ -381,6 +425,18 @@ class TridarmaDataRepository extends BaseDataRepository
             WHERE p.soft_delete = 0
               {$orgExists}
         ", $bindings);
+
+        $byJenis = $this->select("
+            SELECT jp.nm_jns_pub AS jenis, COUNT(*) AS jumlah
+            FROM pdrd.publikasi p
+            LEFT JOIN ref.jenis_publikasi jp ON jp.id_jns_pub = p.id_jns_pub
+            WHERE p.soft_delete = 0 AND jp.nm_jns_pub IS NOT NULL
+              {$orgExists}
+            GROUP BY jp.nm_jns_pub
+            ORDER BY COUNT(*) DESC
+        ", $bindings);
+        $main['by_jenis'] = array_map(fn($r) => (array) $r, $byJenis);
+        return $main;
     }
 
     // ==========================================
@@ -418,6 +474,8 @@ class TridarmaDataRepository extends BaseDataRepository
         $countSql = "
             SELECT COUNT(*)
             FROM pdrd.prestasi pr
+            LEFT JOIN ref.tingkat_prestasi tp ON tp.id_tkt_prestasi = pr.id_tkt_prestasi
+            LEFT JOIN ref.jenis_prestasi jp ON jp.id_jenis_prestasi = pr.id_jenis_prestasi
             OUTER APPLY (
                 SELECT TOP 1 rp.id_sms FROM pdrd.reg_pd rp
                 WHERE rp.id_pd = pr.id_pd AND rp.soft_delete = 0

@@ -123,6 +123,8 @@ interface ProdiItem {
   akreditasi: string | null;
   mhs_aktif: number | string;
   jml_dosen: number | string;
+  dosen_tetap?: number | string;
+  dosen_tidak_tetap?: number | string;
 }
 
 export default function ProdiPage() {
@@ -157,9 +159,18 @@ export default function ProdiPage() {
   useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
   useEffect(() => {
-    akademikDataService.getProdiStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
     mahasiswaDataService.getFilters({}).then(setFilters).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    setLoadingStats(true);
+    akademikDataService.getProdiStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined })
@@ -231,9 +242,19 @@ export default function ProdiPage() {
     { key: "mhs_aktif", label: "MAHASISWA", width: "130px", sortable: true, align: "right" as const, render: (i) => (
       <span className="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300">{fmt(num(i.mhs_aktif))}</span>
     )},
-    { key: "jml_dosen", label: "DOSEN", width: "90px", align: "right" as const, render: (i) => (
-      <span className="font-mono text-sm text-gray-700 dark:text-gray-300">{fmt(num(i.jml_dosen))}</span>
-    )},
+    { key: "jml_dosen", label: "DOSEN", width: "120px", sortable: true, align: "right" as const, render: (i) => {
+      const tetap = num((i as unknown as { dosen_tetap?: number | string }).dosen_tetap || 0);
+      const honorer = num((i as unknown as { dosen_tidak_tetap?: number | string }).dosen_tidak_tetap || 0);
+      const total = num(i.jml_dosen);
+      return (
+        <div className="text-right">
+          <div className="font-mono text-sm font-semibold text-gray-800 dark:text-gray-200">{fmt(total)}</div>
+          {(tetap > 0 || honorer > 0) && (
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 font-mono mt-0.5">{tetap}T · {honorer}H</div>
+          )}
+        </div>
+      );
+    }},
   ];
 
   return (
@@ -293,6 +314,29 @@ export default function ProdiPage() {
                   forcedJurusan={forcedJur || undefined}
                   forcedProdi={forcedProdi || undefined}
                 />
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Urut Berdasarkan</label>
+                  <div className="inline-flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                    {[
+                      { val: "nm_prodi", lbl: "Nama" },
+                      { val: "mhs_aktif", lbl: "Mahasiswa" },
+                      { val: "jml_dosen", lbl: "Dosen" },
+                      { val: "akreditasi", lbl: "Akreditasi" },
+                    ].map(opt => (
+                      <label key={opt.val} className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input
+                          type="radio"
+                          name="sort_prodi"
+                          value={opt.val}
+                          checked={sortBy === opt.val}
+                          onChange={() => { setSortBy(opt.val); setSortOrder(opt.val === "nm_prodi" ? "asc" : "desc"); setPage(1); }}
+                          className="w-3.5 h-3.5"
+                        />
+                        <span className="text-gray-700 dark:text-gray-300">{opt.lbl}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
               {filterFak && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

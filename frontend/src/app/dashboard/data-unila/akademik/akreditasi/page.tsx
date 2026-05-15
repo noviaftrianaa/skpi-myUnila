@@ -109,6 +109,7 @@ export default function AkreditasiPage() {
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
   const [filterExpiring, setFilterExpiring] = useState<"" | "soon" | "expired" | "alert">("");
+  const [filterAkredStatus, setFilterAkredStatus] = useState<"" | "aktif" | "tidak_aktif">("aktif");
 
   // Init filterExpiring dari URL query param `?expiring=soon|expired|alert`
   useEffect(() => {
@@ -123,9 +124,18 @@ export default function AkreditasiPage() {
   useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
   useEffect(() => {
-    akademikDataService.getAkreditasiStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
     mahasiswaDataService.getFilters({}).then(setFilters).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    setLoadingStats(true);
+    akademikDataService.getAkreditasiStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined })
@@ -144,11 +154,12 @@ export default function AkreditasiPage() {
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
       expiring: filterExpiring || undefined,
+      akred_status: filterAkredStatus || undefined,
     } as Record<string, any>)
       .then((r: { data: AkreditasiItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data akreditasi"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterExpiring]);
+  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterExpiring, filterAkredStatus]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -267,6 +278,12 @@ export default function AkreditasiPage() {
                   forcedJurusan={forcedJur || undefined}
                   forcedProdi={forcedProdi || undefined}
                 />
+                <Dropdown label="Status Akreditasi" value={filterAkredStatus}
+                  onChange={(v) => { setFilterAkredStatus(v as "" | "aktif" | "tidak_aktif"); setPage(1); }}
+                  options={[
+                    { value: "aktif", label: "Aktif (a_aktif=1)" },
+                    { value: "tidak_aktif", label: "Tidak Aktif (history)" },
+                  ]} placeholder="Semua" />
               </div>
               {filterFak && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

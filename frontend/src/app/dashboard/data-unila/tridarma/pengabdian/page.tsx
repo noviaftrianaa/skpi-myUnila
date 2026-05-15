@@ -73,6 +73,7 @@ export default function PengabdianPage() {
   const [sortBy, setSortBy] = useState("tahun");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterTahun, setFilterTahun] = useState("");
+  const [filterSkim, setFilterSkim] = useState("");
   const [anggotaId, setAnggotaId] = useState<string | null>(null);
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
@@ -95,8 +96,9 @@ export default function PengabdianPage() {
   const tahunOptions: DropdownOption[] = Array.from({ length: 15 }, (_, i) => ({ value: String(currentYear - i), label: String(currentYear - i) }));
 
   useEffect(() => {
-    tridarmaDataService.getLitabmasStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
-  }, []);
+    setLoadingStats(true);
+    tridarmaDataService.getLitabmasStats({ jenis: "pengabdian", tahun: filterTahun || undefined }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterTahun]);
 
   useEffect(() => {
     setLoading(true);
@@ -106,6 +108,7 @@ export default function PengabdianPage() {
       sort_by: sortBy, sort_order: sortOrder,
       jenis: "pengabdian",
       tahun: filterTahun || undefined,
+      skim: filterSkim || undefined,
       id_fakultas: filterFak || undefined,
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
@@ -114,7 +117,12 @@ export default function PengabdianPage() {
       .then(r => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data pengabdian"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterSkim, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+
+  const skimOptions: DropdownOption[] = useMemo(() => {
+    const arr = ((stats as unknown as { by_skim?: Array<{ skim: string; jumlah: number }> })?.by_skim) || [];
+    return arr.filter(s => s.skim).map(s => ({ value: s.skim, label: `${s.skim} (${s.jumlah.toLocaleString("id-ID")})` }));
+  }, [stats]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -220,6 +228,9 @@ export default function PengabdianPage() {
                   forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Tahun" value={filterTahun} onChange={(v) => { setFilterTahun(v); setPage(1); }} options={tahunOptions} placeholder="Semua Tahun" />
+                {skimOptions.length > 0 && (
+                  <Dropdown label="Skim/Jenis Pengabdian" value={filterSkim} onChange={(v) => { setFilterSkim(v); setPage(1); }} options={skimOptions} placeholder="Semua Skim" searchable />
+                )}
               </div>
               {filterTahun && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

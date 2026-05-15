@@ -209,6 +209,7 @@ class DosenDataController extends Controller
             'jenis_aktivitas' => $request->query('jenis_aktivitas'),
             'missing' => $request->query('missing'),
             'retiring' => $request->query('retiring'),
+            'tt_status' => $request->query('tt_status'),
         ];
     }
 }

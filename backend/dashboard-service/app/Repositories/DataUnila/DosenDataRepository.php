@@ -1072,6 +1072,8 @@ class DosenDataRepository extends BaseDataRepository
                 bm.urutan_promotor,
                 CONVERT(VARCHAR(10), am.tgl_mulai, 120) as tgl_mulai,
                 CONVERT(VARCHAR(10), am.tgl_selesai, 120) as tgl_selesai,
+                am.sk_tugas as no_sk,
+                CONVERT(VARCHAR(10), am.tgl_sk_tugas, 120) as tgl_sk,
                 (SELECT TOP 1 aam.nm_pd
                  FROM pdrd.anggota_akt_mhs aam
                  WHERE aam.id_akt_mhs = am.id_akt_mhs AND aam.soft_delete = 0

@@ -259,6 +259,10 @@ export default function MitraPage() {
                 </div>
               </div>
 
+              <div className="rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 px-3 py-2 text-[11px] text-sky-700 dark:text-sky-300 flex items-center gap-2">
+                <FiFilter className="w-3 h-3" />
+                Mitra Riset & Industri = pool global lembaga_iptek + dudi (tanpa relasi fakultas/prodi). Filter via Jenis & Tahun MoU.
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                 <Dropdown label="Jenis Mitra" value={filterJenis}
                   onChange={(v) => { setFilterJenis(v); setPage(1); }}

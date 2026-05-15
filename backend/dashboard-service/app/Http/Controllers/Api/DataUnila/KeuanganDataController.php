@@ -99,6 +99,7 @@ class KeuanganDataController extends Controller
             'id_jurusan' => $request->query('id_jurusan'),
             'unit_filter'=> $request->query('unit_filter'),
             'tahun'      => $request->query('tahun'),
+            'kelas_ukt'  => $request->query('kelas_ukt'),
         ];
     }
 }

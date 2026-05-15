@@ -134,6 +134,55 @@ abstract class BaseDataRepository extends BaseRepository
             $countBindings[] = $params['jabatan_tambahan'];
         }
 
+        // Jenis Publikasi filter — JOIN ref.jenis_publikasi jp di query
+        if (!empty($params['jenis_publikasi'])) {
+            $whereExtra .= ' AND jp.nm_jns_pub = ?';
+            $bindings[] = $params['jenis_publikasi'];
+            $countBindings[] = $params['jenis_publikasi'];
+        }
+
+        // Jenis Prestasi filter — JOIN ref.jenis_prestasi jp di query prestasi
+        if (!empty($params['jenis_prestasi'])) {
+            $whereExtra .= ' AND jp.nm_jenis_prestasi = ?';
+            $bindings[] = $params['jenis_prestasi'];
+            $countBindings[] = $params['jenis_prestasi'];
+        }
+
+        // Tingkat Prestasi filter — JOIN ref.tingkat_prestasi tp di query prestasi
+        if (!empty($params['tingkat_prestasi'])) {
+            $whereExtra .= ' AND tp.nm_tkt_prestasi = ?';
+            $bindings[] = $params['tingkat_prestasi'];
+            $countBindings[] = $params['tingkat_prestasi'];
+        }
+
+        // Kelas UKT filter — `?kelas_ukt=UKT 1` (table keuangan.daftar_ukt alias u)
+        if (!empty($params['kelas_ukt'])) {
+            $whereExtra .= ' AND u.nama_kelas = ?';
+            $bindings[] = $params['kelas_ukt'];
+            $countBindings[] = $params['kelas_ukt'];
+        }
+
+        // Akreditasi status (a_aktif): aktif=1, tidak_aktif=0
+        if (isset($params['akred_status']) && $params['akred_status'] !== '') {
+            $as = strtolower(trim((string) $params['akred_status']));
+            if ($as === 'aktif' || $as === '1') {
+                $whereExtra .= ' AND ap.a_aktif = 1';
+            } elseif (in_array($as, ['tidak_aktif','tidak-aktif','tidakaktif','non-aktif','0'], true)) {
+                $whereExtra .= ' AND ap.a_aktif = 0';
+            }
+        }
+
+        // Tugas Tambahan status filter — `tt_status=aktif|tidak_aktif`
+        // aktif: tmt_selesai NULL atau > now; tidak_aktif: sudah lewat
+        if (!empty($params['tt_status'])) {
+            $ts = strtolower(trim((string) $params['tt_status']));
+            if ($ts === 'aktif') {
+                $whereExtra .= ' AND (tt.tst_sk_tambah IS NULL OR tt.tst_sk_tambah > GETDATE())';
+            } elseif (in_array($ts, ['tidak_aktif','tidak-aktif','tidakaktif','selesai'], true)) {
+                $whereExtra .= ' AND tt.tst_sk_tambah IS NOT NULL AND tt.tst_sk_tambah <= GETDATE()';
+            }
+        }
+
         // Akreditasi expiring filter (page Akreditasi) — refs `ap.tst_sk_akreditasi_prodi` + `ap.a_aktif`
         // mode: soon (akan expire ≤90 hari), expired (sudah lewat), alert (gabungan)
         if (!empty($params['expiring'])) {

@@ -74,6 +74,7 @@ export default function PublikasiPage() {
   const [sortBy, setSortBy] = useState("tgl_terbit");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterTahun, setFilterTahun] = useState("");
+  const [filterJenisPub, setFilterJenisPub] = useState("");
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
@@ -110,6 +111,7 @@ export default function PublikasiPage() {
       search: search || undefined,
       sort_by: sortBy, sort_order: sortOrder,
       tahun: filterTahun || undefined,
+      jenis_publikasi: filterJenisPub || undefined,
       id_fakultas: filterFak || undefined,
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
@@ -118,7 +120,12 @@ export default function PublikasiPage() {
       .then((r: { data: PublikasiItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data publikasi"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterJenisPub, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+
+  const jenisPubOptions: DropdownOption[] = useMemo(() => {
+    const arr = (stats as unknown as { by_jenis?: Array<{ jenis: string; jumlah: number }> })?.by_jenis || [];
+    return arr.filter(j => j.jenis).map(j => ({ value: j.jenis, label: `${j.jenis} (${j.jumlah.toLocaleString("id-ID")})` }));
+  }, [stats]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -239,6 +246,9 @@ export default function PublikasiPage() {
                   forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Tahun Terbit" value={filterTahun} onChange={(v) => { setFilterTahun(v); setPage(1); }} options={tahunOptions} placeholder="Semua Tahun" />
+                {jenisPubOptions.length > 0 && (
+                  <Dropdown label="Jenis Publikasi" value={filterJenisPub} onChange={(v) => { setFilterJenisPub(v); setPage(1); }} options={jenisPubOptions} placeholder="Semua Jenis" searchable />
+                )}
               </div>
               {filterTahun && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

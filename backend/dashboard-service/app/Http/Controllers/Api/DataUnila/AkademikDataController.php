@@ -63,6 +63,7 @@ class AkademikDataController extends Controller
             'sort_by'=>$r->query('sort_by'),'sort_order'=>$r->query('sort_order','asc'),
             'id_fakultas'=>$r->query('id_fakultas'),'id_prodi'=>$r->query('id_prodi'),'id_sms'=>$r->query('id_sms'),
             'id_jurusan'=>$r->query('id_jurusan'),'unit_filter'=>$r->query('unit_filter'),
-            'expiring'=>$r->query('expiring')];
+            'expiring'=>$r->query('expiring'),
+            'akred_status'=>$r->query('akred_status')];
     }
 }

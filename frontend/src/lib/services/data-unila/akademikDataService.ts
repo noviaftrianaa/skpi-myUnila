@@ -84,11 +84,11 @@ export interface ProdiDetail {
 
 export const akademikDataService = {
   async getProdi(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/prodi', { params: p })).data.data; },
-  async getProdiStats(): Promise<ProdiStats> { return (await dashboardClient.get('/data/akademik/prodi/stats')).data.data; },
+  async getProdiStats(p: Record<string, any> = {}): Promise<ProdiStats> { return (await dashboardClient.get('/data/akademik/prodi/stats', { params: p })).data.data; },
   async getProdiDetail(id: string): Promise<ProdiDetail> { return (await dashboardClient.get(`/data/akademik/prodi/${encodeURIComponent(id)}`)).data.data; },
   async getAkreditasi(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/akreditasi', { params: p })).data.data; },
-  async getAkreditasiStats(): Promise<AkreditasiStats> { return (await dashboardClient.get('/data/akademik/akreditasi/stats')).data.data; },
+  async getAkreditasiStats(p: Record<string, any> = {}): Promise<AkreditasiStats> { return (await dashboardClient.get('/data/akademik/akreditasi/stats', { params: p })).data.data; },
   async getMatkul(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/matkul', { params: p })).data.data; },
-  async getMatkulStats(): Promise<MatkulStats> { return (await dashboardClient.get('/data/akademik/matkul/stats')).data.data; },
+  async getMatkulStats(p: Record<string, any> = {}): Promise<MatkulStats> { return (await dashboardClient.get('/data/akademik/matkul/stats', { params: p })).data.data; },
 };
 export default akademikDataService;

@@ -174,6 +174,8 @@ export interface BimbinganItem {
   urutan_promotor: number | null;
   tgl_mulai: string | null;
   tgl_selesai: string | null;
+  no_sk: string | null;
+  tgl_sk: string | null;
   nm_mahasiswa: string | null;
   nipd_mahasiswa: string | null;
   nm_prodi: string | null;
