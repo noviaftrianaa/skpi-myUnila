@@ -92,7 +92,26 @@ export const akademikDataService = {
   async getMatkulStats(p: Record<string, any> = {}): Promise<MatkulStats> { return (await dashboardClient.get('/data/akademik/matkul/stats', { params: p })).data.data; },
   async getKurikulum(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/kurikulum', { params: p })).data.data; },
   async getKurikulumStats(p: Record<string, any> = {}): Promise<KurikulumStats> { return (await dashboardClient.get('/data/akademik/kurikulum/stats', { params: p })).data.data; },
+  async getKurikulumMatkul(id: string): Promise<KurikulumMatkulResponse> { return (await dashboardClient.get(`/data/akademik/kurikulum/${encodeURIComponent(id)}/matkul`)).data.data; },
 };
+
+export interface KurikulumMatkulItem {
+  id_mk: string;
+  kode_mk: string;
+  nm_mk: string;
+  semester_kurikulum: number;
+  sks_mk: string | number;
+  sks_tm: string | number;
+  sks_prak: string | number;
+  sks_prak_lap: string | number;
+  a_wajib: number;
+  jenis_mk: string | null;
+}
+export interface KurikulumMatkulResponse {
+  meta: { id_kurikulum_sp: string; nm_kurikulum: string; nm_prodi: string; sks_lulus_total: string | number; tahun_mulai: string } | null;
+  matkul: KurikulumMatkulItem[];
+  total: { jml_matkul: number; sks_total: number; sks_wajib: number; sks_pilihan: number };
+}
 
 export interface KurikulumItem {
   id_kurikulum_sp: string;

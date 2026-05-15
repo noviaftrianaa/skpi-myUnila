@@ -7,6 +7,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import Dropdown, { type DropdownOption } from "@/shared/components/data-unila/Dropdown";
 import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import { MdSchool } from "react-icons/md";
@@ -85,11 +86,20 @@ export default function TracerPage() {
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("nama_lulusan");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [filterFak, setFilterFak] = useState("");
-  const [filterProdi, setFilterProdi] = useState("");
-  const [filterJurusan, setFilterJurusan] = useState("");
+  const scope = useRoleBasedScope();
+  const forcedFak = scope.forcedFakultas || "";
+  const forcedJur = scope.forcedJurusan || "";
+  const forcedProdi = scope.forcedProdi || "";
+
+  const [filterFak, setFilterFak] = useState(forcedFak);
+  const [filterProdi, setFilterProdi] = useState(forcedProdi);
+  const [filterJurusan, setFilterJurusan] = useState(forcedJur);
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
+
+  useEffect(() => { setFilterFak(forcedFak); }, [forcedFak]);
+  useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
+  useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
   useEffect(() => {
     setLoadingStats(true);
@@ -179,7 +189,8 @@ export default function TracerPage() {
       <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ring-inset
         ${/Bekerja/i.test(i.status_lulusan) ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300"
         : /Studi|Lanjut/i.test(i.status_lulusan) ? "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300"
-        : /Wirausaha/i.test(i.status_lulusan) ? "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300"
+        : /Wirausaha|Wiraswasta/i.test(i.status_lulusan) ? "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300"
+        : /Belum/i.test(i.status_lulusan) ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300"
         : "bg-gray-100 text-gray-700 ring-gray-200 dark:bg-gray-700 dark:text-gray-300"}`}>
         {i.status_lulusan}
       </span>
@@ -219,7 +230,7 @@ export default function TracerPage() {
           const total = num(stats.total);
           const bekerja = num(stats.bekerja);
           const studi = num(stats.studi_lanjut);
-          const wira = num(stats.wirausaha);
+          const wira = num((stats as Record<string, unknown>).wiraswasta ?? (stats as Record<string, unknown>).wirausaha);
           return (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               <StatCard icon={<FiUsers className="w-6 h-6" />} label="Total Response" value={total} gradient="from-pink-500 to-rose-600" />
@@ -254,6 +265,9 @@ export default function TracerPage() {
                   data={filters}
                   value={unitItems}
                   onChange={(next) => { setUnitItems(next); setPage(1); }}
+                  forcedFakultas={forcedFak || undefined}
+                  forcedJurusan={forcedJur || undefined}
+                  forcedProdi={forcedProdi || undefined}
                 />
               </div>
               {activeChips.length > 0 && (

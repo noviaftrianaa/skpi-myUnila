@@ -100,7 +100,22 @@ export interface PengajaranItem {
   prodi: string;
   fakultas: string | null;
   jumlah_dosen: number;
+  jumlah_peserta?: number | string;
   dosen_pengampu: string | null;
+}
+
+export interface PengajaranPesertaItem {
+  id_pd: string;
+  nim: string;
+  nama: string;
+  nilai_huruf: string | null;
+  nilai_angka: string | number | null;
+  nilai_indeks: string | number | null;
+  nm_prodi: string | null;
+}
+export interface PengajaranPesertaResponse {
+  meta: { id_kls: string; nama_kelas: string; mata_kuliah: string; kode_mk: string | null; sks_mk: number | null; semester: string; nm_prodi: string } | null;
+  peserta: PengajaranPesertaItem[];
 }
 
 export interface PengajaranStats {
@@ -155,6 +170,10 @@ export const tridarmaDataService = {
   },
   async getPengajaranStats(params: Record<string, any> = {}): Promise<PengajaranStats> {
     const r = await dashboardClient.get('/data/tridarma/pengajaran/stats', { params });
+    return r.data.data;
+  },
+  async getPengajaranPeserta(id: string): Promise<PengajaranPesertaResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/pengajaran/${encodeURIComponent(id)}/peserta`);
     return r.data.data;
   },
 };

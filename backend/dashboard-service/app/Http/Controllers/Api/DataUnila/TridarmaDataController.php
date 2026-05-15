@@ -125,6 +125,15 @@ class TridarmaDataController extends Controller
         }
     }
 
+    public function pengajaranPeserta(string $id): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getPengajaranPeserta($id), 'Peserta kelas');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     private function extractParams(Request $request): array
     {
         return [

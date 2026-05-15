@@ -7,6 +7,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import Dropdown, { type DropdownOption } from "@/shared/components/data-unila/Dropdown";
 import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
@@ -70,14 +71,23 @@ export default function MitraPage() {
   const [sortBy, setSortBy] = useState("nm_lemb");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  const scope = useRoleBasedScope();
+  const forcedFak = scope.forcedFakultas || "";
+  const forcedJur = scope.forcedJurusan || "";
+  const forcedProdi = scope.forcedProdi || "";
+
   const [filterJenis, setFilterJenis] = useState("");
   const [filterTahunMou, setFilterTahunMou] = useState("");
-  const [filterFak, setFilterFak] = useState("");
-  const [filterProdi, setFilterProdi] = useState("");
-  const [filterJurusan, setFilterJurusan] = useState("");
+  const [filterFak, setFilterFak] = useState(forcedFak);
+  const [filterProdi, setFilterProdi] = useState(forcedProdi);
+  const [filterJurusan, setFilterJurusan] = useState(forcedJur);
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => { setFilterFak(forcedFak); }, [forcedFak]);
+  useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
+  useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
   useEffect(() => {
     mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined })
@@ -286,6 +296,9 @@ export default function MitraPage() {
                   data={orgFilters}
                   value={unitItems}
                   onChange={(next) => { setUnitItems(next); setPage(1); }}
+                  forcedFakultas={forcedFak || undefined}
+                  forcedJurusan={forcedJur || undefined}
+                  forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Jenis Mitra" value={filterJenis}
                   onChange={(v) => { setFilterJenis(v); setPage(1); }}

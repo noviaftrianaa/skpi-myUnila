@@ -16,8 +16,8 @@ export const dataUnilaMenuConfig = [
       { title: "Daftar Mahasiswa", href: "/dashboard/data-unila/mahasiswa" },
       { title: "KTW", href: "/dashboard/data-unila/mahasiswa/ktw" },
       { title: "Aktivitas Mahasiswa", href: "/dashboard/data-unila/mahasiswa/aktivitas" },
-      { title: "Ujian", href: "/dashboard/data-unila/mahasiswa/ujian" },
       { title: "Prestasi Mahasiswa", href: "/dashboard/data-unila/tridarma/prestasi" },
+      { title: "KKN", href: "/dashboard/data-unila/kkn" },
     ],
   },
   {
@@ -39,6 +39,7 @@ export const dataUnilaMenuConfig = [
     icon: <MdScience className="w-4 h-4" />,
     children: [
       { title: "Pengajaran", href: "/dashboard/data-unila/tridarma/pengajaran" },
+      { title: "Uji Mahasiswa", href: "/dashboard/data-unila/mahasiswa/ujian" },
       { title: "Penelitian", href: "/dashboard/data-unila/tridarma/penelitian" },
       { title: "Pengabdian", href: "/dashboard/data-unila/tridarma/pengabdian" },
       { title: "Publikasi", href: "/dashboard/data-unila/tridarma/publikasi" },
@@ -53,11 +54,6 @@ export const dataUnilaMenuConfig = [
       { title: "Mata Kuliah", href: "/dashboard/data-unila/akademik/matkul" },
       { title: "Kurikulum", href: "/dashboard/data-unila/akademik/kurikulum" },
     ],
-  },
-  {
-    title: "Data KKN",
-    href: "/dashboard/data-unila/kkn",
-    icon: <FiMapPin className="w-4 h-4" />,
   },
   {
     title: "Data Kerjasama",

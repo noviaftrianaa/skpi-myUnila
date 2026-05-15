@@ -92,4 +92,10 @@ class TridarmaDataService
         $key = $this->cache->buildKey('data-unila', 'pengajaran-stats', $params);
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPengajaranStats($params));
     }
+
+    public function getPengajaranPeserta(string $idKls): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'pengajaran-peserta', ['id' => $idKls]);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPengajaranPeserta($idKls));
+    }
 }

@@ -17,6 +17,7 @@ import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, {
   type PengajaranItem, type PengajaranStats,
 } from "@/lib/services/data-unila/tridarmaDataService";
+import PengajaranPesertaModal from "@/shared/components/data-unila/PengajaranPesertaModal";
 import mahasiswaDataService, {
   type MahasiswaFilters,
 } from "@/lib/services/data-unila/mahasiswaDataService";
@@ -98,6 +99,7 @@ export default function PengajaranPage() {
   const forcedProdi = scope.forcedProdi || "";
 
   const [data, setData] = useState<PengajaranItem[]>([]);
+  const [selectedKls, setSelectedKls] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<PengajaranStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -235,12 +237,26 @@ export default function PengajaranPage() {
       render: (i) => <DosenPengampuCell value={i.dosen_pengampu} count={i.jumlah_dosen} />,
     },
     {
-      key: "jumlah_dosen", label: "JML", width: "70px", align: "center" as const,
+      key: "jumlah_dosen", label: "DOSEN", width: "70px", align: "center" as const,
       render: (i) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300">
           {i.jumlah_dosen}
         </span>
       ),
+    },
+    {
+      key: "jumlah_peserta", label: "PESERTA", width: "100px", align: "center" as const,
+      render: (i) => {
+        const n = Number(i.jumlah_peserta || 0);
+        if (n === 0) return <span className="text-xs text-gray-400">—</span>;
+        return (
+          <button type="button" onClick={() => setSelectedKls(i.id_kls)}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ring-inset bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 transition-colors"
+            title="Lihat daftar peserta + nilai">
+            {n} mhs
+          </button>
+        );
+      },
     },
   ];
 
@@ -332,6 +348,7 @@ export default function PengajaranPage() {
           </motion.div>
         </div>
       </div>
+      <PengajaranPesertaModal idKls={selectedKls} onClose={() => setSelectedKls(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

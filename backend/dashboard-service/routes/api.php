@@ -127,6 +127,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/prestasi/{id}/anggota', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasiAnggota']);
             Route::get('/pengajaran', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaran']);
             Route::get('/pengajaran/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaranStats']);
+            Route::get('/pengajaran/{id}/peserta', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaranPeserta']);
         });
 
         // Akademik (Prodi, Akreditasi, Matkul)
@@ -140,6 +141,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/matkul/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkulStats']);
             Route::get('/kurikulum', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'kurikulum']);
             Route::get('/kurikulum/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'kurikulumStats']);
+            Route::get('/kurikulum/{id}/matkul', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'kurikulumMatkul']);
         });
 
         // Kerjasama

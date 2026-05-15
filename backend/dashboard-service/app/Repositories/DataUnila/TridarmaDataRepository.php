@@ -583,6 +583,11 @@ class TridarmaDataRepository extends BaseDataRepository
                     WHERE aad.id_kls = kk.id_kls AND aad.soft_delete = 0
                 ) AS jumlah_dosen,
                 (
+                    SELECT COUNT(DISTINCT nsm.id_reg_pd)
+                    FROM pdrd.nilai_smt_mhs nsm WITH(NOLOCK)
+                    WHERE nsm.id_kls = kk.id_kls AND nsm.soft_delete = 0
+                ) AS jumlah_peserta,
+                (
                     SELECT STUFF((
                         SELECT '; ' + sdm.nm_sdm + ISNULL(' (' + sdm.nidn + ')', '')
                         FROM pdrd.akt_ajar_dosen aad WITH(NOLOCK)
@@ -624,6 +629,49 @@ class TridarmaDataRepository extends BaseDataRepository
             ['nama_kelas', 'mata_kuliah', 'semester', 'prodi', 'fakultas', 'sks_mk'],
             'nama_kelas', 'ASC'
         );
+    }
+
+    /**
+     * Detail peserta kelas (mahasiswa) — via pdrd.nilai_smt_mhs JOIN reg_pd + peserta_didik.
+     */
+    public function getPengajaranPeserta(string $idKls): array
+    {
+        $meta = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), kk.id_kls) as id_kls,
+                kk.nm_kls as nama_kelas,
+                COALESCE(mk.nm_mk, kk.nm_kls) as mata_kuliah,
+                mk.kode_mk, kk.sks_mk,
+                sm.nm_smt as semester,
+                s.nm_lemb as nm_prodi
+            FROM pdrd.kelas_kuliah kk
+            LEFT JOIN ref.semester sm ON sm.id_smt = kk.id_smt
+            LEFT JOIN pdrd.sms s ON s.id_sms = kk.id_sms AND s.soft_delete = 0
+            LEFT JOIN pdrd.matkul mk ON mk.id_mk = kk.id_mk AND mk.soft_delete = 0
+            WHERE kk.id_kls = ? AND kk.soft_delete = 0
+        ", [$idKls]);
+
+        $peserta = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), pd.id_pd) as id_pd,
+                rp.nipd as nim,
+                pd.nm_pd as nama,
+                nsm.nilai_huruf,
+                CAST(nsm.nilai_angka AS DECIMAL(5,2)) as nilai_angka,
+                CAST(nsm.nilai_indeks AS DECIMAL(4,2)) as nilai_indeks,
+                s.nm_lemb as nm_prodi
+            FROM pdrd.nilai_smt_mhs nsm
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = nsm.id_reg_pd AND rp.soft_delete = 0
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE nsm.id_kls = ? AND nsm.soft_delete = 0
+            ORDER BY rp.nipd
+        ", [$idKls]);
+
+        return [
+            'meta' => $meta ? (array) $meta : null,
+            'peserta' => array_map(fn($r) => (array) $r, $peserta),
+        ];
     }
 
     public function getPengajaranStats(array $params = []): array
@@ -681,8 +729,8 @@ class TridarmaDataRepository extends BaseDataRepository
         if ($meta && $meta->id_akt_mhs) {
             $anggota = $this->select("
                 SELECT
-                    CONVERT(VARCHAR(36), aam.id_anggota_akt_mhs) as id_anggota,
-                    CONVERT(VARCHAR(36), aam.id_pd) as id_pd,
+                    CONVERT(VARCHAR(36), aam.id_ang_akt_mhs) as id_anggota,
+                    CONVERT(VARCHAR(36), rp.id_pd) as id_pd,
                     aam.nm_pd as nama,
                     aam.nipd,
                     aam.jns_peran_mhs as peran_code,
@@ -692,7 +740,7 @@ class TridarmaDataRepository extends BaseDataRepository
                     END as peran,
                     s.nm_lemb as nm_prodi
                 FROM pdrd.anggota_akt_mhs aam
-                LEFT JOIN pdrd.reg_pd rp ON rp.id_pd = aam.id_pd AND rp.soft_delete = 0
+                LEFT JOIN pdrd.reg_pd rp ON rp.id_reg_pd = aam.id_reg_pd AND rp.soft_delete = 0
                 LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
                 WHERE aam.id_akt_mhs = ? AND aam.soft_delete = 0
                 ORDER BY aam.jns_peran_mhs, aam.nm_pd

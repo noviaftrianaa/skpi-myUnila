@@ -464,6 +464,64 @@ class AkademikDataRepository extends BaseDataRepository
             'tahun_mulai', 'DESC');
     }
 
+    /**
+     * Detail matkul kurikulum — list matkul + total SKS.
+     */
+    public function getKurikulumMatkul(string $idKurikulum): array
+    {
+        $meta = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), k.id_kurikulum_sp) as id_kurikulum_sp,
+                k.nm_kurikulum_sp as nm_kurikulum,
+                s.nm_lemb as nm_prodi,
+                CAST(k.jmlh_sks_lulus AS DECIMAL(8,2)) as sks_lulus_total,
+                LEFT(CAST(k.id_smt AS VARCHAR(5)), 4) as tahun_mulai
+            FROM pdrd.kurikulum_sp k
+            JOIN pdrd.sms s ON s.id_sms = k.id_sms AND s.soft_delete = 0
+            WHERE k.id_kurikulum_sp = ? AND k.soft_delete = 0
+        ", [$idKurikulum]);
+
+        $matkul = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), mk.id_mk) as id_mk,
+                mk.kode_mk,
+                mk.nm_mk,
+                mko.smt as semester_kurikulum,
+                CAST(mko.sks_mk AS DECIMAL(5,2)) as sks_mk,
+                CAST(mko.sks_tm AS DECIMAL(5,2)) as sks_tm,
+                CAST(mko.sks_prak AS DECIMAL(5,2)) as sks_prak,
+                CAST(mko.sks_prak_lap AS DECIMAL(5,2)) as sks_prak_lap,
+                mko.a_wajib,
+                jmk.nm_jns_mk as jenis_mk
+            FROM pdrd.matkul_kurikulum mko
+            INNER JOIN pdrd.matkul mk ON mk.id_mk = mko.id_mk AND mk.soft_delete = 0
+            LEFT JOIN ref.jenis_mk jmk ON jmk.id_jns_mk = mk.id_jns_mk
+            WHERE mko.id_kurikulum_sp = ? AND mko.soft_delete = 0
+            ORDER BY mko.smt, mk.kode_mk
+        ", [$idKurikulum]);
+
+        $totalSks = 0;
+        $totalWajib = 0;
+        $totalPilihan = 0;
+        foreach ($matkul as $m) {
+            $sks = (float) ($m->sks_mk ?? 0);
+            $totalSks += $sks;
+            if ((int) ($m->a_wajib ?? 0) === 1) $totalWajib += $sks;
+            else $totalPilihan += $sks;
+        }
+
+        return [
+            'meta' => $meta ? (array) $meta : null,
+            'matkul' => array_map(fn($r) => (array) $r, $matkul),
+            'total' => [
+                'jml_matkul' => count($matkul),
+                'sks_total' => $totalSks,
+                'sks_wajib' => $totalWajib,
+                'sks_pilihan' => $totalPilihan,
+            ],
+        ];
+    }
+
     public function getKurikulumStats(array $params = []): array
     {
         $bindings = [];

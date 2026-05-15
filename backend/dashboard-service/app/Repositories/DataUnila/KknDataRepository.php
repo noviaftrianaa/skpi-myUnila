@@ -9,14 +9,16 @@ class KknDataRepository extends BaseDataRepository
      */
     public function getKknList(array $params): array
     {
+        // Lookup nm_mahasiswa + prodi via pdrd (canonical) — fallback ke data_pemohon
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), ak.id_anggota) AS id_anggota,
                 ak.npm,
-                p.nm_mahasiswa AS nm_mahasiswa,
+                COALESCE(pd_lookup.nm_pd, p.nm_mahasiswa) AS nm_mahasiswa,
                 CONVERT(VARCHAR(36), p.id_data_pemohon) AS id_pemohon,
-                p.nm_fakultas,
-                p.nm_prodi,
+                CONVERT(VARCHAR(36), pd_lookup.id_pd) AS id_pd,
+                COALESCE(pd_lookup.nm_fakultas, p.nm_fakultas) AS nm_fakultas,
+                COALESCE(pd_lookup.nm_prodi, p.nm_prodi) AS nm_prodi,
                 kel.nm_kelompok,
                 kel.kode_kelompok,
                 lok.nm_kabupaten,
@@ -34,6 +36,15 @@ class KknDataRepository extends BaseDataRepository
             LEFT JOIN kkn.lokasi_kkn lok ON lok.id_lokasi = kel.id_lokasi AND ISNULL(lok.soft_delete, 0) = 0
             LEFT JOIN kkn.registrasi_kkn reg ON reg.id_registrasi = ak.id_registrasi
             LEFT JOIN kkn.data_pemohon p ON p.id_data_pemohon = reg.id_pemohon
+            OUTER APPLY (
+                SELECT TOP 1 pd.id_pd, pd.nm_pd, s.nm_lemb as nm_prodi, fak.nm_lemb as nm_fakultas
+                FROM pdrd.reg_pd rp
+                JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+                LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+                LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+                WHERE rp.nipd = ak.npm AND rp.soft_delete = 0
+                ORDER BY rp.tgl_masuk_sp DESC
+            ) pd_lookup
             WHERE ISNULL(ak.soft_delete, 0) = 0
               {WHERE_EXTRA}
         ";

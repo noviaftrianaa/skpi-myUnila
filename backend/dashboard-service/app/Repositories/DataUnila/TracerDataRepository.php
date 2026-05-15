@@ -14,7 +14,13 @@ class TracerDataRepository extends BaseDataRepository
                 rp.nipd as nim,
                 s.nm_lemb as nm_prodi,
                 fak.nm_lemb as nm_fakultas,
-                t.status_lulusan,
+                CASE CAST(t.status_lulusan AS VARCHAR(2))
+                    WHEN '1' THEN 'Bekerja'
+                    WHEN '2' THEN 'Wiraswasta'
+                    WHEN '3' THEN 'Kuliah Lanjut'
+                    WHEN '4' THEN 'Belum Bekerja'
+                    ELSE CAST(t.status_lulusan AS VARCHAR(10))
+                END as status_lulusan,
                 t.nm_tmpt_bekerja as tempat_kerja,
                 t.income_per_bln,
                 t.wkt_tunggu as masa_tunggu_bulan,
@@ -56,10 +62,12 @@ class TracerDataRepository extends BaseDataRepository
 
         return (array) $this->selectOne("
             SELECT COUNT(*) as total,
-                COUNT(CASE WHEN t.status_lulusan LIKE '%kerja%' THEN 1 END) as bekerja,
-                COUNT(CASE WHEN t.status_lulusan LIKE '%studi%' OR t.status_lulusan LIKE '%lanjut%' THEN 1 END) as studi_lanjut,
-                NULL as avg_masa_tunggu,
-                NULL as avg_income
+                SUM(CASE WHEN t.status_lulusan = 1 THEN 1 ELSE 0 END) as bekerja,
+                SUM(CASE WHEN t.status_lulusan = 2 THEN 1 ELSE 0 END) as wiraswasta,
+                SUM(CASE WHEN t.status_lulusan = 3 THEN 1 ELSE 0 END) as studi_lanjut,
+                SUM(CASE WHEN t.status_lulusan = 4 THEN 1 ELSE 0 END) as belum_bekerja,
+                AVG(CAST(t.wkt_tunggu AS FLOAT)) as avg_masa_tunggu,
+                AVG(CAST(t.income_per_bln AS FLOAT)) as avg_income
             FROM tracer.hasil_tracer_study t
             JOIN pdrd.reg_pd rp ON rp.id_reg_pd = t.id_reg_pd AND rp.soft_delete = 0
             JOIN pdrd.sms s ON s.id_sms = rp.id_sms

@@ -7,6 +7,7 @@ import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/Dashbo
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tracerDataService, { type SurveyAtasanItem, type SurveyAtasanStats } from "@/lib/services/data-unila/tracerDataService";
@@ -53,6 +54,10 @@ export default function SurveyAtasanPage() {
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("tgl_pengisian");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const scope = useRoleBasedScope();
+  const forcedFak = scope.forcedFakultas || "";
+  const forcedJur = scope.forcedJurusan || "";
+  const forcedProdi = scope.forcedProdi || "";
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
 
@@ -174,7 +179,14 @@ export default function SurveyAtasanPage() {
                 <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <UnitFilter data={orgFilters} value={unitItems} onChange={(next) => { setUnitItems(next); setPage(1); }} />
+                <UnitFilter
+                  data={orgFilters}
+                  value={unitItems}
+                  onChange={(next) => { setUnitItems(next); setPage(1); }}
+                  forcedFakultas={forcedFak || undefined}
+                  forcedJurusan={forcedJur || undefined}
+                  forcedProdi={forcedProdi || undefined}
+                />
               </div>
             </div>
 

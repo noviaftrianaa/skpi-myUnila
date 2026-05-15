@@ -15,6 +15,7 @@ import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import akademikDataService, { type KurikulumItem, type KurikulumStats } from "@/lib/services/data-unila/akademikDataService";
+import KurikulumMatkulModal from "@/shared/components/data-unila/KurikulumMatkulModal";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
@@ -63,6 +64,7 @@ export default function KurikulumPage() {
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
+  const [selectedKurikulum, setSelectedKurikulum] = useState<string | null>(null);
 
   useEffect(() => { setFilterFak(forcedFak); }, [forcedFak]);
   useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
@@ -149,15 +151,12 @@ export default function KurikulumPage() {
     { key: "jmlh_smt_normal", label: "SEMESTER", width: "90px", align: "center" as const, render: (i) => (
       <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{i.jmlh_smt_normal || "—"} smt</span>
     )},
-    { key: "jml_matkul", label: "MATKUL", width: "90px", sortable: true, align: "center" as const, render: (i) => (
-      <span className="font-mono text-xs font-bold text-gray-800 dark:text-gray-200">{fmt(num(i.jml_matkul))}</span>
-    )},
-    { key: "a_digunakan", label: "STATUS", width: "100px", align: "center" as const, render: (i) => (
-      Number(i.a_digunakan) === 1 ? (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300">Digunakan</span>
-      ) : (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300">Tidak</span>
-      )
+    { key: "jml_matkul", label: "MATKUL", width: "110px", sortable: true, align: "center" as const, render: (i) => (
+      <button type="button" onClick={() => setSelectedKurikulum(i.id_kurikulum_sp)}
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ring-1 ring-inset bg-violet-50 text-violet-700 ring-violet-200 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 transition-colors"
+        title="Lihat list matkul + total SKS">
+        {fmt(num(i.jml_matkul))} matkul
+      </button>
     )},
   ];
 
@@ -215,6 +214,7 @@ export default function KurikulumPage() {
           </motion.div>
         </div>
       </div>
+      <KurikulumMatkulModal idKurikulum={selectedKurikulum} onClose={() => setSelectedKurikulum(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }
