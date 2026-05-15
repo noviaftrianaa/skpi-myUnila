@@ -100,6 +100,170 @@ class TridarmaDataRepository extends BaseDataRepository
         ");
     }
 
+    /**
+     * Get penulis publikasi (authors) per id_publikasi.
+     * Return: ['meta' => {judul/jurnal/tahun}, 'penulis' => [...]]
+     *
+     * Source: pdrd.tulis_pub (89k rows)
+     * peran_tulis: A=Author (primary), B/C/D=variants (cm, co-author, contributor)
+     * a_corr_author=1 → corresponding author flag
+     */
+    public function getPublikasiPenulis(string $idPublikasi): array
+    {
+        $meta = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), p.id_publikasi) as id_publikasi,
+                p.judul,
+                p.nama_jurnal,
+                CONVERT(VARCHAR(10), p.tgl_terbit, 120) as tgl_terbit,
+                p.vol, p.no, p.hal,
+                p.doi, p.quartile,
+                YEAR(p.tgl_terbit) as tahun,
+                jp.nm_jns_pub as jenis_publikasi
+            FROM pdrd.publikasi p
+            LEFT JOIN ref.jenis_publikasi jp ON jp.id_jns_pub = p.id_jns_pub
+            WHERE p.id_publikasi = ? AND p.soft_delete = 0
+        ", [$idPublikasi]);
+
+        if (!$meta) {
+            return ['meta' => null, 'penulis' => []];
+        }
+
+        // Authors list ordered by urutan
+        $penulis = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), tp.id_tulis_pub) as id_tulis_pub,
+                CONVERT(VARCHAR(36), tp.id_sdm) as id_sdm,
+                COALESCE(NULLIF(tp.nm_pd, ''), sdm.nm_sdm) as nama,
+                ISNULL(sdm.nidn, '') as nidn,
+                ISNULL(tp.nipd, '') as nipd,
+                tp.urutan,
+                tp.peran_tulis,
+                CASE tp.peran_tulis
+                    WHEN 'A' THEN 'Penulis Utama'
+                    WHEN 'B' THEN 'Penulis Pendamping'
+                    WHEN 'C' THEN 'Corresponding'
+                    WHEN 'D' THEN 'Kontributor'
+                    ELSE 'Lainnya'
+                END as peran_label,
+                ISNULL(tp.afiliasi, '') as afiliasi,
+                ISNULL(tp.a_corr_author, 0) as is_corresponding,
+                tp.jns_penulis
+            FROM pdrd.tulis_pub tp
+            LEFT JOIN pdrd.sdm sdm ON sdm.id_sdm = tp.id_sdm AND sdm.soft_delete = 0
+            WHERE tp.id_publikasi = ? AND tp.soft_delete = 0
+            ORDER BY ISNULL(tp.urutan, 999), tp.peran_tulis, nama
+        ", [$idPublikasi]);
+
+        return [
+            'meta' => (array) $meta,
+            'penulis' => array_map(fn($r) => (array) $r, $penulis),
+        ];
+    }
+
+    /**
+     * Get tim anggota litabmas: dosen + mahasiswa per id_litabmas.
+     * Return: ['judul' => str, 'jenis' => str, 'tahun' => str, 'dosen' => [...], 'mahasiswa' => [...]]
+     *
+     * Tables:
+     *   - pdrd.sdm_anggota_litabmas (38k) - dosen anggota
+     *   - pdrd.pd_anggota_litabmas (1.5M)  - mahasiswa anggota; pakai nm_pd + nipd embedded
+     *
+     * Pagination mahasiswa optional (limit/offset params).
+     */
+    public function getLitabmasAnggota(string $idLitabmas, int $mhsLimit = 100, int $mhsOffset = 0): array
+    {
+        // Meta litabmas (judul, jenis, tahun)
+        $meta = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), lt.id_litabmas) as id_litabmas,
+                lt.judul_litabmas as judul,
+                CASE WHEN lt.jns_litabmas = 'L' THEN 'Penelitian' ELSE 'Pengabdian' END as jenis,
+                lt.id_thn_kegiatan as tahun,
+                sk.nm_skim as skim
+            FROM pdrd.litabmas lt
+            LEFT JOIN ref.skim_kegiatan sk ON sk.id_skim = lt.id_skim
+            WHERE lt.id_litabmas = ? AND lt.soft_delete = 0
+        ", [$idLitabmas]);
+
+        if (!$meta) {
+            return [
+                'meta' => null,
+                'dosen' => [],
+                'mahasiswa' => [],
+                'mahasiswa_total' => 0,
+            ];
+        }
+
+        // Tim dosen (~ small, no pagination)
+        $dosen = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), sal.id_sdm) as id_sdm,
+                sdm.nm_sdm as nama,
+                sdm.nidn,
+                sdm.niy_nigk as nip,
+                CASE WHEN sal.peran_litabmas = 'K' THEN 'Ketua' ELSE 'Anggota' END as peran,
+                sal.peran_litabmas as peran_code,
+                sal.stat_aktif as aktif
+            FROM pdrd.sdm_anggota_litabmas sal
+            INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = sal.id_sdm AND sdm.soft_delete = 0
+            WHERE sal.id_litabmas = ?
+              AND sal.soft_delete = 0
+            ORDER BY
+                CASE WHEN sal.peran_litabmas = 'K' THEN 0 ELSE 1 END,
+                sdm.nm_sdm
+        ", [$idLitabmas]);
+
+        // Total mahasiswa anggota (for pagination metadata)
+        $mhsTotal = (int) $this->selectScalar("
+            SELECT COUNT(*)
+            FROM pdrd.pd_anggota_litabmas
+            WHERE id_litabmas = ? AND soft_delete = 0
+        ", [$idLitabmas]);
+
+        // Tim mahasiswa (paginated). nm_pd & nipd udah embedded di pd_anggota_litabmas;
+        // join ke peserta_didik + reg_pd + sms supaya dapat prodi (kalau ada).
+        $mhsLimit = max(1, min(500, $mhsLimit));
+        $mhsOffset = max(0, $mhsOffset);
+
+        $mahasiswa = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), pal.id_pd_ang_litabmas) as id_pd_ang_litabmas,
+                CONVERT(VARCHAR(36), pal.id_pd) as id_pd,
+                COALESCE(NULLIF(pal.nm_pd, ''), pd.nm_pd) as nama,
+                COALESCE(NULLIF(pal.nipd, ''), rp.nipd) as nipd,
+                CASE WHEN pal.peran_litabmas = 'K' THEN 'Ketua' ELSE 'Anggota' END as peran,
+                pal.peran_litabmas as peran_code,
+                pal.stat_aktif as aktif,
+                sms.nm_lemb as prodi,
+                sms.id_jenj_didik as id_jenj
+            FROM pdrd.pd_anggota_litabmas pal
+            LEFT JOIN pdrd.peserta_didik pd ON pd.id_pd = pal.id_pd AND pd.soft_delete = 0
+            OUTER APPLY (
+                SELECT TOP 1 rp.nipd, rp.id_sms
+                FROM pdrd.reg_pd rp
+                WHERE rp.id_pd = pal.id_pd AND rp.soft_delete = 0
+                ORDER BY rp.tgl_masuk_sp DESC
+            ) rp
+            LEFT JOIN pdrd.sms sms ON sms.id_sms = rp.id_sms AND sms.soft_delete = 0
+            WHERE pal.id_litabmas = ?
+              AND pal.soft_delete = 0
+            ORDER BY
+                CASE WHEN pal.peran_litabmas = 'K' THEN 0 ELSE 1 END,
+                COALESCE(NULLIF(pal.nm_pd, ''), pd.nm_pd)
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        ", [$idLitabmas, $mhsOffset, $mhsLimit]);
+
+        return [
+            'meta' => $meta,
+            'dosen' => $dosen,
+            'mahasiswa' => $mahasiswa,
+            'mahasiswa_total' => $mhsTotal,
+            'mahasiswa_limit' => $mhsLimit,
+            'mahasiswa_offset' => $mhsOffset,
+        ];
+    }
+
     // ==========================================
     // PUBLIKASI
     // ==========================================
@@ -352,7 +516,18 @@ class TridarmaDataRepository extends BaseDataRepository
                     SELECT COUNT(DISTINCT aad.id_reg_ptk)
                     FROM pdrd.akt_ajar_dosen aad WITH(NOLOCK)
                     WHERE aad.id_kls = kk.id_kls AND aad.soft_delete = 0
-                ) AS jumlah_dosen
+                ) AS jumlah_dosen,
+                (
+                    SELECT STUFF((
+                        SELECT '; ' + sdm.nm_sdm + ISNULL(' (' + sdm.nidn + ')', '')
+                        FROM pdrd.akt_ajar_dosen aad WITH(NOLOCK)
+                        JOIN pdrd.reg_ptk rpt WITH(NOLOCK) ON rpt.id_reg_ptk = aad.id_reg_ptk AND rpt.soft_delete = 0
+                        JOIN pdrd.sdm sdm WITH(NOLOCK) ON sdm.id_sdm = rpt.id_sdm AND sdm.soft_delete = 0
+                        WHERE aad.id_kls = kk.id_kls AND aad.soft_delete = 0
+                        ORDER BY sdm.nm_sdm
+                        FOR XML PATH(''), TYPE
+                    ).value('.', 'NVARCHAR(MAX)'), 1, 2, '')
+                ) AS dosen_pengampu
             FROM pdrd.kelas_kuliah kk WITH(NOLOCK)
             INNER JOIN ref.semester sm ON sm.id_smt = kk.id_smt
                 AND sm.a_periode_aktif = 1 AND sm.expired_date IS NULL

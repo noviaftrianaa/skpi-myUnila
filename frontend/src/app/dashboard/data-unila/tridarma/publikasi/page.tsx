@@ -16,6 +16,8 @@ import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type PublikasiItem, type PublikasiStats } from "@/lib/services/data-unila/tridarmaDataService";
+import PublikasiPenulisModal from "@/shared/components/data-unila/PublikasiPenulisModal";
+import { FiUsers as FiUsersIcon } from "react-icons/fi";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
@@ -62,6 +64,7 @@ export default function PublikasiPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<PublikasiStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [selectedPubId, setSelectedPubId] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -173,6 +176,11 @@ export default function PublikasiPage() {
         {i.quartile}
       </span>
     ) : <span className="text-xs text-gray-400">—</span> },
+    { key: "penulis", label: "PENULIS", width: "110px", align: "center" as const, render: (i) => (
+      <button type="button" onClick={() => setSelectedPubId(i.id_publikasi)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700 ring-1 ring-violet-200 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-400/30 dark:hover:bg-violet-500/20 transition" title="Lihat detail penulis publikasi">
+        <FiUsersIcon className="w-3 h-3" /> Lihat
+      </button>
+    )},
   ];
 
   return (
@@ -253,6 +261,7 @@ export default function PublikasiPage() {
           </motion.div>
         </div>
       </div>
+      <PublikasiPenulisModal idPublikasi={selectedPubId} onClose={() => setSelectedPubId(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

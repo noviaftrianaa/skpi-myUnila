@@ -37,6 +37,18 @@ class TridarmaDataController extends Controller
         }
     }
 
+    public function litabmasAnggota(Request $request, string $id): JsonResponse
+    {
+        try {
+            $limit = (int) $request->query('limit', 100);
+            $offset = (int) $request->query('offset', 0);
+            $data = $this->service->getLitabmasAnggota($id, $limit, $offset);
+            return $this->success($data, 'Anggota litabmas');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     public function publikasi(Request $request): JsonResponse
     {
         try {
@@ -51,6 +63,16 @@ class TridarmaDataController extends Controller
     {
         try {
             return $this->success($this->service->getPublikasiStats($this->extractParams($request)), 'Stats publikasi');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function publikasiPenulis(string $id): JsonResponse
+    {
+        try {
+            $data = $this->service->getPublikasiPenulis($id);
+            return $this->success($data, 'Penulis publikasi');
         } catch (\Exception $e) {
             return $this->error('Gagal: ' . $e->getMessage());
         }

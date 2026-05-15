@@ -31,6 +31,16 @@ class TridarmaDataService
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getLitabmasStats());
     }
 
+    public function getLitabmasAnggota(string $idLitabmas, int $mhsLimit = 100, int $mhsOffset = 0): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'litabmas-anggota', [
+            'id' => $idLitabmas, 'limit' => $mhsLimit, 'offset' => $mhsOffset,
+        ]);
+        return $this->cache->remember($key, self::TTL_STATS, fn() =>
+            $this->repository->getLitabmasAnggota($idLitabmas, $mhsLimit, $mhsOffset)
+        );
+    }
+
     public function getPublikasi(array $params): array
     {
         $key = $this->cache->buildKey('data-unila', 'publikasi-list', $params);
@@ -41,6 +51,14 @@ class TridarmaDataService
     {
         $key = $this->cache->buildKey('data-unila', 'publikasi-stats', $params);
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPublikasiStats($params));
+    }
+
+    public function getPublikasiPenulis(string $idPublikasi): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'publikasi-penulis', ['id' => $idPublikasi]);
+        return $this->cache->remember($key, self::TTL_STATS, fn() =>
+            $this->repository->getPublikasiPenulis($idPublikasi)
+        );
     }
 
     public function getPrestasi(array $params): array

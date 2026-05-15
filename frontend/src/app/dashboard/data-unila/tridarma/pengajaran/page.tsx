@@ -33,6 +33,41 @@ function num(v?: string | number | null): number {
 }
 function fmt(n: number): string { return n.toLocaleString("id-ID"); }
 
+function DosenPengampuCell({ value, count }: { value: string | null; count: number }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!value) return <span className="text-xs text-gray-400">—</span>;
+  // Split by "; " — repository CONCATs with "; " (STUFF removed leading "; ")
+  const dosens = value.split("; ").filter(Boolean);
+  if (dosens.length === 0) return <span className="text-xs text-gray-400">—</span>;
+  const visible = expanded ? dosens : dosens.slice(0, 2);
+  const more = dosens.length - visible.length;
+  return (
+    <div className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 max-w-[340px]">
+      {visible.map((d, idx) => (
+        <div key={idx} className="line-clamp-1" title={d}>{d}</div>
+      ))}
+      {more > 0 && !expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          +{more} dosen lainnya
+        </button>
+      )}
+      {expanded && count > 2 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          className="text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          tutup
+        </button>
+      )}
+    </div>
+  );
+}
+
 function StatCard({
   icon, label, value, gradient, subtext,
 }: { icon: React.ReactNode; label: string; value: string | number; gradient: string; subtext?: string }) {
@@ -134,6 +169,7 @@ export default function PengajaranPage() {
     fakultas: "Fakultas",
     semester: "Semester",
     jumlah_dosen: "Jumlah Dosen",
+    dosen_pengampu: "Dosen Pengampu",
   } as const;
 
   const dataForExport = useMemo(() => data, [data]);
@@ -194,7 +230,11 @@ export default function PengajaranPage() {
       ),
     },
     {
-      key: "jumlah_dosen", label: "DOSEN", width: "90px", align: "center" as const,
+      key: "dosen_pengampu", label: "DOSEN PENGAMPU",
+      render: (i) => <DosenPengampuCell value={i.dosen_pengampu} count={i.jumlah_dosen} />,
+    },
+    {
+      key: "jumlah_dosen", label: "JML", width: "70px", align: "center" as const,
       render: (i) => (
         <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300">
           {i.jumlah_dosen}

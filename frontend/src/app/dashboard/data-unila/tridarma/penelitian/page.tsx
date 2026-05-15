@@ -11,11 +11,12 @@ import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/Ex
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import { MdSchool, MdScience } from "react-icons/md";
-import { FiBookOpen, FiDollarSign, FiFilter, FiRotateCcw, FiX, FiAward } from "react-icons/fi";
+import { FiBookOpen, FiDollarSign, FiFilter, FiRotateCcw, FiX, FiAward, FiUsers } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type LitabmasItem, type LitabmasStats } from "@/lib/services/data-unila/tridarmaDataService";
+import LitabmasAnggotaModal from "@/shared/components/data-unila/LitabmasAnggotaModal";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
@@ -71,6 +72,7 @@ export default function PenelitianPage() {
   const [sortBy, setSortBy] = useState("tahun");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterTahun, setFilterTahun] = useState("");
+  const [anggotaId, setAnggotaId] = useState<string | null>(null);
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
@@ -159,6 +161,16 @@ export default function PenelitianPage() {
     { key: "lokasi_kegiatan", label: "LOKASI", width: "180px", render: (i) => (
       <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">{i.lokasi_kegiatan || "—"}</span>
     )},
+    { key: "_anggota", label: "TIM", width: "80px", align: "center" as const, render: (i) => (
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setAnggotaId(i.id_litabmas); }}
+        className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold rounded-md bg-violet-50 text-violet-700 ring-1 ring-violet-200 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-500/30"
+        aria-label="Lihat tim anggota"
+      >
+        <FiUsers className="w-3 h-3" /> Tim
+      </button>
+    )},
   ];
 
   return (
@@ -234,6 +246,7 @@ export default function PenelitianPage() {
           </motion.div>
         </div>
       </div>
+      <LitabmasAnggotaModal idLitabmas={anggotaId} onClose={() => setAnggotaId(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }
