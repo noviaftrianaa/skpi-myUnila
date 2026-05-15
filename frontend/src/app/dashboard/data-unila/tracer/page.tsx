@@ -96,7 +96,7 @@ export default function TracerPage() {
   const [filterFak, setFilterFak] = useState(forcedFak);
   const [filterProdi, setFilterProdi] = useState(forcedProdi);
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
-  const [filterStatus, setFilterStatus] = useState<"" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja" | "belum_diisi">("");
+  const [filterStatus, setFilterStatus] = useState<"" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja">("");
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
 
@@ -287,13 +287,12 @@ export default function TracerPage() {
                   forcedProdi={forcedProdi || undefined}
                 />
                 <Dropdown label="Status Tracer" value={filterStatus}
-                  onChange={(v) => { setFilterStatus(v as "" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja" | "belum_diisi"); setPage(1); }}
+                  onChange={(v) => { setFilterStatus(v as "" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja"); setPage(1); }}
                   options={[
                     { value: "bekerja", label: "Bekerja" },
                     { value: "wiraswasta", label: "Wiraswasta / Wirausaha" },
                     { value: "kuliah_lanjut", label: "Kuliah Lanjut / Studi Lanjut" },
                     { value: "belum_bekerja", label: "Belum / Tidak Bekerja" },
-                    { value: "belum_diisi", label: "Belum Diisi" },
                   ]}
                   placeholder="Semua Status" />
               </div>
