@@ -81,12 +81,12 @@
     {
       "nm_menu": "Data Alumni",
       "nm_file": "#data-alumni",
-      "icon": "heroicons:trophy",
+      "icon": "heroicons:user-group",
       "urutan": 8,
       "children": [
-        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "urutan": 1},
-        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "urutan": 2},
-        {"nm_menu": "User Survey", "nm_file": "/dashboard/data-unila/alumni/user-survey", "urutan": 3}
+        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "urutan": 1},
+        {"nm_menu": "User Survey", "nm_file": "/dashboard/data-unila/alumni/user-survey", "urutan": 2},
+        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "urutan": 3}
       ]
     }
   ]

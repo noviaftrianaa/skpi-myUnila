@@ -31,32 +31,38 @@ BEGIN
         a_aktif, a_tampil, icon, id_group_menu, tgl_create, last_update, last_sync
     ) VALUES (
         @parent_id, @app_id, 'Data Alumni', '#data-alumni', 8, 1,
-        1, 1, 'heroicons:trophy', NULL, GETDATE(), GETDATE(), GETDATE()
+        1, 1, 'heroicons:user-group', NULL, GETDATE(), GETDATE(), GETDATE()
     );
 END;
 
--- 2. Update existing "Tracer Study" → child Alumni (preserve id_menu utk FK menu_role)
+-- 2. Update existing "Tracer Study" → child Alumni urutan 1 (preserve id_menu utk FK menu_role)
 UPDATE man_akses.menu
-SET id_group_menu = @parent_id, urutan_menu = 2, level_menu = 2,
+SET id_group_menu = @parent_id, urutan_menu = 1, level_menu = 2,
     nm_menu = 'Tracer Study', last_update = GETDATE()
 WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/tracer';
 
--- 3. Update existing "Lulusan" → child Alumni
+-- 3. Update existing "Lulusan" → child Alumni urutan 3 (di akhir)
 UPDATE man_akses.menu
-SET id_group_menu = @parent_id, urutan_menu = 1, level_menu = 2,
+SET id_group_menu = @parent_id, urutan_menu = 3, level_menu = 2,
     nm_menu = 'Lulusan', last_update = GETDATE()
 WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/mahasiswa/lulusan';
 
--- 4. Insert "User Survey" (baru)
+-- 4. Insert/Update "User Survey" urutan 2
 IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/user-survey')
 BEGIN
     INSERT INTO man_akses.menu (
         id_menu, id_aplikasi, nm_menu, nm_file, urutan_menu, level_menu,
         a_aktif, a_tampil, id_group_menu, tgl_create, last_update, last_sync
     ) VALUES (
-        NEWID(), @app_id, 'User Survey', '/dashboard/data-unila/alumni/user-survey', 3, 2,
+        NEWID(), @app_id, 'User Survey', '/dashboard/data-unila/alumni/user-survey', 2, 2,
         1, 1, @parent_id, GETDATE(), GETDATE(), GETDATE()
     );
+END
+ELSE
+BEGIN
+    UPDATE man_akses.menu
+    SET id_group_menu = @parent_id, urutan_menu = 2, level_menu = 2, last_update = GETDATE()
+    WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/user-survey';
 END;
 
 PRINT 'Alumni group menu applied successfully.';

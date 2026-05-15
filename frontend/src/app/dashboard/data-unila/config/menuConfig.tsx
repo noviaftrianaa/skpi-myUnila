@@ -1,5 +1,5 @@
 import {
-  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp, FiMapPin, FiAward,
+  FiBarChart2, FiUsers, FiUser, FiBook, FiGlobe, FiDollarSign, FiTrendingUp, FiMapPin, FiAward, FiUserCheck,
 } from "react-icons/fi";
 import { MdSchool, MdScience } from "react-icons/md";
 
@@ -75,11 +75,11 @@ export const dataUnilaMenuConfig = [
   },
   {
     title: "Data Alumni",
-    icon: <FiAward className="w-4 h-4" />,
+    icon: <FiUserCheck className="w-4 h-4" />,
     children: [
-      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
       { title: "Tracer Study", href: "/dashboard/data-unila/tracer" },
       { title: "User Survey", href: "/dashboard/data-unila/alumni/user-survey" },
+      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
     ],
   },
 ];
