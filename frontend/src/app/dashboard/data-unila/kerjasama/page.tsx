@@ -68,6 +68,8 @@ interface KerjasamaItem {
   tgl_selesai: string | null;
   status: string | null;
   no_mou?: string | null;
+  unit_pelaksana?: string | null;
+  jml_unit?: number | string;
 }
 
 export default function KerjasamaPage() {
@@ -171,6 +173,17 @@ export default function KerjasamaPage() {
     { key: "mitra", label: "MITRA", sortable: true, render: (i) => (
       <span className="text-sm text-gray-700 dark:text-gray-300 line-clamp-1">{i.mitra || "—"}</span>
     )},
+    { key: "unit_pelaksana", label: "UNIT PELAKSANA", render: (i) => {
+      const up = (i as unknown as { unit_pelaksana?: string | null }).unit_pelaksana;
+      const jml = Number((i as unknown as { jml_unit?: number | string }).jml_unit || 0);
+      if (!up && !jml) return <span className="text-xs text-gray-400">—</span>;
+      return (
+        <div className="text-xs leading-tight">
+          <div className="text-gray-800 dark:text-gray-200 line-clamp-2">{up || "—"}</div>
+          {jml > 1 && <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">+{jml - 1} unit lainnya</div>}
+        </div>
+      );
+    }},
     { key: "tgl_mulai", label: "TGL MULAI", width: "110px", sortable: true, render: (i) => (
       <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{fmtDate(i.tgl_mulai)}</span>
     )},
@@ -233,11 +246,15 @@ export default function KerjasamaPage() {
                   <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
                 </div>
               </div>
-              <div className="rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 px-3 py-2 text-[11px] text-sky-700 dark:text-sky-300 flex items-center gap-2">
-                <FiFilter className="w-3 h-3" />
-                Data MoU bersifat institusional (id_sp = Universitas) — filter unit tidak diterapkan; pakai filter Status & pencarian untuk menyaring.
-              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <UnitFilter
+                  data={orgFilters}
+                  value={unitItems}
+                  onChange={(next) => { setUnitItems(next); setPage(1); }}
+                  forcedFakultas={forcedFak || undefined}
+                  forcedJurusan={forcedJur || undefined}
+                  forcedProdi={forcedProdi || undefined}
+                />
                 <Dropdown label="Status" value={filterStatus} onChange={(v) => { setFilterStatus(v); setPage(1); }} options={statusOptions} placeholder="Semua Status" />
               </div>
               {activeChips.length > 0 && (

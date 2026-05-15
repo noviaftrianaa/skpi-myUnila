@@ -16,7 +16,8 @@
       "children": [
         {"nm_menu": "Daftar Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa", "urutan": 1},
         {"nm_menu": "KTW", "nm_file": "/dashboard/data-unila/mahasiswa/ktw", "urutan": 2},
-        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 3}
+        {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 3},
+        {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/data-unila/tridarma/prestasi", "urutan": 4}
       ]
     },
     {
@@ -43,8 +44,7 @@
       "children": [
         {"nm_menu": "Penelitian", "nm_file": "/dashboard/data-unila/tridarma/penelitian", "urutan": 1},
         {"nm_menu": "Pengabdian", "nm_file": "/dashboard/data-unila/tridarma/pengabdian", "urutan": 2},
-        {"nm_menu": "Publikasi", "nm_file": "/dashboard/data-unila/tridarma/publikasi", "urutan": 3},
-        {"nm_menu": "Prestasi", "nm_file": "/dashboard/data-unila/tridarma/prestasi", "urutan": 4}
+        {"nm_menu": "Publikasi", "nm_file": "/dashboard/data-unila/tridarma/publikasi", "urutan": 3}
       ]
     },
     {
@@ -84,9 +84,9 @@
       "icon": "heroicons:user-group",
       "urutan": 8,
       "children": [
-        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "urutan": 1},
-        {"nm_menu": "User Survey", "nm_file": "/dashboard/data-unila/alumni/user-survey", "urutan": 2},
-        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "urutan": 3}
+        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "icon": "heroicons:arrow-trending-up", "urutan": 1},
+        {"nm_menu": "Survey Atasan", "nm_file": "/dashboard/data-unila/alumni/survey-atasan", "icon": "heroicons:briefcase", "urutan": 2},
+        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "icon": "heroicons:academic-cap", "urutan": 3}
       ]
     }
   ]

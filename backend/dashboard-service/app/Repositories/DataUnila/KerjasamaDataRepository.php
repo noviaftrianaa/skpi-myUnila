@@ -6,9 +6,24 @@ class KerjasamaDataRepository extends BaseDataRepository
 {
     public function getList(array $params): array
     {
-        // kerjasama.mou tidak punya kolom unit (id_sp = Universitas saja).
-        // Strip org filter agar paginate() tidak inject `s.id_fak_unila` ke SQL.
+        // Strip default org filter (alias `s.*`) — kerjasama.mou tidak JOIN sms langsung.
+        // Apply via EXISTS subquery di sms_kerjasama (bridge table id_mou ↔ id_sms).
+        $orgParams = array_intersect_key($params, array_flip(['id_fakultas', 'id_prodi', 'id_sms', 'id_jurusan']));
         $params = array_diff_key($params, array_flip(['id_fakultas', 'id_prodi', 'id_sms', 'id_jurusan', 'unit_filter']));
+
+        $orgExists = '';
+        $orgBindings = [];
+        if (!empty($orgParams['id_prodi']) || !empty($orgParams['id_sms'])) {
+            $orgExists = " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0 AND sk.id_sms = ?)";
+            $orgBindings[] = $orgParams['id_prodi'] ?? $orgParams['id_sms'];
+        } elseif (!empty($orgParams['id_fakultas'])) {
+            $orgExists = " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk JOIN pdrd.sms s ON s.id_sms = sk.id_sms WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0 AND s.soft_delete = 0 AND s.id_fak_unila = ?)";
+            $orgBindings[] = $orgParams['id_fakultas'];
+        }
+        if (!empty($orgParams['id_jurusan'])) {
+            $orgExists .= " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk2 JOIN pdrd.sms s2 ON s2.id_sms = sk2.id_sms WHERE sk2.id_mou = m.id_mou AND sk2.soft_delete = 0 AND s2.soft_delete = 0 AND s2.id_jur_unila = ?)";
+            $orgBindings[] = $orgParams['id_jurusan'];
+        }
 
         $baseSql = "
             SELECT
@@ -20,34 +35,82 @@ class KerjasamaDataRepository extends BaseDataRepository
                 CONVERT(VARCHAR(10), m.tgl_selesai, 120) as tgl_selesai,
                 CASE WHEN m.tgl_selesai >= GETDATE() THEN 'Aktif' ELSE 'Expired' END as status,
                 m.cp as contact_person,
-                ak.nm_akt_kerjasama as jenis
+                ak.nm_akt_kerjasama as jenis,
+                (SELECT TOP 1 s.nm_lemb FROM kerjasama.sms_kerjasama sk JOIN pdrd.sms s ON s.id_sms = sk.id_sms WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0 ORDER BY s.nm_lemb) as unit_pelaksana,
+                (SELECT COUNT(DISTINCT sk.id_sms) FROM kerjasama.sms_kerjasama sk WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0) as jml_unit
             FROM kerjasama.mou m
             LEFT JOIN ref.aktifitas_kerjasama ak ON ak.id_akt_kerjasama = m.id_akt_kerjasama
-            WHERE m.soft_delete = 0
+            WHERE m.soft_delete = 0 {$orgExists}
               {WHERE_EXTRA}
         ";
-        $countSql = "SELECT COUNT(*) FROM kerjasama.mou m WHERE m.soft_delete = 0 {WHERE_EXTRA}";
+        $countSql = "SELECT COUNT(*) FROM kerjasama.mou m WHERE m.soft_delete = 0 {$orgExists} {WHERE_EXTRA}";
 
-        return $this->paginate($baseSql, $countSql, $params,
-            ['m.judul_mou','m.nm_dudi','m.sk_mou'],
-            ['judul_mou','mitra','tgl_mulai','tgl_selesai','status'],
-            'tgl_mulai', 'DESC');
+        // Manually paginate karena $orgExists ada bindings di prefix
+        $page = max(1, (int) ($params['page'] ?? 1));
+        $limit = min(100, max(1, (int) ($params['limit'] ?? 20)));
+        $offset = ($page - 1) * $limit;
+        $sortable = ['judul_mou','mitra','tgl_mulai','tgl_selesai','status'];
+        $sortBy = in_array($params['sort_by'] ?? '', $sortable) ? $params['sort_by'] : 'tgl_mulai';
+        $sortOrder = strtoupper($params['sort_order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+        $search = $params['search'] ?? null;
+
+        $whereExtra = '';
+        $extraBindings = [];
+        if (!empty($search)) {
+            $whereExtra .= " AND (m.judul_mou LIKE ? OR m.nm_dudi LIKE ? OR m.sk_mou LIKE ?)";
+            $extraBindings[] = "%{$search}%";
+            $extraBindings[] = "%{$search}%";
+            $extraBindings[] = "%{$search}%";
+        }
+        if (!empty($params['status'])) {
+            if ($params['status'] === 'aktif') {
+                $whereExtra .= " AND m.tgl_selesai >= GETDATE()";
+            } elseif ($params['status'] === 'expired') {
+                $whereExtra .= " AND m.tgl_selesai < GETDATE()";
+            }
+        }
+
+        $totalSql = str_replace('{WHERE_EXTRA}', $whereExtra, $countSql);
+        $total = (int) $this->selectScalar($totalSql, array_merge($orgBindings, $extraBindings));
+
+        $dataSql = str_replace('{WHERE_EXTRA}', $whereExtra, $baseSql)
+            . " ORDER BY {$sortBy} {$sortOrder} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $rows = $this->select($dataSql, array_merge($orgBindings, $extraBindings, [$offset, $limit]));
+
+        return [
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => $total > 0 ? (int) ceil($total / $limit) : 0,
+        ];
     }
 
-    public function getStats(): array
+    public function getStats(array $params = []): array
     {
-        // Konsisten dengan BerandaRepository:
-        //  - mitra_unik (aktif) = COUNT(DISTINCT nm_dudi) yg masa berlaku belum lewat
-        //  - aktif = COUNT(*) MoU yg tgl_selesai >= GETDATE()
+        // Konsisten dengan BerandaRepository + filter unit via sms_kerjasama bridge.
+        $orgExists = '';
+        $bindings = [];
+        if (!empty($params['id_prodi']) || !empty($params['id_sms'])) {
+            $orgExists = " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0 AND sk.id_sms = ?)";
+            $bindings[] = $params['id_prodi'] ?? $params['id_sms'];
+        } elseif (!empty($params['id_fakultas'])) {
+            $orgExists = " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk JOIN pdrd.sms s ON s.id_sms = sk.id_sms WHERE sk.id_mou = m.id_mou AND sk.soft_delete = 0 AND s.soft_delete = 0 AND s.id_fak_unila = ?)";
+            $bindings[] = $params['id_fakultas'];
+        }
+        if (!empty($params['id_jurusan'])) {
+            $orgExists .= " AND EXISTS (SELECT 1 FROM kerjasama.sms_kerjasama sk2 JOIN pdrd.sms s2 ON s2.id_sms = sk2.id_sms WHERE sk2.id_mou = m.id_mou AND sk2.soft_delete = 0 AND s2.soft_delete = 0 AND s2.id_jur_unila = ?)";
+            $bindings[] = $params['id_jurusan'];
+        }
+
         return (array) $this->selectOne("
             SELECT COUNT(*) as total,
-                SUM(CASE WHEN tgl_selesai >= GETDATE() THEN 1 ELSE 0 END) as aktif,
-                SUM(CASE WHEN tgl_selesai < GETDATE() THEN 1 ELSE 0 END) as expired,
-                (SELECT COUNT(DISTINCT nm_dudi) FROM kerjasama.mou
-                 WHERE soft_delete = 0 AND tgl_selesai >= GETDATE()
-                   AND nm_dudi IS NOT NULL AND nm_dudi <> '') as mitra_unik
-            FROM kerjasama.mou WHERE soft_delete = 0
-        ");
+                SUM(CASE WHEN m.tgl_selesai >= GETDATE() THEN 1 ELSE 0 END) as aktif,
+                SUM(CASE WHEN m.tgl_selesai < GETDATE() THEN 1 ELSE 0 END) as expired,
+                COUNT(DISTINCT CASE WHEN m.tgl_selesai >= GETDATE() AND m.nm_dudi IS NOT NULL AND m.nm_dudi <> '' THEN m.nm_dudi END) as mitra_unik
+            FROM kerjasama.mou m
+            WHERE m.soft_delete = 0 {$orgExists}
+        ", $bindings);
     }
 
     // ==========================================
@@ -74,6 +137,18 @@ class KerjasamaDataRepository extends BaseDataRepository
         if (!empty($params['tahun_mou'])) {
             $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m2 WHERE m2.soft_delete=0 AND m2.nm_dudi = nm_lemb AND YEAR(m2.tgl_mulai) = ?)";
             $bindings[] = (int) $params['tahun_mou'];
+        }
+        // Unit filter: mitra punya MoU dgn prodi/fakultas tertentu (via sms_kerjasama bridge)
+        if (!empty($params['id_prodi']) || !empty($params['id_sms'])) {
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m3 JOIN kerjasama.sms_kerjasama sk3 ON sk3.id_mou = m3.id_mou WHERE m3.soft_delete=0 AND sk3.soft_delete=0 AND m3.nm_dudi = nm_lemb AND sk3.id_sms = ?)";
+            $bindings[] = $params['id_prodi'] ?? $params['id_sms'];
+        } elseif (!empty($params['id_fakultas'])) {
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m4 JOIN kerjasama.sms_kerjasama sk4 ON sk4.id_mou = m4.id_mou JOIN pdrd.sms s4 ON s4.id_sms = sk4.id_sms WHERE m4.soft_delete=0 AND sk4.soft_delete=0 AND s4.soft_delete=0 AND m4.nm_dudi = nm_lemb AND s4.id_fak_unila = ?)";
+            $bindings[] = $params['id_fakultas'];
+        }
+        if (!empty($params['id_jurusan'])) {
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m5 JOIN kerjasama.sms_kerjasama sk5 ON sk5.id_mou = m5.id_mou JOIN pdrd.sms s5 ON s5.id_sms = sk5.id_sms WHERE m5.soft_delete=0 AND sk5.soft_delete=0 AND s5.soft_delete=0 AND m5.nm_dudi = nm_lemb AND s5.id_jur_unila = ?)";
+            $bindings[] = $params['id_jurusan'];
         }
         return [$where, $bindings];
     }

@@ -18,9 +18,9 @@ class KerjasamaDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
-    public function stats(): JsonResponse
+    public function stats(Request $request): JsonResponse
     {
-        try { return $this->success($this->service->getStats(), 'Stats kerjasama'); }
+        try { return $this->success($this->service->getStats($this->p($request)), 'Stats kerjasama'); }
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
@@ -38,8 +38,19 @@ class KerjasamaDataController extends Controller
 
     private function p(Request $r): array
     {
-        return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),
-            'sort_by'=>$r->query('sort_by'),'sort_order'=>$r->query('sort_order','desc')];
+        return [
+            'page' => $r->query('page', 1),
+            'limit' => $r->query('limit', 20),
+            'search' => $r->query('search'),
+            'sort_by' => $r->query('sort_by'),
+            'sort_order' => $r->query('sort_order', 'desc'),
+            'status' => $r->query('status'),
+            'id_fakultas' => $r->query('id_fakultas'),
+            'id_prodi' => $r->query('id_prodi'),
+            'id_sms' => $r->query('id_sms'),
+            'id_jurusan' => $r->query('id_jurusan'),
+            'unit_filter' => $r->query('unit_filter'),
+        ];
     }
 
     private function pMitra(Request $r): array
@@ -52,6 +63,11 @@ class KerjasamaDataController extends Controller
             'sort_order' => $r->query('sort_order', 'asc'),
             'jenis' => $r->query('jenis'),
             'tahun_mou' => $r->query('tahun_mou'),
+            'id_fakultas' => $r->query('id_fakultas'),
+            'id_prodi' => $r->query('id_prodi'),
+            'id_sms' => $r->query('id_sms'),
+            'id_jurusan' => $r->query('id_jurusan'),
+            'unit_filter' => $r->query('unit_filter'),
         ];
     }
 }

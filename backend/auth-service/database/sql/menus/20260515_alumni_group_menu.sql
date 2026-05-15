@@ -65,4 +65,21 @@ BEGIN
     WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/user-survey';
 END;
 
-PRINT 'Alumni group menu applied successfully.';
+-- 5. Pastikan menu_role tersedia untuk parent #data-alumni + User Survey
+-- (copy dari Tracer Study yg sudah lama existing). Tanpa ini menu_role kosong → sidebar render orphan.
+DECLARE @user_survey_id UNIQUEIDENTIFIER = (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi=@app_id AND nm_file='/dashboard/data-unila/alumni/user-survey');
+DECLARE @tracer_id UNIQUEIDENTIFIER = (SELECT id_menu FROM man_akses.menu WHERE id_aplikasi=@app_id AND nm_file='/dashboard/data-unila/tracer');
+
+-- Parent #data-alumni
+DELETE FROM man_akses.menu_role WHERE id_menu = @parent_id;
+INSERT INTO man_akses.menu_role (id_peran, id_menu, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, a_boleh_sanggah, approval_menu, tgl_create, last_update, soft_delete, last_sync, id_updater)
+SELECT id_peran, @parent_id, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, a_boleh_sanggah, approval_menu, GETDATE(), GETDATE(), 0, GETDATE(), id_updater
+FROM man_akses.menu_role WHERE id_menu = @tracer_id;
+
+-- User Survey
+DELETE FROM man_akses.menu_role WHERE id_menu = @user_survey_id;
+INSERT INTO man_akses.menu_role (id_peran, id_menu, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, a_boleh_sanggah, approval_menu, tgl_create, last_update, soft_delete, last_sync, id_updater)
+SELECT id_peran, @user_survey_id, akses_menu, a_boleh_insert, a_boleh_show, a_boleh_delete, a_boleh_update, a_boleh_sanggah, approval_menu, GETDATE(), GETDATE(), 0, GETDATE(), id_updater
+FROM man_akses.menu_role WHERE id_menu = @tracer_id;
+
+PRINT 'Alumni group menu applied successfully (menu_role propagated).';

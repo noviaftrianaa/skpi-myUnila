@@ -6,6 +6,8 @@ import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
 import Dropdown, { type DropdownOption } from "@/shared/components/data-unila/Dropdown";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import { MdSchool } from "react-icons/md";
@@ -70,6 +72,17 @@ export default function MitraPage() {
 
   const [filterJenis, setFilterJenis] = useState("");
   const [filterTahunMou, setFilterTahunMou] = useState("");
+  const [filterFak, setFilterFak] = useState("");
+  const [filterProdi, setFilterProdi] = useState("");
+  const [filterJurusan, setFilterJurusan] = useState("");
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined })
+      .then(setOrgFilters).catch(console.error);
+  }, [filterFak, filterJurusan]);
 
   useEffect(() => {
     setLoadingStats(true);
@@ -87,11 +100,15 @@ export default function MitraPage() {
       sort_by: sortBy, sort_order: sortOrder,
       jenis: filterJenis || undefined,
       tahun_mou: filterTahunMou || undefined,
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
     })
       .then((r: { data: MitraItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data mitra"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterJenis, filterTahunMou]);
+  }, [page, limit, search, sortBy, sortOrder, filterJenis, filterTahunMou, filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => {
     setSortBy(k); setSortOrder(o); setPage(1);
@@ -259,11 +276,12 @@ export default function MitraPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 px-3 py-2 text-[11px] text-sky-700 dark:text-sky-300 flex items-center gap-2">
-                <FiFilter className="w-3 h-3" />
-                Mitra Riset & Industri = pool global lembaga_iptek + dudi (tanpa relasi fakultas/prodi). Filter via Jenis & Tahun MoU.
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <UnitFilter
+                  data={orgFilters}
+                  value={unitItems}
+                  onChange={(next) => { setUnitItems(next); setPage(1); }}
+                />
                 <Dropdown label="Jenis Mitra" value={filterJenis}
                   onChange={(v) => { setFilterJenis(v); setPage(1); }}
                   options={jenisOptions} placeholder="Semua Jenis" />

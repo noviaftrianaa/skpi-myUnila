@@ -16,6 +16,7 @@ export const dataUnilaMenuConfig = [
       { title: "Daftar Mahasiswa", href: "/dashboard/data-unila/mahasiswa" },
       { title: "KTW", href: "/dashboard/data-unila/mahasiswa/ktw" },
       { title: "Aktivitas Mahasiswa", href: "/dashboard/data-unila/mahasiswa/aktivitas" },
+      { title: "Prestasi Mahasiswa", href: "/dashboard/data-unila/tridarma/prestasi" },
     ],
   },
   {
@@ -40,7 +41,6 @@ export const dataUnilaMenuConfig = [
       { title: "Penelitian", href: "/dashboard/data-unila/tridarma/penelitian" },
       { title: "Pengabdian", href: "/dashboard/data-unila/tridarma/pengabdian" },
       { title: "Publikasi", href: "/dashboard/data-unila/tridarma/publikasi" },
-      { title: "Prestasi", href: "/dashboard/data-unila/tridarma/prestasi" },
     ],
   },
   {
@@ -78,7 +78,7 @@ export const dataUnilaMenuConfig = [
     icon: <FiUserCheck className="w-4 h-4" />,
     children: [
       { title: "Tracer Study", href: "/dashboard/data-unila/tracer" },
-      { title: "User Survey", href: "/dashboard/data-unila/alumni/user-survey" },
+      { title: "Survey Atasan", href: "/dashboard/data-unila/alumni/survey-atasan" },
       { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
     ],
   },

@@ -145,10 +145,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/mitra/stats', [\App\Http\Controllers\Api\DataUnila\KerjasamaDataController::class, 'mitraStats']);
         });
 
-        // Tracer Study
+        // Tracer Study + Survey Atasan
         Route::prefix('tracer')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'index']);
             Route::get('/stats', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'stats']);
+            Route::get('/survey-atasan', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'surveyAtasan']);
+            Route::get('/survey-atasan/stats', [\App\Http\Controllers\Api\DataUnila\TracerDataController::class, 'surveyAtasanStats']);
         });
 
         // KKN (Kuliah Kerja Nyata)

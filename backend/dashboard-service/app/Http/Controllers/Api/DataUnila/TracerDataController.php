@@ -24,6 +24,18 @@ class TracerDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
+    public function surveyAtasan(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getSurveyAtasanList($this->p($request)), 'Data Survey Atasan'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function surveyAtasanStats(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getSurveyAtasanStats($this->p($request)), 'Stats Survey Atasan'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
     private function p(Request $r): array
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),
