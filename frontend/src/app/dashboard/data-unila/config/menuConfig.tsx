@@ -29,7 +29,6 @@ export const dataUnilaMenuConfig = [
       { title: "Riwayat Pendidikan", href: "/dashboard/data-unila/dosen/pendidikan" },
       { title: "Riwayat Kepangkatan", href: "/dashboard/data-unila/dosen/kepangkatan" },
       { title: "Tugas Tambahan", href: "/dashboard/data-unila/dosen/tugas-tambahan" },
-      { title: "Bimbingan Mahasiswa", href: "/dashboard/data-unila/dosen/bimbingan" },
       { title: "Riwayat Sertifikasi", href: "/dashboard/data-unila/dosen/sertifikasi" },
       { title: "Daftar Tendik", href: "/dashboard/data-unila/dosen/tendik" },
     ],
@@ -39,7 +38,7 @@ export const dataUnilaMenuConfig = [
     icon: <MdScience className="w-4 h-4" />,
     children: [
       { title: "Pengajaran", href: "/dashboard/data-unila/tridarma/pengajaran" },
-      { title: "Uji Mahasiswa", href: "/dashboard/data-unila/mahasiswa/ujian" },
+      { title: "Bimbingan Mahasiswa", href: "/dashboard/data-unila/dosen/bimbingan" },
       { title: "Penelitian", href: "/dashboard/data-unila/tridarma/penelitian" },
       { title: "Pengabdian", href: "/dashboard/data-unila/tridarma/pengabdian" },
       { title: "Publikasi", href: "/dashboard/data-unila/tridarma/publikasi" },

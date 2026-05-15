@@ -32,9 +32,8 @@
         {"nm_menu": "Riwayat Pendidikan", "nm_file": "/dashboard/data-unila/dosen/pendidikan", "urutan": 3},
         {"nm_menu": "Riwayat Kepangkatan", "nm_file": "/dashboard/data-unila/dosen/kepangkatan", "urutan": 4},
         {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/data-unila/dosen/tugas-tambahan", "urutan": 5},
-        {"nm_menu": "Bimbingan Mahasiswa", "nm_file": "/dashboard/data-unila/dosen/bimbingan", "urutan": 6},
-        {"nm_menu": "Riwayat Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 7},
-        {"nm_menu": "Daftar Tendik", "nm_file": "/dashboard/data-unila/dosen/tendik", "urutan": 8}
+        {"nm_menu": "Riwayat Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 6},
+        {"nm_menu": "Daftar Tendik", "nm_file": "/dashboard/data-unila/dosen/tendik", "urutan": 7}
       ]
     },
     {
@@ -44,7 +43,7 @@
       "urutan": 4,
       "children": [
         {"nm_menu": "Pengajaran", "nm_file": "/dashboard/data-unila/tridarma/pengajaran", "urutan": 1},
-        {"nm_menu": "Uji Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/ujian", "urutan": 2},
+        {"nm_menu": "Bimbingan Mahasiswa", "nm_file": "/dashboard/data-unila/dosen/bimbingan", "urutan": 2},
         {"nm_menu": "Penelitian", "nm_file": "/dashboard/data-unila/tridarma/penelitian", "urutan": 3},
         {"nm_menu": "Pengabdian", "nm_file": "/dashboard/data-unila/tridarma/pengabdian", "urutan": 4},
         {"nm_menu": "Publikasi", "nm_file": "/dashboard/data-unila/tridarma/publikasi", "urutan": 5}
