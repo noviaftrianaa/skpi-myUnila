@@ -20,6 +20,7 @@ import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
+import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
 const APP_KEY = "data-unila";
 
@@ -259,7 +260,7 @@ export default function KknPage() {
         </div>
 
         {loadingStats ? (
-          <div className="flex justify-center py-6"><div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+          <StatCardGridSkeleton count={5} />
         ) : stats && (
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

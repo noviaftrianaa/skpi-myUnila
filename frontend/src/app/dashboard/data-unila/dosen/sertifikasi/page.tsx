@@ -27,6 +27,7 @@ import mahasiswaDataService, {
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
+import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
 const APP_KEY = "data-unila";
 
@@ -314,7 +315,7 @@ export default function SertifikasiPage() {
         </div>
 
         {loadingStats ? (
-          <div className="flex justify-center py-6"><div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+          <StatCardGridSkeleton count={5} />
         ) : stats && (() => {
           const total = num(stats.total);
           const totalDosen = num(stats.total_dosen);

@@ -11,6 +11,7 @@ import { MdSchool } from "react-icons/md";
 import { Toaster } from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../config/menuConfig";
 import mahasiswaDataService, { type MahasiswaStats } from "@/lib/services/data-unila/mahasiswaDataService";
+import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
 const APP_KEY = "data-unila";
 
@@ -167,9 +168,7 @@ export default function MahasiswaDataPage() {
 
         {/* Stats */}
         {loadingStats ? (
-          <div className="flex justify-center py-6">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
+          <StatCardGridSkeleton count={5} />
         ) : stats && (() => {
           const total = num(stats.total);
           const aktif = num(stats.aktif);
