@@ -19,8 +19,24 @@ class TracerDataRepository extends BaseDataRepository
                     WHEN '2' THEN 'Wiraswasta'
                     WHEN '3' THEN 'Kuliah Lanjut'
                     WHEN '4' THEN 'Belum Bekerja'
-                    ELSE CAST(t.status_lulusan AS VARCHAR(10))
+                    WHEN '0' THEN 'Belum Bekerja'
+                    ELSE 'Belum Diisi'
                 END as status_lulusan,
+                t.status_lulusan as status_code,
+                CASE
+                    WHEN t.status_lulusan = 1 OR t.status_lulusan = 2 THEN
+                        ISNULL(NULLIF(t.nm_tmpt_bekerja, ''), '') +
+                        CASE WHEN w1.nm_wil IS NOT NULL THEN
+                            CASE WHEN NULLIF(t.nm_tmpt_bekerja, '') IS NOT NULL THEN ' — ' ELSE '' END +
+                            w1.nm_wil +
+                            ISNULL(', ' + w2.nm_wil, '') +
+                            ISNULL(', ' + w3.nm_wil, '')
+                        ELSE '' END
+                    WHEN t.status_lulusan = 3 THEN
+                        ISNULL(NULLIF(t.nm_pt_lnjt, ''), '') +
+                        CASE WHEN NULLIF(t.nm_prodi_lnjt, '') IS NOT NULL THEN ' — ' + t.nm_prodi_lnjt ELSE '' END
+                    ELSE ISNULL(t.ket, '')
+                END as keterangan,
                 t.nm_tmpt_bekerja as tempat_kerja,
                 t.income_per_bln,
                 t.wkt_tunggu as masa_tunggu_bulan,
@@ -36,6 +52,9 @@ class TracerDataRepository extends BaseDataRepository
             JOIN pdrd.sms s ON s.id_sms = rp.id_sms
             LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
             LEFT JOIN ref.bidang_pekerjaan bp ON bp.id_bid_kerja = t.id_bid_kerja
+            LEFT JOIN ref.wilayah w1 ON RTRIM(w1.id_wil) = RTRIM(t.id_wil) AND w1.expired_date IS NULL
+            LEFT JOIN ref.wilayah w2 ON RTRIM(w2.id_wil) = RTRIM(w1.id_induk_wilayah) AND w2.expired_date IS NULL
+            LEFT JOIN ref.wilayah w3 ON RTRIM(w3.id_wil) = RTRIM(w2.id_induk_wilayah) AND w3.expired_date IS NULL
             WHERE t.soft_delete = 0
               {WHERE_EXTRA}
         ";
@@ -65,7 +84,7 @@ class TracerDataRepository extends BaseDataRepository
                 SUM(CASE WHEN t.status_lulusan = 1 THEN 1 ELSE 0 END) as bekerja,
                 SUM(CASE WHEN t.status_lulusan = 2 THEN 1 ELSE 0 END) as wiraswasta,
                 SUM(CASE WHEN t.status_lulusan = 3 THEN 1 ELSE 0 END) as studi_lanjut,
-                SUM(CASE WHEN t.status_lulusan = 4 THEN 1 ELSE 0 END) as belum_bekerja,
+                SUM(CASE WHEN t.status_lulusan = 4 OR t.status_lulusan = 0 THEN 1 ELSE 0 END) as belum_bekerja,
                 AVG(CAST(t.wkt_tunggu AS FLOAT)) as avg_masa_tunggu,
                 AVG(CAST(t.income_per_bln AS FLOAT)) as avg_income
             FROM tracer.hasil_tracer_study t

@@ -41,6 +41,7 @@ class TracerDataController extends Controller
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),
             'sort_by'=>$r->query('sort_by'),'sort_order'=>$r->query('sort_order','desc'),
             'id_fakultas'=>$r->query('id_fakultas'),'id_prodi'=>$r->query('id_prodi'),'id_sms'=>$r->query('id_sms'),
-            'id_jurusan'=>$r->query('id_jurusan'),'unit_filter'=>$r->query('unit_filter')];
+            'id_jurusan'=>$r->query('id_jurusan'),'unit_filter'=>$r->query('unit_filter'),
+            'tracer_status'=>$r->query('tracer_status')];
     }
 }

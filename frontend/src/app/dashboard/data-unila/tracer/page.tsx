@@ -66,9 +66,11 @@ interface TracerItem {
   nm_prodi: string;
   nm_fakultas: string;
   status_lulusan: string | null;
+  status_code?: number | null;
   tempat_kerja: string | null;
   masa_tunggu_bulan: number | null;
   income_per_bln: number | null;
+  keterangan?: string | null;
 }
 
 export default function TracerPage() {
@@ -94,6 +96,7 @@ export default function TracerPage() {
   const [filterFak, setFilterFak] = useState(forcedFak);
   const [filterProdi, setFilterProdi] = useState(forcedProdi);
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
+  const [filterStatus, setFilterStatus] = useState<"" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja" | "belum_diisi">("");
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
 
@@ -125,11 +128,12 @@ export default function TracerPage() {
       id_prodi: filterProdi || undefined,
       id_jurusan: filterJurusan || undefined,
       unit_filter: unitFilterStr || undefined,
+      tracer_status: filterStatus || undefined,
     } as Record<string, any>)
       .then((r: { data: TracerItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data tracer"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, unitFilterStr, filterStatus]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
@@ -155,6 +159,7 @@ export default function TracerPage() {
     tempat_kerja: "Tempat Kerja",
     masa_tunggu_bulan: "Masa Tunggu (bln)",
     income_per_bln: "Income/Bulan",
+    keterangan: "Keterangan",
   } as const;
 
   const dataForExport = useMemo(() => data, [data]);
@@ -206,6 +211,18 @@ export default function TracerPage() {
     { key: "income_per_bln", label: "INCOME", width: "130px", sortable: true, align: "right" as const, render: (i) => (
       <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{i.income_per_bln ? fmtRupiah(num(i.income_per_bln)) : "—"}</span>
     )},
+    { key: "keterangan", label: "KETERANGAN", render: (i) => {
+      const ket = (i.keterangan || "").trim();
+      if (!ket) return <span className="text-xs text-gray-400">—</span>;
+      const sc = Number(i.status_code ?? -1);
+      const labelType = sc === 3 ? "Studi Lanjut" : (sc === 1 || sc === 2) ? "Lokasi Kerja" : "Catatan";
+      return (
+        <div className="text-xs leading-tight">
+          <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-0.5">{labelType}</div>
+          <div className="text-gray-800 dark:text-gray-200 line-clamp-2" title={ket}>{ket}</div>
+        </div>
+      );
+    }},
   ];
 
   return (
@@ -260,7 +277,7 @@ export default function TracerPage() {
                   <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 <UnitFilter
                   data={filters}
                   value={unitItems}
@@ -269,6 +286,16 @@ export default function TracerPage() {
                   forcedJurusan={forcedJur || undefined}
                   forcedProdi={forcedProdi || undefined}
                 />
+                <Dropdown label="Status Tracer" value={filterStatus}
+                  onChange={(v) => { setFilterStatus(v as "" | "bekerja" | "wiraswasta" | "kuliah_lanjut" | "belum_bekerja" | "belum_diisi"); setPage(1); }}
+                  options={[
+                    { value: "bekerja", label: "Bekerja" },
+                    { value: "wiraswasta", label: "Wiraswasta / Wirausaha" },
+                    { value: "kuliah_lanjut", label: "Kuliah Lanjut / Studi Lanjut" },
+                    { value: "belum_bekerja", label: "Belum / Tidak Bekerja" },
+                    { value: "belum_diisi", label: "Belum Diisi" },
+                  ]}
+                  placeholder="Semua Status" />
               </div>
               {activeChips.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">

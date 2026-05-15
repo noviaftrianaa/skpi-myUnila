@@ -172,6 +172,32 @@ abstract class BaseDataRepository extends BaseRepository
             }
         }
 
+        // Tracer status_lulusan filter — `?tracer_status=bekerja|wiraswasta|kuliah_lanjut|belum_bekerja|belum_diisi`
+        // Valid pada query tracer (alias `t.status_lulusan`)
+        if (!empty($params['tracer_status'])) {
+            $ts = strtolower(trim((string) $params['tracer_status']));
+            $map = [
+                'bekerja' => 1,
+                'wiraswasta' => 2,
+                'wirausaha' => 2,
+                'kuliah_lanjut' => 3,
+                'kuliah-lanjut' => 3,
+                'lanjut_studi' => 3,
+                'studi' => 3,
+                'belum_bekerja' => 0,
+                'tidak_bekerja' => 0,
+                'belum' => 0,
+                '4' => 4,
+            ];
+            if (isset($map[$ts])) {
+                $whereExtra .= ' AND t.status_lulusan = ?';
+                $bindings[] = $map[$ts];
+                $countBindings[] = $map[$ts];
+            } elseif ($ts === 'belum_diisi' || $ts === 'null') {
+                $whereExtra .= ' AND (t.status_lulusan IS NULL OR t.status_lulusan = 0)';
+            }
+        }
+
         // Tugas Tambahan status filter — `tt_status=aktif|tidak_aktif`
         // aktif: tmt_selesai NULL atau > now; tidak_aktif: sudah lewat
         if (!empty($params['tt_status'])) {
