@@ -207,6 +207,8 @@ class DosenDataController extends Controller
             'golongan' => $request->query('golongan'),
             'jabatan_tambahan' => $request->query('jabatan_tambahan'),
             'jenis_aktivitas' => $request->query('jenis_aktivitas'),
+            'missing' => $request->query('missing'),
+            'retiring' => $request->query('retiring'),
         ];
     }
 }

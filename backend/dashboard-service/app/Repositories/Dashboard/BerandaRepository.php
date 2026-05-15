@@ -676,19 +676,19 @@ class BerandaRepository extends BaseRepository
                 'count'    => $dosenPensiun,
                 'label'    => 'Dosen akan pensiun ≤12 bulan',
                 'severity' => 'medium',
-                'link'     => '/dashboard/data-unila/dosen?status=aktif',
+                'link'     => '/dashboard/data-unila/dosen?status=aktif&retiring=12m',
             ],
             'dosen_tanpa_nidn' => [
                 'count'    => $dosenTanpaNidn,
                 'label'    => 'Dosen aktif tanpa NIDN',
                 'severity' => 'low',
-                'link'     => '/dashboard/data-unila/dosen',
+                'link'     => '/dashboard/data-unila/dosen?status=aktif&missing=nidn',
             ],
             'dosen_tanpa_jabfung' => [
                 'count'    => $dosenTanpaJabfung,
                 'label'    => 'Dosen aktif tanpa Jabatan Fungsional',
                 'severity' => 'low',
-                'link'     => '/dashboard/data-unila/dosen/jabfung',
+                'link'     => '/dashboard/data-unila/dosen?status=aktif&missing=jabfung',
             ],
         ];
     }

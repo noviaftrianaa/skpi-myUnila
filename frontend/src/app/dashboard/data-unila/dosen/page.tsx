@@ -164,6 +164,8 @@ export default function DosenDataPage() {
   const [filterProdi, setFilterProdi] = useState(forcedProdi);
   const [filterJurusan, setFilterJurusan] = useState(forcedJur);
   const [filterStatus, setFilterStatus] = useState("aktif");
+  const [filterMissing, setFilterMissing] = useState<"" | "nidn" | "jabfung">("");
+  const [filterRetiring, setFilterRetiring] = useState<"" | string>("");
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
 
@@ -173,12 +175,17 @@ export default function DosenDataPage() {
   useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
   useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
-  // URL param init — deep-link from Pimpinan / external (e.g. ?status=tidak_aktif)
+  // URL param init — deep-link from Pimpinan / external
+  // ?status=...&missing=nidn|jabfung&retiring=12m
   useEffect(() => {
     if (typeof window === "undefined") return;
     const usp = new URLSearchParams(window.location.search);
     const v = usp.get("status");
     if (v) setFilterStatus(v);
+    const miss = usp.get("missing");
+    if (miss === "nidn" || miss === "jabfung") setFilterMissing(miss);
+    const ret = usp.get("retiring");
+    if (ret && /^\d+m$/.test(ret)) setFilterRetiring(ret);
   }, []);
 
   useEffect(() => {
@@ -211,11 +218,13 @@ export default function DosenDataPage() {
       id_jurusan: filterJurusan || undefined,
       status: filterStatus || undefined,
       unit_filter: unitFilterStr || undefined,
+      missing: filterMissing || undefined,
+      retiring: filterRetiring || undefined,
     } as Record<string, any>)
       .then((r: { data: DosenItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
       .catch(() => toast.error("Gagal memuat data dosen"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, filterStatus, unitFilterStr]);
+  }, [page, limit, search, sortBy, sortOrder, filterFak, filterProdi, filterJurusan, filterStatus, unitFilterStr, filterMissing, filterRetiring]);
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => {
     setSortBy(k); setSortOrder(o); setPage(1);
@@ -239,6 +248,15 @@ export default function DosenDataPage() {
   }
   if (filterStatus && filterStatus !== "aktif") {
     activeChips.push({ key: "stat", label: filterStatus, clear: () => { setFilterStatus("aktif"); setPage(1); } });
+  }
+  if (filterMissing) {
+    const lbl = filterMissing === "nidn" ? "Tanpa NIDN" : "Tanpa Jabfung";
+    activeChips.push({ key: "miss", label: lbl, clear: () => { setFilterMissing(""); setPage(1); } });
+  }
+  if (filterRetiring) {
+    const m = filterRetiring.match(/^(\d+)m$/);
+    const lbl = m ? `Pensiun ≤${m[1]} bulan` : `Pensiun ${filterRetiring}`;
+    activeChips.push({ key: "ret", label: lbl, clear: () => { setFilterRetiring(""); setPage(1); } });
   }
   const hasFilter = activeChips.length > 0;
   const isFiltered = hasFilter;

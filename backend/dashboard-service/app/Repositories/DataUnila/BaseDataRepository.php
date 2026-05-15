@@ -154,6 +154,28 @@ abstract class BaseDataRepository extends BaseRepository
             $countBindings[] = $params['id_jalur_daftar'];
         }
 
+        // Missing required field filter (Dosen alert deeplink) — `?missing=nidn|jabfung`
+        // Hanya valid pada query Dosen (BASE_SELECT/COUNT yg mengandung kolom sdm.*).
+        if (!empty($params['missing'])) {
+            $missing = strtolower(trim((string) $params['missing']));
+            if ($missing === 'nidn') {
+                $whereExtra .= " AND (sdm.nidn IS NULL OR sdm.nidn = '')";
+            } elseif ($missing === 'jabfung') {
+                $whereExtra .= " AND NOT EXISTS (SELECT 1 FROM pdrd.rwy_fungsional rf2 WHERE rf2.id_sdm = sdm.id_sdm AND rf2.soft_delete = 0)";
+            }
+        }
+
+        // Retiring soon filter (Dosen alert deeplink) — `?retiring=12m` (1-60 bulan)
+        // usia 60 dicapai dalam N bulan ke depan
+        if (!empty($params['retiring'])) {
+            $retiring = strtolower(trim((string) $params['retiring']));
+            $months = 12;
+            if (preg_match('/^(\d+)m$/', $retiring, $m)) {
+                $months = max(1, min(60, (int) $m[1]));
+            }
+            $whereExtra .= " AND sdm.tgl_lahir IS NOT NULL AND DATEADD(YEAR, 60, sdm.tgl_lahir) BETWEEN GETDATE() AND DATEADD(MONTH, {$months}, GETDATE())";
+        }
+
         // IPK range filter (pakai latest km.ipk via subquery)
         if (!empty($params['ipk_min']) || !empty($params['ipk_max'])) {
             $ipkMin = !empty($params['ipk_min']) ? (float) $params['ipk_min'] : 0;
