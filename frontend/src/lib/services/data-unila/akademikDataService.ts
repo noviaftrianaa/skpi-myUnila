@@ -32,9 +32,60 @@ export interface MatkulStats {
   by_jenis: Array<{ jenis: string; jumlah: number }>;
 }
 
+export interface ProdiDetailInfo {
+  id_sms: string;
+  nm_prodi: string;
+  jenjang: string;
+  id_fakultas: string;
+  nm_fakultas: string;
+  stat_prodi: string;
+  akreditasi_terkini: {
+    peringkat: string;
+    tgl_sk: string | null;
+    tgl_expired: string | null;
+    lembaga: string;
+  } | null;
+}
+
+export interface ProdiAkreditasiHistoryItem {
+  id: string;
+  peringkat: string;
+  tgl_sk: string | null;
+  tgl_expired: string | null;
+  lembaga: string;
+  no_sk: string | null;
+  a_aktif: number;
+}
+
+export interface ProdiDosenHomebaseItem {
+  id_sdm: string;
+  nm_sdm: string;
+  nidn: string;
+  nip: string;
+  jabatan_fungsional: string;
+  status: string;
+}
+
+export interface ProdiKurikulumAktif {
+  id: string;
+  nama: string;
+  smt_berlaku: string | null;
+  total_sks: number;
+}
+
+export interface ProdiDetail {
+  info: ProdiDetailInfo;
+  akreditasi_history: ProdiAkreditasiHistoryItem[];
+  dosen_homebase: { total: number; list: ProdiDosenHomebaseItem[] };
+  mahasiswa_aktif: number;
+  matkul_count: number;
+  kurikulum_aktif: ProdiKurikulumAktif | null;
+}
+
 export const akademikDataService = {
   async getProdi(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/prodi', { params: p })).data.data; },
   async getProdiStats(): Promise<ProdiStats> { return (await dashboardClient.get('/data/akademik/prodi/stats')).data.data; },
+  async getProdiDetail(id: string): Promise<ProdiDetail> { return (await dashboardClient.get(`/data/akademik/prodi/${encodeURIComponent(id)}`)).data.data; },
   async getAkreditasi(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/akreditasi', { params: p })).data.data; },
   async getAkreditasiStats(): Promise<AkreditasiStats> { return (await dashboardClient.get('/data/akademik/akreditasi/stats')).data.data; },
   async getMatkul(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/matkul', { params: p })).data.data; },

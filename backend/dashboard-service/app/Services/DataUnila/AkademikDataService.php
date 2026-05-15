@@ -49,4 +49,10 @@ class AkademikDataService
         $key = $this->cache->buildKey('data-unila', 'matkul-stats', $params);
         return $this->cache->remember($key, 60, fn() => $this->repository->getMatkulStats($params));
     }
+
+    public function getProdiDetail(string $idSms): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'prodi-detail', ['id' => $idSms]);
+        return $this->cache->remember($key, 300, fn() => $this->repository->getProdiDetail($idSms));
+    }
 }

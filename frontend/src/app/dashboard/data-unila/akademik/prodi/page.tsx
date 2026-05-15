@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
@@ -20,6 +21,7 @@ import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
+import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
 const APP_KEY = "data-unila";
 
@@ -208,7 +210,12 @@ export default function ProdiPage() {
   const columns: Column<ProdiItem>[] = [
     { key: "nm_prodi", label: "PROGRAM STUDI", sortable: true, render: (i) => (
       <div>
-        <div className="font-medium text-gray-900 dark:text-white">{i.nm_prodi}</div>
+        <Link
+          href={`/dashboard/data-unila/akademik/prodi/${encodeURIComponent(i.id_sms)}`}
+          className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          {i.nm_prodi}
+        </Link>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{i.nm_fakultas} · Jenjang {i.jenjang || "—"}</div>
       </div>
     )},
@@ -246,7 +253,7 @@ export default function ProdiPage() {
         </div>
 
         {loadingStats ? (
-          <div className="flex justify-center py-6"><div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+          <StatCardGridSkeleton count={5} />
         ) : stats && (() => {
           const total = num(stats.total);
           const unggul = num(stats.unggul);

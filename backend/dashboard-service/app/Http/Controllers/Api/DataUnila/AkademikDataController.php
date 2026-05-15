@@ -48,6 +48,15 @@ class AkademikDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
+    public function prodiDetail(string $id): JsonResponse
+    {
+        try {
+            $detail = $this->service->getProdiDetail($id);
+            if (empty($detail)) return $this->error('Prodi tidak ditemukan', 404);
+            return $this->success($detail, 'Detail prodi');
+        } catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
     private function p(Request $r): array
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),

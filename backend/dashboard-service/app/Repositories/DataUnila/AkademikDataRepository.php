@@ -192,6 +192,159 @@ class AkademikDataRepository extends BaseDataRepository
     }
 
     /**
+     * Detail Prodi by id_sms — info, akreditasi history+current, dosen homebase top 10, mahasiswa count, matkul count, kurikulum aktif.
+     */
+    public function getProdiDetail(string $idSms): array
+    {
+        $unilaSpId = 'E2B705A7-173E-464A-9FAC-509128709515';
+
+        // Info prodi + akreditasi terkini
+        $info = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), s.id_sms) AS id_sms,
+                s.nm_lemb AS nm_prodi,
+                s.id_jenj_didik AS id_jenjang,
+                ISNULL(jp.nm_jenj_didik, '') AS jenjang,
+                CONVERT(VARCHAR(36), s.id_fak_unila) AS id_fakultas,
+                ISNULL(fak.nm_lemb, '') AS nm_fakultas,
+                s.stat_prodi,
+                (SELECT TOP 1 na.nm_akred FROM pdrd.akreditasi_prodi ap
+                 JOIN ref.nilai_akred na ON na.id_akred = ap.id_akred
+                 WHERE ap.id_sms = s.id_sms AND ap.soft_delete = 0 AND ap.a_aktif = 1
+                 ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS akr_peringkat,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), ap.tst_sk_akreditasi_prodi, 120) FROM pdrd.akreditasi_prodi ap
+                 WHERE ap.id_sms = s.id_sms AND ap.soft_delete = 0 AND ap.a_aktif = 1
+                 ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS akr_tgl_expired,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), ap.tanggal_sk_akreditasi_prodi, 120) FROM pdrd.akreditasi_prodi ap
+                 WHERE ap.id_sms = s.id_sms AND ap.soft_delete = 0 AND ap.a_aktif = 1
+                 ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS akr_tgl_sk,
+                (SELECT TOP 1 ISNULL(lak.nm_lemb, '') FROM pdrd.akreditasi_prodi ap
+                 LEFT JOIN ref.lembaga_akred lak ON lak.id_lemb_akred = ap.id_lemb_akred
+                 WHERE ap.id_sms = s.id_sms AND ap.soft_delete = 0 AND ap.a_aktif = 1
+                 ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS akr_lembaga
+            FROM pdrd.sms s
+            LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = s.id_jenj_didik
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila AND fak.soft_delete = 0
+            WHERE s.id_sms = ? AND s.soft_delete = 0
+        ", [$idSms]);
+
+        if (!$info) {
+            return [];
+        }
+        $infoArr = (array) $info;
+
+        $akreditasiTerkini = null;
+        if (!empty($infoArr['akr_peringkat'])) {
+            $akreditasiTerkini = [
+                'peringkat'    => (string) $infoArr['akr_peringkat'],
+                'tgl_sk'       => $infoArr['akr_tgl_sk'] ?? null,
+                'tgl_expired'  => $infoArr['akr_tgl_expired'] ?? null,
+                'lembaga'      => (string) ($infoArr['akr_lembaga'] ?? ''),
+            ];
+        }
+
+        // Akreditasi history (semua riwayat, latest first)
+        $akreditasiHistory = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), ap.id_akreditasi_prodi) AS id,
+                ISNULL(na.nm_akred, '-') AS peringkat,
+                CONVERT(VARCHAR(10), ap.tanggal_sk_akreditasi_prodi, 120) AS tgl_sk,
+                CONVERT(VARCHAR(10), ap.tst_sk_akreditasi_prodi, 120) AS tgl_expired,
+                ISNULL(lak.nm_lemb, '-') AS lembaga,
+                ap.sk_akreditasi_prodi AS no_sk,
+                ap.a_aktif
+            FROM pdrd.akreditasi_prodi ap
+            LEFT JOIN ref.nilai_akred na ON na.id_akred = ap.id_akred
+            LEFT JOIN ref.lembaga_akred lak ON lak.id_lemb_akred = ap.id_lemb_akred
+            WHERE ap.id_sms = ? AND ap.soft_delete = 0
+            ORDER BY ap.tanggal_sk_akreditasi_prodi DESC
+        ", [$idSms]);
+
+        // Dosen homebase aktif (top 10) + total count
+        $dosenTotal = (int) $this->selectScalar("
+            SELECT COUNT(DISTINCT sdm.id_sdm)
+            FROM pdrd.reg_ptk ptk
+            INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0
+            WHERE ptk.id_sms = ? AND ptk.soft_delete = 0
+              AND ptk.id_jns_keluar IS NULL
+              AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              AND sdm.id_jns_sdm = 12
+        ", [$idSms, $unilaSpId]);
+
+        $dosenList = $this->select("
+            SELECT TOP 10
+                CONVERT(VARCHAR(36), sdm.id_sdm) AS id_sdm,
+                sdm.nm_sdm,
+                ISNULL(sdm.nidn, '') AS nidn,
+                ISNULL(sdm.nip, '') AS nip,
+                ISNULL(j.nm_jabfung, '-') AS jabatan_fungsional,
+                CASE sdm.id_stat_aktif WHEN 1 THEN 'Aktif' WHEN 2 THEN 'Non-Aktif' WHEN 3 THEN 'Pensiun' ELSE 'Lainnya' END AS status
+            FROM pdrd.reg_ptk ptk
+            INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0
+            OUTER APPLY (
+                SELECT TOP 1 rf.id_jabfung
+                FROM pdrd.rwy_fungsional rf
+                WHERE rf.id_sdm = sdm.id_sdm AND rf.soft_delete = 0
+                ORDER BY rf.tmt_sk_jabfung DESC
+            ) lf
+            LEFT JOIN ref.jabfung j ON j.id_jabfung = lf.id_jabfung
+            WHERE ptk.id_sms = ? AND ptk.soft_delete = 0
+              AND ptk.id_jns_keluar IS NULL
+              AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              AND sdm.id_jns_sdm = 12
+            ORDER BY sdm.nm_sdm ASC
+        ", [$idSms, $unilaSpId]);
+
+        $mhsAktif = (int) $this->selectScalar("
+            SELECT COUNT(*)
+            FROM pdrd.reg_pd rp
+            WHERE rp.id_sms = ? AND rp.soft_delete = 0
+              AND rp.id_jns_keluar IS NULL
+        ", [$idSms]);
+
+        $matkulCount = (int) $this->selectScalar("
+            SELECT COUNT(*) FROM pdrd.matkul mk
+            WHERE mk.id_sms = ? AND mk.soft_delete = 0
+        ", [$idSms]);
+
+        // Kurikulum aktif — schema: id_smt (semester berlaku), jmlh_sks_lulus (total SKS)
+        $kurikulum = $this->selectOne("
+            SELECT TOP 1
+                CONVERT(VARCHAR(36), k.id_kurikulum_sp) AS id,
+                ISNULL(k.nm_kurikulum_sp, '-') AS nama,
+                k.id_smt AS smt_berlaku,
+                ISNULL(k.jmlh_sks_lulus, 0) AS total_sks
+            FROM pdrd.kurikulum_sp k
+            WHERE k.id_sms = ? AND k.soft_delete = 0 AND k.a_digunakan = 1
+            ORDER BY k.id_smt DESC, k.last_update DESC
+        ", [$idSms]);
+
+        return [
+            'info' => [
+                'id_sms'              => (string) $infoArr['id_sms'],
+                'nm_prodi'            => (string) $infoArr['nm_prodi'],
+                'jenjang'             => (string) $infoArr['jenjang'],
+                'id_fakultas'         => (string) ($infoArr['id_fakultas'] ?? ''),
+                'nm_fakultas'         => (string) $infoArr['nm_fakultas'],
+                'stat_prodi'          => (string) ($infoArr['stat_prodi'] ?? ''),
+                'akreditasi_terkini'  => $akreditasiTerkini,
+            ],
+            'akreditasi_history' => array_map(function ($r) {
+                $a = (array) $r;
+                $a['a_aktif'] = (int) ($a['a_aktif'] ?? 0);
+                return $a;
+            }, $akreditasiHistory),
+            'dosen_homebase' => [
+                'total' => $dosenTotal,
+                'list'  => array_map(fn($r) => (array) $r, $dosenList),
+            ],
+            'mahasiswa_aktif' => $mhsAktif,
+            'matkul_count'    => $matkulCount,
+            'kurikulum_aktif' => $kurikulum ? (array) $kurikulum : null,
+        ];
+    }
+
+    /**
      * Statistik Mata Kuliah: total + per jenis + per SKS.
      */
     public function getMatkulStats(array $params = []): array
