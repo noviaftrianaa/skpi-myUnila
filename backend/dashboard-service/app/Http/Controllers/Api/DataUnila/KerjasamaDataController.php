@@ -24,9 +24,34 @@ class KerjasamaDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
+    public function mitra(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getMitraList($this->pMitra($request)), 'Data mitra'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function mitraStats(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getMitraStats($this->pMitra($request)), 'Stats mitra'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
     private function p(Request $r): array
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),
             'sort_by'=>$r->query('sort_by'),'sort_order'=>$r->query('sort_order','desc')];
+    }
+
+    private function pMitra(Request $r): array
+    {
+        return [
+            'page' => $r->query('page', 1),
+            'limit' => $r->query('limit', 20),
+            'search' => $r->query('search'),
+            'sort_by' => $r->query('sort_by'),
+            'sort_order' => $r->query('sort_order', 'asc'),
+            'jenis' => $r->query('jenis'),
+            'tahun_mou' => $r->query('tahun_mou'),
+        ];
     }
 }

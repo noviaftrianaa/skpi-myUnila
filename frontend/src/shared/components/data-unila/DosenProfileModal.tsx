@@ -56,6 +56,8 @@ const TABS = [
   { key: "fungsional", label: "Riwayat Jabfung", icon: <FiAward className="w-3.5 h-3.5" /> },
   { key: "kepangkatan", label: "Riwayat Kepangkatan", icon: <FiAward className="w-3.5 h-3.5" /> },
   { key: "tugas_tambahan", label: "Tugas Tambahan", icon: <FiBriefcase className="w-3.5 h-3.5" /> },
+  { key: "diklat", label: "Diklat", icon: <FiCalendar className="w-3.5 h-3.5" /> },
+  { key: "pekerjaan", label: "Pekerjaan", icon: <FiBriefcase className="w-3.5 h-3.5" /> },
   { key: "pendidikan", label: "Pendidikan",  icon: <MdSchool className="w-3.5 h-3.5" /> },
   { key: "sertifikasi", label: "Sertifikasi", icon: <FiAward className="w-3.5 h-3.5" /> },
 ] as const;
@@ -174,6 +176,8 @@ export default function DosenProfileModal({ idSdm, onClose }: Props) {
                     t.key === "sertifikasi" ? data?.sertifikasi.length :
                     t.key === "kepangkatan" ? data?.riwayat_kepangkatan?.length :
                     t.key === "tugas_tambahan" ? data?.tugas_tambahan?.length :
+                    t.key === "diklat" ? data?.riwayat_diklat?.length :
+                    t.key === "pekerjaan" ? data?.riwayat_pekerjaan?.length :
                     undefined;
                   return (
                     <button
@@ -213,6 +217,8 @@ export default function DosenProfileModal({ idSdm, onClose }: Props) {
                   {tab === "fungsional" && <TabFungsional data={data.riwayat_fungsional} />}
                   {tab === "kepangkatan" && <TabKepangkatan data={data.riwayat_kepangkatan || []} />}
                   {tab === "tugas_tambahan" && <TabTugasTambahan data={data.tugas_tambahan || []} />}
+                  {tab === "diklat" && <TabDiklat data={data.riwayat_diklat || []} />}
+                  {tab === "pekerjaan" && <TabPekerjaan data={data.riwayat_pekerjaan || []} />}
                   {tab === "pendidikan" && <TabPendidikan data={data.riwayat_pendidikan} />}
                   {tab === "sertifikasi" && <TabSertifikasi data={data.sertifikasi} />}
                 </>
@@ -475,5 +481,96 @@ function TabTugasTambahan({ data }: { data: NonNullable<DosenDetail["tugas_tamba
   );
 }
 
-void FiCalendar;
+function TabDiklat({ data }: { data: NonNullable<DosenDetail["riwayat_diklat"]> }) {
+  if (!data.length) return <Empty label="Belum ada riwayat diklat" />;
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs sm:text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
+              <th className="px-3 py-2 font-semibold">Jenis</th>
+              <th className="px-3 py-2 font-semibold">Nama Diklat</th>
+              <th className="px-3 py-2 font-semibold">Tempat</th>
+              <th className="px-3 py-2 font-semibold">Periode</th>
+              <th className="px-3 py-2 font-semibold text-right">Jam</th>
+              <th className="px-3 py-2 font-semibold">Sertifikat</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {data.map((r, i) => (
+              <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                <td className="px-3 py-2 text-gray-600 dark:text-gray-400">{r.jenis || "—"}</td>
+                <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-200">{r.nama_diklat || "—"}</td>
+                <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">{r.tempat || "—"}</td>
+                <td className="px-3 py-2 font-mono text-xs text-gray-600 dark:text-gray-400">
+                  {r.tgl_mulai || "—"}
+                  {r.tgl_selesai ? <> &rarr; {r.tgl_selesai}</> : null}
+                </td>
+                <td className="px-3 py-2 text-right font-mono text-xs">{r.jml_jam ?? "—"}</td>
+                <td className="px-3 py-2 font-mono text-[11px] text-gray-600 dark:text-gray-400">{r.no_sert || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function TabPekerjaan({ data }: { data: NonNullable<DosenDetail["riwayat_pekerjaan"]> }) {
+  if (!data.length) return <Empty label="Belum ada riwayat pekerjaan" />;
+  const isLN = (v: number | boolean | null | undefined): boolean => {
+    if (v == null) return false;
+    if (typeof v === "boolean") return v;
+    return Number(v) === 1;
+  };
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs sm:text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
+              <th className="px-3 py-2 font-semibold">Jabatan</th>
+              <th className="px-3 py-2 font-semibold">Instansi</th>
+              <th className="px-3 py-2 font-semibold">Divisi</th>
+              <th className="px-3 py-2 font-semibold">Periode</th>
+              <th className="px-3 py-2 font-semibold">Lokasi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {data.map((r, i) => (
+              <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-200">
+                  {r.jabatan || "—"}
+                  {r.jenis_pekerjaan && (
+                    <div className="text-[10px] text-gray-400 font-normal mt-0.5">{r.jenis_pekerjaan}</div>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{r.instansi || "—"}</td>
+                <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">{r.divisi || "—"}</td>
+                <td className="px-3 py-2 font-mono text-xs text-gray-600 dark:text-gray-400">
+                  {r.mulai_bekerja || "—"}
+                  {r.selesai_bekerja ? <> &rarr; {r.selesai_bekerja}</> : <> &rarr; sekarang</>}
+                </td>
+                <td className="px-3 py-2">
+                  {isLN(r.luar_negeri) ? (
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                      Luar Negeri
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      Dalam Negeri
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 void FiPhone;

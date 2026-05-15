@@ -31,8 +31,9 @@
         {"nm_menu": "Riwayat Pendidikan", "nm_file": "/dashboard/data-unila/dosen/pendidikan", "urutan": 3},
         {"nm_menu": "Riwayat Kepangkatan", "nm_file": "/dashboard/data-unila/dosen/kepangkatan", "urutan": 4},
         {"nm_menu": "Tugas Tambahan", "nm_file": "/dashboard/data-unila/dosen/tugas-tambahan", "urutan": 5},
-        {"nm_menu": "Riwayat Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 6},
-        {"nm_menu": "Daftar Tendik", "nm_file": "/dashboard/data-unila/dosen/tendik", "urutan": 7}
+        {"nm_menu": "Bimbingan Mahasiswa", "nm_file": "/dashboard/data-unila/dosen/bimbingan", "urutan": 6},
+        {"nm_menu": "Riwayat Sertifikasi", "nm_file": "/dashboard/data-unila/dosen/sertifikasi", "urutan": 7},
+        {"nm_menu": "Daftar Tendik", "nm_file": "/dashboard/data-unila/dosen/tendik", "urutan": 8}
       ]
     },
     {
@@ -60,9 +61,13 @@
     },
     {
       "nm_menu": "Data Kerjasama",
-      "nm_file": "/dashboard/data-unila/kerjasama",
+      "nm_file": "#data-kerjasama",
       "icon": "heroicons:globe-alt",
-      "urutan": 6
+      "urutan": 6,
+      "children": [
+        {"nm_menu": "Daftar MoU", "nm_file": "/dashboard/data-unila/kerjasama", "urutan": 1},
+        {"nm_menu": "Mitra Riset & Industri", "nm_file": "/dashboard/data-unila/kerjasama/mitra", "urutan": 2}
+      ]
     },
     {
       "nm_menu": "Data Keuangan",

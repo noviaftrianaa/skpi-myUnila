@@ -150,6 +150,26 @@ class DosenDataController extends Controller
         }
     }
 
+    public function bimbingan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getBimbinganList($this->extractParams($request));
+            return $this->success($data, 'Data bimbingan mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function bimbinganStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getBimbinganStats($this->extractParams($request));
+            return $this->success($data, 'Statistik bimbingan mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $params = $this->extractParams($request);
@@ -186,6 +206,7 @@ class DosenDataController extends Controller
             'jenjang' => $request->query('jenjang'),
             'golongan' => $request->query('golongan'),
             'jabatan_tambahan' => $request->query('jabatan_tambahan'),
+            'jenis_aktivitas' => $request->query('jenis_aktivitas'),
         ];
     }
 }

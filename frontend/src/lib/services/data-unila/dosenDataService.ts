@@ -14,6 +14,8 @@ export interface DosenDetail {
   sertifikasi: Array<{ no_sert: string; thn_sert: number; nrg: string; bidang_studi: string }>;
   riwayat_kepangkatan?: Array<{ golongan: string; pangkat: string; sk_pangkat: string; tgl_sk_pangkat: string; tmt_sk_pangkat: string; masa_kerja_gol_thn: number; masa_kerja_gol_bln: number }>;
   tugas_tambahan?: Array<{ jabatan_tambahan: string; sk_tugas: string; tmt_mulai: string; tmt_selesai: string | null; jml_jam: number | null; unit: string | null }>;
+  riwayat_diklat?: Array<{ jenis: string | null; nama_diklat: string | null; tempat: string | null; tgl_mulai: string | null; tgl_selesai: string | null; jml_jam: number | null; no_sert: string | null }>;
+  riwayat_pekerjaan?: Array<{ jabatan: string | null; instansi: string | null; divisi: string | null; deskripsi_kerja: string | null; luar_negeri: number | boolean | null; mulai_bekerja: string | null; selesai_bekerja: string | null; jenis_pekerjaan: string | null }>;
 }
 
 export interface DosenStats {
@@ -160,6 +162,33 @@ export interface TugasTambahanStats {
   by_jabatan?: Array<{ nm_jabatan: string; jumlah: number | string }>;
 }
 
+export interface BimbinganItem {
+  id_bimb_mhs: string;
+  id_sdm: string;
+  nm_sdm: string;
+  nidn: string;
+  nip: string;
+  id_akt_mhs: string;
+  judul_bimbingan: string;
+  jenis_aktivitas: string | null;
+  urutan_promotor: number | null;
+  tgl_mulai: string | null;
+  tgl_selesai: string | null;
+  nm_mahasiswa: string | null;
+  nipd_mahasiswa: string | null;
+  nm_prodi: string | null;
+  nm_fakultas: string | null;
+  id_fakultas: string | null;
+}
+
+export interface BimbinganStats {
+  total: string;
+  total_dosen: string;
+  total_aktivitas: string;
+  total_jenis: string;
+  by_jenis_aktivitas?: Array<{ jenis_aktivitas: string; jumlah: number | string }>;
+}
+
 export interface SertifikasiStats {
   total: string;
   total_dosen: string;
@@ -233,6 +262,15 @@ export const dosenDataService = {
   },
   async getTugasTambahanStats(params: Record<string, any> = {}): Promise<TugasTambahanStats> {
     const r = await dashboardClient.get('/data/dosen/tugas-tambahan/stats', { params });
+    return r.data.data;
+  },
+
+  async getBimbinganList(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/dosen/bimbingan', { params });
+    return r.data.data;
+  },
+  async getBimbinganStats(params: Record<string, any> = {}): Promise<BimbinganStats> {
+    const r = await dashboardClient.get('/data/dosen/bimbingan/stats', { params });
     return r.data.data;
   },
 };

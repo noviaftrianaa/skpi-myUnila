@@ -361,6 +361,49 @@ class DosenDataRepository extends BaseDataRepository
         ", [$idSdm]);
     }
 
+    /**
+     * Riwayat Diklat dosen — pdrd.diklat + ref.jenis_diklat.
+     */
+    public function getRiwayatDiklat(string $idSdm): array
+    {
+        return $this->select("
+            SELECT
+                jd.nm_jns_diklat as jenis,
+                d.nm_diklat as nama_diklat,
+                d.tempat,
+                CONVERT(VARCHAR(10), d.tgl_mulai, 120) as tgl_mulai,
+                CONVERT(VARCHAR(10), d.tgl_selesai, 120) as tgl_selesai,
+                d.jml_jam,
+                d.no_sert
+            FROM pdrd.diklat d
+            LEFT JOIN ref.jenis_diklat jd ON jd.id_jns_diklat = d.id_jns_diklat
+            WHERE d.soft_delete = 0 AND d.id_sdm = ?
+            ORDER BY d.tgl_mulai DESC
+        ", [$idSdm]);
+    }
+
+    /**
+     * Riwayat Pekerjaan dosen — pdrd.rwy_pekerjaan + ref.pekerjaan.
+     */
+    public function getRiwayatPekerjaan(string $idSdm): array
+    {
+        return $this->select("
+            SELECT
+                rk.nm_jabatan as jabatan,
+                rk.instansi,
+                rk.divisi,
+                rk.deskripsi_kerja,
+                rk.a_ln as luar_negeri,
+                CONVERT(VARCHAR(10), rk.mulai_bekerja, 120) as mulai_bekerja,
+                CONVERT(VARCHAR(10), rk.selesai_bekerja, 120) as selesai_bekerja,
+                p.nm_pekerjaan as jenis_pekerjaan
+            FROM pdrd.rwy_pekerjaan rk
+            LEFT JOIN ref.pekerjaan p ON p.id_pekerjaan = rk.id_pekerjaan
+            WHERE rk.soft_delete = 0 AND rk.id_sdm = ?
+            ORDER BY rk.mulai_bekerja DESC
+        ", [$idSdm]);
+    }
+
     public function getExport(array $params): array
     {
         return $this->export(self::BASE_SELECT, $params, self::SEARCH_COLS);
@@ -975,6 +1018,145 @@ class DosenDataRepository extends BaseDataRepository
             ['nm_sdm', 'jabatan_tambahan', 'tmt_mulai', 'nm_prodi'],
             'tmt_mulai', 'DESC'
         );
+    }
+
+    // ==========================================
+    // BIMBINGAN MAHASIWA LIST (dedicated)
+    // Source: pdrd.bimbing_mhs (144k) — 1 row per relasi dosen-mhs-aktivitas
+    // Join chain: bimbing_mhs → sdm + akt_mhs (judul, jenis, prodi/sms, smt)
+    //            → ref.jenis_akt_mhs (Skripsi/Tesis/Disertasi/KKN dst)
+    //            → mahasiswa pendaftar via TOP 1 anggota_akt_mhs
+    // ==========================================
+
+    public function getBimbinganList(array $params): array
+    {
+        $page = max(1, (int) ($params['page'] ?? 1));
+        $limit = min(100, max(1, (int) ($params['limit'] ?? 20)));
+        $offset = ($page - 1) * $limit;
+        $search = $params['search'] ?? null;
+
+        $sortable = ['nm_sdm', 'judul_bimbingan', 'jenis_aktivitas', 'nm_prodi', 'tgl_mulai'];
+        $sortBy = in_array($params['sort_by'] ?? '', $sortable) ? $params['sort_by'] : 'tgl_mulai';
+        $sortOrder = strtoupper($params['sort_order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+
+        $bindings = [];
+        $countBindings = [];
+        $whereExtra = '';
+
+        if (!empty($search)) {
+            $whereExtra .= " AND (sdm.nm_sdm LIKE ? OR sdm.nidn LIKE ? OR am.judul_akt_mhs LIKE ?)";
+            $bindings[] = "%{$search}%"; $bindings[] = "%{$search}%"; $bindings[] = "%{$search}%";
+            $countBindings[] = "%{$search}%"; $countBindings[] = "%{$search}%"; $countBindings[] = "%{$search}%";
+        }
+
+        // Org filter (id_fakultas, id_prodi, id_jurusan, unit_filter) — pada s (am.id_sms join)
+        $whereExtra .= $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        // Jenis aktivitas filter
+        if (!empty($params['jenis_aktivitas'])) {
+            $whereExtra .= " AND jam.nm_jns_akt_mhs = ?";
+            $bindings[] = $params['jenis_aktivitas'];
+            $countBindings[] = $params['jenis_aktivitas'];
+        }
+
+        $baseSql = "
+            SELECT
+                CONVERT(VARCHAR(36), bm.id_bimb_mhs) as id_bimb_mhs,
+                CONVERT(VARCHAR(36), sdm.id_sdm) as id_sdm,
+                sdm.nm_sdm,
+                sdm.nidn,
+                sdm.nip,
+                CONVERT(VARCHAR(36), am.id_akt_mhs) as id_akt_mhs,
+                am.judul_akt_mhs as judul_bimbingan,
+                jam.nm_jns_akt_mhs as jenis_aktivitas,
+                bm.urutan_promotor,
+                CONVERT(VARCHAR(10), am.tgl_mulai, 120) as tgl_mulai,
+                CONVERT(VARCHAR(10), am.tgl_selesai, 120) as tgl_selesai,
+                (SELECT TOP 1 aam.nm_pd
+                 FROM pdrd.anggota_akt_mhs aam
+                 WHERE aam.id_akt_mhs = am.id_akt_mhs AND aam.soft_delete = 0
+                 ORDER BY aam.jns_peran_mhs) as nm_mahasiswa,
+                (SELECT TOP 1 aam.nipd
+                 FROM pdrd.anggota_akt_mhs aam
+                 WHERE aam.id_akt_mhs = am.id_akt_mhs AND aam.soft_delete = 0
+                 ORDER BY aam.jns_peran_mhs) as nipd_mahasiswa,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas
+            FROM pdrd.bimbing_mhs bm
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = bm.id_sdm AND sdm.soft_delete = 0
+            JOIN pdrd.akt_mhs am ON am.id_akt_mhs = bm.id_akt_mhs AND am.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs
+            LEFT JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            WHERE bm.soft_delete = 0
+              {$whereExtra}
+            ORDER BY {$sortBy} {$sortOrder} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        ";
+
+        $countSql = "
+            SELECT COUNT(*)
+            FROM pdrd.bimbing_mhs bm
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = bm.id_sdm AND sdm.soft_delete = 0
+            JOIN pdrd.akt_mhs am ON am.id_akt_mhs = bm.id_akt_mhs AND am.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs
+            LEFT JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            WHERE bm.soft_delete = 0
+              {$whereExtra}
+        ";
+
+        $total = (int) $this->selectScalar($countSql, $countBindings);
+        $data = $this->select($baseSql, array_merge($bindings, [$offset, $limit]));
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => $total > 0 ? (int) ceil($total / $limit) : 0,
+        ];
+    }
+
+    public function getBimbinganStats(array $params): array
+    {
+        $bindings = [];
+        $dummy = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $dummy);
+
+        $extraFilter = '';
+        if (!empty($params['jenis_aktivitas'])) {
+            $extraFilter .= ' AND jam.nm_jns_akt_mhs = ?';
+            $bindings[] = $params['jenis_aktivitas'];
+        }
+
+        $stats = (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                COUNT(DISTINCT bm.id_sdm) as total_dosen,
+                COUNT(DISTINCT bm.id_akt_mhs) as total_aktivitas,
+                COUNT(DISTINCT jam.id_jns_akt_mhs) as total_jenis
+            FROM pdrd.bimbing_mhs bm
+            JOIN pdrd.sdm sdm ON sdm.id_sdm = bm.id_sdm AND sdm.soft_delete = 0
+            JOIN pdrd.akt_mhs am ON am.id_akt_mhs = bm.id_akt_mhs AND am.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs
+            LEFT JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            WHERE bm.soft_delete = 0
+              {$orgFilter}
+              {$extraFilter}
+        ", $bindings);
+
+        // Breakdown by jenis aktivitas (dropdown filter di FE)
+        $stats['by_jenis_aktivitas'] = array_map(fn($r) => (array) $r, $this->select("
+            SELECT jam.nm_jns_akt_mhs as jenis_aktivitas, COUNT(*) as jumlah
+            FROM pdrd.bimbing_mhs bm
+            JOIN pdrd.akt_mhs am ON am.id_akt_mhs = bm.id_akt_mhs AND am.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs
+            WHERE bm.soft_delete = 0 AND jam.nm_jns_akt_mhs IS NOT NULL
+            GROUP BY jam.nm_jns_akt_mhs
+            ORDER BY COUNT(*) DESC
+        "));
+
+        return $stats;
     }
 
     public function getTugasTambahanStats(array $params): array

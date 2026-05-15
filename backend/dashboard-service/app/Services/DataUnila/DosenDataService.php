@@ -39,6 +39,8 @@ class DosenDataService
                 'sertifikasi' => $this->repository->getSertifikasi($id),
                 'riwayat_kepangkatan' => $this->repository->getRiwayatKepangkatan($id),
                 'tugas_tambahan' => $this->repository->getTugasTambahan($id),
+                'riwayat_diklat' => $this->repository->getRiwayatDiklat($id),
+                'riwayat_pekerjaan' => $this->repository->getRiwayatPekerjaan($id),
             ];
         });
     }
@@ -112,5 +114,17 @@ class DosenDataService
     {
         $key = $this->cache->buildKey('data-unila', 'tugas-tambahan-stats', $params);
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getTugasTambahanStats($params));
+    }
+
+    public function getBimbinganList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'bimbingan-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getBimbinganList($params));
+    }
+
+    public function getBimbinganStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'bimbingan-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getBimbinganStats($params));
     }
 }
