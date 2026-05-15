@@ -43,6 +43,34 @@ export interface ApiResponse<T> {
 // ============================================
 
 // Beranda (page.tsx)
+export interface TrendYoYData {
+  years: string[];
+  mahasiswa: number[];
+  guruBesar: number[];
+  publikasi: number[];
+  akreditasiUnggul: number[];
+}
+
+export interface Top5Item {
+  id_fak: string;
+  nm_fakultas: string;
+  value: number;
+}
+
+export interface Top5Fakultas {
+  mahasiswa: Top5Item[];
+  dosen: Top5Item[];
+  publikasi: Top5Item[];
+  akreditasiUnggul: Top5Item[];
+}
+
+export interface AlertItem {
+  count: number;
+  label: string;
+  severity: "high" | "medium" | "low";
+  link: string;
+}
+
 export interface BerandaData {
   summaryStats: {
     mahasiswa: { total: number; trend: number; active: number; cuti: number };
@@ -55,6 +83,9 @@ export interface BerandaData {
   populasiTrend: CategoryData[];
   akreditasiDist: SimpleData[];
   fakultasData: CategoryData[];
+  trendYoY?: TrendYoYData;
+  top5Fakultas?: Top5Fakultas;
+  alerts?: Record<string, AlertItem>;
 }
 
 // Mahasiswa
@@ -112,6 +143,13 @@ export interface DosenData {
 }
 
 // Akreditasi
+export interface ExpiryCalendarItem {
+  year: number;
+  month: number;
+  expiring_count: number;
+}
+export type ExpiryCalendar = ExpiryCalendarItem[];
+
 export interface AkreditasiData {
   stats: {
     totalProdi: StatValue;
@@ -130,6 +168,7 @@ export interface AkreditasiData {
   internasionalDetail: AkreditasiIntlDetail[];
   expiringProdi: AkreditasiDetail[];
   detailTable: AkreditasiDetail[];
+  expiryCalendar?: ExpiryCalendar;
 }
 
 export interface AkreditasiDetail {

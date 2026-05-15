@@ -426,6 +426,38 @@ class AkreditasiRepository extends BaseRepository
     // DETAIL TABLE
     // =========================================
 
+    // =========================================
+    // EXPIRY CALENDAR (12-month timeline)
+    // =========================================
+
+    /**
+     * Jumlah akreditasi yg expire per bulan untuk 12 bulan ke depan.
+     * Return: [{year, month, expiring_count}, ...]
+     */
+    public function getExpiryCalendar(?string $fakultas = null, ?string $prodi = null): array
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
+        $sql = "
+            ;WITH " . $this->latestAkreditasiCTE() . "
+            SELECT
+                YEAR(la.tst_sk_akreditasi_prodi) as year,
+                MONTH(la.tst_sk_akreditasi_prodi) as month,
+                COUNT(DISTINCT la.id_sms) as expiring_count
+            FROM latest_akred la
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            WHERE la.rn = 1
+              AND s.id_sp = ?
+              AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(MONTH, 12, GETDATE())
+              {$orgFilter}
+            GROUP BY YEAR(la.tst_sk_akreditasi_prodi), MONTH(la.tst_sk_akreditasi_prodi)
+            ORDER BY year, month
+        ";
+
+        return $this->select($sql, $bindings);
+    }
+
     /**
      * Detail table: all prodi with their akreditasi info
      */

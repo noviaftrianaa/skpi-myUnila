@@ -37,8 +37,23 @@ class AkreditasiService
                 'internasionalDetail'    => $this->buildInternasionalDetail($this->repository->getInternasionalDetail($fakultas, $prodi)),
                 'expiringProdi'          => $this->buildDetailTable($this->repository->getExpiringProdi($fakultas, $prodi)),
                 'detailTable'            => $this->buildDetailTable($this->repository->getDetailTable($fakultas, $prodi)),
+                'expiryCalendar'         => $this->buildExpiryCalendar($this->repository->getExpiryCalendar($fakultas, $prodi)),
             ];
         });
+    }
+
+    /**
+     * Build expiry calendar [{year, month, expiring_count}]
+     */
+    private function buildExpiryCalendar(array $results): array
+    {
+        return array_map(function ($item) {
+            return [
+                'year'           => (int) $item->year,
+                'month'          => (int) $item->month,
+                'expiring_count' => (int) $item->expiring_count,
+            ];
+        }, $results);
     }
 
     /**

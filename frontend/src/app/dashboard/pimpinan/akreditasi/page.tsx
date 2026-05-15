@@ -25,7 +25,8 @@ import DataTable from "@/shared/components/ui/DataTable";
 import type { Column } from "@/shared/components/ui/DataTable";
 import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
-import type { AkreditasiData, AkreditasiDetail, AkreditasiIntlDetail } from "../types";
+import type { AkreditasiData, AkreditasiDetail, AkreditasiIntlDetail, ExpiryCalendarItem } from "../types";
+import Link from "next/link";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import UnitFilter from "@/shared/components/data-unila/UnitFilter";
@@ -170,6 +171,26 @@ export default function DashboardAkreditasiPage() {
                   </a>
                 </div>
               </div>
+            )}
+
+            {/* Kalender Kadaluarsa 12 Bulan ke Depan */}
+            {data.expiryCalendar && data.expiryCalendar.length > 0 && (
+              <Card className="bg-white dark:bg-gray-800 shadow-md">
+                <CardHeader>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Kalender Kadaluarsa 12 Bulan ke Depan
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Jumlah prodi yang akan kadaluarsa per bulan — warna menunjukkan urgensi
+                    </p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody>
+                  <ExpiryCalendarStrip data={data.expiryCalendar} />
+                </CardBody>
+              </Card>
             )}
 
             {/* Stats */}
@@ -463,5 +484,104 @@ export default function DashboardAkreditasiPage() {
         )}
       </div>
     </DashboardLayoutWithDynamicMenu>
+  );
+}
+
+// =========================================================================
+// Expiry Calendar Strip — 12 mini-cards (this month → 12 months ahead),
+// severity color, klik → drill-down ke /data-unila/akademik/akreditasi
+// =========================================================================
+const MONTH_LABELS = [
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+];
+
+type Severity = "red" | "orange" | "amber" | "green";
+
+function severityFor(monthsAhead: number): Severity {
+  if (monthsAhead <= 0) return "red";
+  if (monthsAhead <= 3) return "orange";
+  if (monthsAhead <= 6) return "amber";
+  return "green";
+}
+
+const SEVERITY_CLASS: Record<Severity, { bg: string; border: string; text: string; bar: string }> = {
+  red:    { bg: "bg-red-50 dark:bg-red-950/30",     border: "border-red-300 dark:border-red-700",       text: "text-red-700 dark:text-red-300",       bar: "bg-red-500" },
+  orange: { bg: "bg-orange-50 dark:bg-orange-950/30", border: "border-orange-300 dark:border-orange-700", text: "text-orange-700 dark:text-orange-300", bar: "bg-orange-500" },
+  amber:  { bg: "bg-amber-50 dark:bg-amber-950/30",   border: "border-amber-300 dark:border-amber-700",   text: "text-amber-700 dark:text-amber-300",   bar: "bg-amber-500" },
+  green:  { bg: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-300 dark:border-emerald-700", text: "text-emerald-700 dark:text-emerald-300", bar: "bg-emerald-500" },
+};
+
+function ExpiryCalendarStrip({ data }: { data: ExpiryCalendarItem[] }) {
+  // Map year-month → count
+  const map = new Map<string, number>();
+  data.forEach((d) => {
+    const key = `${d.year}-${String(d.month).padStart(2, "0")}`;
+    map.set(key, (map.get(key) || 0) + d.expiring_count);
+  });
+
+  // Build 12 consecutive months starting from current month
+  const now = new Date();
+  const months: { year: number; month: number; key: string; label: string; monthsAhead: number }[] = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    months.push({
+      year: y,
+      month: m,
+      key: `${y}-${String(m).padStart(2, "0")}`,
+      label: `${MONTH_LABELS[m - 1]} ${String(y).slice(2)}`,
+      monthsAhead: i,
+    });
+  }
+  const maxCount = months.reduce((acc, m) => Math.max(acc, map.get(m.key) || 0), 0) || 1;
+
+  return (
+    <div className="overflow-x-auto -mx-2 px-2">
+      <div className="flex gap-3 min-w-max pb-2">
+        {months.map((m) => {
+          const count = map.get(m.key) || 0;
+          const sev = count > 0 ? severityFor(m.monthsAhead) : "green";
+          const cls = SEVERITY_CLASS[sev];
+          const href = `/dashboard/data-unila/akademik/akreditasi?expiring=soon&month=${m.key}`;
+          const pct = Math.round((count / maxCount) * 100);
+          return (
+            <Link
+              key={m.key}
+              href={href}
+              className={`group block w-[88px] sm:w-[100px] shrink-0 rounded-xl border ${cls.bg} ${cls.border} px-3 py-2.5 hover:shadow-md transition-shadow`}
+              title={`${m.label}: ${count} prodi akan kadaluarsa`}
+            >
+              <div className={`text-[10px] uppercase tracking-wider font-semibold ${cls.text}`}>
+                {m.label}
+              </div>
+              <div className={`mt-1 text-2xl sm:text-3xl font-bold leading-none ${cls.text}`}>
+                {count}
+              </div>
+              <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">prodi</div>
+              <div className="mt-2 h-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                <div className={`h-full ${cls.bar} group-hover:opacity-80 transition-all`} style={{ width: `${count > 0 ? Math.max(8, pct) : 0}%` }} />
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap gap-3 mt-3 text-[11px] text-gray-500 dark:text-gray-400">
+        <LegendDot color="bg-red-500"     label="Bulan ini" />
+        <LegendDot color="bg-orange-500"  label="≤ 3 bulan" />
+        <LegendDot color="bg-amber-500"   label="≤ 6 bulan" />
+        <LegendDot color="bg-emerald-500" label="> 6 bulan" />
+      </div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`w-2 h-2 rounded-full ${color}`} />
+      {label}
+    </span>
   );
 }
