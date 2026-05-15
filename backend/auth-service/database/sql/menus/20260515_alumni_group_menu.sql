@@ -30,39 +30,44 @@ BEGIN
         id_menu, id_aplikasi, nm_menu, nm_file, urutan_menu, level_menu,
         a_aktif, a_tampil, icon, id_group_menu, tgl_create, last_update, last_sync
     ) VALUES (
-        @parent_id, @app_id, 'Data Alumni', '#data-alumni', 8, 1,
+        @parent_id, @app_id, 'Data Alumni', '#data-alumni', 8, 0,
         1, 1, 'heroicons:user-group', NULL, GETDATE(), GETDATE(), GETDATE()
     );
 END;
 
+-- IMPORTANT: level_menu canonical
+--   level_menu = 0 untuk root parent (FE only renders icon at level === 0)
+--   level_menu = 1 untuk child sub-menu
+
 -- 2. Update existing "Tracer Study" → child Alumni urutan 1 (preserve id_menu utk FK menu_role)
 UPDATE man_akses.menu
-SET id_group_menu = @parent_id, urutan_menu = 1, level_menu = 2,
-    nm_menu = 'Tracer Study', last_update = GETDATE()
+SET id_group_menu = @parent_id, urutan_menu = 1, level_menu = 1,
+    nm_menu = 'Tracer Study', icon = 'heroicons:arrow-trending-up', last_update = GETDATE()
 WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/tracer';
 
 -- 3. Update existing "Lulusan" → child Alumni urutan 3 (di akhir)
 UPDATE man_akses.menu
-SET id_group_menu = @parent_id, urutan_menu = 3, level_menu = 2,
-    nm_menu = 'Lulusan', last_update = GETDATE()
+SET id_group_menu = @parent_id, urutan_menu = 3, level_menu = 1,
+    nm_menu = 'Lulusan', icon = 'heroicons:academic-cap', last_update = GETDATE()
 WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/mahasiswa/lulusan';
 
--- 4. Insert/Update "User Survey" urutan 2
-IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/user-survey')
+-- 4. Insert/Update "Survey Atasan" urutan 2
+IF NOT EXISTS (SELECT 1 FROM man_akses.menu WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/survey-atasan')
 BEGIN
     INSERT INTO man_akses.menu (
         id_menu, id_aplikasi, nm_menu, nm_file, urutan_menu, level_menu,
-        a_aktif, a_tampil, id_group_menu, tgl_create, last_update, last_sync
+        a_aktif, a_tampil, icon, id_group_menu, tgl_create, last_update, last_sync
     ) VALUES (
-        NEWID(), @app_id, 'User Survey', '/dashboard/data-unila/alumni/user-survey', 2, 2,
-        1, 1, @parent_id, GETDATE(), GETDATE(), GETDATE()
+        NEWID(), @app_id, 'Survey Atasan', '/dashboard/data-unila/alumni/survey-atasan', 2, 1,
+        1, 1, 'heroicons:briefcase', @parent_id, GETDATE(), GETDATE(), GETDATE()
     );
 END
 ELSE
 BEGIN
     UPDATE man_akses.menu
-    SET id_group_menu = @parent_id, urutan_menu = 2, level_menu = 2, last_update = GETDATE()
-    WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/user-survey';
+    SET id_group_menu = @parent_id, urutan_menu = 2, level_menu = 1,
+        nm_menu = 'Survey Atasan', icon = 'heroicons:briefcase', last_update = GETDATE()
+    WHERE id_aplikasi = @app_id AND nm_file = '/dashboard/data-unila/alumni/survey-atasan';
 END;
 
 -- 5. Pastikan menu_role tersedia untuk parent #data-alumni + User Survey
