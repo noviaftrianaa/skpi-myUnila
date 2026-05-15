@@ -122,6 +122,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/publikasi/{id}/penulis', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'publikasiPenulis']);
             Route::get('/prestasi', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasi']);
             Route::get('/prestasi/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasiStats']);
+            Route::get('/prestasi/{id}/anggota', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'prestasiAnggota']);
             Route::get('/pengajaran', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaran']);
             Route::get('/pengajaran/stats', [\App\Http\Controllers\Api\DataUnila\TridarmaDataController::class, 'pengajaranStats']);
         });

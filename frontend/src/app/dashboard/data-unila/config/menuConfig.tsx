@@ -74,12 +74,12 @@ export const dataUnilaMenuConfig = [
     ],
   },
   {
-    title: "Data Alumni",
-    icon: <FiUserCheck className="w-4 h-4" />,
+    title: "Data Lulusan",
+    icon: <FiAward className="w-4 h-4" />,
     children: [
+      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
       { title: "Tracer Study", href: "/dashboard/data-unila/tracer" },
       { title: "Survey Atasan", href: "/dashboard/data-unila/alumni/survey-atasan" },
-      { title: "Lulusan", href: "/dashboard/data-unila/mahasiswa/lulusan" },
     ],
   },
 ];

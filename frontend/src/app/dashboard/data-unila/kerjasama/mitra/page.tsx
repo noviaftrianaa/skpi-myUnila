@@ -86,11 +86,16 @@ export default function MitraPage() {
 
   useEffect(() => {
     setLoadingStats(true);
-    kerjasamaDataService.getMitraStats({})
+    kerjasamaDataService.getMitraStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    })
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoadingStats(false));
-  }, []);
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     setLoading(true);

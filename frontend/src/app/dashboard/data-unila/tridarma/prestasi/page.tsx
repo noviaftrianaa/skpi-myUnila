@@ -11,11 +11,12 @@ import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/Ex
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import { MdSchool } from "react-icons/md";
-import { FiAward, FiGlobe, FiFlag, FiMapPin, FiFilter, FiRotateCcw, FiX, FiStar } from "react-icons/fi";
+import { FiAward, FiGlobe, FiFlag, FiMapPin, FiFilter, FiRotateCcw, FiX, FiStar, FiUsers } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type PrestasiItem, type PrestasiStats } from "@/lib/services/data-unila/tridarmaDataService";
+import PrestasiTimModal from "@/shared/components/data-unila/PrestasiTimModal";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
@@ -60,6 +61,7 @@ export default function PrestasiPage() {
   const forcedProdi = scope.forcedProdi || "";
 
   const [data, setData] = useState<PrestasiItem[]>([]);
+  const [selectedTim, setSelectedTim] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<PrestasiStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -182,6 +184,17 @@ export default function PrestasiPage() {
     { key: "tahun", label: "TAHUN", width: "80px", sortable: true, align: "center" as const, render: (i) => (
       <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300">{i.tahun || i.thn_prestasi}</span>
     )},
+    { key: "jml_tim", label: "TIM", width: "110px", align: "center" as const, render: (i) => {
+      const n = Number(i.jml_tim || 0);
+      return (
+        <button type="button" onClick={() => setSelectedTim(i.id_prestasi)}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ring-1 ring-inset bg-violet-50 text-violet-700 ring-violet-200 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 transition-colors"
+          title="Lihat detail tim">
+          <FiUsers className="w-3 h-3" />
+          {n > 1 ? `${n} org` : "1 org"}
+        </button>
+      );
+    }},
   ];
 
   return (
@@ -265,6 +278,7 @@ export default function PrestasiPage() {
           </motion.div>
         </div>
       </div>
+      <PrestasiTimModal idPrestasi={selectedTim} onClose={() => setSelectedTim(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

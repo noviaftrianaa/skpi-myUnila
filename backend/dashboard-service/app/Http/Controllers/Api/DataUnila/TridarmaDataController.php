@@ -97,6 +97,15 @@ class TridarmaDataController extends Controller
         }
     }
 
+    public function prestasiAnggota(string $id): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getPrestasiAnggota($id), 'Tim prestasi');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     public function pengajaran(Request $request): JsonResponse
     {
         try {

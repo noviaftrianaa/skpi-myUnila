@@ -73,6 +73,14 @@ class TridarmaDataService
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getPrestasiStats($params));
     }
 
+    public function getPrestasiAnggota(string $idPrestasi): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'prestasi-anggota', ['id' => $idPrestasi]);
+        return $this->cache->remember($key, self::TTL_STATS, fn() =>
+            $this->repository->getPrestasiAnggota($idPrestasi)
+        );
+    }
+
     public function getPengajaran(array $params): array
     {
         $key = $this->cache->buildKey('data-unila', 'pengajaran-list', $params);

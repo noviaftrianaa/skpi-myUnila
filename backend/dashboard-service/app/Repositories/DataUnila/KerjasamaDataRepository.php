@@ -122,32 +122,34 @@ class KerjasamaDataRepository extends BaseDataRepository
 
     /**
      * Build search/jenis filter for mitra UNION query.
-     * Returns [whereExtra, bindings_per_inner_query_count].
-     * Karena UNION ALL ada 2 inner SELECT, bindings perlu di-duplicate.
+     * $tableAlias: 'li' utk inner lembaga_iptek, 'd' utk inner dudi.
+     * Karena `nm_lemb` ambiguous di EXISTS subquery (s.nm_lemb juga ada di pdrd.sms),
+     * outer reference WAJIB dikualifikasi explicit ke alias inner.
      */
-    private function buildMitraFilters(array $params): array
+    private function buildMitraFilters(array $params, string $tableAlias = 'li'): array
     {
         $where = '';
         $bindings = [];
+        $outerNm = "{$tableAlias}.nm_lemb";
+
         if (!empty($params['search'])) {
-            $where .= " AND nm_lemb LIKE ?";
+            $where .= " AND {$outerNm} LIKE ?";
             $bindings[] = '%' . $params['search'] . '%';
         }
-        // tahun filter — MoU tahun terbaru per mitra (tahun mulai)
         if (!empty($params['tahun_mou'])) {
-            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m2 WHERE m2.soft_delete=0 AND m2.nm_dudi = nm_lemb AND YEAR(m2.tgl_mulai) = ?)";
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m2 WHERE m2.soft_delete=0 AND m2.nm_dudi = {$outerNm} AND YEAR(m2.tgl_mulai) = ?)";
             $bindings[] = (int) $params['tahun_mou'];
         }
         // Unit filter: mitra punya MoU dgn prodi/fakultas tertentu (via sms_kerjasama bridge)
         if (!empty($params['id_prodi']) || !empty($params['id_sms'])) {
-            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m3 JOIN kerjasama.sms_kerjasama sk3 ON sk3.id_mou = m3.id_mou WHERE m3.soft_delete=0 AND sk3.soft_delete=0 AND m3.nm_dudi = nm_lemb AND sk3.id_sms = ?)";
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m3 JOIN kerjasama.sms_kerjasama sk3 ON sk3.id_mou = m3.id_mou WHERE m3.soft_delete=0 AND sk3.soft_delete=0 AND m3.nm_dudi = {$outerNm} AND sk3.id_sms = ?)";
             $bindings[] = $params['id_prodi'] ?? $params['id_sms'];
         } elseif (!empty($params['id_fakultas'])) {
-            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m4 JOIN kerjasama.sms_kerjasama sk4 ON sk4.id_mou = m4.id_mou JOIN pdrd.sms s4 ON s4.id_sms = sk4.id_sms WHERE m4.soft_delete=0 AND sk4.soft_delete=0 AND s4.soft_delete=0 AND m4.nm_dudi = nm_lemb AND s4.id_fak_unila = ?)";
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m4 JOIN kerjasama.sms_kerjasama sk4 ON sk4.id_mou = m4.id_mou JOIN pdrd.sms s4 ON s4.id_sms = sk4.id_sms WHERE m4.soft_delete=0 AND sk4.soft_delete=0 AND s4.soft_delete=0 AND m4.nm_dudi = {$outerNm} AND s4.id_fak_unila = ?)";
             $bindings[] = $params['id_fakultas'];
         }
         if (!empty($params['id_jurusan'])) {
-            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m5 JOIN kerjasama.sms_kerjasama sk5 ON sk5.id_mou = m5.id_mou JOIN pdrd.sms s5 ON s5.id_sms = sk5.id_sms WHERE m5.soft_delete=0 AND sk5.soft_delete=0 AND s5.soft_delete=0 AND m5.nm_dudi = nm_lemb AND s5.id_jur_unila = ?)";
+            $where .= " AND EXISTS (SELECT 1 FROM kerjasama.mou m5 JOIN kerjasama.sms_kerjasama sk5 ON sk5.id_mou = m5.id_mou JOIN pdrd.sms s5 ON s5.id_sms = sk5.id_sms WHERE m5.soft_delete=0 AND sk5.soft_delete=0 AND s5.soft_delete=0 AND m5.nm_dudi = {$outerNm} AND s5.id_jur_unila = ?)";
             $bindings[] = $params['id_jurusan'];
         }
         return [$where, $bindings];
@@ -160,9 +162,10 @@ class KerjasamaDataRepository extends BaseDataRepository
         $offset = ($page - 1) * $limit;
         $jenis = strtoupper(trim((string) ($params['jenis'] ?? '')));
 
-        [$filter, $filterBindings] = $this->buildMitraFilters($params);
+        // Per-source filter: kualifikasi outer reference berbeda (li.nm_lemb vs d.nm_lemb)
+        [$filterLembaga, $filterBindingsLembaga] = $this->buildMitraFilters($params, 'li');
+        [$filterDudi, $filterBindingsDudi] = $this->buildMitraFilters($params, 'd');
 
-        // Tiap inner SELECT pakai filter sama → bindings perlu di-multiply per inner select yang dipakai.
         $useLembaga = !$jenis || in_array($jenis, ['LEMBAGAIPTEK', 'LEMBAGA_IPTEK', 'LEMBAGA-IPTEK', 'IPTEK'], true);
         $useDudi    = !$jenis || $jenis === 'DUDI';
 
@@ -180,7 +183,7 @@ class KerjasamaDataRepository extends BaseDataRepository
                 li.kode_pos
             FROM pdrd.lembaga_iptek li
             WHERE li.soft_delete = 0
-              {$filter}
+              {$filterLembaga}
         ";
         $innerDudi = "
             SELECT
@@ -196,13 +199,13 @@ class KerjasamaDataRepository extends BaseDataRepository
                 d.kode_pos
             FROM pdrd.dudi d
             WHERE d.soft_delete = 0
-              {$filter}
+              {$filterDudi}
         ";
 
         $parts = [];
         $unionBindings = [];
-        if ($useLembaga) { $parts[] = $innerLembaga; $unionBindings = array_merge($unionBindings, $filterBindings); }
-        if ($useDudi)    { $parts[] = $innerDudi;    $unionBindings = array_merge($unionBindings, $filterBindings); }
+        if ($useLembaga) { $parts[] = $innerLembaga; $unionBindings = array_merge($unionBindings, $filterBindingsLembaga); }
+        if ($useDudi)    { $parts[] = $innerDudi;    $unionBindings = array_merge($unionBindings, $filterBindingsDudi); }
         if (empty($parts)) { $parts[] = $innerLembaga; $unionBindings = array_merge($unionBindings, $filterBindings); }
 
         $unionSql = implode(' UNION ALL ', $parts);
@@ -262,14 +265,47 @@ class KerjasamaDataRepository extends BaseDataRepository
 
     public function getMitraStats(array $params = []): array
     {
-        $row = (array) $this->selectOne("
-            SELECT
-                (SELECT COUNT(*) FROM pdrd.lembaga_iptek WHERE soft_delete=0) as total_lembaga_iptek,
-                (SELECT COUNT(*) FROM pdrd.dudi WHERE soft_delete=0) as total_dudi,
-                (SELECT COUNT(*) FROM kerjasama.mou WHERE soft_delete=0 AND tgl_selesai >= GETDATE()) as mou_aktif,
-                (SELECT COUNT(DISTINCT nm_dudi) FROM kerjasama.mou
-                 WHERE soft_delete=0 AND nm_dudi IS NOT NULL AND nm_dudi <> '') as mitra_ber_mou
-        ");
+        // Build org filter via sms_kerjasama bridge (sama dgn getList & getMitraList)
+        $orgClause = '';
+        $orgBindings = [];
+        if (!empty($params['id_prodi']) || !empty($params['id_sms'])) {
+            $orgClause = " AND id_mou IN (SELECT id_mou FROM kerjasama.sms_kerjasama WHERE soft_delete=0 AND id_sms=?)";
+            $orgBindings[] = $params['id_prodi'] ?? $params['id_sms'];
+        } elseif (!empty($params['id_fakultas'])) {
+            $orgClause = " AND id_mou IN (SELECT sk.id_mou FROM kerjasama.sms_kerjasama sk JOIN pdrd.sms s ON s.id_sms=sk.id_sms WHERE sk.soft_delete=0 AND s.soft_delete=0 AND s.id_fak_unila=?)";
+            $orgBindings[] = $params['id_fakultas'];
+        }
+        if (!empty($params['id_jurusan'])) {
+            $orgClause .= " AND id_mou IN (SELECT sk2.id_mou FROM kerjasama.sms_kerjasama sk2 JOIN pdrd.sms s2 ON s2.id_sms=sk2.id_sms WHERE sk2.soft_delete=0 AND s2.soft_delete=0 AND s2.id_jur_unila=?)";
+            $orgBindings[] = $params['id_jurusan'];
+        }
+        $hasOrgFilter = !empty($orgClause);
+
+        // Hitung dgn org filter — kalau tidak ada filter, pakai global counts (cepat); kalau ada, scope ke MoU-nya.
+        if ($hasOrgFilter) {
+            $b1 = $orgBindings; $b2 = $orgBindings; $b3 = $orgBindings; $b4 = $orgBindings;
+            $row = (array) $this->selectOne("
+                SELECT
+                    (SELECT COUNT(DISTINCT li.id_lemb_iptek) FROM pdrd.lembaga_iptek li
+                     WHERE li.soft_delete=0
+                       AND EXISTS (SELECT 1 FROM kerjasama.mou m WHERE m.soft_delete=0 AND m.nm_dudi = li.nm_lemb {$orgClause})) as total_lembaga_iptek,
+                    (SELECT COUNT(DISTINCT d.id_dudi) FROM pdrd.dudi d
+                     WHERE d.soft_delete=0
+                       AND EXISTS (SELECT 1 FROM kerjasama.mou m WHERE m.soft_delete=0 AND m.nm_dudi = d.nm_lemb {$orgClause})) as total_dudi,
+                    (SELECT COUNT(*) FROM kerjasama.mou WHERE soft_delete=0 AND tgl_selesai >= GETDATE() {$orgClause}) as mou_aktif,
+                    (SELECT COUNT(DISTINCT nm_dudi) FROM kerjasama.mou
+                     WHERE soft_delete=0 AND nm_dudi IS NOT NULL AND nm_dudi <> '' {$orgClause}) as mitra_ber_mou
+            ", array_merge($b1, $b2, $b3, $b4));
+        } else {
+            $row = (array) $this->selectOne("
+                SELECT
+                    (SELECT COUNT(*) FROM pdrd.lembaga_iptek WHERE soft_delete=0) as total_lembaga_iptek,
+                    (SELECT COUNT(*) FROM pdrd.dudi WHERE soft_delete=0) as total_dudi,
+                    (SELECT COUNT(*) FROM kerjasama.mou WHERE soft_delete=0 AND tgl_selesai >= GETDATE()) as mou_aktif,
+                    (SELECT COUNT(DISTINCT nm_dudi) FROM kerjasama.mou
+                     WHERE soft_delete=0 AND nm_dudi IS NOT NULL AND nm_dudi <> '') as mitra_ber_mou
+            ");
+        }
         $row['total_mitra'] = (int) $row['total_lembaga_iptek'] + (int) $row['total_dudi'];
 
         // Breakdown tahun MoU (top 10 tahun terbaru utk dropdown)

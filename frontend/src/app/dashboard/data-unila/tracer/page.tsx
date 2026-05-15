@@ -92,8 +92,14 @@ export default function TracerPage() {
   const unitFilterStr = unitItems.join(",");
 
   useEffect(() => {
-    tracerDataService.getStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
-  }, []);
+    setLoadingStats(true);
+    tracerDataService.getStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined }).then(setFilters).catch(console.error);

@@ -79,14 +79,14 @@
       ]
     },
     {
-      "nm_menu": "Data Alumni",
+      "nm_menu": "Data Lulusan",
       "nm_file": "#data-alumni",
-      "icon": "heroicons:user-group",
+      "icon": "heroicons:academic-cap",
       "urutan": 8,
       "children": [
-        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "icon": "heroicons:arrow-trending-up", "urutan": 1},
-        {"nm_menu": "Survey Atasan", "nm_file": "/dashboard/data-unila/alumni/survey-atasan", "icon": "heroicons:briefcase", "urutan": 2},
-        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "icon": "heroicons:academic-cap", "urutan": 3}
+        {"nm_menu": "Lulusan", "nm_file": "/dashboard/data-unila/mahasiswa/lulusan", "icon": "heroicons:user-group", "urutan": 1},
+        {"nm_menu": "Tracer Study", "nm_file": "/dashboard/data-unila/tracer", "icon": "heroicons:arrow-trending-up", "urutan": 2},
+        {"nm_menu": "Survey Atasan", "nm_file": "/dashboard/data-unila/alumni/survey-atasan", "icon": "heroicons:briefcase", "urutan": 3}
       ]
     }
   ]

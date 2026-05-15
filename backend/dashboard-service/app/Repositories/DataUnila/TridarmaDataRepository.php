@@ -446,17 +446,24 @@ class TridarmaDataRepository extends BaseDataRepository
     public function getPrestasiList(array $params): array
     {
         // Filter by fakultas/prodi: JOIN via id_pd (peserta_didik) → reg_pd → sms
+        // jml_tim: COUNT anggota_akt_mhs jika id_akt_mhs ada, fallback 1 (solo).
         $baseSql = "
             SELECT
                 CONVERT(VARCHAR(36), pr.id_prestasi) as id_prestasi,
+                CONVERT(VARCHAR(36), pr.id_akt_mhs) as id_akt_mhs,
                 pr.nm_prestasi as nama,
                 pr.thn_prestasi,
                 pr.thn_prestasi as tahun,
                 pr.penyelenggara,
+                pr.peringkat,
                 tp.nm_tkt_prestasi as tingkat,
                 jp.nm_jenis_prestasi as jenis,
                 s.nm_lemb as nm_prodi,
-                fak.nm_lemb as nm_fakultas
+                fak.nm_lemb as nm_fakultas,
+                CASE
+                    WHEN pr.id_akt_mhs IS NULL THEN 1
+                    ELSE ISNULL((SELECT COUNT(*) FROM pdrd.anggota_akt_mhs aam WHERE aam.id_akt_mhs = pr.id_akt_mhs AND aam.soft_delete = 0), 1)
+                END as jml_tim
             FROM pdrd.prestasi pr
             LEFT JOIN ref.tingkat_prestasi tp ON tp.id_tkt_prestasi = pr.id_tkt_prestasi
             LEFT JOIN ref.jenis_prestasi jp ON jp.id_jenis_prestasi = pr.id_jenis_prestasi
@@ -648,5 +655,65 @@ class TridarmaDataRepository extends BaseDataRepository
         ", $bindings);
 
         return (array) ($row ?? []);
+    }
+
+    /**
+     * Get tim anggota prestasi by id_prestasi.
+     * Source: prestasi.id_akt_mhs → pdrd.anggota_akt_mhs.
+     * Jika id_akt_mhs NULL, return solo (1 orang dari prestasi.id_pd).
+     */
+    public function getPrestasiAnggota(string $idPrestasi): array
+    {
+        $meta = $this->selectOne("
+            SELECT
+                CONVERT(VARCHAR(36), pr.id_prestasi) as id_prestasi,
+                CONVERT(VARCHAR(36), pr.id_akt_mhs) as id_akt_mhs,
+                pr.nm_prestasi as nama, pr.thn_prestasi as tahun,
+                pr.penyelenggara, pr.peringkat,
+                tp.nm_tkt_prestasi as tingkat, jp.nm_jenis_prestasi as jenis
+            FROM pdrd.prestasi pr
+            LEFT JOIN ref.tingkat_prestasi tp ON tp.id_tkt_prestasi = pr.id_tkt_prestasi
+            LEFT JOIN ref.jenis_prestasi jp ON jp.id_jenis_prestasi = pr.id_jenis_prestasi
+            WHERE pr.id_prestasi = ? AND pr.soft_delete = 0
+        ", [$idPrestasi]);
+
+        $anggota = [];
+        if ($meta && $meta->id_akt_mhs) {
+            $anggota = $this->select("
+                SELECT
+                    CONVERT(VARCHAR(36), aam.id_anggota_akt_mhs) as id_anggota,
+                    CONVERT(VARCHAR(36), aam.id_pd) as id_pd,
+                    aam.nm_pd as nama,
+                    aam.nipd,
+                    aam.jns_peran_mhs as peran_code,
+                    CASE aam.jns_peran_mhs
+                        WHEN 1 THEN 'Ketua' WHEN 2 THEN 'Anggota' WHEN 3 THEN 'Personal'
+                        ELSE 'Lainnya'
+                    END as peran,
+                    s.nm_lemb as nm_prodi
+                FROM pdrd.anggota_akt_mhs aam
+                LEFT JOIN pdrd.reg_pd rp ON rp.id_pd = aam.id_pd AND rp.soft_delete = 0
+                LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+                WHERE aam.id_akt_mhs = ? AND aam.soft_delete = 0
+                ORDER BY aam.jns_peran_mhs, aam.nm_pd
+            ", [$meta->id_akt_mhs]);
+        } elseif ($meta) {
+            $solo = $this->selectOne("
+                SELECT
+                    CONVERT(VARCHAR(36), pd.id_pd) as id_pd,
+                    pd.nm_pd as nama,
+                    (SELECT TOP 1 nipd FROM pdrd.reg_pd WHERE id_pd = pd.id_pd AND soft_delete=0 ORDER BY tgl_masuk_sp DESC) as nipd,
+                    1 as peran_code, 'Personal' as peran,
+                    (SELECT TOP 1 s.nm_lemb FROM pdrd.reg_pd rp JOIN pdrd.sms s ON s.id_sms=rp.id_sms WHERE rp.id_pd=pd.id_pd AND rp.soft_delete=0 ORDER BY rp.tgl_masuk_sp DESC) as nm_prodi
+                FROM pdrd.peserta_didik pd
+                WHERE pd.id_pd = (SELECT id_pd FROM pdrd.prestasi WHERE id_prestasi = ?)
+            ", [$idPrestasi]);
+            if ($solo) $anggota = [(array) $solo];
+        }
+
+        return [
+            'meta' => $meta ? (array) $meta : null,
+            'anggota' => array_map(fn($r) => (array) $r, $anggota),
+        ];
     }
 }

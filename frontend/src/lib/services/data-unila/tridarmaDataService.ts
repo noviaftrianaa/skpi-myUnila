@@ -65,6 +65,23 @@ export interface PublikasiPenulisResponse {
 export interface PrestasiItem {
   id_prestasi: string; nama: string; thn_prestasi: string; tahun: string;
   penyelenggara: string; tingkat: string; jenis: string;
+  id_akt_mhs?: string | null;
+  peringkat?: string | null;
+  jml_tim?: number | string;
+}
+
+export interface PrestasiAnggotaItem {
+  id_anggota?: string;
+  id_pd: string;
+  nama: string;
+  nipd: string | null;
+  peran: string;
+  peran_code: number;
+  nm_prodi: string | null;
+}
+export interface PrestasiAnggotaResponse {
+  meta: { id_prestasi: string; nama: string; tahun: number; tingkat: string | null; jenis: string | null; peringkat: string | null; penyelenggara: string | null } | null;
+  anggota: PrestasiAnggotaItem[];
 }
 
 export interface PrestasiStats {
@@ -126,6 +143,10 @@ export const tridarmaDataService = {
   },
   async getPrestasiStats(params: Record<string, any> = {}): Promise<PrestasiStats> {
     const r = await dashboardClient.get('/data/tridarma/prestasi/stats', { params });
+    return r.data.data;
+  },
+  async getPrestasiAnggota(id: string): Promise<PrestasiAnggotaResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/prestasi/${id}/anggota`);
     return r.data.data;
   },
   async getPengajaran(params: Record<string, any>) {
