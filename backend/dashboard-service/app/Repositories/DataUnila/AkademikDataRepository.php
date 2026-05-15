@@ -417,4 +417,70 @@ class AkademikDataRepository extends BaseDataRepository
         $stats['by_jenis'] = $byJenis;
         return $stats;
     }
+
+    // ==========================================
+    // KURIKULUM PRODI (pdrd.kurikulum_sp ~440 rows)
+    // Source: pdrd.kurikulum_sp JOIN sms (prodi) + ref.jenjang_pendidikan
+    // ==========================================
+
+    public function getKurikulumList(array $params): array
+    {
+        $baseSql = "
+            SELECT
+                CONVERT(VARCHAR(36), k.id_kurikulum_sp) as id_kurikulum_sp,
+                CONVERT(VARCHAR(36), k.id_sms) as id_sms,
+                k.nm_kurikulum_sp as nm_kurikulum,
+                k.id_jenj_didik,
+                ISNULL(jp.nm_jenj_didik, '-') as jenjang,
+                CAST(k.id_smt AS VARCHAR(5)) as id_smt,
+                LEFT(CAST(k.id_smt AS VARCHAR(5)), 4) as tahun_mulai,
+                k.jmlh_smt_normal,
+                CAST(k.jmlh_sks_lulus AS DECIMAL(8,2)) as sks_lulus,
+                CAST(k.jmlh_sks_wajib AS DECIMAL(8,2)) as sks_wajib,
+                CAST(k.jmlh_sks_pilihan AS DECIMAL(8,2)) as sks_pilihan,
+                k.a_digunakan,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas,
+                (SELECT COUNT(*) FROM pdrd.matkul_kurikulum mk WHERE mk.id_kurikulum_sp = k.id_kurikulum_sp AND mk.soft_delete = 0) as jml_matkul
+            FROM pdrd.kurikulum_sp k
+            JOIN pdrd.sms s ON s.id_sms = k.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            LEFT JOIN ref.jenjang_pendidikan jp ON jp.id_jenj_didik = k.id_jenj_didik
+            WHERE k.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+        $countSql = "
+            SELECT COUNT(*)
+            FROM pdrd.kurikulum_sp k
+            JOIN pdrd.sms s ON s.id_sms = k.id_sms AND s.soft_delete = 0
+            WHERE k.soft_delete = 0
+              {WHERE_EXTRA}
+        ";
+
+        return $this->paginate($baseSql, $countSql, $params,
+            ['k.nm_kurikulum_sp', 's.nm_lemb'],
+            ['nm_kurikulum', 'tahun_mulai', 'sks_lulus', 'nm_prodi', 'jenjang', 'jml_matkul'],
+            'tahun_mulai', 'DESC');
+    }
+
+    public function getKurikulumStats(array $params = []): array
+    {
+        $bindings = [];
+        $dummy = [];
+        $orgFilter = $this->buildOrgFilter($params, $bindings, $dummy);
+
+        $row = (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN k.a_digunakan = 1 THEN 1 ELSE 0 END) as aktif,
+                COUNT(DISTINCT k.id_sms) as total_prodi,
+                AVG(CAST(k.jmlh_sks_lulus AS FLOAT)) as avg_sks
+            FROM pdrd.kurikulum_sp k
+            JOIN pdrd.sms s ON s.id_sms = k.id_sms AND s.soft_delete = 0
+            WHERE k.soft_delete = 0
+              {$orgFilter}
+        ", $bindings);
+        return $row;
+    }
 }

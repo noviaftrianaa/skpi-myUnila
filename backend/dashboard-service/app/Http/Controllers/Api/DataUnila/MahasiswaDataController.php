@@ -175,6 +175,24 @@ class MahasiswaDataController extends Controller
     }
 
     /**
+     * GET /v1/data/mahasiswa/ujian + /stats
+     * Ujian Mahasiswa (penguji + judul + mahasiswa diuji).
+     */
+    public function ujian(Request $request): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getUjianList($this->extractParams($request)), 'Data ujian mahasiswa');
+        } catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function ujianStats(Request $request): JsonResponse
+    {
+        try {
+            return $this->success($this->service->getUjianStats($this->extractParams($request)), 'Stats ujian mahasiswa');
+        } catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    /**
      * GET /v1/data/mahasiswa/export
      * CSV export (streaming)
      */
@@ -249,6 +267,7 @@ class MahasiswaDataController extends Controller
             'ipk_min' => $request->query('ipk_min'),
             'ipk_max' => $request->query('ipk_max'),
             'unit_filter' => $request->query('unit_filter'),
+            'jenis_ujian' => $request->query('jenis_ujian'),
         ];
     }
 }

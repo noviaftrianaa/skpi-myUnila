@@ -959,4 +959,138 @@ class MahasiswaDataRepository extends BaseDataRepository
 
         return ['tahun' => $tahun, 'jenis' => $jenis];
     }
+
+    // ==========================================
+    // UJIAN MAHASIWA (pdrd.uji_mhs ~10k rows)
+    // Source: pdrd.uji_mhs (penguji) JOIN sdm (dosen) + akt_mhs (judul ujian) + ref.jenis_akt_mhs
+    //         + OUTER APPLY pdrd.anggota_akt_mhs (mahasiswa yg diuji)
+    // ==========================================
+
+    public function getUjianList(array $params): array
+    {
+        $page = max(1, (int) ($params['page'] ?? 1));
+        $limit = max(1, min(200, (int) ($params['limit'] ?? 20)));
+        $sortable = ['judul_ujian', 'jenis_ujian', 'nm_prodi', 'nm_sdm', 'tgl_selesai'];
+        $sortBy = in_array($params['sort_by'] ?? '', $sortable) ? $params['sort_by'] : 'tgl_selesai';
+        $sortOrder = strtoupper($params['sort_order'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+        $offset = ($page - 1) * $limit;
+
+        $where = '';
+        $bindings = [];
+        $countBindings = [];
+
+        // Org filter via s.id_fak_unila/id_jur_unila/id_sms
+        $where .= $this->buildOrgFilter($params, $bindings, $countBindings);
+
+        if (!empty($params['search'])) {
+            $where .= ' AND (am.judul_akt_mhs LIKE ? OR sdm.nm_sdm LIKE ? OR sdm.nidn LIKE ?)';
+            $bindings[] = '%' . $params['search'] . '%';
+            $bindings[] = '%' . $params['search'] . '%';
+            $bindings[] = '%' . $params['search'] . '%';
+            $countBindings[] = '%' . $params['search'] . '%';
+            $countBindings[] = '%' . $params['search'] . '%';
+            $countBindings[] = '%' . $params['search'] . '%';
+        }
+
+        if (!empty($params['jenis_ujian'])) {
+            $where .= ' AND jam.nm_jns_akt_mhs = ?';
+            $bindings[] = $params['jenis_ujian'];
+            $countBindings[] = $params['jenis_ujian'];
+        }
+
+        if (!empty($params['tahun'])) {
+            $where .= ' AND LEFT(CAST(am.id_smt AS VARCHAR(5)), 4) = ?';
+            $bindings[] = $params['tahun'];
+            $countBindings[] = $params['tahun'];
+        }
+
+        $total = (int) $this->selectScalar("
+            SELECT COUNT(*)
+            FROM pdrd.uji_mhs um
+            INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = um.id_sdm AND sdm.soft_delete = 0
+            INNER JOIN pdrd.akt_mhs am ON am.id_akt_mhs = um.id_akt_mhs AND am.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs AND jam.expired_date IS NULL
+            WHERE um.soft_delete = 0 {$where}
+        ", $countBindings);
+
+        $rows = $this->select("
+            SELECT
+                CONVERT(VARCHAR(36), um.id_uji_mhs) as id_uji_mhs,
+                CONVERT(VARCHAR(36), sdm.id_sdm) as id_sdm,
+                sdm.nm_sdm,
+                sdm.nidn,
+                sdm.nip,
+                um.urutan_uji,
+                CASE CAST(um.urutan_uji AS VARCHAR(2))
+                    WHEN '1' THEN 'Ketua' WHEN '2' THEN 'Penguji 2' WHEN '3' THEN 'Penguji 3'
+                    WHEN '4' THEN 'Penguji 4' WHEN '5' THEN 'Penguji 5' ELSE 'Penguji ' + CAST(um.urutan_uji AS VARCHAR(2))
+                END as peran_uji,
+                CONVERT(VARCHAR(36), am.id_akt_mhs) as id_akt_mhs,
+                am.judul_akt_mhs as judul_ujian,
+                ISNULL(jam.nm_jns_akt_mhs, 'Lainnya') as jenis_ujian,
+                CONVERT(VARCHAR(10), am.tgl_selesai, 120) as tgl_selesai,
+                CAST(am.id_smt AS VARCHAR(5)) as id_smt,
+                LEFT(CAST(am.id_smt AS VARCHAR(5)), 4) as tahun,
+                (SELECT TOP 1 aam.nm_pd FROM pdrd.anggota_akt_mhs aam
+                 WHERE aam.id_akt_mhs = am.id_akt_mhs AND aam.soft_delete = 0
+                 ORDER BY aam.jns_peran_mhs) as nm_mahasiswa,
+                (SELECT TOP 1 aam.nipd FROM pdrd.anggota_akt_mhs aam
+                 WHERE aam.id_akt_mhs = am.id_akt_mhs AND aam.soft_delete = 0
+                 ORDER BY aam.jns_peran_mhs) as nipd_mahasiswa,
+                s.nm_lemb as nm_prodi,
+                fak.nm_lemb as nm_fakultas,
+                CONVERT(VARCHAR(36), s.id_fak_unila) as id_fakultas
+            FROM pdrd.uji_mhs um
+            INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = um.id_sdm AND sdm.soft_delete = 0
+            INNER JOIN pdrd.akt_mhs am ON am.id_akt_mhs = um.id_akt_mhs AND am.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs AND jam.expired_date IS NULL
+            WHERE um.soft_delete = 0 {$where}
+            ORDER BY {$sortBy} {$sortOrder} OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        ", array_merge($bindings, [$offset, $limit]));
+
+        return [
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => $total > 0 ? (int) ceil($total / $limit) : 0,
+        ];
+    }
+
+    public function getUjianStats(array $params = []): array
+    {
+        $where = '';
+        $bindings = [];
+        $dummy = [];
+        $where .= $this->buildOrgFilter($params, $bindings, $dummy);
+
+        $row = (array) $this->selectOne("
+            SELECT
+                COUNT(*) as total,
+                COUNT(DISTINCT um.id_sdm) as total_dosen,
+                COUNT(DISTINCT um.id_akt_mhs) as total_ujian,
+                COUNT(DISTINCT jam.nm_jns_akt_mhs) as total_jenis
+            FROM pdrd.uji_mhs um
+            INNER JOIN pdrd.akt_mhs am ON am.id_akt_mhs = um.id_akt_mhs AND am.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs AND jam.expired_date IS NULL
+            WHERE um.soft_delete = 0 {$where}
+        ", $bindings);
+
+        $byJenis = $this->select("
+            SELECT TOP 20 ISNULL(jam.nm_jns_akt_mhs, 'Lainnya') as jenis, COUNT(*) as jumlah
+            FROM pdrd.uji_mhs um
+            INNER JOIN pdrd.akt_mhs am ON am.id_akt_mhs = um.id_akt_mhs AND am.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = am.id_sms AND s.soft_delete = 0
+            LEFT JOIN ref.jenis_akt_mhs jam ON jam.id_jns_akt_mhs = am.id_jns_akt_mhs AND jam.expired_date IS NULL
+            WHERE um.soft_delete = 0 {$where}
+            GROUP BY jam.nm_jns_akt_mhs
+            ORDER BY COUNT(*) DESC
+        ", $bindings);
+        $row['by_jenis'] = array_map(fn($r) => (array) $r, $byJenis);
+        return $row;
+    }
 }

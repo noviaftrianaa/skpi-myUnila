@@ -57,6 +57,18 @@ class AkademikDataController extends Controller
         } catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
+    public function kurikulum(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getKurikulumList($this->p($request)), 'Data kurikulum'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function kurikulumStats(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getKurikulumStats($this->p($request)), 'Stats kurikulum'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
     private function p(Request $r): array
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),

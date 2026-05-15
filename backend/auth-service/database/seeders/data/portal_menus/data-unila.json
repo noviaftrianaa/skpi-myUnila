@@ -17,7 +17,8 @@
         {"nm_menu": "Daftar Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa", "urutan": 1},
         {"nm_menu": "KTW", "nm_file": "/dashboard/data-unila/mahasiswa/ktw", "urutan": 2},
         {"nm_menu": "Aktivitas Mahasiswa", "nm_file": "/dashboard/data-unila/mahasiswa/aktivitas", "urutan": 3},
-        {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/data-unila/tridarma/prestasi", "urutan": 4}
+        {"nm_menu": "Ujian", "nm_file": "/dashboard/data-unila/mahasiswa/ujian", "urutan": 4},
+        {"nm_menu": "Prestasi Mahasiswa", "nm_file": "/dashboard/data-unila/tridarma/prestasi", "urutan": 5}
       ]
     },
     {
@@ -55,7 +56,8 @@
       "children": [
         {"nm_menu": "Program Studi", "nm_file": "/dashboard/data-unila/akademik/prodi", "urutan": 1},
         {"nm_menu": "Akreditasi", "nm_file": "/dashboard/data-unila/akademik/akreditasi", "urutan": 2},
-        {"nm_menu": "Mata Kuliah", "nm_file": "/dashboard/data-unila/akademik/matkul", "urutan": 3}
+        {"nm_menu": "Mata Kuliah", "nm_file": "/dashboard/data-unila/akademik/matkul", "urutan": 3},
+        {"nm_menu": "Kurikulum", "nm_file": "/dashboard/data-unila/akademik/kurikulum", "urutan": 4}
       ]
     },
     {

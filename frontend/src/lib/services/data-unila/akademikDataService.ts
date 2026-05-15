@@ -90,5 +90,31 @@ export const akademikDataService = {
   async getAkreditasiStats(p: Record<string, any> = {}): Promise<AkreditasiStats> { return (await dashboardClient.get('/data/akademik/akreditasi/stats', { params: p })).data.data; },
   async getMatkul(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/matkul', { params: p })).data.data; },
   async getMatkulStats(p: Record<string, any> = {}): Promise<MatkulStats> { return (await dashboardClient.get('/data/akademik/matkul/stats', { params: p })).data.data; },
+  async getKurikulum(p: Record<string, any>) { return (await dashboardClient.get('/data/akademik/kurikulum', { params: p })).data.data; },
+  async getKurikulumStats(p: Record<string, any> = {}): Promise<KurikulumStats> { return (await dashboardClient.get('/data/akademik/kurikulum/stats', { params: p })).data.data; },
 };
+
+export interface KurikulumItem {
+  id_kurikulum_sp: string;
+  id_sms: string;
+  nm_kurikulum: string;
+  jenjang: string;
+  id_smt: string;
+  tahun_mulai: string;
+  jmlh_smt_normal: number;
+  sks_lulus: string | number;
+  sks_wajib: string | number;
+  sks_pilihan: string | number;
+  a_digunakan: number;
+  nm_prodi: string;
+  nm_fakultas: string;
+  id_fakultas: string;
+  jml_matkul: number | string;
+}
+export interface KurikulumStats {
+  total: number | string;
+  aktif: number | string;
+  total_prodi: number | string;
+  avg_sks: number | string;
+}
 export default akademikDataService;

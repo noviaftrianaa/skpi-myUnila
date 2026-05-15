@@ -55,4 +55,16 @@ class AkademikDataService
         $key = $this->cache->buildKey('data-unila', 'prodi-detail', ['id' => $idSms]);
         return $this->cache->remember($key, 300, fn() => $this->repository->getProdiDetail($idSms));
     }
+
+    public function getKurikulumList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kurikulum-list', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getKurikulumList($params));
+    }
+
+    public function getKurikulumStats(array $params = []): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kurikulum-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getKurikulumStats($params));
+    }
 }

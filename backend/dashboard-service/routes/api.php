@@ -80,6 +80,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/aktivitas', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitas']);
             Route::get('/aktivitas/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitasStats']);
             Route::get('/aktivitas/filters', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'aktivitasFilters']);
+            Route::get('/ujian', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'ujian']);
+            Route::get('/ujian/stats', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'ujianStats']);
             Route::get('/resolve-nim', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'resolveByNim']);
             Route::get('/{id}/profile', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'profile']);
             Route::get('/{id}', [\App\Http\Controllers\Api\DataUnila\MahasiswaDataController::class, 'show']);
@@ -136,6 +138,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/akreditasi/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'akreditasiStats']);
             Route::get('/matkul', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkul']);
             Route::get('/matkul/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'matkulStats']);
+            Route::get('/kurikulum', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'kurikulum']);
+            Route::get('/kurikulum/stats', [\App\Http\Controllers\Api\DataUnila\AkademikDataController::class, 'kurikulumStats']);
         });
 
         // Kerjasama

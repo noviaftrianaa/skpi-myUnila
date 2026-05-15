@@ -16,6 +16,7 @@ export const dataUnilaMenuConfig = [
       { title: "Daftar Mahasiswa", href: "/dashboard/data-unila/mahasiswa" },
       { title: "KTW", href: "/dashboard/data-unila/mahasiswa/ktw" },
       { title: "Aktivitas Mahasiswa", href: "/dashboard/data-unila/mahasiswa/aktivitas" },
+      { title: "Ujian", href: "/dashboard/data-unila/mahasiswa/ujian" },
       { title: "Prestasi Mahasiswa", href: "/dashboard/data-unila/tridarma/prestasi" },
     ],
   },
@@ -50,6 +51,7 @@ export const dataUnilaMenuConfig = [
       { title: "Program Studi", href: "/dashboard/data-unila/akademik/prodi" },
       { title: "Akreditasi", href: "/dashboard/data-unila/akademik/akreditasi" },
       { title: "Mata Kuliah", href: "/dashboard/data-unila/akademik/matkul" },
+      { title: "Kurikulum", href: "/dashboard/data-unila/akademik/kurikulum" },
     ],
   },
   {

@@ -321,6 +321,43 @@ export const mahasiswaDataService = {
     const r = await dashboardClient.get('/data/mahasiswa/aktivitas/filters');
     return r.data.data;
   },
+
+  async getUjian(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/mahasiswa/ujian', { params });
+    return r.data.data;
+  },
+  async getUjianStats(params: Record<string, any> = {}): Promise<UjianStats> {
+    const r = await dashboardClient.get('/data/mahasiswa/ujian/stats', { params });
+    return r.data.data;
+  },
 };
+
+export interface UjianItem {
+  id_uji_mhs: string;
+  id_sdm: string;
+  nm_sdm: string;
+  nidn: string | null;
+  nip: string | null;
+  urutan_uji: number;
+  peran_uji: string;
+  id_akt_mhs: string;
+  judul_ujian: string;
+  jenis_ujian: string;
+  tgl_selesai: string | null;
+  id_smt: string;
+  tahun: string;
+  nm_mahasiswa: string | null;
+  nipd_mahasiswa: string | null;
+  nm_prodi: string;
+  nm_fakultas: string;
+  id_fakultas: string;
+}
+export interface UjianStats {
+  total: number | string;
+  total_dosen: number | string;
+  total_ujian: number | string;
+  total_jenis: number | string;
+  by_jenis: Array<{ jenis: string; jumlah: number }>;
+}
 
 export default mahasiswaDataService;

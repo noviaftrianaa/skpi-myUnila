@@ -100,6 +100,20 @@ class MahasiswaDataService
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getAktivitasStats($params));
     }
 
+    // ---- Ujian ----
+
+    public function getUjianList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'ujian-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getUjianList($params));
+    }
+
+    public function getUjianStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'ujian-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getUjianStats($params));
+    }
+
     public function getAktivitasFilterOptions(): array
     {
         return $this->cache->remember('data-unila:aktivitas-filters', self::TTL_FILTERS, fn() => $this->repository->getAktivitasFilterOptions());
