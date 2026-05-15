@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import { Card, CardBody, CardHeader, Button } from "@heroui/react";
@@ -62,6 +62,27 @@ export default function DashboardBerandaPage() {
   }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const semesterParam = Array.from(selectedSemesters).join(",");
+
+  // U3 — Tahun Ajaran Quick Preset (derive 5 TA terakhir dari semester reference)
+  const tahunAjaranOptions = useMemo(() => {
+    if (!semester || semester.length === 0) return [] as Array<{ key: string; label: string; semesters: string[] }>;
+    const yearSet = new Set<string>();
+    (semester as Array<{ key: string }>).forEach((s) => {
+      const y = String(s.key).substring(0, 4);
+      if (/^\d{4}$/.test(y)) yearSet.add(y);
+    });
+    const years = Array.from(yearSet).sort((a, b) => parseInt(b) - parseInt(a)).slice(0, 5);
+    return years.map((y) => ({ key: y, label: `TA ${y}/${parseInt(y) + 1}`, semesters: [`${y}1`, `${y}2`] }));
+  }, [semester]);
+
+  const activeTA = useMemo(() => {
+    const sels = Array.from(selectedSemesters);
+    for (const opt of tahunAjaranOptions) {
+      if (opt.semesters.every((s) => sels.includes(s)) && sels.length === opt.semesters.length) return opt.key;
+    }
+    return null;
+  }, [tahunAjaranOptions, selectedSemesters]);
+
   const { data, loading, error, refetch } = useDashboardData<BerandaData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.BERANDA,
     {
@@ -110,6 +131,30 @@ export default function DashboardBerandaPage() {
 
         {/* Scope Badge */}
         <ScopeBadge />
+
+        {/* Tahun Ajaran Quick Preset (U3 — YoY comparison) */}
+        {tahunAjaranOptions.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+            <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tahun Ajaran</span>
+            {tahunAjaranOptions.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setSelectedSemesters(new Set(opt.semesters))}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  activeTA === opt.key
+                    ? "bg-indigo-600 text-white ring-1 ring-indigo-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            {activeTA && (
+              <span className="ml-auto text-[10px] text-gray-500 dark:text-gray-400">YoY: stat card 'Pendapatan/Penelitian/Publikasi' tampilkan delta vs TA sebelumnya</span>
+            )}
+          </div>
+        )}
 
         {/* Global Filter */}
         <div className="space-y-3">
