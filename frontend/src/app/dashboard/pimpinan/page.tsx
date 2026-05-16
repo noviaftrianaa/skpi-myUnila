@@ -210,13 +210,14 @@ export default function DashboardBerandaPage() {
                   hint="Klik untuk daftar dosen"
                 />
                 <StatCard
-                  title="Serapan Anggaran"
-                  value={`${data.summaryStats.keuangan.serapan}%`}
+                  title="Pendapatan UKT"
+                  value={`Rp ${(data.summaryStats.keuangan.total / 1_000_000_000).toFixed(1)} M`}
                   icon={<FiDollarSign className="w-6 h-6 text-white" />}
                   color="yellow"
-                  description={`Rp ${(data.summaryStats.keuangan.total / 1000000000).toFixed(0)} Miliar`}
-                  href="/dashboard/data-unila/keuangan/spp"
-                  hint="Klik untuk detail keuangan SPP"
+                  trend={{ value: data.summaryStats.keuangan.trend ?? 0, label: "vs TA sebelumnya" }}
+                  description={`Pendapatan SPP periode aktif`}
+                  href="/dashboard/data-unila/keuangan/ukt"
+                  hint="Klik untuk detail UKT"
                 />
                 <StatCard
                   title="Prodi Unggul/A"

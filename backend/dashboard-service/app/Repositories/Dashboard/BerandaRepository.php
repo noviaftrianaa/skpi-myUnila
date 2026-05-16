@@ -63,15 +63,20 @@ class BerandaRepository extends BaseRepository
 
     public function countMahasiswaAktif(?string $fakultas = null, ?string $prodi = null): int
     {
+        // CANONICAL — match public-service ProgramStudiRepository:
+        // DISTINCT id_pd + JOIN peserta_didik dgn id_stat_mhs='A' + id_jns_keluar IS NULL.
+        // Tanpa dedup, satu mhs bisa double via reg_pd transfer/jenjang → over-count.
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
-            SELECT COUNT(rp.id_reg_pd)
+            SELECT COUNT(DISTINCT pd.id_pd)
             FROM pdrd.reg_pd rp
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
             {$joinSql}
             WHERE rp.id_sp = ? AND rp.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
+              AND pd.id_stat_mhs = 'A'
               {$whereSql}
         ";
 
@@ -125,18 +130,25 @@ class BerandaRepository extends BaseRepository
 
     public function countDosen(?string $fakultas = null, ?string $prodi = null): int
     {
+        // CANONICAL — match public-service ProgramStudiRepository:
+        // ikatan_kerja tetap (A,B,E,F,H,I,N) + honorer (G) + a_sp_homebase=1 + dedup ROW_NUMBER.
         $bindings = [self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings, 'pf_s');
 
         $sql = "
-            SELECT COUNT(DISTINCT sdm.id_sdm)
-            FROM pdrd.sdm sdm
-            INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
-                AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-            {$joinSql}
-            WHERE sdm.soft_delete = 0
-              AND sdm.id_jns_sdm = 12
-              {$whereSql}
+            SELECT COUNT(*) FROM (
+                SELECT ptk.id_sdm, ptk.id_sms,
+                    ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm, ptk.id_sms ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
+                FROM pdrd.reg_ptk ptk
+                INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0 AND sdm.id_jns_sdm = '12'
+                INNER JOIN pdrd.keaktifan_ptk keaktifan ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                    AND keaktifan.soft_delete = 0 AND keaktifan.a_sp_homebase = 1
+                {$joinSql}
+                WHERE ptk.soft_delete = 0 AND ptk.id_jns_keluar IS NULL
+                  AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                  AND ptk.id_ikatan_kerja IN ('A','B','E','F','G','H','I','N')
+                  {$whereSql}
+            ) pf WHERE pf.rn = 1
         ";
 
         return (int) $this->selectScalar($sql, $bindings);
@@ -144,6 +156,7 @@ class BerandaRepository extends BaseRepository
 
     public function countTendik(?string $fakultas = null, ?string $prodi = null): int
     {
+        // Tendik: id_jns_sdm=13 (Tendik), dedup via id_sdm DISTINCT, filter id_jns_keluar IS NULL.
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
 
@@ -154,7 +167,7 @@ class BerandaRepository extends BaseRepository
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
             {$joinSql}
             WHERE sdm.soft_delete = 0
-              AND sdm.id_jns_sdm != 12
+              AND sdm.id_jns_sdm = '13'
               {$whereSql}
         ";
 
