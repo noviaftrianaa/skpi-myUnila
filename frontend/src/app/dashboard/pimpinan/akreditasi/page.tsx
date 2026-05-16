@@ -61,7 +61,9 @@ const akredColumns: Column<AkreditasiDetail>[] = [
       </span>
     ),
   },
-  { key: "int", label: "Internasional", sortable: true },
+  { key: "no_sk", label: "No SK", sortable: true, render: (i) => (
+    <span className="font-mono text-xs text-gray-700 dark:text-gray-300 break-words">{(i as { no_sk?: string | null }).no_sk || "—"}</span>
+  )},
   { key: "exp", label: "Masa Berlaku", sortable: true },
 ];
 
@@ -101,7 +103,7 @@ export default function DashboardAkreditasiPage() {
     const rows = (data.detailTable || []) as unknown as Record<string, unknown>[];
     if (!rows.length) { toast.error("Tidak ada data"); return; }
     const baseName = `akreditasi-prodi`;
-    const headers = { fak: "Fakultas", prodi: "Program Studi", strata: "Jenjang", rank: "Peringkat", int: "Internasional", exp: "Masa Berlaku" } as const;
+    const headers = { fak: "Fakultas", prodi: "Program Studi", strata: "Jenjang", rank: "Peringkat", no_sk: "No SK", exp: "Masa Berlaku" } as const;
     if (fmtType === "excel") { exportToExcel(rows, baseName, "Akreditasi", headers); toast.success("Excel di-download"); }
     else if (fmtType === "csv-client") { exportToCsv(rows, baseName, headers); toast.success("CSV di-download"); }
     else if (fmtType === "pdf") { exportToPdf(rows, baseName, { title: "Akreditasi Prodi Universitas Lampung", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
@@ -173,28 +175,8 @@ export default function DashboardAkreditasiPage() {
               </div>
             )}
 
-            {/* Kalender Kadaluarsa 12 Bulan ke Depan */}
-            {data.expiryCalendar && data.expiryCalendar.length > 0 && (
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Kalender Kadaluarsa 12 Bulan ke Depan
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Jumlah prodi yang akan kadaluarsa per bulan — warna menunjukkan urgensi
-                    </p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <ExpiryCalendarStrip data={data.expiryCalendar} />
-                </CardBody>
-              </Card>
-            )}
-
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className={`grid grid-cols-2 gap-4 ${(data.stats.internasional?.total || 0) > 0 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
               <StatCard
                 title="Total Prodi"
                 value={data.stats.totalProdi.total}
@@ -225,13 +207,15 @@ export default function DashboardAkreditasiPage() {
                 color="yellow"
                 trend={undefined}
               />
-              <StatCard
-                title="Internasional"
-                value={data.stats.internasional.total}
-                icon={<FiGlobe className="w-6 h-6 text-white" />}
-                color="purple"
-                trend={undefined}
-              />
+              {(data.stats.internasional?.total || 0) > 0 && (
+                <StatCard
+                  title="Internasional"
+                  value={data.stats.internasional.total}
+                  icon={<FiGlobe className="w-6 h-6 text-white" />}
+                  color="purple"
+                  trend={undefined}
+                />
+              )}
             </div>
 
             {/* Row 1: Distribusi & Kadaluarsa */}
@@ -284,20 +268,22 @@ export default function DashboardAkreditasiPage() {
               <CardHeader>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Sebaran Akreditasi per Fakultas
+                    {scope.forcedFakultas ? "Sebaran Akreditasi per Program Studi" : "Sebaran Akreditasi per Fakultas"}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Jumlah program studi terakreditasi per fakultas (klik untuk detail prodi)
+                    {scope.forcedFakultas
+                      ? "Jumlah peringkat akreditasi prodi di fakultas ini"
+                      : "Jumlah program studi terakreditasi per fakultas (klik bar untuk drilldown ke prodi)"}
                   </p>
                 </div>
               </CardHeader>
               <Divider />
-              <CardBody>
+              <CardBody className="min-h-[480px]">
                 <DrilldownBarChart
                   data={data.sebaranFakultas}
-                  title="Sebaran Akreditasi per Fakultas"
+                  title={scope.forcedFakultas ? "Akreditasi Prodi" : "Sebaran Akreditasi per Fakultas"}
                   color="#3b82f6"
-                  height={400}
+                  height={460}
                 />
               </CardBody>
             </Card>
@@ -307,75 +293,67 @@ export default function DashboardAkreditasiPage() {
               <CardHeader>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Akreditasi per Fakultas (Stacked)
+                    {scope.forcedFakultas ? "Akreditasi per Program Studi (Stacked)" : "Akreditasi per Fakultas (Stacked)"}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Distribusi peringkat akreditasi di setiap fakultas
+                    {scope.forcedFakultas
+                      ? "Distribusi peringkat akreditasi prodi di fakultas ini"
+                      : "Distribusi peringkat akreditasi di setiap fakultas"}
                   </p>
                 </div>
               </CardHeader>
               <Divider />
-              <CardBody>
+              <CardBody className="min-h-[480px]">
                 <BarChart
                   data={data.akreditasiPerFakultas}
-                  height={400}
+                  height={460}
                   stacked={true}
                   colors={["#10b981", "#059669", "#3b82f6", "#f59e0b", "#ef4444"]}
                 />
               </CardBody>
             </Card>
 
-            {/* Row 4: Akreditasi Internasional & Detail */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Internasional Chart */}
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Akreditasi Internasional
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Jumlah prodi per lembaga akreditasi internasional
-                    </p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  <BarChart
-                    data={data.internasional}
-                    height={350}
-                    horizontal={true}
-                    colors={["#8b5cf6"]}
-                  />
-                </CardBody>
-              </Card>
-
-              {/* Internasional Detail Table */}
-              <Card className="bg-white dark:bg-gray-800 shadow-md">
-                <CardHeader>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Detail Akreditasi Internasional
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Daftar prodi dengan sertifikasi internasional aktif
-                    </p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody className="p-0">
-                  <DataTable
-                    data={data.internasionalDetail}
-                    columns={intlDetailColumns}
-                    searchable
-                    searchKeys={["prodi", "fak", "lembaga"]}
-                    searchPlaceholder="Cari prodi internasional..."
-                    defaultRowsPerPage={5}
-                    noWrapper
-                  />
-                </CardBody>
-              </Card>
-            </div>
+            {/* Row 4: Akreditasi Internasional & Detail — HIDE saat data kosong */}
+            {(data.internasional?.length > 0 || data.internasionalDetail?.length > 0) && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {data.internasional?.length > 0 && (
+                  <Card className="bg-white dark:bg-gray-800 shadow-md">
+                    <CardHeader>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Akreditasi Internasional</h2>
+                        <p className="text-sm text-gray-500">Jumlah prodi per lembaga akreditasi internasional</p>
+                      </div>
+                    </CardHeader>
+                    <Divider />
+                    <CardBody>
+                      <BarChart data={data.internasional} height={350} horizontal={true} colors={["#8b5cf6"]} />
+                    </CardBody>
+                  </Card>
+                )}
+                {data.internasionalDetail?.length > 0 && (
+                  <Card className="bg-white dark:bg-gray-800 shadow-md">
+                    <CardHeader>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Detail Akreditasi Internasional</h2>
+                        <p className="text-sm text-gray-500">Daftar prodi dengan sertifikasi internasional aktif</p>
+                      </div>
+                    </CardHeader>
+                    <Divider />
+                    <CardBody className="p-0">
+                      <DataTable
+                        data={data.internasionalDetail}
+                        columns={intlDetailColumns}
+                        searchable
+                        searchKeys={["prodi", "fak", "lembaga"]}
+                        searchPlaceholder="Cari prodi internasional..."
+                        defaultRowsPerPage={5}
+                        noWrapper
+                      />
+                    </CardBody>
+                  </Card>
+                )}
+              </div>
+            )}
 
             {/* Expiring Warning Card */}
             {data.expiringProdi.length > 0 && (

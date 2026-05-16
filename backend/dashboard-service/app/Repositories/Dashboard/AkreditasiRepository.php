@@ -483,6 +483,7 @@ class AkreditasiRepository extends BaseRepository
                 jp.nm_jenj_didik as strata,
                 na.nm_akred as rank,
                 ISNULL(intl.nm_lemb_intl, '-') as [int],
+                la.sk_akreditasi_prodi as no_sk,
                 CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
             FROM latest_akred la
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'

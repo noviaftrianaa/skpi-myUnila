@@ -2010,9 +2010,10 @@ class IkuRepository extends BaseRepository
         $rows = $this->select($sql, $bindings);
 
         // Kerjasama per prodi
-        $bindings2 = [];
+        // BUG FIX 2026-05-16: bindings urutan harus match SQL placeholder order.
+        // SQL: id_fak_unila = ?  (1st)  AND mouYear (year placeholders).
+        $bindings2 = [$idFakultas];
         $mouYear = $this->buildMouYearOverlap($years, $bindings2);
-        $bindings2[] = $idFakultas;
 
         $sqlKerja = "
             SELECT

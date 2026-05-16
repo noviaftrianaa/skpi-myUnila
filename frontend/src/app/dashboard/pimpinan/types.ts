@@ -177,6 +177,7 @@ export interface AkreditasiDetail {
   strata: string;
   rank: string;
   int: string;
+  no_sk?: string | null;
   exp: string;
 }
 

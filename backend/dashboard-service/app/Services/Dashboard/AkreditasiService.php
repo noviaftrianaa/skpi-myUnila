@@ -158,6 +158,7 @@ class AkreditasiService
                 'strata' => (string) $item->strata,
                 'rank'   => (string) $item->rank,
                 'int'    => (string) $item->int,
+                'no_sk'  => isset($item->no_sk) ? (string) $item->no_sk : null,
                 'exp'    => (string) $item->exp,
             ];
         }, $results);
