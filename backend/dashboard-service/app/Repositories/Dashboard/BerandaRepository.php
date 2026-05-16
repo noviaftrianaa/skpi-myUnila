@@ -443,10 +443,10 @@ class BerandaRepository extends BaseRepository
     {
         $result = [];
         foreach ($years as $year) {
-            $bindings = [self::UNILA_ID_SP];
+            // BUGFIX 2026-05-16: SQL placeholder order = [UNILA_ID, year, year, fakultas].
+            // Sebelumnya bindings = [UNILA, fakultas, year, year] → operand type clash.
+            $bindings = [self::UNILA_ID_SP, $year, $year];
             [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
-            $bindings[] = $year;
-            $bindings[] = $year;
 
             // Mahasiswa aktif di tahun X: sudah masuk <= akhir tahun X dan belum keluar (id_jns_keluar IS NULL atau tgl_keluar > akhir tahun)
             $sql = "
@@ -467,9 +467,9 @@ class BerandaRepository extends BaseRepository
     {
         $result = [];
         foreach ($years as $year) {
-            $bindings = [self::UNILA_ID_SP];
+            // BUGFIX: SQL order = [UNILA_ID_SP, year, fakultas]
+            $bindings = [self::UNILA_ID_SP, $year];
             [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
-            $bindings[] = $year;
 
             // Guru Besar = SDM yg pernah mencapai jabfung 'Profesor' dengan tmt_sk_jabfung <= year-end
             // Table canonical: pdrd.rwy_fungsional (BUKAN jabatan_fungsional) + ref.jabfung

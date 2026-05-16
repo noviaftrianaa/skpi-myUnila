@@ -193,7 +193,7 @@ export default function DashboardPegawaiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.statusKepegawaian}
                     donut={true}
@@ -215,7 +215,7 @@ export default function DashboardPegawaiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.sebaranUnitKerja}
                     height={300}
@@ -258,7 +258,7 @@ export default function DashboardPegawaiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.pendidikan}
                     donut={false}

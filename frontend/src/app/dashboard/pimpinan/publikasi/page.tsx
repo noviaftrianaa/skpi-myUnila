@@ -194,7 +194,7 @@ export default function DashboardPublikasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <LineChart
                     data={data.trendPublikasi}
                     height={300}
@@ -215,7 +215,7 @@ export default function DashboardPublikasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.jenisPublikasi}
                     donut={true}
@@ -239,7 +239,7 @@ export default function DashboardPublikasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.topAuthors}
                     height={300}
@@ -260,7 +260,7 @@ export default function DashboardPublikasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.perFakultas}
                     height={300}

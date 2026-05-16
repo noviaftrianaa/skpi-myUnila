@@ -207,7 +207,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <LineChart
                                         data={data.trendKelulusan}
                                         height={300}
@@ -226,7 +226,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <PieChart
                                         data={data.ketepatanWaktu}
                                         donut={true}
@@ -249,7 +249,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <BarChart
                                         data={data.ipkLulusan}
                                         height={300}
@@ -269,7 +269,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     {data.lulusanPerJenjang && data.lulusanPerJenjang.length > 0 ? (
                                         <PieChart
                                             data={data.lulusanPerJenjang}
@@ -296,7 +296,7 @@ export default function DashboardLulusanPage() {
                                 </div>
                             </CardHeader>
                             <Divider />
-                            <CardBody>
+                            <CardBody className="min-h-[480px]">
                                 {data.lulusanPerFakultas && data.lulusanPerFakultas.length > 0 ? (
                                     <BarChart
                                         data={data.lulusanPerFakultas}
@@ -336,7 +336,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     {data.tracerStudyStatus && data.tracerStudyStatus.length > 0 ? (
                                         <PieChart
                                             data={data.tracerStudyStatus}
@@ -362,7 +362,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     {data.kesesuaianBidang && data.kesesuaianBidang.length > 0 ? (
                                         <PieChart
                                             data={data.kesesuaianBidang}
@@ -391,7 +391,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     {data.masaTungguKerja && data.masaTungguKerja.length > 0 ? (
                                         <BarChart
                                             data={data.masaTungguKerja}
@@ -417,7 +417,7 @@ export default function DashboardLulusanPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     {data.incomeDistribusi && data.incomeDistribusi.length > 0 ? (
                                         <BarChart
                                             data={data.incomeDistribusi}

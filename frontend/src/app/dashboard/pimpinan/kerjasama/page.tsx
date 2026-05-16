@@ -193,7 +193,7 @@ export default function DashboardKerjasamaPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <PieChart
                                         data={data.mitraByScope}
                                         donut={true}
@@ -214,7 +214,7 @@ export default function DashboardKerjasamaPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <LineChart
                                         data={data.trenKerjasama}
                                         height={300}
@@ -235,7 +235,7 @@ export default function DashboardKerjasamaPage() {
                                 </div>
                             </CardHeader>
                             <Divider />
-                            <CardBody>
+                            <CardBody className="min-h-[480px]">
                                 <BarChart
                                     data={data.mitraByType}
                                     horizontal={true}

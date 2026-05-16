@@ -205,7 +205,7 @@ export default function DashboardKeuanganPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <LineChart
                     data={data.trendPendapatanSPP}
                     height={300}
@@ -227,7 +227,7 @@ export default function DashboardKeuanganPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.komposisiPendapatan}
                     donut={true}
@@ -252,7 +252,7 @@ export default function DashboardKeuanganPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.statusPembayaran}
                     donut={false}
@@ -273,7 +273,7 @@ export default function DashboardKeuanganPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.pendapatanPerUKT}
                     height={300}
@@ -294,7 +294,7 @@ export default function DashboardKeuanganPage() {
                 </div>
               </CardHeader>
               <Divider />
-              <CardBody>
+              <CardBody className="min-h-[480px]">
                 <BarChart
                   data={data.tunggakanFakultas}
                   height={300}

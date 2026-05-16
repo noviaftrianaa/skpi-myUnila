@@ -193,7 +193,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <LineChart
                     data={data.trendPrestasi}
                     height={300}
@@ -214,7 +214,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.prestasiPerTingkat}
                     stacked={true}
@@ -238,7 +238,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.jenisPrestasi}
                     donut={true}
@@ -259,7 +259,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.topProdiPrestasi}
                     height={300}
@@ -283,7 +283,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.prestasiPerFakultas}
                     height={300}
@@ -303,7 +303,7 @@ export default function DashboardPrestasiPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.mahasiswaVsDosen}
                     donut={true}
@@ -325,7 +325,7 @@ export default function DashboardPrestasiPage() {
                   <CardHeader className="pb-0">
                     <h3 className="font-semibold">Trend Publikasi</h3>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <LineChart data={data.trendPublikasi} height={250} color="#10b981" />
                   </CardBody>
                 </Card>
@@ -335,7 +335,7 @@ export default function DashboardPrestasiPage() {
                   <CardHeader className="pb-0">
                     <h3 className="font-semibold">Jenis Publikasi</h3>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <PieChart data={data.jenisPublikasi} height={250} donut={true} showLegend={false} />
                   </CardBody>
                 </Card>
@@ -345,7 +345,7 @@ export default function DashboardPrestasiPage() {
                   <CardHeader className="pb-0">
                     <h3 className="font-semibold">HKI/Paten per Fakultas</h3>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <BarChart data={data.hkiPerFakultas} height={250} colors={["#8b5cf6"]} />
                   </CardBody>
                 </Card>

@@ -176,7 +176,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   {/* Note: Using clustered bar chart logic manually or creating a new chart type if strict req.
                        Here reusing BarChart with category support we added earlier
                    */}
@@ -199,7 +199,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.sumberDana}
                     donut={false}
@@ -224,7 +224,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.sebaranFakultas}
                     height={320}
@@ -244,7 +244,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.bidangFokus}
                     donut={true}
@@ -266,7 +266,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.skimKegiatan}
                     height={300}

@@ -220,7 +220,7 @@ export default function DashboardDosenPage() {
                     <h4 className="font-bold text-lg text-gray-800 dark:text-white">Sebaran Dosen per Fakultas</h4>
                     <p className="text-tiny text-gray-500">Klik bar untuk melihat detail Program Studi</p>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <DrilldownBarChart
                       data={data.sebaranFakultas}
                       height={320}
@@ -273,7 +273,7 @@ export default function DashboardDosenPage() {
                     <h4 className="font-bold text-lg text-gray-800 dark:text-white">Ikatan Kerja & Status</h4>
                     <p className="text-tiny text-gray-500">Proporsi status kepegawaian</p>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <PieChart
                       data={data.ikatanKerja}
                       donut={false}
@@ -308,7 +308,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Sertifikasi per Jabatan</h4>
                   <p className="text-tiny text-gray-500">Rasio dosen tersertifikasi (Serdos)</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.sertifikasiJabfung}
                     stacked={true}
@@ -324,7 +324,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Tren Sertifikasi (5 Tahun)</h4>
                   <p className="text-tiny text-gray-500">Pertumbuhan jumlah dosen tersertifikasi</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <LineChart
                     data={data.trendSertifikasi}
                     color="#10b981"
@@ -342,7 +342,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Tren Jabatan Fungsional (5 Tahun)</h4>
                   <p className="text-tiny text-gray-500">Pertumbuhan populasi per jenjang jabatan akademik</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.trendJabfung}
                     stacked={true}
