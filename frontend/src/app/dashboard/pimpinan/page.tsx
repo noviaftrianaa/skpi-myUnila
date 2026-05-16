@@ -188,7 +188,7 @@ export default function DashboardBerandaPage() {
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                 <FiTrendingUp className="text-blue-600" /> Indikator Utama
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 auto-rows-fr">
                 <StatCard
                   title="Total Mahasiswa Aktif"
                   value={data.summaryStats.mahasiswa.active.toLocaleString('id-ID')}

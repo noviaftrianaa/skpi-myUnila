@@ -63,14 +63,13 @@ class BerandaRepository extends BaseRepository
 
     public function countMahasiswaAktif(?string $fakultas = null, ?string $prodi = null): int
     {
-        // CANONICAL — match public-service ProgramStudiRepository:
-        // DISTINCT id_pd + JOIN peserta_didik dgn id_stat_mhs='A' + id_jns_keluar IS NULL.
-        // Tanpa dedup, satu mhs bisa double via reg_pd transfer/jenjang → over-count.
+        // Count by reg_pd (per enrollment) — 1 mhs bisa punya 2 reg_pd aktif
+        // (e.g. lanjut studi S1 → S2 paralel). Konsisten dgn /data-unila/mahasiswa?status=aktif.
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
-            SELECT COUNT(DISTINCT pd.id_pd)
+            SELECT COUNT(rp.id_reg_pd)
             FROM pdrd.reg_pd rp
             INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
             {$joinSql}

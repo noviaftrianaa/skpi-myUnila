@@ -42,7 +42,7 @@ export default function StatCard({
   const display = typeof value === "number" ? value.toLocaleString("id-ID") : value;
   const card = (
     <div
-      className={`relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-br ${colorGradients[color]} group ${href ? "cursor-pointer ring-1 ring-white/10 hover:ring-white/40" : ""}`}
+      className={`h-full flex flex-col relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-br ${colorGradients[color]} group ${href ? "cursor-pointer ring-1 ring-white/10 hover:ring-white/40" : ""}`}
       title={hint || (href ? `Klik untuk detail` : undefined)}
     >
       <div className="absolute -top-10 -right-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />

@@ -44,15 +44,8 @@ class MahasiswaDataRepository extends BaseDataRepository
             pd.email,
             pd.tlpn_hp
         FROM pdrd.peserta_didik pd
-        OUTER APPLY (
-            SELECT TOP 1 *
-            FROM pdrd.reg_pd rp2
-            WHERE rp2.id_pd = pd.id_pd AND rp2.soft_delete = 0
-              AND rp2.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
-            ORDER BY
-                CASE WHEN rp2.id_jns_keluar IS NULL THEN 0 ELSE 1 END,
-                rp2.tgl_masuk_sp DESC, rp2.create_date DESC
-        ) rp
+        INNER JOIN pdrd.reg_pd rp ON rp.id_pd = pd.id_pd AND rp.soft_delete = 0
+            AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
         INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
         LEFT JOIN pdrd.sms jur ON jur.id_sms = s.id_jur_unila AND jur.soft_delete = 0
         LEFT JOIN man_akses.unit_organisasi fak ON fak.id_organisasi = s.id_fak_unila
@@ -78,25 +71,16 @@ class MahasiswaDataRepository extends BaseDataRepository
             ORDER BY km.id_smt DESC
         ) km_latest
         WHERE pd.soft_delete = 0
-          AND rp.id_reg_pd IS NOT NULL
           {WHERE_EXTRA}
     ";
 
     private const BASE_COUNT = "
-        SELECT COUNT(DISTINCT pd.id_pd)
+        SELECT COUNT(rp.id_reg_pd)
         FROM pdrd.peserta_didik pd
-        OUTER APPLY (
-            SELECT TOP 1 *
-            FROM pdrd.reg_pd rp2
-            WHERE rp2.id_pd = pd.id_pd AND rp2.soft_delete = 0
-              AND rp2.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
-            ORDER BY
-                CASE WHEN rp2.id_jns_keluar IS NULL THEN 0 ELSE 1 END,
-                rp2.tgl_masuk_sp DESC, rp2.create_date DESC
-        ) rp
+        INNER JOIN pdrd.reg_pd rp ON rp.id_pd = pd.id_pd AND rp.soft_delete = 0
+            AND rp.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515'
         INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
         WHERE pd.soft_delete = 0
-          AND rp.id_reg_pd IS NOT NULL
           {WHERE_EXTRA}
     ";
 
