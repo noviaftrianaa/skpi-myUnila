@@ -32,18 +32,45 @@ class AkademikDataService
         return $this->cache->remember($key, 15, fn() => $this->repository->getMatkulList($params));
     }
 
-    public function getProdiStats(): array
+    public function getProdiStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:prodi-stats', 60, fn() => $this->repository->getProdiStats());
+        $key = $this->cache->buildKey('data-unila', 'prodi-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getProdiStats($params));
     }
 
-    public function getAkreditasiStats(): array
+    public function getAkreditasiStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:akreditasi-stats', 60, fn() => $this->repository->getAkreditasiStats());
+        $key = $this->cache->buildKey('data-unila', 'akreditasi-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getAkreditasiStats($params));
     }
 
-    public function getMatkulStats(): array
+    public function getMatkulStats(array $params = []): array
     {
-        return $this->cache->remember('data-unila:matkul-stats', 60, fn() => $this->repository->getMatkulStats());
+        $key = $this->cache->buildKey('data-unila', 'matkul-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getMatkulStats($params));
+    }
+
+    public function getProdiDetail(string $idSms): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'prodi-detail', ['id' => $idSms]);
+        return $this->cache->remember($key, 300, fn() => $this->repository->getProdiDetail($idSms));
+    }
+
+    public function getKurikulumList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kurikulum-list', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getKurikulumList($params));
+    }
+
+    public function getKurikulumStats(array $params = []): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kurikulum-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getKurikulumStats($params));
+    }
+
+    public function getKurikulumMatkul(string $idKurikulum): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'kurikulum-matkul', ['id' => $idKurikulum]);
+        return $this->cache->remember($key, 300, fn() => $this->repository->getKurikulumMatkul($idKurikulum));
     }
 }

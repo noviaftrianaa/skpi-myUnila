@@ -25,4 +25,16 @@ class KerjasamaDataService
         $key = $this->cache->buildKey('data-unila', 'kerjasama-stats', $params);
         return $this->cache->remember($key, 60, fn() => $this->repository->getStats($params));
     }
+
+    public function getMitraList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'mitra-list', $params);
+        return $this->cache->remember($key, 15, fn() => $this->repository->getMitraList($params));
+    }
+
+    public function getMitraStats(array $params = []): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'mitra-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getMitraStats($params));
+    }
 }

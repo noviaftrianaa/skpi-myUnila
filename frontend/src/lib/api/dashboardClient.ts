@@ -16,7 +16,7 @@ import { getToken, setToken, clearTokens } from './client';
 const DASHBOARD_API_URL = process.env.NEXT_PUBLIC_DASHBOARD_API_URL
   ? `${process.env.NEXT_PUBLIC_DASHBOARD_API_URL}/api/v1`
   : 'http://localhost:9800/dashboard-service/api/v1';
-const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000');
+const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '60000');
 
 /**
  * Create Dashboard API Client Instance

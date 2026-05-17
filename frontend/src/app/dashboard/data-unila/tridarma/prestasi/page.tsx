@@ -1,134 +1,284 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
 import DataTable, { Column } from "@/shared/components/ui/DataTable";
-import StatCard from "@/shared/components/data-unila/StatCard";
-import { Card, CardBody, Chip, Select, SelectItem, Spinner, Button } from "@heroui/react";
+import Dropdown, { type DropdownOption } from "@/shared/components/data-unila/Dropdown";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import { MdSchool } from "react-icons/md";
-import { FiAward, FiGlobe, FiFlag, FiCalendar, FiDownload } from "react-icons/fi";
+import { FiAward, FiGlobe, FiFlag, FiMapPin, FiFilter, FiRotateCcw, FiX, FiStar, FiUsers } from "react-icons/fi";
 import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { dataUnilaMenuConfig } from "../../config/menuConfig";
 import tridarmaDataService, { type PrestasiItem, type PrestasiStats } from "@/lib/services/data-unila/tridarmaDataService";
-import toast from "react-hot-toast";
-import { motion } from "framer-motion";
+import PrestasiTimModal from "@/shared/components/data-unila/PrestasiTimModal";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
 const APP_KEY = "data-unila";
 
-const T_COLORS: Record<string, "success" | "primary" | "warning" | "default"> = {
-  Internasional: "success", Nasional: "primary", Regional: "warning",
-};
+function num(v?: string | number | null): number {
+  if (v == null) return 0;
+  const n = typeof v === "number" ? v : parseInt(String(v), 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+function fmt(n: number): string { return n.toLocaleString("id-ID"); }
+function pct(part: number, total: number): string {
+  if (!total) return "—";
+  return `${((part / total) * 100).toFixed(1)}%`;
+}
+
+function StatCard({ icon, label, value, gradient, subtext }: { icon: React.ReactNode; label: string; value: string | number; gradient: string; subtext?: string }) {
+  const display = typeof value === "number" ? fmt(value) : value;
+  return (
+    <div className={`relative overflow-hidden rounded-2xl shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br ${gradient}`}>
+      <div className="absolute -top-10 -right-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative z-10 flex items-center gap-3 p-4">
+        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm ring-1 ring-inset ring-white/25 flex items-center justify-center text-white shadow-inner">{icon}</div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold text-white/80 uppercase tracking-[0.1em]">{label}</p>
+          <h3 className="text-2xl font-extrabold text-white tabular-nums leading-tight">{display}</h3>
+          {subtext && <p className="text-[11px] text-white/70 mt-0.5">{subtext}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PrestasiPage() {
   useRequireAuth();
+  const scope = useRoleBasedScope();
+  const forcedFak = scope.forcedFakultas || "";
+  const forcedJur = scope.forcedJurusan || "";
+  const forcedProdi = scope.forcedProdi || "";
+
   const [data, setData] = useState<PrestasiItem[]>([]);
+  const [selectedTim, setSelectedTim] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<PrestasiStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("thn_prestasi");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [stats, setStats] = useState<PrestasiStats | null>(null);
-  const [loadingStats, setLoadingStats] = useState(true);
   const [filterTahun, setFilterTahun] = useState("");
+  const [filterJenisPrestasi, setFilterJenisPrestasi] = useState("");
+  const [filterTingkat, setFilterTingkat] = useState("");
+
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+  const [filterFak, setFilterFak] = useState(forcedFak);
+  const [filterProdi, setFilterProdi] = useState(forcedProdi);
+  const [filterJurusan, setFilterJurusan] = useState(forcedJur);
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+
+  useEffect(() => { setFilterFak(forcedFak); }, [forcedFak]);
+  useEffect(() => { setFilterProdi(forcedProdi); }, [forcedProdi]);
+  useEffect(() => { setFilterJurusan(forcedJur); }, [forcedJur]);
 
   useEffect(() => {
-    tridarmaDataService.getPrestasiStats().then(setStats).catch(console.error).finally(() => setLoadingStats(false));
-  }, []);
+    mahasiswaDataService.getFilters({ id_fakultas: filterFak || undefined, id_jurusan: filterJurusan || undefined })
+      .then(setOrgFilters).catch(console.error);
+  }, [filterFak, filterJurusan]);
+
+  const currentYear = new Date().getFullYear();
+  const tahunOptions: DropdownOption[] = Array.from({ length: 15 }, (_, i) => ({ value: String(currentYear - i), label: String(currentYear - i) }));
+
+  useEffect(() => {
+    tridarmaDataService.getPrestasiStats({
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    }).then(setStats).catch(console.error).finally(() => setLoadingStats(false));
+  }, [filterFak, filterProdi, filterJurusan, unitFilterStr]);
 
   useEffect(() => {
     setLoading(true);
-    tridarmaDataService
-      .getPrestasi({
-        page, limit,
-        search: search || undefined,
-        sort_by: sortBy, sort_order: sortOrder,
-        tahun: filterTahun || undefined,
-      })
-      .then((r) => { setData(r.data); setTotal(r.total); })
-      .catch(() => toast.error("Gagal memuat data"))
+    tridarmaDataService.getPrestasi({
+      page, limit,
+      search: search || undefined,
+      sort_by: sortBy, sort_order: sortOrder,
+      tahun: filterTahun || undefined,
+      jenis_prestasi: filterJenisPrestasi || undefined,
+      tingkat_prestasi: filterTingkat || undefined,
+      id_fakultas: filterFak || undefined,
+      id_prodi: filterProdi || undefined,
+      id_jurusan: filterJurusan || undefined,
+      unit_filter: unitFilterStr || undefined,
+    })
+      .then((r: { data: PrestasiItem[]; total: number }) => { setData(r.data); setTotal(r.total); })
+      .catch(() => toast.error("Gagal memuat data prestasi"))
       .finally(() => setLoading(false));
-  }, [page, limit, search, sortBy, sortOrder, filterTahun]);
+  }, [page, limit, search, sortBy, sortOrder, filterTahun, filterJenisPrestasi, filterTingkat, filterFak, filterProdi, filterJurusan, unitFilterStr]);
+
+  const jenisOptions: DropdownOption[] = useMemo(() => {
+    const arr = (stats as unknown as { by_jenis?: Array<{ jenis: string; jumlah: number }> })?.by_jenis || [];
+    return arr.filter(j => j.jenis).map(j => ({ value: j.jenis, label: `${j.jenis} (${j.jumlah.toLocaleString("id-ID")})` }));
+  }, [stats]);
+  const tingkatOptions: DropdownOption[] = [
+    { value: "Internasional", label: "Internasional" },
+    { value: "Nasional", label: "Nasional" },
+    { value: "Regional", label: "Regional" },
+    { value: "Provinsi", label: "Provinsi" },
+    { value: "Lokal", label: "Lokal" },
+    { value: "Kabupaten", label: "Kabupaten" },
+    { value: "Kota", label: "Kota" },
+  ];
 
   const handleSort = useCallback((k: string, o: "asc" | "desc") => { setSortBy(k); setSortOrder(o); setPage(1); }, []);
 
+  const EXPORT_HEADERS = {
+    nama: "Nama Prestasi",
+    jenis: "Jenis",
+    tingkat: "Tingkat",
+    tahun: "Tahun",
+    penyelenggara: "Penyelenggara",
+  } as const;
+
+  const dataForExport = useMemo(() => data, [data]);
+
+  const handleExport = (fmtType: ExportFormat) => {
+    if (fmtType === "csv-server") { toast("Server export belum tersedia"); return; }
+    if (!data.length) { toast.error("Tidak ada data"); return; }
+    const baseName = `prestasi-${filterTahun || "all"}`;
+    if (fmtType === "excel") exportToExcel(dataForExport as unknown as Record<string, unknown>[], baseName, "Prestasi", EXPORT_HEADERS);
+    else if (fmtType === "csv-client") exportToCsv(dataForExport as unknown as Record<string, unknown>[], baseName, EXPORT_HEADERS);
+    else if (fmtType === "pdf") exportToPdf(dataForExport as unknown as Record<string, unknown>[], baseName, { title: "Prestasi Mahasiswa Universitas Lampung", headers: EXPORT_HEADERS, orientation: "landscape" });
+    else if (fmtType === "json") exportToJson(dataForExport, baseName);
+    toast.success(`${fmtType.toUpperCase()} berhasil di-download`);
+  };
+
   const columns: Column<PrestasiItem>[] = [
-    { key: "nama", label: "PRESTASI", sortable: true, render: (i) => (
+    { key: "nama", label: "NAMA PRESTASI", sortable: true, render: (i) => (
       <div>
-        <div className="font-medium text-gray-900 dark:text-white text-sm">{i.nama}</div>
-        {i.penyelenggara && <div className="text-xs text-gray-500 mt-0.5">{i.penyelenggara}</div>}
+        <div className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2">{i.nama}</div>
+        <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{i.penyelenggara || "—"}</div>
       </div>
     )},
-    { key: "tingkat", label: "TINGKAT", width: "130px", render: (i) =>
-      <Chip size="sm" variant="flat" color={T_COLORS[i.tingkat] || "default"} className="font-medium">{i.tingkat || "-"}</Chip>
-    },
-    { key: "jenis", label: "JENIS", width: "150px", render: (i) =>
-      <span className="text-sm text-gray-700 dark:text-gray-300">{i.jenis || "-"}</span>
-    },
-    { key: "tahun", label: "TAHUN", width: "90px", sortable: true, align: "center" as const, render: (i) =>
-      <span className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">{i.thn_prestasi || i.tahun || "-"}</span>
-    },
+    { key: "tingkat", label: "TINGKAT", width: "140px", render: (i) => i.tingkat ? (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ring-inset whitespace-nowrap
+        ${/Internasional/i.test(i.tingkat) ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300"
+        : /Nasional/i.test(i.tingkat) ? "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300"
+        : /Regional|Provinsi/i.test(i.tingkat) ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300"
+        : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300"}`}>
+        {i.tingkat}
+      </span>
+    ) : <span className="text-xs text-gray-400">—</span> },
+    { key: "jenis", label: "JENIS", width: "140px", render: (i) => i.jenis ? (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 max-w-[130px] truncate" title={i.jenis}>
+        {i.jenis}
+      </span>
+    ) : <span className="text-xs text-gray-400">—</span> },
+    { key: "tahun", label: "TAHUN", width: "80px", sortable: true, align: "center" as const, render: (i) => (
+      <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300">{i.tahun || i.thn_prestasi}</span>
+    )},
+    { key: "jml_tim", label: "TIM", width: "110px", align: "center" as const, render: (i) => {
+      const n = Number(i.jml_tim || 0);
+      return (
+        <button type="button" onClick={() => setSelectedTim(i.id_prestasi)}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ring-1 ring-inset bg-violet-50 text-violet-700 ring-violet-200 hover:bg-violet-100 dark:bg-violet-500/10 dark:text-violet-300 transition-colors"
+          title="Lihat detail tim">
+          <FiUsers className="w-3 h-3" />
+          {n > 1 ? `${n} org` : "1 org"}
+        </button>
+      );
+    }},
   ];
 
   return (
-    <DashboardLayoutWithDynamicMenu
-      appName="Data Unila" appIcon={<MdSchool className="w-6 h-6 text-white" />}
-      appKey={APP_KEY} fallbackMenus={dataUnilaMenuConfig} pageTitle="Prestasi"
-    >
+    <DashboardLayoutWithDynamicMenu appName="Data Unila" appIcon={<MdSchool className="w-6 h-6 text-white" />} appKey={APP_KEY} fallbackMenus={dataUnilaMenuConfig} pageTitle="Prestasi">
       <Toaster position="top-right" />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Prestasi</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Catatan prestasi mahasiswa & dosen Universitas Lampung di tingkat lokal hingga internasional
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Prestasi Mahasiswa</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Prestasi mahasiswa Unila — akademik & non-akademik</p>
+          </div>
+          {filterTahun && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300">
+              <FiFilter className="w-3.5 h-3.5" /> Tahun {filterTahun}
+            </span>
+          )}
         </div>
 
         {loadingStats ? (
-          <div className="flex justify-center py-4"><Spinner size="sm" color="primary" /></div>
-        ) : stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard icon={<FiAward className="w-6 h-6" />} label="Total Prestasi" value={stats.total} color="from-blue-500 to-indigo-600" />
-            <StatCard icon={<FiGlobe className="w-6 h-6" />} label="Internasional" value={stats.internasional} color="from-emerald-500 to-green-600" />
-            <StatCard icon={<FiFlag className="w-6 h-6" />} label="Nasional" value={stats.nasional} color="from-violet-500 to-purple-600" />
-            <StatCard icon={<FiCalendar className="w-6 h-6" />} label="Tahun Ini" value={stats.tahun_ini} color="from-amber-500 to-orange-500" sublabel={`${new Date().getFullYear()}`} />
-          </div>
-        )}
+          <StatCardGridSkeleton count={5} />
+        ) : stats && (() => {
+          const total = num(stats.total);
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <StatCard icon={<FiAward className="w-6 h-6" />} label="Total Prestasi" value={total} gradient="from-amber-500 to-orange-500" subtext={`${fmt(num(stats.tahun_ini))} tahun ini`} />
+              <StatCard icon={<FiGlobe className="w-6 h-6" />} label="Internasional" value={num(stats.internasional)} gradient="from-rose-500 to-pink-600" subtext={pct(num(stats.internasional), total)} />
+              <StatCard icon={<FiFlag className="w-6 h-6" />} label="Nasional" value={num(stats.nasional)} gradient="from-violet-500 to-purple-600" subtext={pct(num(stats.nasional), total)} />
+              <StatCard icon={<FiMapPin className="w-6 h-6" />} label="Regional" value={num(stats.regional)} gradient="from-blue-500 to-indigo-600" subtext={pct(num(stats.regional), total)} />
+              <StatCard icon={<FiStar className="w-6 h-6" />} label="Lokal" value={num(stats.lokal)} gradient="from-emerald-500 to-teal-600" subtext={pct(num(stats.lokal), total)} />
+            </div>
+          );
+        })()}
 
-        <Card className="border-none shadow-lg rounded-xl overflow-hidden">
-          <CardBody className="p-0">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <DataTable
-                columns={columns} data={data} loading={loading} serverSide totalRecords={total}
-                onPageChange={setPage} onRowsPerPageChange={(n) => { setLimit(n); setPage(1); }}
-                onSearchChange={(q) => { setSearch(q); setPage(1); }} onSortChange={handleSort}
-                searchPlaceholder="Cari prestasi atau penyelenggara..." defaultRowsPerPage={20}
-                filterSlot={
-                  <div className="flex flex-wrap gap-2 w-full">
-                    <Select aria-label="Tahun" placeholder="Semua Tahun"
-                      selectedKeys={filterTahun ? [filterTahun] : []}
-                      onSelectionChange={(k) => { setFilterTahun((Array.from(k)[0] as string) || ""); setPage(1); }}
-                      size="sm" variant="bordered" classNames={{ base: "w-[140px]", trigger: "h-10" }}>
-                      {(stats?.by_tahun || []).map((y) => (
-                        <SelectItem key={String(y.tahun)}>{`${y.tahun} (${y.jumlah})`}</SelectItem>
-                      ))}
-                    </Select>
-                    <Button size="sm" variant="flat" color="primary" startContent={<FiDownload className="w-4 h-4" />}
-                      onPress={() => exportToExcel(
-                        data as unknown as Record<string, unknown>[],
-                        `prestasi`, "Prestasi",
-                        { nama: "Prestasi", penyelenggara: "Penyelenggara", tingkat: "Tingkat", jenis: "Jenis", tahun: "Tahun" }
-                      )}
-                      className="h-10 font-medium ml-auto">Export Excel</Button>
-                  </div>
-                }
-              />
-            </motion.div>
-          </CardBody>
-        </Card>
+        <div className="flex flex-wrap items-center gap-2"><div className="flex-1 min-w-0"><ScopeBadge /></div></div>
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md overflow-hidden border border-gray-200/50 dark:border-gray-800">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="p-4 sm:p-5 space-y-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <FiFilter className="w-3.5 h-3.5" /> Filter Data
+                </span>
+                <div className="flex items-center gap-2">
+                  <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <UnitFilter
+                  data={orgFilters}
+                  value={unitItems}
+                  onChange={(next) => { setUnitItems(next); setPage(1); }}
+                  forcedFakultas={forcedFak || undefined}
+                  forcedJurusan={forcedJur || undefined}
+                  forcedProdi={forcedProdi || undefined}
+                />
+                <Dropdown label="Tahun Prestasi" value={filterTahun} onChange={(v) => { setFilterTahun(v); setPage(1); }} options={tahunOptions} placeholder="Semua Tahun" />
+                {jenisOptions.length > 0 && (
+                  <Dropdown label="Jenis Prestasi" value={filterJenisPrestasi} onChange={(v) => { setFilterJenisPrestasi(v); setPage(1); }} options={jenisOptions} placeholder="Semua Jenis" searchable />
+                )}
+                <Dropdown label="Tingkat" value={filterTingkat} onChange={(v) => { setFilterTingkat(v); setPage(1); }} options={tingkatOptions} placeholder="Semua Tingkat" />
+              </div>
+              {filterTahun && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktif</span>
+                  <span className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200 rounded-full dark:bg-amber-500/10 dark:text-amber-300">
+                    Tahun {filterTahun}
+                    <button type="button" onClick={() => { setFilterTahun(""); setPage(1); }} className="ml-0.5 w-4 h-4 rounded-full hover:bg-amber-200 dark:hover:bg-amber-400/20 flex items-center justify-center"><FiX className="w-3 h-3" /></button>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <DataTable columns={columns} data={data} loading={loading} serverSide totalRecords={total}
+              onPageChange={setPage}
+              onRowsPerPageChange={(n) => { setLimit(n); setPage(1); }}
+              onSearchChange={(q) => { setSearch(q); setPage(1); }}
+              onSortChange={handleSort}
+              searchPlaceholder="Cari nama prestasi, penyelenggara..."
+              defaultRowsPerPage={10}
+            />
+          </motion.div>
+        </div>
       </div>
+      <PrestasiTimModal idPrestasi={selectedTim} onClose={() => setSelectedTim(null)} />
     </DashboardLayoutWithDynamicMenu>
   );
 }

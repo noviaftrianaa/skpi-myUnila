@@ -19,26 +19,34 @@ class BerandaService
     public function getData(array $params): array
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
-        $key = $this->cache->buildKey('beranda', 'full', ['semester' => implode(',', $semesters)]);
+        $fakultas = $params['fakultas'] ?? null;
+        $prodi    = $params['prodi'] ?? null;
+        $key = $this->cache->buildKey('beranda', 'full', [
+            'semester' => implode(',', $semesters),
+            'fakultas' => $fakultas,
+            'prodi'    => $prodi,
+        ]);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters) {
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
             $prevSemesters = $this->repository->getPreviousSemesters($semesters);
 
-            $mhsAktif = $this->repository->countMahasiswaAktif();
-            $dosen = $this->repository->countDosen();
-            $tendik = $this->repository->countTendik();
+            $mhsAktif = $this->repository->countMahasiswaAktif($fakultas, $prodi);
+            $dosen = $this->repository->countDosen($fakultas, $prodi);
+            $tendik = $this->repository->countTendik($fakultas, $prodi);
             $totalSdm = $dosen + $tendik;
 
+            // UKT / pendapatan dan kerjasama bersifat institusional → tidak di-narrow per scope,
+            // tetap menampilkan angka universitas (sesuai konvensi data Unila yang ada).
             $pendapatan = $this->repository->getTotalPendapatanUKT($semesters);
             $prevPendapatan = $this->repository->getTotalPendapatanUKT($prevSemesters);
 
             return [
                 'summaryStats' => [
                     'mahasiswa' => [
-                        'total'  => $this->repository->countTotalMahasiswa(),
+                        'total'  => $this->repository->countTotalMahasiswa($fakultas, $prodi),
                         'trend'  => 0,
                         'active' => $mhsAktif,
-                        'cuti'   => $this->repository->countMahasiswaCuti(),
+                        'cuti'   => $this->repository->countMahasiswaCuti($fakultas, $prodi),
                     ],
                     'sdm' => [
                         'total'  => $totalSdm,
@@ -47,9 +55,9 @@ class BerandaService
                         'tendik' => $tendik,
                     ],
                     'akademik' => [
-                        'prodi'             => $this->repository->countProdiAktif(),
-                        'akrUnggul'         => $this->repository->countProdiUnggul(),
-                        'akrInternasional'  => $this->repository->countAkreditasiInternasional(),
+                        'prodi'             => $this->repository->countProdiAktif($fakultas, $prodi),
+                        'akrUnggul'         => $this->repository->countProdiUnggul($fakultas, $prodi),
+                        'akrInternasional'  => $this->repository->countAkreditasiInternasional($fakultas, $prodi),
                     ],
                     'keuangan' => [
                         'total'   => $pendapatan,
@@ -65,11 +73,35 @@ class BerandaService
                         'mou'   => $this->repository->countMou(),
                     ],
                 ],
-                'populasiTrend'  => $this->buildCategoryList($this->repository->getPopulasiTrend($semesters)),
-                'akreditasiDist' => $this->buildSimpleList($this->repository->getAkreditasiDist()),
+                'populasiTrend'  => $this->buildCategoryList($this->repository->getPopulasiTrend($semesters, $fakultas, $prodi)),
+                'akreditasiDist' => $this->buildSimpleList($this->repository->getAkreditasiDist($fakultas, $prodi)),
+                // fakultasData: aggregate breakdown per fakultas — TIDAK narrow.
                 'fakultasData'   => $this->buildCategoryList($this->repository->getFakultasData()),
+                // Trend YoY 5-tahun: 4 metric (mahasiswa, GB, publikasi, akreditasi unggul)
+                'trendYoY'       => $this->repository->getTrendYoY($fakultas, $prodi),
+                // Top 5 Fakultas per metric — aggregate institusional (tidak narrow)
+                'top5Fakultas'   => $this->buildTop5Fakultas($this->repository->getTop5Fakultas()),
+                // Pusat Peringatan — alert aggregate (akreditasi expire, dosen pensiun/NIDN/Jabfung)
+                'alerts'         => $this->repository->getAlerts($fakultas, $prodi),
             ];
         });
+    }
+
+    private function buildTop5Fakultas(array $raw): array
+    {
+        $mapper = function ($item) {
+            return [
+                'id_fak'      => (string) $item->id_fak,
+                'nm_fakultas' => (string) $item->nm_fakultas,
+                'value'       => (int) $item->value,
+            ];
+        };
+        return [
+            'mahasiswa'        => array_map($mapper, $raw['mahasiswa'] ?? []),
+            'dosen'            => array_map($mapper, $raw['dosen'] ?? []),
+            'publikasi'        => array_map($mapper, $raw['publikasi'] ?? []),
+            'akreditasiUnggul' => array_map($mapper, $raw['akreditasiUnggul'] ?? []),
+        ];
     }
 
     private function buildSimpleList(array $results): array

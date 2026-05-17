@@ -41,6 +41,21 @@ class MahasiswaDataService
     }
 
     /**
+     * Get FULL profile (SIAKADU + PDDikti + keluarga + riwayat semester)
+     */
+    public function getFullProfile(string $idPd): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'mahasiswa-full', ['id' => $idPd]);
+        return $this->cache->remember($key, self::TTL_DETAIL, fn() => $this->repository->getFullProfile($idPd));
+    }
+
+    public function resolveByNim(string $nim): ?string
+    {
+        $key = $this->cache->buildKey('data-unila', 'mhs-resolve-nim', ['nim' => $nim]);
+        return $this->cache->remember($key, 3600, fn() => $this->repository->resolveByNim($nim));
+    }
+
+    /**
      * Get stats summary
      */
     public function getStats(array $params): array
@@ -85,17 +100,47 @@ class MahasiswaDataService
         return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getAktivitasStats($params));
     }
 
+    // ---- Ujian ----
+
+    public function getUjianList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'ujian-list', $params);
+        return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getUjianList($params));
+    }
+
+    public function getUjianStats(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'ujian-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getUjianStats($params));
+    }
+
+    public function getAktivitasFilterOptions(): array
+    {
+        return $this->cache->remember('data-unila:aktivitas-filters', self::TTL_FILTERS, fn() => $this->repository->getAktivitasFilterOptions());
+    }
+
     /**
      * Get filter options (cached long)
      */
     public function getFilters(array $params): array
     {
-        $key = $this->cache->buildKey('data-unila', 'mahasiswa-filters', []);
+        // Cache key MUST include id_fakultas+id_jurusan so prodi list isn't shared across scope
+        $key = $this->cache->buildKey('data-unila', 'mahasiswa-filters', [
+            'fak' => $params['id_fakultas'] ?? '_all',
+            'jur' => $params['id_jurusan'] ?? '_all',
+        ]);
         return $this->cache->remember($key, self::TTL_FILTERS, function () use ($params) {
             return [
                 'angkatan' => $this->repository->getAngkatanList(),
                 'fakultas' => $this->repository->getFakultasList(),
-                'prodi' => $this->repository->getProdiList($params['id_fakultas'] ?? null),
+                'prodi' => $this->repository->getProdiList(
+                    $params['id_fakultas'] ?? null,
+                    $params['id_jurusan'] ?? null
+                ),
+                'jurusan' => $this->repository->getJurusanList($params['id_fakultas'] ?? null),
+                'jalur_daftar' => $this->repository->getJalurDaftarList(),
+                'jenis_keluar' => $this->repository->getJenisKeluarList(),
+                'tahun_lulus' => $this->repository->getTahunLulusList(),
             ];
         });
     }

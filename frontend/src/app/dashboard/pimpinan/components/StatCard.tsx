@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardBody } from "@heroui/react";
 import { ReactNode } from "react";
+import Link from "next/link";
 
 export interface StatCardProps {
   title: string;
@@ -10,32 +10,22 @@ export interface StatCardProps {
   description?: string;
   icon: ReactNode;
   color?: "blue" | "green" | "red" | "yellow" | "purple" | "cyan" | "pink" | "indigo";
-  trend?: {
-    value: number;
-    label: string;
-  };
+  trend?: { value: number; label: string };
+  /** Optional href — kalau diisi, StatCard jadi clickable (navigate ke Data Unila / page lain) */
+  href?: string;
+  /** Title tooltip hover */
+  hint?: string;
 }
 
-const colorGradients = {
-  blue: "from-blue-500 via-blue-600 to-cyan-600",
-  green: "from-green-500 via-green-600 to-teal-600",
-  red: "from-red-500 via-red-600 to-pink-600",
-  yellow: "from-yellow-500 via-amber-500 to-orange-500",
-  purple: "from-purple-500 via-purple-600 to-indigo-600",
-  cyan: "from-cyan-500 via-cyan-600 to-blue-600",
-  pink: "from-pink-500 via-pink-600 to-rose-600",
-  indigo: "from-indigo-500 via-indigo-600 to-purple-600",
-};
-
-const colorTexts = {
-  blue: "text-blue-100",
-  green: "text-green-100",
-  red: "text-red-100",
-  yellow: "text-yellow-100",
-  purple: "text-purple-100",
-  cyan: "text-cyan-100",
-  pink: "text-pink-100",
-  indigo: "text-indigo-100",
+const colorGradients: Record<NonNullable<StatCardProps["color"]>, string> = {
+  blue: "from-blue-500 to-indigo-600",
+  green: "from-emerald-500 to-teal-600",
+  red: "from-rose-500 to-pink-600",
+  yellow: "from-amber-500 to-orange-500",
+  purple: "from-violet-500 to-purple-600",
+  cyan: "from-cyan-500 to-blue-600",
+  pink: "from-pink-500 to-rose-600",
+  indigo: "from-indigo-500 to-blue-700",
 };
 
 export default function StatCard({
@@ -46,40 +36,38 @@ export default function StatCard({
   icon,
   color = "blue",
   trend,
+  href,
+  hint,
 }: StatCardProps) {
-  return (
-    <Card
-      className={`bg-gradient-to-br ${colorGradients[color]} border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden relative`}
+  const display = typeof value === "number" ? value.toLocaleString("id-ID") : value;
+  const card = (
+    <div
+      className={`h-full flex flex-col relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-br ${colorGradients[color]} group ${href ? "cursor-pointer ring-1 ring-white/10 hover:ring-white/40" : ""}`}
+      title={hint || (href ? `Klik untuk detail` : undefined)}
     >
-      <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500" />
-      <CardBody className="p-4 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-xs font-medium ${colorTexts[color]}`}>{title}</p>
-            <h3 className="text-3xl font-bold text-white truncate">
-              {typeof value === "number" ? value.toLocaleString("id-ID") : value}
-            </h3>
-            {subtitle && (
-              <p className={`text-[10px] ${colorTexts[color]}/80`}>{subtitle}</p>
-            )}
-            {description && (
-              <p className={`text-[10px] mt-1 ${colorTexts[color]}/90 leading-tight`}>{description}</p>
-            )}
-            {trend && (
-              <p
-                className={`text-xs mt-1 ${trend.value >= 0 ? "text-green-200" : "text-red-200"
-                  }`}
-              >
-                {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}%{" "}
-                {trend.label}
-              </p>
-            )}
-          </div>
+      <div className="absolute -top-10 -right-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+      <div className="relative z-10 flex items-center gap-3 p-4">
+        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm ring-1 ring-inset ring-white/25 flex items-center justify-center text-white shadow-inner shrink-0">
+          {icon}
         </div>
-      </CardBody>
-    </Card>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-semibold text-white/80 uppercase tracking-[0.1em] truncate">{title}</p>
+          <h3 className="text-2xl font-extrabold text-white tabular-nums leading-tight truncate">{display}</h3>
+          {subtitle && <p className="text-[11px] text-white/75 mt-0.5 truncate">{subtitle}</p>}
+          {description && <p className="text-[11px] text-white/85 mt-1 leading-snug line-clamp-2">{description}</p>}
+          {trend && (
+            <p className={`text-[11px] mt-1 font-medium ${trend.value >= 0 ? "text-emerald-100" : "text-rose-100"}`}>
+              {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value).toFixed(1)}% {trend.label}
+            </p>
+          )}
+        </div>
+        {href && (
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-white/70 text-xs">↗</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
+  return href ? <Link href={href} className="block">{card}</Link> : card;
 }

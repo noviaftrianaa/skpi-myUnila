@@ -18,7 +18,12 @@ class KerjasamaService
     public function getData(array $params): array
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
-        $filters = ['semester' => implode(',', $semesters)];
+        // Kerjasama (MoU) bersifat institusional di tingkat universitas (tabel kerjasama.mou
+        // tidak punya FK ke fakultas/prodi). Filter di-accept untuk konsistensi cross-app
+        // tetapi efektif no-op di repository — data ditampilkan apa adanya untuk semua scope.
+        $fakultas = $params['fakultas'] ?? null;
+        $prodi    = $params['prodi'] ?? null;
+        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
         $key = $this->cache->buildKey('kerjasama', 'full', $filters);
 
         return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters) {

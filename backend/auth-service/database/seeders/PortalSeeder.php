@@ -7,13 +7,18 @@ use Illuminate\Database\Seeder;
 /**
  * Portal Master Seeder
  *
- * Runs all portal-related seeders in correct order:
- * 1. PortalAplikasiSeeder - Creates kategori_aplikasi and aplikasi
- * 2. PortalMenuSeeder - Creates menu records (no RBAC)
- * 3. PortalRbacSeeder - Creates menu_role assignments (RBAC)
+ * Runs portal seeders dalam order yang benar:
+ * 1. PortalAplikasiSeeder - Aplikasi + kategori (idempotent)
+ * 2. PortalMenuSeeder     - Menu records (idempotent)
+ *
+ * CATATAN: RBAC (menu_role) TIDAK lagi via seeder — pakai SQL script
+ * versioned di `database/sql/rbac/` agar lebih kontrol & reviewable.
+ * Alasan: seeder lama (PortalRbacSeeder) sempat menghapus existing
+ * assignments bila JSON config tidak sinkron, menyebabkan loss-of-access.
  *
  * Usage:
  *   php artisan db:seed --class=PortalSeeder
+ *   # Untuk RBAC, jalankan SQL: ./database/sql/rbac/YYYYMMDD_*.sql
  */
 class PortalSeeder extends Seeder
 {
@@ -29,18 +34,13 @@ class PortalSeeder extends Seeder
         $this->command->info('');
 
         // Step 1: Seed Kategori & Aplikasi
-        $this->command->info('Step 1/3: Seeding Kategori & Aplikasi...');
+        $this->command->info('Step 1/2: Seeding Kategori & Aplikasi...');
         $this->call(PortalAplikasiSeeder::class);
         $this->command->info('');
 
         // Step 2: Seed Menu (menu only, no RBAC)
-        $this->command->info('Step 2/3: Seeding Menu...');
+        $this->command->info('Step 2/2: Seeding Menu...');
         $this->call(PortalMenuSeeder::class);
-        $this->command->info('');
-
-        // Step 3: Seed RBAC (menu_role assignments)
-        $this->command->info('Step 3/3: Seeding RBAC (Menu Role Assignments)...');
-        $this->call(PortalRbacSeeder::class);
         $this->command->info('');
 
         $this->command->info('╔══════════════════════════════════════════════════════════════╗');
@@ -48,8 +48,9 @@ class PortalSeeder extends Seeder
         $this->command->info('╚══════════════════════════════════════════════════════════════╝');
         $this->command->info('');
         $this->command->info('Next steps:');
-        $this->command->info('  1. Test API: GET /api/v1/user-context');
-        $this->command->info('  2. Check apps access for your user');
+        $this->command->info('  1. Untuk RBAC (menu_role assignments), pakai SQL script');
+        $this->command->info('     di database/sql/rbac/  — versioned per perubahan');
+        $this->command->info('  2. Test API: GET /api/v1/user-context');
         $this->command->info('');
     }
 }

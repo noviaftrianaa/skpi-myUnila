@@ -27,6 +27,9 @@ import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { LitabmasData } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -44,6 +47,16 @@ export default function DashboardLitabmasPage() {
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   const { fakultas, semester, activeSemesters } = useDashboardReference();
 
@@ -56,12 +69,13 @@ export default function DashboardLitabmasPage() {
   const semesterParam = Array.from(selectedSemesters).join(",");
   const { data, loading, error, refetch } = useDashboardData<LitabmasData>(
     ENDPOINTS.DASHBOARD_PIMPINAN.LITABMAS,
-    { semester: semesterParam, ...(scope.forcedFakultas ? { fakultas: scope.forcedFakultas } : (selectedFakultas && { fakultas: selectedFakultas })), ...(scope.forcedProdi && { prodi: scope.forcedProdi }) }
+    { semester: semesterParam, ...(scope.forcedFakultas ? { fakultas: scope.forcedFakultas } : (selectedFakultas && { fakultas: selectedFakultas })), ...(scope.forcedProdi && { prodi: scope.forcedProdi }), ...(unitFilterStr && { unit_filter: unitFilterStr }) }
   );
 
   const handleReset = () => {
     setSelectedSemesters(new Set(activeSemesters));
     setSelectedFakultas("");
+    setUnitItems([]);
   };
 
   return (
@@ -72,6 +86,7 @@ export default function DashboardLitabmasPage() {
       fallbackMenus={pimpinanMenuConfig}
     >
       <div className="p-6 space-y-6">
+        <ScopeBadge />
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -96,6 +111,16 @@ export default function DashboardLitabmasPage() {
           showProdi={false}
           onReset={handleReset}
         />
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+          <UnitFilter
+            data={orgFilters}
+            value={unitItems}
+            onChange={(next) => setUnitItems(next)}
+            forcedFakultas={scope.forcedFakultas || undefined}
+            forcedJurusan={scope.forcedJurusan || undefined}
+            forcedProdi={scope.forcedProdi || undefined}
+          />
+        </div>
 
         {loading && <DashboardSkeleton />}
         {error && <ErrorAlert message={error} onRetry={refetch} />}
@@ -110,6 +135,8 @@ export default function DashboardLitabmasPage() {
                 icon={<FiBookOpen className="w-6 h-6 text-white" />}
                 color="blue"
                 trend={{ value: data.stats.penelitian.trend ?? 0, label: "YoY" }}
+                href="/dashboard/data-unila/tridarma/penelitian"
+                hint="Lihat detail kegiatan penelitian dosen"
               />
               <StatCard
                 title="Total Pengabdian"
@@ -117,6 +144,8 @@ export default function DashboardLitabmasPage() {
                 icon={<FiUsers className="w-6 h-6 text-white" />}
                 color="cyan"
                 trend={{ value: data.stats.pengabdian.trend ?? 0, label: "YoY" }}
+                href="/dashboard/data-unila/tridarma/pengabdian"
+                hint="Lihat detail kegiatan pengabdian masyarakat"
               />
               <StatCard
                 title="Sumber Dana"
@@ -147,7 +176,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   {/* Note: Using clustered bar chart logic manually or creating a new chart type if strict req.
                        Here reusing BarChart with category support we added earlier
                    */}
@@ -170,7 +199,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.sumberDana}
                     donut={false}
@@ -195,7 +224,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.sebaranFakultas}
                     height={320}
@@ -215,7 +244,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <PieChart
                     data={data.bidangFokus}
                     donut={true}
@@ -237,7 +266,7 @@ export default function DashboardLitabmasPage() {
                   </div>
                 </CardHeader>
                 <Divider />
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.skimKegiatan}
                     height={300}

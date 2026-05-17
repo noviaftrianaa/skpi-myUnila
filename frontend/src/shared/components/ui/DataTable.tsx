@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Table,
@@ -14,6 +14,38 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
+
+/**
+ * Header select-all checkbox dengan indeterminate state yang reliable.
+ * Memakai useEffect untuk update `indeterminate` setiap kali state berubah.
+ */
+function HeaderSelectCheckbox({
+  allSelected,
+  someSelected,
+  onChange,
+}: {
+  allSelected: boolean;
+  someSelected: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  // useLayoutEffect dijalankan sinkron sebelum browser paint —
+  // memastikan indeterminate tidak stale saat checked berubah jadi true.
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.indeterminate = someSelected && !allSelected;
+  }, [someSelected, allSelected]);
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={allSelected}
+      onChange={(e) => onChange(e.target.checked)}
+      className="w-4 h-4 cursor-pointer accent-blue-600"
+      style={{ accentColor: "#2563eb" }}
+      aria-label="Pilih semua"
+    />
+  );
+}
 
 export interface Column<T> {
   key: string;
@@ -47,6 +79,12 @@ interface DataTableProps<T> {
   onSearchChange?: (query: string) => void;
   onSortChange?: (key: string, order: "asc" | "desc") => void;
   emptyMessage?: React.ReactNode;
+  // Selection (bulk action)
+  selectable?: boolean;
+  getRowId?: (item: T) => string;
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[], items: T[]) => void;
+  isRowSelectable?: (item: T) => boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -70,7 +108,13 @@ export default function DataTable<T extends Record<string, any>>({
   onSearchChange,
   onSortChange,
   emptyMessage,
+  selectable = false,
+  getRowId,
+  selectedIds,
+  onSelectionChange,
+  isRowSelectable,
 }: DataTableProps<T>) {
+  void emptyMessage;
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(controlledPage ?? 1);
   const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
@@ -242,12 +286,13 @@ export default function DataTable<T extends Record<string, any>>({
                 }
               }}
               classNames={{
-                base: "w-[70px] sm:w-[80px]",
-                trigger: "bg-white h-8 sm:h-9 min-h-0 rounded-xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-200 px-2 sm:px-3",
-                value: "text-xs sm:text-sm font-semibold text-gray-700 pr-1",
-                innerWrapper: "pr-5",
-                selectorIcon: "text-gray-500 right-2",
-                popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-100",
+                base: "w-[80px] sm:w-[90px]",
+                trigger: "!bg-white !h-9 sm:!h-10 !min-h-0 !rounded-xl !border !border-gray-300 !shadow-sm hover:!border-blue-500 hover:!shadow-md transition-all duration-200 !px-3",
+                value: "!text-sm sm:!text-base !font-bold !text-gray-900 !pr-1",
+                innerWrapper: "!pr-6",
+                selectorIcon: "!text-gray-600 !right-2 !w-4 !h-4",
+                popoverContent: "bg-white rounded-xl shadow-2xl border border-gray-200",
+                listbox: "!font-medium",
               }}
             >
               {selectItems.map((item) => (
@@ -288,40 +333,74 @@ export default function DataTable<T extends Record<string, any>>({
           }}
         >
           <TableHeader>
-            {columns.map((column) => (
-              <TableColumn
-                key={column.key}
-                align={column.align || "start"}
-                style={{ width: column.width, minWidth: column.minWidth }}
-              >
-                {column.sortable ? (
-                  <div
-                    className="flex items-center gap-1 sm:gap-1.5 md:gap-2 cursor-pointer select-none hover:text-blue-600 transition-colors group"
-                    onClick={() => handleSort(column.key)}
-                  >
-                    {column.headerRender ? column.headerRender() : column.label}
-                    <div className="flex flex-col opacity-60 group-hover:opacity-100 transition-opacity">
-                      <svg
-                        className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mb-0.5 sm:-mb-1 transition-colors ${sortColumn === column.key && sortDirection === "asc" ? "text-blue-600" : "text-gray-400"}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" />
-                      </svg>
-                      <svg
-                        className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mt-0.5 sm:-mt-1 transition-colors ${sortColumn === column.key && sortDirection === "desc" ? "text-blue-600" : "text-gray-400"}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" />
-                      </svg>
+            {[
+              ...(selectable ? [(
+                <TableColumn key="__select" align="center" style={{ width: "40px" }}>
+                  {(() => {
+                    const idOf = (r: T) => getRowId ? getRowId(r) : String(r.id);
+                    const selectableRows = paginatedData.filter(r => !isRowSelectable || isRowSelectable(r));
+                    const selSet = new Set(selectedIds ?? []);
+                    const selectedCount = selectableRows.filter(r => selSet.has(idOf(r))).length;
+                    const allSelected = selectableRows.length > 0 && selectedCount === selectableRows.length;
+                    const someSelected = selectedCount > 0 && selectedCount < selectableRows.length;
+                    return (
+                      <HeaderSelectCheckbox
+                        allSelected={allSelected}
+                        someSelected={someSelected}
+                        onChange={(checked) => {
+                          if (!onSelectionChange) return;
+                          const currentSel = new Set(selectedIds ?? []);
+                          const idsOnPage = selectableRows.map(idOf);
+                          if (checked) {
+                            idsOnPage.forEach(id => currentSel.add(id));
+                          } else {
+                            idsOnPage.forEach(id => currentSel.delete(id));
+                          }
+                          const newIds = Array.from(currentSel);
+                          const allItemsMap = new Map(paginatedData.map(r => [idOf(r), r]));
+                          const items = newIds.map(id => allItemsMap.get(id)).filter(Boolean) as T[];
+                          onSelectionChange(newIds, items);
+                        }}
+                      />
+                    );
+                  })()}
+                </TableColumn>
+              )] : []),
+              ...columns.map((column) => (
+                <TableColumn
+                  key={column.key}
+                  align={column.align || "start"}
+                  style={{ width: column.width, minWidth: column.minWidth }}
+                >
+                  {column.sortable ? (
+                    <div
+                      className="flex items-center gap-1 sm:gap-1.5 md:gap-2 cursor-pointer select-none hover:text-blue-600 transition-colors group"
+                      onClick={() => handleSort(column.key)}
+                    >
+                      {column.headerRender ? column.headerRender() : column.label}
+                      <div className="flex flex-col opacity-60 group-hover:opacity-100 transition-opacity">
+                        <svg
+                          className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mb-0.5 sm:-mb-1 transition-colors ${sortColumn === column.key && sortDirection === "asc" ? "text-blue-600" : "text-gray-400"}`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" />
+                        </svg>
+                        <svg
+                          className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 -mt-0.5 sm:-mt-1 transition-colors ${sortColumn === column.key && sortDirection === "desc" ? "text-blue-600" : "text-gray-400"}`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  column.headerRender ? column.headerRender() : column.label
-                )}
-              </TableColumn>
-            ))}
+                  ) : (
+                    column.headerRender ? column.headerRender() : column.label
+                  )}
+                </TableColumn>
+              )),
+            ]}
           </TableHeader>
           <TableBody
             emptyContent="Tidak ada data yang ditemukan"
@@ -329,13 +408,37 @@ export default function DataTable<T extends Record<string, any>>({
             {paginatedData.map((item, index) => {
               // Calculate global index for row numbering
               const globalIndex = (page - 1) * rowsPerPage + index;
+              const rowId = getRowId ? getRowId(item) : String(item.id);
+              const canSelect = selectable && (!isRowSelectable || isRowSelectable(item));
+              const isSelected = selectable && (selectedIds ?? []).includes(rowId);
               return (
                 <TableRow key={index}>
-                  {columns.map((column) => (
-                    <TableCell key={column.key} className={column.align === "center" ? "text-center" : column.align === "end" ? "text-right" : ""}>
-                      {column.render ? column.render(item, globalIndex) : item[column.key]}
-                    </TableCell>
-                  ))}
+                  {[
+                    ...(selectable ? [(
+                      <TableCell key="__select" className="text-center">
+                        {canSelect ? (
+                          <input type="checkbox" checked={isSelected}
+                            onChange={(e) => {
+                              if (!onSelectionChange) return;
+                              const currentSel = new Set(selectedIds ?? []);
+                              if (e.target.checked) currentSel.add(rowId); else currentSel.delete(rowId);
+                              const newIds = Array.from(currentSel);
+                              const allItemsMap = new Map(paginatedData.map(r => [getRowId ? getRowId(r) : String(r.id), r]));
+                              const items = newIds.map(id => allItemsMap.get(id)).filter(Boolean) as T[];
+                              onSelectionChange(newIds, items);
+                            }}
+                            className="w-4 h-4 cursor-pointer accent-blue-600"
+                            style={{ accentColor: "#2563eb" }}
+                            aria-label={`Pilih baris ${rowId}`} />
+                        ) : <span className="text-gray-300">—</span>}
+                      </TableCell>
+                    )] : []),
+                    ...columns.map((column) => (
+                      <TableCell key={column.key} className={column.align === "center" ? "text-center" : column.align === "end" ? "text-right" : ""}>
+                        {column.render ? column.render(item, globalIndex) : item[column.key]}
+                      </TableCell>
+                    )),
+                  ]}
                 </TableRow>
               );
             })}

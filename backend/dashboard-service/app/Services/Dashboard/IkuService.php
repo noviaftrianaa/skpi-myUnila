@@ -85,11 +85,17 @@ class IkuService
         $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
         $years = [$currentYear];
         $fakultas = $params['fakultas'] ?? null;
+        // Prodi di-accept untuk konsistensi cross-app, tapi belum semua IKU repository
+        // method dukung prodi-level narrow (banyak agregat di-tingkat institusi/fakultas).
+        // Kalau prodi diberikan, kita masih pakai fakultas filter sebagai best-effort
+        // (filter di tingkat fakultas paling sempit yang reliable). Cache key tetap
+        // include prodi supaya scope yang berbeda tidak collide.
+        $prodi = $params['prodi'] ?? null;
 
         // Derive semesters dari config
         $semesters = $this->getSemestersForYear($currentYear);
 
-        $baseFilters = ['tahun' => $currentYear, 'fakultas' => $fakultas];
+        $baseFilters = ['tahun' => $currentYear, 'fakultas' => $fakultas, 'prodi' => $prodi];
 
         return [
             'ikuWajib' => config('iku.wajib', [1, 2, 3, 5, 7, 9]),
@@ -100,6 +106,48 @@ class IkuService
             'iku5' => $this->cacheIku('iku5', $baseFilters, fn() => $this->buildIKU5($years, $fakultas)),
             'iku7' => $this->cacheIku('iku7', $baseFilters, fn() => $this->buildIKU7($years, $fakultas)),
             'iku9' => $this->cacheIku('iku9', $baseFilters, fn() => $this->buildIKU9($years, $fakultas)),
+        ];
+    }
+
+    /**
+     * Get single IKU by id (1/2/3/5/7/9). Untuk endpoint per-IKU yang bisa
+     * difetch parallel oleh frontend. Cache hit cepat (<50ms), cache miss
+     * lewat repository query (5-90s tergantung IKU). Kalau timeout 1 IKU,
+     * IKU lain tetap respond.
+     */
+    public function getSingleIku(int $ikuId, array $params): ?array
+    {
+        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
+        $years = [$currentYear];
+        $fakultas = $params['fakultas'] ?? null;
+        // Prodi di-accept tapi untuk per-IKU narrow masih pakai fakultas (lihat catatan getData).
+        $prodi = $params['prodi'] ?? null;
+        $semesters = $this->getSemestersForYear($currentYear);
+        $baseFilters = ['tahun' => $currentYear, 'fakultas' => $fakultas, 'prodi' => $prodi];
+        $ikuKey = 'iku' . $ikuId;
+
+        return match ($ikuId) {
+            1 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU1($semesters, $years, $fakultas)),
+            2 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU2($years, $fakultas)),
+            3 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU3($semesters, $years, $fakultas)),
+            5 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU5($years, $fakultas)),
+            7 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU7($years, $fakultas)),
+            9 => $this->cacheIku($ikuKey, $baseFilters, fn() => $this->buildIKU9($years, $fakultas)),
+            default => null,
+        };
+    }
+
+    /**
+     * Get metadata only (wajib list + opsional) — fast, tanpa heavy compute.
+     * Frontend fetch ini dulu, lalu paralel fetch tiap IKU.
+     */
+    public function getMeta(array $params): array
+    {
+        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
+        return [
+            'ikuWajib' => config('iku.wajib', [1, 2, 3, 5, 7, 9]),
+            'ikuOpsional' => $this->buildOpsionalList($currentYear),
+            'tahun' => $currentYear,
         ];
     }
 

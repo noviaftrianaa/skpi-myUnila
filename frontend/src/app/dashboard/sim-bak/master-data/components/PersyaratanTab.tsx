@@ -12,6 +12,16 @@ import toast, { Toaster } from "react-hot-toast";
 
 const emptyForm = { id_jenis_layanan: "", kode_dokumen: "", nm_dokumen: "", deskripsi: "", tipe_file: "application/pdf", max_size_mb: 5, a_wajib: true, urutan: 1 };
 
+const TIPE_FILE_OPTIONS = [
+  { value: "application/pdf", label: "PDF" },
+  { value: "image/jpeg,image/png", label: "Gambar (JPG, PNG)" },
+  { value: "application/pdf,image/jpeg,image/png", label: "PDF + Gambar" },
+  { value: "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document", label: "PDF + Word" },
+  { value: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel", label: "Excel" },
+];
+
+const inputWrap: React.CSSProperties = { borderRadius: "0.5rem", border: "1px solid #d1d5db" };
+
 export default function PersyaratanTab() {
   const [data, setData] = useState<PersyaratanLayanan[]>([]);
   const [total, setTotal] = useState(0);
@@ -85,11 +95,13 @@ export default function PersyaratanTab() {
       <Toaster position="top-right" />
       <DataTable data={data} columns={columns} searchable searchPlaceholder="Cari persyaratan..." searchKeys={["nm_dokumen", "kode_dokumen"]} defaultRowsPerPage={10}
         filterSlot={
-          <select value={filterLayanan} onChange={(e) => { setFilterLayanan(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Semua Layanan</option>
-            {layananList.filter(j => j.kategori !== "monitoring").map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
-          </select>
+          <div style={inputWrap} className="overflow-hidden">
+            <select value={filterLayanan} onChange={(e) => { setFilterLayanan(e.target.value); setPage(1); }}
+              className="px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:outline-none">
+              <option value="">Semua Layanan</option>
+              {layananList.filter(j => j.kategori !== "monitoring").map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
+            </select>
+          </div>
         }
         actionSlot={<Button size="sm" color="primary" startContent={<FiPlus className="w-4 h-4" />} onPress={openAdd} className="rounded-lg">Tambah</Button>}
       />
@@ -105,37 +117,55 @@ export default function PersyaratanTab() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jenis Layanan *</label>
-                <select value={form.id_jenis_layanan} onChange={(e) => setForm({ ...form, id_jenis_layanan: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Pilih Layanan</option>
-                  {layananList.filter(j => j.kategori !== "monitoring").map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
-                </select>
+                <div style={inputWrap} className="overflow-hidden">
+                  <select value={form.id_jenis_layanan} onChange={(e) => setForm({ ...form, id_jenis_layanan: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none">
+                    <option value="">Pilih Layanan</option>
+                    {layananList.filter(j => j.kategori !== "monitoring").map(j => <option key={j.id_jenis_layanan} value={j.id_jenis_layanan}>{j.nm_layanan}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Dokumen *</label>
-                <input type="text" value={form.nm_dokumen} onChange={(e) => setForm({ ...form, nm_dokumen: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <div style={inputWrap} className="overflow-hidden">
+                  <input type="text" value={form.nm_dokumen} onChange={(e) => setForm({ ...form, nm_dokumen: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kode Dokumen *</label>
-                <input type="text" value={form.kode_dokumen} onChange={(e) => setForm({ ...form, kode_dokumen: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="DOC-SURAT-PERMOHONAN" />
+                <div style={inputWrap} className="overflow-hidden">
+                  <input type="text" value={form.kode_dokumen} onChange={(e) => setForm({ ...form, kode_dokumen: e.target.value.toUpperCase() })}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none" placeholder="DOC-SURAT-PERMOHONAN" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipe File</label>
-                <input type="text" value={form.tipe_file} onChange={(e) => setForm({ ...form, tipe_file: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="application/pdf" />
+                <div style={inputWrap} className="overflow-hidden">
+                  <select value={TIPE_FILE_OPTIONS.find(o => o.value === form.tipe_file) ? form.tipe_file : "__custom"}
+                    onChange={(e) => { if (e.target.value !== "__custom") setForm({ ...form, tipe_file: e.target.value }); }}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none">
+                    {TIPE_FILE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {!TIPE_FILE_OPTIONS.find(o => o.value === form.tipe_file) && (
+                      <option value="__custom">{form.tipe_file} (custom)</option>
+                    )}
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Size (MB)</label>
-                  <input type="number" value={form.max_size_mb} onChange={(e) => setForm({ ...form, max_size_mb: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div style={inputWrap} className="overflow-hidden">
+                    <input type="number" value={form.max_size_mb} onChange={(e) => setForm({ ...form, max_size_mb: parseInt(e.target.value) || 1 })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none" />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Urutan</label>
-                  <input type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div style={inputWrap} className="overflow-hidden">
+                    <input type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: parseInt(e.target.value) || 1 })}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none" />
+                  </div>
                 </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">

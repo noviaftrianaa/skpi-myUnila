@@ -27,7 +27,8 @@ class DosenController extends Controller
         try {
             $params = [
                 'semester' => $request->query('semester'),
-                'fakultas' => $request->query('fakultas'),
+                'fakultas' => $request->query('fakultas') ?? $request->query('id_fakultas'),
+                'prodi'    => $request->query('prodi') ?? $request->query('id_prodi') ?? $request->query('id_sms'),
             ];
 
             $data = $this->service->getData($params);

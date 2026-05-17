@@ -19,21 +19,23 @@ class PublikasiService
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
         $fakultas = $params['fakultas'] ?? null;
-        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas];
+        $prodi = $params['prodi'] ?? null;
+        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
         $key = $this->cache->buildKey('publikasi', 'full', $filters);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters) {
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
             $prevSemesters = $this->repository->getPreviousSemesters($semesters);
-            $total = $this->repository->countTotal($semesters);
-            $prevTotal = $this->repository->countTotal($prevSemesters);
+            $total = $this->repository->countTotal($semesters, $fakultas, $prodi);
+            $prevTotal = $this->repository->countTotal($prevSemesters, $fakultas, $prodi);
 
             return [
                 'stats' => [
                     'total' => ['total' => $total, 'trend' => $this->repository->calculateTrend($total, $prevTotal)],
                 ],
-                'trendPublikasi' => $this->buildSimpleList($this->repository->getTrendPublikasi($semesters)),
-                'jenisPublikasi' => $this->buildSimpleList($this->repository->getJenisPublikasi($semesters)),
-                'topAuthors' => $this->buildSimpleList($this->repository->getTopAuthors($semesters)),
+                'trendPublikasi' => $this->buildSimpleList($this->repository->getTrendPublikasi($semesters, $fakultas, $prodi)),
+                'jenisPublikasi' => $this->buildSimpleList($this->repository->getJenisPublikasi($semesters, $fakultas, $prodi)),
+                'topAuthors' => $this->buildSimpleList($this->repository->getTopAuthors($semesters, $fakultas, $prodi)),
+                // perFakultas: tetap aggregate per fakultas (tidak narrow ke single fak) supaya breakdown tetap kelihatan
                 'perFakultas' => $this->buildSimpleList($this->repository->getPerFakultas($semesters)),
             ];
         });

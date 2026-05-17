@@ -90,6 +90,86 @@ class DosenDataController extends Controller
         }
     }
 
+    public function pendidikan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getPendidikanList($this->extractParams($request));
+            return $this->success($data, 'Data riwayat pendidikan berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function pendidikanStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getPendidikanStats($this->extractParams($request));
+            return $this->success($data, 'Statistik riwayat pendidikan');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function kepangkatan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getKepangkatanList($this->extractParams($request));
+            return $this->success($data, 'Data riwayat kepangkatan berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function kepangkatanStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getKepangkatanStats($this->extractParams($request));
+            return $this->success($data, 'Statistik riwayat kepangkatan');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function tugasTambahan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getTugasTambahanList($this->extractParams($request));
+            return $this->success($data, 'Data tugas tambahan berhasil diambil');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function tugasTambahanStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getTugasTambahanStats($this->extractParams($request));
+            return $this->success($data, 'Statistik tugas tambahan');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function bimbingan(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getBimbinganList($this->extractParams($request));
+            return $this->success($data, 'Data bimbingan mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
+    public function bimbinganStats(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->service->getBimbinganStats($this->extractParams($request));
+            return $this->success($data, 'Statistik bimbingan mahasiswa');
+        } catch (\Exception $e) {
+            return $this->error('Gagal: ' . $e->getMessage());
+        }
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $params = $this->extractParams($request);
@@ -117,7 +197,19 @@ class DosenDataController extends Controller
             'id_fakultas' => $request->query('id_fakultas'),
             'id_prodi' => $request->query('id_prodi'),
             'id_sms' => $request->query('id_sms'),
+            'id_jurusan' => $request->query('id_jurusan'),
             'status' => $request->query('status'),
+            'unit_filter' => $request->query('unit_filter'),
+            'nm_jabfung' => $request->query('id_jabfung') ?? $request->query('nm_jabfung'),
+            'jenis_sertifikasi' => $request->query('jenis_sertifikasi'),
+            'tahun' => $request->query('tahun'),
+            'jenjang' => $request->query('jenjang'),
+            'golongan' => $request->query('golongan'),
+            'jabatan_tambahan' => $request->query('jabatan_tambahan'),
+            'jenis_aktivitas' => $request->query('jenis_aktivitas'),
+            'missing' => $request->query('missing'),
+            'retiring' => $request->query('retiring'),
+            'tt_status' => $request->query('tt_status'),
         ];
     }
 }

@@ -15,7 +15,7 @@ class MahasiswaRepository extends BaseRepository
      * mahasiswa yang tercatat di kuliah_mhs semester terpilih dengan id_stat_mhs='A'.
      * Definisi ini match infografis /mahasiswa-statistics + SIMBAK.
      */
-    public function countAktif(array $semesters, ?string $fakultas = null): int
+    public function countAktif(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         if (empty($semesters)) {
             return 0;
@@ -23,7 +23,7 @@ class MahasiswaRepository extends BaseRepository
 
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(DISTINCT pd.id_pd)
@@ -44,11 +44,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Count mahasiswa baru (masuk pada semester tertentu)
      */
-    public function countBaru(array $semesters, ?string $fakultas = null): int
+    public function countBaru(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
@@ -67,12 +67,12 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Count lulusan pada semester tertentu (id_jns_keluar = 1)
      */
-    public function countLulus(array $semesters, ?string $fakultas = null): int
+    public function countLulus(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
         $years = $this->extractYears($semesters);
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
@@ -93,7 +93,7 @@ class MahasiswaRepository extends BaseRepository
      * Count mahasiswa cuti — dari kuliah_mhs.id_stat_mhs='C' pada semester terpilih.
      * Konsisten dengan public-service.
      */
-    public function countCuti(array $semesters, ?string $fakultas = null): int
+    public function countCuti(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         if (empty($semesters)) {
             return 0;
@@ -101,7 +101,7 @@ class MahasiswaRepository extends BaseRepository
 
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(DISTINCT pd.id_pd)
@@ -122,12 +122,12 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Count mahasiswa DO (Drop Out) pada semester tertentu
      */
-    public function countDO(array $semesters, ?string $fakultas = null): int
+    public function countDO(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
         $years = $this->extractYears($semesters);
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
@@ -151,15 +151,14 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Trend jumlah mahasiswa aktif 5 tahun terakhir
      */
-    public function getTrend(array $semesters, ?string $fakultas = null): array
+    public function getTrend(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
-        $fakFilter = '';
 
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-        }
+        // Bindings: startYear, maxYear for CTE, then UNILA_ID_SP + optional location for subquery
+        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -182,12 +181,6 @@ class MahasiswaRepository extends BaseRepository
             FROM years y
             ORDER BY y.yr
         ";
-
-        // Bindings: startYear, maxYear for CTE, then UNILA_ID_SP + optional fakultas for subquery
-        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-        if ($fakultas) {
-            $bindings[] = $fakultas;
-        }
 
         return $this->select($sql, $bindings);
     }
@@ -258,11 +251,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi jenjang pendidikan (S1, D3, S2, S3, Profesi)
      */
-    public function getDistribusiJenjang(array $semesters, ?string $fakultas = null): array
+    public function getDistribusiJenjang(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -287,11 +280,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi jalur masuk (SNBP, SNBT, Mandiri, dll)
      */
-    public function getJalurMasuk(array $semesters, ?string $fakultas = null): array
+    public function getJalurMasuk(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -315,11 +308,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi pembiayaan (UKT Reguler, KIP, Beasiswa, dll)
      */
-    public function getPembiayaan(array $semesters, ?string $fakultas = null): array
+    public function getPembiayaan(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -348,11 +341,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi IPK mahasiswa aktif (ranges)
      */
-    public function getDistribusiIPK(array $semesters, ?string $fakultas = null): array
+    public function getDistribusiIPK(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -420,12 +413,12 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi masa studi lulusan
      */
-    public function getMasaStudi(array $semesters, ?string $fakultas = null): array
+    public function getMasaStudi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
         $years = $this->extractYears($semesters);
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -463,11 +456,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi penerima beasiswa aktif
      */
-    public function getBeasiswa(array $semesters, ?string $fakultas = null): array
+    public function getBeasiswa(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         // Cek apakah ada di reg_pd field a_pmpap, a_bidikmisi, a_bebas_biaya, a_terima_kps
         $sql = "
@@ -545,11 +538,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Top 5 asal provinsi mahasiswa
      */
-    public function getAsalProvinsi(array $semesters, ?string $fakultas = null): array
+    public function getAsalProvinsi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT TOP 5
@@ -667,11 +660,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Distribusi gender mahasiswa aktif
      */
-    public function getGenderDistribusi(array $semesters, ?string $fakultas = null): array
+    public function getGenderDistribusi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = $this->getMaxYear($semesters);
         $bindings = [self::UNILA_ID_SP, $maxYear];
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -700,11 +693,11 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Status mahasiswa dari kuliah_mhs
      */
-    public function getStatusMahasiswa(array $semesters, ?string $fakultas = null): array
+    public function getStatusMahasiswa(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -732,15 +725,13 @@ class MahasiswaRepository extends BaseRepository
     /**
      * Trend mahasiswa baru 5 tahun terakhir
      */
-    public function getTrendMahasiswaBaru(array $semesters, ?string $fakultas = null): array
+    public function getTrendMahasiswaBaru(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
-        $fakFilter = '';
 
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-        }
+        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
+        $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -762,11 +753,6 @@ class MahasiswaRepository extends BaseRepository
             FROM years y
             ORDER BY y.yr
         ";
-
-        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-        if ($fakultas) {
-            $bindings[] = $fakultas;
-        }
 
         return $this->select($sql, $bindings);
     }

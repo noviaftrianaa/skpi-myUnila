@@ -23,20 +23,22 @@ class DosenService
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
         $fakultas = $params['fakultas'] ?? null;
-        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas];
+        $prodi    = $params['prodi'] ?? null;
+        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
 
         $key = $this->cache->buildKey('dosen', 'full', $filters);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas) {
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
             return [
-                'stats'                    => $this->buildStats($fakultas),
-                'jenjangPendidikan'        => $this->buildSimpleList($this->repository->getJenjangPendidikan($fakultas)),
+                'stats'                    => $this->buildStats($fakultas, $prodi),
+                'jenjangPendidikan'        => $this->buildSimpleList($this->repository->getJenjangPendidikan($fakultas, $prodi)),
+                // sebaranFakultas: tetap aggregate breakdown — TIDAK narrow.
                 'sebaranFakultas'          => $this->buildSebaranFakultas(),
-                'heatmapPendidikanJabfung' => $this->buildHeatmapList($this->repository->getHeatmapPendidikanJabfung($fakultas)),
-                'heatmapUsiaJabfung'       => $this->buildHeatmapList($this->repository->getHeatmapUsiaJabfung($fakultas)),
-                'ikatanKerja'              => $this->buildSimpleList($this->repository->getIkatanKerja($fakultas)),
-                'genderUsia'               => $this->buildGenderList($this->repository->getGenderUsia($fakultas)),
-                'sertifikasiJabfung'       => $this->buildSertifikasiList($this->repository->getSertifikasiJabfung($fakultas)),
+                'heatmapPendidikanJabfung' => $this->buildHeatmapList($this->repository->getHeatmapPendidikanJabfung($fakultas, $prodi)),
+                'heatmapUsiaJabfung'       => $this->buildHeatmapList($this->repository->getHeatmapUsiaJabfung($fakultas, $prodi)),
+                'ikatanKerja'              => $this->buildSimpleList($this->repository->getIkatanKerja($fakultas, $prodi)),
+                'genderUsia'               => $this->buildGenderList($this->repository->getGenderUsia($fakultas, $prodi)),
+                'sertifikasiJabfung'       => $this->buildSertifikasiList($this->repository->getSertifikasiJabfung($fakultas, $prodi)),
                 'trendSertifikasi'         => $this->buildSimpleList($this->repository->getTrenSertifikasi($semesters)),
                 'trendJabfung'             => $this->buildCategoryList($this->repository->getTrenJabfung($semesters)),
             ];
@@ -46,13 +48,13 @@ class DosenService
     /**
      * Build stat cards
      */
-    private function buildStats(?string $fakultas): array
+    private function buildStats(?string $fakultas, ?string $prodi): array
     {
         return [
-            'total'     => $this->repository->countTotal($fakultas),
-            'guruBesar' => $this->repository->countGuruBesar($fakultas),
-            'doktor'    => $this->repository->countDoktor($fakultas),
-            'rasio'     => $this->repository->getRasio($fakultas),
+            'total'     => $this->repository->countTotal($fakultas, $prodi),
+            'guruBesar' => $this->repository->countGuruBesar($fakultas, $prodi),
+            'doktor'    => $this->repository->countDoktor($fakultas, $prodi),
+            'rasio'     => $this->repository->getRasio($fakultas, $prodi),
         ];
     }
 

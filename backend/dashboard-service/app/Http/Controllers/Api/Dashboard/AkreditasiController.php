@@ -20,13 +20,15 @@ class AkreditasiController extends Controller
     }
 
     /**
-     * GET /v1/dashboard/akreditasi?semester=20241,20242
+     * GET /v1/dashboard/akreditasi?semester=20241,20242&fakultas=...&prodi=...
      */
     public function index(Request $request): JsonResponse
     {
         try {
             $params = [
                 'semester' => $request->query('semester'),
+                'fakultas' => $request->query('fakultas') ?? $request->query('id_fakultas'),
+                'prodi'    => $request->query('prodi') ?? $request->query('id_prodi') ?? $request->query('id_sms'),
             ];
 
             $data = $this->service->getData($params);

@@ -12,6 +12,13 @@ import type {
   PersyaratanLayanan,
   TahapanLayanan,
   TemplateDokumen,
+  KategoriCuti,
+  KategoriUndur,
+  TemplateSurat,
+  TemplateBlanko,
+  KetentuanLayanan,
+  KetentuanByLayananResponse,
+  RiwayatCutiResponse,
   Pengajuan,
   DokumenPengajuan,
   RiwayatPengajuan,
@@ -200,14 +207,33 @@ export const getMyPengajuan = async (params?: {
   return response.data;
 };
 
+export const getMyStats = async (): Promise<{
+  total: number; draft: number; proses: number; selesai: number; ditolak: number; perbaikan: number;
+}> => {
+  const response = await bakClient.get<ApiResponse<{
+    total: number; draft: number; proses: number; selesai: number; ditolak: number; perbaikan: number;
+  }>>('/layanan/my-stats');
+  return response.data.data;
+};
+
 export const createPengajuan = async (data: {
   id_jenis_layanan: string;
   alasan?: string;
   catatan_pemohon?: string;
   id_smt_mulai_cuti?: string;
+  id_smt_akhir_cuti?: string;
   jumlah_semester_cuti?: number;
+  kategori_cuti?: string;
+  kategori_undur?: string;
+  nm_pt_tujuan?: string;
   id_prodi_tujuan?: string;
   id_fakultas_tujuan?: string;
+  nomor_surat_polisi?: string;
+  tgl_surat_polisi?: string;
+  nomor_surat_ket_aktif?: string;
+  tgl_surat_ket_aktif?: string;
+  nomor_sk_cuti?: string;
+  tgl_sk_cuti?: string;
 }): Promise<Pengajuan> => {
   const response = await bakClient.post<ApiResponse<Pengajuan>>('/layanan/pengajuan', data);
   return response.data.data;
@@ -216,6 +242,51 @@ export const createPengajuan = async (data: {
 export const getPengajuanDetail = async (id: string): Promise<Pengajuan> => {
   const response = await bakClient.get<ApiResponse<Pengajuan>>(`/layanan/pengajuan/${id}`);
   return response.data.data;
+};
+
+export const createPengajuanEksternal = async (formData: FormData): Promise<Pengajuan> => {
+  const response = await bakClient.post<ApiResponse<Pengajuan>>(
+    '/admin/pengajuan/eksternal',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return response.data.data;
+};
+
+export const cekKrsPengajuan = async (id: string): Promise<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }> => {
+  const response = await bakClient.get<ApiResponse<{ ada_krs: boolean; nim?: string; id_smt?: string; sks_semester?: number; message: string }>>(`/layanan/pengajuan/${id}/cek-krs`);
+  return response.data.data;
+};
+
+export const getRiwayatCutiPengajuan = async (id: string): Promise<RiwayatCutiResponse> => {
+  const response = await bakClient.get<ApiResponse<RiwayatCutiResponse>>(`/admin/pengajuan/${id}/riwayat-cuti`);
+  return response.data.data;
+};
+
+export const getWhatsAppLinkPengajuan = async (
+  id: string,
+  event: string = 'status_terbit'
+): Promise<{ telepon: string; wa_url: string; pesan: string; nama: string }> => {
+  const response = await bakClient.get<ApiResponse<{ telepon: string; wa_url: string; pesan: string; nama: string }>>(
+    `/admin/pengajuan/${id}/wa-link`,
+    { params: { event } }
+  );
+  return response.data.data;
+};
+
+/**
+ * Download draft surat PDF untuk pengajuan (SK-*) sebelum TTD pimpinan.
+ * Return: blob URL yang bisa langsung dibuka/download.
+ */
+export const downloadDraftSurat = async (id: string): Promise<{ url: string; filename: string }> => {
+  const response = await bakClient.get(`/admin/pengajuan/${id}/draft-surat`, { responseType: 'blob' });
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  // Coba ambil filename dari Content-Disposition
+  const cd = response.headers?.['content-disposition'] ?? '';
+  const match = /filename="?([^"]+)"?/i.exec(cd);
+  const filename = match ? match[1] : `Draft-Surat-${id}.pdf`;
+  return { url, filename };
 };
 
 export const uploadDokumen = async (idPengajuan: string, formData: FormData): Promise<DokumenPengajuan> => {
@@ -263,11 +334,18 @@ export const getVerifikasiQueue = async (params?: {
   return response.data;
 };
 
-export const verifikasiPengajuan = async (id: string, data?: { catatan?: string; surat_pengantar?: File }): Promise<void> => {
+export const verifikasiPengajuan = async (id: string, data?: {
+  catatan?: string;
+  surat_pengantar?: File;
+  nomor_surat_pengantar?: string;
+  tgl_surat_pengantar?: string;
+}): Promise<void> => {
   if (data?.surat_pengantar) {
     const formData = new FormData();
     if (data.catatan) formData.append('catatan', data.catatan);
     formData.append('surat_pengantar', data.surat_pengantar);
+    if (data.nomor_surat_pengantar) formData.append('nomor_surat_pengantar', data.nomor_surat_pengantar);
+    if (data.tgl_surat_pengantar) formData.append('tgl_surat_pengantar', data.tgl_surat_pengantar);
     await bakClient.post(`/admin/pengajuan/${id}/verifikasi`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -428,6 +506,27 @@ export const verifikasiKandidat = async (idKandidat: string, data: FormData | {
 }): Promise<void> => {
   const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
   await bakClient.post(`/batch/kandidat/${idKandidat}/verifikasi`, data, { headers });
+};
+
+export const bulkVerifikasiKandidat = async (data: {
+  id_kandidat: string[];
+  hasil: 'dikonfirmasi' | 'dikeluarkan';
+  alasan_exclude?: string;
+  alasan_exclude_lainnya?: string;
+}): Promise<{ sukses: number; gagal: number; errors: string[] }> => {
+  const response = await bakClient.post<ApiResponse<{ sukses: number; gagal: number; errors: string[] }>>(
+    `/batch/kandidat/bulk-verifikasi`,
+    data
+  );
+  return response.data.data;
+};
+
+export const bulkResetKandidat = async (idKandidat: string[]): Promise<{ sukses: number; gagal: number; errors: string[] }> => {
+  const response = await bakClient.post<ApiResponse<{ sukses: number; gagal: number; errors: string[] }>>(
+    `/batch/kandidat/bulk-reset`,
+    { id_kandidat: idKandidat }
+  );
+  return response.data.data;
 };
 
 export const finalizeBatch = async (id: string, data?: {
@@ -591,6 +690,162 @@ export const deleteKtwExclusion = async (id: string): Promise<void> => {
   await bakClient.delete(`/monitoring/ktw-exclusions/${id}`);
 };
 
+// ============ Kategori Cuti ============
+
+export const getKategoriCutiActive = async (): Promise<KategoriCuti[]> => {
+  const response = await bakClient.get<ApiResponse<KategoriCuti[]>>('/layanan/referensi/kategori-cuti');
+  return response.data.data;
+};
+
+export const getKategoriCuti = async (params?: { page?: number; limit?: number; search?: string }): Promise<{ data: KategoriCuti[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KategoriCuti>>('/master-data/kategori-cuti', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKategoriCuti = async (data: { id_kategori_cuti: string; nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriCuti> => {
+  const response = await bakClient.post<ApiResponse<KategoriCuti>>('/master-data/kategori-cuti', data);
+  return response.data.data;
+};
+
+export const updateKategoriCuti = async (id: string, data: { nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriCuti> => {
+  const response = await bakClient.put<ApiResponse<KategoriCuti>>(`/master-data/kategori-cuti/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKategoriCuti = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/kategori-cuti/${id}`);
+};
+
+// ============ Kategori Undur Diri ============
+
+export const getKategoriUndurActive = async (): Promise<KategoriUndur[]> => {
+  const response = await bakClient.get<ApiResponse<KategoriUndur[]>>('/layanan/referensi/kategori-undur');
+  return response.data.data;
+};
+
+export const getKategoriUndur = async (params?: { page?: number; limit?: number; search?: string }): Promise<{ data: KategoriUndur[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KategoriUndur>>('/master-data/kategori-undur', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKategoriUndur = async (data: { id_kategori_undur: string; nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriUndur> => {
+  const response = await bakClient.post<ApiResponse<KategoriUndur>>('/master-data/kategori-undur', data);
+  return response.data.data;
+};
+
+export const updateKategoriUndur = async (id: string, data: { nm_kategori: string; deskripsi?: string; a_aktif?: boolean; urutan?: number }): Promise<KategoriUndur> => {
+  const response = await bakClient.put<ApiResponse<KategoriUndur>>(`/master-data/kategori-undur/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKategoriUndur = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/kategori-undur/${id}`);
+};
+
+// ============ Ketentuan Layanan (Akademik) ============
+
+export const getKetentuanByLayanan = async (idJenisLayanan: string): Promise<KetentuanByLayananResponse> => {
+  const response = await bakClient.get<ApiResponse<KetentuanByLayananResponse>>(`/layanan/referensi/ketentuan/${idJenisLayanan}`);
+  return response.data.data;
+};
+
+export const getKetentuan = async (params?: { page?: number; limit?: number; search?: string; id_jenis_layanan?: string }): Promise<{ data: KetentuanLayanan[]; pagination: { total: number } }> => {
+  const response = await bakClient.get<PaginatedResponse<KetentuanLayanan>>('/master-data/ketentuan-layanan', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
+};
+
+export const createKetentuan = async (data: Partial<KetentuanLayanan>): Promise<KetentuanLayanan> => {
+  const response = await bakClient.post<ApiResponse<KetentuanLayanan>>('/master-data/ketentuan-layanan', data);
+  return response.data.data;
+};
+
+export const updateKetentuan = async (id: string, data: Partial<KetentuanLayanan>): Promise<KetentuanLayanan> => {
+  const response = await bakClient.put<ApiResponse<KetentuanLayanan>>(`/master-data/ketentuan-layanan/${id}`, data);
+  return response.data.data;
+};
+
+export const deleteKetentuan = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/ketentuan-layanan/${id}`);
+};
+
+// ============ Template Surat (Draft PDF editable) ============
+
+export const getTemplateSuratList = async (): Promise<TemplateSurat[]> => {
+  const response = await bakClient.get<ApiResponse<TemplateSurat[]>>('/master-data/template-surat');
+  return response.data.data;
+};
+
+export const getTemplateSurat = async (id: string): Promise<TemplateSurat> => {
+  const response = await bakClient.get<ApiResponse<TemplateSurat>>(`/master-data/template-surat/${id}`);
+  return response.data.data;
+};
+
+export const updateTemplateSurat = async (id: string, data: { body_html: string; nm_template?: string; a_aktif?: boolean }): Promise<void> => {
+  await bakClient.put(`/master-data/template-surat/${id}`, data);
+};
+
+export const resetTemplateSurat = async (id: string): Promise<void> => {
+  await bakClient.post(`/master-data/template-surat/${id}/reset`);
+};
+
+export const previewTemplateSurat = async (id: string, bodyHtml?: string): Promise<{ url: string }> => {
+  const response = await bakClient.post(
+    `/master-data/template-surat/${id}/preview`,
+    bodyHtml ? { body_html: bodyHtml } : {},
+    { responseType: 'blob' }
+  );
+  const blob = new Blob([response.data], { type: 'application/pdf' });
+  return { url: URL.createObjectURL(blob) };
+};
+
+// ============ Template Blanko (file Word/PDF yang diunduh mahasiswa) ============
+
+export const getTemplateBlankoList = async (idJenisLayanan?: string): Promise<TemplateBlanko[]> => {
+  const params = idJenisLayanan ? { id_jenis_layanan: idJenisLayanan } : {};
+  const response = await bakClient.get<ApiResponse<TemplateBlanko[]>>('/master-data/template-blanko', { params });
+  return response.data.data;
+};
+
+export const getTemplateBlankoByLayanan = async (idJenisLayanan: string): Promise<TemplateBlanko[]> => {
+  const response = await bakClient.get<ApiResponse<TemplateBlanko[]>>(`/layanan/template-blanko/by-layanan/${idJenisLayanan}`);
+  return response.data.data;
+};
+
+export const uploadTemplateBlanko = async (formData: FormData): Promise<{ id_template: string }> => {
+  const response = await bakClient.post<ApiResponse<{ id_template: string }>>(
+    '/master-data/template-blanko',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return response.data.data;
+};
+
+export const updateTemplateBlanko = async (id: string, formData: FormData): Promise<void> => {
+  await bakClient.post(`/master-data/template-blanko/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const deleteTemplateBlanko = async (id: string): Promise<void> => {
+  await bakClient.delete(`/master-data/template-blanko/${id}`);
+};
+
+export const downloadTemplateBlankoUrl = (id: string): string => {
+  // Returns full URL with auth token query for direct download via window.open
+  return `/layanan/template-blanko/${id}/download`;
+};
+
+export const downloadTemplateBlanko = async (id: string, filename?: string): Promise<void> => {
+  const response = await bakClient.get(`/layanan/template-blanko/${id}/download`, { responseType: 'blob' });
+  const blob = new Blob([response.data]);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `template-${id}`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
 // ============ Default Export ============
 
 const simBakService = {
@@ -600,6 +855,11 @@ const simBakService = {
   getJenisLayanan, getJenisLayananById, createJenisLayanan, updateJenisLayanan, deleteJenisLayanan,
   getPersyaratanByLayanan, getTahapanByLayanan,
   getPersyaratan, createPersyaratan, updatePersyaratan, deletePersyaratan,
+  getKategoriCutiActive, getKategoriCuti, createKategoriCuti, updateKategoriCuti, deleteKategoriCuti,
+  getKategoriUndurActive, getKategoriUndur, createKategoriUndur, updateKategoriUndur, deleteKategoriUndur,
+  getKetentuanByLayanan, getKetentuan, createKetentuan, updateKetentuan, deleteKetentuan,
+  getTemplateSuratList, getTemplateSurat, updateTemplateSurat, resetTemplateSurat, previewTemplateSurat,
+  getTemplateBlankoList, getTemplateBlankoByLayanan, uploadTemplateBlanko, updateTemplateBlanko, deleteTemplateBlanko, downloadTemplateBlanko,
   getTahapan, createTahapan, updateTahapan, deleteTahapan,
   getTemplate, createTemplate, updateTemplate, deleteTemplate,
   // Profil & Workflow
@@ -607,15 +867,15 @@ const simBakService = {
   // Referensi PDUT
   getRefFakultas, getRefProdi, getRefSemester, terimaTujuanAlihProgram,
   // Pengajuan
-  getMyPengajuan, createPengajuan, getPengajuanDetail,
+  getMyPengajuan, getMyStats, createPengajuan, createPengajuanEksternal, getPengajuanDetail, cekKrsPengajuan, getRiwayatCutiPengajuan,
   uploadDokumen, ajukanPengajuan, deleteDokumen,
   downloadDokumenUrl, downloadDokumenHasilUrl,
   // Admin
-  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan,
+  getAdminPengajuan, getVerifikasiQueue, verifikasiPengajuan, mintaPerbaikan, terbitkanPengajuan, getWhatsAppLinkPengajuan, downloadDraftSurat,
   // Approval
   getApprovalQueue, approvePengajuan, rejectPengajuan,
   // Batch
-  getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, finalizeBatch,
+  getBatchList, createBatch, getBatchDetail, getBatchKandidat, verifikasiKandidat, bulkVerifikasiKandidat, bulkResetKandidat, finalizeBatch,
   previewBatchCandidates, pullBatchCandidates, sendBatchToFakultas, uploadSkDekan, finalizeBatchWithSK, deleteBatch,
   // Dashboard
   getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity,

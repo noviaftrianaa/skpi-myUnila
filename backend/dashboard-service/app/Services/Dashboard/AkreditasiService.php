@@ -21,33 +21,53 @@ class AkreditasiService
      */
     public function getData(array $params): array
     {
-        $key = $this->cache->buildKey('akreditasi', 'full', []);
+        $fakultas = $params['fakultas'] ?? null;
+        $prodi = $params['prodi'] ?? null;
+        $key = $this->cache->buildKey('akreditasi', 'full', ['fakultas' => $fakultas, 'prodi' => $prodi]);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () {
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($fakultas, $prodi) {
             return [
-                'stats'                  => $this->buildStats(),
-                'distribusiAkreditasi'   => $this->buildSimpleList($this->repository->getDistribusiPeringkat()),
-                'statusKadaluarsa'       => $this->buildSimpleList($this->repository->getStatusKadaluarsa()),
+                'stats'                  => $this->buildStats($fakultas, $prodi),
+                'distribusiAkreditasi'   => $this->buildSimpleList($this->repository->getDistribusiPeringkat($fakultas, $prodi)),
+                'statusKadaluarsa'       => $this->buildSimpleList($this->repository->getStatusKadaluarsa($fakultas, $prodi)),
+                // sebaranFakultas: tetap aggregate per fakultas (tidak narrow ke single fak) supaya drill-down breakdown tetap kelihatan
                 'sebaranFakultas'        => $this->buildSebaranFakultas(),
                 'akreditasiPerFakultas'  => $this->buildCategoryList($this->repository->getAllPerFakultas()),
-                'internasional'          => $this->buildSimpleList($this->repository->getInternasional()),
-                'internasionalDetail'    => $this->buildInternasionalDetail($this->repository->getInternasionalDetail()),
-                'expiringProdi'          => $this->buildDetailTable($this->repository->getExpiringProdi()),
-                'detailTable'            => $this->buildDetailTable($this->repository->getDetailTable()),
+                'internasional'          => $this->buildSimpleList($this->repository->getInternasional($fakultas, $prodi)),
+                'internasionalDetail'    => $this->buildInternasionalDetail($this->repository->getInternasionalDetail($fakultas, $prodi)),
+                'expiringProdi'          => $this->buildDetailTable($this->repository->getExpiringProdi($fakultas, $prodi)),
+                'detailTable'            => $this->buildDetailTable($this->repository->getDetailTable($fakultas, $prodi)),
+                'expiryCalendar'         => $this->buildExpiryCalendar($this->repository->getExpiryCalendar($fakultas, $prodi)),
             ];
         });
     }
 
     /**
+     * Build expiry calendar [{year, month, expiring_count}]
+     */
+    private function buildExpiryCalendar(array $results): array
+    {
+        return array_map(function ($item) {
+            return [
+                'year'           => (int) $item->year,
+                'month'          => (int) $item->month,
+                'expiring_count' => (int) $item->expiring_count,
+            ];
+        }, $results);
+    }
+
+    /**
      * Build stat cards
      */
-    private function buildStats(): array
+    private function buildStats(?string $fakultas = null, ?string $prodi = null): array
     {
-        $totalProdi = $this->repository->countTotalProdi();
-        $unggul     = $this->repository->countByPeringkat(['Unggul', 'A']);
-        $baikSekali = $this->repository->countByPeringkat(['Baik Sekali', 'B']);
-        $baik       = $this->repository->countByPeringkat(['Baik', 'C']);
-        $intl       = $this->repository->countInternasional();
+        $totalProdi = $this->repository->countTotalProdi($fakultas, $prodi);
+        $unggul     = $this->repository->countByPeringkat(['Unggul', 'A'], $fakultas, $prodi);
+        $baikSekali = $this->repository->countByPeringkat(['Baik Sekali', 'B'], $fakultas, $prodi);
+        $baik       = $this->repository->countByPeringkat(['Baik', 'C'], $fakultas, $prodi);
+        $intl       = $this->repository->countInternasional($fakultas, $prodi);
+        $akanExpire = $this->repository->countAkanExpire($fakultas, $prodi);
+        $expired    = $this->repository->countExpired($fakultas, $prodi);
 
         return [
             'totalProdi'    => ['total' => $totalProdi],
@@ -55,6 +75,8 @@ class AkreditasiService
             'baikSekali'    => ['total' => $baikSekali],
             'baik'          => ['total' => $baik],
             'internasional' => ['total' => $intl],
+            'akanExpire'    => ['total' => $akanExpire],
+            'expired'       => ['total' => $expired],
         ];
     }
 
@@ -136,6 +158,7 @@ class AkreditasiService
                 'strata' => (string) $item->strata,
                 'rank'   => (string) $item->rank,
                 'int'    => (string) $item->int,
+                'no_sk'  => isset($item->no_sk) ? (string) $item->no_sk : null,
                 'exp'    => (string) $item->exp,
             ];
         }, $results);

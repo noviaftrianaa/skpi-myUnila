@@ -19,6 +19,9 @@ import { useDashboardData } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { IkuData } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -28,6 +31,16 @@ export default function DashboardIkuPage() {
   const [selectedTahun, setSelectedTahun] = useState<string>("");
   const [selectedIKU, setSelectedIKU] = useState<IKUDetailData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   // Tahun IKU options: tahun lalu jadi default karena tahun berjalan biasanya
   // belum ada data lulusan (cycle akademik belum selesai). 3 tahun terakhir + tahun depan.
@@ -54,6 +67,7 @@ export default function DashboardIkuPage() {
       tahun: selectedTahun,
       ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
       ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+      ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
 
@@ -280,6 +294,7 @@ export default function DashboardIkuPage() {
 
   const handleReset = () => {
     setSelectedTahun(tahunOptions[0]?.key || String(new Date().getFullYear()));
+    setUnitItems([]);
   };
 
   const handleDetail = (iku: IKUDetailData) => {
@@ -309,14 +324,29 @@ export default function DashboardIkuPage() {
           </div>
         </div>
 
+        {/* Scope Badge */}
+        <div className="mb-3">
+          <ScopeBadge />
+        </div>
+
         {/* Global Filter - Tahun IKU only */}
-        <div className="mb-6">
+        <div className="mb-3">
           <FilterPanel
             tahun={tahunOptions}
             selectedTahun={selectedTahun}
             onTahunChange={setSelectedTahun}
             scopeBadge={scope.scopeName}
             onReset={handleReset}
+          />
+        </div>
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+          <UnitFilter
+            data={orgFilters}
+            value={unitItems}
+            onChange={(next) => setUnitItems(next)}
+            forcedFakultas={scope.forcedFakultas || undefined}
+            forcedJurusan={scope.forcedJurusan || undefined}
+            forcedProdi={scope.forcedProdi || undefined}
           />
         </div>
 

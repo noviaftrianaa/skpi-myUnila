@@ -9,7 +9,7 @@ import { MdDashboard } from "react-icons/md";
 import { Spinner, Card, CardBody, Chip } from "@heroui/react";
 import { FiFileText, FiClock, FiCheckCircle, FiXCircle, FiTrendingUp, FiClipboard, FiUsers, FiArrowRight, FiAlertCircle, FiAlertTriangle, FiEye } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity, getMyPengajuan, getMyProfile } from "@/lib/services/sim-bak/simBakService";
+import { getDashboardOverview, getDashboardSla, getDashboardTrends, getDashboardActivity, getMyPengajuan, getMyProfile, getMyStats } from "@/lib/services/sim-bak/simBakService";
 // dummy data removed — dashboard uses real API only
 import type { DashboardStats, Pengajuan } from "@/lib/services/sim-bak/types";
 import { StatusBadge } from "./components";
@@ -54,23 +54,18 @@ function MahasiswaDashboard() {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const [profileData, pengajuanData] = await Promise.allSettled([
+        const [profileData, pengajuanData, statsData] = await Promise.allSettled([
           getMyProfile(),
           getMyPengajuan({ page: 1, limit: 5 }),
+          getMyStats(),
         ]);
 
         if (profileData.status === "fulfilled") setProfile(profileData.value);
         if (pengajuanData.status === "fulfilled") {
-          const data = pengajuanData.value.data ?? [];
-          setRecentPengajuan(data);
-          setMyStats({
-            total: data.length,
-            draft: data.filter(p => p.status === "draft").length,
-            proses: data.filter(p => ["diajukan", "diverifikasi", "menunggu_persetujuan"].includes(p.status)).length,
-            selesai: data.filter(p => ["disetujui", "terbit"].includes(p.status)).length,
-            ditolak: data.filter(p => p.status === "ditolak").length,
-            perbaikan: data.filter(p => p.status === "perlu_perbaikan").length,
-          });
+          setRecentPengajuan(pengajuanData.value.data ?? []);
+        }
+        if (statsData.status === "fulfilled") {
+          setMyStats(statsData.value);
         }
       } catch { /* fallback */ }
       finally { setLoading(false); }
@@ -134,13 +129,14 @@ function MahasiswaDashboard() {
             { label: "Selesai", value: myStats.selesai, icon: <FiCheckCircle className="w-5 h-5" />, gradient: "from-emerald-500 to-green-600" },
             { label: "Ditolak", value: myStats.ditolak, icon: <FiXCircle className="w-5 h-5" />, gradient: "from-rose-500 to-red-600" },
           ].map(card => (
-            <Card key={card.label} className="border-none shadow-md rounded-xl overflow-hidden dark:bg-gray-800">
-              <CardBody className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${card.gradient} text-white`}>{card.icon}</div>
+            <Card key={card.label} className={`min-w-0 border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
+              <CardBody className="p-4 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-16 h-16 bg-white/10 rounded-full pointer-events-none" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{card.icon}</div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+                    <p className="text-[10px] sm:text-xs font-medium text-white/80 uppercase tracking-wide">{card.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white">{card.value}</p>
                   </div>
                 </div>
               </CardBody>
@@ -317,9 +313,9 @@ function AdminDashboard() {
         {/* Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {statCards.map((card) => (
-            <Card key={card.label} className={`border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
-              <CardBody className="p-4 relative">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
+            <Card key={card.label} className={`min-w-0 border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
+              <CardBody className="p-4 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-16 h-16 bg-white/10 rounded-full pointer-events-none" />
                 <div className="flex items-center gap-3 relative z-10">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{card.icon}</div>
                   <div>

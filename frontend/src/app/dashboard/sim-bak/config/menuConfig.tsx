@@ -5,7 +5,7 @@
  * Untuk role: mahasiswa, admin_bak, admin_fakultas, pejabat
  */
 
-import { FiFileText, FiGrid, FiSettings, FiBarChart2, FiUsers, FiLayers, FiCheckSquare, FiClipboard, FiList, FiBell } from "react-icons/fi";
+import { FiFileText, FiGrid, FiSettings, FiBarChart2, FiUsers, FiLayers, FiCheckSquare, FiClipboard, FiList, FiBell, FiUserPlus } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import type { MenuItem } from "@/lib/types/dashboardTypes";
 
@@ -45,6 +45,12 @@ export const simBakMenuConfig: MenuItem[] = [
     icon: <FiList className="w-5 h-5" />,
     href: "/dashboard/sim-bak/admin/pengajuan",
     roles: [...adminRoles, "admin_fakultas"],
+  },
+  {
+    title: "Pendaftaran Alih Eksternal",
+    icon: <FiUserPlus className="w-5 h-5" />,
+    href: "/dashboard/sim-bak/admin/pendaftaran-alih",
+    roles: ["admin_fakultas", "developer", "admin"],
   },
   {
     title: "Verifikasi",

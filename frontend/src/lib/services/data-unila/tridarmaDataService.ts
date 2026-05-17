@@ -7,6 +7,26 @@ export interface LitabmasItem {
 }
 export interface LitabmasStats { total: string; penelitian: string; pengabdian: string; total_dana: string }
 
+export interface LitabmasAnggotaMeta {
+  id_litabmas: string; judul: string; jenis: string; tahun: string; skim: string | null;
+}
+export interface LitabmasAnggotaDosen {
+  id_sdm: string; nama: string; nidn: string | null; nip: string | null;
+  peran: string; peran_code: string; aktif: number;
+}
+export interface LitabmasAnggotaMahasiswa {
+  id_pd_ang_litabmas: string; id_pd: string; nama: string | null; nipd: string | null;
+  peran: string; peran_code: string; aktif: number; prodi: string | null; id_jenj: number | null;
+}
+export interface LitabmasAnggotaResponse {
+  meta: LitabmasAnggotaMeta | null;
+  dosen: LitabmasAnggotaDosen[];
+  mahasiswa: LitabmasAnggotaMahasiswa[];
+  mahasiswa_total: number;
+  mahasiswa_limit: number;
+  mahasiswa_offset: number;
+}
+
 export interface PublikasiItem {
   id_publikasi: string; judul: string; nama_jurnal: string; tgl_terbit: string;
   vol: string; no: string; hal: string; doi: string; issn: string; e_issn: string;
@@ -14,9 +34,54 @@ export interface PublikasiItem {
 }
 export interface PublikasiStats { total: string; ber_quartile: string; ber_doi: string; rentang_tahun: string }
 
+export interface PublikasiPenulisItem {
+  id_tulis_pub: string;
+  id_sdm: string;
+  nama: string;
+  nidn: string;
+  nipd: string;
+  urutan: number;
+  peran_tulis: string;
+  peran_label: string;
+  afiliasi: string;
+  is_corresponding: number;
+  jns_penulis: number;
+}
+
+export interface PublikasiPenulisResponse {
+  meta: {
+    id_publikasi: string;
+    judul: string;
+    nama_jurnal: string;
+    tgl_terbit: string | null;
+    vol: string; no: string; hal: string;
+    doi: string; quartile: string;
+    tahun: number | null;
+    jenis_publikasi: string;
+  } | null;
+  penulis: PublikasiPenulisItem[];
+}
+
 export interface PrestasiItem {
   id_prestasi: string; nama: string; thn_prestasi: string; tahun: string;
   penyelenggara: string; tingkat: string; jenis: string;
+  id_akt_mhs?: string | null;
+  peringkat?: string | null;
+  jml_tim?: number | string;
+}
+
+export interface PrestasiAnggotaItem {
+  id_anggota?: string;
+  id_pd: string;
+  nama: string;
+  nipd: string | null;
+  peran: string;
+  peran_code: number;
+  nm_prodi: string | null;
+}
+export interface PrestasiAnggotaResponse {
+  meta: { id_prestasi: string; nama: string; tahun: number; tingkat: string | null; jenis: string | null; peringkat: string | null; penyelenggara: string | null } | null;
+  anggota: PrestasiAnggotaItem[];
 }
 
 export interface PrestasiStats {
@@ -25,29 +90,90 @@ export interface PrestasiStats {
   by_tahun: Array<{ tahun: number; jumlah: number }>;
 }
 
+export interface PengajaranItem {
+  id_kls: string;
+  nama_kelas: string;
+  mata_kuliah: string;
+  kode_mk: string | null;
+  sks_mk: number | null;
+  semester: string;
+  prodi: string;
+  fakultas: string | null;
+  jumlah_dosen: number;
+  jumlah_peserta?: number | string;
+  dosen_pengampu: string | null;
+}
+
+export interface PengajaranPesertaItem {
+  id_pd: string;
+  nim: string;
+  nama: string;
+  nilai_huruf: string | null;
+  nilai_angka: string | number | null;
+  nilai_indeks: string | number | null;
+  nm_prodi: string | null;
+}
+export interface PengajaranPesertaResponse {
+  meta: { id_kls: string; nama_kelas: string; mata_kuliah: string; kode_mk: string | null; sks_mk: number | null; semester: string; nm_prodi: string } | null;
+  peserta: PengajaranPesertaItem[];
+}
+
+export interface PengajaranStats {
+  total_kelas: number;
+  total_matkul: number;
+  total_prodi: number;
+  total_dosen: number;
+  total_sks: number;
+  semester_aktif: string;
+}
+
 export const tridarmaDataService = {
   async getLitabmas(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/litabmas', { params });
     return r.data.data;
   },
-  async getLitabmasStats(): Promise<LitabmasStats> {
-    const r = await dashboardClient.get('/data/tridarma/litabmas/stats');
+  async getLitabmasStats(params: Record<string, any> = {}): Promise<LitabmasStats & { by_skim?: Array<{ skim: string; jumlah: number }> }> {
+    const r = await dashboardClient.get('/data/tridarma/litabmas/stats', { params });
+    return r.data.data;
+  },
+  async getLitabmasAnggota(idLitabmas: string, params: { limit?: number; offset?: number } = {}): Promise<LitabmasAnggotaResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/litabmas/${idLitabmas}/anggota`, { params });
     return r.data.data;
   },
   async getPublikasi(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/publikasi', { params });
     return r.data.data;
   },
-  async getPublikasiStats(): Promise<PublikasiStats> {
-    const r = await dashboardClient.get('/data/tridarma/publikasi/stats');
+  async getPublikasiStats(params: Record<string, any> = {}): Promise<PublikasiStats> {
+    const r = await dashboardClient.get('/data/tridarma/publikasi/stats', { params });
+    return r.data.data;
+  },
+  async getPublikasiPenulis(id: string): Promise<PublikasiPenulisResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/publikasi/${id}/penulis`);
     return r.data.data;
   },
   async getPrestasi(params: Record<string, any>) {
     const r = await dashboardClient.get('/data/tridarma/prestasi', { params });
     return r.data.data;
   },
-  async getPrestasiStats(): Promise<PrestasiStats> {
-    const r = await dashboardClient.get('/data/tridarma/prestasi/stats');
+  async getPrestasiStats(params: Record<string, any> = {}): Promise<PrestasiStats> {
+    const r = await dashboardClient.get('/data/tridarma/prestasi/stats', { params });
+    return r.data.data;
+  },
+  async getPrestasiAnggota(id: string): Promise<PrestasiAnggotaResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/prestasi/${id}/anggota`);
+    return r.data.data;
+  },
+  async getPengajaran(params: Record<string, any>) {
+    const r = await dashboardClient.get('/data/tridarma/pengajaran', { params });
+    return r.data.data;
+  },
+  async getPengajaranStats(params: Record<string, any> = {}): Promise<PengajaranStats> {
+    const r = await dashboardClient.get('/data/tridarma/pengajaran/stats', { params });
+    return r.data.data;
+  },
+  async getPengajaranPeserta(id: string): Promise<PengajaranPesertaResponse> {
+    const r = await dashboardClient.get(`/data/tridarma/pengajaran/${encodeURIComponent(id)}/peserta`);
     return r.data.data;
   },
 };

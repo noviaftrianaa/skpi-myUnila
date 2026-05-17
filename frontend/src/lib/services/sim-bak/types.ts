@@ -69,6 +69,91 @@ export interface TemplateDokumen {
   kode_layanan?: string;
 }
 
+export interface KategoriCuti {
+  id_kategori_cuti: string;
+  nm_kategori: string;
+  deskripsi: string | null;
+  a_aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateSurat {
+  id_template: string;
+  id_jenis_layanan: string;
+  kode_layanan?: string;
+  nm_layanan?: string;
+  nm_template: string;
+  versi: string;
+  body_html: string | null;
+  body_default: string | null;
+  a_aktif: boolean;
+  is_modified?: boolean;
+  updated_at?: string;
+}
+
+export interface TemplateBlanko {
+  id_template: string;
+  id_jenis_layanan: string;
+  kode_layanan?: string;
+  nm_layanan?: string;
+  nm_template: string;
+  versi: string;
+  path_file: string;
+  tipe_file: string;
+  a_aktif: boolean;
+  keterangan: string | null;
+  updated_at?: string;
+}
+
+export interface KategoriUndur {
+  id_kategori_undur: string;
+  nm_kategori: string;
+  deskripsi: string | null;
+  a_aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KetentuanLayanan {
+  id_ketentuan: string;
+  id_jenis_layanan: string;
+  nm_jenjang: string | null;
+  kondisi_semester: number | null;
+  kode_ketentuan: string;
+  nm_ketentuan: string;
+  operator: string;
+  nilai: number;
+  pesan_gagal: string | null;
+  deskripsi: string | null;
+  a_aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
+  // joined
+  kode_layanan?: string;
+  nm_layanan?: string;
+}
+
+export interface KetentuanRuleItem {
+  nm_ketentuan: string;
+  operator: string;
+  nilai: number;
+  kode: string;
+}
+
+export interface KetentuanGroup {
+  label: string;
+  rules: KetentuanRuleItem[];
+}
+
+export interface KetentuanByLayananResponse {
+  rules: KetentuanLayanan[];
+  groups: KetentuanGroup[];
+}
+
 // ============ layanan schema ============
 
 export type StatusPengajuan =
@@ -76,6 +161,7 @@ export type StatusPengajuan =
   | 'diajukan'
   | 'perlu_perbaikan'
   | 'diverifikasi'
+  | 'diperiksa_fakultas'
   | 'menunggu_persetujuan'
   | 'disetujui'
   | 'ditolak'
@@ -90,11 +176,21 @@ export interface Pengajuan {
   alasan: string | null;
   catatan_pemohon: string | null;
   id_smt_mulai_cuti: string | null;
+  id_smt_akhir_cuti: string | null;
   jumlah_semester_cuti: number | null;
+  kategori_cuti: string | null;
+  kategori_undur?: string | null;
+  nm_pt_tujuan?: string | null;
   id_prodi_tujuan: string | null;
   id_fakultas_tujuan: string | null;
   a_dari_luar?: boolean;
   nm_pt_asal?: string | null;
+  nomor_surat_polisi?: string | null;
+  tgl_surat_polisi?: string | null;
+  nomor_surat_ket_aktif?: string | null;
+  tgl_surat_ket_aktif?: string | null;
+  nomor_sk_cuti?: string | null;
+  tgl_sk_cuti?: string | null;
   tgl_diajukan: string | null;
   tgl_selesai: string | null;
   nomor_dokumen_hasil: string | null;
@@ -145,6 +241,10 @@ export interface DataPemohon {
   status_pembayaran: string | null;
   nm_pt_asal?: string | null;
   akreditasi_prodi_asal?: string | null;
+  nm_jenjang_asal?: string | null;
+  nm_prodi_asal?: string | null;
+  email_pemohon?: string | null;
+  no_hp_pemohon?: string | null;
   tgl_snapshot: string;
 }
 
@@ -159,6 +259,8 @@ export interface DokumenPengajuan {
   ukuran_byte: number;
   id_pengunggah: string;
   keterangan: string | null;
+  nomor_dokumen: string | null;
+  tgl_dokumen: string | null;
   tgl_upload: string;
   created_at: string;
 }
@@ -220,6 +322,31 @@ export interface DokumenHasil {
   a_final: boolean;
   keterangan: string | null;
   created_at: string;
+}
+
+// ============ riwayat cuti ============
+
+export interface RiwayatCutiSimbak {
+  nomor_permohonan: string;
+  status: string;
+  kategori_cuti: string | null;
+  id_smt_mulai_cuti: string | null;
+  id_smt_akhir_cuti: string | null;
+  jumlah_semester_cuti: number | null;
+  tgl_diajukan: string | null;
+  tgl_selesai: string | null;
+}
+
+export interface RiwayatCutiPdut {
+  id_smt: string;
+  nm_smt: string;
+  nm_stat_mhs: string;
+}
+
+export interface RiwayatCutiResponse {
+  simbak: RiwayatCutiSimbak[];
+  pdut: RiwayatCutiPdut[];
+  total_semester_cuti: number;
 }
 
 // ============ batch schema ============

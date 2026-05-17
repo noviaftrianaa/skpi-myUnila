@@ -199,6 +199,17 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
     }
   }, [isAuthenticated, loadUserContext]);
 
+  /**
+   * Visibility-based auto-revalidate DIHAPUS — user feedback: mengganggu (tab balik 30s → reload).
+   * Strategi sekarang: hanya refresh saat:
+   * 1) Halaman portal awal di-mount (sudah ada di useEffect initial loadPortalApps)
+   * 2) User explicit logout-login
+   * 3) Saat user buka tab BARU (mount fresh)
+   *
+   * Untuk admin yang mengubah role/access — user perlu hard refresh atau buka tab baru.
+   * Trade-off: aman + tidak intrusive. Future: kalau real-time critical, pakai SSE/WebSocket.
+   */
+
   const value: UserContextState = {
     roles,
     activeContext,

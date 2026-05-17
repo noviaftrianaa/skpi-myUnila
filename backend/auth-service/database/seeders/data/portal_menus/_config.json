@@ -14,6 +14,8 @@
     "TENDIK": 111,
     "DEKAN": 43,
     "KAPRODI": 42,
+    "KAJUR": 47,
+    "ADMIN_JURUSAN": 44,
     "ADMIN_PRODI": 6,
     "ADMIN_FAKULTAS": 106,
     "HELPDESK": 32
@@ -22,7 +24,7 @@
     "PIMPINAN": [1, 107, 33, 38, 37, 36, 35, 34],
     "PIMPINAN_FULL": [1, 107, 33, 38, 37, 36, 35, 34, 43],
     "DEVELOPER_ONLY": [1, 107],
-    "AKADEMIK": [1, 107, 39, 46, 42, 6, 106, 43],
+    "AKADEMIK": [1, 107, 39, 46, 42, 6, 106, 43, 44, 47],
     "ALL": [1, 107, 39, 46, 111]
   }
 }

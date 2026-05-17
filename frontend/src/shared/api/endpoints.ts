@@ -97,6 +97,8 @@ export const ENDPOINTS = {
     PRESTASI: '/dashboard/prestasi',
     KERJASAMA: '/dashboard/kerjasama',
     IKU: '/dashboard/iku',
+    IKU_META: '/dashboard/iku/meta',
+    IKU_SINGLE: '/dashboard/iku', // append /{id}
   },
 
   // Reference data endpoints

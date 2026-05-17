@@ -31,6 +31,15 @@ import {
 import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { MahasiswaData } from "../types";
+import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -81,6 +90,17 @@ export default function DashboardMahasiswaPage() {
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
   const [selectedProdi, setSelectedProdi] = useState("");
+  const scope = useRoleBasedScope();
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   const { fakultas, semester, activeSemesters, getProdiByFakultas } = useDashboardReference();
 
@@ -97,8 +117,22 @@ export default function DashboardMahasiswaPage() {
       semester: semesterParam,
       ...(selectedFakultas && { fakultas: selectedFakultas }),
       ...(selectedProdi && { prodi: selectedProdi }),
+      ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
+
+  const handleExport = (fmtType: ExportFormat) => {
+    if (!data) { toast.error("Data belum dimuat"); return; }
+    const rows = (data.sebaranFakultas || []).map((r) => ({ fakultas: r.name, jumlah: r.value }));
+    if (!rows.length) { toast.error("Tidak ada data sebaran"); return; }
+    const baseName = `mahasiswa-sebaran-${semesterParam || "all"}`;
+    const headers = { fakultas: "Fakultas", jumlah: "Jumlah Mahasiswa" } as const;
+    if (fmtType === "excel") { exportToExcel(rows as unknown as Record<string, unknown>[], baseName, "Mahasiswa", headers); toast.success("Excel di-download"); }
+    else if (fmtType === "csv-client") { exportToCsv(rows as unknown as Record<string, unknown>[], baseName, headers); toast.success("CSV di-download"); }
+    else if (fmtType === "pdf") { exportToPdf(rows as unknown as Record<string, unknown>[], baseName, { title: "Sebaran Mahasiswa per Fakultas", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
+    else if (fmtType === "json") { exportToJson(rows, baseName); toast.success("JSON di-download"); }
+    else { toast("Server export belum tersedia"); }
+  };
 
   const handleFakultasChange = (value: string) => {
     setSelectedFakultas(value);
@@ -109,6 +143,7 @@ export default function DashboardMahasiswaPage() {
     setSelectedSemesters(new Set(activeSemesters));
     setSelectedFakultas("");
     setSelectedProdi("");
+    setUnitItems([]);
   };
 
   const availableProdi = useMemo(
@@ -138,7 +173,9 @@ export default function DashboardMahasiswaPage() {
       appKey={APP_KEY}
       fallbackMenus={pimpinanMenuConfig}
     >
+      <Toaster position="top-right" />
       <div className="p-6 space-y-6">
+        <ScopeBadge />
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -175,16 +212,29 @@ export default function DashboardMahasiswaPage() {
 
         {/* Filter — pure tailwind, no HeroUI */}
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Filter</h2>
-            {isFilterDirty && (
-              <button
-                onClick={handleReset}
-                className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-              >
-                Reset
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
+              {isFilterDirty && (
+                <button
+                  onClick={handleReset}
+                  className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="mb-3">
+            <UnitFilter
+              data={orgFilters}
+              value={unitItems}
+              onChange={(next) => setUnitItems(next)}
+              forcedFakultas={scope.forcedFakultas || undefined}
+              forcedJurusan={scope.forcedJurusan || undefined}
+              forcedProdi={scope.forcedProdi || undefined}
+            />
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {/* Semester (multi-select via checkbox list) */}
@@ -277,6 +327,8 @@ export default function DashboardMahasiswaPage() {
                 icon={<FiUserCheck className="w-6 h-6 text-white" />}
                 color="blue"
                 trend={{ value: data.stats.aktif.trend ?? 0, label: "YoY" }}
+                href="/dashboard/data-unila/mahasiswa?status=aktif"
+                hint="Lihat detail mahasiswa berstatus aktif"
               />
               <StatCard
                 title="Mahasiswa Baru"
@@ -284,6 +336,8 @@ export default function DashboardMahasiswaPage() {
                 icon={<FiUserPlus className="w-6 h-6 text-white" />}
                 color="green"
                 trend={{ value: data.stats.baru.trend ?? 0, label: "YoY" }}
+                href="/dashboard/data-unila/mahasiswa"
+                hint="Lihat detail data mahasiswa"
               />
               <StatCard
                 title="Lulusan"
@@ -291,6 +345,8 @@ export default function DashboardMahasiswaPage() {
                 icon={<FiAward className="w-6 h-6 text-white" />}
                 color="purple"
                 trend={{ value: data.stats.lulus.trend ?? 0, label: "YoY" }}
+                href="/dashboard/data-unila/mahasiswa/lulusan"
+                hint="Lihat detail lulusan / alumni"
               />
               <StatCard
                 title="Cuti Akademik"

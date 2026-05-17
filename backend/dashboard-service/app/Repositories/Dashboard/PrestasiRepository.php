@@ -10,16 +10,12 @@ class PrestasiRepository extends BaseRepository
     // STAT CARDS
     // =========================================
 
-    public function countTotalPrestasi(array $semesters, ?string $fakultas = null): int
+    public function countTotalPrestasi(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(p.id_prestasi)
@@ -29,7 +25,7 @@ class PrestasiRepository extends BaseRepository
             INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             WHERE p.soft_delete = 0
               AND CAST(p.thn_prestasi AS VARCHAR) IN {$inClause}
-              {$fakFilter}
+              {$orgFilter}
         ";
 
         return (int) $this->selectScalar($sql, $bindings);
@@ -39,17 +35,13 @@ class PrestasiRepository extends BaseRepository
      * Count by tingkat prestasi ID
      * IDs: 5=Nasional, 6=Internasional
      */
-    public function countByTingkat(array $semesters, int $idTktPrestasi, ?string $fakultas = null): int
+    public function countByTingkat(array $semesters, int $idTktPrestasi, ?string $fakultas = null, ?string $prodi = null): int
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
         $bindings[] = $idTktPrestasi;
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(p.id_prestasi)
@@ -60,7 +52,7 @@ class PrestasiRepository extends BaseRepository
             WHERE p.soft_delete = 0
               AND CAST(p.thn_prestasi AS VARCHAR) IN {$inClause}
               AND p.id_tkt_prestasi = ?
-              {$fakFilter}
+              {$orgFilter}
         ";
 
         return (int) $this->selectScalar($sql, $bindings);
@@ -70,17 +62,12 @@ class PrestasiRepository extends BaseRepository
     // TREND PRESTASI (5 tahun)
     // =========================================
 
-    public function getTrendPrestasi(array $semesters, ?string $fakultas = null): array
+    public function getTrendPrestasi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 4;
         $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-        $fakFilter = '';
-
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -97,7 +84,7 @@ class PrestasiRepository extends BaseRepository
                     INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
                     WHERE p.soft_delete = 0
                       AND p.thn_prestasi = y.yr
-                      {$fakFilter}
+                      {$orgFilter}
                 ) as value
             FROM years y
             ORDER BY y.yr
@@ -111,17 +98,12 @@ class PrestasiRepository extends BaseRepository
     // id_tkt_prestasi: 1-4,7,9 = Lokal, 5 = Nasional, 6 = Internasional
     // =========================================
 
-    public function getPrestasiPerTingkat(array $semesters, ?string $fakultas = null): array
+    public function getPrestasiPerTingkat(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $maxYear = (int) $this->getMaxYear($semesters);
         $startYear = $maxYear - 2;
         $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-        $fakFilter = '';
-
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH years AS (
@@ -149,7 +131,7 @@ class PrestasiRepository extends BaseRepository
                           OR (t.cat = 'Nasional' AND p.id_tkt_prestasi = 5)
                           OR (t.cat = 'Internasional' AND p.id_tkt_prestasi = 6)
                       )
-                      {$fakFilter}
+                      {$orgFilter}
                 ) as value
             FROM years y
             CROSS JOIN tingkat t
@@ -163,16 +145,12 @@ class PrestasiRepository extends BaseRepository
     // JENIS BIDANG PRESTASI (PieChart)
     // =========================================
 
-    public function getJenisPrestasi(array $semesters, ?string $fakultas = null): array
+    public function getJenisPrestasi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -185,7 +163,7 @@ class PrestasiRepository extends BaseRepository
             LEFT JOIN ref.jenis_prestasi jp ON p.id_jenis_prestasi = jp.id_jenis_prestasi
             WHERE p.soft_delete = 0
               AND CAST(p.thn_prestasi AS VARCHAR) IN {$inClause}
-              {$fakFilter}
+              {$orgFilter}
             GROUP BY jp.nm_jenis_prestasi
             ORDER BY value DESC
         ";
@@ -197,16 +175,12 @@ class PrestasiRepository extends BaseRepository
     // TOP 10 PRODI BERPRESTASI (BarChart)
     // =========================================
 
-    public function getTopProdi(array $semesters, ?string $fakultas = null): array
+    public function getTopProdi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $orgFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT TOP 10
@@ -218,7 +192,7 @@ class PrestasiRepository extends BaseRepository
             INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             WHERE p.soft_delete = 0
               AND CAST(p.thn_prestasi AS VARCHAR) IN {$inClause}
-              {$fakFilter}
+              {$orgFilter}
             GROUP BY s.nm_lemb
             ORDER BY value DESC
         ";
@@ -228,18 +202,15 @@ class PrestasiRepository extends BaseRepository
 
     // =========================================
     // PRESTASI PER FAKULTAS (BarChart)
+    // Aggregate breakdown — TIDAK narrow ke single fakultas/prodi,
+    // tetap menampilkan seluruh fakultas supaya drill-down user kelihatan.
     // =========================================
 
-    public function getPerFakultas(array $semesters, ?string $fakultas = null): array
+    public function getPerFakultas(array $semesters): array
     {
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
 
         $sql = "
             SELECT
@@ -252,7 +223,6 @@ class PrestasiRepository extends BaseRepository
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE p.soft_delete = 0
               AND CAST(p.thn_prestasi AS VARCHAR) IN {$inClause}
-              {$fakFilter}
             GROUP BY uo.nm_lemb
             ORDER BY value DESC
         ";

@@ -19,26 +19,28 @@ class LitabmasService
     {
         $semesters = $this->repository->parseSemesterParam($params['semester'] ?? null);
         $fakultas = $params['fakultas'] ?? null;
-        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas];
+        $prodi = $params['prodi'] ?? null;
+        $filters = ['semester' => implode(',', $semesters), 'fakultas' => $fakultas, 'prodi' => $prodi];
         $key = $this->cache->buildKey('litabmas', 'full', $filters);
 
-        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters) {
+        return $this->cache->remember($key, CacheService::TTL_STATS, function () use ($semesters, $fakultas, $prodi) {
             $prevSemesters = $this->repository->getPreviousSemesters($semesters);
-            $penelitian = $this->repository->countPenelitian($semesters);
-            $prevPenelitian = $this->repository->countPenelitian($prevSemesters);
-            $pengabdian = $this->repository->countPengabdian($semesters);
-            $prevPengabdian = $this->repository->countPengabdian($prevSemesters);
+            $penelitian = $this->repository->countPenelitian($semesters, $fakultas, $prodi);
+            $prevPenelitian = $this->repository->countPenelitian($prevSemesters, $fakultas, $prodi);
+            $pengabdian = $this->repository->countPengabdian($semesters, $fakultas, $prodi);
+            $prevPengabdian = $this->repository->countPengabdian($prevSemesters, $fakultas, $prodi);
 
             return [
                 'stats' => [
                     'penelitian' => ['total' => $penelitian, 'trend' => $this->repository->calculateTrend($penelitian, $prevPenelitian)],
                     'pengabdian' => ['total' => $pengabdian, 'trend' => $this->repository->calculateTrend($pengabdian, $prevPengabdian)],
                 ],
-                'trendLitabmas' => $this->buildCategoryList($this->repository->getTrendLitabmas($semesters)),
-                'sumberDana' => $this->buildSimpleList($this->repository->getSumberDana($semesters)),
+                'trendLitabmas' => $this->buildCategoryList($this->repository->getTrendLitabmas($semesters, $fakultas, $prodi)),
+                'sumberDana' => $this->buildSimpleList($this->repository->getSumberDana($semesters, $fakultas, $prodi)),
+                // sebaranFakultas: tetap aggregate per fakultas (tidak narrow ke single fak) supaya drill-down breakdown tetap kelihatan
                 'sebaranFakultas' => $this->buildCategoryList($this->repository->getSebaranFakultas($semesters)),
-                'bidangFokus' => $this->buildSimpleList($this->repository->getBidangFokus($semesters)),
-                'skimKegiatan' => $this->buildSimpleList($this->repository->getSkimKegiatan($semesters)),
+                'bidangFokus' => $this->buildSimpleList($this->repository->getBidangFokus($semesters, $fakultas, $prodi)),
+                'skimKegiatan' => $this->buildSimpleList($this->repository->getSkimKegiatan($semesters, $fakultas, $prodi)),
             ];
         });
     }

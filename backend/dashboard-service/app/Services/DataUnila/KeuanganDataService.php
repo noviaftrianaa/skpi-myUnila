@@ -28,10 +28,10 @@ class KeuanganDataService
         return $this->cache->remember($key, self::TTL_LIST, fn() => $this->repository->getUktList($params));
     }
 
-    public function getUktStats(): array
+    public function getUktStats(array $params = []): array
     {
-        $key = 'data-unila:keuangan-ukt-stats';
-        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getUktStats());
+        $key = $this->cache->buildKey('data-unila', 'keuangan-ukt-stats', $params);
+        return $this->cache->remember($key, self::TTL_STATS, fn() => $this->repository->getUktStats($params));
     }
 
     public function getUktTahunList(): array

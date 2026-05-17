@@ -30,21 +30,48 @@ class AkademikDataController extends Controller
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
-    public function prodiStats(): JsonResponse
+    public function prodiStats(Request $request): JsonResponse
     {
-        try { return $this->success($this->service->getProdiStats(), 'Stats prodi'); }
+        try { return $this->success($this->service->getProdiStats($this->p($request)), 'Stats prodi'); }
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
-    public function akreditasiStats(): JsonResponse
+    public function akreditasiStats(Request $request): JsonResponse
     {
-        try { return $this->success($this->service->getAkreditasiStats(), 'Stats akreditasi'); }
+        try { return $this->success($this->service->getAkreditasiStats($this->p($request)), 'Stats akreditasi'); }
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
-    public function matkulStats(): JsonResponse
+    public function matkulStats(Request $request): JsonResponse
     {
-        try { return $this->success($this->service->getMatkulStats(), 'Stats matkul'); }
+        try { return $this->success($this->service->getMatkulStats($this->p($request)), 'Stats matkul'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function prodiDetail(string $id): JsonResponse
+    {
+        try {
+            $detail = $this->service->getProdiDetail($id);
+            if (empty($detail)) return $this->error('Prodi tidak ditemukan', 404);
+            return $this->success($detail, 'Detail prodi');
+        } catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function kurikulum(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getKurikulumList($this->p($request)), 'Data kurikulum'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function kurikulumStats(Request $request): JsonResponse
+    {
+        try { return $this->success($this->service->getKurikulumStats($this->p($request)), 'Stats kurikulum'); }
+        catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
+    }
+
+    public function kurikulumMatkul(string $id): JsonResponse
+    {
+        try { return $this->success($this->service->getKurikulumMatkul($id), 'Matkul kurikulum'); }
         catch (\Exception $e) { return $this->error('Gagal: ' . $e->getMessage()); }
     }
 
@@ -52,6 +79,9 @@ class AkademikDataController extends Controller
     {
         return ['page'=>$r->query('page',1),'limit'=>$r->query('limit',20),'search'=>$r->query('search'),
             'sort_by'=>$r->query('sort_by'),'sort_order'=>$r->query('sort_order','asc'),
-            'id_fakultas'=>$r->query('id_fakultas'),'id_prodi'=>$r->query('id_prodi'),'id_sms'=>$r->query('id_sms')];
+            'id_fakultas'=>$r->query('id_fakultas'),'id_prodi'=>$r->query('id_prodi'),'id_sms'=>$r->query('id_sms'),
+            'id_jurusan'=>$r->query('id_jurusan'),'unit_filter'=>$r->query('unit_filter'),
+            'expiring'=>$r->query('expiring'),
+            'akred_status'=>$r->query('akred_status')];
     }
 }

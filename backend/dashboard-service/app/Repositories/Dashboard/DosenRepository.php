@@ -16,12 +16,15 @@ class DosenRepository extends BaseRepository
      */
     private function baseDosenJoin(): string
     {
+        // Canonical filter: aktif (id_stat_aktif=1), reg_ptk Unila aktif (jns_keluar IS NULL),
+        // sms aktif (stat_prodi='A'). Konsisten dgn Data Unila Daftar Dosen (1.552).
         return "
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
             INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm = 12
+              AND sdm.id_stat_aktif = 1
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
         ";
@@ -39,6 +42,23 @@ class DosenRepository extends BaseRepository
         return "";
     }
 
+    /**
+     * Build combined fakultas+prodi filter for dosen queries.
+     * Prodi (id_sms) takes precedence over fakultas (id_fak_unila).
+     */
+    private function buildDosenLocationFilter(?string $fakultas, ?string $prodi, array &$bindings): string
+    {
+        if ($prodi) {
+            $bindings[] = $prodi;
+            return " AND s.id_sms = ?";
+        }
+        if ($fakultas) {
+            $bindings[] = $fakultas;
+            return " AND s.id_fak_unila = ?";
+        }
+        return "";
+    }
+
     // =========================================
     // STAT CARDS
     // =========================================
@@ -46,10 +66,10 @@ class DosenRepository extends BaseRepository
     /**
      * Count total dosen aktif
      */
-    public function countTotal(?string $fakultas = null): int
+    public function countTotal(?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "SELECT COUNT(DISTINCT sdm.id_sdm) " . $this->baseDosenJoin() . $fakFilter;
 
@@ -59,20 +79,25 @@ class DosenRepository extends BaseRepository
     /**
      * Count dosen dengan jabfung Guru Besar (Profesor)
      */
-    public function countGuruBesar(?string $fakultas = null): int
+    public function countGuruBesar(?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
+        // Canonical = public-service definition: homebase aktif + thn_ajaran aktif (= 165 dosen GB).
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
-            INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                AND kp.id_thn_ajaran = (SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran WHERE a_periode_aktif = 1 AND expired_date IS NULL ORDER BY id_thn_ajaran DESC)
+            INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_fak_unila IS NOT NULL
             INNER JOIN pdrd.rwy_fungsional rf ON rf.id_sdm = sdm.id_sdm AND rf.soft_delete = 0
             INNER JOIN ref.jabfung jf ON rf.id_jabfung = jf.id_jabfung
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm = 12
+              AND sdm.id_stat_aktif = 1
               AND ptk.id_jns_keluar IS NULL
               AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
               AND (UPPER(jf.nm_jabfung) LIKE '%GURU BESAR%' OR UPPER(jf.nm_jabfung) LIKE '%PROFESOR%')
@@ -91,10 +116,10 @@ class DosenRepository extends BaseRepository
     /**
      * Count dosen bergelar S3 (Doktor)
      */
-    public function countDoktor(?string $fakultas = null): int
+    public function countDoktor(?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
@@ -117,16 +142,12 @@ class DosenRepository extends BaseRepository
     /**
      * Rasio dosen : mahasiswa
      */
-    public function getRasio(?string $fakultas = null): string
+    public function getRasio(?string $fakultas = null, ?string $prodi = null): string
     {
-        $totalDosen = $this->countTotal($fakultas);
+        $totalDosen = $this->countTotal($fakultas, $prodi);
 
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = '';
-        if ($fakultas) {
-            $fakFilter = " AND s.id_fak_unila = ?";
-            $bindings[] = $fakultas;
-        }
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(rp.id_reg_pd)
@@ -156,10 +177,10 @@ class DosenRepository extends BaseRepository
     /**
      * Distribusi jenjang pendidikan tertinggi dosen
      */
-    public function getJenjangPendidikan(?string $fakultas = null): array
+    public function getJenjangPendidikan(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -250,10 +271,10 @@ class DosenRepository extends BaseRepository
      * Heatmap pendidikan vs jabatan fungsional
      * Returns [{x: jabfung, y: jenjang, value: count}]
      */
-    public function getHeatmapPendidikanJabfung(?string $fakultas = null): array
+    public function getHeatmapPendidikanJabfung(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -298,10 +319,10 @@ class DosenRepository extends BaseRepository
      * Heatmap usia vs jabatan fungsional
      * Returns [{x: jabfung, y: ageGroup, value: count}]
      */
-    public function getHeatmapUsiaJabfung(?string $fakultas = null): array
+    public function getHeatmapUsiaJabfung(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -351,10 +372,10 @@ class DosenRepository extends BaseRepository
     /**
      * Distribusi ikatan kerja dosen (PNS, PPPK, Tetap Non-PNS, Kontrak)
      */
-    public function getIkatanKerja(?string $fakultas = null): array
+    public function getIkatanKerja(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -394,10 +415,10 @@ class DosenRepository extends BaseRepository
      * Distribusi gender dan usia dosen
      * Returns [{ageGroup, male, female}]
      */
-    public function getGenderUsia(?string $fakultas = null): array
+    public function getGenderUsia(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT
@@ -440,10 +461,10 @@ class DosenRepository extends BaseRepository
      * Sertifikasi dosen per jabatan fungsional
      * Returns [{name: jabfung, value: count, category: 'Sudah Serdos'/'Belum Serdos'}]
      */
-    public function getSertifikasiJabfung(?string $fakultas = null): array
+    public function getSertifikasiJabfung(?string $fakultas = null, ?string $prodi = null): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $fakFilter = $this->buildDosenFakultasFilter($fakultas, $bindings);
+        $fakFilter = $this->buildDosenLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT

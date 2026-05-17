@@ -9,13 +9,13 @@ import { Spinner, Chip, Button, Card, CardBody, Dropdown, DropdownTrigger, Dropd
 import { FiEye, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiRotateCcw, FiEdit, FiTrash2, FiMoreVertical } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import DataTable, { type Column } from "@/shared/components/ui/DataTable";
-import { getMyPengajuan, getJenisLayananPublic, deletePengajuanDraft } from "@/lib/services/sim-bak/simBakService";
+import { getMyPengajuan, getJenisLayananPublic, deletePengajuanDraft, getMyStats } from "@/lib/services/sim-bak/simBakService";
 import toast, { Toaster } from "react-hot-toast";
 import type { Pengajuan, StatusPengajuan, JenisLayanan } from "@/lib/services/sim-bak/types";
 import { StatusBadge, getStatusLabel } from "../components";
 import EmptyState from "../components/EmptyState";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { SkeletonStatCards, SkeletonTable } from "../components/SkeletonCard";
+import { SkeletonTable } from "../components/SkeletonCard";
 const allStatuses: StatusPengajuan[] = ["draft","diajukan","perlu_perbaikan","diverifikasi","menunggu_persetujuan","disetujui","ditolak","terbit"];
 const statusLabelMap: Record<string, string> = { draft:"Draft", diajukan:"Diajukan", perlu_perbaikan:"Perlu Perbaikan", diverifikasi:"Diverifikasi", menunggu_persetujuan:"Menunggu Persetujuan", disetujui:"Disetujui", ditolak:"Ditolak", terbit:"Terbit" };
 
@@ -28,6 +28,7 @@ export default function RiwayatPengajuanPage() {
   const [filterLayanan, setFilterLayanan] = useState("");
   const [layananList, setLayananList] = useState<JenisLayanan[]>([]);
   const [page, setPage] = useState(1);
+  const [stats, setStats] = useState({ total: 0, draft: 0, proses: 0, selesai: 0, ditolak: 0, perbaikan: 0 });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -38,11 +39,18 @@ export default function RiwayatPengajuanPage() {
     finally { setLoading(false); }
   }, [page, filterStatus]);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const s = await getMyStats();
+      setStats(s);
+    } catch { /* keep zeros */ }
+  }, []);
+
   const [deleting, setDeleting] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   useEffect(() => { getJenisLayananPublic().then(setLayananList).catch(() => {}); }, []);
-  useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+  useEffect(() => { if (user) { fetchData(); fetchStats(); } }, [user, fetchData, fetchStats]);
 
   const handleDeleteDraft = async (id: string) => {
     setDeleteConfirmId("");
@@ -62,13 +70,6 @@ export default function RiwayatPengajuanPage() {
     if (!filterLayanan) return data;
     return data.filter(p => p.kode_layanan === filterLayanan);
   }, [data, filterLayanan]);
-
-  const stats = useMemo(() => ({
-    total: data.length,
-    proses: data.filter(p => ["diajukan","diverifikasi","menunggu_persetujuan"].includes(p.status)).length,
-    selesai: data.filter(p => ["disetujui","terbit"].includes(p.status)).length,
-    ditolak: data.filter(p => p.status === "ditolak").length,
-  }), [data]);
 
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>;
 
@@ -133,15 +134,16 @@ export default function RiwayatPengajuanPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pantau status dan progres semua pengajuan Anda</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {statCards.map(card => (
-            <Card key={card.label} className="border-none shadow-md rounded-xl overflow-hidden dark:bg-gray-800">
-              <CardBody className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${card.gradient} text-white`}>{card.icon}</div>
+            <Card key={card.label} className={`min-w-0 border-none shadow-lg rounded-xl overflow-hidden bg-gradient-to-br ${card.gradient}`}>
+              <CardBody className="p-4 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-16 h-16 bg-white/10 rounded-full pointer-events-none" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shadow">{card.icon}</div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.label}</p>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+                    <p className="text-[10px] sm:text-xs font-medium text-white/80 uppercase tracking-wide">{card.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white">{card.value}</p>
                   </div>
                 </div>
               </CardBody>

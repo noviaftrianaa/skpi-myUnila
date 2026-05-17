@@ -25,4 +25,16 @@ class TracerDataService
         $key = $this->cache->buildKey('data-unila', 'tracer-stats', $params);
         return $this->cache->remember($key, 60, fn() => $this->repository->getStats($params));
     }
+
+    public function getSurveyAtasanList(array $params): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'survey-atasan-list', $params);
+        return $this->cache->remember($key, 15, fn() => $this->repository->getSurveyAtasanList($params));
+    }
+
+    public function getSurveyAtasanStats(array $params = []): array
+    {
+        $key = $this->cache->buildKey('data-unila', 'survey-atasan-stats', $params);
+        return $this->cache->remember($key, 60, fn() => $this->repository->getSurveyAtasanStats($params));
+    }
 }

@@ -23,6 +23,14 @@ import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { KerjasamaData } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -31,6 +39,16 @@ export default function DashboardKerjasamaPage() {
     const scope = useRoleBasedScope();
 
     const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
+    const [unitItems, setUnitItems] = useState<string[]>([]);
+    const unitFilterStr = unitItems.join(",");
+    const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+    useEffect(() => {
+        mahasiswaDataService.getFilters({
+            id_fakultas: scope.forcedFakultas || undefined,
+            id_jurusan: scope.forcedJurusan || undefined,
+        }).then(setOrgFilters).catch(console.error);
+    }, [scope.forcedFakultas, scope.forcedJurusan]);
 
     const { semester, activeSemesters } = useDashboardReference();
 
@@ -47,11 +65,26 @@ export default function DashboardKerjasamaPage() {
             semester: semesterParam,
             ...(scope.forcedFakultas && { fakultas: scope.forcedFakultas }),
             ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+            ...(unitFilterStr && { unit_filter: unitFilterStr }),
         }
     );
 
     const handleReset = () => {
         setSelectedSemesters(new Set(activeSemesters));
+        setUnitItems([]);
+    };
+
+    const handleExport = (fmtType: ExportFormat) => {
+        if (!data) { toast.error("Data belum dimuat"); return; }
+        const rows = (data.mitraByType || []).map((r) => ({ type: r.name, jumlah: r.value }));
+        if (!rows.length) { toast.error("Tidak ada data"); return; }
+        const baseName = `kerjasama-mitra-type-${semesterParam || "all"}`;
+        const headers = { type: "Tipe Mitra", jumlah: "Jumlah Mitra" } as const;
+        if (fmtType === "excel") { exportToExcel(rows as unknown as Record<string, unknown>[], baseName, "Kerjasama", headers); toast.success("Excel di-download"); }
+        else if (fmtType === "csv-client") { exportToCsv(rows as unknown as Record<string, unknown>[], baseName, headers); toast.success("CSV di-download"); }
+        else if (fmtType === "pdf") { exportToPdf(rows as unknown as Record<string, unknown>[], baseName, { title: "Kerjasama by Mitra Type", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
+        else if (fmtType === "json") { exportToJson(rows, baseName); toast.success("JSON di-download"); }
+        else { toast("Server export belum tersedia"); }
     };
 
     return (
@@ -61,7 +94,9 @@ export default function DashboardKerjasamaPage() {
             appKey={APP_KEY}
             fallbackMenus={pimpinanMenuConfig}
         >
+            <Toaster position="top-right" />
             <div className="p-6 space-y-6">
+                <ScopeBadge />
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -81,6 +116,19 @@ export default function DashboardKerjasamaPage() {
                     scopeBadge={scope.scopeName}
                     onReset={handleReset}
                 />
+                <div className="flex flex-wrap gap-3 items-end p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+                    <div className="flex-1 min-w-[240px]">
+                        <UnitFilter
+                            data={orgFilters}
+                            value={unitItems}
+                            onChange={(next) => setUnitItems(next)}
+                            forcedFakultas={scope.forcedFakultas || undefined}
+                            forcedJurusan={scope.forcedJurusan || undefined}
+                            forcedProdi={scope.forcedProdi || undefined}
+                        />
+                    </div>
+                    <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
+                </div>
 
                 {loading && <DashboardSkeleton />}
                 {error && <ErrorAlert message={error} onRetry={refetch} />}
@@ -95,6 +143,8 @@ export default function DashboardKerjasamaPage() {
                                 icon={<FiUsers className="w-6 h-6 text-white" />}
                                 color="indigo"
                                 trend={{ value: data.stats.totalMitra.trend ?? 0, label: "YoY" }}
+                                href="/dashboard/data-unila/kerjasama"
+                                hint="Lihat detail seluruh mitra kerjasama"
                             />
                             <StatCard
                                 title="MoU Aktif"
@@ -102,6 +152,8 @@ export default function DashboardKerjasamaPage() {
                                 icon={<FiFileText className="w-6 h-6 text-white" />}
                                 color="green"
                                 trend={{ value: data.stats.mouAktif.trend ?? 0, label: "YoY" }}
+                                href="/dashboard/data-unila/kerjasama"
+                                hint="Lihat detail kerjasama (filter MoU aktif di halaman)"
                             />
                             <StatCard
                                 title="Mitra Internasional"
@@ -141,7 +193,7 @@ export default function DashboardKerjasamaPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <PieChart
                                         data={data.mitraByScope}
                                         donut={true}
@@ -162,7 +214,7 @@ export default function DashboardKerjasamaPage() {
                                     </div>
                                 </CardHeader>
                                 <Divider />
-                                <CardBody>
+                                <CardBody className="min-h-[480px]">
                                     <LineChart
                                         data={data.trenKerjasama}
                                         height={300}
@@ -183,7 +235,7 @@ export default function DashboardKerjasamaPage() {
                                 </div>
                             </CardHeader>
                             <Divider />
-                            <CardBody>
+                            <CardBody className="min-h-[480px]">
                                 <BarChart
                                     data={data.mitraByType}
                                     horizontal={true}

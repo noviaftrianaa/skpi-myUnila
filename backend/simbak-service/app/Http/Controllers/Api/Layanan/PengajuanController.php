@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Layanan\PengajuanRepository;
 use App\Repositories\MasterData\JenisLayananRepository;
 use App\Repositories\PdutRepository;
+use App\Repositories\Ref\KetentuanLayananRepository;
 use App\Services\MinioService;
 use App\Traits\ApiResponse;
 use App\Traits\ValidatesFileSignature;
@@ -21,6 +22,7 @@ class PengajuanController extends Controller
     protected PengajuanRepository $repository;
     protected JenisLayananRepository $jenisLayananRepo;
     protected PdutRepository $pdutRepository;
+    protected KetentuanLayananRepository $ketentuanRepository;
     protected MinioService $minioService;
 
     public function __construct()
@@ -28,6 +30,7 @@ class PengajuanController extends Controller
         $this->repository = new PengajuanRepository();
         $this->jenisLayananRepo = new JenisLayananRepository();
         $this->pdutRepository = new PdutRepository();
+        $this->ketentuanRepository = new KetentuanLayananRepository();
         $this->minioService = new MinioService();
     }
 
@@ -75,6 +78,21 @@ class PengajuanController extends Controller
     }
 
     /**
+     * Mahasiswa: statistik agregat pengajuan saya.
+     */
+    public function myStats(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $stats = $this->repository->getMyStats($user->id_pengguna);
+            return $this->successResponse($stats);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.myStats: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Create pengajuan baru.
      */
     public function store(Request $request): JsonResponse
@@ -87,10 +105,20 @@ class PengajuanController extends Controller
                 'alasan' => 'nullable|string',
                 'catatan_pemohon' => 'nullable|string',
                 'id_smt_mulai_cuti' => 'nullable|string|max:10',
+                'id_smt_akhir_cuti' => 'nullable|string|max:10',
                 'jumlah_semester_cuti' => 'nullable|integer|in:1,2',
+                'kategori_cuti' => 'nullable|string|max:30',
+                'kategori_undur' => 'nullable|string|max:30',
+                'nm_pt_tujuan' => 'nullable|string|max:200',
                 'id_prodi_tujuan' => 'nullable|uuid',
                 'id_fakultas_tujuan' => 'nullable|uuid',
                 'a_dari_luar' => 'nullable|boolean',
+                'nomor_surat_polisi' => 'nullable|string|max:100',
+                'tgl_surat_polisi' => 'nullable|date',
+                'nomor_surat_ket_aktif' => 'nullable|string|max:100',
+                'tgl_surat_ket_aktif' => 'nullable|date',
+                'nomor_sk_cuti' => 'nullable|string|max:100',
+                'tgl_sk_cuti' => 'nullable|date',
             ];
 
             // Validasi tambahan untuk pengajuan dari luar Unila
@@ -163,8 +191,22 @@ class PengajuanController extends Controller
                 }
 
                 if ($jenisLayanan->kode_layanan === 'PM-CUTI') {
+                    if (empty($data['kategori_cuti'])) {
+                        $data['kategori_cuti'] = 'terencana';
+                    }
+                    if (empty($data['id_smt_mulai_cuti'])) {
+                        return $this->errorResponse('Semester mulai cuti wajib dipilih', 422);
+                    }
                     if (empty($data['jumlah_semester_cuti'])) {
                         return $this->errorResponse('Jumlah semester cuti wajib diisi (1 atau 2)', 422);
+                    }
+                    if (empty($data['id_smt_akhir_cuti'])) {
+                        return $this->errorResponse('Semester akhir cuti wajib diisi', 422);
+                    }
+                    // Validasi konsistensi: hitung akhir dari mulai + jumlah
+                    $expectedAkhir = $this->computeSemesterAkhir($data['id_smt_mulai_cuti'], (int) $data['jumlah_semester_cuti']);
+                    if ($expectedAkhir && $data['id_smt_akhir_cuti'] !== $expectedAkhir) {
+                        return $this->errorResponse('Semester akhir cuti tidak sesuai dengan semester mulai dan jumlah semester', 422);
                     }
                     if ($pdutData && !empty($pdutData['semester_aktif']) && (int)$pdutData['semester_aktif'] <= 1) {
                         return $this->errorResponse('Cuti akademik tidak dapat diajukan pada semester 1', 422);
@@ -181,20 +223,36 @@ class PengajuanController extends Controller
                         $semester = (int) ($pdutData['semester_aktif'] ?? 0);
                         $jenjang = strtolower($pdutData['nm_jenjang'] ?? '');
 
-                        $errors = [];
-                        if (in_array($jenjang, ['s1', 'sarjana'])) {
-                            if ($ipk < 2.75) $errors[] = "IPK minimal 2.75 (IPK Anda: {$ipk})";
-                            if ($sks < 40) $errors[] = "SKS lulus minimal 40 (SKS Anda: {$sks})";
-                            if ($semester > 5) $errors[] = "Maksimal semester 5 (semester Anda: {$semester})";
-                        } elseif (in_array($jenjang, ['d3', 'diploma'])) {
-                            if ($ipk < 2.50) $errors[] = "IPK minimal 2.50 (IPK Anda: {$ipk})";
-                            if ($sks < 36) $errors[] = "SKS lulus minimal 36 (SKS Anda: {$sks})";
-                            if ($semester > 5) $errors[] = "Maksimal semester 5 (semester Anda: {$semester})";
-                        } elseif (in_array($jenjang, ['s2', 's3', 'magister', 'doktor'])) {
-                            if ($ipk < 3.00) $errors[] = "IPK minimal 3.00 (IPK Anda: {$ipk})";
-                            if ($sks < 12) $errors[] = "SKS lulus minimal 12 (SKS Anda: {$sks})";
-                            if ($semester > 3) $errors[] = "Maksimal semester 3 (semester Anda: {$semester})";
+                        // Blokade mahasiswa pascasarjana
+                        if (in_array($jenjang, ['s2', 's3', 'magister', 'doktor'])) {
+                            return $this->errorResponse(
+                                'Mahasiswa Pascasarjana tidak dapat mengajukan Alih Program.',
+                                422
+                            );
                         }
+
+                        // Validasi hierarki jenjang prodi tujuan
+                        $jenjangTujuan = strtolower($this->repository->getJenjangProdi($data['id_prodi_tujuan']) ?? '');
+                        $allowedTujuan = match (true) {
+                            in_array($jenjang, ['d3', 'diploma']) => ['d3', 'diploma'],
+                            in_array($jenjang, ['s1', 'sarjana']) => ['d3', 'diploma', 's1', 'sarjana'],
+                            default => [],
+                        };
+                        if ($jenjangTujuan && !in_array($jenjangTujuan, $allowedTujuan)) {
+                            $jenjangAsalLabel = strtoupper($jenjang);
+                            $allowedLabel = $jenjang === 's1' || $jenjang === 'sarjana' ? 'D3 atau S1' : 'D3';
+                            return $this->errorResponse(
+                                "Mahasiswa jenjang {$jenjangAsalLabel} hanya boleh memilih prodi tujuan jenjang {$allowedLabel}.",
+                                422
+                            );
+                        }
+
+                        // Validasi syarat akademik dinamis dari ref.ketentuan_layanan
+                        $errors = $this->validateAcademicRules(
+                            $jenisLayanan->id_jenis_layanan,
+                            $jenjang,
+                            ['ipk' => $ipk, 'sks' => $sks, 'semester' => $semester]
+                        );
 
                         if (!empty($errors)) {
                             return $this->errorResponse(
@@ -208,6 +266,32 @@ class PengajuanController extends Controller
                 if ($jenisLayanan->kode_layanan === 'PM-UNDUR') {
                     if (empty($data['alasan'])) {
                         return $this->errorResponse('Alasan pengunduran diri wajib diisi', 422);
+                    }
+                    if (empty($data['kategori_undur'])) {
+                        $data['kategori_undur'] = 'undur_diri';
+                    }
+                    if ($data['kategori_undur'] === 'pindah_pt' && empty($data['nm_pt_tujuan'])) {
+                        return $this->errorResponse('Nama perguruan tinggi tujuan wajib diisi untuk kategori pindah PT', 422);
+                    }
+                }
+
+                // SK-PKKMB & SK-KTM: wajib nomor surat polisi + nomor surat keterangan aktif
+                if (in_array($jenisLayanan->kode_layanan, ['SK-PKKMB', 'SK-KTM'])) {
+                    if (empty($data['nomor_surat_polisi'])) {
+                        return $this->errorResponse('Nomor Surat Kehilangan dari Kepolisian wajib diisi', 422);
+                    }
+                    if (empty($data['nomor_surat_ket_aktif'])) {
+                        return $this->errorResponse('Nomor Surat Keterangan Mahasiswa Aktif dari Fakultas wajib diisi', 422);
+                    }
+                }
+
+                // SK-HERREG: wajib nomor & tanggal SK Cuti
+                if ($jenisLayanan->kode_layanan === 'SK-HERREG') {
+                    if (empty($data['nomor_sk_cuti'])) {
+                        return $this->errorResponse('Nomor SK Cuti Akademik wajib diisi', 422);
+                    }
+                    if (empty($data['tgl_sk_cuti'])) {
+                        return $this->errorResponse('Tanggal SK Cuti Akademik wajib diisi', 422);
                     }
                 }
             } else {
@@ -334,6 +418,214 @@ class PengajuanController extends Controller
     }
 
     /**
+     * Pendaftaran PM-ALIH eksternal (calon mahasiswa dari luar Unila).
+     * Khusus admin BAK / admin fakultas — input atas nama pemohon yang mendaftar manual.
+     *
+     * Mendukung upload dokumen via multipart/form-data (key: dokumen[0], dokumen[1], dst).
+     * Setelah create + upload, status langsung di-set ke 'diajukan' (skip draft).
+     */
+    public function storeEksternal(Request $request): JsonResponse
+    {
+        try {
+            $data = $request->validate([
+                'id_jenis_layanan' => 'required|uuid',
+                // Data pemohon
+                'nm_mahasiswa' => 'required|string|max:200',
+                'nim_asal' => 'required|string|max:20',
+                'nm_pt_asal' => 'required|string|max:200',
+                'nm_prodi_asal' => 'nullable|string|max:200',
+                'nm_jenjang_asal' => 'required|string|max:50',
+                'akreditasi_prodi_asal' => 'nullable|string|max:50',
+                'tempat_lahir' => 'nullable|string|max:100',
+                'tgl_lahir' => 'nullable|date',
+                'jenis_kelamin' => 'nullable|string|in:L,P',
+                'ipk' => 'nullable|numeric|min:0|max:4',
+                'sks_lulus' => 'nullable|integer|min:0',
+                'semester_aktif' => 'nullable|integer|min:1',
+                // Kontak (untuk notifikasi karena calon tidak punya SSO)
+                'email_pemohon' => 'required|email|max:150',
+                'no_hp_pemohon' => 'required|string|max:30',
+                // Tujuan
+                'id_prodi_tujuan' => 'required|uuid',
+                'id_fakultas_tujuan' => 'required|uuid',
+                // Catatan
+                'alasan' => 'nullable|string',
+                'catatan_pemohon' => 'nullable|string',
+                // SK Dekan (hasil verifikasi & penerimaan fakultas tujuan)
+                'nomor_sk_dekan' => 'required|string|max:100',
+                'tgl_sk_dekan' => 'required|date',
+                'file_sk_dekan' => 'required|file|mimes:pdf|max:20480',
+                'catatan_verifikasi' => 'nullable|string',
+                // Dokumen pendukung lainnya (transkrip, dll)
+                'dokumen' => 'nullable|array',
+                'dokumen.*' => 'file|max:20480',
+            ]);
+
+            $user = $request->user();
+            $jenisLayanan = $this->jenisLayananRepo->findById($data['id_jenis_layanan']);
+            if (!$jenisLayanan) return $this->notFoundResponse('Jenis layanan tidak ditemukan');
+            if ($jenisLayanan->kode_layanan !== 'PM-ALIH') {
+                return $this->errorResponse('Pendaftaran eksternal hanya berlaku untuk Alih Program (PM-ALIH)', 422);
+            }
+
+            // Validasi jenjang asal: blokade Pascasarjana
+            $jenjangAsal = strtolower($data['nm_jenjang_asal']);
+            if (in_array($jenjangAsal, ['s2', 's3', 'magister', 'doktor'])) {
+                return $this->errorResponse(
+                    'Pendaftaran Alih Program tidak tersedia untuk jenjang Pascasarjana.',
+                    422
+                );
+            }
+
+            // Validasi hierarki jenjang tujuan
+            $jenjangTujuan = strtolower($this->repository->getJenjangProdi($data['id_prodi_tujuan']) ?? '');
+            $allowedTujuan = match (true) {
+                in_array($jenjangAsal, ['d3', 'diploma']) => ['d3', 'diploma'],
+                in_array($jenjangAsal, ['s1', 'sarjana']) => ['d3', 'diploma', 's1', 'sarjana'],
+                default => [],
+            };
+            if ($jenjangTujuan && !in_array($jenjangTujuan, $allowedTujuan)) {
+                $allowedLabel = in_array($jenjangAsal, ['s1', 'sarjana']) ? 'D3 atau S1' : 'D3';
+                return $this->errorResponse(
+                    "Calon mahasiswa jenjang " . strtoupper($jenjangAsal) . " hanya boleh memilih prodi tujuan jenjang {$allowedLabel}.",
+                    422
+                );
+            }
+
+            // Validasi syarat akademik dinamis (jika data IPK/SKS/semester diisi)
+            if (!empty($data['ipk']) || !empty($data['sks_lulus']) || !empty($data['semester_aktif'])) {
+                $errors = $this->validateAcademicRules(
+                    $jenisLayanan->id_jenis_layanan,
+                    $jenjangAsal,
+                    [
+                        'ipk' => $data['ipk'] ?? 0,
+                        'sks' => $data['sks_lulus'] ?? 0,
+                        'semester' => $data['semester_aktif'] ?? 0,
+                    ]
+                );
+                if (!empty($errors)) {
+                    return $this->errorResponse(
+                        "Calon belum memenuhi syarat Alih Program: " . implode('; ', $errors),
+                        422
+                    );
+                }
+            }
+
+            $this->repository->pgBeginTransaction($user->id_pengguna, $request->ip());
+
+            // Create pengajuan dengan status diperiksa_fakultas (skip tahap 1, 2, 3 — admin fakultas sekaligus verifikasi)
+            $pengajuanData = [
+                'id_jenis_layanan' => $data['id_jenis_layanan'],
+                'nomor_permohonan' => $this->repository->generateNomor($jenisLayanan->kode_layanan),
+                'id_pemohon' => null,
+                'a_dari_luar' => true,
+                'nm_pt_asal' => $data['nm_pt_asal'],
+                'alasan' => $data['alasan'] ?? null,
+                'catatan_pemohon' => $data['catatan_pemohon'] ?? null,
+                'id_prodi_tujuan' => $data['id_prodi_tujuan'],
+                'id_fakultas_tujuan' => $data['id_fakultas_tujuan'],
+                'status' => 'diperiksa_fakultas',
+                'tgl_diajukan' => date('Y-m-d H:i:s'),
+                'id_creator' => $user->id_pengguna,
+            ];
+            $pengajuan = $this->repository->create($pengajuanData);
+
+            // Snapshot data_pemohon eksternal
+            $this->repository->createDataPemohon([
+                'id_pengajuan' => $pengajuan->id_pengajuan,
+                'id_mahasiswa' => null,
+                'nim' => $data['nim_asal'],
+                'nm_mahasiswa' => $data['nm_mahasiswa'],
+                'tempat_lahir' => $data['tempat_lahir'] ?? null,
+                'tgl_lahir' => $data['tgl_lahir'] ?? null,
+                'jenis_kelamin' => $data['jenis_kelamin'] ?? null,
+                'nm_prodi' => $data['nm_prodi_asal'] ?? null,
+                'nm_jenjang' => $data['nm_jenjang_asal'],
+                'nm_jenjang_asal' => $data['nm_jenjang_asal'],
+                'nm_prodi_asal' => $data['nm_prodi_asal'] ?? null,
+                'ipk' => $data['ipk'] ?? null,
+                'sks_lulus' => $data['sks_lulus'] ?? null,
+                'semester_aktif' => $data['semester_aktif'] ?? null,
+                'nm_pt_asal' => $data['nm_pt_asal'],
+                'akreditasi_prodi_asal' => $data['akreditasi_prodi_asal'] ?? null,
+                'email_pemohon' => $data['email_pemohon'],
+                'no_hp_pemohon' => $data['no_hp_pemohon'],
+                'id_creator' => $user->id_pengguna,
+            ]);
+
+            // Upload SK Dekan (wajib untuk PM-ALIH eksternal)
+            $fileSk = $request->file('file_sk_dekan');
+            $pathSk = $this->minioService->uploadDokumenPengajuan(
+                $pengajuan->id_pengajuan,
+                'SK-DEKAN',
+                $fileSk
+            );
+            $this->repository->createDokumen([
+                'id_pengajuan' => $pengajuan->id_pengajuan,
+                'nm_dokumen' => 'SK Dekan',
+                'nama_file_asli' => $fileSk->getClientOriginalName(),
+                'path_file' => $pathSk,
+                'tipe_file' => $fileSk->getMimeType(),
+                'ukuran_byte' => $fileSk->getSize(),
+                'id_pengunggah' => $user->id_pengguna,
+                'nomor_dokumen' => $data['nomor_sk_dekan'],
+                'tgl_dokumen' => $data['tgl_sk_dekan'],
+                'keterangan' => 'SK Dekan tentang penerimaan calon alih program eksternal',
+                'id_creator' => $user->id_pengguna,
+            ]);
+
+            // Upload dokumen pendukung lainnya
+            if ($request->hasFile('dokumen')) {
+                foreach ($request->file('dokumen') as $idx => $file) {
+                    $namaDokumen = $request->input("dokumen_nm.{$idx}", $file->getClientOriginalName());
+                    $kodeDokumen = $request->input("dokumen_kode.{$idx}", 'EKSTERNAL');
+                    $pathFile = $this->minioService->uploadDokumenPengajuan($pengajuan->id_pengajuan, $kodeDokumen, $file);
+
+                    $this->repository->createDokumen([
+                        'id_pengajuan' => $pengajuan->id_pengajuan,
+                        'id_persyaratan' => $request->input("dokumen_persyaratan.{$idx}"),
+                        'nm_dokumen' => $namaDokumen,
+                        'nama_file_asli' => $file->getClientOriginalName(),
+                        'path_file' => $pathFile,
+                        'tipe_file' => $file->getMimeType(),
+                        'ukuran_byte' => $file->getSize(),
+                        'id_pengunggah' => $user->id_pengguna,
+                        'id_creator' => $user->id_pengguna,
+                    ]);
+                }
+            }
+
+            // Riwayat: gabungan Pendaftaran + Verifikasi Fakultas Tujuan + SK Dekan
+            // Sekaligus mewakili tahap 1, 2, 3 untuk pengajuan eksternal
+            $catatanRiwayat = "Pendaftaran calon dari {$data['nm_pt_asal']} sekaligus verifikasi & penerbitan SK Dekan No. {$data['nomor_sk_dekan']}";
+            if (!empty($data['catatan_verifikasi'])) {
+                $catatanRiwayat .= '. Catatan: ' . $data['catatan_verifikasi'];
+            }
+            $this->repository->createRiwayat([
+                'id_pengajuan' => $pengajuan->id_pengajuan,
+                'urutan' => 1,
+                'nm_tahapan' => 'Verifikasi & Penerimaan Fakultas Tujuan',
+                'status_dari' => '',
+                'status_ke' => 'diperiksa_fakultas',
+                'id_aktor' => $user->id_pengguna,
+                'nm_aktor' => $user->nm_pengguna ?? $user->nama ?? '',
+                'kode_role_aktor' => 'admin_fakultas',
+                'catatan' => $catatanRiwayat,
+            ]);
+
+            $this->repository->pgCommit();
+
+            return $this->createdResponse($pengajuan, 'Pendaftaran PM-ALIH eksternal berhasil dibuat');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            $this->repository->pgRollback();
+            Log::error('Pengajuan.storeEksternal: ' . $e->getMessage());
+            return $this->serverErrorResponse();
+        }
+    }
+
+    /**
      * Detail pengajuan.
      */
     public function show(string $id): JsonResponse
@@ -391,6 +683,81 @@ class PengajuanController extends Controller
         } catch (\Exception $e) {
             Log::error('Pengajuan.refSemester: ' . $e->getMessage());
             return $this->successResponse([]);
+        }
+    }
+
+    /**
+     * Cek KRS aktif mahasiswa pada semester tertentu (untuk validasi cuti tidak terencana).
+     */
+    public function cekKrs(Request $request, string $id): JsonResponse
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $pemohon = $this->repository->getDataPemohon($id);
+            if (!$pemohon || empty($pemohon->nim)) {
+                return $this->successResponse(['ada_krs' => false, 'message' => 'Data pemohon tidak ditemukan']);
+            }
+
+            $idSmt = $pengajuan->id_smt_mulai_cuti;
+            if (empty($idSmt)) {
+                return $this->successResponse(['ada_krs' => false, 'message' => 'Semester cuti belum ditentukan']);
+            }
+
+            $krs = $this->pdutRepository->getKrsAktif($pemohon->nim, $idSmt);
+
+            if ($krs && $krs['ada_krs']) {
+                return $this->successResponse([
+                    'ada_krs' => true,
+                    'nim' => $pemohon->nim,
+                    'id_smt' => $idSmt,
+                    'sks_semester' => $krs['sks_semester'],
+                    'message' => "Mahasiswa memiliki KRS aktif pada semester ini ({$krs['sks_semester']} SKS). Pastikan KRS sudah dihapus melalui SIAKAD sebelum memproses cuti.",
+                ]);
+            }
+
+            return $this->successResponse(['ada_krs' => false, 'message' => 'Tidak ditemukan KRS aktif']);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.cekKrs: ' . $e->getMessage());
+            return $this->successResponse(['ada_krs' => false, 'message' => 'Gagal mengecek KRS']);
+        }
+    }
+
+    public function riwayatCuti(string $id): JsonResponse
+    {
+        try {
+            $pengajuan = $this->repository->findById($id);
+            if (!$pengajuan) return $this->notFoundResponse();
+
+            $simbak = [];
+            if ($pengajuan->id_pemohon) {
+                $simbak = $this->repository->getRiwayatCutiByPemohon($pengajuan->id_pemohon, $id);
+            }
+
+            $pdut = [];
+            $pemohon = $this->repository->getDataPemohon($id);
+            if ($pemohon && !empty($pemohon->nim)) {
+                $pdut = $this->pdutRepository->getRiwayatCutiSiakad($pemohon->nim);
+            }
+
+            $totalSimbak = 0;
+            foreach ($simbak as $item) {
+                if ($item->status === 'terbit' && $item->jumlah_semester_cuti) {
+                    $totalSimbak += (int) $item->jumlah_semester_cuti;
+                }
+            }
+            $totalPdut = count($pdut);
+            $total = $totalSimbak + $totalPdut;
+
+            return $this->successResponse([
+                'simbak' => $simbak,
+                'pdut' => $pdut,
+                'total_semester_cuti' => $total,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Pengajuan.riwayatCuti: ' . $e->getMessage());
+            return $this->successResponse(['simbak' => [], 'pdut' => [], 'total_semester_cuti' => 0]);
         }
     }
 
@@ -583,5 +950,69 @@ class PengajuanController extends Controller
             Log::error('Pengajuan.ajukan: ' . $e->getMessage());
             return $this->serverErrorResponse();
         }
+    }
+
+    /**
+     * Validasi syarat akademik dinamis dari ref.ketentuan_layanan.
+     * Return: array pesan error (empty = lolos).
+     */
+    private function validateAcademicRules(string $idJenisLayanan, string $jenjang, array $values): array
+    {
+        $rules = $this->ketentuanRepository->getByJenisLayanan($idJenisLayanan);
+        if (empty($rules)) return [];
+
+        $jenjangNorm = match (strtolower($jenjang)) {
+            's1', 'sarjana' => 'S1',
+            'd3', 'diploma' => 'D3',
+            's2', 'magister' => 'S2',
+            's3', 'doktor' => 'S3',
+            default => strtoupper($jenjang),
+        };
+
+        $errors = [];
+        foreach ($rules as $rule) {
+            if ($rule->nm_jenjang && strtoupper($rule->nm_jenjang) !== $jenjangNorm) continue;
+
+            $actual = match ($rule->kode_ketentuan) {
+                'ipk_min' => (float) ($values['ipk'] ?? 0),
+                'sks_min' => (int) ($values['sks'] ?? 0),
+                'semester_max' => (int) ($values['semester'] ?? 0),
+                'masa_studi_min' => (int) ($values['semester'] ?? 0),
+                default => null,
+            };
+            if ($actual === null) continue;
+
+            $expected = (float) $rule->nilai;
+            $pass = match ($rule->operator) {
+                '>=' => $actual >= $expected,
+                '>'  => $actual >  $expected,
+                '<=' => $actual <= $expected,
+                '<'  => $actual <  $expected,
+                '='  => $actual == $expected,
+                '!=' => $actual != $expected,
+                default => true,
+            };
+
+            if (!$pass) {
+                $label = $rule->pesan_gagal ?: "{$rule->nm_ketentuan} {$rule->operator} {$rule->nilai}";
+                $unit = in_array($rule->kode_ketentuan, ['sks_min']) ? '' : '';
+                $errors[] = "{$label} (Anda: {$actual}{$unit})";
+            }
+        }
+        return $errors;
+    }
+
+    private function computeSemesterAkhir(string $idSmtMulai, int $jumlah): ?string
+    {
+        if (strlen($idSmtMulai) < 5) return null;
+        $year = (int) substr($idSmtMulai, 0, 4);
+        $sem = (int) substr($idSmtMulai, 4, 1);
+        if ($sem < 1 || $sem > 2) return null;
+
+        for ($i = 1; $i < $jumlah; $i++) {
+            if ($sem === 1) { $sem = 2; } else { $sem = 1; $year++; }
+        }
+
+        return $year . $sem;
     }
 }

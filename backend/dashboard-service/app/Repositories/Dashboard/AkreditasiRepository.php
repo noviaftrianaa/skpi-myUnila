@@ -30,6 +30,23 @@ class AkreditasiRepository extends BaseRepository
         ";
     }
 
+    /**
+     * Build inline filter clause utk INNER JOIN sms alias `s` (sudah ada di semua query).
+     * Append bindings ke array yang di-pass by ref.
+     */
+    private function buildOrgFilter(?string $fakultas, ?string $prodi, array &$bindings): string
+    {
+        if ($prodi) {
+            $bindings[] = $prodi;
+            return ' AND s.id_sms = ?';
+        }
+        if ($fakultas) {
+            $bindings[] = $fakultas;
+            return ' AND s.id_fak_unila = ?';
+        }
+        return '';
+    }
+
     // =========================================
     // STAT CARDS
     // =========================================
@@ -37,8 +54,11 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Count total prodi aktif yang terakreditasi
      */
-    public function countTotalProdi(): int
+    public function countTotalProdi(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
@@ -46,18 +66,21 @@ class AkreditasiRepository extends BaseRepository
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
             WHERE la.rn = 1
               AND s.id_sp = ?
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     /**
      * Count prodi with specific peringkat(s)
      * Accepts array of exact nm_akred values to match
      */
-    public function countByPeringkat(array $peringkatList): int
+    public function countByPeringkat(array $peringkatList, ?string $fakultas = null, ?string $prodi = null): int
     {
         $placeholders = implode(',', array_fill(0, count($peringkatList), '?'));
+        $bindings = array_merge([self::UNILA_ID_SP], $peringkatList);
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
@@ -68,16 +91,64 @@ class AkreditasiRepository extends BaseRepository
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND na.nm_akred IN ({$placeholders})
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, array_merge([self::UNILA_ID_SP], $peringkatList));
+        return (int) $this->selectScalar($sql, $bindings);
+    }
+
+    /**
+     * Count akreditasi yang akan expire ≤ 90 hari (current latest per prodi)
+     */
+    public function countAkanExpire(?string $fakultas = null, ?string $prodi = null): int
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
+        $sql = "
+            ;WITH " . $this->latestAkreditasiCTE() . "
+            SELECT COUNT(DISTINCT la.id_sms)
+            FROM latest_akred la
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            WHERE la.rn = 1
+              AND s.id_sp = ?
+              AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(DAY, 90, GETDATE())
+              {$orgFilter}
+        ";
+
+        return (int) $this->selectScalar($sql, $bindings);
+    }
+
+    /**
+     * Count akreditasi yang sudah expired (current latest per prodi)
+     */
+    public function countExpired(?string $fakultas = null, ?string $prodi = null): int
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
+        $sql = "
+            ;WITH " . $this->latestAkreditasiCTE() . "
+            SELECT COUNT(DISTINCT la.id_sms)
+            FROM latest_akred la
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            WHERE la.rn = 1
+              AND s.id_sp = ?
+              AND la.tst_sk_akreditasi_prodi < GETDATE()
+              {$orgFilter}
+        ";
+
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     /**
      * Count prodi dengan akreditasi internasional
      */
-    public function countInternasional(): int
+    public function countInternasional(?string $fakultas = null, ?string $prodi = null): int
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
@@ -87,9 +158,10 @@ class AkreditasiRepository extends BaseRepository
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
+              {$orgFilter}
         ";
 
-        return (int) $this->selectScalar($sql, [self::UNILA_ID_SP]);
+        return (int) $this->selectScalar($sql, $bindings);
     }
 
     // =========================================
@@ -99,8 +171,11 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Distribusi peringkat akreditasi [{name, value}]
      */
-    public function getDistribusiPeringkat(): array
+    public function getDistribusiPeringkat(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT
@@ -111,11 +186,12 @@ class AkreditasiRepository extends BaseRepository
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
+              {$orgFilter}
             GROUP BY na.nm_akred
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     // =========================================
@@ -125,8 +201,11 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Status kadaluarsa akreditasi [{name: range, value: count}]
      */
-    public function getStatusKadaluarsa(): array
+    public function getStatusKadaluarsa(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT
@@ -142,6 +221,7 @@ class AkreditasiRepository extends BaseRepository
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND la.tst_sk_akreditasi_prodi >= GETDATE()
+              {$orgFilter}
             GROUP BY
                 CASE
                     WHEN DATEDIFF(DAY, GETDATE(), la.tst_sk_akreditasi_prodi) < 365 THEN '< 1 Tahun'
@@ -152,7 +232,7 @@ class AkreditasiRepository extends BaseRepository
             ORDER BY MIN(la.tst_sk_akreditasi_prodi)
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     // =========================================
@@ -162,6 +242,9 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Sebaran akreditasi per fakultas [{id, name, value}]
      * Top-level drilldown: total akred prodi count per fakultas
+     *
+     * NOTE: tidak menerima filter fakultas/prodi — by design aggregate per fakultas
+     * supaya breakdown chart selalu tampil utuh.
      */
     public function getSebaranFakultas(): array
     {
@@ -212,6 +295,8 @@ class AkreditasiRepository extends BaseRepository
     /**
      * All peringkat per fakultas [{name: fakultas, value: count, category: peringkat}]
      * For stacked bar chart showing all accreditation levels
+     *
+     * NOTE: tidak menerima filter fakultas/prodi — by design aggregate per fakultas.
      */
     public function getAllPerFakultas(): array
     {
@@ -240,8 +325,11 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Akreditasi internasional grouped by lembaga [{name: lembaga, value: count}]
      */
-    public function getInternasional(): array
+    public function getInternasional(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT
@@ -253,18 +341,22 @@ class AkreditasiRepository extends BaseRepository
             WHERE la.rn = 1 AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
               AND la.tst_sk_akreditasi_prodi >= GETDATE()
+              {$orgFilter}
             GROUP BY lem.nm_lemb
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     /**
      * Detail prodi with international accreditation [{prodi, fak, strata, lembaga, exp}]
      */
-    public function getInternasionalDetail(): array
+    public function getInternasionalDetail(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT
@@ -281,10 +373,11 @@ class AkreditasiRepository extends BaseRepository
             WHERE la.rn = 1 AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
               AND la.tst_sk_akreditasi_prodi >= GETDATE()
+              {$orgFilter}
             ORDER BY uo.nm_lemb, s.nm_lemb
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     // =========================================
@@ -294,8 +387,11 @@ class AkreditasiRepository extends BaseRepository
     /**
      * Prodi expiring within 1 year [{prodi, fak, strata, rank, int, exp}]
      */
-    public function getExpiringProdi(): array
+    public function getExpiringProdi(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . ",
             intl AS (
@@ -319,21 +415,57 @@ class AkreditasiRepository extends BaseRepository
             LEFT JOIN intl ON intl.id_sms = la.id_sms
             WHERE la.rn = 1 AND s.id_sp = ?
               AND DATEDIFF(DAY, GETDATE(), la.tst_sk_akreditasi_prodi) BETWEEN 0 AND 365
+              {$orgFilter}
             ORDER BY la.tst_sk_akreditasi_prodi ASC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 
     // =========================================
     // DETAIL TABLE
     // =========================================
 
+    // =========================================
+    // EXPIRY CALENDAR (12-month timeline)
+    // =========================================
+
+    /**
+     * Jumlah akreditasi yg expire per bulan untuk 12 bulan ke depan.
+     * Return: [{year, month, expiring_count}, ...]
+     */
+    public function getExpiryCalendar(?string $fakultas = null, ?string $prodi = null): array
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
+        $sql = "
+            ;WITH " . $this->latestAkreditasiCTE() . "
+            SELECT
+                YEAR(la.tst_sk_akreditasi_prodi) as year,
+                MONTH(la.tst_sk_akreditasi_prodi) as month,
+                COUNT(DISTINCT la.id_sms) as expiring_count
+            FROM latest_akred la
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            WHERE la.rn = 1
+              AND s.id_sp = ?
+              AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(MONTH, 12, GETDATE())
+              {$orgFilter}
+            GROUP BY YEAR(la.tst_sk_akreditasi_prodi), MONTH(la.tst_sk_akreditasi_prodi)
+            ORDER BY year, month
+        ";
+
+        return $this->select($sql, $bindings);
+    }
+
     /**
      * Detail table: all prodi with their akreditasi info
      */
-    public function getDetailTable(): array
+    public function getDetailTable(?string $fakultas = null, ?string $prodi = null): array
     {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             ;WITH " . $this->latestAkreditasiCTE() . ",
             intl AS (
@@ -351,6 +483,7 @@ class AkreditasiRepository extends BaseRepository
                 jp.nm_jenj_didik as strata,
                 na.nm_akred as rank,
                 ISNULL(intl.nm_lemb_intl, '-') as [int],
+                la.sk_akreditasi_prodi as no_sk,
                 CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
             FROM latest_akred la
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
@@ -360,9 +493,10 @@ class AkreditasiRepository extends BaseRepository
             LEFT JOIN intl ON intl.id_sms = la.id_sms
             WHERE la.rn = 1
               AND s.id_sp = ?
+              {$orgFilter}
             ORDER BY uo.nm_lemb, s.nm_lemb
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP]);
+        return $this->select($sql, $bindings);
     }
 }

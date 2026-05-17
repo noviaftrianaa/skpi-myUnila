@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRequireAuth } from "@/lib/hoc/withAuth";
 import DashboardLayoutWithDynamicMenu from "@/shared/components/dashboard/DashboardLayoutWithDynamicMenu";
-import { Card, CardBody, Chip } from "@heroui/react";
+import { Card, CardBody } from "@heroui/react";
 import { MdSchool } from "react-icons/md";
 import { FiUsers, FiBookOpen, FiGlobe, FiTrendingUp, FiDollarSign, FiAward, FiInfo } from "react-icons/fi";
 import { dataUnilaMenuConfig } from "./config/menuConfig";
@@ -13,15 +13,14 @@ import overviewDataService, { type OverviewTotals } from "@/lib/services/data-un
 const APP_KEY = "data-unila";
 
 type ModuleDef = {
-  key: keyof OverviewTotals | "tridarma" | "akademik" | "iku" | "keuangan";
+  key: keyof OverviewTotals;
   title: string;
   desc: string;
   icon: React.ReactNode;
   href: string;
   color: string;
-  soon?: boolean;
-  // Hard-coded fallback untuk modul yang belum punya total endpoint (Tridarma, Akademik, dst).
-  staticCount?: string;
+  unit: string;
+  source: string;
 };
 
 const MODULES: ModuleDef[] = [
@@ -29,72 +28,81 @@ const MODULES: ModuleDef[] = [
     key: "mahasiswa",
     title: "Data Mahasiswa",
     desc: "Biodata, status, prodi, angkatan",
-    icon: <FiUsers className="w-8 h-8" />,
+    icon: <FiUsers className="w-7 h-7" />,
     href: "/dashboard/data-unila/mahasiswa",
     color: "from-blue-500 to-indigo-600",
+    unit: "Aktif",
+    source: "PDDikti / Feeder Neo",
   },
   {
     key: "dosen",
-    title: "Data Dosen & SDM",
-    desc: "Jabfung, pangkat, sertifikasi, diklat",
-    icon: <MdSchool className="w-8 h-8" />,
+    title: "Data Dosen",
+    desc: "Jabfung, pendidikan, sertifikasi dosen",
+    icon: <MdSchool className="w-7 h-7" />,
     href: "/dashboard/data-unila/dosen",
     color: "from-emerald-500 to-teal-600",
+    unit: "Aktif",
+    source: "SISTER",
+  },
+  {
+    key: "tendik",
+    title: "Daftar Tendik",
+    desc: "PNS, PPPK, honorer",
+    icon: <FiUsers className="w-7 h-7" />,
+    href: "/dashboard/data-unila/dosen/tendik",
+    color: "from-teal-500 to-cyan-600",
+    unit: "Aktif",
+    source: "SIKEP",
   },
   {
     key: "tridarma",
     title: "Data Tridarma",
-    desc: "Penelitian, publikasi, prestasi mahasiswa & dosen",
-    icon: <FiAward className="w-8 h-8" />,
-    href: "/dashboard/data-unila/tridarma/penelitian",
+    desc: "Pengajaran, penelitian, pengabdian & publikasi",
+    icon: <FiAward className="w-7 h-7" />,
+    href: "/dashboard/data-unila/tridarma/pengajaran",
     color: "from-violet-500 to-purple-600",
-    soon: true,
-    staticCount: "52K+",
+    unit: "Total",
+    source: "PDDikti / SISTER",
   },
   {
-    key: "akademik",
-    title: "Data Akademik",
-    desc: "Prodi, akreditasi, kurikulum, mata kuliah",
-    icon: <FiBookOpen className="w-8 h-8" />,
+    key: "prodi",
+    title: "Prodi Aktif",
+    desc: "Program studi terakreditasi (semua jenjang)",
+    icon: <FiBookOpen className="w-7 h-7" />,
     href: "/dashboard/data-unila/akademik/prodi",
     color: "from-amber-500 to-orange-600",
-    soon: true,
-    staticCount: "481 prodi",
+    unit: "Prodi",
+    source: "PDDikti",
   },
   {
     key: "kerjasama",
     title: "Data Kerjasama",
-    desc: "MoU, kerjasama internasional & dalam negeri",
-    icon: <FiGlobe className="w-8 h-8" />,
+    desc: "MoU & kerjasama dalam/luar negeri",
+    icon: <FiGlobe className="w-7 h-7" />,
     href: "/dashboard/data-unila/kerjasama",
     color: "from-cyan-500 to-blue-600",
+    unit: "MoU",
+    source: "Sikerma Unila",
   },
   {
     key: "tracer",
     title: "Tracer Study",
     desc: "Data lulusan, masa tunggu kerja, kepuasan",
-    icon: <FiTrendingUp className="w-8 h-8" />,
+    icon: <FiTrendingUp className="w-7 h-7" />,
     href: "/dashboard/data-unila/tracer",
     color: "from-pink-500 to-rose-600",
+    unit: "Lulusan",
+    source: "Tracer Study",
   },
   {
     key: "keuangan",
     title: "Data Keuangan",
     desc: "UKT & SPP — transaksi mahasiswa",
-    icon: <FiDollarSign className="w-8 h-8" />,
+    icon: <FiDollarSign className="w-7 h-7" />,
     href: "/dashboard/data-unila/keuangan/ukt",
     color: "from-green-500 to-emerald-600",
-    soon: true,
-    staticCount: "420K+",
-  },
-  {
-    key: "iku",
-    title: "Dashboard IKU",
-    desc: "Indikator Kinerja Utama — 6 IKU wajib & drilldown",
-    icon: <FiTrendingUp className="w-8 h-8" />,
-    href: "/dashboard/data-unila/iku",
-    color: "from-teal-500 to-cyan-600",
-    staticCount: "6 IKU",
+    unit: "Records",
+    source: "Siloket",
   },
 ];
 
@@ -118,21 +126,8 @@ export default function DataUnilaPage() {
 
   const getCount = (mod: ModuleDef): string => {
     if (loading) return "…";
-    if (mod.staticCount && !totals) return mod.staticCount;
-    if (!totals) return mod.staticCount || "—";
-
-    switch (mod.key) {
-      case "mahasiswa":
-        return fmt(totals.mahasiswa?.total);
-      case "dosen":
-        return fmt(totals.dosen?.total);
-      case "kerjasama":
-        return fmt(totals.kerjasama?.total);
-      case "tracer":
-        return fmt(totals.tracer?.total);
-      default:
-        return mod.staticCount || "—";
-    }
+    if (!totals) return "—";
+    return fmt(totals[mod.key]?.total);
   };
 
   return (
@@ -150,7 +145,7 @@ export default function DataUnilaPage() {
             Data Unila
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Portal raw data Universitas Lampung — IKU, akreditasi, dan pelaporan
+            Portal raw data Universitas Lampung — akreditasi dan pelaporan
           </p>
         </div>
 
@@ -170,28 +165,42 @@ export default function DataUnilaPage() {
         {/* Module Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {MODULES.map((mod) => (
-            <Link
-              key={mod.title}
-              href={mod.soon ? "#" : mod.href}
-              className={mod.soon ? "cursor-not-allowed" : ""}
-            >
-              <Card className={`border-none shadow-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 ${mod.soon ? "opacity-60" : "hover:-translate-y-1"}`}>
-                <CardBody className={`bg-gradient-to-br ${mod.color} p-5 text-white relative`}>
-                  <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -mr-14 -mt-14" />
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center shadow">
+            <Link key={mod.title} href={mod.href} className="group">
+              <Card className="border-none shadow-md group-hover:shadow-2xl rounded-2xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1">
+                <CardBody className={`bg-gradient-to-br ${mod.color} p-0 text-white relative overflow-hidden`}>
+                  {/* Soft glow accents — replace harsh circle */}
+                  <div className="absolute -top-16 -right-10 w-44 h-44 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-black/10 rounded-full blur-2xl pointer-events-none" />
+
+                  <div className="relative z-10 flex items-stretch min-h-[96px]">
+                    {/* Left: icon panel */}
+                    <div className="flex items-center justify-center pl-5 pr-1">
+                      <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center ring-1 ring-inset ring-white/25 shadow-inner">
                         {mod.icon}
                       </div>
-                      {mod.soon && (
-                        <Chip size="sm" className="bg-white/20 text-white font-medium text-xs border-none">
-                          Segera
-                        </Chip>
-                      )}
                     </div>
-                    <h3 className="text-lg font-bold mb-1">{mod.title}</h3>
-                    <p className="text-xs text-white/80 mb-3 line-clamp-2">{mod.desc}</p>
-                    <div className="text-2xl font-bold text-white/90">{getCount(mod)}</div>
+
+                    {/* Middle: title + desc + source badge */}
+                    <div className="flex-1 min-w-0 px-4 py-4 flex flex-col justify-center">
+                      <h3 className="text-base font-bold leading-tight">{mod.title}</h3>
+                      <p className="text-[11px] text-white/80 leading-snug line-clamp-2 mt-1">
+                        {mod.desc}
+                      </p>
+                      <span className="inline-flex items-center gap-1 self-start mt-2 px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-inset ring-white/25 text-[9px] font-semibold uppercase tracking-wider">
+                        <span className="w-1 h-1 rounded-full bg-white/80" />
+                        {mod.source}
+                      </span>
+                    </div>
+
+                    {/* Right: stat column */}
+                    <div className="flex flex-col items-end justify-center pl-3 pr-5 py-4 border-l border-white/15 min-w-[104px] bg-white/[0.04]">
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-white/70">
+                        {mod.unit}
+                      </span>
+                      <span className="text-[26px] leading-none font-extrabold tabular-nums mt-1.5 drop-shadow-sm">
+                        {getCount(mod)}
+                      </span>
+                    </div>
                   </div>
                 </CardBody>
               </Card>

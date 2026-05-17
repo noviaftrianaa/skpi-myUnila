@@ -28,6 +28,14 @@ import { useDashboardData, useDashboardReference } from "../hooks";
 import { ENDPOINTS } from "@/shared/api/endpoints";
 import type { DosenData } from "../types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
+import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
+import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import ExportMenu, { type ExportFormat } from "@/shared/components/data-unila/ExportMenu";
+import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
+import { exportToPdf } from "@/lib/utils/exportPdf";
+import toast, { Toaster } from "react-hot-toast";
 
 const APP_KEY = "dashboard-pimpinan";
 
@@ -36,6 +44,16 @@ export default function DashboardDosenPage() {
   const scope = useRoleBasedScope();
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
   const [selectedFakultas, setSelectedFakultas] = useState("");
+  const [unitItems, setUnitItems] = useState<string[]>([]);
+  const unitFilterStr = unitItems.join(",");
+  const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
+
+  useEffect(() => {
+    mahasiswaDataService.getFilters({
+      id_fakultas: scope.forcedFakultas || undefined,
+      id_jurusan: scope.forcedJurusan || undefined,
+    }).then(setOrgFilters).catch(console.error);
+  }, [scope.forcedFakultas, scope.forcedJurusan]);
 
   const { fakultas, semester, activeSemesters } = useDashboardReference();
 
@@ -61,13 +79,28 @@ export default function DashboardDosenPage() {
       semester: semesterParam,
       ...(effectiveFakultas && { fakultas: effectiveFakultas }),
       ...(scope.forcedProdi && { prodi: scope.forcedProdi }),
+      ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
 
   const handleReset = () => {
     setSelectedSemesters(new Set(activeSemesters));
+    setUnitItems([]);
     // Hanya reset selectedFakultas kalau user boleh ubah (Rektor)
     if (scope.canChangeFakultas) setSelectedFakultas("");
+  };
+
+  const handleExport = (fmtType: ExportFormat) => {
+    if (!data) { toast.error("Data belum dimuat"); return; }
+    const rows = (data.sebaranFakultas || []).map((r) => ({ fakultas: r.name, jumlah: r.value }));
+    if (!rows.length) { toast.error("Tidak ada data sebaran"); return; }
+    const baseName = `dosen-sebaran-${semesterParam || "all"}`;
+    const headers = { fakultas: "Fakultas", jumlah: "Jumlah Dosen" } as const;
+    if (fmtType === "excel") { exportToExcel(rows as unknown as Record<string, unknown>[], baseName, "Dosen", headers); toast.success("Excel di-download"); }
+    else if (fmtType === "csv-client") { exportToCsv(rows as unknown as Record<string, unknown>[], baseName, headers); toast.success("CSV di-download"); }
+    else if (fmtType === "pdf") { exportToPdf(rows as unknown as Record<string, unknown>[], baseName, { title: "Sebaran Dosen per Fakultas", headers, orientation: "landscape" }); toast.success("PDF di-download"); }
+    else if (fmtType === "json") { exportToJson(rows, baseName); toast.success("JSON di-download"); }
+    else { toast("Server export belum tersedia"); }
   };
 
   return (
@@ -77,7 +110,9 @@ export default function DashboardDosenPage() {
       appKey={APP_KEY}
       fallbackMenus={pimpinanMenuConfig}
     >
+      <Toaster position="top-right" />
       <div className="p-6 space-y-6">
+        <ScopeBadge />
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -100,7 +135,21 @@ export default function DashboardDosenPage() {
             showProdi={false}
             scopeBadge={scope.scopeName}
             onReset={handleReset}
+            onExport={() => handleExport("excel")}
           />
+        </div>
+        <div className="flex flex-wrap gap-3 items-end p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50">
+          <div className="flex-1 min-w-[240px]">
+            <UnitFilter
+              data={orgFilters}
+              value={unitItems}
+              onChange={(next) => setUnitItems(next)}
+              forcedFakultas={scope.forcedFakultas || undefined}
+              forcedJurusan={scope.forcedJurusan || undefined}
+              forcedProdi={scope.forcedProdi || undefined}
+            />
+          </div>
+          <ExportMenu onExport={handleExport} disabled={{ "csv-server": true }} />
         </div>
 
         {loading && <DashboardSkeleton />}
@@ -116,6 +165,8 @@ export default function DashboardDosenPage() {
                 icon={<FiUsers className="w-6 h-6 text-white" />}
                 color="blue"
                 description="Dosen Tetap & Tidak Tetap"
+                href="/dashboard/data-unila/dosen?status=aktif"
+                hint="Klik untuk daftar dosen aktif"
               />
               <StatCard
                 title="Guru Besar"
@@ -123,6 +174,8 @@ export default function DashboardDosenPage() {
                 icon={<FiAward className="w-6 h-6 text-white" />}
                 color="yellow"
                 description="Profesor Aktif"
+                href="/dashboard/data-unila/dosen/jabfung"
+                hint="Klik untuk daftar jabatan fungsional"
               />
               <StatCard
                 title="Bergelar Doktor"
@@ -130,6 +183,8 @@ export default function DashboardDosenPage() {
                 icon={<FiBookOpen className="w-6 h-6 text-white" />}
                 color="purple"
                 description="Pendidikan S3"
+                href="/dashboard/data-unila/dosen/pendidikan?jenjang=S3"
+                hint="Klik untuk daftar riwayat pendidikan S3"
               />
               <StatCard
                 title="Rasio Dosen : Mhs"
@@ -137,6 +192,7 @@ export default function DashboardDosenPage() {
                 icon={<FiActivity className="w-6 h-6 text-white" />}
                 color="green"
                 description="Ideal 1:20 - 1:30"
+                hint="Rasio dosen aktif vs mahasiswa aktif. SK Mendikbud: ideal 1:20 (eksak) atau 1:30 (sosial-humaniora)."
               />
             </div>
 
@@ -164,7 +220,7 @@ export default function DashboardDosenPage() {
                     <h4 className="font-bold text-lg text-gray-800 dark:text-white">Sebaran Dosen per Fakultas</h4>
                     <p className="text-tiny text-gray-500">Klik bar untuk melihat detail Program Studi</p>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <DrilldownBarChart
                       data={data.sebaranFakultas}
                       height={320}
@@ -217,7 +273,7 @@ export default function DashboardDosenPage() {
                     <h4 className="font-bold text-lg text-gray-800 dark:text-white">Ikatan Kerja & Status</h4>
                     <p className="text-tiny text-gray-500">Proporsi status kepegawaian</p>
                   </CardHeader>
-                  <CardBody>
+                  <CardBody className="min-h-[480px]">
                     <PieChart
                       data={data.ikatanKerja}
                       donut={false}
@@ -252,7 +308,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Sertifikasi per Jabatan</h4>
                   <p className="text-tiny text-gray-500">Rasio dosen tersertifikasi (Serdos)</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.sertifikasiJabfung}
                     stacked={true}
@@ -268,7 +324,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Tren Sertifikasi (5 Tahun)</h4>
                   <p className="text-tiny text-gray-500">Pertumbuhan jumlah dosen tersertifikasi</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <LineChart
                     data={data.trendSertifikasi}
                     color="#10b981"
@@ -286,7 +342,7 @@ export default function DashboardDosenPage() {
                   <h4 className="font-bold text-lg text-gray-800 dark:text-white">Tren Jabatan Fungsional (5 Tahun)</h4>
                   <p className="text-tiny text-gray-500">Pertumbuhan populasi per jenjang jabatan akademik</p>
                 </CardHeader>
-                <CardBody>
+                <CardBody className="min-h-[480px]">
                   <BarChart
                     data={data.trendJabfung}
                     stacked={true}
