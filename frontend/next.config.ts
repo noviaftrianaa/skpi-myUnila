@@ -15,6 +15,17 @@ const nextConfig: NextConfig = {
         destination: '/:path*',
         permanent: false,
       },
+      // Refactor 2026-05-13: manajemen-konten moved under manajemen-apps shell.
+      {
+        source: '/dashboard/manajemen-konten',
+        destination: '/dashboard/manajemen-apps/manajemen-konten',
+        permanent: false,
+      },
+      {
+        source: '/dashboard/manajemen-konten/:path*',
+        destination: '/dashboard/manajemen-apps/manajemen-konten/:path*',
+        permanent: false,
+      },
     ];
   },
 
@@ -41,6 +52,12 @@ const nextConfig: NextConfig = {
         hostname: 'ui-avatars.com',
         port: '',
         pathname: '/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

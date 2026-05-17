@@ -100,9 +100,14 @@ show_menu() {
     echo -e "  ${BLUE}48)${NC} Restart Man-Konten Only"
     echo -e "  ${MAGENTA}49)${NC} Go Hot Reload - Man-Konten Only"
     echo ""
+    echo -e "  ${CYAN}--- Blog Platform (frontend-blog public) ---${NC}"
+    echo -e "  ${MAGENTA}50)${NC} Frontend-Blog Hot Reload (Dev — Port 3002, public blog.unila.ac.id)"
+    echo -e "  ${GREEN}51)${NC} Quick Rebuild - Frontend-Blog Only (Docker — backend defer)"
+    echo -e "  ${BLUE}52)${NC} Restart Frontend-Blog Only"
+    echo ""
     echo -e "  ${RED}0)${NC}  Exit"
     echo ""
-    echo -n "Pilihan [0-49]: "
+    echo -n "Pilihan [0-52]: "
 }
 
 # Function to show container status
@@ -614,6 +619,29 @@ while true; do
             ;;
         49)
             bash "$SCRIPT_DIR/go-hot-reload.sh" man-konten
+            read -p "Press Enter to continue..."
+            ;;
+
+        # === Blog Platform (frontend-blog public) ===
+        50)
+            bash "$SCRIPT_DIR/frontend-blog-hot-reload.sh"
+            read -p "Press Enter to continue..."
+            ;;
+        51)
+            bash "$SCRIPT_DIR/quick-rebuild.sh" frontend-blog 2>/dev/null || {
+                echo ""
+                echo -e "${YELLOW}quick-rebuild.sh belum support frontend-blog. Pakai opsi 50 (hot reload) untuk testing dev mode.${NC}"
+                echo -e "${YELLOW}Atau build manual: cd frontend-blog && docker build -t myunila-frontend-blog .${NC}"
+                echo ""
+            }
+            read -p "Press Enter to continue..."
+            ;;
+        52)
+            bash "$SCRIPT_DIR/restart-services.sh" frontend-blog 2>/dev/null || {
+                echo ""
+                echo -e "${YELLOW}restart-services.sh belum support frontend-blog. Container belum dideploy ke local docker-compose.${NC}"
+                echo ""
+            }
             read -p "Press Enter to continue..."
             ;;
 
