@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Mailpit — local SMTP testing for blog notification emails.
+  # SMTP listens on 1025 (in-container); web UI on 8025 for inspecting sent
+  # messages. No real mail leaves the host — all captured and shown in the UI.
+  # Production replaces this with the centralised Unila relay (configure via
+  # MAIL_SMTP_HOST/PORT env vars at the blog-service level).
+  blog-mailpit:
+    image: axllent/mailpit:v1.27.7
+    container_name: myunila-blog-mailpit
+    ports:
+      - "1125:1025"  # SMTP host port (avoid collision with other local mailers)
+      - "8125:8025"  # Web UI at http://localhost:8125
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATA_FILE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    volumes:
+      - blog-mailpit-data:/data
+    networks:
+      - myunila-network
+    restart: unless-stopped
+
+
+  # Local MinIO untuk dev blog-service. Bucket blog-media auto-created oleh
+  # blog-service ketika startup kalau belum ada (lihat external/minio/client.go).
+  # Production pakai MinIO terpusat di minio.unila.ac.id — bukan service ini.
+  blog-minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: myunila-blog-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9100:9000"   # S3 API
+      - "9101:9001"   # Web console
+    environment:
+      MINIO_ROOT_USER: ${BLOG_MINIO_ROOT_USER:-blogadmin}
+      MINIO_ROOT_PASSWORD: ${BLOG_MINIO_ROOT_PASSWORD:-blogadmin123}
+    volumes:
+      - blog-minio-data:/data
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  blog-service:
+    build:
+      context: ../../../../backend/blog-service
+      dockerfile: Dockerfile
+    image: myunila/blog-service:latest
+    container_name: myunila-blog-service
+    ports:
+      - "8091:8091"
+    env_file:
+      - ../../.env
+    environment:
+      APP_NAME: ${BLOG_APP_NAME:-blog-service}
+      APP_PORT: 8091
+      APP_ENV: ${BLOG_APP_ENV:-local}
+
+      # PostgreSQL — dedicated DB blog_unila
+      DB_HOST: ${BLOG_DB_HOST:-host.docker.internal}
+      DB_PORT: ${BLOG_DB_PORT:-5432}
+      DB_NAME: ${BLOG_DB_NAME:-blog_unila}
+      DB_USER: ${BLOG_DB_USER:-postgres}
+      DB_PASSWORD: ${BLOG_DB_PASSWORD}
+      DB_SSLMODE: ${BLOG_DB_SSLMODE:-disable}
+
+      CORS_ALLOW_ORIGINS: "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:9800"
+
+      # JWT — wajib match dengan auth-service supaya token issued by auth-service
+      # bisa di-validate di blog-service untuk /me/* dan /admin/* endpoints.
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGO: HS256
+
+      # MinIO — service-to-service inside Docker network (no SSL).
+      # MINIO_PUBLIC_URL is what's stored in media.url_publik for browser access,
+      # so it must resolve from the user's browser, not from inside the container.
+      MINIO_ENDPOINT: ${BLOG_MINIO_ENDPOINT:-blog-minio:9000}
+      MINIO_ACCESS_KEY: ${BLOG_MINIO_ROOT_USER:-blogadmin}
+      MINIO_SECRET_KEY: ${BLOG_MINIO_ROOT_PASSWORD:-blogadmin123}
+      MINIO_BUCKET: ${BLOG_MINIO_BUCKET:-blog-media}
+      MINIO_USE_SSL: ${BLOG_MINIO_USE_SSL:-false}
+      MINIO_PUBLIC_URL: ${BLOG_MINIO_PUBLIC_URL:-http://localhost:9100}
+
+      # Meilisearch — shared instance running on the myunila-network. Index
+      # name is per-app so we don't collide with public-service's indexes.
+      MEILISEARCH_URL: ${BLOG_MEILISEARCH_URL:-http://myunila-meilisearch:7700}
+      MEILISEARCH_API_KEY: ${BLOG_MEILISEARCH_API_KEY:-masterKey123456}
+      MEILISEARCH_INDEX: ${BLOG_MEILISEARCH_INDEX:-blog_post}
+
+      # SMTP — local dev uses Mailpit (captures everything, never delivers).
+      # Production points MAIL_SMTP_HOST at the Unila central relay.
+      MAIL_SMTP_HOST: ${BLOG_MAIL_SMTP_HOST:-myunila-blog-mailpit}
+      MAIL_SMTP_PORT: ${BLOG_MAIL_SMTP_PORT:-1025}
+      MAIL_SMTP_USERNAME: ${BLOG_MAIL_SMTP_USERNAME:-}
+      MAIL_SMTP_PASSWORD: ${BLOG_MAIL_SMTP_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${BLOG_MAIL_FROM_ADDRESS:-blog-noreply@unila.ac.id}
+      MAIL_FROM_NAME: ${BLOG_MAIL_FROM_NAME:-Blog Unila}
+      MAIL_PUBLIC_URL: ${BLOG_MAIL_PUBLIC_URL:-https://blog.unila.ac.id}
+
+      TZ: ${TZ:-Asia/Jakarta}
+    depends_on:
+      blog-minio:
+        condition: service_healthy
+    networks:
+      - myunila-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8091/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  blog-minio-data:
+    name: myunila-blog-minio-data
+  blog-mailpit-data:
+    name: myunila-blog-mailpit-data
+
+networks:
+  myunila-network:
+    external: true
+    name: myunila-network

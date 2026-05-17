@@ -1,0 +1,143 @@
+# ============================================
+# vm9-blog (192.168.120.49) — Blog Platform
+# Stack: PostgreSQL 16 + Redis + Go blog-service + Next.js frontend-blog + Nginx
+# ============================================
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: blog_unila
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - blog_postgres_data:/var/lib/postgresql/data
+      # Auto-init schema on first run
+      - ../../../data-model/script/postgresql/blog:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "blog_user", "-d", "blog_unila"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [blog-net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - blog_redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks: [blog-net]
+
+  # NOTE: blog-service di-comment dulu — backend Go scaffolding belum dibuat.
+  # Aktifkan setelah backend/blog-service/ ready (lihat docs/blog-platform/04-architecture.md).
+  #
+  # blog-service:
+  #   build:
+  #     context: ../../../backend/blog-service
+  #     dockerfile: Dockerfile
+  #   image: myunila-blog-service:latest
+  #   container_name: myunila-blog-service
+  #   restart: unless-stopped
+  #   depends_on:
+  #     postgres: { condition: service_healthy }
+  #     redis:    { condition: service_healthy }
+  #   environment:
+  #     APP_ENV: production
+  #     APP_PORT: ":8091"
+  #     DB_HOST: postgres
+  #     DB_PORT: "5432"
+  #     DB_NAME: blog_unila
+  #     DB_USER: blog_user
+  #     DB_PASSWORD: ${POSTGRES_PASSWORD}
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: "6379"
+  #     JWT_SECRET: ${JWT_SECRET}
+  #     MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+  #     MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+  #     MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+  #     MINIO_BUCKET: ${MINIO_BUCKET}
+  #     MEILI_HOST: ${MEILI_HOST}
+  #     MEILI_API_KEY: ${MEILI_API_KEY}
+  #     PDUT_DB_HOST: ${PDUT_DB_HOST}
+  #     PDUT_DB_PORT: ${PDUT_DB_PORT}
+  #     PDUT_DB_NAME: ${PDUT_DB_NAME}
+  #     PDUT_DB_USER: ${PDUT_DB_USER}
+  #     PDUT_DB_PASSWORD: ${PDUT_DB_PASSWORD}
+  #     TZ: ${TZ:-Asia/Jakarta}
+  #   ports:
+  #     - "127.0.0.1:8091:8091"
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8091/health"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
+  #   networks: [blog-net]
+
+  frontend-blog:
+    build:
+      context: ../../../frontend-blog
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BLOG_API: ${NEXT_PUBLIC_BLOG_API}
+        NEXT_PUBLIC_APEX_HOST: ${NEXT_PUBLIC_APEX_HOST}
+        NEXT_PUBLIC_USE_MOCK: ${NEXT_PUBLIC_USE_MOCK}
+        NEXT_PUBLIC_MEILI_HOST: ${MEILI_HOST}
+        NEXT_PUBLIC_MEILI_SEARCH_KEY: ${MEILI_SEARCH_KEY}
+    image: myunila-frontend-blog:latest
+    container_name: myunila-frontend-blog
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3002"
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET}
+    ports:
+      - "127.0.0.1:3002:3002"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [blog-net]
+
+  nginx:
+    image: nginx:alpine
+    container_name: blog-nginx
+    restart: unless-stopped
+    depends_on:
+      - frontend-blog
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+      - blog_nginx_logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+    networks: [blog-net]
+
+volumes:
+  blog_postgres_data:
+  blog_redis_data:
+  blog_nginx_logs:
+
+networks:
+  blog-net:
+    driver: bridge
