@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+    --primary: 11 94 168;
+    --primary-foreground: 255 255 255;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --border: 226 232 240;
+    --card: 248 250 252;
+  }
+
+  .dark {
+    --background: 15 23 42;
+    --foreground: 241 245 249;
+    --primary: 59 130 246;
+    --primary-foreground: 255 255 255;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --border: 51 65 85;
+    --card: 30 41 59;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-feature-settings: "ss01", "ss02";
+  }
+}
+
+@layer components {
+  /* Reading-optimized prose for blog posts.
+     Custom implementation — tidak pakai @tailwindcss/typography plugin (lebih ringan, custom-tailored). */
+  .prose {
+    @apply text-base leading-relaxed text-slate-700 dark:text-slate-300 max-w-none;
+  }
+  .prose-blog { @apply prose; }
+
+  .prose h1 { @apply text-4xl font-bold mt-10 mb-4 tracking-tight text-slate-900 dark:text-slate-100; }
+  .prose h2 { @apply text-3xl font-bold mt-8 mb-4 tracking-tight text-slate-900 dark:text-slate-100; }
+  .prose h3 { @apply text-2xl font-bold mt-6 mb-3 tracking-tight text-slate-900 dark:text-slate-100; }
+  .prose h4 { @apply text-xl font-bold mt-4 mb-2 text-slate-900 dark:text-slate-100; }
+  .prose p { @apply my-4 leading-relaxed text-base lg:text-lg; }
+  .prose ul { @apply list-disc list-outside ml-6 my-4 space-y-1; }
+  .prose ol { @apply list-decimal list-outside ml-6 my-4 space-y-1; }
+  .prose li { @apply leading-relaxed; }
+  .prose blockquote {
+    @apply border-l-4 border-myunila pl-4 italic my-6 text-slate-600 dark:text-slate-400;
+  }
+  .prose pre {
+    @apply bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto my-6 text-sm font-mono;
+  }
+  .prose code {
+    @apply bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-sm font-mono text-slate-900 dark:text-slate-100;
+  }
+  .prose pre code { @apply bg-transparent p-0 text-slate-100; }
+  .prose a { @apply text-myunila underline decoration-myunila/30 underline-offset-2 hover:decoration-myunila; }
+  .prose img { @apply rounded-lg shadow-md my-6 mx-auto; }
+  .prose table { @apply w-full border-collapse my-6 text-sm; }
+  .prose th, .prose td { @apply border border-slate-300 dark:border-slate-700 px-4 py-2; }
+  .prose th { @apply bg-slate-100 dark:bg-slate-800 font-semibold text-slate-900 dark:text-slate-100; }
+  .prose hr { @apply border-slate-200 dark:border-slate-700 my-8; }
+  .prose strong { @apply font-bold text-slate-900 dark:text-slate-100; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+}

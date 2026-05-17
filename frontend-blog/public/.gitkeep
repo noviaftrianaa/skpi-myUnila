@@ -1,0 +1,2 @@
+# Placeholder so Docker COPY ./public can find this directory.
+# Add favicon.ico, og-default.png, robots.txt here.
