@@ -1,0 +1,159 @@
+{
+  "app_slug": "blog-platform",
+  "roles": [1, 107, 39, 46, 111],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/blog-platform",
+      "icon": "heroicons:chart-bar-square",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Beranda Personal",
+      "nm_file": "/dashboard/blog-platform/feed",
+      "icon": "heroicons:rss",
+      "urutan": 2
+    },
+    {
+      "nm_menu": "My Posts",
+      "nm_file": "/dashboard/blog-platform/posts",
+      "icon": "heroicons:document-text",
+      "urutan": 3
+    },
+    {
+      "nm_menu": "Tulis Baru",
+      "nm_file": "/dashboard/blog-platform/posts/baru",
+      "icon": "heroicons:pencil-square",
+      "urutan": 4
+    },
+    {
+      "nm_menu": "Media Library",
+      "nm_file": "/dashboard/blog-platform/media",
+      "icon": "heroicons:photo",
+      "urutan": 5
+    },
+    {
+      "nm_menu": "Komentar",
+      "nm_file": "/dashboard/blog-platform/komentar",
+      "icon": "heroicons:chat-bubble-left-right",
+      "urutan": 6
+    },
+    {
+      "nm_menu": "Analytics",
+      "nm_file": "/dashboard/blog-platform/analytics",
+      "icon": "heroicons:chart-bar",
+      "urutan": 7
+    },
+    {
+      "nm_menu": "Followers",
+      "nm_file": "/dashboard/blog-platform/followers",
+      "icon": "heroicons:user-group",
+      "urutan": 8
+    },
+    {
+      "nm_menu": "Notifikasi",
+      "nm_file": "/dashboard/blog-platform/notifications",
+      "icon": "heroicons:bell-alert",
+      "urutan": 9
+    },
+    {
+      "nm_menu": "Reading List",
+      "nm_file": "/dashboard/blog-platform/bookmarks",
+      "icon": "heroicons:bookmark",
+      "urutan": 10
+    },
+    {
+      "nm_menu": "Settings Profile",
+      "nm_file": "/dashboard/blog-platform/settings/profile",
+      "icon": "heroicons:user-circle",
+      "urutan": 11
+    },
+    {
+      "nm_menu": "Settings Subdomain",
+      "nm_file": "/dashboard/blog-platform/settings/subdomain",
+      "icon": "heroicons:globe-alt",
+      "urutan": 12
+    },
+    {
+      "nm_menu": "Settings Theme",
+      "nm_file": "/dashboard/blog-platform/settings/theme",
+      "icon": "heroicons:swatch",
+      "urutan": 13
+    },
+    {
+      "nm_menu": "Settings SEO",
+      "nm_file": "/dashboard/blog-platform/settings/seo",
+      "icon": "heroicons:magnifying-glass-circle",
+      "urutan": 14
+    },
+    {
+      "nm_menu": "Settings About",
+      "nm_file": "/dashboard/blog-platform/settings/about",
+      "icon": "heroicons:document-text",
+      "urutan": 15
+    },
+    {
+      "nm_menu": "Admin: Klaim Subdomain",
+      "nm_file": "/dashboard/blog-platform/admin/klaim",
+      "icon": "heroicons:check-badge",
+      "urutan": 16,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Laporan Post",
+      "nm_file": "/dashboard/blog-platform/admin/laporan",
+      "icon": "heroicons:flag",
+      "urutan": 17,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Semua Blog",
+      "nm_file": "/dashboard/blog-platform/admin/blogs",
+      "icon": "heroicons:user-group",
+      "urutan": 18,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Featured Posts",
+      "nm_file": "/dashboard/blog-platform/admin/featured",
+      "icon": "heroicons:star",
+      "urutan": 19,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Reserved Words",
+      "nm_file": "/dashboard/blog-platform/admin/kata-terlarang",
+      "icon": "heroicons:no-symbol",
+      "urutan": 20,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Kategori Post",
+      "nm_file": "/dashboard/blog-platform/admin/kategori",
+      "icon": "heroicons:tag",
+      "urutan": 21,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Tag Manager",
+      "nm_file": "/dashboard/blog-platform/admin/tags",
+      "icon": "heroicons:hashtag",
+      "urutan": 22,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Templates Theme",
+      "nm_file": "/dashboard/blog-platform/admin/templates",
+      "icon": "heroicons:rectangle-stack",
+      "urutan": 23,
+      "roles": [1, 107]
+    },
+    {
+      "nm_menu": "Admin: Audit Log",
+      "nm_file": "/dashboard/blog-platform/admin/audit",
+      "icon": "heroicons:list-bullet",
+      "urutan": 24,
+      "roles": [1, 107]
+    }
+  ]
+}

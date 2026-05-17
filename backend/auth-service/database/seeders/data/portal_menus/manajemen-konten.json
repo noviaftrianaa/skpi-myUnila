@@ -4,37 +4,37 @@
   "menus": [
     {
       "nm_menu": "Dashboard",
-      "nm_file": "/dashboard/manajemen-konten",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten",
       "icon": "heroicons:squares-2x2",
       "urutan": 1
     },
     {
       "nm_menu": "Pengumuman",
-      "nm_file": "/dashboard/manajemen-konten/konten?tipe=pengumuman",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten/konten?tipe=pengumuman",
       "icon": "heroicons:bell-alert",
       "urutan": 2
     },
     {
       "nm_menu": "Berita & Artikel",
-      "nm_file": "/dashboard/manajemen-konten/konten?tipe=berita,artikel",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten/konten?tipe=berita,artikel",
       "icon": "heroicons:document-text",
       "urutan": 3
     },
     {
       "nm_menu": "Semua Konten",
-      "nm_file": "/dashboard/manajemen-konten/konten",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten/konten",
       "icon": "heroicons:list-bullet",
       "urutan": 4
     },
     {
       "nm_menu": "Kategori",
-      "nm_file": "/dashboard/manajemen-konten/kategori",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten/kategori",
       "icon": "heroicons:tag",
       "urutan": 5
     },
     {
       "nm_menu": "Broadcast Notifikasi",
-      "nm_file": "/dashboard/manajemen-konten/notifikasi",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten/notifikasi",
       "icon": "heroicons:paper-airplane",
       "urutan": 6
     }

@@ -1,0 +1,18 @@
+{
+  "app_slug": "manajemen-apps",
+  "roles": [1, 107],
+  "menus": [
+    {
+      "nm_menu": "Dashboard",
+      "nm_file": "/dashboard/manajemen-apps",
+      "icon": "heroicons:squares-2x2",
+      "urutan": 1
+    },
+    {
+      "nm_menu": "Manajemen Konten",
+      "nm_file": "/dashboard/manajemen-apps/manajemen-konten",
+      "icon": "heroicons:newspaper",
+      "urutan": 2
+    }
+  ]
+}
