@@ -37,9 +37,10 @@ INSERT INTO @parents VALUES
     ('Data Keuangan',       '#data-keuangan',         'heroicons:currency-dollar',   7),
     ('Data Lulusan',        '#data-alumni',           'heroicons:academic-cap',      8);
 
+-- id_menu = uniqueidentifier NOT NULL, no default → wajib NEWID() di prod pdut.
 INSERT INTO man_akses.menu
-    (nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, tgl_create, last_update, last_sync)
-SELECT p.nm_menu, p.nm_file, p.urutan, 1, 1, p.icon, 1, @id_app, GETDATE(), GETDATE(), GETDATE()
+    (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, tgl_create, last_update, last_sync)
+SELECT NEWID(), p.nm_menu, p.nm_file, p.urutan, 1, 1, p.icon, 1, @id_app, GETDATE(), GETDATE(), GETDATE()
 FROM @parents p
 WHERE NOT EXISTS (SELECT 1 FROM man_akses.menu mm WHERE mm.id_aplikasi = @id_app AND mm.nm_file = p.nm_file);
 DECLARE @p_inserted INT = @@ROWCOUNT;
@@ -92,10 +93,11 @@ INSERT INTO @children VALUES
     ('#data-alumni', 'Survey Atasan',          '/dashboard/data-unila/alumni/survey-atasan',     3);
 
 -- INSERT children where not exists (resolve id_group_menu via parent_file)
+-- id_menu wajib NEWID() (uniqueidentifier NOT NULL no default).
 INSERT INTO man_akses.menu
-    (nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
+    (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, level_menu, id_aplikasi, id_group_menu, tgl_create, last_update, last_sync)
 SELECT
-    c.nm_menu, c.nm_file, c.urutan, 1, 1, 2, @id_app, parent.id_menu, GETDATE(), GETDATE(), GETDATE()
+    NEWID(), c.nm_menu, c.nm_file, c.urutan, 1, 1, 2, @id_app, parent.id_menu, GETDATE(), GETDATE(), GETDATE()
 FROM @children c
 INNER JOIN man_akses.menu parent ON parent.id_aplikasi = @id_app AND parent.nm_file = c.parent_file
 WHERE NOT EXISTS (SELECT 1 FROM man_akses.menu mm WHERE mm.id_aplikasi = @id_app AND mm.nm_file = c.nm_file);

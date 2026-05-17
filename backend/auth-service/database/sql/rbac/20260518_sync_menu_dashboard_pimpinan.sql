@@ -52,10 +52,11 @@ INSERT INTO @menus VALUES
 -- ============================================================
 -- STEP 2: INSERT new menus (WHERE NOT EXISTS)
 -- ============================================================
+-- id_menu = uniqueidentifier NOT NULL, no default → wajib NEWID() di prod pdut.
 INSERT INTO man_akses.menu
-    (nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, tgl_create, last_update, last_sync)
+    (id_menu, nm_menu, nm_file, urutan_menu, a_aktif, a_tampil, icon, level_menu, id_aplikasi, tgl_create, last_update, last_sync)
 SELECT
-    m.nm_menu, m.nm_file, m.urutan, 1, 1, m.icon, 1, @id_app, GETDATE(), GETDATE(), GETDATE()
+    NEWID(), m.nm_menu, m.nm_file, m.urutan, 1, 1, m.icon, 1, @id_app, GETDATE(), GETDATE(), GETDATE()
 FROM @menus m
 WHERE NOT EXISTS (
     SELECT 1 FROM man_akses.menu mm
