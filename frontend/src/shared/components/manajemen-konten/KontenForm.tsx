@@ -113,7 +113,7 @@ export default function KontenForm({
       } else {
         const r = await manajemenKontenService.createKonten(buildPayload(statusOverride));
         toast.success("Konten berhasil dibuat");
-        router.push(`/dashboard/manajemen-konten/konten/${r.data.id_pengumuman}`);
+        router.push(`/dashboard/manajemen-apps/manajemen-konten/konten/${r.data.id_pengumuman}`);
         return;
       }
     } catch (err: any) {
@@ -200,7 +200,7 @@ export default function KontenForm({
           </button>
           {isEdit && (
             <button
-              onClick={() => router.push("/dashboard/manajemen-konten/konten")}
+              onClick={() => router.push("/dashboard/manajemen-apps/manajemen-konten/konten")}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700"
             >
               <FiX className="w-4 h-4" /> Batal & Kembali
