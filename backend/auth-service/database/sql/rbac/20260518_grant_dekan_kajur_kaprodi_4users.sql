@@ -24,7 +24,41 @@
 BEGIN TRANSACTION;
 
 -- ============================================================
--- STEP 1: Backup state 3 user (uncomment sekali per run)
+-- STEP 0: Bootstrap role "Kajur" (id_peran=47) kalau belum ada
+-- ============================================================
+-- Production pdut mungkin belum punya Kajur (BARU ditambahkan 2026-05-13 di staging).
+-- FK constraint fk_role_pen_akses_pen_peran akan reject kalau id_peran tidak ada.
+IF NOT EXISTS (SELECT 1 FROM man_akses.peran WHERE id_peran = 47)
+BEGIN
+    INSERT INTO man_akses.peran
+        (id_peran, nm_peran, a_perlu_sk, peran_pddikti, peran_unila,
+         tgl_create, last_update, last_sync, a_universal, a_peran_identitas)
+    VALUES
+        (47, 'Kajur', 0, 0, 1, GETDATE(), GETDATE(), GETDATE(), 0, 0);
+    PRINT '+ Bootstrap: role Kajur (id_peran=47) ditambahkan ke man_akses.peran';
+END
+ELSE
+    PRINT '+ Role Kajur (id_peran=47) sudah ada, skip bootstrap.';
+
+-- ============================================================
+-- STEP 0b: Verify roles 42/43/47 ALL exist (anti FK violation)
+-- ============================================================
+DECLARE @missing_roles VARCHAR(50) = '';
+SELECT @missing_roles = @missing_roles + CAST(missing.id_peran AS VARCHAR) + ' '
+FROM (VALUES (42),(43),(47)) AS req(id_peran)
+LEFT JOIN man_akses.peran p ON p.id_peran = req.id_peran
+CROSS APPLY (SELECT req.id_peran) AS missing
+WHERE p.id_peran IS NULL;
+
+IF LEN(@missing_roles) > 0
+BEGIN
+    PRINT 'ERROR: id_peran missing di man_akses.peran: ' + @missing_roles;
+    ROLLBACK TRANSACTION;
+    RETURN;
+END
+
+-- ============================================================
+-- STEP 1: Backup state 4 user (uncomment sekali per run)
 -- ============================================================
 -- SELECT * INTO man_akses.role_pengguna_backup_4users_20260518
 -- FROM man_akses.role_pengguna
