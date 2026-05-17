@@ -243,3 +243,65 @@
     animation: soft-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }
+
+/* ========================================================================
+   TipTap editor styling — Blog Platform
+   ======================================================================== */
+
+/* Placeholder text (Tiptap extension) */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94a3b8;
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+.dark .tiptap p.is-editor-empty:first-child::before {
+  color: #64748b;
+}
+
+/* Heading typography */
+.tiptap h1 { @apply text-3xl font-bold tracking-tight mt-6 mb-3; }
+.tiptap h2 { @apply text-2xl font-bold tracking-tight mt-5 mb-2.5; }
+.tiptap h3 { @apply text-xl font-bold mt-4 mb-2; }
+.tiptap p  { @apply leading-relaxed mb-3; }
+
+.tiptap pre {
+  @apply rounded-lg bg-slate-900 text-slate-100 p-3 font-mono text-sm overflow-x-auto my-4;
+}
+
+.tiptap code:not(pre code) {
+  @apply rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 text-sm font-mono text-rose-600 dark:text-rose-400;
+}
+
+.tiptap blockquote {
+  @apply border-l-4 border-myunila pl-4 italic text-slate-700 dark:text-slate-300 my-4;
+}
+
+.tiptap a {
+  @apply text-myunila underline underline-offset-2;
+}
+
+.tiptap a:hover {
+  @apply text-blue-700 dark:text-blue-400;
+}
+
+.tiptap img {
+  @apply rounded-lg max-w-full h-auto my-4;
+}
+
+.tiptap ul {
+  @apply list-disc ml-5 space-y-1 mb-3;
+}
+
+.tiptap ol {
+  @apply list-decimal ml-5 space-y-1 mb-3;
+}
+
+.tiptap hr {
+  @apply my-6 border-t-2 border-slate-200 dark:border-slate-800;
+}
+
+.tiptap:focus { outline: none; }
