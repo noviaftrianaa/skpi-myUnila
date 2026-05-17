@@ -16,12 +16,20 @@ class DosenRepository extends BaseRepository
      */
     private function baseDosenJoin(): string
     {
-        // Canonical filter: aktif (id_stat_aktif=1), reg_ptk Unila aktif (jns_keluar IS NULL),
-        // sms aktif (stat_prodi='A'). Konsisten dgn Data Unila Daftar Dosen (1.552).
+        // CANONICAL match headline 1.536 (Pimpinan beranda countDosen):
+        // a_sp_homebase=1 + thn_ajaran aktif + stat_prodi='A' + id_fak_unila NOT NULL.
         return "
             FROM pdrd.sdm sdm
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
-            INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
+                AND s.stat_prodi = 'A' AND s.id_fak_unila IS NOT NULL
+            INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                AND kp.id_thn_ajaran = (
+                    SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                    WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                    ORDER BY id_thn_ajaran DESC
+                )
             WHERE sdm.soft_delete = 0
               AND sdm.id_jns_sdm = 12
               AND sdm.id_stat_aktif = 1

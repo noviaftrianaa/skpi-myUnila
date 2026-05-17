@@ -40,9 +40,18 @@ class PegawaiRepository extends BaseRepository
 
     public function countTotal(?string $fakultas = null, ?string $prodi = null): int
     {
+        // CANONICAL match Beranda countTendik (1.116): SIKEP source.
+        // Scoped (Dekan/Kaprodi) fallback ke pdrd karena SIKEP tidak punya kolom fakultas/prodi.
+        if (!$fakultas && !$prodi) {
+            try {
+                return (int) $this->selectScalar(
+                    "SELECT COUNT(*) FROM sikep.pegawai WHERE status='Aktif' AND jns_tenaga='Non Dosen'",
+                    []
+                );
+            } catch (\Throwable $e) { /* fall-through */ }
+        }
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
-
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
@@ -59,9 +68,16 @@ class PegawaiRepository extends BaseRepository
 
     public function countPNS(?string $fakultas = null, ?string $prodi = null): int
     {
+        if (!$fakultas && !$prodi) {
+            try {
+                return (int) $this->selectScalar(
+                    "SELECT COUNT(*) FROM sikep.pegawai WHERE status='Aktif' AND jns_tenaga='Non Dosen' AND jns_pegawai='PNS'",
+                    []
+                );
+            } catch (\Throwable $e) { /* fall-through */ }
+        }
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
-
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
@@ -79,6 +95,18 @@ class PegawaiRepository extends BaseRepository
 
     public function getStatusKepegawaian(?string $fakultas = null, ?string $prodi = null): array
     {
+        // CANONICAL: SIKEP (universal). Fallback pdrd untuk scoped.
+        if (!$fakultas && !$prodi) {
+            try {
+                return $this->select("
+                    SELECT jns_pegawai AS name, COUNT(*) AS value
+                    FROM sikep.pegawai
+                    WHERE status='Aktif' AND jns_tenaga='Non Dosen'
+                    GROUP BY jns_pegawai
+                    ORDER BY value DESC
+                ", []);
+            } catch (\Throwable $e) { /* fall-through */ }
+        }
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
 
@@ -111,6 +139,34 @@ class PegawaiRepository extends BaseRepository
 
     public function getGenderUsia(?string $fakultas = null, ?string $prodi = null): array
     {
+        // CANONICAL: SIKEP (universal).
+        if (!$fakultas && !$prodi) {
+            try {
+                return $this->select("
+                    SELECT
+                        CASE
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) < 30 THEN '20-29'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 39 THEN '30-39'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 49 THEN '40-49'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 59 THEN '50-59'
+                            ELSE '60+'
+                        END as ageGroup,
+                        SUM(CASE WHEN jk LIKE 'L%' THEN 1 ELSE 0 END) as male,
+                        SUM(CASE WHEN jk LIKE 'P%' THEN 1 ELSE 0 END) as female
+                    FROM sikep.pegawai
+                    WHERE status='Aktif' AND jns_tenaga='Non Dosen' AND tgl_lahir IS NOT NULL
+                    GROUP BY
+                        CASE
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) < 30 THEN '20-29'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 39 THEN '30-39'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 49 THEN '40-49'
+                            WHEN DATEDIFF(YEAR, tgl_lahir, GETDATE()) <= 59 THEN '50-59'
+                            ELSE '60+'
+                        END
+                    ORDER BY ageGroup
+                ", []);
+            } catch (\Throwable $e) { /* fall-through */ }
+        }
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildOrgFilter($fakultas, $prodi, $bindings);
 

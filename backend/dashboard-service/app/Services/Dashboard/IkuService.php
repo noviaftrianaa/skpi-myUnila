@@ -82,7 +82,7 @@ class IkuService
      */
     public function getData(array $params): array
     {
-        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
+        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : $this->getActiveYear();
         $years = [$currentYear];
         $fakultas = $params['fakultas'] ?? null;
         // Prodi di-accept untuk konsistensi cross-app, tapi belum semua IKU repository
@@ -117,7 +117,7 @@ class IkuService
      */
     public function getSingleIku(int $ikuId, array $params): ?array
     {
-        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
+        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : $this->getActiveYear();
         $years = [$currentYear];
         $fakultas = $params['fakultas'] ?? null;
         // Prodi di-accept tapi untuk per-IKU narrow masih pakai fakultas (lihat catatan getData).
@@ -143,7 +143,7 @@ class IkuService
      */
     public function getMeta(array $params): array
     {
-        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : (int) date('Y');
+        $currentYear = !empty($params['tahun']) ? (int) $params['tahun'] : $this->getActiveYear();
         return [
             'ikuWajib' => config('iku.wajib', [1, 2, 3, 5, 7, 9]),
             'ikuOpsional' => $this->buildOpsionalList($currentYear),
@@ -194,6 +194,25 @@ class IkuService
         return array_map(function ($suffix) use ($year) {
             return $year . $suffix;
         }, $suffixes);
+    }
+
+    /**
+     * Get year of currently active semester (ref.semester.a_periode_aktif=1).
+     * Default tahun IKU = tahun semester aktif (BUKAN date('Y')) — kalau pakai date('Y')
+     * dan data belum sync ke tahun tsb, semua IKU jadi 0.
+     */
+    private function getActiveYear(): int
+    {
+        try {
+            $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT TOP 1 LEFT(CAST(id_smt AS VARCHAR), 4) AS tahun
+                FROM ref.semester
+                WHERE expired_date IS NULL AND a_periode_aktif = 1
+                ORDER BY id_smt DESC
+            ");
+            if ($row && !empty($row->tahun)) return (int) $row->tahun;
+        } catch (\Throwable $e) { /* fall-through */ }
+        return (int) date('Y');
     }
 
     // =========================================

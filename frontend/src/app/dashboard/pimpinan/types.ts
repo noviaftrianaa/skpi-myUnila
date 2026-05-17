@@ -49,6 +49,7 @@ export interface TrendYoYData {
   guruBesar: number[];
   publikasi: number[];
   akreditasiUnggul: number[];
+  litabmas: number[];
 }
 
 export interface Top5Item {

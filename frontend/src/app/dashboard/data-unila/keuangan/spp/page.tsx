@@ -21,21 +21,11 @@ import { exportToExcel } from "@/lib/utils/exportExcel";
 import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
 import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
+import { fmtRupiah, num } from "@/lib/utils/formatRupiah";
 
 const APP_KEY = "data-unila";
 
-function num(v?: string | number | null): number {
-  if (v == null) return 0;
-  const n = typeof v === "number" ? v : parseInt(String(v), 10);
-  return Number.isNaN(n) ? 0 : n;
-}
 function fmt(n: number): string { return n.toLocaleString("id-ID"); }
-function fmtRupiah(n: number): string {
-  if (n >= 1e12) return `Rp ${(n / 1e12).toFixed(2)} T`;
-  if (n >= 1e9) return `Rp ${(n / 1e9).toFixed(2)} M`;
-  if (n >= 1e6) return `Rp ${(n / 1e6).toFixed(2)} Jt`;
-  return `Rp ${n.toLocaleString("id-ID")}`;
-}
 function fmtDate(s?: string | null): string {
   if (!s) return "—";
   try {
@@ -80,7 +70,9 @@ export default function SppPage() {
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("tgl_bayar");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [filterTahun, setFilterTahun] = useState("");
+  // Default tahun = tahun ajaran aktif (2025) supaya konsisten dgn Pimpinan card.
+  // Tanpa default, "Semua Tahun" akan tampil total akumulasi sejak 2015 (Triliun) yg menyesatkan.
+  const [filterTahun, setFilterTahun] = useState(() => String(new Date().getFullYear() - 1));
 
   const [orgFilters, setOrgFilters] = useState<MahasiswaFilters | null>(null);
   const [filterFak, setFilterFak] = useState(forcedFak);
@@ -171,14 +163,28 @@ export default function SppPage() {
     { key: "tgl_bayar", label: "TGL BAYAR", width: "110px", sortable: true, render: (i) => (
       <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{fmtDate(i.tgl_bayar)}</span>
     )},
-    { key: "nominal", label: "DIBAYAR", width: "140px", sortable: true, align: "right" as const, render: (i) => (
-      <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300">{fmtRupiah(num(i.nominal))}</span>
-    )},
-    { key: "sisa_tagihan", label: "SISA", width: "120px", align: "right" as const, render: (i) => (
-      <span className={`font-mono text-xs ${num(i.sisa_tagihan) > 0 ? "text-rose-700 dark:text-rose-300 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
-        {fmtRupiah(num(i.sisa_tagihan))}
-      </span>
-    )},
+    { key: "nominal", label: "DIBAYAR", width: "140px", sortable: true, align: "right" as const, render: (i) => {
+      const n = num(i.nominal);
+      if (n < 0) return (
+        <span className="font-mono text-xs font-semibold text-amber-700 dark:text-amber-300" title="Koreksi / refund">
+          {fmtRupiah(n)}
+        </span>
+      );
+      return <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300">{fmtRupiah(n)}</span>;
+    }},
+    { key: "sisa_tagihan", label: "SISA", width: "120px", align: "right" as const, render: (i) => {
+      const n = num(i.sisa_tagihan);
+      if (n < 0) return (
+        <span className="font-mono text-xs font-medium text-sky-700 dark:text-sky-300" title="Mahasiswa bayar lebih dari tagihan (credit balance)">
+          Lebih {fmtRupiah(Math.abs(n))}
+        </span>
+      );
+      return (
+        <span className={`font-mono text-xs ${n > 0 ? "text-rose-700 dark:text-rose-300 font-bold" : "text-gray-500 dark:text-gray-400"}`}>
+          {fmtRupiah(n)}
+        </span>
+      );
+    }},
     { key: "a_cicil", label: "TIPE", width: "100px", align: "center" as const, render: (i) => i.a_cicil ? (
       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300">Cicil {i.cicilan_ke}</span>
     ) : (

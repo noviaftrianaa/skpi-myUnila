@@ -318,9 +318,11 @@ class PrestasiRepository extends BaseRepository
 
     public function getHkiPerFakultas(array $semesters): array
     {
-        $years = $this->extractYears($semesters);
-        $bindings = [self::UNILA_ID_SP];
-        $inClause = $this->buildInClause($years, $bindings);
+        // Window: 5 tahun terakhir dari max year semester yg dipilih (HKI bersifat akumulatif,
+        // 1 tahun saja sering 0 karena data sync delayed). Sama logic dgn top5Publikasi.
+        $maxYear = (int) $this->getMaxYear($semesters);
+        $startYear = $maxYear - 4;
+        $bindings = [self::UNILA_ID_SP, $startYear, $maxYear];
 
         $sql = "
             SELECT
@@ -335,8 +337,12 @@ class PrestasiRepository extends BaseRepository
             INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE p.soft_delete = 0
-              AND YEAR(p.tgl_terbit) IN {$inClause}
-              AND UPPER(jp.nm_jns_pub) LIKE '%HKI%'
+              AND YEAR(p.tgl_terbit) BETWEEN ? AND ?
+              AND (
+                  UPPER(jp.nm_jns_pub) LIKE '%HKI%'
+                  OR UPPER(jp.nm_jns_pub) LIKE '%HAK CIPTA%'
+                  OR UPPER(jp.nm_jns_pub) LIKE '%PATEN%'
+              )
             GROUP BY uo.nm_lemb
             ORDER BY value DESC
         ";

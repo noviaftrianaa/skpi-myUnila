@@ -2309,16 +2309,17 @@ class IkuRepository extends BaseRepository
             $kerjaMap[$row->id_fak] = (float) $row->dana;
         }
 
-        // Get fakultas list
+        // Get fakultas list dari man_akses.unit_organisasi (pdrd.sms cuma punya Pascasarjana
+        // sebagai entitas fakultas; FKIP/Pertanian/dll ada di man_akses.unit_organisasi).
         $sqlFak = "
-            SELECT CONVERT(VARCHAR(36), id_sms) AS id, nm_lemb AS name
-            FROM pdrd.sms
-            WHERE soft_delete = 0 AND id_jenj_didik IS NULL AND stat_prodi = 'A'
-                AND id_sms IN (
-                    SELECT DISTINCT id_fak_unila FROM pdrd.sms
-                    WHERE soft_delete = 0 AND stat_prodi = 'A' AND id_fak_unila IS NOT NULL
-                )
-            ORDER BY nm_lemb
+            SELECT CONVERT(VARCHAR(36), uo.id_organisasi) AS id, uo.nm_lemb AS name
+            FROM man_akses.unit_organisasi uo
+            WHERE uo.soft_delete = 0
+              AND uo.id_organisasi IN (
+                  SELECT DISTINCT id_fak_unila FROM pdrd.sms
+                  WHERE soft_delete = 0 AND stat_prodi = 'A' AND id_fak_unila IS NOT NULL
+              )
+            ORDER BY uo.nm_lemb
         ";
         $fakRows = $this->select($sqlFak);
 

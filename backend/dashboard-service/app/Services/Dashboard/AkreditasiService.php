@@ -61,16 +61,20 @@ class AkreditasiService
      */
     private function buildStats(?string $fakultas = null, ?string $prodi = null): array
     {
-        $totalProdi = $this->repository->countTotalProdi($fakultas, $prodi);
-        $unggul     = $this->repository->countByPeringkat(['Unggul', 'A'], $fakultas, $prodi);
-        $baikSekali = $this->repository->countByPeringkat(['Baik Sekali', 'B'], $fakultas, $prodi);
-        $baik       = $this->repository->countByPeringkat(['Baik', 'C'], $fakultas, $prodi);
-        $intl       = $this->repository->countInternasional($fakultas, $prodi);
-        $akanExpire = $this->repository->countAkanExpire($fakultas, $prodi);
-        $expired    = $this->repository->countExpired($fakultas, $prodi);
+        $totalProdi     = $this->repository->countTotalProdi($fakultas, $prodi);
+        $terakreditasi  = $this->repository->countTerakreditasi($fakultas, $prodi);
+        $unggul         = $this->repository->countByPeringkat(['Unggul', 'A'], $fakultas, $prodi);
+        $baikSekali     = $this->repository->countByPeringkat(['Baik Sekali', 'B'], $fakultas, $prodi);
+        $baik           = $this->repository->countByPeringkat(['Baik', 'C'], $fakultas, $prodi);
+        $intl           = $this->repository->countInternasional($fakultas, $prodi);
+        $akanExpire     = $this->repository->countAkanExpire($fakultas, $prodi);
+        $expired        = $this->repository->countExpired($fakultas, $prodi);
+        $belumAkred     = max(0, $totalProdi - $terakreditasi);
 
         return [
             'totalProdi'    => ['total' => $totalProdi],
+            'terakreditasi' => ['total' => $terakreditasi],
+            'belumAkred'    => ['total' => $belumAkred],
             'unggul'        => ['total' => $unggul],
             'baikSekali'    => ['total' => $baikSekali],
             'baik'          => ['total' => $baik],

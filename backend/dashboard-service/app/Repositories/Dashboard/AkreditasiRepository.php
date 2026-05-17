@@ -12,6 +12,8 @@ class AkreditasiRepository extends BaseRepository
      */
     private function latestAkreditasiCTE(): string
     {
+        // CANONICAL: ORDER BY tanggal_sk_akreditasi_prodi (effective date) — sesuai logic
+        // di public-service & Pimpinan beranda. tst_sk = expiry date kadang null/inkonsisten.
         return "
             latest_akred AS (
                 SELECT
@@ -22,7 +24,7 @@ class AkreditasiRepository extends BaseRepository
                     ap.sk_akreditasi_prodi,
                     ap.tanggal_sk_akreditasi_prodi,
                     ap.tst_sk_akreditasi_prodi,
-                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS rn
                 FROM pdrd.akreditasi_prodi ap
                 WHERE ap.soft_delete = 0
                   AND ap.a_aktif = 1
@@ -52,9 +54,35 @@ class AkreditasiRepository extends BaseRepository
     // =========================================
 
     /**
-     * Count total prodi aktif yang terakreditasi
+     * Count total prodi aktif (canonical Unila scope) — termasuk yang belum punya akreditasi.
+     * Match Pimpinan beranda countProdiAktif = 132.
      */
     public function countTotalProdi(?string $fakultas = null, ?string $prodi = null): int
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = '';
+        if ($prodi) { $orgFilter = ' AND s.id_sms = ?'; $bindings[] = $prodi; }
+        elseif ($fakultas) { $orgFilter = ' AND s.id_fak_unila = ?'; $bindings[] = $fakultas; }
+
+        $sql = "
+            SELECT COUNT(s.id_sms)
+            FROM pdrd.sms s
+            WHERE s.soft_delete = 0
+              AND s.stat_prodi = 'A'
+              AND s.id_jns_sms = '3'
+              AND s.id_fak_unila IS NOT NULL
+              AND s.id_sp = ?
+              {$orgFilter}
+        ";
+
+        return (int) $this->selectScalar($sql, $bindings);
+    }
+
+    /**
+     * Count prodi yang sudah punya SK akreditasi terbaru (latest_akred).
+     * Selisih dgn countTotalProdi = prodi tanpa akreditasi (potensi alert).
+     */
+    public function countTerakreditasi(?string $fakultas = null, ?string $prodi = null): int
     {
         $bindings = [self::UNILA_ID_SP];
         $orgFilter = $this->buildOrgFilter($fakultas, $prodi, $bindings);
@@ -63,7 +91,7 @@ class AkreditasiRepository extends BaseRepository
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             WHERE la.rn = 1
               AND s.id_sp = ?
               {$orgFilter}
@@ -86,7 +114,7 @@ class AkreditasiRepository extends BaseRepository
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -109,7 +137,7 @@ class AkreditasiRepository extends BaseRepository
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(DAY, 90, GETDATE())
@@ -131,7 +159,7 @@ class AkreditasiRepository extends BaseRepository
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND la.tst_sk_akreditasi_prodi < GETDATE()
@@ -153,7 +181,7 @@ class AkreditasiRepository extends BaseRepository
             ;WITH " . $this->latestAkreditasiCTE() . "
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.lembaga_akred lem ON la.id_lemb_akred = lem.id_lemb_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -182,7 +210,7 @@ class AkreditasiRepository extends BaseRepository
                 na.nm_akred as name,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -217,7 +245,7 @@ class AkreditasiRepository extends BaseRepository
                 END as name,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND la.tst_sk_akreditasi_prodi >= GETDATE()
@@ -255,7 +283,7 @@ class AkreditasiRepository extends BaseRepository
                 uo.nm_lemb as name,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE la.rn = 1 AND s.id_sp = ?
             GROUP BY uo.id_organisasi, uo.nm_lemb
@@ -278,7 +306,7 @@ class AkreditasiRepository extends BaseRepository
                 CONCAT(jp.nm_jenj_didik, ' - ', s.nm_lemb, ' (', na.nm_akred, ')') as name,
                 1 as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1 AND s.id_sp = ? AND s.id_fak_unila = ?
@@ -307,7 +335,7 @@ class AkreditasiRepository extends BaseRepository
                 COUNT(DISTINCT la.id_sms) as value,
                 na.nm_akred as category
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1 AND s.id_sp = ?
@@ -336,7 +364,7 @@ class AkreditasiRepository extends BaseRepository
                 lem.nm_lemb as name,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.lembaga_akred lem ON la.id_lemb_akred = lem.id_lemb_akred
             WHERE la.rn = 1 AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
@@ -366,7 +394,7 @@ class AkreditasiRepository extends BaseRepository
                 lem.nm_lemb as lembaga,
                 CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
             INNER JOIN ref.lembaga_akred lem ON la.id_lemb_akred = lem.id_lemb_akred
@@ -408,7 +436,7 @@ class AkreditasiRepository extends BaseRepository
                 ISNULL(intl.nm_lemb_intl, '-') as [int],
                 CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
@@ -446,7 +474,7 @@ class AkreditasiRepository extends BaseRepository
                 MONTH(la.tst_sk_akreditasi_prodi) as month,
                 COUNT(DISTINCT la.id_sms) as expiring_count
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             WHERE la.rn = 1
               AND s.id_sp = ?
               AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(MONTH, 12, GETDATE())
@@ -486,7 +514,7 @@ class AkreditasiRepository extends BaseRepository
                 la.sk_akreditasi_prodi as no_sk,
                 CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred

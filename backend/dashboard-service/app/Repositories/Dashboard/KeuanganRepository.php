@@ -137,24 +137,59 @@ class KeuanganRepository extends BaseRepository
 
     public function getSebaranKelasUKT(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
+        // Sumber: spp_mhs.id_daftar_ukt → daftar_ukt.nama_kelas.
+        // Fallback (kalau id_daftar_ukt NULL untuk sebagian besar baris): groupby nm_smt
+        // supaya chart tidak kosong (kasus TA 2025 yg belum sync ke daftar_ukt).
         $bindings = [];
         $inClause = $this->buildInClause($semesters, $bindings);
-        $orgExists = $this->buildOrgExists($fakultas, $prodi, $bindings);
 
+        // Join sms inline kalau perlu filter fakultas/prodi.
+        $smsJoin = '';
+        $orgFilter = '';
+        if ($prodi) {
+            $smsJoin = ' INNER JOIN pdrd.reg_pd rp ON sm.id_reg_pd = rp.id_reg_pd AND rp.soft_delete = 0';
+            $orgFilter = ' AND rp.id_sms = ?';
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $smsJoin = ' INNER JOIN pdrd.reg_pd rp ON sm.id_reg_pd = rp.id_reg_pd AND rp.soft_delete = 0 INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0';
+            $orgFilter = ' AND s.id_fak_unila = ?';
+            $bindings[] = $fakultas;
+        }
+
+        // Coba ambil via daftar_ukt dulu.
         $sql = "
             SELECT
-                ISNULL(ku.nm_kelas_ukt, 'Tidak Diketahui') as name,
-                COUNT(*) as value
+                du.nama_kelas as name,
+                SUM(CAST(sm.nominal AS FLOAT)) as value
             FROM keuangan.spp_mhs sm
-            LEFT JOIN keuangan.kelas_ukt ku ON sm.id_kelas_ukt = ku.id_kelas_ukt
+            INNER JOIN keuangan.daftar_ukt du ON du.id_daftar_ukt = sm.id_daftar_ukt
+            {$smsJoin}
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
-              {$orgExists}
-            GROUP BY ku.nm_kelas_ukt
-            ORDER BY name
+              {$orgFilter}
+            GROUP BY du.nama_kelas
+            HAVING SUM(CAST(sm.nominal AS FLOAT)) > 0
+            ORDER BY value DESC
         ";
 
-        return $this->select($sql, $bindings);
+        $rows = $this->select($sql, $bindings);
+        if (!empty($rows)) return $rows;
+
+        // Fallback: groupby semester (data belum punya kelas_ukt mapping).
+        $sql2 = "
+            SELECT
+                ISNULL(sm.nm_smt, 'Tidak Diketahui') as name,
+                SUM(CAST(sm.nominal AS FLOAT)) as value
+            FROM keuangan.spp_mhs sm
+            {$smsJoin}
+            WHERE sm.soft_delete = 0
+              AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
+              {$orgFilter}
+            GROUP BY sm.nm_smt
+            HAVING SUM(CAST(sm.nominal AS FLOAT)) > 0
+            ORDER BY value DESC
+        ";
+        return $this->select($sql2, $bindings);
     }
 
     // =========================================

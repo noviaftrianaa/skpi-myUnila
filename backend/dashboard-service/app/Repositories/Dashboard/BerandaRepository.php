@@ -44,6 +44,25 @@ class BerandaRepository extends BaseRepository
         return [$join, $where];
     }
 
+    /**
+     * Helper alerts: filter prodi 'A' + id_fak NOT NULL (canonical scope dosen Unila),
+     * TANPA a_sp_homebase supaya alert tetap menangkap dosen tanpa homebase.
+     */
+    private function buildSdmAlertOrgFilter(?string $fakultas, ?string $prodi, array &$bindings, string $smsAlias = 'sa'): array
+    {
+        $join = " INNER JOIN pdrd.sms {$smsAlias} ON ptk.id_sms = {$smsAlias}.id_sms AND {$smsAlias}.soft_delete = 0
+            AND {$smsAlias}.stat_prodi = 'A' AND {$smsAlias}.id_fak_unila IS NOT NULL ";
+        $where = '';
+        if ($prodi) {
+            $where = " AND {$smsAlias}.id_sms = ?";
+            $bindings[] = $prodi;
+        } elseif ($fakultas) {
+            $where = " AND {$smsAlias}.id_fak_unila = ?";
+            $bindings[] = $fakultas;
+        }
+        return [$join, $where];
+    }
+
     private function buildSmsOrgFilter(?string $fakultas, ?string $prodi, array &$bindings, string $smsAlias = 's'): string
     {
         if ($prodi) {
@@ -129,25 +148,39 @@ class BerandaRepository extends BaseRepository
 
     public function countDosen(?string $fakultas = null, ?string $prodi = null): int
     {
-        // CANONICAL — match public-service ProgramStudiRepository:
-        // ikatan_kerja tetap (A,B,E,F,H,I,N) + honorer (G) + a_sp_homebase=1 + dedup ROW_NUMBER.
+        // CANONICAL match public-service /unila/statistics (1.536):
+        // dosen homebase a_sp_homebase=1 untuk thn_ajaran aktif, id_jns_sdm='12',
+        // prodi stat='A' + id_fak_unila NOT NULL. COUNT DISTINCT id_sdm.
+        // Konsisten dengan angka di home `/` (Profile Unila).
         $bindings = [self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings, 'pf_s');
+        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
-            SELECT COUNT(*) FROM (
-                SELECT ptk.id_sdm, ptk.id_sms,
-                    ROW_NUMBER() OVER (PARTITION BY ptk.id_sdm, ptk.id_sms ORDER BY ptk.create_date DESC, ptk.id_reg_ptk DESC) AS rn
-                FROM pdrd.reg_ptk ptk
-                INNER JOIN pdrd.sdm sdm ON sdm.id_sdm = ptk.id_sdm AND sdm.soft_delete = 0 AND sdm.id_jns_sdm = '12'
-                INNER JOIN pdrd.keaktifan_ptk keaktifan ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
-                    AND keaktifan.soft_delete = 0 AND keaktifan.a_sp_homebase = 1
-                {$joinSql}
-                WHERE ptk.soft_delete = 0 AND ptk.id_jns_keluar IS NULL
-                  AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-                  AND ptk.id_ikatan_kerja IN ('A','B','E','F','G','H','I','N')
-                  {$whereSql}
-            ) pf WHERE pf.rn = 1
+            SELECT COUNT(DISTINCT ptk.id_sdm) AS total
+            FROM pdrd.reg_ptk AS ptk
+            INNER JOIN pdrd.sdm AS sdm
+                ON sdm.id_sdm = ptk.id_sdm
+                AND sdm.soft_delete = 0
+                AND sdm.id_jns_sdm = '12'
+            INNER JOIN pdrd.sms AS sms_dh
+                ON sms_dh.id_sms = ptk.id_sms
+                AND sms_dh.soft_delete = 0
+                AND sms_dh.stat_prodi = 'A'
+                AND sms_dh.id_fak_unila IS NOT NULL
+            INNER JOIN pdrd.keaktifan_ptk AS keaktifan
+                ON keaktifan.id_reg_ptk = ptk.id_reg_ptk
+                AND keaktifan.soft_delete = 0
+                AND keaktifan.a_sp_homebase = 1
+                AND keaktifan.id_thn_ajaran = (
+                    SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                    WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                    ORDER BY id_thn_ajaran DESC
+                )
+            {$joinSql}
+            WHERE ptk.soft_delete = 0
+              AND ptk.id_jns_keluar IS NULL
+              AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              {$whereSql}
         ";
 
         return (int) $this->selectScalar($sql, $bindings);
@@ -155,7 +188,26 @@ class BerandaRepository extends BaseRepository
 
     public function countTendik(?string $fakultas = null, ?string $prodi = null): int
     {
-        // Tendik: id_jns_sdm=13 (Tendik), dedup via id_sdm DISTINCT, filter id_jns_keluar IS NULL.
+        // CANONICAL match public-service /unila/statistics (1.116):
+        // tendik sumbernya SIKEP, BUKAN pdrd (data PDDikti tendik tidak lengkap).
+        // SIKEP hanya tersedia di scope universitas — fakultas/prodi filter di
+        // SIKEP tidak ada padanannya, jadi untuk role scoped (Dekan/Kaprodi)
+        // fallback ke pdrd dgn ptk.id_jns_keluar IS NULL.
+        if (!$fakultas && !$prodi) {
+            try {
+                $sql = "
+                    SELECT COUNT(*) AS total
+                    FROM sikep.pegawai
+                    WHERE status = 'Aktif'
+                      AND jns_tenaga = 'Non Dosen'
+                ";
+                return (int) $this->selectScalar($sql, []);
+            } catch (\Throwable $e) {
+                // fall-through to pdrd
+            }
+        }
+
+        // Scoped (Dekan/Kaprodi) atau SIKEP unreachable → pakai pdrd.
         $bindings = [self::UNILA_ID_SP];
         [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
 
@@ -179,14 +231,21 @@ class BerandaRepository extends BaseRepository
 
     public function countProdiAktif(?string $fakultas = null, ?string $prodi = null): int
     {
+        // CANONICAL = public-service ProgramStudiRepository (132 prodi):
+        // id_jns_sms='3' (prodi, BUKAN fakultas/jurusan) + id_fak_unila NOT NULL.
         $bindings = [self::UNILA_ID_SP];
         $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(s.id_sms)
             FROM pdrd.sms s
+            INNER JOIN ref.jenjang_pendidikan didik
+                ON didik.id_jenj_didik = s.id_jenj_didik
+                AND didik.expired_date IS NULL
             WHERE s.soft_delete = 0
               AND s.stat_prodi = 'A'
+              AND s.id_jns_sms = '3'
+              AND s.id_fak_unila IS NOT NULL
               AND s.id_sp = ?
               {$orgFilter}
         ";
@@ -211,7 +270,11 @@ class BerandaRepository extends BaseRepository
             )
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms
+                AND s.soft_delete = 0
+                AND s.stat_prodi = 'A'
+                AND s.id_jns_sms = '3'
+                AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -239,7 +302,11 @@ class BerandaRepository extends BaseRepository
             )
             SELECT COUNT(DISTINCT la.id_sms)
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms
+                AND s.soft_delete = 0
+                AND s.stat_prodi = 'A'
+                AND s.id_jns_sms = '3'
+                AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.lembaga_akred lem ON la.id_lemb_akred = lem.id_lemb_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -256,11 +323,14 @@ class BerandaRepository extends BaseRepository
 
     public function getTotalPendapatanUKT(array $semesters): int
     {
+        // CANONICAL: pakai SUM(nominal) per transaksi pembayaran — akurat.
+        // BUKAN SUM(total_tagihan - sisa) karena mahasiswa yg cicil punya >1 row
+        // dengan total_tagihan SAMA, yang bikin tagihan dijumlah 2-4x.
         $bindings = [];
         $inClause = $this->buildInClause($semesters, $bindings);
 
         $sql = "
-            SELECT ISNULL(SUM(CAST(sm.total_tagihan AS FLOAT) - CAST(ISNULL(sm.sisa_tagihan, 0) AS FLOAT)), 0)
+            SELECT ISNULL(SUM(CAST(sm.nominal AS DECIMAL(18,2))), 0)
             FROM keuangan.spp_mhs sm
             WHERE sm.soft_delete = 0
               AND CAST(sm.id_smt AS VARCHAR) IN {$inClause}
@@ -342,37 +412,45 @@ class BerandaRepository extends BaseRepository
 
     public function getPopulasiTrend(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $maxYear = (int) $this->getMaxYear($semesters);
+        // CANONICAL match /infografis trend: snapshot kuliah_mhs per semester Ganjil tahun X
+        // dengan id_stat_mhs IN ('A','M'). Sebelumnya: count reg_pd by tgl_masuk_sp <= yr
+        // (cumulative growth, bukan snapshot real per tahun).
+        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+            SELECT TOP 1 LEFT(CAST(id_smt AS VARCHAR), 4) AS tahun
+            FROM ref.semester
+            WHERE expired_date IS NULL AND a_periode_aktif = 1
+            ORDER BY id_smt DESC
+        ");
+        $maxYear = $row && !empty($row->tahun) ? (int) $row->tahun : ((int) $this->getMaxYear($semesters));
         $startYear = $maxYear - 4;
-        $bindings = [$startYear, $maxYear, self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
-        $sql = "
-            ;WITH years AS (
-                SELECT ? AS yr
-                UNION ALL SELECT yr + 1 FROM years WHERE yr < ?
-            )
-            SELECT
-                CAST(y.yr AS VARCHAR) as name,
-                (
-                    SELECT COUNT(rp.id_reg_pd)
-                    FROM pdrd.reg_pd rp
-                    {$joinSql}
-                    WHERE rp.id_sp = ? AND rp.soft_delete = 0
-                      AND rp.id_jns_keluar IS NULL
-                      AND YEAR(rp.tgl_masuk_sp) <= y.yr
-                      {$whereSql}
-                ) as value,
-                'Mahasiswa' as category
-            FROM years y
-            ORDER BY y.yr
-        ";
+        $result = [];
+        for ($yr = $startYear; $yr <= $maxYear; $yr++) {
+            $idSmt = $yr . '1';
+            $bindings = [$idSmt, self::UNILA_ID_SP];
+            [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
-        return $this->select($sql, $bindings);
+            $sql = "
+                SELECT COUNT(DISTINCT pd.id_pd) AS value
+                FROM pdrd.kuliah_mhs km
+                INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd AND rp.soft_delete = 0
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+                {$joinSql}
+                WHERE km.soft_delete = 0
+                  AND km.id_smt = ?
+                  AND km.id_stat_mhs IN ('A','M')
+                  AND rp.id_sp = ?
+                  {$whereSql}
+            ";
+            $value = (int) $this->selectScalar($sql, $bindings);
+            $result[] = (object) ['name' => (string) $yr, 'value' => $value, 'category' => 'Mahasiswa'];
+        }
+        return $result;
     }
 
     public function getAkreditasiDist(?string $fakultas = null, ?string $prodi = null): array
     {
+        // CANONICAL match countProdiUnggul / top5AkreditasiUnggul (id_jns_sms='3' + id_fak NOT NULL).
         $bindings = [self::UNILA_ID_SP];
         $orgFilter = $this->buildSmsOrgFilter($fakultas, $prodi, $bindings);
 
@@ -381,7 +459,7 @@ class BerandaRepository extends BaseRepository
                 SELECT
                     ap.id_sms,
                     ap.id_akred,
-                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS rn
                 FROM pdrd.akreditasi_prodi ap
                 WHERE ap.soft_delete = 0
                   AND ap.a_aktif = 1
@@ -390,7 +468,11 @@ class BerandaRepository extends BaseRepository
                 na.nm_akred as name,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms
+                AND s.soft_delete = 0
+                AND s.stat_prodi = 'A'
+                AND s.id_jns_sms = '3'
+                AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1
               AND s.id_sp = ?
@@ -404,16 +486,19 @@ class BerandaRepository extends BaseRepository
 
     public function getFakultasData(): array
     {
+        // CANONICAL match top5Mahasiswa & headline 37.181: dual confirm id_jns_keluar IS NULL + pd.id_stat_mhs='A'.
         $sql = "
             SELECT
                 uo.nm_lemb as name,
                 COUNT(rp.id_reg_pd) as value,
                 'Mahasiswa' as category
             FROM pdrd.reg_pd rp
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
             INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE rp.id_sp = ? AND rp.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
+              AND pd.id_stat_mhs = 'A'
             GROUP BY uo.nm_lemb
             ORDER BY value DESC
         ";
@@ -436,7 +521,15 @@ class BerandaRepository extends BaseRepository
      */
     public function getTrendYoY(?string $fakultas = null, ?string $prodi = null): array
     {
-        $currentYear = (int) date('Y');
+        // Endpoint year = tahun semester aktif (ref.semester a_periode_aktif=1).
+        // Hindari trend tahun yg datanya belum sync (mis. 2026 padahal masih TA 2025/2026).
+        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+            SELECT TOP 1 LEFT(CAST(id_smt AS VARCHAR), 4) AS tahun
+            FROM ref.semester
+            WHERE expired_date IS NULL AND a_periode_aktif = 1
+            ORDER BY id_smt DESC
+        ");
+        $currentYear = $row && !empty($row->tahun) ? (int) $row->tahun : (int) date('Y');
         $years = [];
         for ($y = $currentYear - 4; $y <= $currentYear; $y++) {
             $years[] = $y;
@@ -448,26 +541,75 @@ class BerandaRepository extends BaseRepository
             'guruBesar' => $this->trendGuruBesar($years, $fakultas, $prodi),
             'publikasi' => $this->trendPublikasi($years, $fakultas, $prodi),
             'akreditasiUnggul' => $this->trendAkreditasiUnggul($years, $fakultas, $prodi),
+            'litabmas' => $this->trendLitabmas($years, $fakultas, $prodi),
         ];
+    }
+
+    /**
+     * Trend Litabmas (Penelitian + Pengabdian) per tahun.
+     * jns_litabmas: 'L'=Penelitian, 'M'=Pengabdian Masyarakat.
+     * Filter fak/prodi via sdm_anggota_litabmas → reg_ptk → sms.
+     */
+    private function trendLitabmas(array $years, ?string $fakultas, ?string $prodi): array
+    {
+        $result = [];
+        foreach ($years as $year) {
+            if ($fakultas || $prodi) {
+                $bindings = [self::UNILA_ID_SP, $year];
+                $orgFilter = '';
+                if ($prodi) { $orgFilter = ' AND ps.id_sms = ?'; $bindings[] = $prodi; }
+                elseif ($fakultas) { $orgFilter = ' AND ps.id_fak_unila = ?'; $bindings[] = $fakultas; }
+
+                $sql = "
+                    SELECT COUNT(DISTINCT l.id_litabmas)
+                    FROM pdrd.litabmas l
+                    INNER JOIN pdrd.sdm_anggota_litabmas sal ON sal.id_litabmas = l.id_litabmas AND sal.soft_delete = 0
+                    INNER JOIN pdrd.reg_ptk pp ON pp.id_sdm = sal.id_sdm AND pp.soft_delete = 0
+                        AND pp.id_jns_keluar IS NULL AND CAST(pp.id_sp AS VARCHAR(50)) = ?
+                    INNER JOIN pdrd.sms ps ON pp.id_sms = ps.id_sms AND ps.soft_delete = 0
+                    WHERE l.soft_delete = 0
+                      AND l.jns_litabmas IN ('L','M')
+                      AND CAST(l.id_thn_kegiatan AS VARCHAR) = ?
+                      {$orgFilter}
+                ";
+                $result[] = (int) $this->selectScalar($sql, $bindings);
+            } else {
+                $sql = "
+                    SELECT COUNT(*)
+                    FROM pdrd.litabmas
+                    WHERE soft_delete = 0
+                      AND jns_litabmas IN ('L','M')
+                      AND CAST(id_thn_kegiatan AS VARCHAR) = ?
+                ";
+                $result[] = (int) $this->selectScalar($sql, [$year]);
+            }
+        }
+        return $result;
     }
 
     private function trendMahasiswaAktif(array $years, ?string $fakultas, ?string $prodi): array
     {
+        // CANONICAL match public-service /mahasiswa-statistics/trend:
+        // Snapshot mahasiswa aktif pada semester ganjil tahun X (id_smt = X1) via kuliah_mhs.
+        // kuliah_mhs.id_stat_mhs IN ('A','M') = Aktif atau Mahasiswa (terdaftar di semester tsb).
+        // Beda dgn headline 37.181 (real-time): trend tahunan = sebaran historis per Ganjil.
         $result = [];
         foreach ($years as $year) {
-            // BUGFIX 2026-05-16: SQL placeholder order = [UNILA_ID, year, year, fakultas].
-            // Sebelumnya bindings = [UNILA, fakultas, year, year] → operand type clash.
-            $bindings = [self::UNILA_ID_SP, $year, $year];
+            $idSmt = $year . '1';
+            $bindings = [$idSmt, self::UNILA_ID_SP];
+            // OrgFilter pakai reg_pd (rp alias) join kuliah_mhs.
             [$joinSql, $whereSql] = $this->buildMhsOrgFilter($fakultas, $prodi, $bindings);
 
-            // Mahasiswa aktif di tahun X: sudah masuk <= akhir tahun X dan belum keluar (id_jns_keluar IS NULL atau tgl_keluar > akhir tahun)
             $sql = "
-                SELECT COUNT(rp.id_reg_pd)
-                FROM pdrd.reg_pd rp
+                SELECT COUNT(DISTINCT pd.id_pd)
+                FROM pdrd.kuliah_mhs km
+                INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd AND rp.soft_delete = 0
+                INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
                 {$joinSql}
-                WHERE rp.id_sp = ? AND rp.soft_delete = 0
-                  AND YEAR(rp.tgl_masuk_sp) <= ?
-                  AND (rp.tgl_keluar IS NULL OR YEAR(rp.tgl_keluar) > ?)
+                WHERE km.soft_delete = 0
+                  AND km.id_smt = ?
+                  AND km.id_stat_mhs IN ('A','M')
+                  AND rp.id_sp = ?
                   {$whereSql}
             ";
             $result[] = (int) $this->selectScalar($sql, $bindings);
@@ -477,27 +619,39 @@ class BerandaRepository extends BaseRepository
 
     private function trendGuruBesar(array $years, ?string $fakultas, ?string $prodi): array
     {
+        // CANONICAL match DosenRepository.countGuruBesar (165 current):
+        // Filter latest jabfung per SDM s/d akhir tahun X = Profesor/Guru Besar,
+        // SDM masih aktif (id_stat_aktif=1), ptk aktif, prodi homebase 'A' + id_fak NOT NULL.
         $result = [];
         foreach ($years as $year) {
-            // BUGFIX: SQL order = [UNILA_ID_SP, year, fakultas]
-            $bindings = [self::UNILA_ID_SP, $year];
-            [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+            $bindings = [$year, self::UNILA_ID_SP];
+            // SMS alias 'sgb' supaya tidak bentrok dgn potential collision
+            $orgFilter = '';
+            if ($prodi) { $orgFilter = ' AND ptk.id_sms = ?'; $bindings[] = $prodi; }
+            elseif ($fakultas) { $orgFilter = ' AND s_gb.id_fak_unila = ?'; $bindings[] = $fakultas; }
 
-            // Guru Besar = SDM yg pernah mencapai jabfung 'Profesor' dengan tmt_sk_jabfung <= year-end
-            // Table canonical: pdrd.rwy_fungsional (BUKAN jabatan_fungsional) + ref.jabfung
             $sql = "
                 SELECT COUNT(DISTINCT sdm.id_sdm)
                 FROM pdrd.sdm sdm
                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
-                    AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
-                {$joinSql}
+                    AND ptk.id_jns_keluar IS NULL
+                INNER JOIN pdrd.sms s_gb ON s_gb.id_sms = ptk.id_sms AND s_gb.soft_delete = 0
+                    AND s_gb.stat_prodi = 'A' AND s_gb.id_fak_unila IS NOT NULL
                 INNER JOIN pdrd.rwy_fungsional rf ON rf.id_sdm = sdm.id_sdm AND rf.soft_delete = 0
                 INNER JOIN ref.jabfung rjf ON rjf.id_jabfung = rf.id_jabfung
                 WHERE sdm.soft_delete = 0
                   AND sdm.id_jns_sdm = 12
+                  AND sdm.id_stat_aktif = 1
                   AND (UPPER(rjf.nm_jabfung) LIKE 'PROFESOR%' OR UPPER(rjf.nm_jabfung) LIKE '%GURU BESAR%')
-                  AND YEAR(rf.tmt_sk_jabfung) <= ?
-                  {$whereSql}
+                  AND rf.id_rwy_jabfung = (
+                      SELECT TOP 1 rf2.id_rwy_jabfung
+                      FROM pdrd.rwy_fungsional rf2
+                      WHERE rf2.id_sdm = sdm.id_sdm AND rf2.soft_delete = 0
+                        AND YEAR(rf2.tmt_sk_jabfung) <= ?
+                      ORDER BY rf2.tmt_sk_jabfung DESC
+                  )
+                  AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+                  {$orgFilter}
             ";
             $result[] = (int) $this->selectScalar($sql, $bindings);
         }
@@ -573,16 +727,19 @@ class BerandaRepository extends BaseRepository
 
     private function top5Mahasiswa(): array
     {
+        // CANONICAL match headline 37.181: dual confirm id_jns_keluar IS NULL + pd.id_stat_mhs='A'.
         $sql = "
             SELECT TOP 5
                 CONVERT(VARCHAR(36), uo.id_organisasi) as id_fak,
                 uo.nm_lemb as nm_fakultas,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
             INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE rp.id_sp = ? AND rp.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
+              AND pd.id_stat_mhs = 'A'
             GROUP BY uo.id_organisasi, uo.nm_lemb
             ORDER BY value DESC
         ";
@@ -591,6 +748,7 @@ class BerandaRepository extends BaseRepository
 
     private function top5Dosen(): array
     {
+        // CANONICAL match headline 1.536: a_sp_homebase=1 + thn_ajaran active + stat_prodi='A' + id_fak NOT NULL.
         $sql = "
             SELECT TOP 5
                 CONVERT(VARCHAR(36), uo.id_organisasi) as id_fak,
@@ -600,6 +758,14 @@ class BerandaRepository extends BaseRepository
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
             INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
+                AND s.stat_prodi = 'A' AND s.id_fak_unila IS NOT NULL
+            INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                AND kp.id_thn_ajaran = (
+                    SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                    WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                    ORDER BY id_thn_ajaran DESC
+                )
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE sdm.soft_delete = 0 AND sdm.id_jns_sdm = 12
             GROUP BY uo.id_organisasi, uo.nm_lemb
@@ -610,7 +776,14 @@ class BerandaRepository extends BaseRepository
 
     private function top5Publikasi(): array
     {
-        $currentYear = (int) date('Y');
+        // CANONICAL match trendPublikasi window: 5 tahun terakhir up to semester aktif year.
+        $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+            SELECT TOP 1 LEFT(CAST(id_smt AS VARCHAR), 4) AS tahun
+            FROM ref.semester
+            WHERE expired_date IS NULL AND a_periode_aktif = 1
+            ORDER BY id_smt DESC
+        ");
+        $currentYear = $row && !empty($row->tahun) ? (int) $row->tahun : (int) date('Y');
         $startYear = $currentYear - 4;
 
         $sql = "
@@ -634,12 +807,13 @@ class BerandaRepository extends BaseRepository
 
     private function top5AkreditasiUnggul(): array
     {
+        // CANONICAL match countProdiUnggul 59: id_jns_sms='3' + id_fak_unila NOT NULL + ORDER BY tanggal_sk (effective date).
         $sql = "
             ;WITH latest_akred AS (
                 SELECT
                     ap.id_sms,
                     ap.id_akred,
-                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tst_sk_akreditasi_prodi DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY ap.id_sms ORDER BY ap.tanggal_sk_akreditasi_prodi DESC) AS rn
                 FROM pdrd.akreditasi_prodi ap
                 WHERE ap.soft_delete = 0
                   AND ap.a_aktif = 1
@@ -649,7 +823,11 @@ class BerandaRepository extends BaseRepository
                 uo.nm_lemb as nm_fakultas,
                 COUNT(DISTINCT la.id_sms) as value
             FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms
+                AND s.soft_delete = 0
+                AND s.stat_prodi = 'A'
+                AND s.id_jns_sms = '3'
+                AND s.id_fak_unila IS NOT NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE la.rn = 1
@@ -733,10 +911,10 @@ class BerandaRepository extends BaseRepository
 
     private function countDosenPensiunAlert(?string $fakultas, ?string $prodi): int
     {
+        // Dosen aktif Unila (canonical scope = prodi 'A' + id_fak NOT NULL) + akan capai usia 60 ≤12 bulan
         $bindings = [self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+        [$joinSql, $whereSql] = $this->buildSdmAlertOrgFilter($fakultas, $prodi, $bindings);
 
-        // Dosen aktif Unila + jns_sdm=12 + id_stat_aktif=1 + akan capai usia 60 ≤12 bulan
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
@@ -756,7 +934,7 @@ class BerandaRepository extends BaseRepository
     private function countDosenTanpaNidn(?string $fakultas, ?string $prodi): int
     {
         $bindings = [self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
+        [$joinSql, $whereSql] = $this->buildSdmAlertOrgFilter($fakultas, $prodi, $bindings);
 
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
@@ -775,10 +953,10 @@ class BerandaRepository extends BaseRepository
 
     private function countDosenTanpaJabfung(?string $fakultas, ?string $prodi): int
     {
-        $bindings = [self::UNILA_ID_SP];
-        [$joinSql, $whereSql] = $this->buildSdmOrgFilter($fakultas, $prodi, $bindings);
-
         // Dosen aktif tanpa baris di pdrd.rwy_fungsional (NOT EXISTS).
+        $bindings = [self::UNILA_ID_SP];
+        [$joinSql, $whereSql] = $this->buildSdmAlertOrgFilter($fakultas, $prodi, $bindings);
+
         $sql = "
             SELECT COUNT(DISTINCT sdm.id_sdm)
             FROM pdrd.sdm sdm
@@ -823,7 +1001,11 @@ class BerandaRepository extends BaseRepository
                 )
                 SELECT COUNT(DISTINCT la.id_sms)
                 FROM latest_akred la
-                INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+                INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms
+                    AND s.soft_delete = 0
+                    AND s.stat_prodi = 'A'
+                    AND s.id_jns_sms = '3'
+                    AND s.id_fak_unila IS NOT NULL
                 INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
                 WHERE la.rn = 1
                   AND s.id_sp = ?

@@ -63,17 +63,14 @@ class OverviewController extends Controller
     private function countMahasiswaAktif(): int
     {
         return Cache::remember('overview:mhs_aktif', 300, function () {
+            // CANONICAL match Pimpinan beranda 37.181: count by reg_pd (per enrollment),
+            // bukan COUNT DISTINCT pd.id_pd. 69 mhs punya >1 reg_pd aktif (S1+S2 dual).
+            // Drop sms+jenjang JOIN supaya tidak filter sms.stat_prodi (sama dgn public-service).
             $row = DB::connection('sqlsrv')->select("
-                SELECT COUNT(DISTINCT pd.id_pd) AS total
+                SELECT COUNT(reg.id_reg_pd) AS total
                 FROM pdrd.reg_pd AS reg
-                JOIN pdrd.peserta_didik AS pd
+                INNER JOIN pdrd.peserta_didik AS pd
                     ON pd.id_pd = reg.id_pd AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms AS sms
-                    ON sms.id_sms = reg.id_sms AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
-                INNER JOIN ref.jenjang_pendidikan AS didik
-                    ON didik.id_jenj_didik = sms.id_jenj_didik
-                    AND didik.expired_date IS NULL
                 WHERE reg.soft_delete = 0
                     AND reg.id_jns_keluar IS NULL
                     AND pd.id_stat_mhs = 'A'
