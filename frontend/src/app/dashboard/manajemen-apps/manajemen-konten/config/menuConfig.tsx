@@ -2,7 +2,7 @@
  * Menu Configuration — Manajemen Konten
  *
  * RBAC: developer-only (sesuai Q9 design decision).
- * Path root: /dashboard/manajemen-konten/
+ * Path root: /dashboard/manajemen-apps/manajemen-konten/
  */
 
 import { FiFileText, FiList, FiBookOpen, FiBell, FiTag, FiHome, FiSend } from "react-icons/fi";
@@ -15,43 +15,43 @@ export const manajemenKontenMenuConfig: MenuItem[] = [
   {
     title: "Dashboard",
     icon: <MdDashboard className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten",
+    href: "/dashboard/manajemen-apps/manajemen-konten",
     roles: allowedRoles,
   },
   {
     title: "Pengumuman",
     icon: <FiBell className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/konten?tipe=pengumuman",
+    href: "/dashboard/manajemen-apps/manajemen-konten/konten?tipe=pengumuman",
     roles: allowedRoles,
   },
   {
     title: "Berita",
     icon: <FiFileText className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/konten?tipe=berita",
+    href: "/dashboard/manajemen-apps/manajemen-konten/konten?tipe=berita",
     roles: allowedRoles,
   },
   {
     title: "Artikel",
     icon: <FiBookOpen className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/konten?tipe=artikel",
+    href: "/dashboard/manajemen-apps/manajemen-konten/konten?tipe=artikel",
     roles: allowedRoles,
   },
   {
     title: "Semua Konten",
     icon: <FiList className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/konten",
+    href: "/dashboard/manajemen-apps/manajemen-konten/konten",
     roles: allowedRoles,
   },
   {
     title: "Kategori",
     icon: <FiTag className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/kategori",
+    href: "/dashboard/manajemen-apps/manajemen-konten/kategori",
     roles: allowedRoles,
   },
   {
     title: "Broadcast Notifikasi",
     icon: <FiSend className="w-5 h-5" />,
-    href: "/dashboard/manajemen-konten/notifikasi",
+    href: "/dashboard/manajemen-apps/manajemen-konten/notifikasi",
     roles: allowedRoles,
   },
 ];

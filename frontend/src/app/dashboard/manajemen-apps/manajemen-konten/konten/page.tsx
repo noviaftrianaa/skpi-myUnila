@@ -134,7 +134,7 @@ function KontenListContent() {
       render: (it) => (
         <div className="max-w-md">
           <Link
-            href={`/dashboard/manajemen-konten/konten/${it.id_pengumuman}`}
+            href={`/dashboard/manajemen-apps/manajemen-konten/konten/${it.id_pengumuman}`}
             className="font-medium text-gray-900 hover:text-blue-600 truncate block"
           >
             {it.judul}
@@ -190,7 +190,7 @@ function KontenListContent() {
       render: (it) => (
         <div className="flex items-center justify-center gap-1">
           <Link
-            href={`/dashboard/manajemen-konten/konten/${it.id_pengumuman}`}
+            href={`/dashboard/manajemen-apps/manajemen-konten/konten/${it.id_pengumuman}`}
             className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors"
             title="Edit"
           >
@@ -231,7 +231,7 @@ function KontenListContent() {
         {/* Header — breadcrumb + title + action */}
         <div>
           <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+            <Link href="/dashboard/manajemen-apps/manajemen-konten" className="hover:text-blue-600">
               Manajemen Konten
             </Link>
             <span>/</span>
@@ -246,7 +246,7 @@ function KontenListContent() {
               </p>
             </div>
             <Link
-              href={`/dashboard/manajemen-konten/konten/baru${tipeFilter ? `?tipe=${tipeFilter}` : ""}`}
+              href={`/dashboard/manajemen-apps/manajemen-konten/konten/baru${tipeFilter ? `?tipe=${tipeFilter}` : ""}`}
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
             >
               <FiPlus className="w-4 h-4" /> Tulis Konten

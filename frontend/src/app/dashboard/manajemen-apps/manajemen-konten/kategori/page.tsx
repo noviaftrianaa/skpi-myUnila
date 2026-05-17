@@ -145,7 +145,7 @@ export default function KategoriPage() {
       <div className="space-y-5">
         <div>
           <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <Link href="/dashboard/manajemen-konten" className="hover:text-blue-600">
+            <Link href="/dashboard/manajemen-apps/manajemen-konten" className="hover:text-blue-600">
               Manajemen Konten
             </Link>
             <span>/</span>
