@@ -5,12 +5,13 @@
 
 import { Card, CardBody } from "@heroui/react";
 import {
-  FiAlertCircle, FiBookmark, FiCheck, FiClock, FiLoader, FiMessageSquare, FiTrash2, FiX,
+  FiAlertCircle, FiBookmark, FiCheck, FiClock, FiLoader, FiMessageSquare, FiSlash, FiTrash2, FiX,
 } from "react-icons/fi";
 import { useState } from "react";
 import {
   useKomentarList, useModerateKomentar, useModerateKomentarBulk, useToggleKomentarPin,
   useKomentarTrash, useSoftDeleteKomentar, useRestoreKomentar, usePermanentDeleteKomentar,
+  useBanCommenter,
 } from "@/lib/services/blog-platform";
 import type { ModerationStatus } from "@/lib/services/blog-platform";
 
@@ -49,6 +50,18 @@ export default function KomentarPage() {
   const softDeleteMut = useSoftDeleteKomentar();
   const restoreMut = useRestoreKomentar();
   const permaDeleteMut = usePermanentDeleteKomentar();
+  const banMut = useBanCommenter();
+
+  const handleBanCommenter = async (idKomentar: string, nm: string | null | undefined) => {
+    const alasan = window.prompt(`Ban ${nm || "user ini"} dari komentar di blog ini?\n\nIsi alasan (akan disimpan di audit):`);
+    if (!alasan || !alasan.trim()) return;
+    try {
+      await banMut.mutateAsync({ id_komentar: idKomentar, alasan: alasan.trim() });
+      window.alert(`User berhasil di-ban. Cek halaman Banned Commenter untuk kelola.`);
+    } catch (e: unknown) {
+      window.alert(`Gagal: ${e instanceof Error ? e.message : "unknown"}`);
+    }
+  };
 
   const handleSoftDelete = async (id: string) => {
     if (!confirm("Pindah komentar ini ke trash? Bisa di-restore kapan saja.")) return;
@@ -354,6 +367,16 @@ export default function KomentarPage() {
                             title="Reject"
                           >
                             <FiX className="w-3.5 h-3.5" /> Reject
+                          </button>
+                        )}
+                        {k.id_pengguna_pdut && (
+                          <button
+                            onClick={() => handleBanCommenter(k.id_komentar, k.nm_komentator)}
+                            disabled={banMut.isPending}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 disabled:opacity-50"
+                            title="Ban user dari komentar di blog ini"
+                          >
+                            <FiSlash className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button

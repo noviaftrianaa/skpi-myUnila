@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { Card, CardBody } from "@heroui/react";
 import {
-  FiAtSign, FiBell, FiBellOff, FiCheck, FiHeart, FiMail, FiMessageCircle,
+  FiAtSign, FiBell, FiBellOff, FiCheck, FiHeart, FiMail, FiMessageCircle, FiSmartphone,
   FiUserPlus, FiCornerDownRight, FiLoader, FiAlertCircle, FiFileText,
   FiSettings, FiChevronDown, FiChevronUp,
 } from "react-icons/fi";
@@ -15,6 +15,7 @@ import {
   ALL_NOTIF_TIPES,
   useMarkAllNotifRead, useMarkNotifRead, useNotifList, useUnreadNotifCount,
   useNotifPreferences, useUpdateNotifPreferences,
+  pushService, isPushSupported, pushPermission, type PushSubscriptionRow,
 } from "@/lib/services/blog-platform";
 import type { NotifEntry, NotifType } from "@/lib/services/blog-platform";
 
@@ -30,6 +31,7 @@ const TIPE_LABEL: Record<NotifType, string> = {
   mention_post: "menyebut kamu di post",
   coauthor_invite: "mengundang kamu sebagai co-author",
   coauthor_responded: "merespon undangan co-author kamu",
+  weekly_digest: "digest email mingguan",
 };
 
 const TIPE_ICON: Record<NotifType, React.ComponentType<{ className?: string }>> = {
@@ -42,6 +44,7 @@ const TIPE_ICON: Record<NotifType, React.ComponentType<{ className?: string }>> 
   mention_post: FiAtSign,
   coauthor_invite: FiMail,
   coauthor_responded: FiMail,
+  weekly_digest: FiMail,
 };
 
 const TIPE_COLOR: Record<NotifType, string> = {
@@ -54,6 +57,7 @@ const TIPE_COLOR: Record<NotifType, string> = {
   mention_post: "text-amber-500 bg-amber-50 dark:bg-amber-950/40",
   coauthor_invite: "text-violet-500 bg-violet-50 dark:bg-violet-950/40",
   coauthor_responded: "text-violet-500 bg-violet-50 dark:bg-violet-950/40",
+  weekly_digest: "text-myunila bg-myunila/10 dark:bg-myunila/20",
 };
 
 type Tab = "all" | "unread";
@@ -111,6 +115,9 @@ export default function NotificationsPage() {
           <p className="text-sm text-rose-900 dark:text-rose-300">{(error as Error).message}</p>
         </div>
       )}
+
+      {/* Phase BA — Web Push subscription panel */}
+      <PushSubscriptionPanel />
 
       {/* Preferences panel */}
       <Card className="shadow-sm border border-slate-200/60 dark:border-slate-800">
@@ -315,5 +322,185 @@ export default function NotificationsPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+// =============================================================================
+// PushSubscriptionPanel — Phase BA web push enable/disable UI.
+//
+// - Hidden saat browser tidak support service worker / push (Safari iOS lama dst).
+// - Render status: granted/default/denied + jumlah device aktif + tombol toggle.
+// - Test send tombol untuk verify push masuk ke browser ini.
+// =============================================================================
+function PushSubscriptionPanel() {
+  const [supported, setSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [subs, setSubs] = useState<PushSubscriptionRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSupported(isPushSupported());
+    setPermission(pushPermission());
+    if (isPushSupported()) {
+      pushService.list().then(setSubs).catch(() => setSubs([]));
+    }
+  }, []);
+
+  if (!supported) {
+    return (
+      <Card className="shadow-sm border border-slate-200/60 dark:border-slate-800">
+        <CardBody className="p-4 flex items-start gap-3">
+          <FiSmartphone className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-slate-500">
+            Browser ini tidak support push notification. Pakai Chrome/Edge/Firefox terbaru di desktop atau Android.
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const handleEnable = async () => {
+    setLoading(true); setError(null);
+    try {
+      const sub = await pushService.subscribe();
+      if (!sub) {
+        setError("Permission ditolak. Buka settings browser → site permissions → notifications → Allow.");
+        setPermission(pushPermission());
+      } else {
+        const fresh = await pushService.list();
+        setSubs(fresh);
+        setPermission("granted");
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Gagal enable push");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisable = async () => {
+    if (!confirm("Matikan push notification di device ini?")) return;
+    setLoading(true); setError(null);
+    try {
+      await pushService.unsubscribe();
+      const fresh = await pushService.list();
+      setSubs(fresh);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Gagal disable push");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setError(null);
+    try {
+      const r = await pushService.testSend();
+      window.alert(`Test push terkirim: ${r.sent} device.${r.deleted_stale > 0 ? ` (${r.deleted_stale} stale di-cleanup)` : ""}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Test send gagal");
+    }
+  };
+
+  const handleRemoveDevice = async (id: string) => {
+    if (!confirm("Hapus device ini dari daftar push?")) return;
+    try {
+      await pushService.unsubscribeByID(id);
+      setSubs(await pushService.list());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Gagal hapus device");
+    }
+  };
+
+  const hasActive = subs.length > 0 && permission === "granted";
+
+  return (
+    <Card className="shadow-sm border border-slate-200/60 dark:border-slate-800">
+      <CardBody className="p-4 space-y-3">
+        <div className="flex items-start gap-3 flex-wrap">
+          <div className="w-9 h-9 rounded-full bg-myunila/10 flex items-center justify-center text-myunila flex-shrink-0">
+            <FiSmartphone className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Push Notification</p>
+              {hasActive && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  Aktif · {subs.length} device
+                </span>
+              )}
+              {permission === "denied" && (
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 text-[10px] font-bold uppercase tracking-wider">
+                  Diblokir
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Notif real-time ke browser ini saat ada like/komentar/follower baru — walau dashboard tidak open.
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {hasActive ? (
+              <>
+                <button
+                  onClick={handleTest}
+                  disabled={loading}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-myunila/10 text-myunila hover:bg-myunila/20 disabled:opacity-50"
+                >
+                  Test
+                </button>
+                <button
+                  onClick={handleDisable}
+                  disabled={loading}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 hover:bg-rose-200 disabled:opacity-50"
+                >
+                  Disable
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEnable}
+                disabled={loading || permission === "denied"}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-myunila text-white hover:bg-myunila/90 disabled:opacity-50"
+                title={permission === "denied" ? "Browser memblokir notifikasi — atur di settings browser dulu" : ""}
+              >
+                {loading ? "Menyiapkan…" : "Enable"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="rounded-md border border-rose-200 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 p-2.5 text-xs text-rose-900 dark:text-rose-300 flex items-start gap-2">
+            <FiAlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {subs.length > 0 && (
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-1.5">
+            <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Device terdaftar</p>
+            {subs.map((s) => (
+              <div key={s.id_subscription} className="flex items-center gap-2 text-xs">
+                <FiSmartphone className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span className="flex-1 truncate text-slate-600 dark:text-slate-400" title={s.user_agent || ""}>
+                  {s.user_agent || "Unknown device"}
+                </span>
+                <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                  {new Date(s.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                </span>
+                <button
+                  onClick={() => handleRemoveDevice(s.id_subscription)}
+                  className="text-[10px] text-rose-500 hover:underline"
+                >
+                  Hapus
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

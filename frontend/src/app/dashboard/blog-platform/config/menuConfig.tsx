@@ -61,14 +61,22 @@ export const blogPlatformMenuConfig: MenuItem[] = [
   {
     title: "Komentar",
     icon: <FiMessageSquare className="w-5 h-5" />,
-    href: "/dashboard/blog-platform/komentar",
-    isMaintenance: true,
+    children: [
+      { title: "Moderasi",          icon: <FiMessageSquare className="w-4 h-4" />, href: "/dashboard/blog-platform/komentar" },
+      { title: "Banned Commenter",  icon: <FiSlash         className="w-4 h-4" />, href: "/dashboard/blog-platform/komentar/banned" },
+    ],
     roles: authorRoles,
   },
   {
     title: "Analytics",
     icon: <FiBarChart2 className="w-5 h-5" />,
     href: "/dashboard/blog-platform/analytics",
+    roles: authorRoles,
+  },
+  {
+    title: "Subscribers",
+    icon: <FiMail className="w-5 h-5" />,
+    href: "/dashboard/blog-platform/subscribers",
     roles: authorRoles,
   },
   {

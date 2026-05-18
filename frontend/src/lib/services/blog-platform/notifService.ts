@@ -12,7 +12,9 @@ export type NotifType =
   | "mention_komentar"
   | "mention_post"
   | "coauthor_invite"
-  | "coauthor_responded";
+  | "coauthor_responded"
+  // Phase BE — bukan notif row di feed, tapi opt-out toggle untuk email digest mingguan
+  | "weekly_digest";
 
 export interface NotifEntry {
   id_notifikasi: string;
@@ -45,6 +47,7 @@ export const ALL_NOTIF_TIPES: { value: NotifType; label: string; desc: string }[
   { value: "mention_post",      label: "Mention di post",       desc: "Saat ada user mention @kamu di isi post" },
   { value: "coauthor_invite",   label: "Undangan co-author",    desc: "Saat ada penulis lain mengundang kamu sebagai co-author" },
   { value: "coauthor_responded", label: "Respon co-author",     desc: "Saat invitee menerima atau menolak undangan co-author kamu" },
+  { value: "weekly_digest",     label: "Digest email mingguan", desc: "Email rangkuman top post dari blog yang kamu ikuti, dikirim seminggu sekali" },
 ];
 
 export const meNotifService = {

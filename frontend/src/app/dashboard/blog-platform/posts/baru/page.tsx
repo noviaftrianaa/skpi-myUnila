@@ -35,6 +35,7 @@ export default function NewPostPage() {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [status, setStatus] = useState("draft");
   const [visibilitas, setVisibilitas] = useState("public");
+  const [bahasa, setBahasa] = useState<"id" | "en">("id"); // Phase BD
   const [tglPublish, setTglPublish] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDesc, setMetaDesc] = useState("");
@@ -92,8 +93,9 @@ export default function NewPostPage() {
     konten_html: konten || undefined,
     cover_url: coverUrl || undefined,
     visibilitas: visibilitas as "public" | "unlisted" | "private" | "password",
+    bahasa,
     tags: tags.length > 0 ? tags : undefined,
-  }), [judul, slug, excerpt, kategoriId, konten, coverUrl, visibilitas, tags]);
+  }), [judul, slug, excerpt, kategoriId, konten, coverUrl, visibilitas, bahasa, tags]);
 
   const buildUpdatePayload = useCallback(() => ({
     judul,
@@ -104,8 +106,9 @@ export default function NewPostPage() {
     cover_url: coverUrl || null,
     status: status as "draft" | "review" | "published" | "scheduled" | "archived" | "trash",
     visibilitas: visibilitas as "public" | "unlisted" | "private" | "password",
+    bahasa,
     tags, // replace junction at every save
-  }), [judul, slug, excerpt, kategoriId, konten, coverUrl, status, visibilitas, tags]);
+  }), [judul, slug, excerpt, kategoriId, konten, coverUrl, status, visibilitas, bahasa, tags]);
 
   const persist = useCallback(async (silent = false): Promise<string | null> => {
     if (!judul.trim()) {
@@ -308,6 +311,19 @@ export default function NewPostPage() {
                 <option value="private">🔒 Private (login-only)</option>
                 <option value="password">🔑 Password protected</option>
               </select>
+            </Field>
+            <Field label="Bahasa">
+              <select
+                value={bahasa}
+                onChange={e => wrap(setBahasa)(e.target.value as "id" | "en")}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+              >
+                <option value="id">🇮🇩 Bahasa Indonesia</option>
+                <option value="en">🇬🇧 English</option>
+              </select>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Link ke versi bahasa lain bisa diatur di halaman edit setelah post dibuat.
+              </p>
             </Field>
             {status === "scheduled" && (
               <Field label="Tgl Publish">

@@ -124,6 +124,8 @@ export const meBlogService = {
 
 // =================== Post Write (mine) ===================
 
+export type PostBahasa = "id" | "en";
+
 export interface CreatePostInput {
   id_kategori_post?: string | null;
   judul: string;
@@ -133,6 +135,8 @@ export interface CreatePostInput {
   konten_json?: string | null;       // TipTap JSON as string (backend parse via ::jsonb)
   cover_url?: string | null;
   visibilitas?: "public" | "unlisted" | "private" | "password";
+  bahasa?: PostBahasa;                // Phase BD — default "id" di backend
+  id_pair_post?: string | null;       // Phase BD — link saat create kalau ada pasangan
   tags?: string[];                    // tag names/slugs — backend auto-create + sync junction
 }
 
@@ -147,6 +151,7 @@ export interface UpdatePostInput {
   status?: "draft" | "review" | "published" | "scheduled" | "archived" | "trash";
   visibilitas?: "public" | "unlisted" | "private" | "password";
   tgl_jadwal?: string;
+  bahasa?: PostBahasa;                // Phase BD
   tags?: string[];                    // pass to replace junction; omit to keep existing
 }
 
@@ -171,6 +176,14 @@ export const mePostService = {
       `/me/blog/posts/${id}/pin`
     );
     return data.data;
+  },
+
+  // Phase BD — link 2 post (versi ID + versi EN) sebagai pair language.
+  async linkPair(id: string, idOtherPost: string): Promise<void> {
+    await blogClient.put(`/me/blog/posts/${id}/pair`, { id_other_post: idOtherPost });
+  },
+  async unlinkPair(id: string): Promise<void> {
+    await blogClient.delete(`/me/blog/posts/${id}/pair`);
   },
 
   async softDelete(id: string): Promise<void> {

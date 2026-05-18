@@ -1,7 +1,7 @@
 "use client";
 
 // Blog Platform Dashboard — editorial-style overview (inspired by Medium / Substack / Ghost).
-// Sprint 6: wired ke real API. Fallback ke MOCK kalau user belum punya blog.
+// Sprint 6: wired ke real API. Empty state kalau user belum punya blog.
 
 import Link from "next/link";
 import Image from "next/image";
@@ -11,7 +11,6 @@ import {
   FiEdit3, FiExternalLink, FiEye, FiFileText, FiHeart, FiLayers,
   FiMessageCircle, FiSettings, FiStar, FiTrendingUp, FiUsers,
 } from "react-icons/fi";
-import { MOCK_MY_BLOG } from "./_mock";
 import { ContinueReading } from "./_components/ContinueReading";
 import {
   useMyBlog, usePostList, usePostStatusCount,
@@ -21,8 +20,6 @@ import type { Blog as APIBlog, PostSummary } from "@/lib/services/blog-platform"
 
 export default function BlogPlatformDashboardPage() {
   const { data: apiBlog, isLoading: loadingBlog, error: blogError } = useMyBlog();
-  // Fallback ke MOCK_MY_BLOG (display-only) kalau user belum punya blog di backend.
-  // Field MOCK_MY_BLOG punya tipe sedikit beda dari APIBlog — gunakan via helper saja.
   const blog = apiBlog;
   const idBlog = apiBlog?.id_blog || "";
 
@@ -60,7 +57,7 @@ export default function BlogPlatformDashboardPage() {
     return {
       id: a.id_jejak_audit,
       tgl: a.created_at,
-      pengguna: blog?.nm_tampilan || MOCK_MY_BLOG.nm_tampilan,
+      pengguna: blog?.nm_tampilan || "—",
       aksi: a.aksi,
       entitas: a.entitas,
       detail: d?.judul ? `${a.aksi.replace(/_/g, " ")} "${d.judul}"` : a.aksi.replace(/_/g, " "),

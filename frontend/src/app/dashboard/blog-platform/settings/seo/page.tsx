@@ -26,11 +26,12 @@ export default function SeoSettingsPage() {
   const [twitterHandle, setTwitterHandle] = useState("");
   const [twitterCard, setTwitterCard] = useState<"summary" | "summary_large_image">("summary_large_image");
   const [robots, setRobots] = useState<BlogSEOConfig["robots"]>("index,follow");
+  const [gscVerification, setGscVerification] = useState("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!blog) return;
-    const seo = (blog.meta_seo_json || {}) as BlogSEOConfig;
+    const seo = (blog.meta_seo_json || {}) as BlogSEOConfig & { gsc_verification?: string };
     setTitleTemplate(seo.title_template || "");
     setDescription(seo.description || blog.tagline || "");
     setKeywords(seo.keywords || "");
@@ -38,6 +39,7 @@ export default function SeoSettingsPage() {
     setTwitterHandle(seo.twitter_handle || "");
     setTwitterCard(seo.twitter_card || "summary_large_image");
     setRobots(seo.robots || "index,follow");
+    setGscVerification(seo.gsc_verification || "");
   }, [blog]);
 
   const handleSave = async () => {
@@ -49,6 +51,7 @@ export default function SeoSettingsPage() {
     if (twitterHandle.trim()) seo.twitter_handle = twitterHandle.trim().replace(/^@/, "");
     if (twitterCard) seo.twitter_card = twitterCard;
     if (robots) seo.robots = robots;
+    if (gscVerification.trim()) seo.gsc_verification = gscVerification.trim();
 
     try {
       await update.mutateAsync({ meta_seo_json: seo });
@@ -158,6 +161,17 @@ export default function SeoSettingsPage() {
               <option value="index,nofollow">index, nofollow</option>
               <option value="noindex,nofollow">noindex, nofollow (sembunyikan total)</option>
             </select>
+          </Field>
+          <Field
+            label="Google Search Console Verification"
+            hint='Buka GSC → Add property → pilih "HTML tag" → copy nilai content="..." (tanpa tag-nya). Contoh: "abc123XYZ_token".'
+          >
+            <input
+              value={gscVerification}
+              onChange={(e) => setGscVerification(e.target.value)}
+              placeholder="abc123..."
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-mono"
+            />
           </Field>
         </CardBody>
       </Card>

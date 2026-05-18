@@ -103,6 +103,7 @@ export interface PostSummary {
   jumlah_like: number;
   jumlah_komentar: number;
   waktu_baca_menit: number;
+  bahasa: string; // Phase BD — promoted ke summary supaya filter list by bahasa cepat
   created_at: string;
 }
 
@@ -119,7 +120,7 @@ export interface Post extends PostSummary {
   jumlah_share: number;
   jumlah_kata: number;
   meta_seo_json: Record<string, unknown>;
-  bahasa: string;
+  id_pair_post?: string | null; // Phase BD — versi bahasa lain (kalau pair)
   updated_at: string;
   tags: TagBrief[];
 }

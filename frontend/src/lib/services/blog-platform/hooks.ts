@@ -997,3 +997,74 @@ export function useOutboxList(status?: string, limit = 50) {
     staleTime: 15_000,
   });
 }
+
+// =================== Banned Commenter (per-blog, Phase BF) ===================
+
+import { bannedCommenterService, type BanCommenterInput } from "./bannedCommenterService";
+
+export function useBannedCommenterList(limit = 50, offset = 0) {
+  return useQuery({
+    queryKey: ["blog", "me", "banned-commenter", { limit, offset }],
+    queryFn: () => bannedCommenterService.list(limit, offset),
+    staleTime: 30_000,
+  });
+}
+
+export function useBanCommenter() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: BanCommenterInput) => bannedCommenterService.ban(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["blog", "me", "banned-commenter"] });
+      // Refresh moderation queue too — UI may want to gray out related rows.
+      qc.invalidateQueries({ queryKey: ["blog", "me", "komentar"] });
+    },
+  });
+}
+
+export function useUnbanCommenter() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bannedCommenterService.unban(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["blog", "me", "banned-commenter"] }),
+  });
+}
+
+// =================== Bilingual Pair (Phase BD) ===================
+
+export function useLinkPostPair() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, idOtherPost }: { id: string; idOtherPost: string }) =>
+      mePostService.linkPair(id, idOtherPost),
+    onSuccess: (_data, { id, idOtherPost }) => {
+      // Invalidate both posts — pair updated symmetrically on backend.
+      qc.invalidateQueries({ queryKey: ["blog", "me", "post", id] });
+      qc.invalidateQueries({ queryKey: ["blog", "me", "post", idOtherPost] });
+      qc.invalidateQueries({ queryKey: ["blog", "me", "posts"] });
+    },
+  });
+}
+
+export function useUnlinkPostPair() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => mePostService.unlinkPair(id),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ["blog", "me", "post", id] });
+      qc.invalidateQueries({ queryKey: ["blog", "me", "posts"] });
+    },
+  });
+}
+
+// =================== Subscribers (Phase BB owner dashboard) ===================
+
+import { meSubscriberService } from "./subscriberService";
+
+export function useSubscriberList(limit = 50, offset = 0) {
+  return useQuery({
+    queryKey: ["blog", "me", "subscribers", { limit, offset }],
+    queryFn: () => meSubscriberService.list(limit, offset),
+    staleTime: 30_000,
+  });
+}

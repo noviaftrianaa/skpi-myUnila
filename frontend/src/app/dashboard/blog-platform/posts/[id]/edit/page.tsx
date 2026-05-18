@@ -18,6 +18,7 @@ import { CoAuthorSection } from "../../../_components/CoAuthorSection";
 import {
   usePost, useUpdatePost, usePublishPost, useDeletePost, useKategoriList,
   usePostRevision, usePostRevisions, usePostAnalytics,
+  useLinkPostPair, useUnlinkPostPair, usePostList,
 } from "@/lib/services/blog-platform";
 
 const AUTOSAVE_DEBOUNCE_MS = 30_000; // 30 detik
@@ -37,6 +38,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [kategoriId, setKategoriId] = useState<string>("");
   const [status, setStatus] = useState<string>("draft");
   const [visibilitas, setVisibilitas] = useState<string>("public");
+  const [bahasa, setBahasa] = useState<"id" | "en">("id"); // Phase BD
   const [konten, setKonten] = useState<string>("");
   const [wordCount, setWordCount] = useState(0);
   const [coverUrl, setCoverUrl] = useState<string | undefined>(undefined);
@@ -66,6 +68,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       setKategoriId(existing.id_kategori_post ?? "");
       setStatus(existing.status);
       setVisibilitas(existing.visibilitas);
+      setBahasa((existing.bahasa === "en" ? "en" : "id"));
       setKonten(existing.konten_html ?? "");
       setCoverUrl(existing.cover_url ?? undefined);
       setTags((existing.tags ?? []).map((t) => t.nm_tag));
@@ -102,8 +105,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     visibilitas: visibilitas as "public" | "unlisted" | "private" | "password",
     konten_html: konten || null,
     cover_url: coverUrl || null,
+    bahasa,
     tags, // replace junction at every save
-  }), [judul, slug, ringkasan, kategoriId, status, visibilitas, konten, coverUrl, tags]);
+  }), [judul, slug, ringkasan, kategoriId, status, visibilitas, konten, coverUrl, bahasa, tags]);
 
   const persist = useCallback(async (silent = false) => {
     if (silent) setAutoSaving(true);
@@ -410,8 +414,30 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
                   <option value="password">🔑 Password protected</option>
                 </select>
               </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 inline-flex items-center gap-1.5">
+                  🌐 Bahasa
+                </label>
+                <select
+                  value={bahasa}
+                  onChange={e => wrap(setBahasa)(e.target.value as "id" | "en")}
+                  className="w-full px-2.5 py-1.5 rounded-md text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                >
+                  <option value="id">🇮🇩 Bahasa Indonesia</option>
+                  <option value="en">🇬🇧 English</option>
+                </select>
+              </div>
             </CardBody>
           </Card>
+
+          {/* Phase BD — Bilingual pair manager */}
+          <PairManagerCard
+            idPost={id}
+            idPairPost={existing?.id_pair_post ?? null}
+            bahasa={bahasa}
+          />
+
 
           {/* Slug & Kategori */}
           <Card className="shadow-sm border border-slate-200/60 dark:border-slate-800">
@@ -744,5 +770,135 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         </div>
       )}
     </div>
+  );
+}
+
+// =============================================================================
+// PairManagerCard — Phase BD bilingual pair UI.
+//
+// Tampilkan status pair sekarang. Kalau sudah punya pair, tampil judul + link
+// ke editor pasangan + tombol Unlink. Kalau belum, tampilkan picker post
+// candidate (bahasa berbeda, blog yang sama).
+// =============================================================================
+function PairManagerCard({
+  idPost,
+  idPairPost,
+  bahasa,
+}: {
+  idPost: string;
+  idPairPost: string | null;
+  bahasa: "id" | "en";
+}) {
+  const { data: pair } = usePost(idPairPost ?? "");
+  const { data: candidates } = usePostList({});
+  const linkMut = useLinkPostPair();
+  const unlinkMut = useUnlinkPostPair();
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const otherBahasa = bahasa === "id" ? "en" : "id";
+
+  const eligible = (candidates?.items ?? []).filter(
+    (p) => p.id_post !== idPost && (p.bahasa ?? "id") !== bahasa
+  );
+
+  const handleLink = async (idOther: string) => {
+    try {
+      await linkMut.mutateAsync({ id: idPost, idOtherPost: idOther });
+      setPickerOpen(false);
+    } catch (e: unknown) {
+      window.alert(`Gagal link: ${e instanceof Error ? e.message : "unknown"}`);
+    }
+  };
+
+  const handleUnlink = async () => {
+    if (!confirm("Lepas pair bahasa? Kedua post jadi berdiri sendiri.")) return;
+    try {
+      await unlinkMut.mutateAsync(idPost);
+    } catch (e: unknown) {
+      window.alert(`Gagal unlink: ${e instanceof Error ? e.message : "unknown"}`);
+    }
+  };
+
+  return (
+    <Card className="shadow-sm border border-slate-200/60 dark:border-slate-800">
+      <CardBody className="p-5 space-y-3">
+        <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500 inline-flex items-center gap-1.5">
+          🌐 Pair Bahasa Lain
+        </h3>
+        {idPairPost && pair ? (
+          <div className="space-y-2">
+            <p className="text-xs text-slate-500">
+              Versi {otherBahasa === "id" ? "🇮🇩 Bahasa Indonesia" : "🇬🇧 English"}:
+            </p>
+            <Link
+              href={`/dashboard/blog-platform/posts/${pair.id_post}/edit`}
+              className="block p-2 rounded-md border border-slate-200 dark:border-slate-700 hover:border-myunila hover:bg-myunila/5"
+            >
+              <div className="text-sm font-medium text-slate-900 dark:text-slate-100 line-clamp-2">
+                {pair.judul}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                {pair.status} · {pair.bahasa?.toUpperCase()}
+              </div>
+            </Link>
+            <button
+              onClick={handleUnlink}
+              disabled={unlinkMut.isPending}
+              className="text-xs text-rose-600 hover:underline disabled:opacity-50"
+            >
+              Lepas pair
+            </button>
+          </div>
+        ) : pickerOpen ? (
+          <div className="space-y-2">
+            <p className="text-xs text-slate-500">
+              Pilih post {otherBahasa === "id" ? "🇮🇩 ID" : "🇬🇧 EN"} sebagai pasangan:
+            </p>
+            {eligible.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">
+                Tidak ada post lain dengan bahasa {otherBahasa.toUpperCase()}. Bikin dulu di
+                {" "}<Link href="/dashboard/blog-platform/posts/baru" className="text-myunila hover:underline">Tulis Baru</Link>.
+              </p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {eligible.slice(0, 20).map((p) => (
+                  <button
+                    key={p.id_post}
+                    onClick={() => handleLink(p.id_post)}
+                    disabled={linkMut.isPending}
+                    className="w-full text-left p-2 rounded-md border border-slate-200 dark:border-slate-700 hover:border-myunila hover:bg-myunila/5 disabled:opacity-50"
+                  >
+                    <div className="text-xs font-medium text-slate-900 dark:text-slate-100 line-clamp-1">
+                      {p.judul}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {p.status}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => setPickerOpen(false)}
+              className="text-xs text-slate-500 hover:underline"
+            >
+              Batal
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-slate-500">
+              Belum ada pasangan bahasa. Link ke versi {otherBahasa === "id" ? "🇮🇩 Indonesia" : "🇬🇧 English"} biar reader bisa toggle bahasa di public page.
+            </p>
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="w-full px-3 py-1.5 rounded-md text-xs font-semibold bg-myunila/10 text-myunila hover:bg-myunila/20 inline-flex items-center justify-center gap-1.5"
+            >
+              + Link ke versi {otherBahasa.toUpperCase()}
+            </button>
+          </>
+        )}
+      </CardBody>
+    </Card>
   );
 }

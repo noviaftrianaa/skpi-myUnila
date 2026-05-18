@@ -12,8 +12,27 @@ import {
   FiFileText, FiFlag, FiHash, FiHome, FiImage, FiLayout, FiList,
   FiMessageSquare, FiSettings, FiShield, FiTag, FiTrendingUp, FiUsers,
 } from "react-icons/fi";
-import { MOCK_MY_BLOG } from "../_mock";
+import { useMyBlog } from "@/lib/services/blog-platform";
 import { NotifBell } from "./NotifBell";
+
+// Display shape buat sidebar — minimal sub-set yang dipakai komponen di file ini.
+// Sumber real-nya useMyBlog (apiBlog). Fallback dipakai kalau user belum claim
+// subdomain blog — supaya sidebar tetap kelihatan dengan placeholder.
+type BlogDisplay = {
+  subdomain: string;
+  nm_blog: string;
+  nm_tampilan: string;
+  avatar_url?: string | null;
+  tipe_role?: string;
+  a_terverifikasi?: boolean;
+};
+
+const PLACEHOLDER_BLOG: BlogDisplay = {
+  subdomain: "claim-dulu",
+  nm_blog: "Belum Punya Blog",
+  nm_tampilan: "Klaim Subdomain Dulu",
+  avatar_url: null,
+};
 
 type AuthorNavItem = {
   label: string;
@@ -57,7 +76,20 @@ interface ShellProps {
 
 export default function BlogPlatformShell({ children }: ShellProps) {
   const pathname = usePathname() || "";
-  const blog = MOCK_MY_BLOG;
+  const { data: apiBlog } = useMyBlog();
+  // Real blog data dari /me/blog (cached by tanstack-query). Fallback ke
+  // PLACEHOLDER_BLOG saat user belum klaim subdomain (sidebar tetap rendered).
+  // tipe_role tidak tersedia di Blog detail (cuma id_tipe_role) — skip badge
+  // role specifik, generic "Penulis" di SidebarProfileCard.
+  const blog: BlogDisplay = apiBlog
+    ? {
+        subdomain: apiBlog.subdomain,
+        nm_blog: apiBlog.nm_blog,
+        nm_tampilan: apiBlog.nm_tampilan || apiBlog.nm_blog,
+        avatar_url: apiBlog.avatar_url,
+        a_terverifikasi: apiBlog.a_terverifikasi,
+      }
+    : PLACEHOLDER_BLOG;
   const isAdmin = pathname.startsWith("/dashboard/blog-platform/admin");
 
   if (isAdmin) return <AdminShell blog={blog} pathname={pathname}>{children}</AdminShell>;
@@ -66,7 +98,7 @@ export default function BlogPlatformShell({ children }: ShellProps) {
 
 // =================== AUTHOR SHELL — left sidebar (konsisten dengan admin) ===================
 
-function AuthorShell({ blog, pathname, children }: { blog: typeof MOCK_MY_BLOG; pathname: string; children: React.ReactNode }) {
+function AuthorShell({ blog, pathname, children }: { blog: BlogDisplay; pathname: string; children: React.ReactNode }) {
   const isActive = (href: string, matchPrefix?: string) => {
     if (matchPrefix) return pathname.startsWith(matchPrefix);
     if (href === "/dashboard/blog-platform") return pathname === href;
@@ -161,7 +193,7 @@ function AuthorShell({ blog, pathname, children }: { blog: typeof MOCK_MY_BLOG; 
 
 // =================== ADMIN SHELL — left sidebar ===================
 
-function AdminShell({ blog, pathname, children }: { blog: typeof MOCK_MY_BLOG; pathname: string; children: React.ReactNode }) {
+function AdminShell({ blog, pathname, children }: { blog: BlogDisplay; pathname: string; children: React.ReactNode }) {
   const groups: Record<string, typeof NAV_ADMIN> = {};
   for (const item of NAV_ADMIN) {
     if (!groups[item.group]) groups[item.group] = [];
@@ -249,7 +281,7 @@ function AdminShell({ blog, pathname, children }: { blog: typeof MOCK_MY_BLOG; p
 
 // =================== Sidebar Actions (Tulis Baru — primary CTA) ===================
 
-function SidebarActions({ blog: _blog }: { blog: typeof MOCK_MY_BLOG }) {
+function SidebarActions({ blog: _blog }: { blog: BlogDisplay }) {
   return (
     <div className="mt-3 flex items-center gap-2">
       <Link
@@ -267,7 +299,7 @@ function SidebarActions({ blog: _blog }: { blog: typeof MOCK_MY_BLOG }) {
 
 // =================== Mobile Brand Bar (top of page, only visible <lg) ===================
 
-function MobileBrandBar({ blog: _blog, adminMode = false }: { blog: typeof MOCK_MY_BLOG; adminMode?: boolean }) {
+function MobileBrandBar({ blog: _blog, adminMode = false }: { blog: BlogDisplay; adminMode?: boolean }) {
   return (
     <header className="lg:hidden sticky top-0 z-30 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 h-14 flex items-center justify-between px-4">
       <Link href="/dashboard/blog-platform" className="flex items-center gap-2 group">
@@ -296,14 +328,16 @@ function MobileBrandBar({ blog: _blog, adminMode = false }: { blog: typeof MOCK_
 
 // =================== Sidebar Profile Card (mini profile + foto) ===================
 
-function SidebarProfileCard({ blog, adminBadge = false }: { blog: typeof MOCK_MY_BLOG; adminBadge?: boolean }) {
+function SidebarProfileCard({ blog, adminBadge = false }: { blog: BlogDisplay; adminBadge?: boolean }) {
   const blogUrl = `${blog.subdomain}.blog.unila.ac.id`;
+  // Fallback avatar — UI Avatars dengan inisial dari nm_tampilan
+  const avatar = blog.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(blog.nm_tampilan)}&background=0B5EA8&color=fff&size=200`;
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="relative flex-shrink-0">
           <Image
-            src={blog.avatar_url}
+            src={avatar}
             alt={blog.nm_tampilan}
             width={56}
             height={56}
@@ -333,9 +367,8 @@ function SidebarProfileCard({ blog, adminBadge = false }: { blog: typeof MOCK_MY
                 ? "bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400"
                 : "bg-myunila/10 text-myunila"
             }`}>
-              {adminBadge ? "Admin" : blog.tipe_role}
+              {adminBadge ? "Admin" : (blog.tipe_role || "Penulis")}
             </span>
-            <span className="text-[10px] text-slate-500 truncate">{blog.fakultas}</span>
           </div>
         </div>
       </div>

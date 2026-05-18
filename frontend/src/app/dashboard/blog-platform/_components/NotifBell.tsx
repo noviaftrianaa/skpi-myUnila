@@ -22,6 +22,7 @@ const TIPE_LABEL: Record<NotifType, string> = {
   mention_post: "menyebut kamu di post",
   coauthor_invite: "mengundang kamu sebagai co-author",
   coauthor_responded: "merespon undangan co-author kamu",
+  weekly_digest: "digest email mingguan",
 };
 
 const TIPE_ICON: Record<NotifType, React.ComponentType<{ className?: string }>> = {
@@ -34,6 +35,7 @@ const TIPE_ICON: Record<NotifType, React.ComponentType<{ className?: string }>> 
   mention_post: FiAtSign,
   coauthor_invite: FiMail,
   coauthor_responded: FiMail,
+  weekly_digest: FiMail,
 };
 
 const TIPE_COLOR: Record<NotifType, string> = {
@@ -46,6 +48,7 @@ const TIPE_COLOR: Record<NotifType, string> = {
   mention_post: "text-amber-500 bg-amber-50 dark:bg-amber-950/40",
   coauthor_invite: "text-violet-500 bg-violet-50 dark:bg-violet-950/40",
   coauthor_responded: "text-violet-500 bg-violet-50 dark:bg-violet-950/40",
+  weekly_digest: "text-myunila bg-myunila/10 dark:bg-myunila/20",
 };
 
 interface Props {
