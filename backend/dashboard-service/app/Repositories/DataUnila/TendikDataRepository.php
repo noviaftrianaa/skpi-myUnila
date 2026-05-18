@@ -15,11 +15,14 @@ class TendikDataRepository extends BaseDataRepository
      */
     private function buildTendikWhere(array $params, array &$bindings, array &$countBindings): string
     {
-        // Default: Tendik = bukan Dosen
-        // - jns_tenaga != 'Dosen' atau NULL
-        // - AND (nidn NULL atau kosong) — karena Dosen pasti ber-NIDN
+        // Default: Tendik AKTIF (canonical match Pimpinan beranda Tendik=1.117):
+        // - status='Aktif' WAJIB (exclude pensiun/non-aktif/keluar). Sebelumnya tidak ada
+        //   → total 2.389 (semua historis termasuk pensiun). Now match canonical 1.117.
+        // - jns_tenaga != 'Dosen' (exclude dosen yg numpang di sikep)
+        // - nidn NULL/kosong (Dosen pasti ber-NIDN)
         // NOTE: kolom canonical sikep adalah id_unit_orga1/2/3 (BUKAN id_org1/2/3 legacy yg NULL).
-        $where = " AND (p.jns_tenaga IS NULL OR p.jns_tenaga != 'Dosen')
+        $where = " AND p.status = 'Aktif'
+                   AND (p.jns_tenaga IS NULL OR p.jns_tenaga != 'Dosen')
                    AND (p.nidn IS NULL OR p.nidn = '')";
 
         if (!empty($params['id_org1'])) {

@@ -33,10 +33,22 @@ class DosenDataRepository extends BaseDataRepository
             ISNULL(jns_sdm.nm_jns_sdm, 'Lainnya') as jenis_sdm
         FROM pdrd.sdm sdm
         OUTER APPLY (
+            -- CANONICAL match Pimpinan beranda 1.536: anchor reg_ptk yg homebase=1
+            -- thn_ajaran aktif + prodi 'A' + id_fak NOT NULL.
             SELECT TOP 1 ptk.id_sms
             FROM pdrd.reg_ptk ptk
+            INNER JOIN pdrd.sms s_dh ON s_dh.id_sms = ptk.id_sms AND s_dh.soft_delete = 0
+                AND s_dh.stat_prodi = 'A' AND s_dh.id_fak_unila IS NOT NULL
+            INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                AND kp.id_thn_ajaran = (
+                    SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                    WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                    ORDER BY id_thn_ajaran DESC
+                )
             WHERE ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
               AND ptk.id_jns_keluar IS NULL
+              AND CAST(ptk.id_sp AS VARCHAR(50)) = 'E2B705A7-173E-464A-9FAC-509128709515'
             ORDER BY ptk.tmt_srt_tgs DESC, ptk.last_update DESC
         ) rp
         LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
@@ -51,7 +63,8 @@ class DosenDataRepository extends BaseDataRepository
             WHERE rf.soft_delete = 0
         ) jf ON jf.id_sdm = sdm.id_sdm AND jf.rn = 1
         WHERE sdm.soft_delete = 0 AND sdm.id_jns_sdm = 12
-          AND rp.id_sms IS NOT NULL  -- hanya dosen dengan reg_ptk aktif (jns_keluar IS NULL)
+          AND sdm.id_stat_aktif = 1
+          AND rp.id_sms IS NOT NULL  -- hanya dosen dengan homebase aktif di prodi 'A'
           {WHERE_EXTRA}
     ";
 
@@ -62,6 +75,15 @@ class DosenDataRepository extends BaseDataRepository
             OUTER APPLY (
                 SELECT TOP 1 ptk.id_sms
                 FROM pdrd.reg_ptk ptk
+                INNER JOIN pdrd.sms s_dh ON s_dh.id_sms = ptk.id_sms AND s_dh.soft_delete = 0
+                    AND s_dh.stat_prodi = 'A' AND s_dh.id_fak_unila IS NOT NULL
+                INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                    AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                    AND kp.id_thn_ajaran = (
+                        SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                        WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                        ORDER BY id_thn_ajaran DESC
+                    )
                 WHERE ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                   AND ptk.id_jns_keluar IS NULL
                   AND CAST(ptk.id_sp AS VARCHAR(50)) = 'E2B705A7-173E-464A-9FAC-509128709515'
@@ -69,6 +91,7 @@ class DosenDataRepository extends BaseDataRepository
             ) rp
             LEFT JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
             WHERE sdm.soft_delete = 0 AND sdm.id_jns_sdm = 12
+              AND sdm.id_stat_aktif = 1
               AND rp.id_sms IS NOT NULL
               {WHERE_EXTRA}
         ) AS dedupe
