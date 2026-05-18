@@ -138,6 +138,7 @@ export interface Post {
   waktu_baca_menit: number;
   jumlah_kata: number;
   bahasa: string;
+  id_pair_post?: string | null; // Phase BD — versi bahasa lain (kalau pair)
   kategori?: Kategori | null;
   tags?: Tag[];
   author?: Author;

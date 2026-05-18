@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Eye, FileText, Flame, Users } from "lucide-react";
+import { ArrowRight, BadgeCheck, Eye, FileText, Flame, Users } from "lucide-react";
 import { SearchBar } from "@/shared/components/SearchBar";
 import { PostCard } from "@/shared/components/PostCard";
 import { TagChip } from "@/shared/components/TagChip";
 import { JsonLd } from "@/shared/components/JsonLd";
-import { getFeatured, getKategori, getLatest, getTopAuthors, getTopTags, getTrending } from "@/lib/api";
+import { getFeatured, getFeaturedAuthors, getKategori, getLatest, getTopAuthors, getTopTags, getTrending } from "@/lib/api";
 import { formatNumber, getBlogUrl } from "@/lib/utils";
 import { buildMetadata, buildOGImageURL, buildWebSiteJsonLd } from "@/lib/seo";
 import Image from "next/image";
@@ -24,13 +24,14 @@ export const metadata = buildMetadata({
 });
 
 export default async function HomePage() {
-  const [trending, latest, featured, kategori, topAuthors, topTags] = await Promise.all([
+  const [trending, latest, featured, kategori, topAuthors, topTags, featuredAuthors] = await Promise.all([
     getTrending(6),
     getLatest(9),
     getFeatured(3),
     getKategori(),
     getTopAuthors(8),
     getTopTags(20),
+    getFeaturedAuthors(8),
   ]);
 
   const totalPosts = kategori.reduce((sum, k) => sum + k.jumlah_post, 0);
@@ -143,6 +144,56 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Authors — verified only (Quick Win polish) */}
+      {featuredAuthors.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl sm:text-3xl font-display font-bold inline-flex items-center gap-2">
+              <BadgeCheck className="w-6 h-6 text-myunila" />
+              Penulis Terverifikasi
+            </h2>
+            <span className="text-xs text-slate-500">
+              Dosen & staf yang sudah lulus verifikasi admin
+            </span>
+          </div>
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {featuredAuthors.map((a) => (
+              <Link
+                key={a.id_blog}
+                href={getBlogUrl(a.subdomain)}
+                className="group flex-shrink-0 snap-start w-64 sm:w-72 flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-myunila-50/40 to-blue-50/30 dark:from-slate-900 dark:to-slate-950 border border-myunila/20 hover:border-myunila hover:shadow-lg hover:shadow-myunila/10 hover:-translate-y-1 transition-all"
+              >
+                {a.avatar_url && (
+                  <div className="relative">
+                    <Image
+                      src={a.avatar_url}
+                      alt={a.nm_tampilan}
+                      width={80}
+                      height={80}
+                      className="rounded-full ring-4 ring-white dark:ring-slate-900 shadow-md"
+                    />
+                    <BadgeCheck className="absolute -bottom-1 -right-1 w-6 h-6 text-myunila fill-white dark:fill-slate-900" />
+                  </div>
+                )}
+                <h3 className="mt-3 font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-myunila line-clamp-1">
+                  {a.nm_tampilan}
+                </h3>
+                {a.tagline && (
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                    {a.tagline}
+                  </p>
+                )}
+                <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                  <span>{formatNumber(a.jumlah_post)} posts</span>
+                  <span aria-hidden>·</span>
+                  <span>{formatNumber(a.jumlah_follower)} followers</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Top Authors */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">

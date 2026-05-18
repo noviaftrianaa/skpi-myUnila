@@ -7,6 +7,7 @@ import { PostCard } from "@/shared/components/PostCard";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { TagChip } from "@/shared/components/TagChip";
 import { JsonLd } from "@/shared/components/JsonLd";
+import { SubscribeForm } from "@/shared/components/SubscribeForm";
 import { getBlogBySubdomain, getBlogPosts, getPinnedPosts } from "@/lib/api";
 import { buildMetadata, buildBlogJsonLd, buildOGImageURL } from "@/lib/seo";
 
@@ -162,6 +163,9 @@ export default async function TenantHomePage({ params }: PageProps) {
 
         {/* Sidebar (right, 1/3) */}
         <aside className="lg:col-span-1 space-y-6">
+          {/* Phase BB — Newsletter subscribe (top of sidebar untuk visibility) */}
+          <SubscribeForm subdomain={blog.subdomain} blogName={blog.nm_blog} variant="card" />
+
           {/* Template indicator (kalau bukan default modern) */}
           {blog.kode_template && blog.kode_template !== "modern" && (
             <SidebarBox title="🎨 Template">

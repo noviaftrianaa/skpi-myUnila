@@ -56,6 +56,7 @@ interface APIPost extends APIPostSummary {
   jumlah_share: number;
   jumlah_kata: number;
   bahasa: string;
+  id_pair_post?: string | null; // Phase BD — versi bahasa lain
   updated_at: string;
 }
 
@@ -147,6 +148,7 @@ function toPost(p: APIPostSummary | APIPost): Post {
     waktu_baca_menit: p.waktu_baca_menit,
     jumlah_kata: "jumlah_kata" in p ? p.jumlah_kata : 0,
     bahasa: "bahasa" in p ? p.bahasa : "id",
+    id_pair_post: "id_pair_post" in p ? (p.id_pair_post ?? null) : null,
     kategori,
     author,
   };
@@ -229,6 +231,19 @@ export async function getTopAuthors(limit = 10): Promise<Author[]> {
   if (USE_MOCK) return mock.topAuthors.slice(0, limit);
   const data = await fetchJson<APIList<APIBlog>>(`/api/v1/blogs?order=popular&limit=${limit}`);
   return data.items.map(b => toAuthor(b));
+}
+
+// Featured Authors — verified-only (a_terverifikasi=TRUE), untuk carousel di apex.
+// Fallback: kalau gak ada verified author, return empty array (component
+// nge-hide section).
+export async function getFeaturedAuthors(limit = 8): Promise<Author[]> {
+  if (USE_MOCK) return mock.topAuthors.filter(a => a.a_terverifikasi).slice(0, limit);
+  try {
+    const data = await fetchJson<APIList<APIBlog>>(`/api/v1/blogs?verified=1&order=popular&limit=${limit}`);
+    return data.items.map(b => toAuthor(b));
+  } catch {
+    return [];
+  }
 }
 
 // Paginated authors browse (apex /penulis page).
@@ -424,6 +439,19 @@ export async function getBlogPostBySlug(subdomain: string, slug: string): Promis
   }
 }
 
+// Phase BD — fetch by id (untuk resolve pair language version).
+// Pair-link arah dua, jadi cukup fetch by id_post + ambil subdomain/slug-nya
+// untuk render <Link> ke versi bahasa lain.
+export async function getPostById(idPost: string): Promise<Post | null> {
+  if (USE_MOCK) return mock.allPosts.find(p => p.id_post === idPost) ?? null;
+  try {
+    const p = await fetchJson<APIPost>(`/api/v1/posts/${idPost}`);
+    return toPost(p);
+  } catch {
+    return null;
+  }
+}
+
 export async function getKategoriBySlug(slug: string): Promise<Kategori | null> {
   if (USE_MOCK) return mock.kategoriList.find(k => k.slug === slug) ?? null;
   const all = await getKategori();
@@ -605,4 +633,41 @@ export async function getPinnedPosts(subdomain: string): Promise<Post[]> {
   } catch {
     return [];
   }
+}
+
+// =====================================================
+// Phase BB — Newsletter subscribe (public, no auth)
+// =====================================================
+
+export interface SubscribeResult {
+  status: "pending_confirmation" | "already_confirmed" | "resent";
+  message: string;
+}
+
+export async function subscribeToBlog(subdomain: string, email: string): Promise<SubscribeResult> {
+  const res = await fetch(`${API_BASE}/api/v1/blogs/by-subdomain/${subdomain}/subscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || `Subscribe failed (${res.status})`);
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export interface ConfirmResult {
+  id_blog: string;
+  email: string;
+  status: string;
+}
+
+export async function confirmSubscribe(token: string): Promise<ConfirmResult> {
+  return fetchJson<ConfirmResult>(`/api/v1/blogs/subscribe/confirm/${token}`);
+}
+
+export async function unsubscribe(token: string): Promise<ConfirmResult> {
+  return fetchJson<ConfirmResult>(`/api/v1/blogs/subscribe/unsubscribe/${token}`);
 }

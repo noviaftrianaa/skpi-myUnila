@@ -166,6 +166,11 @@ export interface BlogSEO {
   twitter_handle?: string;
   twitter_card?: "summary" | "summary_large_image";
   robots?: string;
+  // Search Console verification — owner copy-paste content value dari GSC
+  // ("Other verification methods" → "HTML tag"), bukan full meta tag.
+  gsc_verification?: string;
+  // Bing webmaster tools (jarang dipakai tapi cheap to support).
+  bing_verification?: string;
 }
 
 // Dynamic OG image — backend serves /api/v1/og as 1200×630 PNG with
@@ -203,6 +208,7 @@ export function buildMetadata(opts: {
   siteName?: string;        // override site name (per-tenant)
   rssUrl?: string;          // <link rel=alternate type=application/rss+xml>
   rssTitle?: string;        // title untuk RSS feed link
+  languages?: Record<string, string>; // Phase BD — hreflang alternates ({"id": url, "en": url})
 }): Metadata {
   const seo = opts.blogSeo || {};
 
@@ -239,6 +245,10 @@ export function buildMetadata(opts: {
       "application/rss+xml": [{ url: opts.rssUrl, title: opts.rssTitle || `RSS — ${opts.siteName || SITE.name}` }],
     };
   }
+  // Phase BD — hreflang antar versi bahasa (pair-linked posts)
+  if (opts.languages && Object.keys(opts.languages).length > 0) {
+    alternates.languages = opts.languages;
+  }
 
   return {
     title,
@@ -268,5 +278,13 @@ export function buildMetadata(opts: {
       images: [image],
       site: twitterSite,
     },
+    // Webmaster tools verification — owner setting di meta_seo_json. Next.js
+    // render jadi <meta name="google-site-verification" content="..."> di <head>.
+    ...((seo.gsc_verification || seo.bing_verification) && {
+      verification: {
+        ...(seo.gsc_verification && { google: seo.gsc_verification }),
+        ...(seo.bing_verification && { other: { "msvalidate.01": seo.bing_verification } }),
+      },
+    }),
   };
 }

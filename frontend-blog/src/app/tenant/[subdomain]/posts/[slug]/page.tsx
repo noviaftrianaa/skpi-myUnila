@@ -13,11 +13,12 @@ import { BookmarkButton } from "@/shared/components/BookmarkButton";
 import { ShareButtons } from "@/shared/components/ShareButtons";
 import { Komentar } from "@/shared/components/Komentar";
 import { ReportPostButton } from "@/shared/components/ReportPostButton";
+import { SubscribeForm } from "@/shared/components/SubscribeForm";
 import { JsonLd } from "@/shared/components/JsonLd";
 import { ReadingProgress } from "@/shared/components/ReadingProgress";
 import {
   getBlogBySubdomain, getBlogPostBySlug, getBlogPosts, getSeriesContextForPost,
-  getCoAuthorsForPost, getRelatedPosts, CO_AUTHOR_LABEL,
+  getCoAuthorsForPost, getRelatedPosts, getPostById, CO_AUTHOR_LABEL,
 } from "@/lib/api";
 import { buildMetadata, buildBlogPostingJsonLd, buildOGImageURL } from "@/lib/seo";
 import { formatNumber, readingTime } from "@/lib/utils";
@@ -36,6 +37,16 @@ export async function generateMetadata({ params }: PageProps) {
   ]);
   if (!post) return buildMetadata({ title: "Post tidak ditemukan" });
   const apex = process.env.NEXT_PUBLIC_APEX_HOST || "blog.unila.ac.id";
+  // Phase BD — hreflang alternate kalau ada versi bahasa lain. Crawler pakai
+  // ini untuk index satu sama lain sebagai konten paralel.
+  const pair = post.id_pair_post ? await getPostById(post.id_pair_post) : null;
+  const alternates: Record<string, string> | undefined =
+    pair && pair.author?.subdomain
+      ? {
+          [pair.bahasa || "en"]: `https://${pair.author.subdomain}.${apex}/posts/${pair.slug}`,
+          [post.bahasa || "id"]: `https://${subdomain}.${apex}/posts/${slug}`,
+        }
+      : undefined;
   return buildMetadata({
     title: post.judul,
     description: post.ringkasan || undefined,
@@ -56,6 +67,7 @@ export async function generateMetadata({ params }: PageProps) {
     siteName: blog?.nm_blog,
     rssUrl: `https://${subdomain}.${apex}/rss`,
     rssTitle: `RSS — ${blog?.nm_blog || subdomain}`,
+    languages: alternates, // Phase BD
   });
 }
 
@@ -70,10 +82,12 @@ export default async function PostPage({ params }: PageProps) {
   if (!blog || !post) notFound();
 
   const related = allPosts.items.filter((p) => p.id_post !== post.id_post).slice(0, 3);
-  const [seriesCtx, coAuthors, crossBlogRelated] = await Promise.all([
+  const [seriesCtx, coAuthors, crossBlogRelated, pairPost] = await Promise.all([
     getSeriesContextForPost(post.id_post),
     getCoAuthorsForPost(post.id_post),
     getRelatedPosts(post.id_post, 4),
+    // Phase BD — resolve pair (versi bahasa lain) kalau ada
+    post.id_pair_post ? getPostById(post.id_pair_post) : Promise.resolve(null),
   ]);
   const apex = process.env.NEXT_PUBLIC_APEX_HOST || "blog.unila.ac.id";
   const postingJsonLd = buildBlogPostingJsonLd({
@@ -107,6 +121,22 @@ export default async function PostPage({ params }: PageProps) {
       {/* Hero */}
       <header className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
         {post.kategori && <KategoriBadge kategori={post.kategori} size="md" className="mb-4" />}
+
+        {/* Phase BD — Language toggle (kalau ada pair) */}
+        {pairPost && pairPost.author?.subdomain && (
+          <div className="mb-4 inline-flex items-center gap-1 p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs">
+            <span className="px-3 py-1 rounded-full bg-white dark:bg-slate-900 font-semibold inline-flex items-center gap-1">
+              {post.bahasa === "en" ? "🇬🇧 English" : "🇮🇩 Bahasa Indonesia"}
+            </span>
+            <Link
+              href={`https://${pairPost.author.subdomain}.${apex}/posts/${pairPost.slug}`}
+              className="px-3 py-1 rounded-full text-slate-600 dark:text-slate-400 hover:text-myunila hover:bg-white dark:hover:bg-slate-900 inline-flex items-center gap-1"
+              hrefLang={pairPost.bahasa || (post.bahasa === "id" ? "en" : "id")}
+            >
+              {pairPost.bahasa === "en" ? "🇬🇧 English" : "🇮🇩 Bahasa Indonesia"}
+            </Link>
+          </div>
+        )}
 
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight leading-tight text-balance">
           {post.judul}
@@ -260,6 +290,11 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      {/* Phase BB — Subscribe CTA setelah baca konten, sebelum komentar */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <SubscribeForm subdomain={subdomain} blogName={blog.nm_blog} variant="card" />
+      </section>
 
       {/* Komentar section — public read + auth/anonymous create */}
       <Komentar idPost={post.id_post} />
