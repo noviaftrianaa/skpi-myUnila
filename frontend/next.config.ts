@@ -1,5 +1,38 @@
 import type { NextConfig } from "next";
 
+// =============================================================================
+// Security headers (Sprint 13 hardening — dashboard)
+//
+// Catatan: CSP strict TIDAK di-set di dashboard karena banyak integrasi
+// (CKEditor, TipTap, ECharts, MinIO storage proxy, push service worker)
+// butuh audit menyeluruh agar tidak break. CSP rollout di dashboard =
+// PR terpisah dengan smoke test per-route.
+//
+// Headers berikut aman untuk semua route + meningkatkan baseline security.
+// =============================================================================
+const dashboardSecurityHeaders = [
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains; preload",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "SAMEORIGIN",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  },
+];
+
 const nextConfig: NextConfig = {
   // Enable standalone output untuk Docker
   output: 'standalone',
@@ -72,6 +105,15 @@ const nextConfig: NextConfig = {
       {
         source: '/myunila-storage/:path*',
         destination: `${minioUpstream}/myunila-storage/:path*`,
+      },
+    ];
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: dashboardSecurityHeaders,
       },
     ];
   },
