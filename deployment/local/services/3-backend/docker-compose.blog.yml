@@ -105,6 +105,12 @@ services:
       MAIL_FROM_NAME: ${BLOG_MAIL_FROM_NAME:-Blog Unila}
       MAIL_PUBLIC_URL: ${BLOG_MAIL_PUBLIC_URL:-https://blog.unila.ac.id}
 
+      # Phase BA — web push (VAPID keypair). Empty = push subsystem off.
+      # Generate via: cd backend/blog-service && go run ./tools/gen-vapid
+      WEBPUSH_PUBLIC_KEY: ${BLOG_WEBPUSH_PUBLIC_KEY:-}
+      WEBPUSH_PRIVATE_KEY: ${BLOG_WEBPUSH_PRIVATE_KEY:-}
+      WEBPUSH_SUBJECT: ${BLOG_WEBPUSH_SUBJECT:-mailto:dev@unila.ac.id}
+
       TZ: ${TZ:-Asia/Jakarta}
     depends_on:
       blog-minio:
