@@ -41,6 +41,12 @@ class DosenDataController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        // Validate UUID format dulu — Laravel route `/dosen/{id}` catch-all
+        // bisa kena hit dari path salah (mis. /dosen/tendik). Sebelumnya UUID
+        // conversion error di SQL Server bocor sebagai 500; sekarang clean 404.
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
+            return $this->error('Dosen tidak ditemukan', 404);
+        }
         try {
             $data = $this->service->getDetail($id);
             if (!$data) return $this->error('Dosen tidak ditemukan', 404);
