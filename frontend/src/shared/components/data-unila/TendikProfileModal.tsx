@@ -8,9 +8,10 @@ import type { TendikItem } from "@/lib/services/data-unila/tendikDataService";
 
 type Props = { item: TendikItem | null; onClose: () => void };
 
+// Relative URL fallback → browser resolve ke same-origin (Kong/nginx proxy
+// `/myunila-storage/*`). LAN IP tidak accessible dari browser internet.
 const MINIO_BASE =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) ||
-  "http://192.168.120.47:9000";
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) || "";
 
 function fotoUrl(uuid: string): string {
   return `${MINIO_BASE}/myunila-storage/photos/pegawai/${uuid.toLowerCase()}.jpg`;

@@ -145,7 +145,6 @@ class MahasiswaStatisticsRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -175,34 +174,26 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJenjang(): array
     {
-        // ROW_NUMBER dedup → 1 student → latest reg_pd → satu jenjang.
-        // SUM = total summary 36,344 (verified).
+        // Count by reg_pd (per enrollment) — SUM = 37.181 konsisten dengan headline.
+        // 1 mahasiswa dual S1+S2 → counted di kedua jenjang (sesuai realita pendaftaran).
         $sql = "
             SELECT
-                dedup.jenjang,
-                COUNT(*) AS jumlah_mahasiswa
-            FROM (
-                SELECT
-                    pd.id_pd,
-                    didik.nm_jenj_didik AS jenjang,
-                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
-                FROM pdrd.reg_pd AS reg
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms AS sms
-                    ON sms.id_sms = reg.id_sms
-                    AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
-                INNER JOIN ref.jenjang_pendidikan AS didik
-                    ON didik.id_jenj_didik = sms.id_jenj_didik
-                    AND didik.expired_date IS NULL
-                WHERE reg.soft_delete = 0
-                    AND reg.id_jns_keluar IS NULL
-                    AND pd.id_stat_mhs = 'A'
-            ) AS dedup
-            WHERE dedup.rn = 1
-            GROUP BY dedup.jenjang
+                didik.nm_jenj_didik AS jenjang,
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
+            FROM pdrd.reg_pd AS reg
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            INNER JOIN ref.jenjang_pendidikan AS didik
+                ON didik.id_jenj_didik = sms.id_jenj_didik
+                AND didik.expired_date IS NULL
+            WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
+            GROUP BY didik.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
         ";
 
@@ -245,7 +236,6 @@ class MahasiswaStatisticsRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -297,7 +287,7 @@ class MahasiswaStatisticsRepository
                     WHEN pd.jk = 'P' THEN 'Perempuan'
                     ELSE 'Tidak Diketahui'
                 END AS jenis_kelamin,
-                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
             FROM pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
@@ -305,7 +295,6 @@ class MahasiswaStatisticsRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -333,32 +322,24 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJalurDaftar(): array
     {
-        // ROW_NUMBER dedup → SUM = total summary 36,344.
+        // Count by reg_pd → SUM = 37.181 konsisten dengan headline.
         $sql = "
             SELECT
-                COALESCE(dedup.nm_jalur_daftar, 'Tidak Diketahui') AS jalur_daftar,
-                COUNT(*) AS jumlah_mahasiswa
-            FROM (
-                SELECT
-                    pd.id_pd,
-                    jd.nm_jalur_daftar,
-                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
-                FROM pdrd.reg_pd AS reg
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms AS sms
-                    ON sms.id_sms = reg.id_sms
-                    AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
-                LEFT JOIN ref.jalur_daftar AS jd
-                    ON jd.id_jalur_daftar = reg.id_jalur_daftar
-                WHERE reg.soft_delete = 0
-                    AND reg.id_jns_keluar IS NULL
-                    AND pd.id_stat_mhs = 'A'
-            ) AS dedup
-            WHERE dedup.rn = 1
-            GROUP BY dedup.nm_jalur_daftar
+                COALESCE(jd.nm_jalur_daftar, 'Tidak Diketahui') AS jalur_daftar,
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
+            FROM pdrd.reg_pd AS reg
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            LEFT JOIN ref.jalur_daftar AS jd
+                ON jd.id_jalur_daftar = reg.id_jalur_daftar
+            WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
+            GROUP BY jd.nm_jalur_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
 
@@ -379,32 +360,24 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByJenisPendaftaran(): array
     {
-        // ROW_NUMBER dedup → SUM = total summary 36,344.
+        // Count by reg_pd → SUM = 37.181.
         $sql = "
             SELECT
-                COALESCE(dedup.nm_jns_daftar, 'Tidak Diketahui') AS jenis_pendaftaran,
-                COUNT(*) AS jumlah_mahasiswa
-            FROM (
-                SELECT
-                    pd.id_pd,
-                    jp.nm_jns_daftar,
-                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
-                FROM pdrd.reg_pd AS reg
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms AS sms
-                    ON sms.id_sms = reg.id_sms
-                    AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
-                LEFT JOIN ref.jenis_pendaftaran AS jp
-                    ON jp.id_jns_daftar = reg.id_jns_daftar
-                WHERE reg.soft_delete = 0
-                    AND reg.id_jns_keluar IS NULL
-                    AND pd.id_stat_mhs = 'A'
-            ) AS dedup
-            WHERE dedup.rn = 1
-            GROUP BY dedup.nm_jns_daftar
+                COALESCE(jp.nm_jns_daftar, 'Tidak Diketahui') AS jenis_pendaftaran,
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
+            FROM pdrd.reg_pd AS reg
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            LEFT JOIN ref.jenis_pendaftaran AS jp
+                ON jp.id_jns_daftar = reg.id_jns_daftar
+            WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
+            GROUP BY jp.nm_jns_daftar
             ORDER BY jumlah_mahasiswa DESC
         ";
 
@@ -425,32 +398,24 @@ class MahasiswaStatisticsRepository
      */
     public function getSebaranByPembiayaan(): array
     {
-        // ROW_NUMBER dedup → SUM = total summary 36,344.
+        // Count by reg_pd → SUM = 37.181.
         $sql = "
             SELECT
-                COALESCE(dedup.nm_pembiayaan, 'Tidak Diketahui') AS pembiayaan,
-                COUNT(*) AS jumlah_mahasiswa
-            FROM (
-                SELECT
-                    pd.id_pd,
-                    pb.nm_pembiayaan,
-                    ROW_NUMBER() OVER (PARTITION BY pd.id_pd ORDER BY reg.tgl_masuk_sp DESC, reg.create_date DESC) AS rn
-                FROM pdrd.reg_pd AS reg
-                JOIN pdrd.peserta_didik AS pd
-                    ON pd.id_pd = reg.id_pd
-                    AND pd.soft_delete = 0
-                INNER JOIN pdrd.sms AS sms
-                    ON sms.id_sms = reg.id_sms
-                    AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
-                LEFT JOIN ref.pembiayaan AS pb
-                    ON pb.id_pembiayaan = reg.id_pembiayaan
-                WHERE reg.soft_delete = 0
-                    AND reg.id_jns_keluar IS NULL
-                    AND pd.id_stat_mhs = 'A'
-            ) AS dedup
-            WHERE dedup.rn = 1
-            GROUP BY dedup.nm_pembiayaan
+                COALESCE(pb.nm_pembiayaan, 'Tidak Diketahui') AS pembiayaan,
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
+            FROM pdrd.reg_pd AS reg
+            JOIN pdrd.peserta_didik AS pd
+                ON pd.id_pd = reg.id_pd
+                AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+            LEFT JOIN ref.pembiayaan AS pb
+                ON pb.id_pembiayaan = reg.id_pembiayaan
+            WHERE reg.soft_delete = 0
+                AND reg.id_jns_keluar IS NULL
+                AND pd.id_stat_mhs = 'A'
+            GROUP BY pb.nm_pembiayaan
             ORDER BY jumlah_mahasiswa DESC
         ";
 
@@ -475,7 +440,7 @@ class MahasiswaStatisticsRepository
         $sql = "
             SELECT
                 COALESCE(negara.nm_negara, 'Tidak Diketahui') AS negara,
-                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
             FROM pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
@@ -483,7 +448,6 @@ class MahasiswaStatisticsRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -523,7 +487,7 @@ class MahasiswaStatisticsRepository
                     WHEN wil.id_negara = 'ID' OR wil.id_negara IS NULL THEN 'Lokal'
                     ELSE 'Asing'
                 END AS kategori,
-                COUNT(DISTINCT pd.id_pd) AS jumlah_mahasiswa
+                COUNT(reg.id_reg_pd) AS jumlah_mahasiswa
             FROM pdrd.reg_pd AS reg
             JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
@@ -531,7 +495,6 @@ class MahasiswaStatisticsRepository
             INNER JOIN pdrd.sms AS sms
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
             INNER JOIN ref.jenjang_pendidikan AS didik
                 ON didik.id_jenj_didik = sms.id_jenj_didik
                 AND didik.expired_date IS NULL
@@ -567,55 +530,44 @@ class MahasiswaStatisticsRepository
     {
         $activePeriod = $this->getActivePeriod();
 
-        // Total mahasiswa aktif — pakai reg_pd sebagai source-of-truth.
-        // Definisi: mahasiswa terdaftar di Unila dan belum punya SK keluar
-        // (id_jns_keluar IS NULL). Realtime, tidak terpengaruh delay sync
-        // kuliah_mhs per semester.
+        // Total mahasiswa aktif — count by reg_pd (per enrollment).
+        // 1 mahasiswa bisa punya >1 reg_pd aktif (S1+S2 dual enrollment).
+        // Konsisten dengan Pimpinan + Data Unila /mahasiswa?status=aktif (37.181).
+        // TIDAK pakai sms.stat_prodi='A' supaya match dashboard.
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
         $sqlTotal = "
-            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            SELECT COUNT(reg.id_reg_pd) AS total
             FROM pdrd.reg_pd AS reg
-            JOIN pdrd.peserta_didik AS pd
+            INNER JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-            WHERE reg.soft_delete = 0
+            WHERE reg.id_sp = ?
+                AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
                 AND pd.id_stat_mhs = 'A'
         ";
 
-        $totalResult = DB::connection('sqlsrv')->select($sqlTotal);
+        $totalResult = DB::connection('sqlsrv')->select($sqlTotal, [$unilaIdSp]);
         $totalMahasiswa = (int) ($totalResult[0]->total ?? 0);
 
         // Total mahasiswa asing — sama base reg_pd
         $sqlAsing = "
-            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            SELECT COUNT(reg.id_reg_pd) AS total
             FROM pdrd.reg_pd AS reg
-            JOIN pdrd.peserta_didik AS pd
+            INNER JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
             LEFT JOIN ref.wilayah AS wil
                 ON wil.id_wil = pd.id_wil
-            WHERE reg.soft_delete = 0
+            WHERE reg.id_sp = ?
+                AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
                 AND pd.id_stat_mhs = 'A'
                 AND wil.id_negara IS NOT NULL
                 AND wil.id_negara <> 'ID'
         ";
 
-        $asingResult = DB::connection('sqlsrv')->select($sqlAsing);
+        $asingResult = DB::connection('sqlsrv')->select($sqlAsing, [$unilaIdSp]);
         $totalAsing = (int) ($asingResult[0]->total ?? 0);
 
         $tahun = substr($activePeriod, 0, 4);
@@ -630,9 +582,9 @@ class MahasiswaStatisticsRepository
             'tahun_ajaran' => $tahunAjaran,
             'last_update' => $this->getLastUpdate($activePeriod),
             'last_feeder_sync' => $this->getLastFeederSync(),
-            'formula' => "COUNT(DISTINCT pd.id_pd) WHERE reg_pd.id_jns_keluar IS NULL AND peserta_didik.id_stat_mhs = 'A' AND prodi.stat_prodi='A'",
+            'formula' => "COUNT(reg_pd.id_reg_pd) WHERE reg_pd.id_jns_keluar IS NULL AND peserta_didik.id_stat_mhs = 'A' AND prodi.stat_prodi='A'",
             'sumber' => 'Sistem Informasi Akademik Unila (realtime)',
-            'note' => "Total mahasiswa aktif terdaftar di Unila — INTERSECT dual confirm: belum punya SK keluar (reg_pd.id_jns_keluar IS NULL) DAN status master 'Aktif' (peserta_didik.id_stat_mhs = 'A'). Pendekatan paling konservatif untuk akurasi maksimal. Untuk angka per-semester (status A/M/C/N), lihat sebaran-status dengan filter periode.",
+            'note' => "Total mahasiswa aktif terdaftar di Unila — dihitung per pendaftaran (reg_pd): belum punya SK keluar (reg_pd.id_jns_keluar IS NULL) DAN status master 'Aktif' (peserta_didik.id_stat_mhs = 'A'). 1 mahasiswa bisa punya >1 reg_pd aktif (dual enrollment S1+S2). Konsisten dengan Pimpinan & Data Unila.",
         ];
     }
 }

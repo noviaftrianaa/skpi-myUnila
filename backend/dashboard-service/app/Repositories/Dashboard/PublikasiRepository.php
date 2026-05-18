@@ -125,17 +125,27 @@ class PublikasiRepository extends BaseRepository
 
     public function getPerFakultas(array $semesters): array
     {
+        // ANCHOR strategy: 1 publikasi = 1 fakultas (first author by urutan ASC).
+        // Sebelumnya multi-author counted (lintas-fak duplicate entries).
+        // SUM(perFakultas) ≈ total publikasi (selisih = author sudah keluar dari Unila).
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
 
         $sql = "
+            ;WITH anchor AS (
+                SELECT tp.id_publikasi, tp.id_sdm,
+                    ROW_NUMBER() OVER (PARTITION BY tp.id_publikasi
+                        ORDER BY ISNULL(tp.urutan, 999), tp.create_date) AS rn
+                FROM pdrd.tulis_pub tp
+                WHERE tp.soft_delete = 0 AND tp.id_sdm IS NOT NULL
+            )
             SELECT
                 uo.nm_lemb as name,
                 COUNT(DISTINCT p.id_publikasi) as value
             FROM pdrd.publikasi p
-            INNER JOIN pdrd.tulis_pub tp2 ON tp2.id_publikasi = p.id_publikasi AND tp2.soft_delete = 0
-            INNER JOIN pdrd.sdm sdm ON tp2.id_sdm = sdm.id_sdm AND sdm.soft_delete = 0
+            INNER JOIN anchor a ON a.id_publikasi = p.id_publikasi AND a.rn = 1
+            INNER JOIN pdrd.sdm sdm ON a.id_sdm = sdm.id_sdm AND sdm.soft_delete = 0
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
             INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0

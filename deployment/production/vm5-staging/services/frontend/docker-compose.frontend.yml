@@ -26,6 +26,7 @@ services:
         - NEXT_PUBLIC_MAN_KONTEN_API_URL=${NEXT_PUBLIC_MAN_KONTEN_API_URL}
         - NEXT_PUBLIC_SI_PRESTASI_API_URL=${NEXT_PUBLIC_SI_PRESTASI_API_URL}
         - NEXT_PUBLIC_EXECUTIVE_API_URL=${NEXT_PUBLIC_EXECUTIVE_API_URL}
+        - MINIO_STORAGE_URL=${MINIO_STORAGE_URL:-http://192.168.120.47:9000}
     image: myunila/frontend:staging
     container_name: myunila-frontend-staging
     restart: unless-stopped
@@ -51,6 +52,8 @@ services:
       NEXT_PUBLIC_MAN_KONTEN_API_URL: "${NEXT_PUBLIC_MAN_KONTEN_API_URL}"
       NEXT_PUBLIC_SI_PRESTASI_API_URL: "${NEXT_PUBLIC_SI_PRESTASI_API_URL}"
       NEXT_PUBLIC_EXECUTIVE_API_URL: "${NEXT_PUBLIC_EXECUTIVE_API_URL}"
+      # MinIO rewrite upstream — Next.js proxy /myunila-storage/* ke MinIO real IP
+      MINIO_STORAGE_URL: "${MINIO_STORAGE_URL:-http://192.168.120.47:9000}"
       # Performance tuning (reduced for staging)
       NODE_OPTIONS: "--max-old-space-size=1024"
       UV_THREADPOOL_SIZE: 4

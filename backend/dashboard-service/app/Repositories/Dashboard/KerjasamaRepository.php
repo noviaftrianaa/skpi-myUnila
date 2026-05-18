@@ -6,16 +6,24 @@ use App\Repositories\BaseRepository;
 
 class KerjasamaRepository extends BaseRepository
 {
+    /**
+     * Total Mitra UNIK yang masih punya MoU aktif (canonical match Beranda countMitra=168).
+     */
     public function countTotalMitra(): int
     {
         $sql = "
-            SELECT COUNT(DISTINCT m.id_mou)
+            SELECT COUNT(DISTINCT m.nm_dudi)
             FROM kerjasama.mou m
             WHERE m.soft_delete = 0
+              AND m.tgl_selesai >= GETDATE()
+              AND m.nm_dudi IS NOT NULL AND m.nm_dudi <> ''
         ";
         return (int) $this->selectScalar($sql, []);
     }
 
+    /**
+     * Total MoU aktif (current valid contract) — match Beranda countMou=968.
+     */
     public function countMouAktif(): int
     {
         $sql = "
@@ -23,6 +31,19 @@ class KerjasamaRepository extends BaseRepository
             FROM kerjasama.mou m
             WHERE m.soft_delete = 0
               AND m.tgl_selesai >= GETDATE()
+        ";
+        return (int) $this->selectScalar($sql, []);
+    }
+
+    /**
+     * Total MoU all-time (termasuk expired) — context untuk grow rate.
+     */
+    public function countMouAllTime(): int
+    {
+        $sql = "
+            SELECT COUNT(DISTINCT m.id_mou)
+            FROM kerjasama.mou m
+            WHERE m.soft_delete = 0
         ";
         return (int) $this->selectScalar($sql, []);
     }

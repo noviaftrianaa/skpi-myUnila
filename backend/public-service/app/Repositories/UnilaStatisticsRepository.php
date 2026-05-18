@@ -102,25 +102,24 @@ class UnilaStatisticsRepository
      */
     private function getTotalMahasiswa(string $periode): int
     {
+        // Count by reg_pd (per enrollment). 1 mahasiswa bisa punya >1 reg_pd
+        // aktif (mis. S1 + S2 dual enrollment). Konsisten dengan Pimpinan
+        // dan Data Unila /mahasiswa?status=aktif (37.181).
+        // TIDAK pakai filter sms.stat_prodi='A' supaya match dashboard.
+        $unilaIdSp = strtoupper(env('UNILA_ID_SP', 'E2B705A7-173E-464A-9FAC-509128709515'));
         $sql = "
-            SELECT COUNT(DISTINCT pd.id_pd) AS total
+            SELECT COUNT(reg.id_reg_pd) AS total
             FROM pdrd.reg_pd AS reg
-            JOIN pdrd.peserta_didik AS pd
+            INNER JOIN pdrd.peserta_didik AS pd
                 ON pd.id_pd = reg.id_pd
                 AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms AS sms
-                ON sms.id_sms = reg.id_sms
-                AND sms.soft_delete = 0
-                AND sms.stat_prodi = 'A'
-            INNER JOIN ref.jenjang_pendidikan AS didik
-                ON didik.id_jenj_didik = sms.id_jenj_didik
-                AND didik.expired_date IS NULL
-            WHERE reg.soft_delete = 0
+            WHERE reg.id_sp = ?
+                AND reg.soft_delete = 0
                 AND reg.id_jns_keluar IS NULL
                 AND pd.id_stat_mhs = 'A'
         ";
 
-        $result = DB::connection('sqlsrv')->select($sql);
+        $result = DB::connection('sqlsrv')->select($sql, [$unilaIdSp]);
 
         return (int) ($result[0]->total ?? 0);
     }

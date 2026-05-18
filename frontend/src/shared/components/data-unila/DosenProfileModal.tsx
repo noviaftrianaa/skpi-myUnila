@@ -14,9 +14,11 @@ type Props = {
   onClose: () => void;
 };
 
+// Relative URL fallback → browser resolve ke same-origin (Kong/nginx proxy
+// `/myunila-storage/*`). LAN IP `http://192.168.120.47:9000` tidak accessible
+// dari browser internet, jangan dipakai sebagai default.
 const MINIO_BASE =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) ||
-  "http://192.168.120.47:9000";
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) || "";
 
 function fotoUrl(idSdm: string): string {
   return `${MINIO_BASE}/myunila-storage/photos/sdm/${idSdm}.jpg`;

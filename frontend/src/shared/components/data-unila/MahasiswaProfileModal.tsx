@@ -45,9 +45,10 @@ function initials(name?: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// Relative URL fallback → browser resolve ke same-origin (Kong/nginx proxy
+// `/myunila-storage/*`). LAN IP tidak accessible dari browser internet.
 const MINIO_BASE =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) ||
-  "http://192.168.120.47:9000";
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_MINIO_URL) || "";
 
 function fotoUrl(idPd: string): string {
   return `${MINIO_BASE}/myunila-storage/photos/pd/${idPd}.jpg`;

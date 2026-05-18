@@ -85,6 +85,20 @@ abstract class BaseRepository
     public function parseSemesterParam(?string $semester): array
     {
         if (empty($semester)) {
+            // Default: pakai semester aktif dari ref.semester (sama dgn public-service).
+            // date('Y') tidak reliable karena data sync dari Feeder bisa lag dari kalender.
+            $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT TOP 1 CAST(id_smt AS VARCHAR) AS id_smt
+                FROM ref.semester
+                WHERE expired_date IS NULL AND a_periode_aktif = 1
+                ORDER BY id_smt DESC
+            ");
+            if ($row && !empty($row->id_smt)) {
+                $active = (string) $row->id_smt;
+                $year = substr($active, 0, 4);
+                // Untuk pendapatan akumulasi tahun ajaran: include ganjil + genap.
+                return [$year . '1', $year . '2'];
+            }
             $year = date('Y');
             return [$year . '1', $year . '2'];
         }

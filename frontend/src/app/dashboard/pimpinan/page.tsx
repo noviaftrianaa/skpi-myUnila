@@ -33,6 +33,7 @@ import type { BerandaData, Top5Item, AlertItem } from "./types";
 import { useRoleBasedScope } from "@/lib/hooks/useRoleBasedScope";
 import ScopeBadge from "@/shared/components/dashboard/ScopeBadge";
 import UnitFilter from "@/shared/components/data-unila/UnitFilter";
+import { fmtRupiah } from "@/lib/utils/formatRupiah";
 import mahasiswaDataService, { type MahasiswaFilters } from "@/lib/services/data-unila/mahasiswaDataService";
 
 const APP_KEY = "dashboard-pimpinan";
@@ -56,8 +57,15 @@ export default function DashboardBerandaPage() {
   const { semester, activeSemesters } = useDashboardReference();
 
   useEffect(() => {
+    // Default selection = full Tahun Ajaran aktif (Ganjil + Genap), bukan cuma 1 semester.
+    // Pendapatan UKT & metrik kumulatif TA jadi konsisten dgn akumulasi tahun ajaran.
     if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
-      setSelectedSemesters(new Set(activeSemesters));
+      const year = activeSemesters[0]?.substring(0, 4);
+      if (year && /^\d{4}$/.test(year)) {
+        setSelectedSemesters(new Set([`${year}1`, `${year}2`]));
+      } else {
+        setSelectedSemesters(new Set(activeSemesters));
+      }
     }
   }, [activeSemesters]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -211,20 +219,20 @@ export default function DashboardBerandaPage() {
                 />
                 <StatCard
                   title="Pendapatan UKT"
-                  value={`Rp ${(data.summaryStats.keuangan.total / 1_000_000_000).toFixed(1)} M`}
+                  value={fmtRupiah(data.summaryStats.keuangan.total)}
                   icon={<FiDollarSign className="w-6 h-6 text-white" />}
                   color="yellow"
                   trend={{ value: data.summaryStats.keuangan.trend ?? 0, label: "vs TA sebelumnya" }}
                   description={`Pendapatan SPP periode aktif`}
-                  href="/dashboard/data-unila/keuangan/ukt"
-                  hint="Klik untuk detail UKT"
+                  href="/dashboard/data-unila/keuangan/spp"
+                  hint="Klik untuk detail pembayaran SPP"
                 />
                 <StatCard
                   title="Prodi Unggul/A"
-                  value={`${((data.summaryStats.akademik.akrUnggul + 35) / data.summaryStats.akademik.prodi * 100).toFixed(0)}%`}
+                  value={`${data.summaryStats.akademik.prodi > 0 ? (data.summaryStats.akademik.akrUnggul / data.summaryStats.akademik.prodi * 100).toFixed(0) : 0}%`}
                   icon={<FiBriefcase className="w-6 h-6 text-white" />}
                   color="purple"
-                  description={`${data.summaryStats.akademik.akrUnggul + 35} dari ${data.summaryStats.akademik.prodi} Prodi`}
+                  description={`${data.summaryStats.akademik.akrUnggul} dari ${data.summaryStats.akademik.prodi} Prodi`}
                   href="/dashboard/data-unila/akademik/akreditasi"
                   hint="Klik untuk daftar akreditasi prodi"
                 />
@@ -242,7 +250,7 @@ export default function DashboardBerandaPage() {
                     <div>
                       <h3 className="text-lg font-bold text-gray-800 dark:text-white">Perbandingan Year-over-Year</h3>
                       <p className="text-sm text-gray-500">
-                        Mahasiswa Aktif, Guru Besar, Publikasi, dan Akreditasi Unggul/A — {data.trendYoY.years[0]} s/d {data.trendYoY.years[data.trendYoY.years.length - 1]}
+                        Mahasiswa Aktif, Guru Besar, Publikasi, Litabmas (Penelitian+Pengabdian), dan Akreditasi Unggul/A — {data.trendYoY.years[0]} s/d {data.trendYoY.years[data.trendYoY.years.length - 1]}
                       </p>
                     </div>
                   </CardHeader>
@@ -253,6 +261,7 @@ export default function DashboardBerandaPage() {
                         { name: "Mahasiswa Aktif", data: data.trendYoY.mahasiswa, color: "#3b82f6" },
                         { name: "Guru Besar", data: data.trendYoY.guruBesar, color: "#f43f5e" },
                         { name: "Publikasi", data: data.trendYoY.publikasi, color: "#8b5cf6" },
+                        { name: "Litabmas", data: data.trendYoY.litabmas ?? [], color: "#f59e0b" },
                         { name: "Akreditasi Unggul/A", data: data.trendYoY.akreditasiUnggul, color: "#10b981" },
                       ]}
                       height={340}

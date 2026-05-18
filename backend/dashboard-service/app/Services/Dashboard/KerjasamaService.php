@@ -30,7 +30,8 @@ class KerjasamaService
             return [
                 'stats' => [
                     'totalMitra' => ['total' => $this->repository->countTotalMitra()],
-                    'mouAktif' => ['total' => $this->repository->countMouAktif()],
+                    'mouAktif'   => ['total' => $this->repository->countMouAktif()],
+                    'mouAllTime' => ['total' => $this->repository->countMouAllTime()],
                 ],
                 'mitraByScope' => $this->buildSimpleList($this->repository->getMitraByScope()),
                 'trenKerjasama' => $this->buildSimpleList($this->repository->getTrendKerjasama($semesters)),

@@ -20,6 +20,7 @@ services:
         - NEXT_PUBLIC_WEBMON_API_URL=${NEXT_PUBLIC_WEBMON_API_URL}
         - NEXT_PUBLIC_MAN_KONTEN_API_URL=${NEXT_PUBLIC_MAN_KONTEN_API_URL}
         - NEXT_PUBLIC_ONEDATA_API_URL=${NEXT_PUBLIC_ONEDATA_API_URL}
+        - MINIO_STORAGE_URL=${MINIO_STORAGE_URL:-http://192.168.120.47:9000}
     image: myunila/frontend:production
     container_name: myunila-frontend-service
     restart: unless-stopped
@@ -43,6 +44,8 @@ services:
       NEXT_PUBLIC_PROMETHEUS_URL: "${NEXT_PUBLIC_PROMETHEUS_URL:-}"
       NEXT_PUBLIC_LOKI_URL: "${NEXT_PUBLIC_LOKI_URL:-}"
       NEXT_PUBLIC_CADVISOR_URL: "${NEXT_PUBLIC_CADVISOR_URL:-}"
+      # MinIO rewrite upstream — Next.js proxy /myunila-storage/* ke MinIO real IP
+      MINIO_STORAGE_URL: "${MINIO_STORAGE_URL:-http://192.168.120.47:9000}"
       # Performance tuning for 8 CPU / 16GB RAM
       NODE_OPTIONS: "--max-old-space-size=4096"
       UV_THREADPOOL_SIZE: 16

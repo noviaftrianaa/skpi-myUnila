@@ -47,7 +47,6 @@ class MahasiswaSebaranRepository
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = reg.id_sms
                     AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
                 INNER JOIN ref.jenjang_pendidikan AS didik
                     ON didik.id_jenj_didik = sms.id_jenj_didik
                     AND didik.expired_date IS NULL
@@ -61,7 +60,6 @@ class MahasiswaSebaranRepository
             LEFT JOIN ref.wilayah AS wil_parent
                 ON wil_parent.id_wil = wil.id_induk_wilayah
                 AND wil_parent.id_level_wil = 2
-            WHERE dedup.rn = 1
             GROUP BY
                 CASE
                     WHEN dedup.id_wil = '999999' OR dedup.id_wil IS NULL THEN '999999'
@@ -109,7 +107,6 @@ class MahasiswaSebaranRepository
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = reg.id_sms
                     AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
                 WHERE reg.soft_delete = 0
                     AND reg.id_jns_keluar IS NULL
                     AND pd.id_stat_mhs = 'A'
@@ -120,7 +117,6 @@ class MahasiswaSebaranRepository
             INNER JOIN ref.wilayah AS wil_prov
                 ON wil_prov.id_wil = SUBSTRING(CAST(wil.id_wil AS VARCHAR), 1, 2)
                 AND wil_prov.id_level_wil = 1
-            WHERE dedup.rn = 1
             GROUP BY wil_prov.id_wil, wil_prov.nm_wil
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -162,7 +158,6 @@ class MahasiswaSebaranRepository
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = reg.id_sms
                     AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
                 INNER JOIN ref.jenjang_pendidikan AS didik
                     ON didik.id_jenj_didik = sms.id_jenj_didik
                     AND didik.expired_date IS NULL
@@ -173,7 +168,6 @@ class MahasiswaSebaranRepository
             INNER JOIN pdrd.sms AS fak
                 ON fak.id_sms = dedup.id_fak_unila
                 AND fak.soft_delete = 0
-            WHERE dedup.rn = 1
             GROUP BY fak.id_sms, fak.nm_lemb
             ORDER BY jumlah_mahasiswa DESC
         ";
@@ -219,7 +213,6 @@ class MahasiswaSebaranRepository
                 INNER JOIN pdrd.sms AS sms
                     ON sms.id_sms = reg.id_sms
                     AND sms.soft_delete = 0
-                    AND sms.stat_prodi = 'A'
                 LEFT JOIN ref.jenjang_pendidikan AS jenj
                     ON jenj.id_jenj_didik = sms.id_jenj_didik
                     AND jenj.expired_date IS NULL
@@ -228,7 +221,6 @@ class MahasiswaSebaranRepository
                     AND pd.id_stat_mhs = 'A'
                     AND sms.id_fak_unila = ?
             ) AS dedup
-            WHERE dedup.rn = 1
             GROUP BY dedup.id_sms, dedup.nm_lemb, dedup.nm_jenj_didik
             ORDER BY jumlah_mahasiswa DESC
         ";

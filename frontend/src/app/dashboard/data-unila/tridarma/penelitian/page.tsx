@@ -23,19 +23,11 @@ import { exportToCsv, exportToJson } from "@/lib/utils/exportCsv";
 import { exportToPdf } from "@/lib/utils/exportPdf";
 import { StatCardGridSkeleton } from "@/shared/components/data-unila/PageSkeleton";
 
+import { fmtRupiah, num } from "@/lib/utils/formatRupiah";
+
 const APP_KEY = "data-unila";
 
-function num(v?: string | number | null): number {
-  if (v == null) return 0;
-  const n = typeof v === "number" ? v : parseInt(String(v), 10);
-  return Number.isNaN(n) ? 0 : n;
-}
 function fmt(n: number): string { return n.toLocaleString("id-ID"); }
-function fmtRupiah(n: number): string {
-  if (n >= 1e9) return `Rp ${(n / 1e9).toFixed(2)} M`;
-  if (n >= 1e6) return `Rp ${(n / 1e6).toFixed(2)} Jt`;
-  return `Rp ${n.toLocaleString("id-ID")}`;
-}
 
 function StatCard({ icon, label, value, gradient, subtext }: { icon: React.ReactNode; label: string; value: string | number; gradient: string; subtext?: string }) {
   const display = typeof value === "number" ? fmt(value) : value;

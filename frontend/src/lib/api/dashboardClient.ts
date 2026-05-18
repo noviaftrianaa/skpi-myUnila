@@ -61,9 +61,22 @@ const createDashboardClient = (): AxiosInstance => {
             const isUniversal = !level || level <= 3
               || ['administrator', 'developer', 'helpdesk', 'service api'].some((k) => namaPeran.includes(k));
 
+            // Kajur/Admin Jurusan tidak punya level_organisasi konsisten (kadang 4 sama dgn fakultas,
+            // kadang NULL). Deteksi via nm_peran regex.
+            const isJurusanRole = /admin\s*jurusan|kepala\s*jurusan|ketua\s*jurusan|kajur/i.test(namaPeran);
+
             if (!isUniversal && idOrg) {
               config.params = config.params || {};
-              if (level === 4) {
+              if (isJurusanRole) {
+                // Kajur/Admin Jurusan → id_organisasi = jurusan UUID (pdrd.sms.id_jur_unila).
+                // BE middleware RoleScopeFilter auto-derive id_fakultas dari pdrd.sms lookup,
+                // tapi FE explicit inject id_jurusan agar Data Unila pages langsung respect.
+                if (config.params.id_jurusan === undefined) config.params.id_jurusan = idOrg;
+                if (config.params.id_fakultas === undefined && idInduk
+                    && String(idInduk).toUpperCase() !== 'E2B705A7-173E-464A-9FAC-509128709515') {
+                  config.params.id_fakultas = idInduk;
+                }
+              } else if (level === 4) {
                 // Dekan → scope fakultas (id_organisasi-nya adalah fakultas)
                 if (config.params.id_fakultas === undefined) config.params.id_fakultas = idOrg;
               } else if (level === 5) {

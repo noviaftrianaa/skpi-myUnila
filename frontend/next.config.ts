@@ -61,6 +61,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // Proxy `/myunila-storage/*` ke MinIO upstream supaya foto/file served via same-origin
+  // (no CORS issue, accessible dari browser internet). MINIO_STORAGE_URL di-set di
+  // build/runtime env (Dockerfile + docker-compose). Default fallback ke LAN IP supaya
+  // di-dev/local kerja, di prod/staging override via env.
+  async rewrites() {
+    const minioUpstream = process.env.MINIO_STORAGE_URL || 'http://192.168.120.47:9000';
+    return [
+      {
+        source: '/myunila-storage/:path*',
+        destination: `${minioUpstream}/myunila-storage/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

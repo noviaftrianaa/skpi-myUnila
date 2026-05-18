@@ -17,24 +17,21 @@ class MahasiswaRepository extends BaseRepository
      */
     public function countAktif(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
-        if (empty($semesters)) {
-            return 0;
-        }
-
+        // CANONICAL match headline 37.181: realtime reg_pd open + pd.id_stat_mhs='A'.
+        // TIDAK depend semester filter (jumlah mahasiswa aktif = real-time, BUKAN snapshot semester).
+        // Sebelumnya snapshot kuliah_mhs ~34.054 (missing 3.127 reg yg belum sync ke kuliah_mhs).
         $bindings = [self::UNILA_ID_SP];
-        $inClause = $this->buildInClause($semesters, $bindings);
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
-            SELECT COUNT(DISTINCT pd.id_pd)
-            FROM pdrd.kuliah_mhs kmh
-            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = kmh.id_reg_pd AND rp.soft_delete = 0
+            SELECT COUNT(rp.id_reg_pd)
+            FROM pdrd.reg_pd rp
             INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
+            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
             WHERE rp.id_sp = ?
-              AND kmh.soft_delete = 0
-              AND kmh.id_stat_mhs IN ('A', 'M')
-              AND CAST(kmh.id_smt AS VARCHAR(10)) IN {$inClause}
+              AND rp.soft_delete = 0
+              AND rp.id_jns_keluar IS NULL
+              AND pd.id_stat_mhs = 'A'
               {$fakFilter}
         ";
 
@@ -95,24 +92,23 @@ class MahasiswaRepository extends BaseRepository
      */
     public function countCuti(array $semesters, ?string $fakultas = null, ?string $prodi = null): int
     {
-        if (empty($semesters)) {
-            return 0;
-        }
-
+        // CANONICAL match Beranda countMahasiswaCuti: latest semester per reg_pd, status='C'.
+        // Tidak filter berdasarkan $semesters (Cuti = realtime status terbaru, bukan per semester).
         $bindings = [self::UNILA_ID_SP];
-        $inClause = $this->buildInClause($semesters, $bindings);
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
-            SELECT COUNT(DISTINCT pd.id_pd)
-            FROM pdrd.kuliah_mhs kmh
-            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = kmh.id_reg_pd AND rp.soft_delete = 0
-            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
-            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A'
-            WHERE rp.id_sp = ?
-              AND kmh.soft_delete = 0
-              AND kmh.id_stat_mhs = 'C'
-              AND CAST(kmh.id_smt AS VARCHAR(10)) IN {$inClause}
+            SELECT COUNT(DISTINCT km.id_reg_pd)
+            FROM pdrd.kuliah_mhs km
+            INNER JOIN pdrd.reg_pd rp ON rp.id_reg_pd = km.id_reg_pd
+                AND rp.id_sp = ? AND rp.soft_delete = 0
+            INNER JOIN pdrd.sms s ON s.id_sms = rp.id_sms AND s.soft_delete = 0
+            WHERE km.soft_delete = 0
+              AND km.id_stat_mhs = 'C'
+              AND km.id_smt = (
+                  SELECT MAX(km2.id_smt) FROM pdrd.kuliah_mhs km2
+                  WHERE km2.id_reg_pd = km.id_reg_pd AND km2.soft_delete = 0
+              )
               {$fakFilter}
         ";
 
@@ -194,27 +190,25 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getSebaranFakultas(array $semesters): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-
+        // CANONICAL match countAktif/headline 37.181: realtime reg_pd + pd.id_stat_mhs='A'.
         $sql = "
             SELECT
                 CONVERT(VARCHAR(36), uo.id_organisasi) as id,
                 uo.nm_lemb as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
-            INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
+            INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
-              AND uo.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
             GROUP BY uo.id_organisasi, uo.nm_lemb
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP, $maxYear]);
+        return $this->select($sql, [self::UNILA_ID_SP]);
     }
 
     /**
@@ -222,26 +216,25 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getSebaranProdi(string $idFakultas, array $semesters): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-
+        // CANONICAL: realtime reg_pd + pd.id_stat_mhs='A'.
         $sql = "
             SELECT
                 CONVERT(VARCHAR(36), s.id_sms) as id,
                 s.nm_lemb as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND s.id_fak_unila = ?
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
             GROUP BY s.id_sms, s.nm_lemb
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP, $idFakultas, $maxYear]);
+        return $this->select($sql, [self::UNILA_ID_SP, $idFakultas]);
     }
 
     // =========================================
@@ -253,8 +246,8 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getDistribusiJenjang(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        // CANONICAL: realtime reg_pd + pd.id_stat_mhs='A'.
+        $bindings = [self::UNILA_ID_SP];
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
@@ -262,13 +255,13 @@ class MahasiswaRepository extends BaseRepository
                 jp.nm_jenj_didik as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
               {$fakFilter}
             GROUP BY jp.nm_jenj_didik
             ORDER BY value DESC
@@ -310,8 +303,8 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getPembiayaan(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        // CANONICAL: realtime reg_pd + pd.id_stat_mhs='A'.
+        $bindings = [self::UNILA_ID_SP];
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
@@ -319,13 +312,13 @@ class MahasiswaRepository extends BaseRepository
                 ISNULL(bp.nm_pembiayaan, 'Tidak Diketahui') as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
+            INNER JOIN pdrd.peserta_didik pd ON pd.id_pd = rp.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             LEFT JOIN ref.pembiayaan bp ON rp.id_pembiayaan = bp.id_pembiayaan
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
               {$fakFilter}
             GROUP BY bp.nm_pembiayaan
             ORDER BY value DESC
@@ -540,8 +533,8 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getAsalProvinsi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        // CANONICAL: realtime reg_pd + pd.id_stat_mhs='A'.
+        $bindings = [self::UNILA_ID_SP];
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
@@ -549,15 +542,14 @@ class MahasiswaRepository extends BaseRepository
                 ISNULL(w.nm_wil, 'Tidak Diketahui') as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
-            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             LEFT JOIN ref.wilayah w ON LEFT(pd.id_wil, 2) = LEFT(w.id_wil, 2)
                 AND w.id_level_wil = 1
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
               {$fakFilter}
             GROUP BY w.nm_wil
             ORDER BY value DESC
@@ -571,28 +563,25 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getMahasiswaAsing(array $semesters): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-
         $sql = "
             SELECT TOP 5
                 ISNULL(n.nm_negara, 'Tidak Diketahui') as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
-            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             LEFT JOIN ref.negara n ON pd.id_kewarganegaraan = n.id_negara
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
+              AND pd.id_stat_mhs = 'A'
               AND pd.id_kewarganegaraan != 'ID'
               AND pd.id_kewarganegaraan IS NOT NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
             GROUP BY n.nm_negara
             ORDER BY value DESC
         ";
 
-        return $this->select($sql, [self::UNILA_ID_SP, $maxYear]);
+        return $this->select($sql, [self::UNILA_ID_SP]);
     }
 
     // =========================================
@@ -662,8 +651,8 @@ class MahasiswaRepository extends BaseRepository
      */
     public function getGenderDistribusi(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $maxYear = $this->getMaxYear($semesters);
-        $bindings = [self::UNILA_ID_SP, $maxYear];
+        // CANONICAL: realtime reg_pd + pd.id_stat_mhs='A'.
+        $bindings = [self::UNILA_ID_SP];
         $fakFilter = $this->buildLocationFilter($fakultas, $prodi, $bindings);
 
         $sql = "
@@ -671,13 +660,12 @@ class MahasiswaRepository extends BaseRepository
                 CASE WHEN pd.jk = 'L' THEN 'Laki-laki' ELSE 'Perempuan' END as name,
                 COUNT(rp.id_reg_pd) as value
             FROM pdrd.reg_pd rp
-            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms
-            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd
+            INNER JOIN pdrd.peserta_didik pd ON rp.id_pd = pd.id_pd AND pd.soft_delete = 0
+            INNER JOIN pdrd.sms s ON rp.id_sms = s.id_sms AND s.soft_delete = 0
             WHERE rp.id_sp = ?
               AND rp.soft_delete = 0
-              AND s.soft_delete = 0
               AND rp.id_jns_keluar IS NULL
-              AND CAST(LEFT(rp.id_semester_masuk, 4) AS INT) <= CAST(? AS INT)
+              AND pd.id_stat_mhs = 'A'
               {$fakFilter}
             GROUP BY pd.jk
             ORDER BY value DESC

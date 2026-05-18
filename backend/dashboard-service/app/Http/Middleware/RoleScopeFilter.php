@@ -66,10 +66,18 @@ class RoleScopeFilter
                 }
             }
 
+            // Detect Kajur/Admin Jurusan via nm_peran (jurusan TIDAK punya level
+            // konsisten — kadang level=4 sama dgn fakultas, kadang NULL).
+            $isJurusanRole = $namaPeran !== '' && (bool) preg_match(
+                '/admin\s*jurusan|kepala\s*jurusan|ketua\s*jurusan|kajur/i',
+                $namaPeran
+            );
+
             $scope = [
                 'has_scope'     => false,
                 'level'         => $level,
                 'id_fakultas'   => null,
+                'id_jurusan'    => null,
                 'id_prodi'      => null,
                 'is_universal'  => $isUniversal,
                 'id_peran'      => $ctx['id_peran'] ?? null,
@@ -78,13 +86,20 @@ class RoleScopeFilter
             ];
 
             if (!$isUniversal && $idOrg) {
-                if ($level === 4) {
+                if ($isJurusanRole) {
+                    // Kajur/Admin Jurusan → id_organisasi = jurusan UUID di pdrd.sms (id_jur_unila).
+                    // id_induk_organisasi (unit_organisasi) BISA pointing ke fakultas atau UNILA root
+                    // → kalau ke UNILA root, derive fakultas dari pdrd.sms.id_fak_unila lookup di sini.
+                    $scope['id_jurusan']  = $idOrg;
+                    $scope['id_fakultas'] = $this->resolveFakultasFromJurusan($idOrg, $idInduk);
+                    $scope['has_scope']   = true;
+                } elseif ($level === 4) {
                     $scope['id_fakultas'] = $idOrg;
-                    $scope['has_scope'] = true;
+                    $scope['has_scope']   = true;
                 } elseif ($level === 5) {
-                    $scope['id_prodi'] = $idOrg;
+                    $scope['id_prodi']    = $idOrg;
                     $scope['id_fakultas'] = $idInduk;
-                    $scope['has_scope'] = true;
+                    $scope['has_scope']   = true;
                 }
             }
 
@@ -96,6 +111,7 @@ class RoleScopeFilter
             if ($scope['has_scope']) {
                 $merge = [];
                 if ($scope['id_fakultas']) $merge['id_fakultas'] = $scope['id_fakultas'];
+                if ($scope['id_jurusan'])  $merge['id_jurusan']  = $scope['id_jurusan'];
                 if ($scope['id_prodi'])    $merge['id_prodi']    = $scope['id_prodi'];
                 $request->merge($merge);
                 foreach ($merge as $k => $v) {
@@ -111,6 +127,35 @@ class RoleScopeFilter
             ]);
             return $next($request);
         }
+    }
+
+    /**
+     * Lookup id_fakultas yang OWN jurusan tertentu via pdrd.sms.id_jur_unila → id_fak_unila.
+     * Fallback ke $idInduk kalau lookup gagal (kalau unit_organisasi.id_induk_organisasi
+     * sudah pointing ke fakultas, ini already valid; cuma harus diverify NOT UNILA root).
+     */
+    private function resolveFakultasFromJurusan(string $idJurusan, ?string $idInduk = null): ?string
+    {
+        // Cache per-request supaya tidak query berulang dalam 1 request.
+        static $cache = [];
+        if (isset($cache[$idJurusan])) return $cache[$idJurusan];
+
+        try {
+            $row = \Illuminate\Support\Facades\DB::connection('sqlsrv')->selectOne("
+                SELECT TOP 1 CONVERT(VARCHAR(36), id_fak_unila) AS id_fak
+                FROM pdrd.sms
+                WHERE id_jur_unila = ? AND soft_delete = 0 AND id_fak_unila IS NOT NULL
+            ", [$idJurusan]);
+            if ($row && !empty($row->id_fak)) {
+                return $cache[$idJurusan] = $row->id_fak;
+            }
+        } catch (\Throwable $e) { /* fall-through */ }
+
+        // Fallback: pakai id_induk kalau bukan UNILA root.
+        if ($idInduk && strtoupper($idInduk) !== 'E2B705A7-173E-464A-9FAC-509128709515') {
+            return $cache[$idJurusan] = $idInduk;
+        }
+        return $cache[$idJurusan] = null;
     }
 
     /**
