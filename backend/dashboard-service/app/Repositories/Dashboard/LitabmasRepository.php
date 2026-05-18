@@ -137,6 +137,9 @@ class LitabmasRepository extends BaseRepository
 
     public function getSebaranFakultas(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
+        // ANCHOR strategy: 1 litabmas = 1 fakultas (Ketua dulu, kemudian anggota terlama).
+        // Sebelumnya multi-fak counted (1 litabmas dgn 3 anggota lintas-fak = 3 entries).
+        // Sekarang SUM(sebaran) ≈ total litabmas (selisih = litabmas dgn anchor sdm sudah keluar).
         $years = $this->extractYears($semesters);
         $bindings = [self::UNILA_ID_SP];
         $inClause = $this->buildInClause($years, $bindings);
@@ -152,13 +155,21 @@ class LitabmasRepository extends BaseRepository
         }
 
         $sql = "
+            ;WITH anchor AS (
+                SELECT sal.id_litabmas, sal.id_sdm,
+                    ROW_NUMBER() OVER (PARTITION BY sal.id_litabmas
+                        ORDER BY CASE WHEN sal.peran_litabmas = 'K' THEN 0 ELSE 1 END,
+                                 sal.create_date) AS rn
+                FROM pdrd.sdm_anggota_litabmas sal
+                WHERE sal.soft_delete = 0
+            )
             SELECT
                 uo.nm_lemb as name,
                 COUNT(DISTINCT l.id_litabmas) as value,
                 CASE l.jns_litabmas WHEN 'L' THEN 'Penelitian' ELSE 'Pengabdian' END as category
             FROM pdrd.litabmas l
-            INNER JOIN pdrd.sdm_anggota_litabmas sal ON sal.id_litabmas = l.id_litabmas AND sal.soft_delete = 0
-            INNER JOIN pdrd.sdm sdm ON sal.id_sdm = sdm.id_sdm AND sdm.soft_delete = 0
+            INNER JOIN anchor a ON a.id_litabmas = l.id_litabmas AND a.rn = 1
+            INNER JOIN pdrd.sdm sdm ON a.id_sdm = sdm.id_sdm AND sdm.soft_delete = 0
             INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                 AND ptk.id_jns_keluar IS NULL AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
             INNER JOIN pdrd.sms s ON ptk.id_sms = s.id_sms AND s.soft_delete = 0
