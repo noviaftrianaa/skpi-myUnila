@@ -1339,8 +1339,132 @@ CREATE INDEX IF NOT EXISTS idx_email_outbox_status_created
 
 COMMENT ON TABLE interaction.email_outbox IS 'Outbound email queue with retry tracking (Phase AY)';
 
+-- =====================================================
+-- Phase BF: blog.banned_commenter (per-blog commenter ban)
+-- =====================================================
+-- Finer-grained than Phase AO. Phase AO bans user globally from semua aksi
+-- engagement. Phase BF biarkan blog owner block specific commenter dari
+-- blog mereka saja — user masih bisa komentar di blog lain.
+
+CREATE TABLE IF NOT EXISTS blog.banned_commenter (
+    id_banned_commenter UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_blog             UUID            NOT NULL REFERENCES blog.blog(id_blog) ON DELETE CASCADE,
+    id_pengguna_pdut    UUID            NOT NULL,
+    alasan              TEXT            NOT NULL,
+    dibanned_oleh       UUID            NOT NULL,
+    dibanned_pada       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    soft_delete         TIMESTAMP       NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_banned_commenter_blog_user
+    ON blog.banned_commenter(id_blog, id_pengguna_pdut)
+    WHERE soft_delete IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_banned_commenter_blog
+    ON blog.banned_commenter(id_blog, dibanned_pada DESC)
+    WHERE soft_delete IS NULL;
+
+COMMENT ON TABLE blog.banned_commenter IS 'Per-blog commenter ban (Phase BF) — blog-owner moderation';
 
 -- =====================================================
--- DONE — Schema blog_unila v1.0 + Sprint 11–12 additions ready
+-- Phase BE: interaction.digest_log (weekly email digest)
+-- =====================================================
+-- Worker DigestWorker (6h tick) cek per-user apakah sudah 7 hari sejak
+-- last_sent_at. Opt-out via interaction.notif_preference tipe='weekly_digest'.
+
+CREATE TABLE IF NOT EXISTS interaction.digest_log (
+    id_pengguna_pdut UUID         PRIMARY KEY,
+    last_sent_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    last_post_count  INT          NOT NULL DEFAULT 0,
+    last_period_from TIMESTAMP    NOT NULL DEFAULT NOW() - INTERVAL '7 days',
+    last_period_to   TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_digest_log_last_sent
+    ON interaction.digest_log(last_sent_at);
+
+COMMENT ON TABLE interaction.digest_log IS 'Track last weekly digest email sent per user (Phase BE)';
+
+-- =====================================================
+-- Phase BD: blog.post bilingual pair-link
+-- =====================================================
+-- Note: kolom 'bahasa' (VARCHAR(10)) sudah ada di definisi blog.post di atas
+-- — hanya tambah id_pair_post + check constraint + indexes di sini.
+
+ALTER TABLE blog.post
+    ADD COLUMN IF NOT EXISTS id_pair_post UUID NULL
+        REFERENCES blog.post(id_post) ON DELETE SET NULL;
+
+ALTER TABLE blog.post DROP CONSTRAINT IF EXISTS chk_post_bahasa;
+ALTER TABLE blog.post ADD CONSTRAINT chk_post_bahasa CHECK (bahasa IN ('id','en'));
+
+CREATE INDEX IF NOT EXISTS idx_post_pair
+    ON blog.post(id_pair_post)
+    WHERE id_pair_post IS NOT NULL AND soft_delete IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_post_bahasa_status
+    ON blog.post(bahasa, status)
+    WHERE soft_delete IS NULL;
+
+COMMENT ON COLUMN blog.post.id_pair_post IS 'Link ke versi bahasa lain (Phase BD)';
+
+-- =====================================================
+-- Phase BA: interaction.push_subscription (web push)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS interaction.push_subscription (
+    id_subscription   UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_pengguna_pdut  UUID         NOT NULL,
+    endpoint          TEXT         NOT NULL,
+    p256dh            TEXT         NOT NULL,
+    auth              TEXT         NOT NULL,
+    user_agent        VARCHAR(255) NULL,
+    created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
+    last_used_at      TIMESTAMP    NULL,
+    last_error        TEXT         NULL,
+    CONSTRAINT uq_push_subscription_user_endpoint
+        UNIQUE (id_pengguna_pdut, endpoint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subscription_user
+    ON interaction.push_subscription(id_pengguna_pdut);
+
+COMMENT ON TABLE interaction.push_subscription IS 'Browser PushSubscription per user/device (Phase BA)';
+
+-- =====================================================
+-- Phase BB: interaction.subscriber (per-blog newsletter)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS interaction.subscriber (
+    id_subscriber       UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_blog             UUID         NOT NULL REFERENCES blog.blog(id_blog) ON DELETE CASCADE,
+    email               VARCHAR(200) NOT NULL,
+    status              VARCHAR(20)  NOT NULL DEFAULT 'pending',
+    token_verify        VARCHAR(64)  NOT NULL,
+    token_unsubscribe   VARCHAR(64)  NOT NULL,
+    created_at          TIMESTAMP    NOT NULL DEFAULT NOW(),
+    confirmed_at        TIMESTAMP    NULL,
+    unsubscribed_at     TIMESTAMP    NULL,
+    last_sent_at        TIMESTAMP    NULL,
+    CONSTRAINT chk_subscriber_status CHECK (status IN ('pending','confirmed','unsubscribed')),
+    CONSTRAINT uq_subscriber_blog_email UNIQUE (id_blog, email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriber_token_verify
+    ON interaction.subscriber(token_verify)
+    WHERE status = 'pending';
+
+CREATE INDEX IF NOT EXISTS idx_subscriber_token_unsubscribe
+    ON interaction.subscriber(token_unsubscribe);
+
+CREATE INDEX IF NOT EXISTS idx_subscriber_blog_confirmed
+    ON interaction.subscriber(id_blog)
+    WHERE status = 'confirmed';
+
+COMMENT ON TABLE interaction.subscriber IS 'Public newsletter subscribers per blog (Phase BB)';
+
+
+-- =====================================================
+-- DONE — Schema blog_unila v1.0 + Sprint 11–13 additions ready
 -- Next: jalankan 02-blog_unila_v1.0_seed.sql untuk seed data referensi.
 -- =====================================================
