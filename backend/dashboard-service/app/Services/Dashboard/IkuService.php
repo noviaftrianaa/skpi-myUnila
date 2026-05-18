@@ -260,6 +260,7 @@ class IkuService
             'title' => 'Lulusan Langsung Bekerja/Studi Lanjut/Wiraswasta',
             'definition' => 'Persentase lulusan S1 dan program diploma yang langsung bekerja, melanjutkan jenjang pendidikan berikutnya, atau berwirausaha dalam jangka waktu 1 tahun setelah kelulusan.',
             'value' => $data['persentase'],
+            'persentaseResponden' => $data['persentase_responden'] ?? 0,
             'target' => $target,
             'color' => '#3b82f6',
             'description' => 'Sumber: Tracer Study lulusan S1 & Diploma',
