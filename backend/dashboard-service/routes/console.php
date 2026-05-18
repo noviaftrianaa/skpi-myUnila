@@ -13,3 +13,10 @@ Schedule::command('iku:warm-cache')
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Pre-warm Pimpinan beranda + sub-menu cache tiap jam (offset 30 min dari IKU
+// supaya tidak overlap heavy compute).
+Schedule::command('pimpinan:warm-cache')
+    ->hourlyAt(30)
+    ->withoutOverlapping()
+    ->runInBackground();

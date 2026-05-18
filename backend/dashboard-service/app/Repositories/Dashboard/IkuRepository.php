@@ -587,8 +587,18 @@ class IkuRepository extends BaseRepository
         $belumBekerja = (int) $breakdown->belum_bekerja;
 
         $produktif = $bekerja + $wiraswasta + $kuliahLanjut;
+        // Formula 1 (Permendikbud, basis total lulusan): denominator = total lulusan,
+        // lulusan yg TIDAK isi tracer di-treat sebagai unknown/belum kerja → angka rendah
+        // kalau response rate rendah.
         $persentase = $totalLulusan > 0
             ? round(($produktif / $totalLulusan) * 100, 2)
+            : 0;
+
+        // Formula 2 (basis responden): denominator = total responden tracer,
+        // representasi % responden yg sudah produktif. Lebih relevan kalau response
+        // rate rendah. Ditampilkan sebagai secondary metric untuk transparency.
+        $persentaseResponden = $totalResponden > 0
+            ? round(($produktif / $totalResponden) * 100, 2)
             : 0;
 
         $responseRate = $totalLulusan > 0
@@ -597,6 +607,7 @@ class IkuRepository extends BaseRepository
 
         return [
             'persentase' => $persentase,
+            'persentase_responden' => $persentaseResponden,
             'total_lulusan' => $totalLulusan,
             'total_responden' => $totalResponden,
             'response_rate' => $responseRate,
