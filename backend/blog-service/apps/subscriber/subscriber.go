@@ -412,8 +412,18 @@ func (h *Handler) ListMine(c *fiber.Ctx) error {
 // ROUTING
 // =============================================================================
 
-func RegisterPublicRoutes(api fiber.Router, h *Handler) {
-	api.Post("/blogs/by-subdomain/:subdomain/subscribe", h.Subscribe)
+// RegisterPublicRoutes registers public subscribe endpoints.
+//
+// limiter — rate limit middleware applied ke POST subscribe path (5/menit/IP)
+// untuk prevent email spam abuse. nil = skip rate limit (dev convenience).
+// Confirm/unsubscribe GET endpoints tidak di-rate-limit karena one-shot token
+// (replay sudah dijaga di repo level).
+func RegisterPublicRoutes(api fiber.Router, h *Handler, limiter fiber.Handler) {
+	if limiter != nil {
+		api.Post("/blogs/by-subdomain/:subdomain/subscribe", limiter, h.Subscribe)
+	} else {
+		api.Post("/blogs/by-subdomain/:subdomain/subscribe", h.Subscribe)
+	}
 	api.Get("/blogs/subscribe/confirm/:token", h.Confirm)
 	api.Get("/blogs/subscribe/unsubscribe/:token", h.Unsubscribe)
 }

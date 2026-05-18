@@ -388,12 +388,19 @@ func RegisterPublicRoutes(api fiber.Router, h *Handler) {
 }
 
 // RegisterMineRoutes — auth-required, di-mount di /me/notifications/push.
-func RegisterMineRoutes(me fiber.Router, h *Handler) {
+// subscribeLimit (optional) rate-limit POST subscribe + test (10/menit/IP)
+// untuk prevent register-spam. List/delete tidak di-limit (idempotent + auth).
+func RegisterMineRoutes(me fiber.Router, h *Handler, subscribeLimit fiber.Handler) {
 	g := me.Group("/notifications/push")
 	g.Get("/", h.ListMine)
-	g.Post("/subscribe", h.Subscribe)
+	if subscribeLimit != nil {
+		g.Post("/subscribe", subscribeLimit, h.Subscribe)
+		g.Post("/test", subscribeLimit, h.TestSend)
+	} else {
+		g.Post("/subscribe", h.Subscribe)
+		g.Post("/test", h.TestSend)
+	}
 	g.Delete("/subscribe", h.UnsubscribeByEndpoint)
-	g.Post("/test", h.TestSend)
 	g.Delete("/:id", h.Unsubscribe)
 }
 

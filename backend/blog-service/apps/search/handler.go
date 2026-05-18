@@ -234,9 +234,17 @@ func (h *Handler) AdminReindex(c *fiber.Ctx) error {
 // ROUTING
 // =============================================================================
 
-func RegisterPublicRoutes(api fiber.Router, h *Handler) {
-	api.Get("/search/posts", h.SearchPosts)
-	api.Get("/search/suggest", h.Suggest)
+// RegisterPublicRoutes — public search endpoints. searchLimit is optional
+// rate limit middleware (60/menit/IP, skip-auth) — pass nil to disable.
+// /related tidak di-rate-limit karena 1 request per post detail load.
+func RegisterPublicRoutes(api fiber.Router, h *Handler, searchLimit fiber.Handler) {
+	if searchLimit != nil {
+		api.Get("/search/posts", searchLimit, h.SearchPosts)
+		api.Get("/search/suggest", searchLimit, h.Suggest)
+	} else {
+		api.Get("/search/posts", h.SearchPosts)
+		api.Get("/search/suggest", h.Suggest)
+	}
 	api.Get("/posts/:id/related", h.RelatedPosts)
 }
 

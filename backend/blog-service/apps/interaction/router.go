@@ -9,6 +9,13 @@ import (
 	"github.com/myunila/blog-service/apps/blog"
 )
 
+// RateLimits — bundle middleware untuk public write endpoints. nil-safe:
+// kalau field nil, middleware skipped (dev convenience).
+type RateLimits struct {
+	Comment    fiber.Handler // POST komentar create
+	Engagement fiber.Handler // POST like / bookmark / follow toggle
+}
+
 // RegisterPublicRoutes — public read + auth-optional write endpoints.
 //
 //   GET    /posts/:id/komentar          (public list)
@@ -20,23 +27,44 @@ import (
 //
 // Untuk komentar create: optional auth — kalau ada Bearer, tag by id_pengguna_pdut;
 // kalau tidak ada, treat as anonymous (butuh nm + email di body).
-func RegisterPublicRoutes(api fiber.Router, like *LikeHandler, komentar *KomentarHandler, follower *FollowerHandler, bookmark *BookmarkHandler, likeKomentar *LikeKomentarHandler) {
+//
+// Rate limit per-route (security tuneup): pass RateLimits struct dari main.go.
+func RegisterPublicRoutes(api fiber.Router, like *LikeHandler, komentar *KomentarHandler, follower *FollowerHandler, bookmark *BookmarkHandler, likeKomentar *LikeKomentarHandler, rl RateLimits) {
 	g := api.Group("/posts/:id")
 	g.Get("/komentar", komentar.ListPublic)
-	g.Post("/komentar", komentar.Create) // auth optional di handler (cek c.Locals user_id)
+	// Comment create: rate limited karena anonymous abuse vector.
+	if rl.Comment != nil {
+		g.Post("/komentar", rl.Comment, komentar.Create)
+	} else {
+		g.Post("/komentar", komentar.Create)
+	}
 	g.Get("/like-status", like.Status)
-	g.Post("/like", like.Toggle) // auth required (handler validates)
+	// Engagement actions: rate limited bahkan untuk auth user (script abuse).
+	if rl.Engagement != nil {
+		g.Post("/like", rl.Engagement, like.Toggle)
+		g.Post("/bookmark", rl.Engagement, bookmark.Toggle)
+	} else {
+		g.Post("/like", like.Toggle)
+		g.Post("/bookmark", bookmark.Toggle)
+	}
 	g.Get("/bookmark-status", bookmark.Status)
-	g.Post("/bookmark", bookmark.Toggle) // auth required (handler validates)
 	g.Get("/komentar-likes", likeKomentar.LikedMapForPost) // bulk hydrate per-post
 
 	// Komentar like (auth required)
-	api.Post("/komentar/:id/like", likeKomentar.Toggle)
+	if rl.Engagement != nil {
+		api.Post("/komentar/:id/like", rl.Engagement, likeKomentar.Toggle)
+	} else {
+		api.Post("/komentar/:id/like", likeKomentar.Toggle)
+	}
 
 	// Follower per blog (subdomain-based identifier)
 	bg := api.Group("/blogs/by-subdomain/:subdomain")
 	bg.Get("/follow-status", follower.Status)
-	bg.Post("/follow", follower.Toggle)
+	if rl.Engagement != nil {
+		bg.Post("/follow", rl.Engagement, follower.Toggle)
+	} else {
+		bg.Post("/follow", follower.Toggle)
+	}
 }
 
 // RegisterMineRoutes — moderation + follower list endpoints untuk blog owner.

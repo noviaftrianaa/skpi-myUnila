@@ -135,7 +135,9 @@ func main() {
 	searchSvc := search.NewService(searchRepo, msClient)
 	searchHandler := search.NewHandler(searchSvc, msClient)
 	postHandler.SetSearcher(searchSvc)
-	search.RegisterPublicRoutes(api, searchHandler)
+	// Note: search public routes registered di bawah pada apiOpt group dengan
+	// rate limit (60/menit/IP, skip-auth) — moved untuk pakai JWTOptional supaya
+	// SearchLimit bisa skip authenticated user.
 
 	// Kategori (public read)
 	kategoriRepo := kategori.NewRepository(db)
@@ -221,10 +223,16 @@ func main() {
 	// content while their write actions (like/komentar/follow/bookmark POST) are
 	// blocked with a clear 403 reason.
 	apiOpt := app.Group("/api/v1", middleware.JWTOptional(cfg.JWT), banGuard)
-	interaction.RegisterPublicRoutes(apiOpt, likeHandler, komentarHandler, followerHandler, bookmarkHandler, likeKomentarHandler)
+	// Per-route rate limits untuk public/auth-optional write endpoints (security tuneup).
+	interactionRL := interaction.RateLimits{
+		Comment:    middleware.CommentLimit(),
+		Engagement: middleware.EngagementLimit(),
+	}
+	interaction.RegisterPublicRoutes(apiOpt, likeHandler, komentarHandler, followerHandler, bookmarkHandler, likeKomentarHandler, interactionRL)
 	moderation.RegisterPublicRoutes(apiOpt, laporanHandler)
 	push.RegisterPublicRoutes(apiOpt, pushHandler) // Phase BA — GET /push/vapid-public
-	subscriber.RegisterPublicRoutes(apiOpt, subscriberHandler) // Phase BB — POST subscribe + GET confirm/unsubscribe
+	subscriber.RegisterPublicRoutes(apiOpt, subscriberHandler, middleware.SubscribeLimit()) // Phase BB
+	search.RegisterPublicRoutes(apiOpt, searchHandler, middleware.SearchLimit())
 
 	// =========================================================================
 	// Authenticated owner endpoints — JWT required, ownership via id_pengguna_pdut
@@ -247,7 +255,7 @@ func main() {
 
 	// Notif inbox — feed engagement (like/komentar/reply/follower)
 	interaction.RegisterNotifMineRoutes(me, notifHandler)
-	push.RegisterMineRoutes(me, pushHandler) // Phase BA — subscribe/list/test/unsubscribe
+	push.RegisterMineRoutes(me, pushHandler, middleware.PushSubscribeLimit()) // Phase BA — subscribe/list/test/unsubscribe
 
 	// Reading progress — scroll position + Continue Reading widget. Auth-required
 	// upsert + list under /me; public auth-optional GET for restore-on-revisit.
