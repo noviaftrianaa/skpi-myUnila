@@ -53,9 +53,10 @@ class AkademikDataRepository extends BaseDataRepository
                 GROUP BY pf.id_sms
             ) dosen ON dosen.id_sms = s.id_sms
             WHERE s.soft_delete = 0 AND s.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND s.stat_prodi = 'A'
+              AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
               {WHERE_EXTRA}
         ";
-        $countSql = "SELECT COUNT(*) FROM pdrd.sms s WHERE s.soft_delete = 0 AND s.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND s.stat_prodi = 'A' {WHERE_EXTRA}";
+        $countSql = "SELECT COUNT(*) FROM pdrd.sms s WHERE s.soft_delete = 0 AND s.id_sp = 'E2B705A7-173E-464A-9FAC-509128709515' AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL {WHERE_EXTRA}";
 
         return $this->paginate($baseSql, $countSql, $params, ['s.nm_lemb'], ['nm_prodi','nm_fakultas','akreditasi','mhs_aktif','jml_dosen'], 'nm_prodi', 'ASC');
     }
@@ -137,6 +138,7 @@ class AkademikDataRepository extends BaseDataRepository
                 SUM(CASE WHEN s.id_jenj_didik = '32' THEN 1 ELSE 0 END) AS spesialis
             FROM pdrd.sms s
             WHERE s.soft_delete = 0 AND s.id_sp = ? AND s.stat_prodi = 'A'
+              AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
               {$orgFilter}
         ", $bindings);
 
