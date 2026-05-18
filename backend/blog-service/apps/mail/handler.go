@@ -10,14 +10,19 @@ import (
 )
 
 type Handler struct {
-	cfgRepo    *ConfigRepository
-	outboxRepo *OutboxRepository
-	sender     *Sender
+	cfgRepo       *ConfigRepository
+	outboxRepo    *OutboxRepository
+	sender        *Sender
+	digestService *DigestService // optional — wired in main.go for Phase BE
 }
 
 func NewHandler(cfgRepo *ConfigRepository, outboxRepo *OutboxRepository, sender *Sender) *Handler {
 	return &Handler{cfgRepo: cfgRepo, outboxRepo: outboxRepo, sender: sender}
 }
+
+// SetDigestService — wired post-construction in main.go after digestService
+// is built. Keeps Handler constructor compatible with existing call sites.
+func (h *Handler) SetDigestService(s *DigestService) { h.digestService = s }
 
 // =============================================================================
 // ADMIN: CRUD over mail_config
@@ -211,6 +216,61 @@ func RegisterAdminRoutes(admin fiber.Router, h *Handler) {
 	g.Post("/test-send", h.TestSend)
 	g.Get("/outbox/stats", h.OutboxStats)
 	g.Get("/outbox", h.OutboxList)
+	// Phase BE — digest diagnostics + manual trigger
+	g.Get("/digest/stats", h.DigestStats)
+	g.Post("/digest/trigger/:id_pengguna", h.DigestTriggerForUser)
+}
+
+// =============================================================================
+// PHASE BE: WEEKLY DIGEST ADMIN ENDPOINTS
+// =============================================================================
+
+// GET /api/v1/admin/mail-config/digest/stats
+func (h *Handler) DigestStats(c *fiber.Ctx) error {
+	if h.digestService == nil {
+		return fiber.NewError(fiber.StatusServiceUnavailable, "digest service not wired")
+	}
+	stats, err := h.digestService.Stats(c.Context())
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(fiber.Map{"success": true, "data": stats})
+}
+
+// POST /api/v1/admin/mail-config/digest/trigger/:id_pengguna — manual one-shot
+// kirim digest untuk satu user (testing + debugging). Bypass cooldown 7-hari
+// karena ProcessUser sendiri tidak cek cooldown (filtering ada di fetchDueCandidates).
+func (h *Handler) DigestTriggerForUser(c *fiber.Ctx) error {
+	if h.digestService == nil {
+		return fiber.NewError(fiber.StatusServiceUnavailable, "digest service not wired")
+	}
+	idUser, err := uuid.Parse(c.Params("id_pengguna"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id_pengguna")
+	}
+	var row struct {
+		Email      string `db:"email_pengguna"`
+		NmTampilan string `db:"nm_tampilan"`
+	}
+	err = h.digestService.db.GetContext(c.Context(), &row, `
+		SELECT b.email_pengguna,
+		       COALESCE(b.nm_tampilan, b.nm_blog) AS nm_tampilan
+		FROM blog.blog b
+		WHERE b.id_pengguna_pdut = $1 AND b.email_pengguna IS NOT NULL AND b.email_pengguna <> ''
+		  AND b.soft_delete IS NULL
+		LIMIT 1`, idUser)
+	if err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "user tidak punya blog atau email belum ter-capture")
+	}
+	dc := digestCandidate{IDPengguna: idUser, Email: row.Email, NmTampilan: row.NmTampilan}
+	sent, perr := h.digestService.ProcessUser(c.Context(), dc)
+	if perr != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, perr.Error())
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    fiber.Map{"enqueued": sent, "note": "enqueued=false berarti tidak ada post baru dalam 7 hari"},
+	})
 }
 
 // Avoid unused-import warning when context isn't referenced after refactor.

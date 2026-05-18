@@ -29,6 +29,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		Search:       c.Query("search", ""),
 		TipeRoleKode: c.Query("role", ""),
 		AktifOnly:    aktifOnly,
+		VerifiedOnly: c.Query("verified", "0") == "1", // Featured Authors carousel
 		OrderBy:      c.Query("order", "popular"),
 	}
 	items, total, err := h.repo.List(c.Context(), params)

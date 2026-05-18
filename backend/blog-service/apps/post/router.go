@@ -35,6 +35,9 @@ func RegisterMineRoutes(me fiber.Router, h *Handler) {
 	g.Get("/:id/revisions/:nomor", h.GetRevisionMine)
 	g.Get("/:id/analytics", h.PostAnalyticsMine)
 	g.Patch("/:id/pin", h.ToggleAuthorPin) // author pin on tenant home (Phase AW)
+	// Phase BD — bilingual pair-link (kedua post harus milik blog yang sama)
+	g.Put("/:id/pair", h.LinkPairMine)
+	g.Delete("/:id/pair", h.UnlinkPairMine)
 }
 
 // RegisterAdminRoutes — admin-only curation endpoints.

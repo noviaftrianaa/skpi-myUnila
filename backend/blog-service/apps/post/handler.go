@@ -32,12 +32,20 @@ type Searcher interface {
 	RemovePostByID(ctx context.Context, idPost uuid.UUID) error
 }
 
+// SubscriberBroadcaster — Phase BB. Notify confirmed newsletter subscribers
+// saat post first-publish. Fire-and-forget di goroutine supaya gak block
+// publish response.
+type SubscriberBroadcaster interface {
+	BroadcastPublishedPost(ctx context.Context, idBlog, idPost uuid.UUID)
+}
+
 type Handler struct {
-	repo      *Repository
-	blogRepo  *blog.Repository
-	auditRepo *audit.Repository
-	notif     PublishNotifier
-	searcher  Searcher
+	repo        *Repository
+	blogRepo    *blog.Repository
+	auditRepo   *audit.Repository
+	notif       PublishNotifier
+	searcher    Searcher
+	broadcaster SubscriberBroadcaster
 }
 
 func NewHandler(repo *Repository) *Handler {
@@ -65,6 +73,11 @@ func (h *Handler) SetNotif(n PublishNotifier) {
 // indexHook/removeHook calls become no-ops.
 func (h *Handler) SetSearcher(s Searcher) {
 	h.searcher = s
+}
+
+// SetSubscriberBroadcaster — Phase BB. Optional.
+func (h *Handler) SetSubscriberBroadcaster(b SubscriberBroadcaster) {
+	h.broadcaster = b
 }
 
 // indexHook fires search index updates as a fire-and-forget side effect.
@@ -310,6 +323,13 @@ func (h *Handler) PublishMine(c *fiber.Ctx) error {
 			}
 			go h.notif.EmitMentionsInPost(context.Background(), p.IDPost, &idAktor, aktorNama, *p.KontenHTML)
 		}
+	}
+
+	// Phase BB — fanout email broadcast ke newsletter subscribers blog ini.
+	// Sama dengan notif: hanya saat first publish supaya unpublish→publish gak
+	// kirim broadcast ulang.
+	if firstPublish && h.broadcaster != nil {
+		go h.broadcaster.BroadcastPublishedPost(context.Background(), b.IDBlog, p.IDPost)
 	}
 
 	h.indexHook(c, p.IDPost) // publish always pushes to search
@@ -585,6 +605,53 @@ func (h *Handler) ToggleAuthorPin(c *fiber.Ctx) error {
 	}
 	h.audit(c, "toggle_pin_blog", "post", &idPost, map[string]any{"pinned": newState})
 	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"a_unggulan_blog": newState}})
+}
+
+// PUT /api/v1/me/blog/posts/:id/pair — link this post to the other-language
+// version. Body: { id_other_post: "<uuid>" }. Both posts must belong to the
+// caller's blog AND have different bahasa. Symmetric: both rows updated.
+func (h *Handler) LinkPairMine(c *fiber.Ctx) error {
+	b, err := h.resolveBlog(c)
+	if err != nil {
+		return err
+	}
+	idPost, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id_post")
+	}
+	var body struct {
+		IDOtherPost string `json:"id_other_post"`
+	}
+	if perr := c.BodyParser(&body); perr != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid JSON body")
+	}
+	idOther, perr := uuid.Parse(body.IDOtherPost)
+	if perr != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id_other_post")
+	}
+	if lerr := h.repo.LinkPair(c.Context(), idPost, idOther, b.IDBlog); lerr != nil {
+		return fiber.NewError(fiber.StatusBadRequest, lerr.Error())
+	}
+	h.audit(c, "link_pair", "post", &idPost, map[string]any{"id_other_post": idOther})
+	return c.JSON(fiber.Map{"success": true})
+}
+
+// DELETE /api/v1/me/blog/posts/:id/pair — break the pair link. Both rows
+// have their id_pair_post set to NULL.
+func (h *Handler) UnlinkPairMine(c *fiber.Ctx) error {
+	b, err := h.resolveBlog(c)
+	if err != nil {
+		return err
+	}
+	idPost, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid id_post")
+	}
+	if uerr := h.repo.UnlinkPair(c.Context(), idPost, b.IDBlog); uerr != nil {
+		return fiber.NewError(fiber.StatusBadRequest, uerr.Error())
+	}
+	h.audit(c, "unlink_pair", "post", &idPost, nil)
+	return c.JSON(fiber.Map{"success": true})
 }
 
 // GET /api/v1/blogs/by-subdomain/:subdomain/pinned — public list of pinned posts.

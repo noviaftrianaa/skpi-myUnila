@@ -34,6 +34,9 @@ const (
 	NotifMentionPost          = "mention_post"
 	NotifCoauthorInvite       = "coauthor_invite"
 	NotifCoauthorResponded    = "coauthor_responded"
+	// Phase BE — bukan notif row di DB, tapi tipe yang muncul di muted_tipes
+	// supaya user bisa opt-out dari weekly email digest via preferences page.
+	NotifWeeklyDigest         = "weekly_digest"
 )
 
 // Notif — entry untuk list dashboard.
@@ -59,9 +62,16 @@ type EmailEnqueuer interface {
 	EnqueueForNotif(ctx context.Context, idNotif uuid.UUID, idPenerima uuid.UUID, tipe string, aktorNama string, judulRef *string, urlTarget *string) error
 }
 
+// PushNotifier — interface untuk web push (Phase BA). Parallel dengan email:
+// in-app notif insert → email queue + push send. Best-effort di kedua sisi.
+type PushNotifier interface {
+	NotifyForNotif(ctx context.Context, idNotif uuid.UUID, idPenerima uuid.UUID, tipe string, aktorNama string, judulRef *string, urlTarget *string)
+}
+
 type NotifRepository struct {
 	db    *sqlx.DB
 	email EmailEnqueuer
+	push  PushNotifier
 }
 
 func NewNotifRepository(db *sqlx.DB) *NotifRepository { return &NotifRepository{db: db} }
@@ -69,6 +79,9 @@ func NewNotifRepository(db *sqlx.DB) *NotifRepository { return &NotifRepository{
 // SetEmailEnqueuer wires the email outbox bridge. Optional — call once at
 // boot from main.go once apps/mail is set up.
 func (r *NotifRepository) SetEmailEnqueuer(e EmailEnqueuer) { r.email = e }
+
+// SetPushNotifier wires the web push bridge (Phase BA). Optional.
+func (r *NotifRepository) SetPushNotifier(p PushNotifier) { r.push = p }
 
 // Insert — generic insert (low-level).
 // Recipient + aktor + tipe wajib; ref fields opsional.
@@ -103,14 +116,19 @@ func (r *NotifRepository) Insert(ctx context.Context, n NotifInput) error {
 	}
 	// Fan-out to email — best-effort, errors logged but never block in-app
 	// notif success.
+	actorNama := ""
+	if n.AktorNama != nil {
+		actorNama = *n.AktorNama
+	}
 	if r.email != nil {
-		actorNama := ""
-		if n.AktorNama != nil {
-			actorNama = *n.AktorNama
-		}
 		if eerr := r.email.EnqueueForNotif(ctx, idNotif, n.IDPenerima, n.Tipe, actorNama, n.JudulRef, n.URLTarget); eerr != nil {
 			log.Printf("notif.Insert email enqueue: %v", eerr)
 		}
+	}
+	// Fan-out to web push (Phase BA) — fire-and-forget di goroutine supaya
+	// network call ke push service gak nge-block emit notif.
+	if r.push != nil {
+		go r.push.NotifyForNotif(context.Background(), idNotif, n.IDPenerima, n.Tipe, actorNama, n.JudulRef, n.URLTarget)
 	}
 	return nil
 }

@@ -41,7 +41,7 @@ func RegisterPublicRoutes(api fiber.Router, like *LikeHandler, komentar *Komenta
 
 // RegisterMineRoutes — moderation + follower list endpoints untuk blog owner.
 // Apply JWTAuth + middleware resolveBlogID di main.go.
-func RegisterMineRoutes(me fiber.Router, komentar *KomentarHandler, follower *FollowerHandler) {
+func RegisterMineRoutes(me fiber.Router, komentar *KomentarHandler, follower *FollowerHandler, bannedCommenter *BannedCommenterHandler) {
 	g := me.Group("/blog/komentar")
 	g.Get("/trash", komentar.ListTrash) // sebelum :id supaya literal match
 	g.Get("/", komentar.ListMine)
@@ -53,6 +53,12 @@ func RegisterMineRoutes(me fiber.Router, komentar *KomentarHandler, follower *Fo
 	g.Patch("/:id", komentar.Moderate)
 
 	me.Get("/blog/followers", follower.ListMine)
+
+	// Phase BF — per-blog commenter ban
+	bc := me.Group("/blog/banned-commenter")
+	bc.Get("/", bannedCommenter.List)
+	bc.Post("/", bannedCommenter.Create)
+	bc.Delete("/:id", bannedCommenter.Delete)
 }
 
 // RegisterBookmarkMineRoutes — bookmark list/remove untuk user current (tanpa resolveBlog).

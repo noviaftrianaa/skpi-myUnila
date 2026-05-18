@@ -33,11 +33,14 @@ type PostSummary struct {
 	JumlahLike     int        `db:"jumlah_like"       json:"jumlah_like"`
 	JumlahKomentar int        `db:"jumlah_komentar"   json:"jumlah_komentar"`
 	WaktuBacaMenit int        `db:"waktu_baca_menit"  json:"waktu_baca_menit"`
+	Bahasa         string     `db:"bahasa"            json:"bahasa"`
 	CreatedAt      time.Time  `db:"created_at"        json:"created_at"`
 }
 
 // Post — versi detail dengan konten lengkap (untuk view post + edit).
 // konten_json pakai pointer agar NULL kolom (post baru / draft tanpa TipTap state) bisa di-scan.
+// Note: Bahasa field di-promote dari PostSummary (sejak Phase BD ditambahkan
+// ke summary supaya list endpoints bisa filter bahasa tanpa fetch detail).
 type Post struct {
 	PostSummary
 	KontenHTML   *string          `db:"konten_html"      json:"konten_html,omitempty"`
@@ -46,7 +49,7 @@ type Post struct {
 	JumlahShare  int              `db:"jumlah_share"     json:"jumlah_share"`
 	JumlahKata   int              `db:"jumlah_kata"      json:"jumlah_kata"`
 	MetaSeoJSON  json.RawMessage  `db:"meta_seo_json"    json:"meta_seo_json"`
-	Bahasa       string           `db:"bahasa"           json:"bahasa"`
+	IDPairPost   *uuid.UUID       `db:"id_pair_post"     json:"id_pair_post,omitempty"`
 	IDSeries     *uuid.UUID       `db:"id_series"        json:"id_series,omitempty"`
 	UrutanSeries *int             `db:"urutan_series"    json:"urutan_series,omitempty"`
 	UpdatedAt    time.Time        `db:"updated_at"       json:"updated_at"`

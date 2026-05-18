@@ -108,10 +108,15 @@ func (r *KomentarRepository) Create(ctx context.Context, in CreateInput, idPengg
 		}
 	}
 
-	// Cek post exists + a_komentar_aktif dari blog
-	var allowed bool
-	err := r.db.GetContext(ctx, &allowed, `
-		SELECT b.a_komentar_aktif AND p.a_komentar_aktif
+	// Cek post exists + a_komentar_aktif dari blog. Sekalian fetch id_blog
+	// supaya bisa cek per-blog commenter ban (Phase BF) tanpa second-query.
+	var meta struct {
+		Allowed bool      `db:"allowed"`
+		IDBlog  uuid.UUID `db:"id_blog"`
+	}
+	err := r.db.GetContext(ctx, &meta, `
+		SELECT (b.a_komentar_aktif AND p.a_komentar_aktif) AS allowed,
+		       b.id_blog AS id_blog
 		FROM blog.post p
 		JOIN blog.blog b ON p.id_blog = b.id_blog
 		WHERE p.id_post = $1 AND p.status = 'published' AND p.soft_delete IS NULL`,
@@ -119,8 +124,24 @@ func (r *KomentarRepository) Create(ctx context.Context, in CreateInput, idPengg
 	if err != nil {
 		return nil, errors.New("post tidak ditemukan atau belum published")
 	}
-	if !allowed {
+	if !meta.Allowed {
 		return nil, errors.New("komentar dinonaktifkan untuk post/blog ini")
+	}
+
+	// Phase BF — per-blog commenter ban. Hanya cek untuk authenticated user
+	// (anonymous tidak bisa di-ban karena gak punya id_pengguna_pdut).
+	if idPengguna != nil {
+		var alasan string
+		berr := r.db.GetContext(ctx, &alasan, `
+			SELECT alasan FROM blog.banned_commenter
+			WHERE id_blog = $1 AND id_pengguna_pdut = $2 AND soft_delete IS NULL
+			LIMIT 1`, meta.IDBlog, *idPengguna)
+		if berr == nil {
+			return nil, fmt.Errorf("anda telah diblokir dari komentar di blog ini: %s", alasan)
+		}
+		if !errors.Is(berr, sql.ErrNoRows) {
+			return nil, fmt.Errorf("ban check: %w", berr)
+		}
 	}
 
 	// INSERT — status default 'pending'. Kalau dari user yang sama dengan owner blog,

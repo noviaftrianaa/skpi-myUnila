@@ -21,9 +21,11 @@ import (
 	"github.com/myunila/blog-service/apps/moderation"
 	"github.com/myunila/blog-service/apps/og"
 	"github.com/myunila/blog-service/apps/post"
+	"github.com/myunila/blog-service/apps/push"
 	"github.com/myunila/blog-service/apps/search"
 	"github.com/myunila/blog-service/apps/series"
 	"github.com/myunila/blog-service/apps/subdomain"
+	"github.com/myunila/blog-service/apps/subscriber"
 	"github.com/myunila/blog-service/apps/tag"
 	"github.com/myunila/blog-service/config"
 	"github.com/myunila/blog-service/database"
@@ -158,6 +160,8 @@ func main() {
 	bookmarkHandler := interaction.NewBookmarkHandler(bookmarkRepo)
 	likeKomentarRepo := interaction.NewLikeKomentarRepository(db)
 	likeKomentarHandler := interaction.NewLikeKomentarHandler(likeKomentarRepo)
+	bannedCommenterRepo := interaction.NewBannedCommenterRepository(db)
+	bannedCommenterHandler := interaction.NewBannedCommenterHandler(bannedCommenterRepo, komentarRepo)
 
 	// Mail subsystem — admin-managed SMTP profile + outbox worker + notif bridge.
 	// Bridge plugs into NotifRepository.Insert so every in-app notif also
@@ -169,9 +173,30 @@ func main() {
 	mailHandler := mail.NewHandler(mailConfigRepo, mailOutboxRepo, mailSender)
 	mailWorker := mail.NewWorker(mailConfigRepo, mailOutboxRepo, mailSender)
 
+	// Phase BE — weekly email digest. 6h tick; per-user max 1x/7-days.
+	digestService := mail.NewDigestService(db, mailOutboxRepo, mailConfigRepo)
+	digestWorker := mail.NewDigestWorker(digestService)
+	mailHandler.SetDigestService(digestService) // admin trigger + stats endpoints
+
+	// Phase BA — web push subsystem (VAPID + service worker bridge).
+	pushRepo := push.NewRepository(db)
+	pushSender := push.NewSender(pushRepo, cfg.WebPush.PublicKey, cfg.WebPush.PrivateKey, cfg.WebPush.Subject)
+	pushHandler := push.NewHandler(pushRepo, cfg.WebPush.PublicKey, pushSender)
+	pushBridge := push.NewBridge(pushSender)
+	push.LogConfigured(pushSender.Configured())
+
+	// Phase BB — newsletter subscribers (public opt-in, double opt-in, broadcast).
+	subscriberRepo := subscriber.NewRepository(db)
+	subscriberMailer := mail.NewSubscriberMailer(db, mailOutboxRepo, mailConfigRepo)
+	subscriberBlogResolver := subscriber.NewBlogResolverAdapter(blogRepo)
+	subscriberHandler := subscriber.NewHandler(subscriberRepo, subscriberBlogResolver, subscriberMailer)
+	subscriberBroadcaster := subscriber.NewBroadcaster(db, subscriberRepo, subscriberMailer)
+	postHandler.SetSubscriberBroadcaster(subscriberBroadcaster) // hook publish → broadcast
+
 	// Notif service — emitter dipakai oleh handler engagement lainnya via SetNotif().
 	notifRepo := interaction.NewNotifRepository(db)
 	notifRepo.SetEmailEnqueuer(mailBridge) // hook in→ email outbox
+	notifRepo.SetPushNotifier(pushBridge)  // Phase BA — web push fan-out
 	notifService := interaction.NewNotifService(notifRepo, db)
 	notifHandler := interaction.NewNotifHandler(notifRepo)
 	likeHandler.SetNotif(notifService)
@@ -198,6 +223,8 @@ func main() {
 	apiOpt := app.Group("/api/v1", middleware.JWTOptional(cfg.JWT), banGuard)
 	interaction.RegisterPublicRoutes(apiOpt, likeHandler, komentarHandler, followerHandler, bookmarkHandler, likeKomentarHandler)
 	moderation.RegisterPublicRoutes(apiOpt, laporanHandler)
+	push.RegisterPublicRoutes(apiOpt, pushHandler) // Phase BA — GET /push/vapid-public
+	subscriber.RegisterPublicRoutes(apiOpt, subscriberHandler) // Phase BB — POST subscribe + GET confirm/unsubscribe
 
 	// =========================================================================
 	// Authenticated owner endpoints — JWT required, ownership via id_pengguna_pdut
@@ -220,6 +247,7 @@ func main() {
 
 	// Notif inbox — feed engagement (like/komentar/reply/follower)
 	interaction.RegisterNotifMineRoutes(me, notifHandler)
+	push.RegisterMineRoutes(me, pushHandler) // Phase BA — subscribe/list/test/unsubscribe
 
 	// Reading progress — scroll position + Continue Reading widget. Auth-required
 	// upsert + list under /me; public auth-optional GET for restore-on-revisit.
@@ -230,7 +258,8 @@ func main() {
 
 	// Komentar moderation + Followers list (per-blog owner)
 	meBlog := me.Group("", interaction.ResolveBlogMiddleware(blogRepo))
-	interaction.RegisterMineRoutes(meBlog, komentarHandler, followerHandler)
+	interaction.RegisterMineRoutes(meBlog, komentarHandler, followerHandler, bannedCommenterHandler)
+	subscriber.RegisterMineRoutes(meBlog, subscriberHandler) // Phase BB — owner dashboard list
 
 	// Media library — upload/list/delete files di MinIO bucket blog-media.
 	// Pakai meBlog group supaya id_blog ke-set di Locals via ResolveBlogMiddleware.
@@ -279,6 +308,9 @@ func main() {
 
 	// Email outbox worker — drains queue every 60s via the active SMTP profile.
 	go mailWorker.Run(context.Background())
+
+	// Weekly email digest worker (Phase BE) — 6h tick; per-user max 1x/7-days.
+	go digestWorker.Run(context.Background())
 
 	addr := ":" + cfg.App.Port
 	log.Printf("✅ Listening on %s", addr)

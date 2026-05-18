@@ -226,6 +226,7 @@ type ListParams struct {
 	Search        string  // search di nm_blog / subdomain / nm_tampilan
 	TipeRoleKode  string  // filter "MHS" / "STAF" / "DOSEN" / "ALUMNI"
 	AktifOnly     bool    // default true untuk public, false untuk admin
+	VerifiedOnly  bool    // filter a_terverifikasi=TRUE (Featured Authors carousel)
 	OrderBy       string  // "popular" | "latest" | "alphabetical"
 }
 
@@ -243,6 +244,9 @@ func (r *Repository) List(ctx context.Context, p ListParams) ([]BlogSummary, int
 
 	if p.AktifOnly {
 		where = append(where, "b.a_aktif = TRUE AND b.a_publik = TRUE")
+	}
+	if p.VerifiedOnly {
+		where = append(where, "b.a_terverifikasi = TRUE")
 	}
 	if p.Search != "" {
 		where = append(where, fmt.Sprintf("(b.nm_blog ILIKE $%d OR b.subdomain ILIKE $%d OR b.nm_tampilan ILIKE $%d)", idx, idx, idx))

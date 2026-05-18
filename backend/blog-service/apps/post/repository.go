@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var ErrNotFound = errors.New("post not found")
@@ -28,11 +29,11 @@ const summaryFields = `
 	p.id_kategori_post, k.slug AS kategori_slug, k.nm_kategori AS kategori_nama, k.warna AS kategori_warna,
 	p.judul, p.slug, p.ringkasan, p.cover_url, p.status, p.visibilitas,
 	p.tgl_terbit, p.tgl_jadwal, p.a_pinned, p.a_unggulan, p.a_unggulan_blog,
-	p.jumlah_view, p.jumlah_like, p.jumlah_komentar, p.waktu_baca_menit, p.created_at`
+	p.jumlah_view, p.jumlah_like, p.jumlah_komentar, p.waktu_baca_menit, p.bahasa, p.created_at`
 
 const detailExtraFields = `
 	, p.konten_html, p.konten_json, p.konten_md, p.jumlah_share, p.jumlah_kata,
-	p.meta_seo_json, p.bahasa, p.id_series, p.urutan_series, p.updated_at`
+	p.meta_seo_json, p.id_pair_post, p.id_series, p.urutan_series, p.updated_at`
 
 const fromJoin = `
 	FROM blog.post p
@@ -272,6 +273,9 @@ type CreateInput struct {
 	KontenJSON      *string    `json:"konten_json,omitempty"`
 	CoverURL        *string    `json:"cover_url,omitempty"`
 	Visibilitas     string     `json:"visibilitas,omitempty"`
+	// Phase BD — bilingual support
+	Bahasa          string     `json:"bahasa,omitempty"`        // 'id' (default) atau 'en'
+	IDPairPost      *uuid.UUID `json:"id_pair_post,omitempty"`  // link saat create (versi bahasa lain)
 	Tags            []string   `json:"tags,omitempty"` // list nm_tag atau slug
 }
 
@@ -288,6 +292,7 @@ type UpdateInput struct {
 	Status          *string    `json:"status,omitempty"`
 	Visibilitas     *string    `json:"visibilitas,omitempty"`
 	TglJadwal       *string    `json:"tgl_jadwal,omitempty"`
+	Bahasa          *string    `json:"bahasa,omitempty"` // Phase BD
 	Tags            *[]string  `json:"tags,omitempty"` // nil=keep, []=clear, [...]=replace
 }
 
@@ -398,6 +403,12 @@ func (r *Repository) Create(ctx context.Context, in CreateInput) (*Post, error) 
 	if in.Visibilitas == "" {
 		in.Visibilitas = "public"
 	}
+	if in.Bahasa == "" {
+		in.Bahasa = "id"
+	}
+	if in.Bahasa != "id" && in.Bahasa != "en" {
+		return nil, errors.New("bahasa harus 'id' atau 'en'")
+	}
 	var jumlahKata int
 	if in.KontenHTML != nil {
 		jumlahKata = wordCount(*in.KontenHTML)
@@ -415,13 +426,13 @@ func (r *Repository) Create(ctx context.Context, in CreateInput) (*Post, error) 
 
 	q := `INSERT INTO blog.post
 	        (id_blog, id_kategori_post, judul, slug, ringkasan, konten_html, konten_json,
-	         cover_url, status, visibilitas, jumlah_kata, waktu_baca_menit)
-	      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, 'draft', $9, $10, $11)
+	         cover_url, status, visibilitas, jumlah_kata, waktu_baca_menit, bahasa)
+	      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, 'draft', $9, $10, $11, $12)
 	      RETURNING id_post`
 	var id uuid.UUID
 	if err := tx.GetContext(ctx, &id, q,
 		in.IDBlog, in.IDKategoriPost, in.Judul, in.Slug, in.Ringkasan,
-		in.KontenHTML, in.KontenJSON, in.CoverURL, in.Visibilitas, jumlahKata, waktuBaca,
+		in.KontenHTML, in.KontenJSON, in.CoverURL, in.Visibilitas, jumlahKata, waktuBaca, in.Bahasa,
 	); err != nil {
 		return nil, fmt.Errorf("insert post: %w", err)
 	}
@@ -433,10 +444,132 @@ func (r *Repository) Create(ctx context.Context, in CreateInput) (*Post, error) 
 		}
 	}
 
+	// Phase BD — kalau create dengan id_pair_post, langsung link dua post.
+	// Validasi ownership + beda-bahasa di linkPairTx supaya konsisten dengan
+	// endpoint PATCH /:id/pair (DRY).
+	if in.IDPairPost != nil {
+		if err := r.linkPairTx(ctx, tx, id, *in.IDPairPost, in.IDBlog); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit: %w", err)
 	}
 	return r.GetByID(ctx, id)
+}
+
+// linkPairTx — internal helper: validate + symmetric link 2 posts in a tx.
+// Caller passes in tx supaya bisa di-chain dgn Create. Validates:
+//   - Both posts belong to idBlog (owner can only link their own)
+//   - Other post not soft-deleted
+//   - Both posts have different bahasa
+//   - If either post already has a pair, the existing pair is detached first
+func (r *Repository) linkPairTx(ctx context.Context, tx *sqlx.Tx, idA, idB, idBlog uuid.UUID) error {
+	if idA == idB {
+		return errors.New("tidak bisa pair post ke dirinya sendiri")
+	}
+	type pairRow struct {
+		IDPost     uuid.UUID  `db:"id_post"`
+		IDBlog     uuid.UUID  `db:"id_blog"`
+		Bahasa     string     `db:"bahasa"`
+		IDPairPost *uuid.UUID `db:"id_pair_post"`
+	}
+	var rows []pairRow
+	if err := tx.SelectContext(ctx, &rows, `
+		SELECT id_post, id_blog, bahasa, id_pair_post
+		FROM blog.post
+		WHERE id_post = ANY($1::uuid[]) AND soft_delete IS NULL`,
+		pqStringArray([]uuid.UUID{idA, idB})); err != nil {
+		return fmt.Errorf("fetch pair candidates: %w", err)
+	}
+	if len(rows) != 2 {
+		return errors.New("salah satu post tidak ditemukan atau sudah di-soft-delete")
+	}
+	byID := map[uuid.UUID]pairRow{rows[0].IDPost: rows[0], rows[1].IDPost: rows[1]}
+	a, okA := byID[idA]
+	b, okB := byID[idB]
+	if !okA || !okB {
+		return errors.New("salah satu post tidak ditemukan")
+	}
+	if a.IDBlog != idBlog || b.IDBlog != idBlog {
+		return errors.New("kedua post harus milik blog yang sama dengan owner")
+	}
+	if a.Bahasa == b.Bahasa {
+		return fmt.Errorf("pair harus beda bahasa (keduanya '%s')", a.Bahasa)
+	}
+	// Detach prior pairs kalau ada — supaya hasilnya pasti bersih.
+	if a.IDPairPost != nil && *a.IDPairPost != idB {
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE blog.post SET id_pair_post = NULL WHERE id_post = $1`,
+			*a.IDPairPost); err != nil {
+			return fmt.Errorf("detach prior pair of A: %w", err)
+		}
+	}
+	if b.IDPairPost != nil && *b.IDPairPost != idA {
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE blog.post SET id_pair_post = NULL WHERE id_post = $1`,
+			*b.IDPairPost); err != nil {
+			return fmt.Errorf("detach prior pair of B: %w", err)
+		}
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE blog.post SET id_pair_post = $1 WHERE id_post = $2`, idB, idA); err != nil {
+		return fmt.Errorf("set pair A→B: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE blog.post SET id_pair_post = $1 WHERE id_post = $2`, idA, idB); err != nil {
+		return fmt.Errorf("set pair B→A: %w", err)
+	}
+	return nil
+}
+
+// LinkPair — public method untuk handler. Owner provides idPost + idOther
+// (the other-language version). Atomic; both rows updated symmetrically.
+func (r *Repository) LinkPair(ctx context.Context, idPost, idOther, idBlog uuid.UUID) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := r.linkPairTx(ctx, tx, idPost, idOther, idBlog); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// UnlinkPair — owner releases the pair link. Both sides set to NULL.
+func (r *Repository) UnlinkPair(ctx context.Context, idPost, idBlog uuid.UUID) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	var pair *uuid.UUID
+	err = tx.GetContext(ctx, &pair, `
+		SELECT id_pair_post FROM blog.post
+		WHERE id_post = $1 AND id_blog = $2 AND soft_delete IS NULL`, idPost, idBlog)
+	if err != nil {
+		return errors.New("post tidak ditemukan atau bukan milik blog ini")
+	}
+	if pair == nil {
+		return errors.New("post belum punya pair language")
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE blog.post SET id_pair_post = NULL WHERE id_post IN ($1, $2)`,
+		idPost, *pair); err != nil {
+		return fmt.Errorf("clear pair: %w", err)
+	}
+	return tx.Commit()
+}
+
+// pqStringArray — small helper to pass []uuid.UUID via $1::uuid[] binding.
+func pqStringArray(ids []uuid.UUID) any {
+	s := make([]string, len(ids))
+	for i, id := range ids {
+		s[i] = id.String()
+	}
+	return pq.Array(s)
 }
 
 // Update — partial update (only non-nil fields). Updates jumlah_kata kalau konten berubah.
@@ -505,6 +638,14 @@ func (r *Repository) Update(ctx context.Context, id uuid.UUID, idBlog uuid.UUID,
 	if in.TglJadwal != nil {
 		sets = append(sets, fmt.Sprintf("tgl_jadwal = $%d", idx))
 		args = append(args, *in.TglJadwal)
+		idx++
+	}
+	if in.Bahasa != nil {
+		if *in.Bahasa != "id" && *in.Bahasa != "en" {
+			return nil, errors.New("bahasa harus 'id' atau 'en'")
+		}
+		sets = append(sets, fmt.Sprintf("bahasa = $%d", idx))
+		args = append(args, *in.Bahasa)
 		idx++
 	}
 

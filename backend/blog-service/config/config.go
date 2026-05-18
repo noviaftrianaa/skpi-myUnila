@@ -14,6 +14,16 @@ type Config struct {
 	JWT         JWTConfig
 	MinIO       MinIOConfig
 	Meilisearch MeilisearchConfig
+	WebPush     WebPushConfig
+}
+
+// WebPushConfig — VAPID keypair untuk web push (Phase BA).
+// Generate sekali via tools/gen-vapid lalu set di env. Kosong = push disabled
+// (subscribe endpoint return 503, service worker degrade gracefully).
+type WebPushConfig struct {
+	PublicKey  string // base64url uncompressed P-256 public key
+	PrivateKey string // base64url private key (32 bytes scalar)
+	Subject    string // mailto: atau https URL untuk identify sender ke push service
 }
 
 type MinIOConfig struct {
@@ -92,6 +102,11 @@ func Load() (*Config, error) {
 			URL:    getEnv("MEILISEARCH_URL", ""),
 			APIKey: getEnv("MEILISEARCH_API_KEY", ""),
 			Index:  getEnv("MEILISEARCH_INDEX", "blog_post"),
+		},
+		WebPush: WebPushConfig{
+			PublicKey:  getEnv("WEBPUSH_PUBLIC_KEY", ""),
+			PrivateKey: getEnv("WEBPUSH_PRIVATE_KEY", ""),
+			Subject:    getEnv("WEBPUSH_SUBJECT", "mailto:dev@unila.ac.id"),
 		},
 	}
 
