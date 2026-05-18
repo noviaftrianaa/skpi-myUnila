@@ -386,7 +386,7 @@ export default function DashboardBerandaPage() {
                 </CardBody>
               </Card>
 
-              {/* Key Notifications / Insights */}
+              {/* Key Notifications / Insights — REAL DATA dari trendYoY */}
               <Card className="shadow-md border-none bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-900">
                 <CardHeader className="p-5 pb-0 mb-2">
                   <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -394,42 +394,92 @@ export default function DashboardBerandaPage() {
                   </h3>
                 </CardHeader>
                 <CardBody className="p-5 pt-0 space-y-4">
-                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-100 dark:border-gray-700">
-                    <div className="p-2 bg-green-100 text-green-600 rounded-full mt-1">
-                      <FiCheckCircle />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Target IKU 1 Tercapai</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        85% Lulusan berhasil mendapat pekerjaan dalam 6 bulan. Meningkat 5% dari tahun lalu.
-                      </p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const trend = data.trendYoY;
+                    const summary = data.summaryStats;
+                    if (!trend || !summary) return null;
+                    const insights: Array<{ tone: 'good'|'warn'|'info'; icon: React.ReactNode; title: string; desc: string }> = [];
 
-                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-100 dark:border-gray-700">
-                    <div className="p-2 bg-orange-100 text-orange-600 rounded-full mt-1">
-                      <FiAlertCircle />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Perhatian: Rasio Dosen</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        3 Prodi di Fakultas Teknik memiliki rasio mahasiswa:dosen di atas 1:45. Perlu penambahan SDM.
-                      </p>
-                      <Button size="sm" variant="flat" color="warning" className="mt-2 h-8">Lihat Detail</Button>
-                    </div>
-                  </div>
+                    // Insight 1: Mahasiswa trend (last 2 years YoY delta)
+                    const mhs = trend.mahasiswa || [];
+                    if (mhs.length >= 2) {
+                      const curr = mhs[mhs.length - 1];
+                      const prev = mhs[mhs.length - 2];
+                      const delta = curr - prev;
+                      const pct = prev > 0 ? ((delta / prev) * 100).toFixed(1) : '0';
+                      const yearCurr = trend.years[trend.years.length - 1];
+                      const yearPrev = trend.years[trend.years.length - 2];
+                      insights.push({
+                        tone: delta >= 0 ? 'good' : 'warn',
+                        icon: <FiUsers />,
+                        title: `Mahasiswa Aktif ${yearCurr}: ${curr.toLocaleString('id-ID')}`,
+                        desc: `${delta >= 0 ? 'Naik' : 'Turun'} ${Math.abs(delta).toLocaleString('id-ID')} (${pct}%) dibanding ${yearPrev}.`,
+                      });
+                    }
 
-                  <div className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-purple-100 dark:border-gray-700">
-                    <div className="p-2 bg-purple-100 text-purple-600 rounded-full mt-1">
-                      <FiBookOpen />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-gray-200">Publikasi Internasional</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Lonjakan 20% publikasi Scopus Q1 di semester ini, didominasi oleh FMIPA dan FKIP.
-                      </p>
-                    </div>
-                  </div>
+                    // Insight 2: Guru Besar growth
+                    const gb = trend.guruBesar || [];
+                    if (gb.length >= 5) {
+                      const curr = gb[gb.length - 1];
+                      const first = gb[0];
+                      const growth = first > 0 ? (((curr - first) / first) * 100).toFixed(0) : '0';
+                      insights.push({
+                        tone: 'good',
+                        icon: <FiCheckCircle />,
+                        title: `Guru Besar Tumbuh ${growth}%`,
+                        desc: `Dari ${first} (${trend.years[0]}) menjadi ${curr} (${trend.years[trend.years.length - 1]}). Saat ini: ${summary.akademik.akrUnggul ? '' : ''}${gb[gb.length - 1]} dosen.`,
+                      });
+                    }
+
+                    // Insight 3: Akreditasi Unggul progress
+                    if (summary.akademik.prodi > 0) {
+                      const pct = ((summary.akademik.akrUnggul / summary.akademik.prodi) * 100).toFixed(0);
+                      insights.push({
+                        tone: summary.akademik.akrUnggul / summary.akademik.prodi >= 0.5 ? 'good' : 'info',
+                        icon: <FiBookOpen />,
+                        title: `Prodi Unggul/A: ${summary.akademik.akrUnggul} dari ${summary.akademik.prodi}`,
+                        desc: `${pct}% prodi Unila sudah peringkat Unggul/A. ${summary.akademik.prodi - summary.akademik.akrUnggul} prodi masih di bawah target.`,
+                      });
+                    }
+
+                    // Insight 4: Publikasi trend
+                    const pub = trend.publikasi || [];
+                    if (pub.length >= 2) {
+                      const curr = pub[pub.length - 1];
+                      const prev = pub[pub.length - 2];
+                      const delta = curr - prev;
+                      const pct = prev > 0 ? ((delta / prev) * 100).toFixed(1) : '0';
+                      const yearCurr = trend.years[trend.years.length - 1];
+                      insights.push({
+                        tone: delta >= 0 ? 'good' : 'warn',
+                        icon: <FiTrendingUp />,
+                        title: `Publikasi ${yearCurr}: ${curr.toLocaleString('id-ID')}`,
+                        desc: `${delta >= 0 ? 'Naik' : 'Turun'} ${Math.abs(delta).toLocaleString('id-ID')} judul (${pct}%) dibanding tahun sebelumnya.`,
+                      });
+                    }
+
+                    const toneClass = (t: 'good'|'warn'|'info') => t === 'good'
+                      ? 'bg-green-100 text-green-600 border-green-100 dark:bg-green-500/10 dark:text-green-300'
+                      : t === 'warn'
+                      ? 'bg-orange-100 text-orange-600 border-orange-100 dark:bg-orange-500/10 dark:text-orange-300'
+                      : 'bg-blue-100 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-300';
+                    return (
+                      <>
+                        {insights.map((ins, i) => (
+                          <div key={i} className="flex gap-4 items-start p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <div className={`p-2 ${toneClass(ins.tone)} rounded-full mt-1`}>{ins.icon}</div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-800 dark:text-gray-200">{ins.title}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{ins.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                        {insights.length === 0 && (
+                          <p className="text-sm text-gray-500 italic py-4 text-center">Belum ada insights tersedia.</p>
+                        )}
+                      </>
+                    );
+                  })()}
                 </CardBody>
               </Card>
             </div>
