@@ -6,6 +6,25 @@ Format: **MVP** = wajib di rilis pertama. **P2** = phase 2 setelah user feedback
 
 ---
 
+## Implementation Status (per 2026-05-18)
+
+Sprint 13 menambah 5 phase besar + 3 quick win di atas baseline Sprint 11-12 (R–AY 32 phase). Semua landed di working tree, belum commit.
+
+| Sprint 13 Phase | Topik | Bagian feature module di bawah |
+|---|---|---|
+| **BF** | Per-blog commenter ban | §11 Moderasi (finer dari global ban Phase AO) |
+| **BE** | Weekly email digest | §6 Notifikasi + §3 Discovery (top posts from following) |
+| **BD** | Bilingual ID↔EN pair-link | §2 Editor (bahasa picker + pair manager) + §10 SEO (hreflang) |
+| **BA** | Web push notifications | §6 Notifikasi (channel ketiga setelah in-app + email) |
+| **BB** | Newsletter per-blog opt-in | §6 Notifikasi (subscribe form di tenant page + dashboard list) |
+| **QW1** | Featured Authors carousel | §3 Discovery (verified-only di apex landing) |
+| **QW2** | GSC verification meta | §10 SEO (`gsc_verification` di `meta_seo_json`) |
+| **QW3** | Replace MOCK_MY_BLOG | Internal cleanup (BlogPlatformShell wired ke `useMyBlog`) |
+
+Sisa AZ (plagiarism, butuh API eksternal — blocked) + BC (static export, niche — deferred indefinitely).
+
+---
+
 ## 1. Editor & Komposisi Post
 
 | Fitur | Tier | Catatan |

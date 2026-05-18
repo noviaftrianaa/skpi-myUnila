@@ -7,6 +7,30 @@
 
 ---
 
+## Implementation Status (per 2026-05-18)
+
+| Sprint | Phase range | Status |
+|---|---|---|
+| Sprint 1-10 | MVP (P0/P1) | ✅ Done & committed |
+| Sprint 11-12 | Phase R–AY (32 phases) | ✅ Done & committed (master + branch `blogger` di bitbucket) |
+| Sprint 13 | Phase BF/BE/BD/BA/BB + Quick Wins | ✅ Done di working tree (belum commit/push — menunggu instruksi) |
+| — | AZ (plagiarism check) | ⏸️ Blocked (butuh procurement API eksternal Turnitin/Plagscan) |
+| — | BC (static export Hugo/Jekyll) | ⏭️ Deferred indefinitely (P3, niche) |
+
+**Sprint 13 ringkas:**
+- **BF** — per-blog commenter ban (owner-level, finer dari Phase AO global ban)
+- **BE** — weekly email digest top posts from following (6h worker, 1×/7-hari per-user)
+- **BD** — bilingual posts ID↔EN pair-link (symmetric link/unlink + hreflang)
+- **BA** — web push notifications (VAPID + service worker + parallel ke email bridge)
+- **BB** — newsletter per-blog (public opt-in + double opt-in token + auto broadcast saat publish)
+- **QW** — Featured Authors carousel (verified-only) + GSC verification meta + MOCK_MY_BLOG cleanup
+
+**Backend stats post-Sprint 13:** 246 fiber handlers, 22 tabel managed (17 base + 5 alter Sprint 13 + sisa Sprint 11-12), 4 worker goroutines (post scheduler + trending + mail outbox + digest), 10 notif tipes, 12 email tipes.
+
+Untuk detail spek per-phase + smoke test, lihat memory file `project_blog_platform_v2.md`.
+
+---
+
 ## 1. Tujuan
 
 Membangun platform blog untuk seluruh civitas akademik Unila (mahasiswa, staf/tendik, dosen, alumni) di domain `blog.unila.ac.id` sebagai:
