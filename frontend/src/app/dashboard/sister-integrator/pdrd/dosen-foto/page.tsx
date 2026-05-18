@@ -41,9 +41,13 @@ import ScheduleList from "@/shared/components/sister-integrator/ScheduleList";
 
 const APP_KEY = "sister-integrator";
 
+// Default fallback pakai RELATIVE URL (`/myunila-storage/...`) — browser auto-resolve ke
+// same-origin: di prod via Kong route, di staging via nginx route. Internal LAN IP
+// `http://192.168.120.47:9000` tidak accessible dari browser internet, jangan dipakai
+// sebagai fallback default. NEXT_PUBLIC_MINIO_URL override kalau di-set di build env.
 const MINIO_PHOTO_BASE = process.env.NEXT_PUBLIC_MINIO_URL
   ? `${process.env.NEXT_PUBLIC_MINIO_URL}/myunila-storage/photos/sdm`
-  : "http://192.168.120.47:9000/myunila-storage/photos/sdm";
+  : "/myunila-storage/photos/sdm";
 
 export default function DosenFotoPage() {
   useRequireAuth();
