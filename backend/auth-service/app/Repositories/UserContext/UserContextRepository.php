@@ -213,9 +213,9 @@ class UserContextRepository
         if ($isEnvSuper) {
             $isUniversal = true;
         } elseif ($idPeran) {
-            // Check 1: peran.a_universal (super role)
+            // Check 1: peran.a_universal (super role) — NOLOCK consistent
             $row = DB::selectOne(
-                "SELECT 1 AS x FROM man_akses.peran
+                "SELECT 1 AS x FROM man_akses.peran WITH (NOLOCK)
                  WHERE id_peran = ? AND a_universal = 1 AND expired_date IS NULL",
                 [$idPeran]
             );
@@ -245,7 +245,9 @@ class UserContextRepository
             }
         }
 
-        // Main query: SEMUA app di portal (tanpa nested EXISTS)
+        // Main query: SEMUA app di portal. NOLOCK hint utk semua tabel
+        // supaya tidak ke-block kalau ada long-running insert/transaction
+        // di salah satu tabel (mis. SSMS BEGIN TRAN tanpa COMMIT).
         $sql = "
             SELECT
                 CONVERT(VARCHAR(36), a.id_aplikasi) as id_aplikasi,
@@ -267,9 +269,9 @@ class UserContextRepository
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
                 ISNULL(a.a_live, 0) as a_live
-            FROM man_akses.aplikasi a
-            INNER JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
-            LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
+            FROM man_akses.aplikasi a WITH (NOLOCK)
+            INNER JOIN man_akses.kategori_aplikasi k WITH (NOLOCK) ON k.id_kategori = a.id_kategori
+            LEFT JOIN man_akses.unit_organisasi uo WITH (NOLOCK) ON uo.id_organisasi = a.id_organisasi
             WHERE a.a_tampil_portal = 1
               AND a.expired_date IS NULL
               AND ISNULL(a.a_aktif, 1) = 1
