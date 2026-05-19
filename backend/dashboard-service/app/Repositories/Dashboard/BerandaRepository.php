@@ -635,6 +635,13 @@ class BerandaRepository extends BaseRepository
                 FROM pdrd.sdm sdm
                 INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
                     AND ptk.id_jns_keluar IS NULL
+                INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                    AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                    AND kp.id_thn_ajaran = (
+                        SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                        WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                        ORDER BY id_thn_ajaran DESC
+                    )
                 INNER JOIN pdrd.sms s_gb ON s_gb.id_sms = ptk.id_sms AND s_gb.soft_delete = 0
                     AND s_gb.stat_prodi = 'A' AND s_gb.id_fak_unila IS NOT NULL
                 INNER JOIN pdrd.rwy_fungsional rf ON rf.id_sdm = sdm.id_sdm AND rf.soft_delete = 0
@@ -906,6 +913,50 @@ class BerandaRepository extends BaseRepository
               AND la.tst_sk_akreditasi_prodi BETWEEN GETDATE() AND DATEADD(DAY, 90, GETDATE())
               {$orgFilter}
         ";
+        return (int) $this->selectScalar($sql, $bindings);
+    }
+
+    /**
+     * Count Guru Besar — match DosenRepository.countGuruBesar (canonical 165).
+     * Tanpa year filter — pakai keaktifan tahun_ajaran aktif + latest jabfung adalah GB.
+     */
+    public function countGuruBesar(?string $fakultas = null, ?string $prodi = null): int
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $orgFilter = '';
+        if ($prodi) { $orgFilter = ' AND ptk.id_sms = ?'; $bindings[] = $prodi; }
+        elseif ($fakultas) { $orgFilter = ' AND s.id_fak_unila = ?'; $bindings[] = $fakultas; }
+
+        $sql = "
+            SELECT COUNT(DISTINCT sdm.id_sdm)
+            FROM pdrd.sdm sdm
+            INNER JOIN pdrd.reg_ptk ptk ON ptk.id_sdm = sdm.id_sdm AND ptk.soft_delete = 0
+                AND ptk.id_jns_keluar IS NULL
+            INNER JOIN pdrd.keaktifan_ptk kp ON kp.id_reg_ptk = ptk.id_reg_ptk
+                AND kp.soft_delete = 0 AND kp.a_sp_homebase = 1
+                AND kp.id_thn_ajaran = (
+                    SELECT TOP 1 id_thn_ajaran FROM ref.tahun_ajaran
+                    WHERE a_periode_aktif = 1 AND expired_date IS NULL
+                    ORDER BY id_thn_ajaran DESC
+                )
+            INNER JOIN pdrd.sms s ON s.id_sms = ptk.id_sms AND s.soft_delete = 0
+                AND s.stat_prodi = 'A' AND s.id_fak_unila IS NOT NULL
+            INNER JOIN pdrd.rwy_fungsional rf ON rf.id_sdm = sdm.id_sdm AND rf.soft_delete = 0
+            INNER JOIN ref.jabfung jf ON rf.id_jabfung = jf.id_jabfung
+            WHERE sdm.soft_delete = 0
+              AND sdm.id_jns_sdm = 12
+              AND sdm.id_stat_aktif = 1
+              AND (UPPER(jf.nm_jabfung) LIKE '%GURU BESAR%' OR UPPER(jf.nm_jabfung) LIKE 'PROFESOR%')
+              AND rf.id_rwy_jabfung = (
+                  SELECT TOP 1 rf2.id_rwy_jabfung
+                  FROM pdrd.rwy_fungsional rf2
+                  WHERE rf2.id_sdm = sdm.id_sdm AND rf2.soft_delete = 0
+                  ORDER BY rf2.tmt_sk_jabfung DESC
+              )
+              AND CAST(ptk.id_sp AS VARCHAR(50)) = ?
+              {$orgFilter}
+        ";
+
         return (int) $this->selectScalar($sql, $bindings);
     }
 

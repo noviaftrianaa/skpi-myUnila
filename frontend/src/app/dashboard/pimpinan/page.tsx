@@ -417,17 +417,19 @@ export default function DashboardBerandaPage() {
                       });
                     }
 
-                    // Insight 2: Guru Besar growth
+                    // Insight 2: Guru Besar growth. "Saat ini" pakai canonical
+                    // summaryStats.sdm.guruBesar (165) — trend latest dibatasi tahun
+                    // sehingga bisa selisih dari canonical (GB diangkat tahun berjalan).
                     const gb = trend.guruBesar || [];
+                    const gbNow = (summary as { sdm?: { guruBesar?: number } }).sdm?.guruBesar ?? gb[gb.length - 1] ?? 0;
                     if (gb.length >= 5) {
-                      const curr = gb[gb.length - 1];
                       const first = gb[0];
-                      const growth = first > 0 ? (((curr - first) / first) * 100).toFixed(0) : '0';
+                      const growth = first > 0 ? (((gbNow - first) / first) * 100).toFixed(0) : '0';
                       insights.push({
                         tone: 'good',
                         icon: <FiCheckCircle />,
                         title: `Guru Besar Tumbuh ${growth}%`,
-                        desc: `Dari ${first} (${trend.years[0]}) menjadi ${curr} (${trend.years[trend.years.length - 1]}). Saat ini: ${summary.akademik.akrUnggul ? '' : ''}${gb[gb.length - 1]} dosen.`,
+                        desc: `Dari ${first} (${trend.years[0]}) menjadi ${gbNow} saat ini.`,
                       });
                     }
 

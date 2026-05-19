@@ -49,10 +49,11 @@ class BerandaService
                         'cuti'   => $this->repository->countMahasiswaCuti($fakultas, $prodi),
                     ],
                     'sdm' => [
-                        'total'  => $totalSdm,
-                        'trend'  => 0,
-                        'dosen'  => $dosen,
-                        'tendik' => $tendik,
+                        'total'     => $totalSdm,
+                        'trend'     => 0,
+                        'dosen'     => $dosen,
+                        'tendik'    => $tendik,
+                        'guruBesar' => $this->repository->countGuruBesar($fakultas, $prodi),
                     ],
                     'akademik' => [
                         'prodi'             => $this->repository->countProdiAktif($fakultas, $prodi),
