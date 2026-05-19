@@ -222,11 +222,13 @@ class UserContextRepository
             $isUniversal = $row !== null;
 
             if (!$isUniversal) {
-                // Check 2: menu_role accessible apps
+                // Check 2: menu_role accessible apps.
+                // NOLOCK supaya tidak ke-block kalau ada long-running insert
+                // di menu_role (mis. bulk grant script SSMS uncommitted).
                 $rows = DB::select(
                     "SELECT DISTINCT CONVERT(VARCHAR(36), m.id_aplikasi) AS id_aplikasi
-                     FROM man_akses.menu_role mr
-                     INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+                     FROM man_akses.menu_role mr WITH (NOLOCK)
+                     INNER JOIN man_akses.menu m WITH (NOLOCK) ON m.id_menu = mr.id_menu
                      WHERE mr.id_peran = ? AND ISNULL(mr.soft_delete, 0) = 0",
                     [$idPeran]
                 );
@@ -235,7 +237,7 @@ class UserContextRepository
                 // Check 3: aplikasi_default_role (Pilar 6)
                 $rows = DB::select(
                     "SELECT CONVERT(VARCHAR(36), id_aplikasi) AS id_aplikasi
-                     FROM man_akses.aplikasi_default_role
+                     FROM man_akses.aplikasi_default_role WITH (NOLOCK)
                      WHERE id_peran = ? AND a_aktif = 1 AND ISNULL(soft_delete, 0) = 0",
                     [$idPeran]
                 );
