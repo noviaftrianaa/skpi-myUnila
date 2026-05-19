@@ -194,7 +194,7 @@ class UserContextRepository
      * @param int|null $idPeran User's active role ID
      * @return array
      */
-    public function getPortalApps(?int $idPeran = null): array
+    public function getPortalApps(?int $idPeran = null, ?string $idOrganisasi = null): array
     {
         // Emergency fallback: ENV AUTH_SUPER_ROLES (kalau di-set) treat sbg super.
         // Default DB-driven via peran.a_universal.
@@ -209,6 +209,7 @@ class UserContextRepository
         // Now: 3 fast queries total, regardless of jumlah app.
         $isUniversal = false;
         $accessibleAppIds = [];
+        $orgWhitelistedAppIds = [];   // app yg whitelistnya cover user's org
 
         if ($isEnvSuper) {
             $isUniversal = true;
@@ -243,6 +244,20 @@ class UserContextRepository
                 );
                 foreach ($rows as $r) $accessibleAppIds[strtolower($r->id_aplikasi)] = true;
             }
+
+            // Org-level filter: untuk app dengan a_filter_organisasi=1, user butuh
+            // organisasi-nya whitelisted. Pre-compute set "apps yg whitelisted utk
+            // user's org" supaya bisa skip akses ke apps yg di-restrict (mis. Tools
+            // & Utilities di-lock ke UPT TIK only).
+            if ($idOrganisasi) {
+                $rows = DB::select(
+                    "SELECT CONVERT(VARCHAR(36), id_aplikasi) AS id_aplikasi
+                     FROM man_akses.aplikasi_organisasi WITH (NOLOCK)
+                     WHERE id_organisasi = ? AND ISNULL(soft_delete, 0) = 0",
+                    [$idOrganisasi]
+                );
+                foreach ($rows as $r) $orgWhitelistedAppIds[strtolower($r->id_aplikasi)] = true;
+            }
         }
 
         // Main query: SEMUA app di portal. NOLOCK hint utk semua tabel
@@ -268,7 +283,8 @@ class UserContextRepository
                 ISNULL(a.a_maintenance, 0) as a_maintenance,
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
-                ISNULL(a.a_live, 0) as a_live
+                ISNULL(a.a_live, 0) as a_live,
+                ISNULL(a.a_filter_organisasi, 0) as a_filter_organisasi
             FROM man_akses.aplikasi a WITH (NOLOCK)
             INNER JOIN man_akses.kategori_aplikasi k WITH (NOLOCK) ON k.id_kategori = a.id_kategori
             LEFT JOIN man_akses.unit_organisasi uo WITH (NOLOCK) ON uo.id_organisasi = a.id_organisasi
@@ -281,12 +297,18 @@ class UserContextRepository
 
         $rows = DB::select($sql);
 
-        // Compute has_access di PHP (fast — pakai hash lookup)
+        // Compute has_access di PHP (fast — pakai hash lookup).
+        // Logic: app accessible kalau (a) universal role, ATAU
+        //        (b) punya menu_role/default_role DAN (filter_org=0 ATAU org whitelisted).
         foreach ($rows as $r) {
+            $appIdLower = strtolower($r->id_aplikasi);
             if ($isUniversal) {
                 $r->has_access = 1;
             } else {
-                $r->has_access = isset($accessibleAppIds[strtolower($r->id_aplikasi)]) ? 1 : 0;
+                $hasMenuRole = isset($accessibleAppIds[$appIdLower]);
+                $needsOrgWhitelist = (int) $r->a_filter_organisasi === 1;
+                $orgPassed = !$needsOrgWhitelist || isset($orgWhitelistedAppIds[$appIdLower]);
+                $r->has_access = ($hasMenuRole && $orgPassed) ? 1 : 0;
             }
         }
 

@@ -562,11 +562,14 @@ class UserContextService
             // Get active context
             $context = $this->getActiveContext($userId);
 
-            // Get user's role ID from active context (for RBAC check)
+            // Get user's role ID + organisasi from active context (for RBAC + org filter)
             $idPeran = isset($context['id_peran']) ? (int) $context['id_peran'] : null;
+            $idOrganisasi = $context['id_organisasi'] ?? null;
 
-            // Build cache key based on role ID (apps access is role-specific)
-            $cacheKey = self::CACHE_PORTAL_APPS_PREFIX . ($idPeran ? 'role:' . $idPeran : 'norole');
+            // Cache key role+org spesifik — beda role atau beda org → beda has_access
+            $cacheKey = self::CACHE_PORTAL_APPS_PREFIX
+                . ($idPeran ? 'role:' . $idPeran : 'norole')
+                . ($idOrganisasi ? ':org:' . strtolower($idOrganisasi) : '');
 
             // Try cache first
             $cachedApps = Cache::get($cacheKey);
@@ -574,8 +577,8 @@ class UserContextService
                 Log::debug('Portal apps from cache', ['id_peran' => $idPeran]);
                 $apps = array_map(fn($a) => (object) $a, $cachedApps);
             } else {
-                // Get from database with RBAC-based has_access
-                $apps = $this->repository->getPortalApps($idPeran);
+                // Get from database with RBAC + org-filter has_access
+                $apps = $this->repository->getPortalApps($idPeran, $idOrganisasi);
 
                 // Cache the raw apps data
                 $appsArray = array_map(fn($a) => (array) $a, $apps);
