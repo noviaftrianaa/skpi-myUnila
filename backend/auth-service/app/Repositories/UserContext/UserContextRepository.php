@@ -197,48 +197,53 @@ class UserContextRepository
     public function getPortalApps(?int $idPeran = null): array
     {
         // Emergency fallback: ENV AUTH_SUPER_ROLES (kalau di-set) treat sbg super.
-        // Default DB-driven via peran.a_universal di EXISTS clause SQL berikutnya.
+        // Default DB-driven via peran.a_universal.
         $envSuperRoles = config('auth.super_roles', []);
         $isEnvSuper = $idPeran && in_array($idPeran, $envSuperRoles, true);
 
+        // Performance optimization: pre-compute "accessible apps" SETS via 2
+        // single fast queries (PK lookup), kemudian gunakan LEFT JOIN di main
+        // query. Sebelumnya pakai 3 NESTED EXISTS per row × 37 app = N+1
+        // pattern yg lambat (timeout 300+s setelah menu_role di-bulk-insert).
+        //
+        // Now: 3 fast queries total, regardless of jumlah app.
+        $isUniversal = false;
+        $accessibleAppIds = [];
+
         if ($isEnvSuper) {
-            $hasAccessCase = "1 as has_access";
-            $params = [];
+            $isUniversal = true;
         } elseif ($idPeran) {
-            // Akses diberikan kalau:
-            // 1. peran.a_universal = 1 (super role DB-driven), ATAU
-            // 2. punya menu_role utk aplikasi ini (peran fungsional), ATAU
-            // 3. punya entry di aplikasi_default_role (peran identitas — Pilar 6)
-            $hasAccessCase = "
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1 FROM man_akses.peran p
-                        WHERE p.id_peran = ? AND p.a_universal = 1
-                          AND p.expired_date IS NULL
-                    ) THEN 1
-                    WHEN EXISTS (
-                        SELECT 1 FROM man_akses.menu_role mr
-                        INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
-                        WHERE m.id_aplikasi = a.id_aplikasi
-                          AND mr.id_peran = ?
-                          AND ISNULL(mr.soft_delete, 0) = 0
-                    ) THEN 1
-                    WHEN EXISTS (
-                        SELECT 1 FROM man_akses.aplikasi_default_role adr
-                        WHERE adr.id_aplikasi = a.id_aplikasi
-                          AND adr.id_peran = ?
-                          AND adr.a_aktif = 1
-                          AND ISNULL(adr.soft_delete, 0) = 0
-                    ) THEN 1
-                    ELSE 0
-                END as has_access
-            ";
-            $params = [$idPeran, $idPeran, $idPeran];
-        } else {
-            $hasAccessCase = "0 as has_access";
-            $params = [];
+            // Check 1: peran.a_universal (super role)
+            $row = DB::selectOne(
+                "SELECT 1 AS x FROM man_akses.peran
+                 WHERE id_peran = ? AND a_universal = 1 AND expired_date IS NULL",
+                [$idPeran]
+            );
+            $isUniversal = $row !== null;
+
+            if (!$isUniversal) {
+                // Check 2: menu_role accessible apps
+                $rows = DB::select(
+                    "SELECT DISTINCT CONVERT(VARCHAR(36), m.id_aplikasi) AS id_aplikasi
+                     FROM man_akses.menu_role mr
+                     INNER JOIN man_akses.menu m ON m.id_menu = mr.id_menu
+                     WHERE mr.id_peran = ? AND ISNULL(mr.soft_delete, 0) = 0",
+                    [$idPeran]
+                );
+                foreach ($rows as $r) $accessibleAppIds[strtolower($r->id_aplikasi)] = true;
+
+                // Check 3: aplikasi_default_role (Pilar 6)
+                $rows = DB::select(
+                    "SELECT CONVERT(VARCHAR(36), id_aplikasi) AS id_aplikasi
+                     FROM man_akses.aplikasi_default_role
+                     WHERE id_peran = ? AND a_aktif = 1 AND ISNULL(soft_delete, 0) = 0",
+                    [$idPeran]
+                );
+                foreach ($rows as $r) $accessibleAppIds[strtolower($r->id_aplikasi)] = true;
+            }
         }
 
+        // Main query: SEMUA app di portal (tanpa nested EXISTS)
         $sql = "
             SELECT
                 CONVERT(VARCHAR(36), a.id_aplikasi) as id_aplikasi,
@@ -259,8 +264,7 @@ class UserContextRepository
                 ISNULL(a.a_maintenance, 0) as a_maintenance,
                 ISNULL(a.a_coming_soon, 0) as a_coming_soon,
                 ISNULL(a.a_terintegrasi, 0) as a_terintegrasi,
-                ISNULL(a.a_live, 0) as a_live,
-                {$hasAccessCase}
+                ISNULL(a.a_live, 0) as a_live
             FROM man_akses.aplikasi a
             INNER JOIN man_akses.kategori_aplikasi k ON k.id_kategori = a.id_kategori
             LEFT JOIN man_akses.unit_organisasi uo ON uo.id_organisasi = a.id_organisasi
@@ -271,7 +275,18 @@ class UserContextRepository
             ORDER BY k.urutan, a.urutan, a.nm_aplikasi
         ";
 
-        return DB::select($sql, $params);
+        $rows = DB::select($sql);
+
+        // Compute has_access di PHP (fast — pakai hash lookup)
+        foreach ($rows as $r) {
+            if ($isUniversal) {
+                $r->has_access = 1;
+            } else {
+                $r->has_access = isset($accessibleAppIds[strtolower($r->id_aplikasi)]) ? 1 : 0;
+            }
+        }
+
+        return $rows;
     }
 
     /**
