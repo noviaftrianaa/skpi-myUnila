@@ -307,7 +307,7 @@ class AkreditasiRepository extends BaseRepository
                 1 as value
             FROM latest_akred la
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
-            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
+            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik AND jp.expired_date IS NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             WHERE la.rn = 1 AND s.id_sp = ? AND s.id_fak_unila = ?
             ORDER BY jp.nm_jenj_didik, s.nm_lemb
@@ -396,7 +396,7 @@ class AkreditasiRepository extends BaseRepository
             FROM latest_akred la
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
-            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
+            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik AND jp.expired_date IS NULL
             INNER JOIN ref.lembaga_akred lem ON la.id_lemb_akred = lem.id_lemb_akred
             WHERE la.rn = 1 AND s.id_sp = ?
               AND lem.id_lemb_akred != '00001'
@@ -438,7 +438,7 @@ class AkreditasiRepository extends BaseRepository
             FROM latest_akred la
             INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
-            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
+            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik AND jp.expired_date IS NULL
             INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
             LEFT JOIN intl ON intl.id_sms = la.id_sms
             WHERE la.rn = 1 AND s.id_sp = ?
@@ -487,7 +487,12 @@ class AkreditasiRepository extends BaseRepository
     }
 
     /**
-     * Detail table: all prodi with their akreditasi info
+     * Detail table: SEMUA prodi aktif Unila + akreditasi terbaru (kalau ada).
+     *
+     * Anchor di pdrd.sms (canonical 132 prodi) + LEFT JOIN ke latest_akred.
+     * Prodi tanpa SK akreditasi tetap tampil dgn rank='Belum Akreditasi'.
+     * Sebelumnya INNER JOIN dari latest_akred → 5 prodi tanpa akreditasi ke-exclude
+     * sehingga total 127 vs canonical 132.
      */
     public function getDetailTable(?string $fakultas = null, ?string $prodi = null): array
     {
@@ -509,17 +514,21 @@ class AkreditasiRepository extends BaseRepository
                 s.nm_lemb as prodi,
                 uo.nm_lemb as fak,
                 jp.nm_jenj_didik as strata,
-                na.nm_akred as rank,
+                ISNULL(na.nm_akred, 'Belum Akreditasi') as rank,
                 ISNULL(intl.nm_lemb_intl, '-') as [int],
-                la.sk_akreditasi_prodi as no_sk,
-                CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) as exp
-            FROM latest_akred la
-            INNER JOIN pdrd.sms s ON la.id_sms = s.id_sms AND s.soft_delete = 0 AND s.stat_prodi = 'A' AND s.id_jns_sms = '3' AND s.id_fak_unila IS NOT NULL
+                ISNULL(la.sk_akreditasi_prodi, '-') as no_sk,
+                CASE WHEN la.tst_sk_akreditasi_prodi IS NULL THEN '-'
+                     ELSE CONVERT(VARCHAR(10), la.tst_sk_akreditasi_prodi, 120) END as exp
+            FROM pdrd.sms s
             INNER JOIN man_akses.unit_organisasi uo ON s.id_fak_unila = uo.id_organisasi AND uo.soft_delete = 0
-            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik
-            INNER JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
-            LEFT JOIN intl ON intl.id_sms = la.id_sms
-            WHERE la.rn = 1
+            INNER JOIN ref.jenjang_pendidikan jp ON s.id_jenj_didik = jp.id_jenj_didik AND jp.expired_date IS NULL
+            LEFT JOIN latest_akred la ON la.id_sms = s.id_sms AND la.rn = 1
+            LEFT JOIN ref.nilai_akred na ON la.id_akred = na.id_akred
+            LEFT JOIN intl ON intl.id_sms = s.id_sms
+            WHERE s.soft_delete = 0
+              AND s.stat_prodi = 'A'
+              AND s.id_jns_sms = '3'
+              AND s.id_fak_unila IS NOT NULL
               AND s.id_sp = ?
               {$orgFilter}
             ORDER BY uo.nm_lemb, s.nm_lemb
