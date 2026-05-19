@@ -34,16 +34,15 @@ class MahasiswaService
                 'trendMahasiswa'       => $this->buildTrend($semesters, $fakultas, $prodi),
                 'trendMahasiswaBaru'   => $this->buildSimpleList($this->repository->getTrendMahasiswaBaru($semesters, $fakultas, $prodi)),
                 // sebaranFakultas: aggregate breakdown — TIDAK narrow.
-                'sebaranFakultas'      => $this->buildSebaranFakultas($semesters),
+                'sebaranFakultas'      => $this->buildSebaranFakultas($semesters, $fakultas, $prodi),
                 'distribusiJenjang'    => $this->buildSimpleList($this->repository->getDistribusiJenjang($semesters, $fakultas, $prodi)),
                 'jalurMasuk'           => $this->buildSimpleList($this->repository->getJalurMasuk($semesters, $fakultas, $prodi)),
                 'pembiayaan'           => $this->buildSimpleList($this->repository->getPembiayaan($semesters, $fakultas, $prodi)),
                 'distribusiIPK'        => $this->buildSimpleList($this->repository->getDistribusiIPK($semesters, $fakultas, $prodi)),
-                // ipkPerFakultas: aggregate breakdown — TIDAK narrow.
-                'ipkPerFakultas'       => $this->buildIPKFakultas($semesters),
+                'ipkPerFakultas'       => $this->buildIPKFakultas($semesters, $fakultas, $prodi),
                 'masaStudi'            => $this->buildSimpleList($this->repository->getMasaStudi($semesters, $fakultas, $prodi)),
                 'beasiswa'             => $this->buildSimpleList($this->repository->getBeasiswa($semesters, $fakultas, $prodi)),
-                'tugasAkhir'           => $this->buildSimpleList($this->repository->getTugasAkhir($semesters)),
+                'tugasAkhir'           => $this->buildSimpleList($this->repository->getTugasAkhir($semesters, $fakultas, $prodi)),
                 'asalProvinsi'         => $this->buildSimpleList($this->repository->getAsalProvinsi($semesters, $fakultas, $prodi)),
                 'mahasiswaAsing'       => $this->buildSimpleList($this->repository->getMahasiswaAsing($semesters)),
                 'warningMasaStudi'     => $this->buildSimpleList($this->repository->getWarningMasaStudi()),
@@ -114,14 +113,16 @@ class MahasiswaService
     }
 
     /**
-     * Build sebaran fakultas with prodi drilldown
+     * Build sebaran fakultas with prodi drilldown.
+     * Sebaran fakultas berfungsi sbg breakdown univ. Kalau scope ke 1 fakultas,
+     * tampilkan prodi langsung sebagai root (skip level fakultas).
      */
-    private function buildSebaranFakultas(array $semesters): array
+    private function buildSebaranFakultas(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $fakultasList = $this->repository->getSebaranFakultas($semesters);
+        $fakultasList = $this->repository->getSebaranFakultas($semesters, $fakultas, $prodi);
 
-        return array_map(function ($fak) use ($semesters) {
-            $prodiList = $this->repository->getSebaranProdi($fak->id, $semesters);
+        return array_map(function ($fak) use ($semesters, $fakultas, $prodi) {
+            $prodiList = $this->repository->getSebaranProdi($fak->id, $semesters, $prodi);
 
             return [
                 'id'       => (string) $fak->id,
@@ -141,9 +142,9 @@ class MahasiswaService
     /**
      * Build IPK per fakultas (with float values)
      */
-    private function buildIPKFakultas(array $semesters): array
+    private function buildIPKFakultas(array $semesters, ?string $fakultas = null, ?string $prodi = null): array
     {
-        $results = $this->repository->getIPKPerFakultas($semesters);
+        $results = $this->repository->getIPKPerFakultas($semesters, $fakultas, $prodi);
         return array_map(function ($item) {
             return [
                 'name'  => (string) $item->name,

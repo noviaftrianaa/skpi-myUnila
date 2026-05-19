@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BaseChart from "./BaseChart";
 
 export interface PieChartData {
@@ -42,7 +42,20 @@ export default function PieChart({
 }: PieChartProps) {
   const total = useMemo(() => data.reduce((sum, d) => sum + d.value, 0), [data]);
 
+  // Responsive legend position: di bawah pie kalau viewport sempit (<768px),
+  // di kanan kalau lebar. Hindari numpuk di mobile/tablet.
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 900px)");
+    const update = () => setIsNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   const option = useMemo(() => {
+    const legendBottom = showLegend && isNarrow;
     return {
       tooltip: {
         trigger: "item",
@@ -61,34 +74,54 @@ export default function PieChart({
         },
       },
       legend: showLegend
-        ? {
-            type: "scroll",
-            orient: "vertical",
-            right: "5%",
-            top: "center",
-            itemGap: 12,
-            itemWidth: 12,
-            itemHeight: 12,
-            textStyle: {
-              fontSize: 12,
-              color: "#374151",
-            },
-            formatter: (name: string) => {
-              const item = data.find((d) => d.name === name);
-              if (item) {
-                const percent = ((item.value / total) * 100).toFixed(1);
-                return `${name} (${percent}%)`;
-              }
-              return name;
-            },
-          }
+        ? legendBottom
+          ? {
+              type: "scroll",
+              orient: "horizontal",
+              bottom: 0,
+              left: "center",
+              itemGap: 8,
+              itemWidth: 10,
+              itemHeight: 10,
+              textStyle: { fontSize: 11, color: "#374151" },
+              formatter: (name: string) => {
+                const item = data.find((d) => d.name === name);
+                if (item) {
+                  const percent = ((item.value / total) * 100).toFixed(1);
+                  return `${name} ${percent}%`;
+                }
+                return name;
+              },
+            }
+          : {
+              type: "scroll",
+              orient: "vertical",
+              right: "2%",
+              top: "middle",
+              itemGap: 10,
+              itemWidth: 12,
+              itemHeight: 12,
+              textStyle: { fontSize: 12, color: "#374151" },
+              formatter: (name: string) => {
+                const item = data.find((d) => d.name === name);
+                if (item) {
+                  const percent = ((item.value / total) * 100).toFixed(1);
+                  return `${name} (${percent}%)`;
+                }
+                return name;
+              },
+            }
         : undefined,
       series: [
         {
           name: title || "Data",
           type: "pie",
           radius: donut ? ["45%", "70%"] : ["0%", "70%"],
-          center: showLegend ? ["35%", "50%"] : ["50%", "50%"],
+          center: showLegend
+            ? legendBottom
+              ? ["50%", "42%"]
+              : ["38%", "50%"]
+            : ["50%", "50%"],
           avoidLabelOverlap: true,
           itemStyle: {
             borderRadius: 6,
@@ -128,7 +161,7 @@ export default function PieChart({
       animationDuration: 1000,
       animationEasing: "cubicOut",
     };
-  }, [data, title, donut, showLegend, colors, total, valueFormatter]);
+  }, [data, title, donut, showLegend, colors, total, valueFormatter, isNarrow]);
 
   return <BaseChart option={option} height={height} />;
 }

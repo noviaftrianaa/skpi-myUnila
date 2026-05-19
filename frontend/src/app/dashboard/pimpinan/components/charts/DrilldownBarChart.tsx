@@ -60,12 +60,25 @@ export default function DrilldownBarChart({
     }
   };
 
+  // Auto switch ke horizontal kalau label kebanyakan (label panjang vertical numpuk).
+  // 12+ kategori atau prodi-level drill → horizontal lebih readable.
+  const effectiveHorizontal = horizontal || currentData.length > 12;
+
   const option = useMemo(() => {
     const names = currentData.map((d) => d.name);
     const values = currentData.map((d) => d.value);
     const hasChildren = currentData.some((d) => d.children && d.children.length > 0);
+    const count = names.length;
+
+    // Adaptive label: kalau banyak kategori, kurangi density labels.
+    const labelInterval = count <= 8 ? 0 : Math.ceil(count / 10);
+    // Adaptive height utk horizontal: setiap row ~28px supaya tidak numpuk.
+    const adaptiveHeight = effectiveHorizontal ? Math.max(height, count * 28 + 40) : height;
+    // Truncate name jadi 18 char + ellipsis (chart label vertical) supaya tidak overlap.
+    const truncate = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
     return {
+      __computedHeight: adaptiveHeight,
       tooltip: {
         trigger: "axis",
         axisPointer: {
@@ -87,34 +100,37 @@ export default function DrilldownBarChart({
         },
       },
       grid: {
-        left: horizontal ? "25%" : "3%",
-        right: "4%",
-        bottom: horizontal ? "3%" : "15%",
-        top: "10%",
+        left: effectiveHorizontal ? 140 : 50,
+        right: 30,
+        bottom: effectiveHorizontal ? 24 : 70,
+        top: 24,
         containLabel: true,
       },
-      xAxis: horizontal
+      xAxis: effectiveHorizontal
         ? {
             type: "value",
             axisLabel: {
               formatter: (value: number) => valueFormatter(value),
+              fontSize: 11,
             },
           }
         : {
             type: "category",
             data: names,
             axisLabel: {
-              rotate: 45,
-              interval: 0,
+              rotate: count > 6 ? 35 : 0,
+              interval: labelInterval,
               fontSize: 11,
+              formatter: (val: string) => truncate(val, 18),
             },
           },
-      yAxis: horizontal
+      yAxis: effectiveHorizontal
         ? {
             type: "category",
             data: names,
             axisLabel: {
               fontSize: 11,
+              formatter: (val: string) => truncate(val, 26),
             },
           }
         : {
@@ -130,16 +146,16 @@ export default function DrilldownBarChart({
           itemStyle: {
             color: {
               type: "linear",
-              x: horizontal ? 0 : 0,
-              y: horizontal ? 0 : 1,
-              x2: horizontal ? 1 : 0,
-              y2: horizontal ? 0 : 0,
+              x: 0,
+              y: effectiveHorizontal ? 0 : 1,
+              x2: effectiveHorizontal ? 1 : 0,
+              y2: 0,
               colorStops: [
                 { offset: 0, color: `${color}` },
                 { offset: 1, color: `${color}99` },
               ],
             },
-            borderRadius: horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0],
+            borderRadius: effectiveHorizontal ? [0, 4, 4, 0] : [4, 4, 0, 0],
           },
           emphasis: {
             itemStyle: {
@@ -148,8 +164,8 @@ export default function DrilldownBarChart({
             },
           },
           label: {
-            show: true,
-            position: horizontal ? "right" : "top",
+            show: count <= 20,
+            position: effectiveHorizontal ? "right" : "top",
             formatter: (params: { value: number }) => valueFormatter(params.value),
             fontSize: 10,
             color: "#374151",
@@ -160,7 +176,9 @@ export default function DrilldownBarChart({
       animationDuration: 800,
       animationEasing: "cubicOut",
     };
-  }, [currentData, color, valueFormatter, horizontal]);
+  }, [currentData, color, valueFormatter, effectiveHorizontal, height]);
+
+  const chartHeight = (option as { __computedHeight?: number }).__computedHeight ?? height;
 
   const levelLabels = ["Universitas", "Fakultas", "Program Studi"];
 
@@ -197,7 +215,7 @@ export default function DrilldownBarChart({
       {/* Chart */}
       <BaseChart
         option={option}
-        height={height}
+        height={chartHeight}
         onEvents={{
           click: handleDrilldown,
         }}

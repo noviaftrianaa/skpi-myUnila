@@ -88,8 +88,6 @@ export default function DashboardMahasiswaPage() {
   useRequireAuth();
 
   const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
-  const [selectedFakultas, setSelectedFakultas] = useState("");
-  const [selectedProdi, setSelectedProdi] = useState("");
   const scope = useRoleBasedScope();
   const [unitItems, setUnitItems] = useState<string[]>([]);
   const unitFilterStr = unitItems.join(",");
@@ -102,7 +100,7 @@ export default function DashboardMahasiswaPage() {
     }).then(setOrgFilters).catch(console.error);
   }, [scope.forcedFakultas, scope.forcedJurusan]);
 
-  const { fakultas, semester, activeSemesters, getProdiByFakultas } = useDashboardReference();
+  const { semester, activeSemesters } = useDashboardReference();
 
   useEffect(() => {
     if (activeSemesters.length > 0 && selectedSemesters.size === 0) {
@@ -115,8 +113,6 @@ export default function DashboardMahasiswaPage() {
     ENDPOINTS.DASHBOARD_PIMPINAN.MAHASISWA,
     {
       semester: semesterParam,
-      ...(selectedFakultas && { fakultas: selectedFakultas }),
-      ...(selectedProdi && { prodi: selectedProdi }),
       ...(unitFilterStr && { unit_filter: unitFilterStr }),
     }
   );
@@ -134,26 +130,27 @@ export default function DashboardMahasiswaPage() {
     else { toast("Server export belum tersedia"); }
   };
 
-  const handleFakultasChange = (value: string) => {
-    setSelectedFakultas(value);
-    setSelectedProdi("");
-  };
-
   const handleReset = () => {
     setSelectedSemesters(new Set(activeSemesters));
-    setSelectedFakultas("");
-    setSelectedProdi("");
     setUnitItems([]);
   };
 
-  const availableProdi = useMemo(
-    () => (selectedFakultas ? getProdiByFakultas(selectedFakultas) : []),
-    [selectedFakultas, getProdiByFakultas]
-  );
+  const unitSummary = useMemo(() => {
+    if (!unitItems.length) return "";
+    const counts = { fak: 0, jur: 0, prd: 0 } as Record<string, number>;
+    for (const item of unitItems) {
+      const [lvl] = item.split(":");
+      if (counts[lvl] != null) counts[lvl]++;
+    }
+    const parts: string[] = [];
+    if (counts.fak) parts.push(`${counts.fak} Fakultas`);
+    if (counts.jur) parts.push(`${counts.jur} Jurusan`);
+    if (counts.prd) parts.push(`${counts.prd} Prodi`);
+    return parts.join(" · ");
+  }, [unitItems]);
 
   const isFilterDirty =
-    !!selectedFakultas ||
-    !!selectedProdi ||
+    unitItems.length > 0 ||
     (activeSemesters.length > 0 && [...selectedSemesters].sort().join() !== [...activeSemesters].sort().join());
 
   // Summary active semester label for header
@@ -190,14 +187,9 @@ export default function DashboardMahasiswaPage() {
               <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
                 <FiActivity className="h-3 w-3" /> Periode: {activeSemesterLabel}
               </span>
-              {selectedFakultas && (
+              {unitSummary && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-200">
-                  Fakultas: {fakultas.find(f => f.id_fakultas === selectedFakultas)?.nm_fakultas ?? selectedFakultas.slice(0, 8)}
-                </span>
-              )}
-              {selectedProdi && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2.5 py-1 font-medium text-pink-800 dark:bg-pink-900/40 dark:text-pink-200">
-                  Prodi: {availableProdi.find(p => p.id_sms === selectedProdi)?.nm_prodi ?? selectedProdi.slice(0, 8)}
+                  Unit: {unitSummary}
                 </span>
               )}
             </div>
@@ -226,17 +218,22 @@ export default function DashboardMahasiswaPage() {
               )}
             </div>
           </div>
-          <div className="mb-3">
-            <UnitFilter
-              data={orgFilters}
-              value={unitItems}
-              onChange={(next) => setUnitItems(next)}
-              forcedFakultas={scope.forcedFakultas || undefined}
-              forcedJurusan={scope.forcedJurusan || undefined}
-              forcedProdi={scope.forcedProdi || undefined}
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* Unit (Fakultas / Jurusan / Prodi) — pakai UnitFilter saja, no duplicate dropdowns */}
+            <div className="lg:col-span-2">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                Unit Organisasi {unitSummary && <span className="font-normal text-slate-400">({unitSummary})</span>}
+              </label>
+              <UnitFilter
+                data={orgFilters}
+                value={unitItems}
+                onChange={(next) => setUnitItems(next)}
+                forcedFakultas={scope.forcedFakultas || undefined}
+                forcedJurusan={scope.forcedJurusan || undefined}
+                forcedProdi={scope.forcedProdi || undefined}
+              />
+            </div>
+
             {/* Semester (multi-select via checkbox list) */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -277,39 +274,6 @@ export default function DashboardMahasiswaPage() {
                   })}
                 </div>
               </details>
-            </div>
-
-            {/* Fakultas */}
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">Fakultas</label>
-              <select
-                value={selectedFakultas}
-                onChange={e => handleFakultasChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-              >
-                <option value="">Seluruh Fakultas</option>
-                {fakultas.map(f => (
-                  <option key={f.id_fakultas} value={f.id_fakultas}>{f.nm_fakultas}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Prodi (cascading) */}
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                Prodi {!selectedFakultas && <span className="font-normal text-slate-400">(pilih fakultas dulu)</span>}
-              </label>
-              <select
-                value={selectedProdi}
-                onChange={e => setSelectedProdi(e.target.value)}
-                disabled={!selectedFakultas}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:disabled:bg-slate-800"
-              >
-                <option value="">Seluruh Prodi</option>
-                {availableProdi.map(p => (
-                  <option key={p.id_sms} value={p.id_sms}>{p.nm_prodi}</option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -378,7 +342,7 @@ export default function DashboardMahasiswaPage() {
             </div>
 
             {/* ROW — Demografi & Profil Pendaftaran */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
               <SectionCard title="Distribusi Jenjang" icon={<FiBookOpen className="h-4 w-4" />}>
                 {data.distribusiJenjang?.length ? <PieChart data={data.distribusiJenjang} donut height={250} /> : <EmptyChartPlaceholder height={250} />}
               </SectionCard>
@@ -430,7 +394,7 @@ export default function DashboardMahasiswaPage() {
             </div>
 
             {/* ROW — Studi & Beasiswa */}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               <SectionCard title="Masa Studi Lulusan" subtitle="Distribusi lama studi" icon={<FiActivity className="h-4 w-4" />}>
                 {data.masaStudi?.length ? <PieChart data={data.masaStudi} donut height={260} colors={["#10b981", "#3b82f6", "#ef4444"]} /> : <EmptyChartPlaceholder height={260} />}
               </SectionCard>
