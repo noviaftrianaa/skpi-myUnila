@@ -116,12 +116,16 @@ create_service_route() {
 
     echo -e "${GREEN}  Setting up $name...${NC}"
 
-    # Create service
+    # Service timeouts: 180s (match nginx) — IKU monitoring + reporting endpoint
+    # bisa kena cache miss 30-90s. Default Kong 60s cap-nya terlalu pendek.
     local SERVICE_RESPONSE=$(curl -s -X POST "$KONG_ADMIN_URL/services" \
       -H "Content-Type: application/json" \
       -d "{
         \"name\": \"$name\",
-        \"url\": \"$url\"
+        \"url\": \"$url\",
+        \"connect_timeout\": 180000,
+        \"write_timeout\": 180000,
+        \"read_timeout\": 180000
       }")
 
     local SERVICE_ID=$(parse_json_id "$SERVICE_RESPONSE")
