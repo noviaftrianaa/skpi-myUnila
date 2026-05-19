@@ -573,30 +573,164 @@ class IkuRepository extends BaseRepository
     }
 
     /**
-     * Hitung IKU 2 keseluruhan
+     * SQL fragment: weighted point IKU 2 (0.0 – 1.2) per responden.
+     *
+     * Bobot mengikuti aturan PDDIKTI 2025 yg dipakai tracer-study-unila
+     * (single source of truth: /tmp/tracer-study-unila/app/Services/Tracer/IkuSqlFragment.php).
+     *
+     * Mapping field tracer-study → MyUnila pdut:
+     *   stat_wkt_tunggu = 1  →  hts.a_kerja_sblm_lulus = 1 (kerja/wirausaha sebelum lulus)
+     *   alumni.tanggal_lulus →  reg.tgl_keluar
+     *   TIMESTAMPDIFF(MONTH) →  DATEDIFF(MONTH, ..., ...)
+     *
+     * Note: ambang UMP pakai >= (sesuai referensi), sebelumnya > di getIKU2StatusBreakdown.
+     */
+    private function pointIkuCase(string $hts = 'hts', string $reg = 'reg', string $umr = 'umr'): string
+    {
+        $fb = self::UMP_FALLBACK;
+        $thr = "(1.2 * COALESCE({$umr}.besaran_umr, {$fb}))";
+        return "CASE
+            /* Bekerja (status_lulusan = 1) ------------------------------- */
+            WHEN {$hts}.status_lulusan = 1 AND {$hts}.a_kerja_sblm_lulus = 1
+                 AND {$hts}.income_per_bln >= {$thr} THEN 1.0
+            WHEN {$hts}.status_lulusan = 1 AND {$hts}.a_kerja_sblm_lulus = 1
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.0
+
+            WHEN {$hts}.status_lulusan = 1 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 6
+                 AND {$hts}.income_per_bln >= {$thr} THEN 1.0
+            WHEN {$hts}.status_lulusan = 1 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 12
+                 AND {$hts}.income_per_bln >= {$thr} THEN 0.8
+            WHEN {$hts}.status_lulusan = 1 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 12
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.6
+
+            /* Wirausaha sebelum lulus (status_lulusan = 2) --------------- */
+            WHEN {$hts}.status_lulusan = 2 AND {$hts}.a_kerja_sblm_lulus = 1
+                 AND {$hts}.income_per_bln >= {$thr} THEN 1.0
+            WHEN {$hts}.status_lulusan = 2 AND {$hts}.a_kerja_sblm_lulus = 1
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.6
+
+            /* Wirausaha founder (NULL treated as founder per ref) -------- */
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND COALESCE({$hts}.jenis_wirausaha, 'founder') = 'founder'
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 6
+                 AND {$hts}.income_per_bln >= {$thr} THEN 1.2
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND COALESCE({$hts}.jenis_wirausaha, 'founder') = 'founder'
+                 AND CAST({$hts}.wkt_tunggu AS INT) >= 6
+                 AND {$hts}.income_per_bln >= {$thr} THEN 1.0
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND COALESCE({$hts}.jenis_wirausaha, 'founder') = 'founder'
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 6
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.8
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND COALESCE({$hts}.jenis_wirausaha, 'founder') = 'founder'
+                 AND CAST({$hts}.wkt_tunggu AS INT) >= 6
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.6
+
+            /* Wirausaha freelancer --------------------------------------- */
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND {$hts}.jenis_wirausaha = 'freelancer'
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 6
+                 AND {$hts}.income_per_bln >= {$thr} THEN 0.5
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND {$hts}.jenis_wirausaha = 'freelancer'
+                 AND CAST({$hts}.wkt_tunggu AS INT) >= 6
+                 AND {$hts}.income_per_bln >= {$thr} THEN 0.4
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND {$hts}.jenis_wirausaha = 'freelancer'
+                 AND CAST({$hts}.wkt_tunggu AS INT) < 6
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.3
+            WHEN {$hts}.status_lulusan = 2 AND ISNULL({$hts}.a_kerja_sblm_lulus,0) = 0
+                 AND {$hts}.jenis_wirausaha = 'freelancer'
+                 AND CAST({$hts}.wkt_tunggu AS INT) >= 6
+                 AND {$hts}.income_per_bln < {$thr} THEN 0.2
+
+            /* Lanjut studi (status_lulusan = 3) — cap 12 bulan ---------- */
+            WHEN {$hts}.status_lulusan = 3
+                 AND {$hts}.wkt_masuk IS NOT NULL
+                 AND DATEDIFF(MONTH, {$reg}.tgl_keluar, {$hts}.wkt_masuk) < 12 THEN 0.6
+
+            ELSE 0
+        END";
+    }
+
+    /**
+     * Weighted score IKU 2: SUM(point_iku) + COUNT(*) responden.
+     * Match formula tracer-study-unila / PublicStatsController::iku2Aggregate.
+     * UMR join: id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1 (per referensi).
+     */
+    public function getIKU2WeightedScore(array $years, ?string $fakultas = null): object
+    {
+        $bindings = [self::UNILA_ID_SP];
+        $yearIn = $this->buildInClause($years, $bindings);
+        $fakFilter = $this->buildFakultasFilter($fakultas, $bindings, 'sms');
+        $pointCase = $this->pointIkuCase('hts', 'reg', 'umr');
+
+        $sql = "
+            SELECT
+                SUM({$pointCase}) AS sum_point,
+                COUNT(DISTINCT hts.id_reg_pd) AS total_responden
+            FROM tracer.hasil_tracer_study AS hts
+            INNER JOIN pdrd.reg_pd AS reg
+                ON reg.id_reg_pd = hts.id_reg_pd
+                AND reg.soft_delete = 0
+            INNER JOIN pdrd.sms AS sms
+                ON sms.id_sms = reg.id_sms
+                AND sms.soft_delete = 0
+                AND sms.stat_prodi = 'A'
+            INNER JOIN ref.jenjang_pendidikan AS jenjang
+                ON jenjang.id_jenj_didik = sms.id_jenj_didik
+                AND jenjang.expired_date IS NULL
+            LEFT JOIN tracer.umr_wilayah AS umr
+                ON umr.id_wil = hts.id_wil
+                AND umr.id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1
+                AND umr.soft_delete = 0
+            WHERE hts.soft_delete = 0
+                AND CAST(reg.id_sp AS VARCHAR(50)) = ?
+                AND reg.id_jns_keluar = '1'
+                AND reg.tgl_keluar IS NOT NULL
+                AND YEAR(reg.tgl_keluar) IN {$yearIn}
+                AND sms.id_jenj_didik IN (22, 23, 30)
+                {$fakFilter}
+        ";
+
+        $result = $this->selectOne($sql, $bindings);
+        return $result ?? (object) ['sum_point' => 0, 'total_responden' => 0];
+    }
+
+    /**
+     * Hitung IKU 2 keseluruhan.
+     *
+     * Formula CANONICAL (PDDIKTI 2025 / tracer-study-unila):
+     *   persentase = SUM(point_iku) / COUNT(responden) × 100
+     *
+     * Field point_iku weighted 0.0–1.2 by status_lulusan × wkt_tunggu × income/UMP × jenis_wirausaha.
+     * Sebelumnya MyUnila pakai produktif headcount / total_lulusan_pddikti → 1.8% (rumus salah).
      */
     public function calculateIKU2(array $years, ?string $fakultas = null): array
     {
-        $totalLulusan = $this->countTotalLulusanIKU2($years, $fakultas);
-        $totalResponden = $this->countTracerResponden($years, $fakultas);
-        $breakdown = $this->getIKU2StatusBreakdown($years, $fakultas);
+        $totalLulusan   = $this->countTotalLulusanIKU2($years, $fakultas);
+        $weighted       = $this->getIKU2WeightedScore($years, $fakultas);
+        $breakdown      = $this->getIKU2StatusBreakdown($years, $fakultas);
 
-        $bekerja = (int) $breakdown->bekerja;
-        $wiraswasta = (int) $breakdown->wiraswasta;
+        $sumPoint       = (float) ($weighted->sum_point ?? 0);
+        $totalResponden = (int)   ($weighted->total_responden ?? 0);
+
+        $bekerja      = (int) $breakdown->bekerja;
+        $wiraswasta   = (int) $breakdown->wiraswasta;
         $kuliahLanjut = (int) $breakdown->kuliah_lanjut;
         $belumBekerja = (int) $breakdown->belum_bekerja;
 
-        $produktif = $bekerja + $wiraswasta + $kuliahLanjut;
-        // Formula 1 (Permendikbud, basis total lulusan): denominator = total lulusan,
-        // lulusan yg TIDAK isi tracer di-treat sebagai unknown/belum kerja → angka rendah
-        // kalau response rate rendah.
-        $persentase = $totalLulusan > 0
-            ? round(($produktif / $totalLulusan) * 100, 2)
+        // Persentase utama: weighted point / responden (sesuai referensi).
+        $persentase = $totalResponden > 0
+            ? round(($sumPoint / $totalResponden) * 100, 2)
             : 0;
 
-        // Formula 2 (basis responden): denominator = total responden tracer,
-        // representasi % responden yg sudah produktif. Lebih relevan kalau response
-        // rate rendah. Ditampilkan sebagai secondary metric untuk transparency.
+        // Persentase responden produktif (un-weighted) sbg metrik sekunder.
+        $produktif = $bekerja + $wiraswasta + $kuliahLanjut;
         $persentaseResponden = $totalResponden > 0
             ? round(($produktif / $totalResponden) * 100, 2)
             : 0;
@@ -610,6 +744,7 @@ class IkuRepository extends BaseRepository
             'persentase_responden' => $persentaseResponden,
             'total_lulusan' => $totalLulusan,
             'total_responden' => $totalResponden,
+            'sum_point' => round($sumPoint, 2),
             'response_rate' => $responseRate,
             'bekerja' => $bekerja,
             'wiraswasta' => $wiraswasta,
@@ -624,24 +759,21 @@ class IkuRepository extends BaseRepository
     }
 
     /**
-     * Drilldown IKU 2: per fakultas
+     * Drilldown IKU 2: per fakultas — weighted formula.
+     * value = SUM(point_iku) / COUNT(responden) × 100 per fakultas.
      */
     public function getIKU2PerFakultas(array $years): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $yearIn1 = $this->buildInClause($years, $bindings);
-        $bindings[] = self::UNILA_ID_SP;
-        $yearIn2 = $this->buildInClause($years, $bindings);
+        $yearIn = $this->buildInClause($years, $bindings);
+        $pointCase = $this->pointIkuCase('hts', 'reg', 'umr');
 
         $sql = "
             SELECT
-                CONVERT(VARCHAR(36), fak.id_sms) AS id_fakultas,
-                fak.nm_lemb AS nama_fakultas,
-                COUNT(DISTINCT CASE
-                    WHEN hts.status_lulusan IN (1, 2, 3)
-                    THEN hts.id_reg_pd
-                END) AS produktif,
-                total_sub.total_lulusan
+                CONVERT(VARCHAR(36), uo.id_organisasi) AS id_fakultas,
+                uo.nm_lemb AS nama_fakultas,
+                SUM({$pointCase}) AS sum_point,
+                COUNT(DISTINCT hts.id_reg_pd) AS total_responden
             FROM tracer.hasil_tracer_study AS hts
             INNER JOIN pdrd.reg_pd AS reg
                 ON reg.id_reg_pd = hts.id_reg_pd
@@ -650,49 +782,33 @@ class IkuRepository extends BaseRepository
                 ON sms.id_sms = reg.id_sms
                 AND sms.soft_delete = 0
                 AND sms.stat_prodi = 'A'
-            INNER JOIN pdrd.sms AS fak
-                ON fak.id_sms = sms.id_fak_unila
-                AND fak.soft_delete = 0
+            INNER JOIN man_akses.unit_organisasi AS uo
+                ON uo.id_organisasi = sms.id_fak_unila
+                AND uo.soft_delete = 0
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            INNER JOIN (
-                SELECT
-                    sms2.id_fak_unila,
-                    COUNT(DISTINCT reg2.id_reg_pd) AS total_lulusan
-                FROM pdrd.reg_pd AS reg2
-                INNER JOIN pdrd.sms AS sms2
-                    ON sms2.id_sms = reg2.id_sms
-                    AND sms2.soft_delete = 0
-                    AND sms2.stat_prodi = 'A'
-                INNER JOIN ref.jenjang_pendidikan AS j2
-                    ON j2.id_jenj_didik = sms2.id_jenj_didik
-                    AND j2.expired_date IS NULL
-                WHERE reg2.soft_delete = 0
-                    AND reg2.id_jns_keluar = '1'
-                    AND reg2.tgl_keluar IS NOT NULL
-                    AND CAST(reg2.id_sp AS VARCHAR(50)) = ?
-                    AND YEAR(reg2.tgl_keluar) IN {$yearIn1}
-                    AND sms2.id_jenj_didik IN (22, 23, 30)
-                GROUP BY sms2.id_fak_unila
-            ) AS total_sub ON total_sub.id_fak_unila = sms.id_fak_unila
+            LEFT JOIN tracer.umr_wilayah AS umr
+                ON umr.id_wil = hts.id_wil
+                AND umr.id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1
+                AND umr.soft_delete = 0
             WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.id_jns_keluar = '1'
                 AND reg.tgl_keluar IS NOT NULL
-                AND YEAR(reg.tgl_keluar) IN {$yearIn2}
+                AND YEAR(reg.tgl_keluar) IN {$yearIn}
                 AND sms.id_jenj_didik IN (22, 23, 30)
-            GROUP BY fak.id_sms, fak.nm_lemb, total_sub.total_lulusan
-            HAVING total_sub.total_lulusan > 0
-            ORDER BY nama_fakultas
+            GROUP BY uo.id_organisasi, uo.nm_lemb
+            HAVING COUNT(DISTINCT hts.id_reg_pd) > 0
+            ORDER BY uo.nm_lemb
         ";
 
         $results = $this->select($sql, $bindings);
 
         return array_map(function ($row) {
-            $totalLulusan = (int) $row->total_lulusan;
-            $produktif = (int) $row->produktif;
-            $value = $totalLulusan > 0 ? round(($produktif / $totalLulusan) * 100, 2) : 0;
+            $sumPoint = (float) $row->sum_point;
+            $totalResponden = (int) $row->total_responden;
+            $value = $totalResponden > 0 ? round(($sumPoint / $totalResponden) * 100, 2) : 0;
 
             return [
                 'id' => $row->id_fakultas,
@@ -703,26 +819,21 @@ class IkuRepository extends BaseRepository
     }
 
     /**
-     * Drilldown IKU 2: per prodi dalam satu fakultas
+     * Drilldown IKU 2: per prodi dalam satu fakultas — weighted formula.
      */
     public function getIKU2PerProdi(array $years, string $idFakultas): array
     {
         $bindings = [self::UNILA_ID_SP];
-        $yearIn1 = $this->buildInClause($years, $bindings);
+        $yearIn = $this->buildInClause($years, $bindings);
         $bindings[] = $idFakultas;
-        $bindings[] = self::UNILA_ID_SP;
-        $yearIn2 = $this->buildInClause($years, $bindings);
-        $bindings[] = $idFakultas;
+        $pointCase = $this->pointIkuCase('hts', 'reg', 'umr');
 
         $sql = "
             SELECT
                 CONVERT(VARCHAR(36), sms.id_sms) AS id_prodi,
                 sms.nm_lemb AS nama_prodi,
-                COUNT(DISTINCT CASE
-                    WHEN hts.status_lulusan IN (1, 2, 3)
-                    THEN hts.id_reg_pd
-                END) AS produktif,
-                total_sub.total_lulusan
+                SUM({$pointCase}) AS sum_point,
+                COUNT(DISTINCT hts.id_reg_pd) AS total_responden
             FROM tracer.hasil_tracer_study AS hts
             INNER JOIN pdrd.reg_pd AS reg
                 ON reg.id_reg_pd = hts.id_reg_pd
@@ -734,45 +845,28 @@ class IkuRepository extends BaseRepository
             INNER JOIN ref.jenjang_pendidikan AS jenjang
                 ON jenjang.id_jenj_didik = sms.id_jenj_didik
                 AND jenjang.expired_date IS NULL
-            INNER JOIN (
-                SELECT
-                    reg2.id_sms,
-                    COUNT(DISTINCT reg2.id_reg_pd) AS total_lulusan
-                FROM pdrd.reg_pd AS reg2
-                INNER JOIN pdrd.sms AS sms2
-                    ON sms2.id_sms = reg2.id_sms
-                    AND sms2.soft_delete = 0
-                    AND sms2.stat_prodi = 'A'
-                INNER JOIN ref.jenjang_pendidikan AS j2
-                    ON j2.id_jenj_didik = sms2.id_jenj_didik
-                    AND j2.expired_date IS NULL
-                WHERE reg2.soft_delete = 0
-                    AND reg2.id_jns_keluar = '1'
-                    AND reg2.tgl_keluar IS NOT NULL
-                    AND CAST(reg2.id_sp AS VARCHAR(50)) = ?
-                    AND YEAR(reg2.tgl_keluar) IN {$yearIn1}
-                    AND sms2.id_jenj_didik IN (22, 23, 30)
-                    AND sms2.id_fak_unila = ?
-                GROUP BY reg2.id_sms
-            ) AS total_sub ON total_sub.id_sms = sms.id_sms
+            LEFT JOIN tracer.umr_wilayah AS umr
+                ON umr.id_wil = hts.id_wil
+                AND umr.id_tahun_anggaran = YEAR(reg.tgl_keluar) + 1
+                AND umr.soft_delete = 0
             WHERE hts.soft_delete = 0
                 AND CAST(reg.id_sp AS VARCHAR(50)) = ?
                 AND reg.id_jns_keluar = '1'
                 AND reg.tgl_keluar IS NOT NULL
-                AND YEAR(reg.tgl_keluar) IN {$yearIn2}
+                AND YEAR(reg.tgl_keluar) IN {$yearIn}
                 AND sms.id_jenj_didik IN (22, 23, 30)
                 AND sms.id_fak_unila = ?
-            GROUP BY sms.id_sms, sms.nm_lemb, total_sub.total_lulusan
-            HAVING total_sub.total_lulusan > 0
-            ORDER BY nama_prodi
+            GROUP BY sms.id_sms, sms.nm_lemb
+            HAVING COUNT(DISTINCT hts.id_reg_pd) > 0
+            ORDER BY sms.nm_lemb
         ";
 
         $results = $this->select($sql, $bindings);
 
         return array_map(function ($row) {
-            $totalLulusan = (int) $row->total_lulusan;
-            $produktif = (int) $row->produktif;
-            $value = $totalLulusan > 0 ? round(($produktif / $totalLulusan) * 100, 2) : 0;
+            $sumPoint = (float) $row->sum_point;
+            $totalResponden = (int) $row->total_responden;
+            $value = $totalResponden > 0 ? round(($sumPoint / $totalResponden) * 100, 2) : 0;
 
             return [
                 'id' => $row->id_prodi,
