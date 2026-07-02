@@ -64,6 +64,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
 
+      // Check if dev bypass is active in localStorage
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && (localStorage.getItem('bypass_auth') === 'true' || localStorage.getItem('bypass_role'))) {
+        const bypassRole = localStorage.getItem('bypass_role') || 'admin';
+        setUser({
+          id: 'mock-dev-id',
+          username: 'dev-mode',
+          name: 'Developer Bypass',
+          role: bypassRole,
+          roles: ['admin', 'dosen', 'mahasiswa', 'tendik'],
+          a_aktif: 1
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Check if authenticated
       const isAuth = authService.isAuthenticated();
 

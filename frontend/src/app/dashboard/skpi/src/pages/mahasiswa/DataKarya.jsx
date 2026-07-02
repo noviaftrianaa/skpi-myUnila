@@ -134,22 +134,6 @@ const SEED_DATA = [
     poin: null,
     certificate: null,
   },
-  {
-    id: 9,
-    title: "PKKMB UNIVERSITAS",
-    date: "2022-08-15",
-    location: "Universitas Lampung",
-    kategori: "PKKMB Universitas",
-    tingkatan: "Universitas",
-    jabatan: "Peserta",
-    tags: ["PKKMB Universitas", "Universitas"],
-    status: "Belum Diperiksa",
-    statusColor: "text-[#B45309] bg-[#FEF9C3]",
-    dot: "bg-[#F59E0B]",
-    poin: 0,
-    certificate: null,
-    isNew: true,
-  },
 ];
 
 // Helper: normalkan tag warna untuk item yang datang dari TambahKegiatan
@@ -193,15 +177,10 @@ function loadData() {
       if (parsed.length) dataToLoad = parsed;
     }
     
-    // Pastikan ada contoh "Karya" dan "PKKMB Universitas" untuk didemokan
+    // Pastikan ada contoh "Karya" untuk didemokan
     if (!dataToLoad.some(d => d.kategori === "Karya")) {
       const contohKarya = SEED_DATA.filter(d => d.kategori === "Karya");
       dataToLoad = [...dataToLoad, ...contohKarya];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToLoad));
-    }
-    if (!dataToLoad.some(d => d.kategori === "PKKMB Universitas")) {
-      const contohPkkmb = SEED_DATA.filter(d => d.kategori === "PKKMB Universitas");
-      dataToLoad = [...dataToLoad, ...contohPkkmb];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToLoad));
     }
     
@@ -225,7 +204,7 @@ function PreviewModal({ item, onClose }) {
           <div className="flex justify-between items-start mb-6">
             <div>
               <span className="text-[11px] font-bold tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full uppercase">
-                Detail Data SKPI
+                Detail Karya
               </span>
               <h2 className="text-2xl font-bold text-[#0F172A] mt-2 font-poppins">
                 {item.title}
@@ -269,7 +248,7 @@ function PreviewModal({ item, onClose }) {
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-blue-600">📋</span>
                 <h3 className="text-sm font-bold text-[#334155] font-poppins uppercase">
-                  INFORMASI KEGIATAN
+                  INFORMASI KARYA
                 </h3>
               </div>
               
@@ -307,32 +286,6 @@ function PreviewModal({ item, onClose }) {
                     <p className="text-sm font-semibold text-[#0F172A] mt-0.5 font-mono">{item.nomorSertifikat || "-"}</p>
                   </div>
                 )}
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Poin</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.poin || 0}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Status</p>
-                  <div className="mt-1 flex">
-                    {item.status === "Divalidasi" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] font-poppins">
-                        <CheckCircle size={14} /> {item.status}
-                      </span>
-                    ) : item.status === "Ditangguhkan" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] font-poppins">
-                        <Clock size={14} /> {item.status}
-                      </span>
-                    ) : item.status === "Ditolak" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] font-poppins">
-                        <XCircle size={14} /> {item.status}
-                      </span>
-                    ) : (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-gray-100 text-gray-600 font-poppins">
-                        <Clock size={14} /> {item.status === "Menunggu" ? "Belum Diperiksa" : (item.status || "Belum Diperiksa")}
-                      </span>
-                    )}
-                  </div>
-                </div>
               </div>
               
               {/* TAUTAN */}
@@ -362,7 +315,7 @@ function PreviewModal({ item, onClose }) {
           <div className="px-6 md:px-8 py-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white">
             <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
               <span className="text-blue-600">📄</span>
-              Lampiran Dokumen
+              Lampiran Pendukung
             </h3>
           </div>
 
@@ -401,7 +354,7 @@ function PreviewModal({ item, onClose }) {
                 if (item.certificate) {
                   const link = document.createElement("a");
                   link.href = item.certificate;
-                  link.download = "sertifikat.png";
+                  link.download = "Hanifa.png";
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
@@ -418,7 +371,7 @@ function PreviewModal({ item, onClose }) {
           <div className="flex-1 overflow-auto p-8 flex flex-col items-center gap-8 bg-[#F1F5F9]">
             {item.certificate ? (
               <div className="flex flex-col items-center gap-2">
-                <p className="text-sm font-semibold text-gray-600">Sertifikat</p>
+                <p className="text-sm font-semibold text-gray-600">Lampiran Pendukung</p>
                 {item.certificate.startsWith("data:application/pdf") ? (
                   <iframe src={item.certificate} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200 bg-white" />
                 ) : (
@@ -444,7 +397,7 @@ function PreviewModal({ item, onClose }) {
                 }}
               >
                 <span className="text-blue-200">📄</span>
-                <p>Gambar / PDF Sertifikat ({item.title})</p>
+                <p>Gambar / PDF Lampiran ({item.title})</p>
               </div>
             )}
             
@@ -748,10 +701,10 @@ function ModalConfirmDelete({ onConfirm, onClose }) {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-const KATEGORI_OPTS = ["Semua Kategori", "Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi"];
+const KATEGORI_OPTS = ["Semua Kategori", "Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi", "Karya"];
 const STATUS_OPTS   = ["Semua Status", "Divalidasi", "Ditangguhkan", "Menunggu", "Ditolak", "Diarsipkan"];
 
-export default function Pengajuan() {
+export default function DataKarya() {
   const [data, setData]                     = useState([]);
   const [search, setSearch]                 = useState("");
   const [kategori, setKategori]             = useState("Semua Kategori");
@@ -799,11 +752,10 @@ export default function Pengajuan() {
   const totalPoin = data.filter((d) => d.poin).reduce((a, b) => a + (b.poin || 0), 0);
 
   const filtered = data.filter((d) => {
-    if (d.kategori === "Karya") return false;
+    if (d.kategori !== "Karya") return false;
     const matchSearch = d.title.toLowerCase().includes(search.toLowerCase());
-    const matchKat    = kategori === "Semua Kategori" || d.tags?.some((t) => t === kategori);
     const matchSt     = status  === "Semua Status"   || d.status === status;
-    return matchSearch && matchKat && matchSt;
+    return matchSearch && matchSt;
   });
 
   return (
@@ -850,9 +802,9 @@ export default function Pengajuan() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A] font-poppins">Data SKPI</h1>
+            <h1 className="text-[26px] font-bold text-[#0F172A] font-poppins">Data Karya</h1>
             <p className="text-[14px] text-[#94A3B8] mt-1 font-poppins">
-              Lihat dan kelola semua aktivitas yang telah diajukan
+              Lihat dan kelola semua karya yang telah diajukan
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -863,25 +815,6 @@ export default function Pengajuan() {
             >
               <Plus size={16} /> Tambah Kegiatan
             </Link>
-            {/* TOMBOL UNDUH — berbeda tampilan tergantung status kunci */}
-            {isLocked ? (
-              <button
-                onClick={() => setDownloadModal(true)}
-                className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:shadow-lg active:scale-[0.98] font-poppins shadow-sm"
-                style={{ background: "linear-gradient(180deg, #16A34A 0%, #15803D 100%)" }}
-              >
-                <Download size={16} />
-                Unduh Transkrip Final 🔒
-              </button>
-            ) : (
-              <button
-                onClick={() => setDraftAlertModal(true)}
-                className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:opacity-90 font-poppins shadow-sm"
-                style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
-              >
-                <Download size={16} /> Unduh Transkrip SKPI
-              </button>
-            )}
           </div>
         </div>
 
@@ -909,24 +842,10 @@ export default function Pengajuan() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari Kegiatan..."
+                placeholder="Cari Karya..."
                 className="w-full pl-9 pr-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] focus:outline-none focus:border-[#1D4ED8] transition-colors font-poppins"
               />
             </div>
-            <select
-              value={kategori}
-              onChange={(e) => setKategori(e.target.value)}
-              className="px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#374151] focus:outline-none focus:border-[#1D4ED8] cursor-pointer font-poppins"
-            >
-              {KATEGORI_OPTS.map((o) => <option key={o}>{o}</option>)}
-            </select>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#374151] focus:outline-none focus:border-[#1D4ED8] cursor-pointer font-poppins"
-            >
-              {STATUS_OPTS.map((o) => <option key={o}>{o}</option>)}
-            </select>
           </div>
         </div>
 
@@ -981,31 +900,7 @@ export default function Pengajuan() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
-                        {item.status === "Divalidasi" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] font-poppins">
-                            <CheckCircle size={14} /> {item.status}
-                          </span>
-                        ) : item.status === "Ditangguhkan" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] font-poppins">
-                            <Clock size={14} /> {item.status}
-                          </span>
-                        ) : item.status === "Ditolak" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] font-poppins">
-                            <XCircle size={14} /> {item.status}
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-gray-100 text-gray-600 font-poppins">
-                            <Clock size={14} /> {item.status === "Menunggu" ? "Belum Diperiksa" : (item.status || "Belum Diperiksa")}
-                          </span>
-                        )}
-                        {item.poin > 0 && (
-                          <span className="text-[12px] text-[#64748B] font-poppins">
-                            Poin: <span className="text-[#1D4ED8] font-semibold">{item.poin}</span>
-                          </span>
-                        )}
                       </div>
-                    </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
@@ -1023,7 +918,7 @@ export default function Pengajuan() {
                       <button
                         onClick={() => { setSelectedItem(item); setPreview(true); }}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#EEF4FF] hover:text-[#1D4ED8] transition-colors"
-                        title="Pratinjau Sertifikat"
+                        title="Pratinjau Lampiran"
                       >
                         <Eye size={16} />
                       </button>
@@ -1046,15 +941,16 @@ export default function Pengajuan() {
                         </button>
                       )}
                       {/* Tampilkan tombol Hapus hanya jika boleh dihapus */}
-                      {canDelete && (
-                        <button 
+                        {canDelete && (
+                        <button
                           onClick={() => setDeleteItem(item)}
                           className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#FEE2E2] hover:text-[#DC2626] transition-colors"
                           title="Hapus Kegiatan"
                         >
                           <Trash2 size={16} />
                         </button>
-                      )}
+                        )}
+                      
                     </div>
                   </div>
 
@@ -1085,10 +981,7 @@ export default function Pengajuan() {
         {/* Footer */}
         <div className="flex justify-between items-center mt-4 px-1">
           <p className="text-[13px] text-[#94A3B8] font-poppins">
-            Menampilkan {filtered.length} dari {data.length} kegiatan
-          </p>
-          <p className="text-[13px] text-[#64748B] font-medium font-poppins">
-            Total Poin: <span className="text-[#1D4ED8] font-bold">{totalPoin}</span>
+            Menampilkan {filtered.length} dari {data.length} karya
           </p>
         </div>
       </main>

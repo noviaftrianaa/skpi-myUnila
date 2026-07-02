@@ -1,14 +1,9 @@
-// src/components/common/SidebarMahasiswa.jsx
+// src/components/common/SidebarDosen.jsx
 
 import { NavLink } from "react-router-dom";
 import {
-  Home,
-  Plus,
-  History,
-  Bell,
+  LayoutDashboard,
   LogOut,
-  FileText,
-  Palette
 } from "lucide-react";
 
 function MenuItem({ to, icon, label, end = false }) {
@@ -52,9 +47,9 @@ function MenuItem({ to, icon, label, end = false }) {
   );
 }
 
-export default function SidebarMahasiswa() {
+export default function SidebarDosen() {
   return (
-    <aside className="w-[250px] h-screen sticky top-0 bg-white border-r border-gray-100 shadow-sm flex flex-col justify-between overflow-y-auto">
+    <aside className="w-[250px] h-screen sticky top-0 bg-white border-r border-gray-100 shadow-sm flex flex-col justify-between shrink-0 overflow-y-auto">
       {/* TOP */}
       <div>
         {/* LOGO */}
@@ -62,33 +57,18 @@ export default function SidebarMahasiswa() {
           <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight font-poppins">
             SKPI
           </h1>
+          <p className="text-[11px] font-semibold text-gray-400 font-poppins mt-1 tracking-wider uppercase">
+            Peran: Dosen
+          </p>
         </div>
 
         {/* MENU */}
         <div className="px-3 space-y-2">
           <MenuItem
-            to="/dashboard"
+            to="/dosen/dashboard"
             end
-            icon={<Home size={20} />}
+            icon={<LayoutDashboard size={20} />}
             label="Beranda"
-          />
-
-          <MenuItem
-            to="/pengajuan"
-            icon={<FileText size={20} />}
-            label="Data SKPI"
-          />
-
-          <MenuItem
-            to="/data-karya"
-            icon={<Palette size={20} />}
-            label="Data Karya"
-          />
-
-          <MenuItem
-            to="/notifikasi"
-            icon={<Bell size={20} />}
-            label="Pemberitahuan"
           />
         </div>
       </div>

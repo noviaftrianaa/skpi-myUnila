@@ -73,6 +73,33 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
       setIsLoadingContext(true);
       setError(null);
 
+      // Check if dev bypass is active in localStorage
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('bypass_auth') === 'true') {
+        const mockActiveContext = {
+          id_role_pengguna: 'mock-role-id',
+          id_peran: 'mock-peran-id',
+          nm_peran: 'admin',
+          id_unit_organisasi: 'mock-unit-id',
+          nama_unit: 'Unit Developer Bypass',
+          a_aktif: 1,
+        };
+        setRoles([
+          {
+            id_role_pengguna: 'mock-role-id',
+            id_peran: 'mock-peran-id',
+            nm_peran: 'admin',
+            id_unit_organisasi: 'mock-unit-id',
+            nama_unit: 'Unit Developer Bypass',
+            approval_peran: 1,
+            a_aktif: 1,
+          }
+        ]);
+        setActiveContext(mockActiveContext);
+        try { localStorage.setItem('myunila_active_context', JSON.stringify(mockActiveContext)); } catch {}
+        setIsLoadingContext(false);
+        return;
+      }
+
       const data = await userContextService.getUserContext();
       setRoles(data.roles);
       setActiveContext(data.active_context);
@@ -106,6 +133,23 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
     try {
       setIsLoadingPortal(true);
       setError(null);
+
+      // Check if dev bypass is active in localStorage
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('bypass_auth') === 'true') {
+        setPortalData({
+          context: {
+            id_role_pengguna: 'mock-role-id',
+            id_peran: 'mock-peran-id',
+            nm_peran: 'admin',
+            id_unit_organisasi: 'mock-unit-id',
+            nama_unit: 'Unit Developer Bypass',
+            a_aktif: 1,
+          },
+          apps: []
+        });
+        setIsLoadingPortal(false);
+        return;
+      }
 
       const data = await userContextService.getPortalApps();
       setPortalData(data);

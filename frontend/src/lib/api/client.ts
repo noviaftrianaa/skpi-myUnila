@@ -24,12 +24,19 @@ export const TOKEN_KEYS = {
   USER: 'auth_user',
 } as const;
 
+// In-memory fallback storage in case localStorage is blocked by the browser
+const memoryStorage: Record<string, string> = {};
+
 /**
  * Get token from storage (client-side only)
  */
 export const getToken = (key: keyof typeof TOKEN_KEYS): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEYS[key]);
+  try {
+    return localStorage.getItem(TOKEN_KEYS[key]) || memoryStorage[TOKEN_KEYS[key]] || null;
+  } catch (error) {
+    return memoryStorage[TOKEN_KEYS[key]] || null;
+  }
 };
 
 /**
@@ -37,10 +44,14 @@ export const getToken = (key: keyof typeof TOKEN_KEYS): string | null => {
  */
 const setCookie = (name: string, value: string, days: number = 7): void => {
   if (typeof window === 'undefined') return;
-  const expires = new Date();
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  // Set cookie with path=/ so it's accessible by all services on localhost
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  try {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    // Set cookie with path=/ so it's accessible by all services on localhost
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  } catch (error) {
+    console.error('Failed to set cookie:', error);
+  }
 };
 
 /**
@@ -48,7 +59,11 @@ const setCookie = (name: string, value: string, days: number = 7): void => {
  */
 const removeCookie = (name: string): void => {
   if (typeof window === 'undefined') return;
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  try {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  } catch (error) {
+    console.error('Failed to remove cookie:', error);
+  }
 };
 
 /**
@@ -57,7 +72,12 @@ const removeCookie = (name: string): void => {
  */
 export const setToken = (key: keyof typeof TOKEN_KEYS, value: string): void => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(TOKEN_KEYS[key], value);
+  try {
+    localStorage.setItem(TOKEN_KEYS[key], value);
+  } catch (error) {
+    console.warn('Failed to write to localStorage, using memory storage:', error);
+  }
+  memoryStorage[TOKEN_KEYS[key]] = value;
 
   // Also save access token to cookie for browser-based docs access
   if (key === 'ACCESS') {
@@ -70,7 +90,12 @@ export const setToken = (key: keyof typeof TOKEN_KEYS, value: string): void => {
  */
 export const removeToken = (key: keyof typeof TOKEN_KEYS): void => {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(TOKEN_KEYS[key]);
+  try {
+    localStorage.removeItem(TOKEN_KEYS[key]);
+  } catch (error) {
+    console.warn('Failed to remove from localStorage:', error);
+  }
+  delete memoryStorage[TOKEN_KEYS[key]];
 };
 
 /**
@@ -78,7 +103,12 @@ export const removeToken = (key: keyof typeof TOKEN_KEYS): void => {
  */
 export const clearTokens = (): void => {
   if (typeof window === 'undefined') return;
-  Object.values(TOKEN_KEYS).forEach(key => localStorage.removeItem(key));
+  Object.values(TOKEN_KEYS).forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {}
+    delete memoryStorage[key];
+  });
   // Also clear the access_token cookie
   removeCookie('access_token');
 };

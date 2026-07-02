@@ -101,10 +101,15 @@ const nextConfig: NextConfig = {
   // di-dev/local kerja, di prod/staging override via env.
   async rewrites() {
     const minioUpstream = process.env.MINIO_STORAGE_URL || 'http://192.168.120.47:9000';
+    const skpiUpstream = process.env.SKPI_URL || 'http://127.0.0.1:5173';
     return [
       {
         source: '/myunila-storage/:path*',
         destination: `${minioUpstream}/myunila-storage/:path*`,
+      },
+      {
+        source: '/dashboard/skpi/:path*',
+        destination: `${skpiUpstream}/dashboard/skpi/:path*`,
       },
     ];
   },

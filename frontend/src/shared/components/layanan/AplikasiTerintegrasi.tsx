@@ -47,7 +47,7 @@ export default function AplikasiTerintegrasi() {
     { id: 5, nama: "Kampus Berdampak / MBKM", deskripsi: "Platform MBKM untuk pengembangan kompetensi mahasiswa", icon: "🚀", url: "#", kategori: "Akademik", gradient: "from-orange-500 to-orange-600", iconBg: "bg-orange-100" },
     { id: 6, nama: "E-KKN", deskripsi: "Sistem Kuliah Kerja Nyata online", icon: "🏘️", url: "#", kategori: "Akademik", gradient: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-100" },
     { id: 7, nama: "Perpustakaan Digital", deskripsi: "Koleksi digital buku dan referensi ilmiah", icon: "📚", url: "#", kategori: "Akademik", gradient: "from-cyan-500 to-cyan-600", iconBg: "bg-cyan-100" },
-    { id: 8, nama: "SKPI", deskripsi: "Surat Keterangan Pendamping Ijazah", icon: "📜", url: "#", kategori: "Akademik", gradient: "from-amber-500 to-amber-600", iconBg: "bg-amber-100" },
+    { id: 8, nama: "SKPI", deskripsi: "Surat Keterangan Pendamping Ijazah", icon: "📜", url: "/dashboard/skpi/admin/validasi", kategori: "Akademik", gradient: "from-amber-500 to-amber-600", iconBg: "bg-amber-100" },
     { id: 9, nama: "SI Prestasi", deskripsi: "Sistem Informasi Prestasi Mahasiswa", icon: "🏆", url: "#", kategori: "Akademik", gradient: "from-yellow-500 to-yellow-600", iconBg: "bg-yellow-100" },
     { id: 10, nama: "Asesmen Online BK", deskripsi: "Asesmen online bimbingan konseling", icon: "📋", url: "#", kategori: "Akademik", gradient: "from-pink-500 to-pink-600", iconBg: "bg-pink-100" },
     { id: 11, nama: "Tracer Study", deskripsi: "Sistem pelacakan alumni dan analisis kebekerjaan", icon: "🎯", url: "#", kategori: "Akademik", gradient: "from-rose-500 to-rose-600", iconBg: "bg-rose-100" },

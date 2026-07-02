@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   FileText,
   LogOut,
+  Palette,
 } from "lucide-react";
 
 function MenuItem({ to, icon, label }) {
@@ -49,7 +50,7 @@ function MenuItem({ to, icon, label }) {
 
 export default function SidebarAdmin() {
   return (
-    <aside className="w-[250px] min-h-screen bg-white border-r border-gray-100 shadow-sm flex flex-col justify-between">
+    <aside className="w-[250px] h-screen sticky top-0 bg-white border-r border-gray-100 shadow-sm flex flex-col justify-between overflow-y-auto">
       {/* TOP */}
       <div>
         {/* LOGO */}
@@ -72,22 +73,15 @@ export default function SidebarAdmin() {
             icon={<FileText size={20} />}
             label="Validasi SKPI"
           />
+
+          <MenuItem
+            to="/admin/data-karya"
+            icon={<Palette size={20} />}
+            label="Data Karya"
+          />
         </div>
       </div>
 
-      {/* LOGOUT */}
-      <div className="px-3 pb-5">
-        <button
-          className="
-            w-full flex items-center gap-3 px-4 py-3
-            rounded-2xl text-red-500 font-medium
-            hover:bg-red-50 transition-all duration-200
-          "
-        >
-          <LogOut size={20} />
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }

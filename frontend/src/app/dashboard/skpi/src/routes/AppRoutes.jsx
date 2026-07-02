@@ -16,6 +16,11 @@ import Notifikasi from "./pages/mahasiswa/Notifikasi";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Validasi from "./pages/admin/Validasi";
 
+/* =========================
+   DOSEN
+========================= */
+import DashboardDosen from "./pages/dosen/DashboardDosen";
+
 export default function App() {
   return (
     <Routes>
@@ -59,6 +64,14 @@ export default function App() {
       <Route
         path="/admin/validasi"
         element={<Validasi />}
+      />
+
+      {/* =========================
+          DOSEN
+      ========================= */}
+      <Route
+        path="/dosen/dashboard"
+        element={<DashboardDosen />}
       />
     </Routes>
   );

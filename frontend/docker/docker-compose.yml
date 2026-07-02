@@ -1,11 +1,9 @@
-version: "3.8"
-
 services:
   # Frontend Next.js Application
   frontend:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: my-unila-frontend
     restart: unless-stopped
     ports:
@@ -54,11 +52,28 @@ services:
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
       - NEXT_PUBLIC_API_TIMEOUT=${NEXT_PUBLIC_API_TIMEOUT:-30000}
       - WATCHPACK_POLLING=true
+      - SKPI_URL=http://skpi-dev:5173
     command: sh -c "npm install && npm run dev"
-    # networks:
-    #   - my-unila-network
     profiles:
       - dev
-# networks:
-#   my-unila-network:
-#     driver: bridge
+
+  # SKPI Development Mode (Vite)
+  skpi-dev:
+    image: node:20-alpine
+    container_name: my-unila-skpi-dev
+    working_dir: /app/src/app/dashboard/skpi
+    restart: unless-stopped
+    # ports:
+    #  - "3001:5173"
+    volumes:
+      - ..:/app
+    environment:
+      - TZ=Asia/Jakarta
+      - WATCHPACK_POLLING=true
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    profiles:
+      - dev
+
+networks:
+  my-unila-network:
+    driver: bridge

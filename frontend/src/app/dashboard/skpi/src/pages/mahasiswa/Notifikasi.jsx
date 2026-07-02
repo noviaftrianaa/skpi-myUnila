@@ -95,7 +95,7 @@ export default function Notifikasi() {
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A]">Notifikasi</h1>
+            <h1 className="text-[26px] font-bold text-[#0F172A]">Pemberitahuan</h1>
             <p className="text-[14px] text-[#94A3B8] mt-1">Pantau status validasi datamu</p>
           </div>
           <button
@@ -141,7 +141,7 @@ export default function Notifikasi() {
           <div className="divide-y divide-[#F1F5F9]">
             {displayed.length === 0 ? (
               <div className="py-16 text-center text-[#94A3B8] text-[14px]">
-                Tidak ada notifikasi
+                Tidak ada pemberitahuan
               </div>
             ) : (
               displayed.map((n) => (

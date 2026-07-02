@@ -1,15 +1,29 @@
 // src/pages/mahasiswa/TambahKegiatan.jsx
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Award, Upload, Check, X, ChevronDown } from "lucide-react";
+import { Award, Upload, Check, X, ChevronDown, Lock, Plus, Trash2, CheckCircle, AlertCircle } from "lucide-react";
 import Sidebar from "../../components/common/SidebarMahasiswa";
 
 const STORAGE_KEY = "skpi_kegiatan";
 
-const KATEGORI  = ["Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi"];
+const KATEGORI  = ["Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi", "Karya", "PKKMB Universitas"];
 const TAHUN     = ["2025", "2024", "2023", "2022", "2021"];
 const JABATAN   = ["Peserta", "Ketua", "Anggota", "Panitia", "Pembicara", "Juri"];
-const TINGKATAN = ["Internasional", "Nasional", "Regional", "Provinsi", "Fakultas", "Jurusan"];
+const TINGKATAN = ["Internasional", "Nasional", "Regional", "Provinsi", "Universitas", "Fakultas", "Jurusan"];
+const DOSEN_PEMBIMBING = [
+  "Dr. Eng. Admi Syarif",
+  "Prof. Dr. Ir. Suharno, M.S.",
+  "Ahmad Zakaria, Ph.D.",
+  "Dr. Ryan Randy Suryono"
+];
+
+const getJabatanOptions = (kategori) => {
+  if (kategori === "Lomba") return ["Peserta", "Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2", "Harapan 3"];
+  if (kategori === "Organisasi" || kategori === "Kepanitiaan") return ["Ketua", "Wakil Ketua", "Sekretaris", "Wakil Sekretaris", "Bendahara", "Wakil Bendahara", "Anggota", "Ketua Bidang / Koordinator / Departemen"];
+  if (kategori === "Pelatihan" || kategori === "Seminar") return ["Narasumber / Pembicara", "Moderator", "Peserta"];
+  if (kategori === "Publikasi") return ["Ketua", "Anggota"];
+  return JABATAN;
+};
 
 function SelectField({ label, options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -71,15 +85,21 @@ function InputField({ label, placeholder, value, onChange, type = "text" }) {
 const EMPTY_FORM = {
   judul: "", kategori: "", tahun: "", jabatan: "",
   tingkatan: "", nomorSertifikat: "", tanggalSertifikat: "", tautanSertifikat: "",
+  pembimbing: "", bentukKarya: "",
 };
 
 export default function TambahKegiatan() {
   const navigate = useNavigate();
   const [form, setForm]       = useState(EMPTY_FORM);
   const [file, setFile]       = useState(null);
+  const [skFile, setSkFile]   = useState(null);
+  const [anggotaTim, setAnggotaTim] = useState([{ nama: "", npm: "" }]);
   const [dragOver, setDragOver] = useState(false);
+  const [skDragOver, setSkDragOver] = useState(false);
   const [error, setError]     = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const fileRef = useRef();
+  const skFileRef = useRef();
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -90,10 +110,27 @@ export default function TambahKegiatan() {
     if (f) setFile(f);
   };
 
+  const handleSkDrop = (e) => {
+    e.preventDefault();
+    setSkDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) setSkFile(f);
+  };
+
   const handleReset = () => {
     setForm(EMPTY_FORM);
     setFile(null);
+    setSkFile(null);
+    setAnggotaTim([{ nama: "", npm: "" }]);
     setError("");
+  };
+
+  const handleAddAnggota = () => setAnggotaTim([...anggotaTim, { nama: "", npm: "" }]);
+  const handleRemoveAnggota = (index) => setAnggotaTim(anggotaTim.filter((_, i) => i !== index));
+  const handleChangeAnggota = (index, field, value) => {
+    const newAnggota = [...anggotaTim];
+    newAnggota[index][field] = value;
+    setAnggotaTim(newAnggota);
   };
 
   // Konversi File ke base64 string
@@ -111,19 +148,27 @@ export default function TambahKegiatan() {
     if (!form.tahun)        { setError("Tahun wajib dipilih."); return; }
     setError("");
 
-    // Konversi file sertifikat ke base64 jika ada
+    // Konversi file sertifikat ke base64 jika ada (karena ini prototype, kita batasi pembacaannya atau pakai dummy agar tidak quota exceeded)
     let certificateBase64 = null;
+    let skBase64 = null;
     if (file) {
-      try {
-        certificateBase64 = await fileToBase64(file);
-      } catch {
-        setError("Gagal membaca file. Coba lagi.");
-        return;
-      }
+      certificateBase64 = "/Sertifikat.png"; // Gunakan dummy gambar agar tidak memakan localStorage
+    }
+    if (skFile && form.kategori === "Lomba") {
+      skBase64 = "/Sertifikat.png";
     }
 
     // Baca data yang sudah ada dari localStorage
-    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let existing = [];
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        existing = Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (e) {
+      existing = [];
+    }
 
     const newItem = {
       id:         Date.now(),
@@ -135,23 +180,43 @@ export default function TambahKegiatan() {
       jabatan:    form.jabatan,
       nomorSertifikat:  form.nomorSertifikat,
       tautanSertifikat: form.tautanSertifikat,
-      tags:        [form.kategori, form.tingkatan].filter(Boolean),
-      status:     "Menunggu",
-      statusColor: "text-[#B45309] bg-[#FEF9C3]",
-      dot:        "bg-[#F59E0B]",
+      pembimbing: form.kategori === "Lomba" ? form.pembimbing : "",
+      anggotaTim: form.kategori === "Lomba" ? anggotaTim.filter(a => a.nama.trim() || a.npm.trim()) : [],
+      skFile:     skBase64,
+      tags:        form.kategori === "Karya" ? ["Karya", form.bentukKarya].filter(Boolean) : [form.kategori, form.tingkatan].filter(Boolean),
+      status:     form.kategori === "Karya" ? "Diarsipkan" : "Belum Diperiksa",
+      statusColor: form.kategori === "Karya" ? "text-slate-600 bg-slate-100 border border-slate-200" : "text-[#B45309] bg-[#FEF9C3]",
+      dot:        form.kategori === "Karya" ? "bg-slate-400" : "bg-[#F59E0B]",
       poin:       null,
       certificate: certificateBase64, // null jika tidak ada file
       isNew:      true,
+      createdAt:  Date.now(),
     };
 
     // Simpan ke localStorage — item terbaru di depan
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([newItem, ...existing]));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([newItem, ...existing]));
+    } catch (err) {
+      setError("Gagal menyimpan data. File mungkin terlalu besar.");
+      return;
+    }
 
-    handleReset();
-
-    // Langsung arahkan ke halaman riwayat pengajuan
-    navigate("/pengajuan");
+    setSuccessMsg("Kegiatan berhasil ditambahkan!");
+    
+    // Tunggu sebentar agar pesan sukses terlihat
+    setTimeout(() => {
+      setSuccessMsg("");
+      handleReset();
+      // Langsung arahkan ke halaman riwayat pengajuan atau data karya
+      if (form.kategori === "Karya") {
+        navigate("/data-karya");
+      } else {
+        navigate("/pengajuan");
+      }
+    }, 1500);
   };
+
+  const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
 
   return (
     <div className="flex bg-[#F4F6FB] min-h-screen">
@@ -162,12 +227,46 @@ export default function TambahKegiatan() {
           Tambahkan Kegiatan
         </h1>
 
-        <div className="bg-white rounded-2xl shadow-sm p-8 max-w-4xl">
+        {isLocked ? (
+          <div className="bg-white rounded-2xl shadow-sm p-12 max-w-4xl text-center flex flex-col items-center border border-gray-100">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 mb-6 shadow-sm border border-red-100">
+              <Lock size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-[#0F172A] font-poppins">Akses Ditutup: SKPI Terkunci</h2>
+            <p className="text-sm text-gray-500 mt-3 max-w-md mx-auto leading-relaxed font-poppins">
+              Transkrip SKPI final Anda telah resmi diterbitkan oleh Program Studi. Anda tidak diperkenankan lagi untuk menambahkan data kegiatan baru ke dalam lembar SKPI Anda.
+            </p>
+            <div className="flex gap-4 mt-8">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-[#374151] rounded-xl text-sm font-semibold transition active:scale-[0.98] font-poppins"
+              >
+                Kembali ke Beranda
+              </button>
+              <button
+                onClick={() => navigate("/pengajuan")}
+                className="px-6 py-3 bg-[#0B5EA8] hover:bg-[#073864] text-white rounded-xl text-sm font-semibold shadow-sm transition active:scale-[0.98] font-poppins"
+              >
+                Lihat Riwayat &amp; Transkrip
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm p-8 max-w-4xl">
 
           {/* Error */}
           {error && (
-            <div className="mb-5 px-4 py-3 bg-[#FEE2E2] text-[#DC2626] rounded-xl text-[13px] font-medium font-poppins">
+            <div className="mb-5 px-4 py-3 bg-[#FEE2E2] text-[#DC2626] rounded-xl text-[13px] font-medium font-poppins flex items-center gap-2">
+              <AlertCircle size={16} />
               {error}
+            </div>
+          )}
+
+          {/* Success */}
+          {successMsg && (
+            <div className="mb-5 px-4 py-3 bg-[#DCFCE7] text-[#16A34A] rounded-xl text-[13px] font-medium font-poppins flex items-center gap-2">
+              <CheckCircle size={16} />
+              {successMsg}
             </div>
           )}
 
@@ -191,28 +290,85 @@ export default function TambahKegiatan() {
           {/* Kategori + Tahun */}
           <div className="grid grid-cols-2 gap-4 mb-5">
             <SelectField label="Kategori"  options={KATEGORI} value={form.kategori}  onChange={set("kategori")}  placeholder="Pilih Kategori" />
-            <SelectField label="Tahun"     options={TAHUN}    value={form.tahun}     onChange={set("tahun")}     placeholder="Pilih Tahun" />
+            <div>
+              <label className="block text-[13px] font-medium text-[#374151] mb-1.5 font-poppins">Tahun</label>
+              <input
+                type="text"
+                maxLength={4}
+                value={form.tahun}
+                onChange={(e) => setForm({ ...form, tahun: e.target.value.replace(/\D/g, '') })}
+                placeholder="Pilih Tahun"
+                className="w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#1D4ED8] focus:bg-white transition-colors font-poppins"
+              />
+            </div>
           </div>
 
-          {/* Jabatan + Tingkatan */}
-          <div className="grid grid-cols-2 gap-4 mb-5">
-            <SelectField label="Jabatan"   options={JABATAN}   value={form.jabatan}   onChange={set("jabatan")}   placeholder="Pilih Jabatan" />
-            <SelectField label="Tingkatan" options={TINGKATAN} value={form.tingkatan} onChange={set("tingkatan")} placeholder="Pilih Tingkatan" />
-          </div>
+          {/* Jabatan + Tingkatan ATAU Bentuk Karya */}
+          {form.kategori === "Karya" ? (
+            <div className="mb-5">
+              <SelectField label="Bentuk Karya" options={["Aplikasi / Software", "Karya Tulis / Jurnal", "Karya Seni / Desain", "Proyek Multimedia", "Lainnya"]} value={form.bentukKarya} onChange={set("bentukKarya")} placeholder="Pilih Bentuk Karya" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <SelectField label={form.kategori === "Lomba" ? "Prestasi / Pencapaian" : "Jabatan"} options={getJabatanOptions(form.kategori)} value={form.jabatan} onChange={set("jabatan")} placeholder={form.kategori === "Lomba" ? "Pilih Prestasi" : "Pilih Jabatan"} />
+              <SelectField label="Tingkatan" options={TINGKATAN} value={form.tingkatan} onChange={set("tingkatan")} placeholder="Pilih Tingkatan" />
+            </div>
+          )}
 
-          {/* Nomor Sertifikat */}
+          {/* Dosen Pembimbing (Hanya muncul jika kategori Lomba) */}
+          {/* Dosen Pembimbing & Tim (Hanya muncul jika kategori Lomba) */}
+          {form.kategori === "Lomba" && (
+            <>
+              <div className="mb-5">
+                <SelectField label="Dosen Pembimbing Lomba (Opsional)" options={DOSEN_PEMBIMBING} value={form.pembimbing} onChange={set("pembimbing")} placeholder="Pilih Dosen Pembimbing" />
+              </div>
+              
+              {/* Anggota Tim */}
+              <div className="mb-5">
+                <label className="block text-[13px] font-medium text-[#374151] mb-2 font-poppins">Anggota Tim (Opsional)</label>
+                {anggotaTim.map((anggota, index) => (
+                  <div key={index} className="flex items-center gap-3 mb-2">
+                    <input type="text" placeholder="Nama" value={anggota.nama} onChange={(e) => handleChangeAnggota(index, "nama", e.target.value)} className="w-1/2 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#1D4ED8] focus:bg-white transition-colors font-poppins" />
+                    <input type="text" placeholder="NPM" value={anggota.npm} onChange={(e) => handleChangeAnggota(index, "npm", e.target.value)} className="w-1/3 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#1D4ED8] focus:bg-white transition-colors font-poppins" />
+                    {anggotaTim.length > 1 && (
+                      <button type="button" onClick={() => handleRemoveAnggota(index)} className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition">
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={handleAddAnggota} className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#1D4ED8] hover:text-[#1E40AF] transition font-poppins">
+                  <Plus size={16} /> Tambah Anggota
+                </button>
+              </div>
+
+              {/* Upload SK */}
+              <div className="mb-8">
+                <label className="block text-[13px] font-medium text-[#374151] mb-1.5 font-poppins">Unggah SK Pembimbing / Tim</label>
+                <div onClick={() => skFileRef.current.click()} onDrop={handleSkDrop} onDragOver={(e) => { e.preventDefault(); setSkDragOver(true); }} onDragLeave={() => setSkDragOver(false)} className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${skDragOver ? "border-[#1D4ED8] bg-[#EEF4FF]" : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#1D4ED8]"}`}>
+                  <Upload size={20} className="text-[#64748B] mb-2" />
+                  {skFile ? <p className="text-[13px] font-medium text-[#1D4ED8] font-poppins">{skFile.name}</p> : <p className="text-[13px] text-[#64748B] font-poppins">Klik atau tarik file SK ke sini</p>}
+                </div>
+                <input ref={skFileRef} type="file" className="hidden" accept=".png,.jpg,.jpeg,.pdf" onChange={(e) => setSkFile(e.target.files[0])} />
+              </div>
+            </>
+          )}
+
+          {/* Nomor Sertifikat (Sembunyikan untuk Karya) */}
+          {form.kategori !== "Karya" && (
+            <div className="mb-5">
+              <InputField label="Nomor Sertifikat" placeholder="Masukkan nomor sertifikat" value={form.nomorSertifikat} onChange={set("nomorSertifikat")} />
+            </div>
+          )}
+
+          {/* Tanggal Sertifikat / Tanggal Karya */}
           <div className="mb-5">
-            <InputField label="Nomor Sertifikat" placeholder="Masukkan nomor sertifikat" value={form.nomorSertifikat} onChange={set("nomorSertifikat")} />
+            <InputField label={form.kategori === "Karya" ? "Tanggal Karya / Pembuatan" : "Tanggal Sertifikat"} placeholder="" value={form.tanggalSertifikat} onChange={set("tanggalSertifikat")} type="date" />
           </div>
 
-          {/* Tanggal Sertifikat */}
+          {/* Tautan Sertifikat / Karya */}
           <div className="mb-5">
-            <InputField label="Tanggal Sertifikat" placeholder="" value={form.tanggalSertifikat} onChange={set("tanggalSertifikat")} type="date" />
-          </div>
-
-          {/* Tautan Sertifikat */}
-          <div className="mb-5">
-            <InputField label="Tautan Sertifikat" placeholder="Masukkan tautan sertifikat" value={form.tautanSertifikat} onChange={set("tautanSertifikat")} />
+            <InputField label={form.kategori === "Karya" ? "Tautan Karya / Portofolio" : "Tautan Sertifikat"} placeholder={form.kategori === "Karya" ? "Masukkan tautan portofolio / GDrive" : "Masukkan tautan sertifikat"} value={form.tautanSertifikat} onChange={set("tautanSertifikat")} />
           </div>
 
           {/* Upload */}
@@ -257,19 +413,23 @@ export default function TambahKegiatan() {
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={handleSubmit}
-              className="flex items-center justify-center gap-2 bg-[#0B5EA8] text-white rounded-xl py-3 text-[14px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] font-poppins"
-              style={{ boxShadow: "0px 4px 6px -4px #6D28D933, 0px 10px 15px -3px #6D28D933" }}
+              className="flex items-center justify-center gap-2 text-white rounded-xl py-3 text-[14px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] font-poppins"
+              style={{
+                background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)",
+                boxShadow: "0px 4px 6px -4px #6D28D933, 0px 10px 15px -3px #6D28D933"
+              }}
             >
-              <Check size={17} /> Submit Activity
+              <Check size={17} /> Simpan
             </button>
             <button
               onClick={handleReset}
               className="flex items-center justify-center gap-2 border border-[#E2E8F0] text-[#64748B] rounded-xl py-3 text-[14px] font-semibold hover:bg-[#F8FAFC] transition-colors font-poppins"
             >
-              <X size={17} /> Reset Form
+              <X size={17} /> Kosongkan
             </button>
           </div>
         </div>
+        )}
       </main>
     </div>
   );
