@@ -222,7 +222,7 @@ export default function TambahKegiatan() {
     <div className="flex bg-[#F4F6FB] min-h-screen">
       <Sidebar />
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
         <h1 className="text-[26px] font-bold text-[#0F172A] mb-6 font-poppins">
           Tambahkan Kegiatan
         </h1>
@@ -288,7 +288,7 @@ export default function TambahKegiatan() {
           </div>
 
           {/* Kategori + Tahun */}
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <SelectField label="Kategori"  options={KATEGORI} value={form.kategori}  onChange={set("kategori")}  placeholder="Pilih Kategori" />
             <div>
               <label className="block text-[13px] font-medium text-[#374151] mb-1.5 font-poppins">Tahun</label>
@@ -309,7 +309,7 @@ export default function TambahKegiatan() {
               <SelectField label="Bentuk Karya" options={["Aplikasi / Software", "Karya Tulis / Jurnal", "Karya Seni / Desain", "Proyek Multimedia", "Lainnya"]} value={form.bentukKarya} onChange={set("bentukKarya")} placeholder="Pilih Bentuk Karya" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
               <SelectField label={form.kategori === "Lomba" ? "Prestasi / Pencapaian" : "Jabatan"} options={getJabatanOptions(form.kategori)} value={form.jabatan} onChange={set("jabatan")} placeholder={form.kategori === "Lomba" ? "Pilih Prestasi" : "Pilih Jabatan"} />
               <SelectField label="Tingkatan" options={TINGKATAN} value={form.tingkatan} onChange={set("tingkatan")} placeholder="Pilih Tingkatan" />
             </div>
@@ -410,7 +410,7 @@ export default function TambahKegiatan() {
           </div>
 
           {/* Buttons */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={handleSubmit}
               className="flex items-center justify-center gap-2 text-white rounded-xl py-3 text-[14px] font-semibold transition-all hover:opacity-90 active:scale-[0.98] font-poppins"

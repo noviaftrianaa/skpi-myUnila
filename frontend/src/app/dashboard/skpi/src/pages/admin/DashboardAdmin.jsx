@@ -257,7 +257,7 @@ export default function DashboardAdmin() {
       {/* DETAIL MODAL */}
       {detailItem && <DetailPengajuanModal item={detailItem} onClose={() => setDetailItem(null)} />}
 
-      <main style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
+      <main style={{ flex: 1, padding: "24px 16px", overflowY: "auto" }} className="pt-16 md:pt-6 md:px-7">
 
         {/* TOP BAR */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
@@ -284,7 +284,7 @@ export default function DashboardAdmin() {
         </div>
 
         {/* STAT CARDS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
           {statCards.map((card, i) => (
             <div key={i} style={{
               background: "#fff", borderRadius: 12,

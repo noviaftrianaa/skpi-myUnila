@@ -92,7 +92,7 @@ export default function Notifikasi() {
   return (
     <div className="flex bg-[#F4F6FB] min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-[26px] font-bold text-[#0F172A]">Pemberitahuan</h1>

@@ -193,7 +193,7 @@ export default function Dashboard() {
     <div className="flex bg-[#F9FAFB] min-h-screen">
       <SidebarMahasiswa />
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
 
         {/* HEADER */}
         <div className="mb-7">
@@ -234,7 +234,7 @@ export default function Dashboard() {
         <p className="font-poppins font-semibold text-[14px] text-[#64748B] mb-3 uppercase tracking-wide">
           Status SKPI
         </p>
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {statCards.map((card, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
               <div>
@@ -255,7 +255,7 @@ export default function Dashboard() {
         <p className="font-poppins font-semibold text-[14px] text-[#64748B] mb-3 uppercase tracking-wide">
           Jenis Prestasi
         </p>
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {jenisPrestasi.map((item, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 shadow-sm">
               <p className="font-poppins font-normal text-[13px] text-[#64748B] mb-1">{item.label}</p>
@@ -290,7 +290,7 @@ export default function Dashboard() {
         </div>
 
         {/* PROGRESS + DISTRIBUSI */}
-        <div className="grid grid-cols-[1fr_320px] gap-5 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 mb-6">
 
           {/* PROGRESS SKPI */}
           <div
