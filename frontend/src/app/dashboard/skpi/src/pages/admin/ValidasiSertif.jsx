@@ -5,7 +5,7 @@ export default function ValidasiSertif() {
     <div className="flex bg-[#F4F6FB] min-h-screen">
       <Sidebar admin />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8">
         <div className="bg-white rounded-3xl p-8 shadow-sm">
           <h1 className="text-[28px] font-bold mb-8">
             Validasi Sertifikat

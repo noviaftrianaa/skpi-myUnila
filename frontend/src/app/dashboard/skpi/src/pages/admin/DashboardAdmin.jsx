@@ -257,7 +257,7 @@ export default function DashboardAdmin() {
       {/* DETAIL MODAL */}
       {detailItem && <DetailPengajuanModal item={detailItem} onClose={() => setDetailItem(null)} />}
 
-      <main style={{ flex: 1, padding: "24px 16px", overflowY: "auto" }} className="pt-16 md:pt-6 md:px-7">
+      <main style={{ flex: 1, padding: "24px 16px", overflowY: "auto" }} className="pt-20 lg:pt-6 md:px-7">
 
         {/* TOP BAR */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>

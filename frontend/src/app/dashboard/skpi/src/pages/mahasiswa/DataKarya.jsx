@@ -227,7 +227,7 @@ function PreviewModal({ item, onClose }) {
                   PROFIL MAHASISWA
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nama</p>
                   <p className="text-sm font-semibold text-[#0F172A] mt-0.5">Hanifa</p>
@@ -488,7 +488,7 @@ function ModalEditMahasiswa({ item, onClose, onSave }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Kategori</label>
               <select
@@ -520,7 +520,7 @@ function ModalEditMahasiswa({ item, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Tingkatan</label>
               <select
@@ -570,7 +570,7 @@ function ModalEditMahasiswa({ item, onClose, onSave }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Nomor Sertifikat</label>
               <input
@@ -797,7 +797,7 @@ export default function DataKarya() {
         />
       )}
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
