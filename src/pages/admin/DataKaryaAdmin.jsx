@@ -281,7 +281,7 @@ function DetailBimbinganModal({ student, onClose }) {
               <GraduationCap size={16} className="text-[#1D4ED8]" />
               Profil Mahasiswa
             </h3>
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 text-sm">
               <div>
                 <p className="text-[#94A3B8] text-xs font-medium font-poppins">NPM</p>
                 <p className="font-semibold text-[#0F172A] font-poppins">{student.npm}</p>
@@ -335,7 +335,7 @@ function DetailBimbinganModal({ student, onClose }) {
             <h4 className="text-xs font-bold text-[#475569] uppercase mb-2 font-poppins">
               Info Karya: {activeActivity.title}
             </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="text-[#64748B] text-xs">Kategori</p>
                 <p className="font-medium text-[#0F172A]">{activeActivity.kategori || "-"}</p>
@@ -579,7 +579,7 @@ export default function DataKaryaAdmin() {
         />
       )}
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
 
         <div className="mb-8">
           <h1 className="font-poppins font-bold text-[26px] leading-[38px] text-[#0F172A]">

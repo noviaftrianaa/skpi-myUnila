@@ -186,7 +186,7 @@ function ModalSertifikat({ item, onClose }) {
                   PROFIL MAHASISWA
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nama</p>
                   <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.nama}</p>
@@ -211,7 +211,7 @@ function ModalSertifikat({ item, onClose }) {
                 </h3>
               </div>
               
-              <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Kategori</p>
                   <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.kategori}</p>
@@ -868,7 +868,7 @@ export default function Validasi() {
       <SidebarAdmin />
 
       {/* MAIN */}
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 pt-20 lg:pt-6 overflow-y-auto">
         {/* TOPBAR */}
         <div className="bg-white rounded-2xl px-5 py-4 shadow-sm flex items-center">
           <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full">
