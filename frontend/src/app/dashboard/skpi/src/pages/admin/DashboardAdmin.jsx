@@ -284,23 +284,17 @@ export default function DashboardAdmin() {
         </div>
 
         {/* STAT CARDS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {statCards.map((card, i) => (
-            <div key={i} style={{
-              background: "#fff", borderRadius: 12,
-              padding: "18px 20px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-            }}>
+            <div key={i} className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
               <div>
-                <p style={{ fontSize: 12, color: "#64748B", marginBottom: 4 }}>{card.label}</p>
-                <p style={{ fontSize: 24, fontWeight: 700, color: "#0F172A", margin: 0 }}>{card.value}</p>
+                <p className="font-poppins font-normal text-[13px] text-[#64748B]">{card.label}</p>
+                <p className="font-poppins font-bold text-[28px] text-[#0F172A]">{card.value}</p>
               </div>
-              <div style={{
-                width: 44, height: 44, borderRadius: 10,
-                background: card.iconBg, color: card.iconColor,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{ background: card.iconBg, color: card.iconColor }}
+              >
                 {card.icon}
               </div>
             </div>
