@@ -21,6 +21,7 @@ import {
   Clock,
   XCircle,
   Lock,
+  FileText,
 } from "lucide-react";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 
@@ -30,32 +31,40 @@ import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 
 const statCards = [
   {
-    label: "Total Diajukan",
-    value: 28,
-    icon: <Activity size={20} />,
-    iconBg: "linear-gradient(180deg, #6D28D9 0%, #3AB8BA 100%)",
-    iconColor: "#FFFFFF",
+    label: "TOTAL KEGIATAN",
+    value: 8,
+    subtitle: null,
+    icon: <FileText size={16} />,
+    bgGradient: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+    shadow: "shadow-blue-500/20",
+    watermarkIcon: <FileText size={76} />,
   },
   {
-    label: "Divalidasi",
-    value: 22,
-    icon: <CheckCircle size={20} />,
-    iconBg: "linear-gradient(180deg, #10B981 0%, #34D399 100%)",
-    iconColor: "#FFFFFF",
+    label: "TOTAL POIN SKPI",
+    value: 62,
+    subtitle: "Target 100 poin",
+    icon: <Award size={16} />,
+    bgGradient: "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
+    shadow: "shadow-purple-500/20",
+    watermarkIcon: <Award size={76} />,
   },
   {
-    label: "Ditangguhkan",
+    label: "DIVALIDASI",
     value: 4,
-    icon: <Clock size={20} />,
-    iconBg: "linear-gradient(180deg, #F59E0B 0%, #FBBF24 100%)",
-    iconColor: "#FFFFFF",
+    subtitle: null,
+    icon: <CheckCircle size={16} />,
+    bgGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+    shadow: "shadow-emerald-500/20",
+    watermarkIcon: <CheckCircle size={76} />,
   },
   {
-    label: "Ditolak",
-    value: 2,
-    icon: <XCircle size={20} />,
-    iconBg: "linear-gradient(180deg, #EF4444 0%, #F87171 100%)",
-    iconColor: "#FFFFFF",
+    label: "MENUNGGU VALIDASI",
+    value: 3,
+    subtitle: null,
+    icon: <Clock size={16} />,
+    bgGradient: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
+    shadow: "shadow-orange-500/20",
+    watermarkIcon: <Clock size={76} />,
   },
 ];
 
@@ -189,6 +198,31 @@ export default function Dashboard() {
   const [showAllActivities, setShowAllActivities] = useState(false);
   const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
 
+  const getUserName = () => {
+    if (typeof window === "undefined") return "Mahasiswa";
+    const directName = localStorage.getItem("user_name") || localStorage.getItem("name") || localStorage.getItem("username") || localStorage.getItem("nama");
+    if (directName) return directName;
+    try {
+      const authStorage = localStorage.getItem("auth-storage");
+      if (authStorage) {
+        const parsed = JSON.parse(authStorage);
+        const name = parsed?.state?.user?.nama_lengkap || parsed?.state?.user?.username || parsed?.state?.user?.name;
+        if (name) return name;
+      }
+      const userObj = localStorage.getItem("user");
+      if (userObj) {
+        const parsed = JSON.parse(userObj);
+        const name = parsed?.nama_lengkap || parsed?.name || parsed?.username;
+        if (name) return name;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return "Mahasiswa";
+  };
+
+  const userName = getUserName();
+
   return (
     <div className="flex bg-[#F9FAFB] min-h-screen">
       <SidebarMahasiswa />
@@ -198,7 +232,7 @@ export default function Dashboard() {
         {/* HEADER */}
         <div className="mb-7">
           <h1 className="font-poppins font-bold text-[24px] leading-[36px] text-[#0F172A]">
-            Halo, Hanifa 👋
+            Halo, {userName} 👋
           </h1>
           <p className="mt-1 font-poppins font-normal text-[16px] leading-[24px] text-[#94A3B8]">
             Rekam perjalanan prestasi dan pengembangan dirimu
@@ -234,18 +268,34 @@ export default function Dashboard() {
         <p className="font-poppins font-semibold text-[14px] text-[#64748B] mb-3 uppercase tracking-wide">
           Status SKPI
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statCards.map((card, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="font-poppins font-normal text-[13px] text-[#64748B]">{card.label}</p>
-                <p className="font-poppins font-bold text-[28px] text-[#0F172A]">{card.value}</p>
-              </div>
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center"
-                style={{ background: card.iconBg, color: card.iconColor }}
-              >
+            <div
+              key={i}
+              className={`relative overflow-hidden rounded-2xl p-5 shadow-lg ${card.shadow} transition-all duration-300 hover:scale-[1.02] text-white flex flex-col justify-between min-h-[110px]`}
+              style={{ background: card.bgGradient }}
+            >
+              {/* Header Icon + Label */}
+              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider text-white/90 uppercase font-poppins z-10">
                 {card.icon}
+                <span>{card.label}</span>
+              </div>
+
+              {/* Value & Subtitle */}
+              <div className="mt-3 z-10">
+                <div className="font-poppins font-black text-[32px] leading-none text-white tracking-tight">
+                  {card.value}
+                </div>
+                {card.subtitle && (
+                  <p className="text-[11px] font-medium text-white/85 mt-1 font-poppins">
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Watermark Icon (Top Right) */}
+              <div className="absolute -right-3 -top-3 text-white/20 pointer-events-none select-none z-0">
+                {card.watermarkIcon}
               </div>
             </div>
           ))}

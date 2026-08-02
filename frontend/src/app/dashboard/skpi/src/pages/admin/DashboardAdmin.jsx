@@ -21,32 +21,40 @@ import SidebarAdmin from "../../components/common/SidebarAdmin";
 
 const statCards = [
   {
-    label: "Total Mahasiswa",
-    value: 120,
-    icon: <Users size={20} />,
-    iconBg: "linear-gradient(180deg, #1E3A8A 0%, #0EA5E9 100%)",
-    iconColor: "#FFFFFF",
+    label: "TOTAL PENGAJUAN",
+    value: 14,
+    subtitle: null,
+    icon: <FileText size={16} />,
+    bgGradient: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+    shadow: "shadow-blue-500/20",
+    watermarkIcon: <FileText size={76} />,
   },
   {
-    label: "Pengajuan Kegiatan",
-    value: 472,
-    icon: <FileText size={20} />,
-    iconBg: "linear-gradient(180deg, #0EA5E9 0%, #38BDF8 100%)",
-    iconColor: "#FFFFFF",
+    label: "BELUM DIPERIKSA",
+    value: 7,
+    subtitle: null,
+    icon: <Clock size={16} />,
+    bgGradient: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
+    shadow: "shadow-orange-500/20",
+    watermarkIcon: <Clock size={76} />,
   },
   {
-    label: "Kegiatan Divalidasi",
-    value: 310,
-    icon: <CheckCircle size={20} />,
-    iconBg: "linear-gradient(180deg, #22C55E 0%, #4ADE80 100%)",
-    iconColor: "#FFFFFF",
+    label: "DITANGGUHKAN",
+    value: 1,
+    subtitle: null,
+    icon: <Clock size={16} />,
+    bgGradient: "linear-gradient(135deg, #EAB308 0%, #CA8A04 100%)",
+    shadow: "shadow-yellow-500/20",
+    watermarkIcon: <Clock size={76} />,
   },
   {
-    label: "Kegiatan Ditangguhkan",
-    value: 78,
-    icon: <Clock size={20} />,
-    iconBg: "linear-gradient(180deg, #F59E0B 0%, #FBBF24 100%)",
-    iconColor: "#FFFFFF",
+    label: "DIVALIDASI",
+    value: 6,
+    subtitle: null,
+    icon: <CheckCircle size={16} />,
+    bgGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+    shadow: "shadow-emerald-500/20",
+    watermarkIcon: <CheckCircle size={76} />,
   },
 ];
 
@@ -284,18 +292,34 @@ export default function DashboardAdmin() {
         </div>
 
         {/* STAT CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statCards.map((card, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="font-poppins font-normal text-[13px] text-[#64748B]">{card.label}</p>
-                <p className="font-poppins font-bold text-[28px] text-[#0F172A]">{card.value}</p>
-              </div>
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center"
-                style={{ background: card.iconBg, color: card.iconColor }}
-              >
+            <div
+              key={i}
+              className={`relative overflow-hidden rounded-2xl p-5 shadow-lg ${card.shadow} transition-all duration-300 hover:scale-[1.02] text-white flex flex-col justify-between min-h-[110px]`}
+              style={{ background: card.bgGradient }}
+            >
+              {/* Header Icon + Label */}
+              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider text-white/90 uppercase font-poppins z-10">
                 {card.icon}
+                <span>{card.label}</span>
+              </div>
+
+              {/* Value & Subtitle */}
+              <div className="mt-3 z-10">
+                <div className="font-poppins font-black text-[32px] leading-none text-white tracking-tight">
+                  {card.value}
+                </div>
+                {card.subtitle && (
+                  <p className="text-[11px] font-medium text-white/85 mt-1 font-poppins">
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Watermark Icon (Top Right) */}
+              <div className="absolute -right-3 -top-3 text-white/20 pointer-events-none select-none z-0">
+                {card.watermarkIcon}
               </div>
             </div>
           ))}

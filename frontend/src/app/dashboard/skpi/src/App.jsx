@@ -16,7 +16,6 @@ import Notifikasi from "./pages/mahasiswa/Notifikasi";
 ========================= */
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import ValidasiAdmin from "./pages/admin/Validasi";
-import ValidasiSertifAdmin from "./pages/admin/ValidasiSertif";
 import DataKaryaAdmin from "./pages/admin/DataKaryaAdmin";
 
 /* =========================
@@ -78,7 +77,6 @@ export default function App() {
       ========================= */}
       <Route path="/admin/dashboard" element={<DashboardAdmin />} />
       <Route path="/admin/validasi" element={<ValidasiAdmin />} />
-      <Route path="/admin/validasi/:id" element={<ValidasiSertifAdmin />} />
       <Route path="/admin/data-karya" element={<DataKaryaAdmin />} />
 
       {/* =========================

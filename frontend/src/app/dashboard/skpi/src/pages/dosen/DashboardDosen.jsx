@@ -529,24 +529,26 @@ export default function DashboardDosen() {
 
   const groupedBimbinganList = Object.values(groupedBimbinganMap);
 
-  // Hitung stats — dosen hanya melihat yang sudah divalidasi
+  // Hitung stats — data yang masuk sudah divalidasi admin
   const totalMahasiswa = groupedBimbinganList.length;
   const totalKegiatan = groupedBimbinganList.reduce((sum, m) => sum + m.kegiatanList.length, 0);
 
   const statCards = [
     {
-      label: "Total Mahasiswa",
+      label: "MAHASISWA BIMBINGAN",
       value: totalMahasiswa,
-      icon: <Users size={20} />,
-      iconBg: "linear-gradient(180deg, #1E3A8A 0%, #0EA5E9 100%)",
-      iconColor: "#FFFFFF",
+      icon: <Users size={16} />,
+      bgGradient: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+      shadow: "shadow-blue-500/20",
+      watermarkIcon: <Users size={76} />,
     },
     {
-      label: "Total Kegiatan Divalidasi",
+      label: "TOTAL KEGIATAN",
       value: totalKegiatan,
-      icon: <CheckCircle2 size={20} />,
-      iconBg: "linear-gradient(180deg, #22C55E 0%, #10B981 100%)",
-      iconColor: "#FFFFFF",
+      icon: <FileText size={16} />,
+      bgGradient: "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
+      shadow: "shadow-purple-500/20",
+      watermarkIcon: <FileText size={76} />,
     },
   ];
 
@@ -579,21 +581,25 @@ export default function DashboardDosen() {
           {statCards.map((card, i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl p-6 shadow-sm border border-[#F1F5F9] flex items-center justify-between hover:shadow-md transition-shadow"
+              className={`relative overflow-hidden rounded-2xl p-5 shadow-lg ${card.shadow} transition-all duration-300 hover:scale-[1.02] text-white flex flex-col justify-between min-h-[110px]`}
+              style={{ background: card.bgGradient }}
             >
-              <div>
-                <p className="font-poppins font-semibold text-[13px] text-[#64748B] tracking-wide uppercase">
-                  {card.label}
-                </p>
-                <p className="font-poppins font-extrabold text-[32px] text-[#0F172A] mt-1.5">
-                  {card.value}
-                </p>
-              </div>
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner"
-                style={{ background: card.iconBg, color: card.iconColor }}
-              >
+              {/* Header Icon + Label */}
+              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider text-white/90 uppercase font-poppins z-10">
                 {card.icon}
+                <span>{card.label}</span>
+              </div>
+
+              {/* Value */}
+              <div className="mt-3 z-10">
+                <div className="font-poppins font-black text-[32px] leading-none text-white tracking-tight">
+                  {card.value}
+                </div>
+              </div>
+
+              {/* Watermark Icon (Top Right) */}
+              <div className="absolute -right-3 -top-3 text-white/20 pointer-events-none select-none z-0">
+                {card.watermarkIcon}
               </div>
             </div>
           ))}
@@ -637,7 +643,7 @@ export default function DashboardDosen() {
                 {groupedBimbinganList.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="text-center py-12 text-[#94A3B8] font-poppins text-sm bg-white">
-                      Belum ada mahasiswa bimbingan lomba yang sudah divalidasi.
+                      Belum ada mahasiswa bimbingan lomba.
                     </td>
                   </tr>
                 ) : (
