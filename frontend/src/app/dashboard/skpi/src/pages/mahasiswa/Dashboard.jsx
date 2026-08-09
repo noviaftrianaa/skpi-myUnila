@@ -195,7 +195,6 @@ function ProgressRing({ value, max }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [showAllActivities, setShowAllActivities] = useState(false);
   const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
 
   const getUserName = () => {
@@ -452,44 +451,24 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* BANNER */}
-        <div className="bg-[#EFF6FF] rounded-2xl px-6 py-5 flex items-center gap-4 mb-6">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
-          >
-            <Award size={20} color="#FFFFFF" />
-          </div>
-          <div>
-            <p className="font-poppins font-normal text-[16px] text-[#0F172A]">
-              Sedikit lagi, SKPI-mu hampir lengkap 🚀
-            </p>
-            <p className="mt-1 font-poppins font-normal text-[14px] text-[#64748B]">
-              Pastikan seluruh data sudah benar sebelum pengajuan.
-            </p>
-          </div>
-        </div>
-
         {/* AKTIVITAS TERBARU */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-10">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-[16px] font-bold text-[#0F172A]">Aktivitas Terbaru</h2>
-            {aktivitas.length > 3 && (
-              <button 
-                onClick={() => setShowAllActivities(!showAllActivities)}
-                className="text-[13px] text-[#0B5EA8] font-medium hover:underline focus:outline-none"
-              >
-                {showAllActivities ? "Sembunyikan" : "Tampilkan Semua"}
-              </button>
-            )}
+            <button 
+              onClick={() => navigate("/pengajuan")}
+              className="text-[13px] text-[#0B5EA8] font-medium hover:underline focus:outline-none"
+            >
+              Tampilkan Semua
+            </button>
           </div>
 
           <div>
-            {(showAllActivities ? aktivitas : aktivitas.slice(0, 3)).map((a, i) => (
+            {aktivitas.slice(0, 3).map((a, i, arr) => (
               <div
                 key={i}
                 className={`flex items-center justify-between py-4 ${
-                  i !== aktivitas.length - 1 ? "border-b border-[#F1F5F9]" : ""
+                  i !== arr.length - 1 ? "border-b border-[#F1F5F9]" : ""
                 }`}
               >
                 <div>
@@ -521,3 +500,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
