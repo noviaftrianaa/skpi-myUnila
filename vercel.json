@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd frontend/src/app/dashboard/skpi && npm install && npm run build",
+  "outputDirectory": "frontend/src/app/dashboard/skpi/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
