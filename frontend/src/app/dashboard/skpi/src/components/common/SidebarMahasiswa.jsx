@@ -93,7 +93,7 @@ export default function SidebarMahasiswa() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-[#2563eb] flex items-center justify-center p-1 shadow-md shadow-blue-500/20 shrink-0 overflow-hidden">
                 <img
-                  src="/dashboard/skpi/Logo-Website-Unila.png"
+                  src={`${import.meta.env.BASE_URL}Logo-Website-Unila.png`}
                   alt="Universitas Lampung"
                   className="w-full h-full object-contain drop-shadow-sm"
                 />
