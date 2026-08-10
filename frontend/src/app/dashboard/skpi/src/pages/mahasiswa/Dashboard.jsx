@@ -17,6 +17,7 @@ import {
 import {
   Activity,
   Award,
+  BarChart2,
   CheckCircle,
   Clock,
   XCircle,
@@ -69,17 +70,15 @@ const statCards = [
 ];
 
 const jenisPrestasi = [
-  { label: "Internasional", value: 7, color: "#1E3A8A" },
-  { label: "Nasional", value: 11, color: "#1D4ED8" },
-  { label: "Lokal", value: 4, color: "#60A5FA" },
-  { label: "Tidak Terkategorisasi", value: 2, color: "#BFDBFE" },
+  { label: "Internasional", value: 2, color: "#1E3A8A" },
+  { label: "Nasional", value: 3, color: "#1D4ED8" },
+  { label: "Lokal", value: 3, color: "#60A5FA" },
+  { label: "Tidak Terkategoris...", value: 2, color: "#BFDBFE" },
 ];
 
 const prestasiPertahun = [
-  { year: "2026", Internasional: 25, Nasional: 55, Lokal: 30, "Tidak Terkategorisasi": 10 },
-  { year: "2025", Internasional: 10, Nasional: 40, Lokal: 25, "Tidak Terkategorisasi": 8 },
-  { year: "2024", Internasional: 45, Nasional: 90, Lokal: 40, "Tidak Terkategorisasi": 20 },
-  { year: "2023", Internasional: 30, Nasional: 65, Lokal: 35, "Tidak Terkategorisasi": 15 },
+  { year: "2022", Internasional: 1, Nasional: 0, Lokal: 0, "Tidak Terkategorisasi": 0 },
+  { year: "2025", Internasional: 1, Nasional: 3, Lokal: 3, "Tidak Terkategorisasi": 2 },
 ];
 
 const distribusiData = [
@@ -263,10 +262,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* STATUS SKPI - STAT CARDS */}
-        <p className="font-poppins font-semibold text-[14px] text-[#64748B] mb-3 uppercase tracking-wide">
-          Status SKPI
-        </p>
+        {/* STAT CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statCards.map((card, i) => (
             <div
@@ -300,42 +296,120 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* JENIS PRESTASI */}
-        <p className="font-poppins font-semibold text-[14px] text-[#64748B] mb-3 uppercase tracking-wide">
-          Jenis Prestasi
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {jenisPrestasi.map((item, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="font-poppins font-normal text-[13px] text-[#64748B] mb-1">{item.label}</p>
-              <p
-                className="font-poppins font-bold text-[28px]"
-                style={{ color: item.color }}
+        {/* PRESTASI PER TAHUN + JENIS PRESTASI — 2 kolom */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 16,
+            marginBottom: 24,
+          }}
+        >
+          {/* Prestasi per Tahun */}
+          <div
+            className="bg-white rounded-[14px] p-6"
+            style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
+              <div
+                style={{
+                  width: 36, height: 36, borderRadius: 10, background: "#EFF6FF",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}
               >
-                {item.value}
-              </p>
+                <BarChart2 size={18} color="#2563EB" />
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", margin: 0 }}>Prestasi per Tahun</p>
+                <p style={{ fontSize: 11, color: "#94A3B8", margin: "3px 0 0" }}>Sebaran kegiatan menurut tingkat tiap tahun.</p>
+              </div>
             </div>
-          ))}
-        </div>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={prestasiPertahun} barCategoryGap="50%">
+                <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" vertical={false} />
+                <XAxis
+                  dataKey="year"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#94A3B8", fontSize: 12 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#94A3B8", fontSize: 12 }}
+                  ticks={[0, 3, 6, 9, 12]}
+                  domain={[0, 12]}
+                />
+                <Tooltip />
+                {/* Stacked bars — urutan bawah ke atas: Internasional, Nasional, Lokal, Tidak Terkategorisasi */}
+                <Bar dataKey="Internasional" stackId="a" fill="#0B3D70" barSize={55} />
+                <Bar dataKey="Nasional" stackId="a" fill="#1565C0" barSize={55} />
+                <Bar dataKey="Lokal" stackId="a" fill="#64B5F6" barSize={55} />
+                <Bar dataKey="Tidak Terkategorisasi" stackId="a" fill="#CFE8FA" radius={[4, 4, 0, 0]} barSize={55} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-        {/* PRESTASI PER TAHUN */}
-        <div className="bg-white rounded-[14px] p-6 mb-6" style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}>
-          <h2 className="font-poppins font-semibold text-[16px] text-[#0F172A] mb-4">
-            Prestasi Pertahun
-          </h2>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={prestasiPertahun} barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 12 }} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-              <Bar dataKey="Internasional" fill="#0B487E" radius={[4, 4, 0, 0]} barSize={16} />
-              <Bar dataKey="Nasional" fill="#0B5EA8" radius={[4, 4, 0, 0]} barSize={16} />
-              <Bar dataKey="Lokal" fill="#85CCF9" radius={[4, 4, 0, 0]} barSize={16} />
-              <Bar dataKey="Tidak Terkategorisasi" fill="#C4E4F9" radius={[4, 4, 0, 0]} barSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
+          {/* Jenis Prestasi */}
+          <div
+            className="bg-white rounded-[14px] p-6"
+            style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+              <div
+                style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: "#F5F3FF",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}
+              >
+                <Award size={18} color="#7C3AED" />
+              </div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", margin: 0 }}>Jenis Prestasi</p>
+            </div>
+
+            {/* 2x2 grid — tiap item punya card sendiri */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+              }}
+            >
+              {jenisPrestasi.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #F1F5F9",
+                    borderRadius: 12,
+                    padding: "14px 16px",
+                  }}
+                >
+                  {/* dot + label */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <div
+                      style={{
+                        width: 9, height: 9, borderRadius: "50%",
+                        background: item.color, flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: 12, color: "#64748B", fontWeight: 400 }}>{item.label}</span>
+                  </div>
+                  {/* big number */}
+                  <p
+                    style={{
+                      fontSize: 34, fontWeight: 800,
+                      color: item.color, margin: 0, lineHeight: 1,
+                      letterSpacing: "-1px",
+                    }}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* PROGRESS + DISTRIBUSI */}
@@ -345,7 +419,7 @@ export default function Dashboard() {
           <div
             className="rounded-[14px] p-8"
             style={{
-              background: "linear-gradient(135deg, rgba(109,40,217,0.05) 0%, rgba(58,184,186,0.05) 50%, rgba(167,243,208,0.05) 100%)",
+              background: "#FFFFFF",
               boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A",
             }}
           >
@@ -381,13 +455,13 @@ export default function Dashboard() {
             <button
               disabled={isLocked}
               onClick={() => navigate("/tambah-kegiatan")}
-              className={`mt-6 w-full h-[48px] rounded-[8px] text-white font-poppins font-semibold text-[14px] transition-all duration-200 ${
+              className={`mt-6 w-full h-[48px] rounded-xl text-white font-poppins font-semibold text-[14px] transition-all duration-200 flex items-center justify-center gap-2 ${
                 isLocked
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-200"
-                  : "bg-gradient-to-b from-[#073864] to-[#0B5EA8] hover:from-[#0B5EA8] hover:to-[#0E7490] hover:shadow-lg active:scale-[0.98]"
+                  : "bg-[#2563EB] hover:bg-[#1D4ED8] hover:shadow-lg active:scale-[0.98]"
               }`}
             >
-              {isLocked ? "🔒 SKPI Terkunci (Final)" : "Tambah Kegiatan"}
+              {isLocked ? "🔒 SKPI Terkunci (Final)" : "⊕ Tambah Kegiatan"}
             </button>
           </div>
 

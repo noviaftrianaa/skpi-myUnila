@@ -810,8 +810,7 @@ export default function DataKarya() {
           <div className="flex items-center gap-3">
             <Link
               to="/tambah-kegiatan"
-              className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 shadow-sm hover:opacity-90 font-poppins"
-              style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
+              className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 shadow-sm hover:bg-[#1D4ED8] active:scale-[0.98] font-poppins bg-[#2563EB]"
             >
               <Plus size={16} /> Tambah Kegiatan
             </Link>
@@ -988,3 +987,4 @@ export default function DataKarya() {
     </div>
   );
 }
+

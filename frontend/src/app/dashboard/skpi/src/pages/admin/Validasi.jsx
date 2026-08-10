@@ -869,23 +869,6 @@ export default function Validasi() {
 
       {/* MAIN */}
       <main className="flex-1 p-4 md:p-6 pt-20 lg:pt-6 overflow-y-auto">
-        {/* TOPBAR */}
-        <div className="bg-white rounded-2xl px-5 py-4 shadow-sm flex items-center">
-          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full">
-            <Search size={18} className="text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setSelectedMahasiswa(null); // reset ke tampilan semua saat search
-              }}
-              placeholder="Cari Kegiatan atau Mahasiswa..."
-              className="bg-transparent outline-none w-full ml-3 text-sm"
-            />
-          </div>
-        </div>
-
         {/* HEADER */}
         <div className="mt-7">
           <h1 className="text-3xl font-bold text-[#0F172A]">
@@ -1002,18 +985,21 @@ export default function Validasi() {
                 <Filter size={16} />
                 Filter &amp; Pencarian
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nama, NPM atau kegiatan..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4">
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari nama, NPM, atau kegiatan..."
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 outline-none text-sm focus:border-[#2563EB] transition-colors placeholder:text-[#94A3B8]"
+                  />
+                </div>
                 <select
                   value={filterKategori}
                   onChange={(e) => setFilterKategori(e.target.value)}
-                  className="px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm text-gray-500"
+                  className="px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm text-[#475569] focus:border-[#2563EB] cursor-pointer"
                 >
                   <option>Semua Kategori</option>
                   <option>Lomba</option>
@@ -1024,7 +1010,7 @@ export default function Validasi() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm text-gray-500"
+                  className="px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm text-[#475569] focus:border-[#2563EB] cursor-pointer"
                 >
                   <option>Semua Status</option>
                   <option>Divalidasi</option>

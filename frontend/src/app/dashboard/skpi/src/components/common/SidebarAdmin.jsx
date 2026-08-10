@@ -4,10 +4,11 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  FileText,
+  CheckSquare,
   Palette,
   Menu,
   X,
+  Home,
 } from "lucide-react";
 
 function MenuItem({ to, icon, label, onClose }) {
@@ -34,7 +35,7 @@ function MenuItem({ to, icon, label, onClose }) {
     >
       {({ isActive }) => (
         <>
-          {/* LEFT BAR — selalu render, hanya tampil saat aktif */}
+          {/* LEFT BAR */}
           <div
             className="absolute left-0 top-0 h-full w-[4px] rounded-r-full transition-opacity duration-200"
             style={{
@@ -77,7 +78,7 @@ export default function SidebarAdmin() {
       <aside
         className={`
           fixed lg:sticky top-0 left-0 z-50
-          w-[250px] h-screen
+          w-[220px] h-screen
           bg-white border-r border-gray-100 shadow-sm
           flex flex-col justify-between overflow-y-auto
           transition-transform duration-300 ease-in-out
@@ -85,12 +86,34 @@ export default function SidebarAdmin() {
         `}
       >
         {/* TOP */}
-        <div>
+        <div className="flex flex-col h-full">
           {/* LOGO */}
-          <div className="px-6 py-7 flex items-center justify-between">
-            <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight">
-              SKPI
-            </h1>
+          <div className="px-5 py-6 flex items-center justify-between border-b border-gray-50">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#2563eb] flex items-center justify-center p-1 shadow-md shadow-blue-500/20 shrink-0 overflow-hidden">
+                <img
+                  src="/dashboard/skpi/Logo-Website-Unila.png"
+                  alt="Universitas Lampung"
+                  className="w-full h-full object-contain drop-shadow-sm"
+                />
+              </div>
+              <div className="leading-none">
+                <div
+                  className="text-[21px] font-black tracking-tight font-poppins"
+                  style={{
+                    background: "linear-gradient(90deg, #1E3A8A 0%, #1D4ED8 40%, #0EA5E9 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  myUnila
+                </div>
+                <p className="text-[14px] font-black text-[#0F172A] tracking-wider font-poppins mt-0.5">
+                  SKPI
+                </p>
+              </div>
+            </div>
             <button
               onClick={() => setIsOpen(false)}
               className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors"
@@ -101,27 +124,38 @@ export default function SidebarAdmin() {
           </div>
 
           {/* MENU */}
-          <div className="px-3 space-y-2">
+          <div className="px-3 py-4 space-y-1 flex-1">
             <MenuItem
               to="/admin/dashboard"
-              icon={<LayoutDashboard size={20} />}
-              label="Beranda"
+              icon={<LayoutDashboard size={19} />}
+              label="Dashboard Admin"
               onClose={() => setIsOpen(false)}
             />
 
             <MenuItem
               to="/admin/validasi"
-              icon={<FileText size={20} />}
-              label="Validasi SKPI"
+              icon={<CheckSquare size={19} />}
+              label="Validasi Kegiatan"
               onClose={() => setIsOpen(false)}
             />
 
             <MenuItem
               to="/admin/data-karya"
-              icon={<Palette size={20} />}
+              icon={<Palette size={19} />}
               label="Data Karya"
               onClose={() => setIsOpen(false)}
             />
+          </div>
+
+          {/* BOTTOM — Kembali ke Portal */}
+          <div className="px-3 py-4 border-t border-gray-50">
+            <NavLink
+              to="/"
+              className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200"
+            >
+              <Home size={19} />
+              <span>Kembali ke Portal</span>
+            </NavLink>
           </div>
         </div>
       </aside>

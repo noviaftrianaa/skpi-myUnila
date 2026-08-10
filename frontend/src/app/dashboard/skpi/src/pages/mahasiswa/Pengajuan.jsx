@@ -858,8 +858,7 @@ export default function Pengajuan() {
           <div className="flex items-center gap-3">
             <Link
               to="/tambah-kegiatan"
-              className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 shadow-sm hover:opacity-90 font-poppins"
-              style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
+              className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 shadow-sm hover:bg-[#1D4ED8] active:scale-[0.98] font-poppins bg-[#2563EB]"
             >
               <Plus size={16} /> Tambah Kegiatan
             </Link>
@@ -867,19 +866,17 @@ export default function Pengajuan() {
             {isLocked ? (
               <button
                 onClick={() => setDownloadModal(true)}
-                className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:shadow-lg active:scale-[0.98] font-poppins shadow-sm"
-                style={{ background: "linear-gradient(180deg, #16A34A 0%, #15803D 100%)" }}
+                className="flex items-center gap-2 text-[#334155] bg-white border border-[#E2E8F0] px-5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.98] font-poppins shadow-sm"
               >
                 <Download size={16} />
-                Unduh Transkrip Final 🔒
+                Unduh Transkrip
               </button>
             ) : (
               <button
                 onClick={() => setDraftAlertModal(true)}
-                className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:opacity-90 font-poppins shadow-sm"
-                style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
+                className="flex items-center gap-2 text-[#334155] bg-white border border-[#E2E8F0] px-5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.98] font-poppins shadow-sm"
               >
-                <Download size={16} /> Unduh Transkrip SKPI
+                <Download size={16} /> Unduh Transkrip
               </button>
             )}
           </div>
@@ -898,32 +895,31 @@ export default function Pengajuan() {
           </div>
         )}
 
-        {/* Filters */}
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-          <div className="flex items-center gap-2 mb-3 text-[14px] font-semibold text-[#374151] font-poppins">
-            <Filter size={15} color="#6D28D9" /> Filter &amp; Pencarian
+          <div className="flex items-center gap-2 mb-3 text-[14px] font-semibold text-[#475569] font-poppins">
+            <Filter size={15} color="#475569" /> Filter &amp; Pencarian
           </div>
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
+            <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari Kegiatan..."
-                className="w-full pl-9 pr-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] focus:outline-none focus:border-[#1D4ED8] transition-colors font-poppins"
+                placeholder="Cari nama, NPM, atau kegiatan..."
+                className="w-full pl-9 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] focus:outline-none focus:border-[#2563EB] transition-colors font-poppins text-[#0F172A] placeholder:text-[#94A3B8]"
               />
             </div>
             <select
               value={kategori}
               onChange={(e) => setKategori(e.target.value)}
-              className="px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#374151] focus:outline-none focus:border-[#1D4ED8] cursor-pointer font-poppins"
+              className="px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#475569] focus:outline-none focus:border-[#2563EB] cursor-pointer font-poppins"
             >
               {KATEGORI_OPTS.map((o) => <option key={o}>{o}</option>)}
             </select>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#374151] focus:outline-none focus:border-[#1D4ED8] cursor-pointer font-poppins"
+              className="px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#475569] focus:outline-none focus:border-[#2563EB] cursor-pointer font-poppins"
             >
               {STATUS_OPTS.map((o) => <option key={o}>{o}</option>)}
             </select>
@@ -1095,3 +1091,4 @@ export default function Pengajuan() {
     </div>
   );
 }
+

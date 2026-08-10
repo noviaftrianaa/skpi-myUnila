@@ -86,14 +86,31 @@ export default function SidebarDosen() {
         {/* TOP */}
         <div>
           {/* LOGO */}
-          <div className="px-6 py-7 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight font-poppins">
-                SKPI
-              </h1>
-              <p className="text-[11px] font-semibold text-gray-400 font-poppins mt-1 tracking-wider uppercase">
-                Peran: Dosen
-              </p>
+          <div className="px-5 py-6 flex items-center justify-between border-b border-gray-50">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#2563eb] flex items-center justify-center p-1 shadow-md shadow-blue-500/20 shrink-0 overflow-hidden">
+                <img
+                  src="/dashboard/skpi/Logo-Website-Unila.png"
+                  alt="Universitas Lampung"
+                  className="w-full h-full object-contain drop-shadow-sm"
+                />
+              </div>
+              <div className="leading-none">
+                <div
+                  className="text-[21px] font-black tracking-tight font-poppins"
+                  style={{
+                    background: "linear-gradient(90deg, #1E3A8A 0%, #1D4ED8 40%, #0EA5E9 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  myUnila
+                </div>
+                <p className="text-[14px] font-black text-[#0F172A] tracking-wider font-poppins mt-0.5">
+                  SKPI
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
