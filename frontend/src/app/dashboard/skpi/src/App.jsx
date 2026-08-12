@@ -9,6 +9,7 @@ import Dashboard from "./pages/mahasiswa/Dashboard";
 import TambahKegiatan from "./pages/mahasiswa/TambahKegiatan";
 import Pengajuan from "./pages/mahasiswa/Pengajuan";
 import DataKarya from "./pages/mahasiswa/DataKarya";
+import CetakSKPI from "./pages/mahasiswa/CetakSKPI";
 import Notifikasi from "./pages/mahasiswa/Notifikasi";
 
 /* =========================
@@ -65,6 +66,11 @@ export default function App() {
       <Route
         path="/data-karya"
         element={<DataKarya />}
+      />
+
+      <Route
+        path="/cetak-skpi"
+        element={<CetakSKPI />}
       />
 
       <Route

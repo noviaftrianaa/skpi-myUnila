@@ -533,12 +533,12 @@ export default function Dashboard() {
               onClick={() => navigate("/pengajuan")}
               className="text-[13px] text-[#0B5EA8] font-medium hover:underline focus:outline-none"
             >
-              Tampilkan Semua
+              Lihat semua →
             </button>
           </div>
 
           <div>
-            {aktivitas.slice(0, 3).map((a, i, arr) => (
+            {aktivitas.slice(0, 5).map((a, i, arr) => (
               <div
                 key={i}
                 className={`flex items-center justify-between py-4 ${

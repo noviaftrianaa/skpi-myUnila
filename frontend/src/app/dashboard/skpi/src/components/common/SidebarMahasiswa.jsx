@@ -131,7 +131,7 @@ export default function SidebarMahasiswa() {
               to="/dashboard"
               end
               icon={<Home size={20} />}
-              label="Beranda"
+              label="Dashboard"
               onClose={() => setIsOpen(false)}
             />
 

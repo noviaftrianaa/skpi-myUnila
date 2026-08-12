@@ -133,16 +133,16 @@ export default function SidebarAdmin() {
             />
 
             <MenuItem
-              to="/admin/validasi"
-              icon={<CheckSquare size={19} />}
-              label="Validasi Kegiatan"
+              to="/admin/data-karya"
+              icon={<Palette size={19} />}
+              label="Data Karya"
               onClose={() => setIsOpen(false)}
             />
 
             <MenuItem
-              to="/admin/data-karya"
-              icon={<Palette size={19} />}
-              label="Data Karya"
+              to="/admin/validasi"
+              icon={<CheckSquare size={19} />}
+              label="Validasi Kegiatan"
               onClose={() => setIsOpen(false)}
             />
           </div>

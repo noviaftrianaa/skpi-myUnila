@@ -1,5 +1,5 @@
 // src/pages/admin/DashboardAdmin.jsx
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -124,6 +124,17 @@ const antriValidasi = [
     tanggal: "23 Okt 2025",
     status: "Divalidasi",
   },
+  {
+    nama: "Dian Pratiwi",
+    nim: "202110041",
+    kegiatan: "Workshop Data Science",
+    prodi: "Teknik Informatika",
+    kategori: "Pelatihan",
+    kategoriBg: "#FEF3C7",
+    kategoriColor: "#D97706",
+    tanggal: "22 Okt 2025",
+    status: "Belum Diperiksa",
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -188,8 +199,8 @@ function KaryaPerBentuk({ data }) {
 // MAIN
 // ─────────────────────────────────────────────────────────────
 export default function DashboardAdmin() {
-  const [showAll, setShowAll] = useState(false);
-  const displayed = showAll ? antriValidasi : antriValidasi.slice(0, 3);
+  const navigate = useNavigate();
+  const displayed = antriValidasi.slice(0, 5);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#F8FAFC", fontFamily: "'Inter', 'Poppins', sans-serif" }}>
@@ -337,10 +348,10 @@ export default function DashboardAdmin() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", margin: 0 }}>Antrian Validasi Terbaru</h2>
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={() => navigate("/admin/validasi")}
               style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#2563EB", fontWeight: 500 }}
             >
-              {showAll ? "Tampilkan lebih sedikit" : "Lihat semua →"}
+              Lihat semua →
             </button>
           </div>
 

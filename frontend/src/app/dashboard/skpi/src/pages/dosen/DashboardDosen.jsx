@@ -7,7 +7,6 @@ import {
   Eye,
   Award,
   Users,
-  CheckCircle2,
   X,
   ZoomIn,
   ZoomOut,
@@ -335,46 +334,88 @@ function DetailBimbinganModal({ student, onClose }) {
             </div>
           </div>
         </div>
-
         {/* SISI KANAN: PREVIEW DOKUMEN / SERTIFIKAT */}
-        <div className="flex-1 p-8 bg-[#F8FAFC] flex flex-col justify-between max-h-screen">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#0F172A] font-poppins flex items-center gap-2">
-              <FileText size={16} className="text-blue-700" />
+        <div className="flex-1 bg-[#F8FAFC] flex flex-col relative">
+          <div className="px-6 md:px-8 py-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0 font-poppins">
+            <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
+              <span className="text-blue-600">📄</span>
               Lampiran Sertifikat ({activeActivity.title})
             </h3>
-            
-            {/* Desktop Close */}
-            <button
-              onClick={onClose}
-              className="text-[#94A3B8] hover:text-[#0F172A] hidden md:block bg-white border p-2 rounded-xl hover:shadow-sm transition-all"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
               <X size={20} />
             </button>
           </div>
 
-          {/* Pratinjau Toolbar */}
-          <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-[#E2E8F0] shadow-sm mb-4 flex-wrap">
+          <div className="px-6 md:px-8 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center gap-4 bg-white shrink-0 font-poppins">
             <button
-              onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
-              className="flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#1D4ED8]"
+              onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
-              <ZoomOut size={14} /> Perkecil
+              <ZoomOut size={16} />
+              Perkecil
             </button>
-            <span className="text-xs text-[#94A3B8] font-semibold">{Math.round(zoom * 100)}%</span>
+            <span className="text-[13px] font-bold text-[#94A3B8] w-12 text-center">
+              {Math.round(zoom * 100)}%
+            </span>
             <button
-              onClick={() => setZoom((z) => z + 0.1)}
-              className="flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#1D4ED8]"
+              onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
-              <ZoomIn size={14} /> Perbesar
+              <ZoomIn size={16} />
+              Perbesar
             </button>
+            <div className="w-px h-4 bg-[#E2E8F0]"></div>
             <button
               onClick={() => setRotation((r) => r + 90)}
-              className="flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#1D4ED8]"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
-              <RotateCw size={14} /> Putar
+              <RotateCw size={16} />
+              Putar
             </button>
-            <div className="flex-1" />
+          </div>
+
+          <div className="flex-1 overflow-auto p-8 flex flex-col items-center justify-center gap-8 bg-[#F1F5F9] min-h-[300px]">
+            {activeActivity.certificate ? (
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-sm font-semibold text-gray-600 font-poppins">
+                  Lampiran Pendukung
+                </p>
+                {activeActivity.certificate.startsWith("data:application/pdf") ? (
+                  <iframe
+                    src={activeActivity.certificate}
+                    style={{
+                      width: "100%",
+                      height: "400px",
+                      transform: `scale(${zoom})`,
+                      transformOrigin: "top center",
+                    }}
+                    className="shadow-sm border border-gray-200 bg-white"
+                  />
+                ) : (
+                  <img
+                    src={activeActivity.certificate}
+                    alt="sertifikat"
+                    className="transition-all duration-300 shadow-sm border border-gray-200 bg-white"
+                    style={{
+                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                      maxWidth: "90%",
+                      maxHeight: "90%",
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="w-full max-w-sm aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 gap-3 p-6 bg-white shadow-sm">
+                <FileText size={48} className="text-gray-300 stroke-[1.5]" />
+                <p className="text-[13px] font-medium text-gray-500 font-poppins">
+                  Belum ada berkas lampiran diunggah
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* SISI KANAN FOOTER */}
+          <div className="px-6 md:px-8 py-4 border-t border-[#E2E8F0] flex items-center justify-end bg-white shrink-0">
             <button
               disabled={!activeActivity.certificate}
               onClick={() => {
@@ -387,66 +428,13 @@ function DetailBimbinganModal({ student, onClose }) {
                   document.body.removeChild(link);
                 }
               }}
-              className="flex items-center gap-1 text-white bg-blue-700 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg text-xs font-semibold"
+              className="flex items-center gap-2 text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed font-poppins"
             >
-              <Download size={13} /> Unduh
+              <Download size={16} />
+              Unduh
             </button>
           </div>
-
-          {/* Dokumen Viewer */}
-          <div className="flex-1 bg-white rounded-2xl border border-[#E2E8F0] flex items-center justify-center overflow-hidden min-h-[300px] max-h-[500px]">
-            <div className="flex-1 w-full h-full p-4 overflow-y-auto flex flex-col items-center gap-6">
-              {activeActivity.certificate ? (
-                <div className="flex flex-col items-center gap-2 w-full">
-                  <p className="text-sm font-semibold text-gray-600">Sertifikat</p>
-                {activeActivity.certificate.startsWith("data:application/pdf") ? (
-                  <iframe src={activeActivity.certificate} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200" />
-                ) : (
-                  <img
-                    src={activeActivity.certificate}
-                    alt={`Sertifikat ${activeActivity.title}`}
-                    className="transition-transform duration-300 shadow-sm border border-gray-200"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      maxWidth: "100%",
-                      objectFit: "contain"
-                    }}
-                  />
-                )}
-                </div>
-              ) : (
-                <div className="text-center p-6 w-full flex flex-col items-center justify-center min-h-[200px]">
-                  <div className="w-16 h-16 bg-[#EEF4FF] rounded-2xl flex items-center justify-center mx-auto mb-3 text-blue-700">
-                    <Award size={32} />
-                  </div>
-                  <p className="text-gray-400 text-sm font-poppins">
-                    Sertifikat tidak diunggah dalam bentuk berkas.
-                  </p>
-                </div>
-              )}
-              {activeActivity.kategori === "Lomba" && activeActivity.skFile && (
-                <div className="flex flex-col items-center gap-2 w-full mt-4">
-                  <p className="text-sm font-semibold text-gray-600">SK Pembimbing</p>
-                  {activeActivity.skFile.startsWith("data:application/pdf") ? (
-                    <iframe src={activeActivity.skFile} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200" />
-                  ) : (
-                    <img
-                      src={activeActivity.skFile}
-                      alt={`SK Pembimbing ${activeActivity.title}`}
-                      className="transition-transform duration-300 shadow-sm border border-gray-200"
-                      style={{
-                        transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                        maxWidth: "100%",
-                        objectFit: "contain"
-                      }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
-
       </div>
     </div>
   );
@@ -569,10 +557,10 @@ export default function DashboardDosen() {
         {/* HEADER */}
         <div className="mb-8">
           <h1 className="font-poppins font-bold text-[26px] leading-[38px] text-[#0F172A]">
-            Daftar Mahasiswa Bimbingan Lomba
+            Mahasiswa Bimbingan
           </h1>
           <p className="mt-1 font-poppins font-normal text-[15px] leading-[22px] text-[#94A3B8]">
-            Lihat pratinjau data kegiatan prestasi mahasiswa yang anda bimbing dalam kegiatan perlombaan
+            Pantau perkembangan prestasi mahasiswa yang Anda bimbing.
           </p>
         </div>
 

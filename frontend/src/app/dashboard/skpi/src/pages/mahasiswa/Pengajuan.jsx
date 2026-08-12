@@ -1,11 +1,11 @@
 // src/pages/mahasiswa/Pengajuan.jsx
 import { useState, useEffect } from "react";
 import {
-  Search, Filter, Download, Eye, Pencil, Trash2,
+  Search, Download, Eye, Pencil, Trash2,
   Calendar, MapPin, X, ZoomIn, ZoomOut, RotateCw,
-  Lock, Unlock, AlertCircle, CheckCircle, ExternalLink, Clock, XCircle, Plus, FileText
+  Lock, Unlock, AlertCircle, CheckCircle, Clock, XCircle, Plus, FileText, ExternalLink, Filter, ChevronDown, Save, Upload
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/common/SidebarMahasiswa";
 
 const STORAGE_KEY = "skpi_kegiatan";
@@ -216,6 +216,26 @@ function PreviewModal({ item, onClose }) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
 
+  // Format date helper (e.g. "2025-10-20" -> "20 Okt 2025")
+  const formatDateStr = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const day = parseInt(parts[2], 10);
+        const month = months[parseInt(parts[1], 10) - 1];
+        const year = parts[0];
+        return `${day} ${month} ${year}`;
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const isKarya = item.kategori === "Karya";
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl w-full max-w-6xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
@@ -225,7 +245,7 @@ function PreviewModal({ item, onClose }) {
           <div className="flex justify-between items-start mb-6">
             <div>
               <span className="text-[11px] font-bold tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full uppercase">
-                Detail Data SKPI
+                {isKarya ? "Detail Karya" : "Detail Kegiatan"}
               </span>
               <h2 className="text-2xl font-bold text-[#0F172A] mt-2 font-poppins">
                 {item.title}
@@ -251,7 +271,7 @@ function PreviewModal({ item, onClose }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nama</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">Hanifa</p>
+                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">Hanifa Azzahra</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">NPM</p>
@@ -269,7 +289,7 @@ function PreviewModal({ item, onClose }) {
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-blue-600">📋</span>
                 <h3 className="text-sm font-bold text-[#334155] font-poppins uppercase">
-                  INFORMASI KEGIATAN
+                  {isKarya ? "INFORMASI KARYA" : "INFORMASI KEGIATAN"}
                 </h3>
               </div>
               
@@ -278,30 +298,32 @@ function PreviewModal({ item, onClose }) {
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Kategori</p>
                   <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.kategori || "-"}</p>
                 </div>
-                {item.kategori === "Karya" ? (
+                {isKarya ? (
                   <div>
                     <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Bentuk Karya</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.bentukKarya || "Aplikasi / Perangkat Lunak"}</p>
+                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.bentukKarya || "-"}</p>
                   </div>
                 ) : (
                   <div>
                     <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Jabatan / Peran</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.jabatan || "Peserta"}</p>
+                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.jabatan || "-"}</p>
                   </div>
                 )}
-                {item.kategori !== "Karya" && (
+                
+                {!isKarya && (
                   <div>
                     <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Tingkatan</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.tingkatan || "Nasional"}</p>
+                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.tingkatan || "-"}</p>
                   </div>
                 )}
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">
-                    {item.kategori === "Karya" ? "Tanggal Pembuatan" : "Tanggal Sertifikat"}
+                    {isKarya ? "Tanggal Pembuatan" : "Tanggal Sertifikat"}
                   </p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.date || "-"}</p>
+                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{formatDateStr(item.date)}</p>
                 </div>
-                {item.kategori !== "Karya" && (
+
+                {!isKarya && (
                   <div>
                     <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nomor Sertifikat</p>
                     <p className="text-sm font-semibold text-[#0F172A] mt-0.5 font-mono">{item.nomorSertifikat || "-"}</p>
@@ -309,38 +331,55 @@ function PreviewModal({ item, onClose }) {
                 )}
                 <div>
                   <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Poin</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.poin || 0}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Status</p>
-                  <div className="mt-1 flex">
-                    {item.status === "Divalidasi" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] font-poppins">
-                        <CheckCircle size={14} /> {item.status}
-                      </span>
-                    ) : item.status === "Ditangguhkan" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] font-poppins">
-                        <Clock size={14} /> {item.status}
-                      </span>
-                    ) : item.status === "Ditolak" ? (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] font-poppins">
-                        <XCircle size={14} /> {item.status}
-                      </span>
-                    ) : (
-                      <span className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-gray-100 text-gray-600 font-poppins">
-                        <Clock size={14} /> {item.status === "Menunggu" ? "Belum Diperiksa" : (item.status || "Belum Diperiksa")}
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.poin || "-"}</p>
                 </div>
               </div>
-              
+
+              {/* STATUS & TAGS */}
+              <div className="mt-5 pt-4 border-t border-[#E2E8F0] flex items-center gap-3">
+                <span className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Status</span>
+                <div className="flex flex-wrap gap-2">
+                  {item.status === "Divalidasi" ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] border border-[#A7F3D0] font-poppins">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#049D71]"></span> Divalidasi
+                    </span>
+                  ) : item.status === "Ditangguhkan" ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] border border-[#FDE68A] font-poppins">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span> Ditangguhkan
+                    </span>
+                  ) : item.status === "Ditolak" ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] font-poppins">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span> Ditolak
+                    </span>
+                  ) : item.status === "Diarsipkan" ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] font-poppins">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#64748B]"></span> Diarsipkan
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF9E6] text-[#D97706] border border-[#FDE68A] font-poppins">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> Belum Diperiksa
+                    </span>
+                  )}
+                  {item.kategori && (
+                    <span className="px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF3C7] text-[#D97706] border border-[#FDE68A] font-poppins">
+                      {item.kategori}
+                    </span>
+                  )}
+                  {item.tingkatan && (
+                    <span className="px-3 py-1 rounded-full text-[12px] font-medium bg-[#E8EFFF] text-[#1E40AF] border border-[#BFDBFE] font-poppins">
+                      {item.tingkatan}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* TAUTAN */}
               <div className="mt-5 pt-4 border-t border-[#E2E8F0]">
-                <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">
-                  {item.kategori === "Karya" ? "Tautan Karya / Portofolio" : "Tautan / Link Sertifikat"}
+                <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide mb-1">
+                  {isKarya ? "Tautan Karya / Portofolio" : "Tautan Sertifikat"}
                 </p>
-                <a href={item.tautanSertifikat || "#"} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline mt-1 block font-medium break-all">
+                <a href={item.tautanSertifikat || "#"} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1.5 font-medium break-all font-poppins">
+                  <ExternalLink size={14} />
                   {item.tautanSertifikat || "-"}
                 </a>
               </div>
@@ -350,36 +389,30 @@ function PreviewModal({ item, onClose }) {
 
         {/* SISI KANAN: SERTIFIKAT PREVIEW */}
         <div className="flex-1 bg-[#F8FAFC] flex flex-col relative">
-          <div className="hidden md:flex absolute top-4 right-4 z-10">
-            <button
-              onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-gray-50 text-gray-500 transition-colors"
-            >
+          <div className="px-6 md:px-8 py-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0 font-poppins">
+            <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
+              <span className="text-blue-600">📄</span>
+              Lampiran Pendukung
+            </h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
               <X size={20} />
             </button>
           </div>
-          
-          <div className="px-6 md:px-8 py-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white">
-            <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
-              <span className="text-blue-600">📄</span>
-              Lampiran Dokumen
-            </h3>
-          </div>
 
-          <div className="px-6 md:px-8 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center gap-4 bg-white">
+          <div className="px-6 md:px-8 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center gap-4 bg-white shrink-0 font-poppins">
             <button 
               onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
               <ZoomOut size={16} />
               Perkecil
             </button>
-            <span className="text-[13px] font-semibold text-[#94A3B8] w-12 text-center">
+            <span className="text-[13px] font-bold text-[#94A3B8] w-12 text-center">
               {Math.round(zoom * 100)}%
             </span>
             <button 
               onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
               <ZoomIn size={16} />
               Perbesar
@@ -387,38 +420,17 @@ function PreviewModal({ item, onClose }) {
             <div className="w-px h-4 bg-[#E2E8F0]"></div>
             <button 
               onClick={() => setRotation(r => r + 90)}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
             >
               <RotateCw size={16} />
               Putar
             </button>
-
-            <div className="flex-1" />
-
-            <button
-              disabled={!item.certificate}
-              onClick={() => {
-                if (item.certificate) {
-                  const link = document.createElement("a");
-                  link.href = item.certificate;
-                  link.download = "sertifikat.png";
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }
-              }}
-              className="flex items-center gap-2 text-white px-5 py-2 rounded-xl text-[13px] font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 disabled:opacity-50"
-              style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
-            >
-              <Download size={16} />
-              Unduh
-            </button>
           </div>
 
-          <div className="flex-1 overflow-auto p-8 flex flex-col items-center gap-8 bg-[#F1F5F9]">
+          <div className="flex-1 overflow-auto p-8 flex flex-col items-center justify-center gap-8 bg-[#F1F5F9] min-h-[300px]">
             {item.certificate ? (
               <div className="flex flex-col items-center gap-2">
-                <p className="text-sm font-semibold text-gray-600">Sertifikat</p>
+                <p className="text-sm font-semibold text-gray-600 font-poppins">Sertifikat</p>
                 {item.certificate.startsWith("data:application/pdf") ? (
                   <iframe src={item.certificate} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200 bg-white" />
                 ) : (
@@ -435,22 +447,17 @@ function PreviewModal({ item, onClose }) {
                 )}
               </div>
             ) : (
-              <div 
-                className="transition-transform duration-200 origin-center bg-white shadow-sm border border-gray-200 flex flex-col items-center justify-center text-gray-400 gap-3"
-                style={{ 
-                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                  width: '600px',
-                  height: '420px'
-                }}
-              >
-                <span className="text-blue-200">📄</span>
-                <p>Gambar / PDF Sertifikat ({item.title})</p>
+              <div className="w-full max-w-sm aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 gap-3 p-6 bg-white shadow-sm">
+                <FileText size={48} className="text-gray-300 stroke-[1.5]" />
+                <p className="text-[13px] font-medium text-gray-500 font-poppins">
+                  Belum ada berkas lampiran diunggah
+                </p>
               </div>
             )}
             
             {item.kategori === "Lomba" && item.skFile && (
               <div className="flex flex-col items-center gap-2 mt-4">
-                <p className="text-sm font-semibold text-gray-600">SK Pembimbing</p>
+                <p className="text-sm font-semibold text-gray-600 font-poppins">SK Pembimbing</p>
                 {item.skFile.startsWith("data:application/pdf") ? (
                   <iframe src={item.skFile} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200 bg-white" />
                 ) : (
@@ -468,6 +475,27 @@ function PreviewModal({ item, onClose }) {
               </div>
             )}
           </div>
+
+          {/* SISI KANAN FOOTER */}
+          <div className="px-6 md:px-8 py-4 border-t border-[#E2E8F0] flex items-center justify-end bg-white shrink-0">
+            <button
+              disabled={!item.certificate}
+              onClick={() => {
+                if (item.certificate) {
+                  const link = document.createElement("a");
+                  link.href = item.certificate;
+                  link.download = "sertifikat.png";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              }}
+              className="flex items-center gap-2 text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed font-poppins"
+            >
+              <Download size={16} />
+              Unduh
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -476,21 +504,89 @@ function PreviewModal({ item, onClose }) {
 
 // ─── Edit Modal Mahasiswa ─────────────────────────────────────────────────────
 function ModalEditMahasiswa({ item, onClose, onSave }) {
-  const [judul, setJudul] = useState(item.title || "");
-  const [kategori, setKategori] = useState(item.kategori || "");
+  const KATEGORI_LIST = ["Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi", "Karya", "PKKMB Universitas"];
+  const TAHUN_LIST = ["2025", "2024", "2023", "2022", "2021"];
+  const BENTUK_KARYA_LIST = ["Aplikasi / Software", "Karya Tulis / Jurnal", "Karya Seni / Desain", "Proyek Multimedia", "Lainnya"];
+  const TINGKATAN_LIST = ["Internasional", "Nasional", "Regional", "Provinsi", "Universitas", "Fakultas", "Jurusan"];
+  const DOSEN_LIST = [
+    "Dr. Eng. Admi Syarif",
+    "Prof. Dr. Ir. Suharno, M.S.",
+    "Ahmad Zakaria, Ph.D.",
+    "Dr. Ryan Randy Suryono"
+  ];
+
+  const getJabatanOpts = (kat) => {
+    if (kat === "Lomba") return ["Peserta", "Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2", "Harapan 3"];
+    if (kat === "Organisasi" || kat === "Kepanitiaan") return ["Ketua", "Wakil Ketua", "Sekretaris", "Wakil Sekretaris", "Bendahara", "Wakil Bendahara", "Anggota", "Ketua Bidang / Koordinator / Departemen"];
+    if (kat === "Pelatihan" || kat === "Seminar") return ["Narasumber / Pembicara", "Moderator", "Peserta"];
+    if (kat === "Publikasi") return ["Ketua", "Anggota"];
+    return ["Peserta", "Ketua", "Anggota", "Panitia", "Pembicara", "Juri"];
+  };
+
+  const [judul, setJudul] = useState(item.title || item.kegiatan || "");
+  const [kategori, setKategori] = useState(item.kategori || "Seminar");
   const [tahun, setTahun] = useState(item.date ? item.date.slice(0, 4) : "2025");
+  const [bentukKarya, setBentukKarya] = useState(item.bentukKarya || "");
   const [tingkatan, setTingkatan] = useState(item.tingkatan || "");
   const [jabatan, setJabatan] = useState(item.jabatan || "");
   const [pembimbing, setPembimbing] = useState(item.pembimbing || "");
+  const [anggotaTim, setAnggotaTim] = useState(
+    Array.isArray(item.anggotaTim) && item.anggotaTim.length > 0
+      ? item.anggotaTim
+      : [{ nama: "", npm: "" }]
+  );
+  const [skFile, setSkFile] = useState(item.skFile || null);
   const [nomorSertifikat, setNomorSertifikat] = useState(item.nomorSertifikat || "");
   const [tanggalSertifikat, setTanggalSertifikat] = useState(item.date || "");
   const [tautanSertifikat, setTautanSertifikat] = useState(item.tautanSertifikat || "");
+  const [certificate, setCertificate] = useState(item.certificate || null);
   const [error, setError] = useState("");
 
+  const handleKategoriChange = (val) => {
+    setKategori(val);
+    if (val === "Karya") {
+      setJabatan("");
+      setTingkatan("");
+      setPembimbing("");
+      setNomorSertifikat("");
+      setAnggotaTim([{ nama: "", npm: "" }]);
+      setSkFile(null);
+    } else if (val === "Lomba") {
+      setBentukKarya("");
+    } else {
+      setBentukKarya("");
+      setPembimbing("");
+      setAnggotaTim([{ nama: "", npm: "" }]);
+      setSkFile(null);
+    }
+  };
+
+  const handleAddAnggota = () => setAnggotaTim([...anggotaTim, { nama: "", npm: "" }]);
+  const handleRemoveAnggota = (idx) => setAnggotaTim(anggotaTim.filter((_, i) => i !== idx));
+  const handleChangeAnggota = (idx, f, v) => {
+    const next = [...anggotaTim];
+    next[idx][f] = v;
+    setAnggotaTim(next);
+  };
+
   const handleSave = () => {
-    if (!judul.trim()) { setError("Judul kegiatan wajib diisi."); return; }
+    if (!judul.trim()) {
+      setError(kategori === "Karya" ? "Judul karya wajib diisi." : "Judul kegiatan wajib diisi.");
+      return;
+    }
     if (!kategori) { setError("Kategori wajib dipilih."); return; }
-    if (kategori === "Lomba" && !pembimbing) { setError("Dosen Pembimbing wajib dipilih untuk kategori Lomba."); return; }
+    if (!tahun) { setError("Tahun wajib dipilih."); return; }
+
+    if (kategori === "Karya") {
+      if (!bentukKarya) { setError("Bentuk karya wajib dipilih."); return; }
+    } else if (kategori === "Lomba") {
+      if (!jabatan) { setError("Prestasi / Pencapaian wajib dipilih."); return; }
+      if (!tingkatan) { setError("Tingkatan wajib dipilih."); return; }
+    } else {
+      if (!jabatan) { setError("Jabatan / Peran wajib dipilih."); return; }
+      if (!tingkatan) { setError("Tingkatan wajib dipilih."); return; }
+    }
+
     setError("");
 
     onSave({
@@ -498,20 +594,27 @@ function ModalEditMahasiswa({ item, onClose, onSave }) {
       title: judul.trim(),
       kategori,
       date: tanggalSertifikat || `${tahun}-01-01`,
-      tingkatan,
-      jabatan,
+      bentukKarya: kategori === "Karya" ? bentukKarya : "",
+      tingkatan: kategori === "Karya" ? "" : tingkatan,
+      jabatan: kategori === "Karya" ? "" : jabatan,
       pembimbing: kategori === "Lomba" ? pembimbing : "",
-      nomorSertifikat,
+      anggotaTim: kategori === "Lomba" ? anggotaTim.filter(a => a.nama.trim() || a.npm.trim()) : [],
+      skFile: kategori === "Lomba" ? skFile : null,
+      nomorSertifikat: kategori === "Karya" ? "" : nomorSertifikat,
       tautanSertifikat,
+      certificate,
+      tags: kategori === "Karya"
+        ? ["Karya", bentukKarya].filter(Boolean)
+        : [kategori, tingkatan].filter(Boolean),
     });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-semibold text-[#0F172A] text-md font-poppins">Edit Data</h3>
+        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <h3 className="font-bold text-[#0F172A] text-lg font-poppins">Edit Kegiatan &amp; Karya</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
@@ -525,144 +628,331 @@ function ModalEditMahasiswa({ item, onClose, onSave }) {
             </div>
           )}
 
+          {/* Judul */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Judul Kegiatan</label>
+            <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+              {kategori === "Karya" ? "Judul Karya" : "Judul Kegiatan"} <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               value={judul}
               onChange={(e) => setJudul(e.target.value)}
-              className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none focus:border-blue-500 font-poppins"
+              className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
             />
           </div>
 
+          {/* Kategori & Tahun */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Kategori</label>
-              <select
-                value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none font-poppins"
-              >
-                <option value="Seminar">Seminar</option>
-                <option value="Lomba">Lomba</option>
-                <option value="Organisasi">Organisasi</option>
-                <option value="Kepanitiaan">Kepanitiaan</option>
-                <option value="Pelatihan">Pelatihan</option>
-                <option value="Publikasi">Publikasi</option>
-              </select>
+              <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                Kategori <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={kategori}
+                  onChange={(e) => handleKategoriChange(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                >
+                  {KATEGORI_LIST.map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Tahun</label>
-              <select
-                value={tahun}
-                onChange={(e) => setTahun(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none font-poppins"
-              >
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-              </select>
+              <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tahun <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select
+                  value={tahun}
+                  onChange={(e) => setTahun(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                >
+                  {TAHUN_LIST.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Tingkatan</label>
-              <select
-                value={tingkatan}
-                onChange={(e) => setTingkatan(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none font-poppins"
-              >
-                <option value="Internasional">Internasional</option>
-                <option value="Nasional">Nasional</option>
-                <option value="Regional">Regional</option>
-                <option value="Provinsi">Provinsi</option>
-                <option value="Fakultas">Fakultas</option>
-                <option value="Jurusan">Jurusan</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Jabatan</label>
-              <select
-                value={jabatan}
-                onChange={(e) => setJabatan(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none font-poppins"
-              >
-                <option value="Peserta">Peserta</option>
-                <option value="Ketua">Ketua</option>
-                <option value="Anggota">Anggota</option>
-                <option value="Panitia">Panitia</option>
-                <option value="Pembicara">Pembicara</option>
-                <option value="Juri">Juri</option>
-              </select>
-            </div>
-          </div>
+          {/* KONDISI 1: KARYA */}
+          {kategori === "Karya" && (
+            <>
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                  Bentuk Karya <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={bentukKarya}
+                    onChange={(e) => setBentukKarya(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  >
+                    <option value="" disabled>Pilih Bentuk Karya</option>
+                    {BENTUK_KARYA_LIST.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <ChevronDown size={16} />
+                  </div>
+                </div>
+              </div>
 
-          {kategori === "Lomba" && (
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Dosen Pembimbing Lomba</label>
-              <select
-                value={pembimbing}
-                onChange={(e) => setPembimbing(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none font-poppins"
-              >
-                <option value="">Pilih Pembimbing</option>
-                <option value="Dr. Eng. Admi Syarif">Dr. Eng. Admi Syarif</option>
-                <option value="Prof. Dr. Ir. Suharno, M.S.">Prof. Dr. Ir. Suharno, M.S.</option>
-                <option value="Ahmad Zakaria, Ph.D.">Ahmad Zakaria, Ph.D.</option>
-                <option value="Dr. Ryan Randy Suryono">Dr. Ryan Randy Suryono</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Karya / Pembuatan</label>
+                <input
+                  type="date"
+                  value={tanggalSertifikat}
+                  onChange={(e) => setTanggalSertifikat(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Karya / Portofolio</label>
+                <input
+                  type="text"
+                  value={tautanSertifikat}
+                  onChange={(e) => setTautanSertifikat(e.target.value)}
+                  placeholder="https://github.com/... atau link Drive"
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+            </>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Nomor Sertifikat</label>
-              <input
-                type="text"
-                value={nomorSertifikat}
-                onChange={(e) => setNomorSertifikat(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none focus:border-blue-500 font-poppins"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Tanggal Sertifikat</label>
-              <input
-                type="date"
-                value={tanggalSertifikat}
-                onChange={(e) => setTanggalSertifikat(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none focus:border-blue-500 font-poppins"
-              />
-            </div>
-          </div>
+          {/* KONDISI 2: LOMBA */}
+          {kategori === "Lomba" && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                    Prestasi / Pencapaian <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={jabatan}
+                      onChange={(e) => setJabatan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    >
+                      <option value="" disabled>Pilih Prestasi</option>
+                      {getJabatanOpts("Lomba").map((j) => (
+                        <option key={j} value={j}>{j}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                    Tingkatan <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={tingkatan}
+                      onChange={(e) => setTingkatan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    >
+                      <option value="" disabled>Pilih Tingkatan</option>
+                      {TINGKATAN_LIST.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5 font-poppins">Tautan Sertifikat</label>
-            <input
-              type="text"
-              value={tautanSertifikat}
-              onChange={(e) => setTautanSertifikat(e.target.value)}
-              className="w-full px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm outline-none focus:border-blue-500 font-poppins"
-            />
-          </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Dosen Pembimbing Lomba (Opsional)</label>
+                <div className="relative">
+                  <select
+                    value={pembimbing}
+                    onChange={(e) => setPembimbing(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  >
+                    <option value="">Pilih Dosen Pembimbing</option>
+                    {DOSEN_LIST.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <ChevronDown size={16} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Anggota Tim */}
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-2 font-poppins">Anggota Tim (Opsional)</label>
+                {anggotaTim.map((anggota, idx) => (
+                  <div key={idx} className="flex items-center gap-3 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Nama"
+                      value={anggota.nama}
+                      onChange={(e) => handleChangeAnggota(idx, "nama", e.target.value)}
+                      className="w-1/2 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] font-poppins"
+                    />
+                    <input
+                      type="text"
+                      placeholder="NPM"
+                      value={anggota.npm}
+                      onChange={(e) => handleChangeAnggota(idx, "npm", e.target.value)}
+                      className="w-1/3 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] font-poppins"
+                    />
+                    {anggotaTim.length > 1 && (
+                      <button type="button" onClick={() => handleRemoveAnggota(idx)} className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition">
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={handleAddAnggota} className="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-[#2563EB] hover:text-[#1D4ED8] transition font-poppins">
+                  <Plus size={16} /> Tambah Anggota
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Nomor Sertifikat</label>
+                <input
+                  type="text"
+                  value={nomorSertifikat}
+                  onChange={(e) => setNomorSertifikat(e.target.value)}
+                  placeholder="Masukkan nomor sertifikat"
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Sertifikat</label>
+                <input
+                  type="date"
+                  value={tanggalSertifikat}
+                  onChange={(e) => setTanggalSertifikat(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Sertifikat</label>
+                <input
+                  type="text"
+                  value={tautanSertifikat}
+                  onChange={(e) => setTautanSertifikat(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+            </>
+          )}
+
+          {/* KONDISI 3: NON-KARYA BIASA */}
+          {kategori && kategori !== "Karya" && kategori !== "Lomba" && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                    Jabatan / Peran <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={jabatan}
+                      onChange={(e) => setJabatan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    >
+                      <option value="" disabled>Pilih Jabatan</option>
+                      {getJabatanOpts(kategori).map((j) => (
+                        <option key={j} value={j}>{j}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
+                    Tingkatan <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={tingkatan}
+                      onChange={(e) => setTingkatan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    >
+                      <option value="" disabled>Pilih Tingkatan</option>
+                      {TINGKATAN_LIST.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Nomor Sertifikat</label>
+                <input
+                  type="text"
+                  value={nomorSertifikat}
+                  onChange={(e) => setNomorSertifikat(e.target.value)}
+                  placeholder="Masukkan nomor sertifikat"
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Sertifikat</label>
+                <input
+                  type="date"
+                  value={tanggalSertifikat}
+                  onChange={(e) => setTanggalSertifikat(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Sertifikat</label>
+                <input
+                  type="text"
+                  value={tautanSertifikat}
+                  onChange={(e) => setTautanSertifikat(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 flex items-center justify-end gap-3 shrink-0">
+        <div className="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0 bg-white">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition font-poppins"
+            className="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-semibold text-[#475569] hover:bg-gray-50 transition font-poppins bg-white"
           >
             Batal
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl text-white text-xs font-semibold transition active:scale-[0.98] font-poppins shadow-sm hover:opacity-90"
-            style={{ background: "linear-gradient(180deg, #073864 0%, #0B5EA8 100%)" }}
+            className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition active:scale-[0.98] font-poppins bg-[#2563EB] hover:bg-[#1D4ED8] flex items-center gap-2 shadow-lg shadow-blue-600/10"
           >
-            Simpan Perubahan
+            <Save size={16} className="text-white" />
+            <span>Simpan Perubahan</span>
           </button>
         </div>
       </div>
@@ -762,6 +1052,8 @@ export default function Pengajuan() {
   const [deleteItem, setDeleteItem]         = useState(null);
   const [downloadModal, setDownloadModal]   = useState(false);
   const [draftAlertModal, setDraftAlertModal] = useState(false);
+
+  const navigate = useNavigate();
 
   // Baca status kunci dari localStorage (NPM mahasiswa Hanifa = 2020021001)
   const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
@@ -865,7 +1157,7 @@ export default function Pengajuan() {
             {/* TOMBOL UNDUH — berbeda tampilan tergantung status kunci */}
             {isLocked ? (
               <button
-                onClick={() => setDownloadModal(true)}
+                onClick={() => navigate("/cetak-skpi")}
                 className="flex items-center gap-2 text-[#334155] bg-white border border-[#E2E8F0] px-5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.98] font-poppins shadow-sm"
               >
                 <Download size={16} />
