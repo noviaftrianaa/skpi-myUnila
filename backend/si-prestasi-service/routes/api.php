@@ -134,5 +134,25 @@ Route::middleware(['jwt.auth', 'scope'])->group(function () {
             Route::get('mahasiswa-prodi/{id_sms}',[\App\Http\Controllers\Api\AnalyticsController::class, 'mahasiswaProdiDetail']);
             Route::post('refresh-cache',          [\App\Http\Controllers\Api\AnalyticsController::class, 'refreshCache']);
         });
+
+        // SKPI System Endpoints (Mahasiswa, Dosen, Admin)
+        Route::prefix('skpi')->group(function () {
+            // Mahasiswa
+            Route::get('mahasiswa/dashboard',     [\App\Http\Controllers\Api\SkpiController::class, 'mahasiswaDashboard']);
+            Route::get('mahasiswa/kegiatan',      [\App\Http\Controllers\Api\SkpiController::class, 'mahasiswaKegiatan']);
+            Route::post('mahasiswa/kegiatan',     [\App\Http\Controllers\Api\SkpiController::class, 'storeKegiatan']);
+            Route::put('mahasiswa/kegiatan/{id}', [\App\Http\Controllers\Api\SkpiController::class, 'updateKegiatan']);
+            Route::delete('mahasiswa/kegiatan/{id}',[\App\Http\Controllers\Api\SkpiController::class, 'destroyKegiatan']);
+
+            // Dosen
+            Route::get('dosen/dashboard',         [\App\Http\Controllers\Api\SkpiController::class, 'dosenDashboard']);
+
+            // Admin
+            Route::get('admin/validasi',          [\App\Http\Controllers\Api\SkpiController::class, 'adminValidasiQueue']);
+            Route::put('admin/validasi/{id}/setujui',    [\App\Http\Controllers\Api\SkpiController::class, 'setujuiValidasi']);
+            Route::put('admin/validasi/{id}/tangguhkan', [\App\Http\Controllers\Api\SkpiController::class, 'tangguhkanValidasi']);
+            Route::put('admin/validasi/{id}/tolak',      [\App\Http\Controllers\Api\SkpiController::class, 'tolakValidasi']);
+            Route::post('admin/mahasiswa/{npm}/kunci',   [\App\Http\Controllers\Api\SkpiController::class, 'toggleLockSkpi']);
+        });
     });
 });
