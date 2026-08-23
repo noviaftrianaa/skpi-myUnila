@@ -2,9 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  PieChart,
-  Pie,
-  Cell,
   BarChart,
   Bar,
   XAxis,
@@ -13,564 +10,442 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
-  Activity,
-  Award,
-  BarChart2,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Lock,
   FileText,
+  Award,
+  CheckCircle2,
+  Clock,
+  Plus,
+  ArrowRight,
+  Lock,
+  Download,
+  Flame,
+  PieChart as PieIcon,
+  TrendingUp,
 } from "lucide-react";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
-
-// ─────────────────────────────────────────────────────────────
-// DATA
-// ─────────────────────────────────────────────────────────────
+import Navbar from "../../components/common/Navbar";
 
 const statCards = [
   {
     label: "TOTAL KEGIATAN",
     value: 8,
-    subtitle: null,
     icon: <FileText size={16} />,
-    bgGradient: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
-    shadow: "shadow-blue-500/20",
-    watermarkIcon: <FileText size={76} />,
+    watermark: <FileText size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
+    bgGradient: "from-blue-600 via-blue-600 to-blue-500",
   },
   {
     label: "TOTAL POIN SKPI",
-    value: 62,
+    value: 68,
     subtitle: "Target 100 poin",
     icon: <Award size={16} />,
-    bgGradient: "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
-    shadow: "shadow-purple-500/20",
-    watermarkIcon: <Award size={76} />,
+    watermark: <Award size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
+    bgGradient: "from-purple-600 via-purple-600 to-fuchsia-600",
   },
   {
     label: "DIVALIDASI",
     value: 4,
-    subtitle: null,
-    icon: <CheckCircle size={16} />,
-    bgGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
-    shadow: "shadow-emerald-500/20",
-    watermarkIcon: <CheckCircle size={76} />,
+    icon: <CheckCircle2 size={16} />,
+    watermark: <CheckCircle2 size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
+    bgGradient: "from-emerald-500 via-emerald-600 to-teal-600",
   },
   {
     label: "MENUNGGU VALIDASI",
     value: 3,
-    subtitle: null,
     icon: <Clock size={16} />,
-    bgGradient: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
-    shadow: "shadow-orange-500/20",
-    watermarkIcon: <Clock size={76} />,
+    watermark: <Clock size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
+    bgGradient: "from-amber-500 via-amber-600 to-orange-500",
   },
 ];
 
-const jenisPrestasi = [
-  { label: "Internasional", value: 2, color: "#1E3A8A" },
-  { label: "Nasional", value: 3, color: "#1D4ED8" },
-  { label: "Lokal", value: 3, color: "#60A5FA" },
-  { label: "Tidak Terkategoris...", value: 2, color: "#BFDBFE" },
+const prestasiPerTahunData = [
+  { year: "2022", Internasional: 0, Nasional: 0, Lokal: 1, "Tidak Terkategorisasi": 0 },
+  { year: "2025", Internasional: 2, Nasional: 3, Lokal: 2, "Tidak Terkategorisasi": 2 },
 ];
 
-const prestasiPertahun = [
-  { year: "2022", Internasional: 1, Nasional: 0, Lokal: 0, "Tidak Terkategorisasi": 0 },
-  { year: "2025", Internasional: 1, Nasional: 3, Lokal: 3, "Tidak Terkategorisasi": 2 },
+const jenisPrestasiList = [
+  { label: "Internasional", count: 2, dotColor: "bg-[#0A2647]", textColor: "text-[#0A2647]" },
+  { label: "Nasional", count: 3, dotColor: "bg-[#0B63C6]", textColor: "text-[#0B63C6]" },
+  { label: "Lokal", count: 3, dotColor: "bg-[#5097E1]", textColor: "text-[#5097E1]" },
+  { label: "Tidak Terkategorisasi", count: 2, dotColor: "bg-[#CBD5E1]", textColor: "text-[#64748B]" },
 ];
 
-const distribusiData = [
-  { name: "Seminar", value: 30, color: "#6D28D9" },
-  { name: "Lomba", value: 25, color: "#0EA5E9" },
-  { name: "Organisasi", value: 20, color: "#3AB8BA" },
-  { name: "Kepanitiaan", value: 15, color: "#10B981" },
-  { name: "Lainnya", value: 10, color: "#F59E0B" },
+const kategoriDistributionData = [
+  { name: "Lomba", value: 2, color: "#2563eb", percent: "20%" },
+  { name: "Seminar", value: 2, color: "#8b5cf6", percent: "20%" },
+  { name: "Karya", value: 2, color: "#ec4899", percent: "20%" },
+  { name: "Pelatihan", value: 1, color: "#f59e0b", percent: "10%" },
+  { name: "Organisasi", value: 1, color: "#10b981", percent: "10%" },
+  { name: "Publikasi", value: 1, color: "#06b6d4", percent: "10%" },
+  { name: "PKKMB Universitas", value: 1, color: "#64748b", percent: "10%" },
 ];
 
-const aktivitas = [
+const aktivitasTerbaru = [
+  {
+    title: "Desain UI/UX Aplikasi Akademik MyUnila",
+    date: "20 Nov 2025",
+    badges: ["Karya", "Karya Seni / Desain"],
+    status: "Divalidasi",
+  },
+  {
+    title: "International Robotics Competition 2025",
+    date: "08 Nov 2025",
+    badges: ["Lomba", "Internasional"],
+    status: "Belum Diperiksa",
+  },
   {
     title: "Pelatihan UI/UX Design",
-    date: "2025-10-20",
-    tag: "Pelatihan",
-    tagColor: "#F59E0B",
-    tagBg: "#FEF3C7",
-    tagBorder: "#FDE68A",
+    date: "20 Okt 2025",
+    badges: ["Pelatihan", "Nasional"],
     status: "Divalidasi",
-    statusColor: "#049D71",
-    statusBg: "#E6F8F3",
-    statusIcon: <CheckCircle size={13} />,
   },
   {
-    title: "National Hackathon 2026",
-    date: "2025-10-15",
-    tag: "Lomba",
-    tagColor: "#0EA5E9",
-    tagBg: "#E0F2FE",
-    tagBorder: "#BAE6FD",
+    title: "National Hackathon 2025",
+    date: "15 Okt 2025",
+    badges: ["Lomba", "Nasional"],
     status: "Ditangguhkan",
-    statusColor: "#F59E0B",
-    statusBg: "#FFF5E6",
-    statusIcon: <Clock size={13} />,
   },
   {
-    title: "Leadership Training",
-    date: "2025-10-10",
-    tag: "Pelatihan",
-    tagColor: "#F59E0B",
-    tagBg: "#FEF3C7",
-    tagBorder: "#FDE68A",
+    title: "Leadership Training Seminar",
+    date: "10 Okt 2025",
+    badges: ["Seminar", "Fakultas"],
     status: "Divalidasi",
-    statusColor: "#049D71",
-    statusBg: "#E6F8F3",
-    statusIcon: <CheckCircle size={13} />,
-  },
-  {
-    title: "Himpunan Mahasiswa Teknik Elektro",
-    date: "2025-09-01",
-    tag: "Organisasi",
-    tagColor: "#3AB8BA",
-    tagBg: "#E6F4F4",
-    tagBorder: "#99F6E4",
-    status: "Divalidasi",
-    statusColor: "#049D71",
-    statusBg: "#E6F8F3",
-    statusIcon: <CheckCircle size={13} />,
-  },
-  {
-    title: "PKKMB UNIVERSITAS",
-    date: "2022-08-15",
-    tag: "PKKMB Universitas",
-    tagColor: "#F59E0B",
-    tagBg: "#FEF3C7",
-    tagBorder: "#FDE68A",
-    status: "Belum Diperiksa",
-    statusColor: "#64748B",
-    statusBg: "#F1F5F9",
-    statusIcon: <Clock size={13} />,
   },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// PROGRESS RING
-// ─────────────────────────────────────────────────────────────
-
-function ProgressRing({ value, max }) {
-  const radius = 72;
-  const circumference = 2 * Math.PI * radius;
-  const progress = value / max;
-  const strokeDasharray = `${progress * circumference} ${circumference}`;
-
-  return (
-    <svg width="180" height="180">
-      <circle cx="90" cy="90" r={radius} fill="none" stroke="#E2E8F0" strokeWidth="14" />
-      <circle
-        cx="90" cy="90" r={radius} fill="none"
-        stroke="url(#ringGrad)" strokeWidth="14"
-        strokeLinecap="round"
-        strokeDasharray={strokeDasharray}
-        transform="rotate(-90 90 90)"
-      />
-      <defs>
-        <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#073864" />
-          <stop offset="100%" stopColor="#0B5EA8" />
-        </linearGradient>
-      </defs>
-      <text x="90" y="87" textAnchor="middle" fill="#0F172A" fontSize="26" fontWeight="700" fontFamily="Poppins">
-        {value}
-      </text>
-      <text x="90" y="107" textAnchor="middle" fill="#94A3B8" fontSize="12" fontFamily="Poppins">
-        dari {max}
-      </text>
-    </svg>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// MAIN
-// ─────────────────────────────────────────────────────────────
-
-export default function Dashboard() {
+export default function DashboardMahasiswa() {
   const navigate = useNavigate();
-  const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
+  const [isLocked, setIsLocked] = useState(false);
 
-  const getUserName = () => {
-    if (typeof window === "undefined") return "Mahasiswa";
-    const directName = localStorage.getItem("user_name") || localStorage.getItem("name") || localStorage.getItem("username") || localStorage.getItem("nama");
-    if (directName) return directName;
-    try {
-      const authStorage = localStorage.getItem("auth-storage");
-      if (authStorage) {
-        const parsed = JSON.parse(authStorage);
-        const name = parsed?.state?.user?.nama_lengkap || parsed?.state?.user?.username || parsed?.state?.user?.name;
-        if (name) return name;
-      }
-      const userObj = localStorage.getItem("user");
-      if (userObj) {
-        const parsed = JSON.parse(userObj);
-        const name = parsed?.nama_lengkap || parsed?.name || parsed?.username;
-        if (name) return name;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return "Mahasiswa";
-  };
-
-  const userName = getUserName();
+  const totalScore = 68;
+  const targetScore = 100;
+  const scorePercent = Math.round((totalScore / targetScore) * 100);
 
   return (
-    <div className="flex bg-[#F9FAFB] min-h-screen">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
       <SidebarMahasiswa />
 
-      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Navbar role="mahasiswa" />
 
-        {/* HEADER */}
-        <div className="mb-7">
-          <h1 className="font-poppins font-bold text-[24px] leading-[36px] text-[#0F172A]">
-            Halo, {userName} 👋
-          </h1>
-          <p className="mt-1 font-poppins font-normal text-[16px] leading-[24px] text-[#94A3B8]">
-            Rekam perjalanan prestasi dan pengembangan dirimu
-          </p>
-        </div>
-
-        {/* LOCKED SKPI BANNER */}
-        {isLocked && (
-          <div className="mb-6 p-5 bg-gradient-to-r from-red-500/10 to-amber-500/10 border border-red-200/30 rounded-2xl flex items-center justify-between flex-wrap gap-4 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md">
-                <Lock size={20} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-red-800 font-poppins">
-                  Transkrip SKPI Telah Dikunci (Final)
-                </p>
-                <p className="text-xs text-gray-500 mt-1 font-poppins">
-                  Transkrip final SKPI Anda telah diterbitkan oleh program studi dan siap untuk diunduh. Anda tidak dapat lagi menambah atau mengedit kegiatan.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/pengajuan")}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 active:scale-[0.98] font-poppins"
-            >
-              Unduh Transkrip
-            </button>
-          </div>
-        )}
-
-        {/* STAT CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {statCards.map((card, i) => (
-            <div
-              key={i}
-              className={`relative overflow-hidden rounded-2xl p-5 shadow-lg ${card.shadow} transition-all duration-300 hover:scale-[1.02] text-white flex flex-col justify-between min-h-[110px]`}
-              style={{ background: card.bgGradient }}
-            >
-              {/* Header Icon + Label */}
-              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider text-white/90 uppercase font-poppins z-10">
-                {card.icon}
-                <span>{card.label}</span>
-              </div>
-
-              {/* Value & Subtitle */}
-              <div className="mt-3 z-10">
-                <div className="font-poppins font-black text-[32px] leading-none text-white tracking-tight">
-                  {card.value}
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6">
+          {/* LOCKED SKPI BANNER (if transcript is locked) */}
+          {isLocked && (
+            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0">
+                  <Lock size={20} />
                 </div>
-                {card.subtitle && (
-                  <p className="text-[11px] font-medium text-white/85 mt-1 font-poppins">
-                    {card.subtitle}
-                  </p>
-                )}
-              </div>
-
-              {/* Watermark Icon (Top Right) */}
-              <div className="absolute -right-3 -top-3 text-white/20 pointer-events-none select-none z-0">
-                {card.watermarkIcon}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* PRESTASI PER TAHUN + JENIS PRESTASI — 2 kolom */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-            marginBottom: 24,
-          }}
-        >
-          {/* Prestasi per Tahun */}
-          <div
-            className="bg-white rounded-[14px] p-6"
-            style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}
-          >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
-              <div
-                style={{
-                  width: 36, height: 36, borderRadius: 10, background: "#EFF6FF",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}
-              >
-                <BarChart2 size={18} color="#2563EB" />
-              </div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", margin: 0 }}>Prestasi per Tahun</p>
-                <p style={{ fontSize: 11, color: "#94A3B8", margin: "3px 0 0" }}>Sebaran kegiatan menurut tingkat tiap tahun.</p>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={prestasiPertahun} barCategoryGap="50%">
-                <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" vertical={false} />
-                <XAxis
-                  dataKey="year"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94A3B8", fontSize: 12 }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94A3B8", fontSize: 12 }}
-                  ticks={[0, 3, 6, 9, 12]}
-                  domain={[0, 12]}
-                />
-                <Tooltip />
-                {/* Stacked bars — urutan bawah ke atas: Internasional, Nasional, Lokal, Tidak Terkategorisasi */}
-                <Bar dataKey="Internasional" stackId="a" fill="#0B3D70" barSize={55} />
-                <Bar dataKey="Nasional" stackId="a" fill="#1565C0" barSize={55} />
-                <Bar dataKey="Lokal" stackId="a" fill="#64B5F6" barSize={55} />
-                <Bar dataKey="Tidak Terkategorisasi" stackId="a" fill="#CFE8FA" radius={[4, 4, 0, 0]} barSize={55} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Jenis Prestasi */}
-          <div
-            className="bg-white rounded-[14px] p-6"
-            style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-              <div
-                style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: "#F5F3FF",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}
-              >
-                <Award size={18} color="#7C3AED" />
-              </div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", margin: 0 }}>Jenis Prestasi</p>
-            </div>
-
-            {/* 2x2 grid — tiap item punya card sendiri */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
-              {jenisPrestasi.map((item, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "#F8FAFC",
-                    border: "1px solid #F1F5F9",
-                    borderRadius: 12,
-                    padding: "14px 16px",
-                  }}
-                >
-                  {/* dot + label */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                    <div
-                      style={{
-                        width: 9, height: 9, borderRadius: "50%",
-                        background: item.color, flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ fontSize: 12, color: "#64748B", fontWeight: 400 }}>{item.label}</span>
-                  </div>
-                  {/* big number */}
-                  <p
-                    style={{
-                      fontSize: 34, fontWeight: 800,
-                      color: item.color, margin: 0, lineHeight: 1,
-                      letterSpacing: "-1px",
-                    }}
-                  >
-                    {item.value}
+                <div>
+                  <h3 className="text-sm font-bold text-rose-900 dark:text-rose-200">
+                    Transkrip SKPI Telah Dikunci (Final)
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
+                    Transkrip final SKPI Anda telah diterbitkan oleh program studi dan siap untuk diunduh. Anda tidak dapat lagi menambah atau mengedit kegiatan.
                   </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* PROGRESS + DISTRIBUSI */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 mb-6">
-
-          {/* PROGRESS SKPI */}
-          <div
-            className="rounded-[14px] p-8"
-            style={{
-              background: "#FFFFFF",
-              boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A",
-            }}
-          >
-            <h2 className="font-poppins font-semibold text-[18px] text-[#0F172A]">Progress SKPI</h2>
-            <p className="mt-1 font-poppins text-[14px] text-[#64748B]">
-              Pantau perkembangan SKPI-mu secara real-time
-            </p>
-
-            {/* RING */}
-            <div className="flex justify-center mt-8">
-              <ProgressRing value={72} max={100} />
-            </div>
-
-            {/* PROGRESS BAR */}
-            <div className="mt-8">
-              <div className="flex justify-between mb-2">
-                <span className="font-poppins text-[13px] text-[#64748B]">Progress</span>
-                <span className="font-poppins font-semibold text-[13px] text-[#0F172A]">72%</span>
               </div>
-              <div className="overflow-hidden bg-[#E2E8F0] rounded-full" style={{ height: 8 }}>
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#073864] to-[#0B5EA8]"
-                  style={{ width: "72%" }}
-                />
-              </div>
-              <p className="text-center font-poppins text-[13px] text-[#64748B] mt-3">
-                Skor mu mencapai{" "}
-                <span className="font-semibold text-[#0F172A]">72 dari 100 SKPI poin</span>
+
+              <button
+                onClick={() => navigate("/cetak-skpi")}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs shrink-0 cursor-pointer"
+              >
+                <Download size={14} />
+                <span>Unduh Transkrip</span>
+              </button>
+            </div>
+          )}
+
+          {/* GREETING HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                Halo, NOVIA 👋
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                Rekam perjalanan prestasi dan pengembangan dirimu.
               </p>
             </div>
 
-            {/* BUTTON */}
-            <button
-              disabled={isLocked}
-              onClick={() => navigate("/tambah-kegiatan")}
-              className={`mt-6 w-full h-[48px] rounded-xl text-white font-poppins font-semibold text-[14px] transition-all duration-200 flex items-center justify-center gap-2 ${
-                isLocked
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-200"
-                  : "bg-[#2563EB] hover:bg-[#1D4ED8] hover:shadow-lg active:scale-[0.98]"
-              }`}
-            >
-              {isLocked ? "🔒 SKPI Terkunci (Final)" : "⊕ Tambah Kegiatan"}
-            </button>
-          </div>
-
-          {/* DISTRIBUSI KATEGORI SKPI */}
-          <div
-            className="bg-white rounded-[14px] p-6 flex flex-col"
-            style={{ boxShadow: "0px 4px 6px -4px #0000001A, 0px 10px 15px -3px #0000001A" }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              {/* Gradient icon sesuai screenshot */}
-              <div style={{
-                width: 28, height: 28,
-                borderRadius: 6,
-                background: "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="trendGrad" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#1D4ED8" />
-                      <stop offset="100%" stopColor="#7C3AED" />
-                    </linearGradient>
-                  </defs>
-                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="url(#trendGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="16 7 22 7 22 13" stroke="url(#trendGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <p className="font-poppins font-semibold text-[15px] text-[#0F172A]">
-                Distribusi Kategori SKPI
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              <PieChart width={200} height={200}>
-                <Pie
-                  data={distribusiData}
-                  cx={100} cy={100}
-                  innerRadius={60} outerRadius={85}
-                  paddingAngle={3} dataKey="value"
-                >
-                  {distribusiData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </div>
-
-            <div className="flex flex-col gap-3 mt-4">
-              {distribusiData.map((item, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }} />
-                    <span className="font-poppins text-[13px] text-[#475569]">{item.name}</span>
-                  </div>
-                  <span className="font-poppins font-semibold text-[13px] text-[#0F172A]">
-                    {item.value}%
-                  </span>
-                </div>
-              ))}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-xs self-start sm:self-auto">
+              <span>🪪 2215061024</span>
+              <span className="text-gray-300 dark:text-slate-700">•</span>
+              <span>Program Studi S1 Teknik Informatika (S1)</span>
             </div>
           </div>
-        </div>
 
-        {/* AKTIVITAS TERBARU */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-[16px] font-bold text-[#0F172A]">Aktivitas Terbaru</h2>
-            <button 
-              onClick={() => navigate("/pengajuan")}
-              className="text-[13px] text-[#0B5EA8] font-medium hover:underline focus:outline-none"
-            >
-              Lihat semua →
-            </button>
-          </div>
-
-          <div>
-            {aktivitas.slice(0, 5).map((a, i, arr) => (
+          {/* 4 METRIC STAT CARDS (EXACT MATCH USER ATTACHMENT) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {statCards.map((card, i) => (
               <div
                 key={i}
-                className={`flex items-center justify-between py-4 ${
-                  i !== arr.length - 1 ? "border-b border-[#F1F5F9]" : ""
-                }`}
+                className={`bg-gradient-to-r ${card.bgGradient} rounded-3xl p-6 sm:p-7 text-white shadow-xs relative overflow-hidden flex flex-col justify-between`}
               >
-                <div>
-                  <p className="text-[14px] font-semibold text-[#0F172A]">{a.title}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[12px] text-[#94A3B8]">{a.date}</span>
-                    <span
-                      className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-poppins font-normal text-[12px] border whitespace-nowrap"
-                      style={{ color: a.tagColor, background: a.tagBg || "#EFF3FF", borderColor: a.tagBorder || "#C7D2FE" }}
-                    >
-                      {a.tag}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2 text-xs font-bold tracking-wider opacity-90 uppercase">
+                  {card.icon}
+                  <span>{card.label}</span>
                 </div>
-
-                <div
-                  className="flex items-center w-fit gap-1.5 px-3 py-1 rounded-full font-poppins font-medium text-[12px]"
-                  style={{ color: a.statusColor, background: a.statusBg }}
-                >
-                  {a.statusIcon}
-                  {a.status}
+                <div className="mt-3">
+                  <div className="text-4xl sm:text-5xl font-extrabold">{card.value}</div>
+                  {card.subtitle && (
+                    <div className="text-xs opacity-80 mt-1">{card.subtitle}</div>
+                  )}
                 </div>
+                {card.watermark}
               </div>
             ))}
           </div>
-        </div>
 
-      </main>
+          {/* MIDDLE ROW: Prestasi per Tahun + Jenis Prestasi */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Prestasi per Tahun Chart (2 Cols) */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <TrendingUp size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
+                    Prestasi per Tahun
+                  </h3>
+                  <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">
+                    Sebaran kegiatan menurut tingkat tiap tahun.
+                  </p>
+                </div>
+              </div>
+
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={prestasiPerTahunData} barCategoryGap="40%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 12 }} ticks={[0, 3, 6, 9, 12]} domain={[0, 12]} />
+                  <Tooltip />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11, paddingTop: 10 }}
+                    formatter={(value) => <span className="text-gray-600 dark:text-slate-400">{value}</span>}
+                  />
+                  <Bar dataKey="Internasional" stackId="a" fill="#0A2647" barSize={36} />
+                  <Bar dataKey="Nasional" stackId="a" fill="#0B63C6" barSize={36} />
+                  <Bar dataKey="Lokal" stackId="a" fill="#5097E1" barSize={36} />
+                  <Bar dataKey="Tidak Terkategorisasi" stackId="a" fill="#CBD5E1" radius={[4, 4, 0, 0]} barSize={36} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Jenis Prestasi List (1 Col - 2x2 GRID MATCHING IMAGE 1) */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                    <Award size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
+                      Jenis Prestasi
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {jenisPrestasiList.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-gray-50/60 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${item.dotColor}`} />
+                        <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                          {item.label}
+                        </span>
+                      </div>
+                      <span className={`text-2xl font-bold mt-3 block ${item.textColor}`}>
+                        {item.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* LOWER MIDDLE ROW: Progress SKPI Score Gauge + Distribusi Kategori Donut */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Progress SKPI Score Gauge */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Flame size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
+                    Progress SKPI
+                  </h3>
+                  <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">
+                    Pantau perkembangan poin SKPI-mu.
+                  </p>
+                </div>
+              </div>
+
+              {/* Score Circular Indicator */}
+              <div className="flex flex-col items-center justify-center my-4 w-full">
+                <div className="relative w-36 h-36 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-slate-800" fill="transparent" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#0B437D"
+                      strokeWidth="8"
+                      strokeDasharray="251.2"
+                      strokeDashoffset={251.2 - (251.2 * scorePercent) / 100}
+                      strokeLinecap="round"
+                      fill="transparent"
+                    />
+                  </svg>
+                  <div className="absolute text-center leading-none">
+                    <div className="text-3xl font-extrabold text-gray-900 dark:text-slate-100">{totalScore}</div>
+                    <div className="text-xs text-gray-400 mt-1">dari {targetScore}</div>
+                  </div>
+                </div>
+
+                <div className="w-full mt-4 space-y-1.5 px-1">
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
+                    <span>Progress</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{scorePercent}%</span>
+                  </div>
+                  <div className="w-full bg-gray-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#0B437D] rounded-full transition-all duration-500" style={{ width: `${scorePercent}%` }} />
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500 dark:text-slate-400 text-center mt-3">
+                  Skormu mencapai <span className="font-bold text-gray-900 dark:text-slate-100">{totalScore} dari {targetScore} poin SKPI</span>
+                </p>
+              </div>
+
+              <button
+                onClick={() => navigate("/tambah-kegiatan")}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2 mt-2"
+              >
+                <Plus size={16} />
+                <span>Tambah Kegiatan</span>
+              </button>
+            </div>
+
+            {/* Distribusi Kategori Donut Chart */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/50 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                  <PieIcon size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
+                    Distribusi Kategori
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-40 h-40 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={kategoriDistributionData}
+                        innerRadius={45}
+                        outerRadius={70}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {kategoriDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="flex-1 space-y-1.5 text-xs w-full">
+                  {kategoriDistributionData.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between py-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="text-gray-700 dark:text-slate-300 font-medium">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 dark:text-slate-100">{item.value}</span>
+                        <span className="text-[10px] text-gray-400 w-8 text-right">{item.percent}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BOTTOM ROW: Aktivitas Terbaru */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-slate-100">
+                Aktivitas Terbaru
+              </h2>
+              <button
+                onClick={() => navigate("/pengajuan")}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+              >
+                <span>Lihat semua</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {aktivitasTerbaru.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:bg-gray-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">
+                      {item.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] text-gray-400">{item.date}</span>
+                      {item.badges.map((b, bIdx) => (
+                        <span
+                          key={bIdx}
+                          className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300"
+                        >
+                          {b}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    {item.status === "Divalidasi" ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                        <CheckCircle2 size={13} /> Divalidasi
+                      </span>
+                    ) : item.status === "Ditangguhkan" ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                        <Clock size={13} /> Ditangguhkan
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+                        <Clock size={13} /> Belum Diperiksa
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
-}
+}

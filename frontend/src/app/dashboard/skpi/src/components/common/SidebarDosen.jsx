@@ -1,12 +1,36 @@
 // src/components/common/SidebarDosen.jsx
-
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
   Menu,
   X,
+  Home,
 } from "lucide-react";
+
+function DashboardDosenIcon({ size = 18, className = "" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* Top Center Head */}
+      <circle cx="12" cy="6" r="2.5" />
+      {/* Left Head */}
+      <circle cx="6.5" cy="10.5" r="2.2" />
+      {/* Right Head */}
+      <circle cx="17.5" cy="10.5" r="2.2" />
+      {/* Wide Bottom Body Arc */}
+      <path d="M4 20c0-4.2 3.8-6.5 8-6.5s8 2.3 8 6.5" />
+    </svg>
+  );
+}
 
 function MenuItem({ to, icon, label, end = false, onClose }) {
   return (
@@ -18,29 +42,16 @@ function MenuItem({ to, icon, label, end = false, onClose }) {
         `relative flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-sm font-medium overflow-hidden font-poppins
         ${
           isActive
-            ? "text-[#1E3A8A] shadow-sm"
-            : "text-gray-500 hover:bg-gray-100 hover:text-blue-600"
+            ? "text-blue-700 dark:text-blue-400 font-semibold bg-blue-50/80 dark:bg-blue-950/40 shadow-xs"
+            : "text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400"
         }`
-      }
-      style={({ isActive }) =>
-        isActive
-          ? {
-              background:
-                "linear-gradient(90deg, rgba(30, 58, 138, 0.1) 0%, rgba(14, 165, 233, 0.1) 50%, rgba(56, 189, 248, 0.05) 100%)",
-            }
-          : {}
       }
     >
       {({ isActive }) => (
         <>
-          {/* LEFT BAR — selalu render, hanya tampil saat aktif */}
           <div
-            className="absolute left-0 top-0 h-full w-[4px] rounded-r-full transition-opacity duration-200"
-            style={{
-              background:
-                "linear-gradient(180deg, #1E3A8A 0%, #0EA5E9 50%, #38BDF8 100%)",
-              opacity: isActive ? 1 : 0,
-            }}
+            className="absolute left-0 top-0 h-full w-[4px] bg-gradient-to-b from-blue-700 via-blue-500 to-sky-400 rounded-r-full transition-opacity duration-200"
+            style={{ opacity: isActive ? 1 : 0 }}
           />
           {icon}
           <span>{label}</span>
@@ -55,81 +66,84 @@ export default function SidebarDosen() {
 
   return (
     <>
-      {/* Hamburger button — only visible on mobile */}
       <button
         onClick={() => setIsOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-white shadow-md border border-gray-100 rounded-xl p-2.5 text-gray-600 hover:text-blue-700 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-white dark:bg-slate-900 shadow-md border border-gray-100 dark:border-slate-800 rounded-xl p-2.5 text-gray-600 dark:text-slate-300 hover:text-blue-700 transition-colors"
         aria-label="Buka Menu"
       >
         <Menu size={22} />
       </button>
 
-      {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 bg-black/40 z-40 backdrop-blur-xs"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed lg:sticky top-0 left-0 z-50
-          w-[250px] h-screen shrink-0
-          bg-white border-r border-gray-100 shadow-sm
+          w-[230px] h-screen shrink-0
+          bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-slate-800/80 shadow-xs
           flex flex-col justify-between overflow-y-auto
-          transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* TOP */}
-        <div>
-          {/* LOGO */}
-          <div className="px-5 py-6 flex items-center justify-between border-b border-gray-50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#2563eb] flex items-center justify-center p-1 shadow-md shadow-blue-500/20 shrink-0 overflow-hidden">
-                <img
-                  src={`${import.meta.env.BASE_URL}Logo-Website-Unila.png`}
-                  alt="Universitas Lampung"
-                  className="w-full h-full object-contain drop-shadow-sm"
-                />
-              </div>
-              <div className="leading-none">
-                <div
-                  className="text-[21px] font-black tracking-tight font-poppins"
-                  style={{
-                    background: "linear-gradient(90deg, #1E3A8A 0%, #1D4ED8 40%, #0EA5E9 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  myUnila
+        <div className="flex flex-col h-full justify-between">
+          <div>
+            {/* LOGO BRAND */}
+            <div className="px-5 py-5 flex items-center justify-between border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center p-1 shadow-md shadow-blue-500/20 shrink-0 overflow-hidden">
+                  <img
+                    src={`${import.meta.env.BASE_URL}Logo-Website-Unila.png`}
+                    alt="Universitas Lampung"
+                    className="w-full h-full object-contain drop-shadow-xs"
+                  />
                 </div>
-                <p className="text-[14px] font-black text-[#0F172A] tracking-wider font-poppins mt-0.5">
-                  SKPI
-                </p>
+                <div className="leading-tight">
+                  <div
+                    className="text-[19px] font-black tracking-tight font-poppins bg-gradient-to-r from-blue-900 via-blue-700 to-sky-500 bg-clip-text text-transparent"
+                  >
+                    myUnila
+                  </div>
+                  <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 tracking-wider font-poppins">
+                    SKPI
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Tutup Menu"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors"
-              aria-label="Tutup Menu"
-            >
-              <X size={20} />
-            </button>
+
+            {/* NAV MENU */}
+            <div className="px-3 py-4 space-y-1.5">
+              <MenuItem
+                to="/dosen/dashboard"
+                end
+                icon={<DashboardDosenIcon size={18} />}
+                label="Dashboard Dosen"
+                onClose={() => setIsOpen(false)}
+              />
+            </div>
           </div>
 
-          {/* MENU */}
-          <div className="px-3 space-y-2">
-            <MenuItem
-              to="/dosen/dashboard"
-              end
-              icon={<LayoutDashboard size={20} />}
-              label="Beranda"
-              onClose={() => setIsOpen(false)}
-            />
+          {/* BOTTOM - Kembali ke Portal */}
+          <div className="px-3 py-4 border-t border-gray-100 dark:border-slate-800">
+            <NavLink
+              to="/"
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-medium text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-700 dark:hover:text-slate-200 transition-all duration-200"
+            >
+              <Home size={17} />
+              <span>Kembali ke Portal</span>
+            </NavLink>
           </div>
         </div>
       </aside>

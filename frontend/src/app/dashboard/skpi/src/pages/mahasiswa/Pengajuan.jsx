@@ -1,1386 +1,927 @@
 // src/pages/mahasiswa/Pengajuan.jsx
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
+import Navbar from "../../components/common/Navbar";
 import {
-  Search, Download, Eye, Pencil, Trash2,
-  Calendar, MapPin, X, ZoomIn, ZoomOut, RotateCw,
-  Lock, Unlock, AlertCircle, CheckCircle, Clock, XCircle, Plus, FileText, ExternalLink, Filter, ChevronDown, Save, Upload
+  Search,
+  Plus,
+  Download,
+  Eye,
+  Pencil,
+  Trash2,
+  ExternalLink,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  FileText,
+  Lock,
+  X,
+  Upload,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Calendar,
+  MapPin,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import Sidebar from "../../components/common/SidebarMahasiswa";
 
-const STORAGE_KEY = "skpi_kegiatan";
-
-// Data bawaan — hanya dipakai jika localStorage kosong
-const SEED_DATA = [
+const initialDataSKPI = [
   {
     id: 1,
-    title: "Pelatihan UI/UX Design",
-    date: "2025-10-20",
-    location: "Jakarta Convention Center",
+    judul: "Pelatihan UI/UX Design",
+    tanggal: "20 Okt 2025",
+    lokasi: "Jakarta Convention Center",
     kategori: "Pelatihan",
     tingkatan: "Nasional",
     jabatan: "Peserta",
-    tags: ["Pelatihan", "Nasional"],
+    dosenPembimbing: "Dr. Eng. Admi Syarif",
     status: "Divalidasi",
-    statusColor: "text-[#16A34A] bg-[#DCFCE7]",
-    dot: "bg-[#16A34A]",
     poin: 15,
-    certificate: "/Sertifikat.png",
+    catatanValidator: "",
+    nomorSertifikat: "SERT/PLT/2025/0192",
+    tautan: "https://drive.google.com/contoh-sertifikat",
   },
   {
     id: 2,
-    title: "National Hackathon 2025",
-    date: "2025-10-15",
-    location: "Institut Teknologi Bandung",
+    judul: "National Hackathon 2025",
+    tanggal: "15 Okt 2025",
+    lokasi: "Institut Teknologi Bandung",
     kategori: "Lomba",
     tingkatan: "Nasional",
     jabatan: "Peserta",
-    pembimbing: "Dr. Eng. Admi Syarif",
-    tags: ["Lomba", "Nasional"],
+    dosenPembimbing: "Dr. Eng. Admi Syarif",
     status: "Ditangguhkan",
-    statusColor: "text-[#B45309] bg-[#FEF9C3]",
-    dot: "bg-[#F59E0B]",
     poin: null,
-    certificate: null,
+    catatanValidator: "Catatan dari validator: Sertifikat belum terbaca jelas. Mohon unggah ulang dengan resolusi lebih tinggi.",
+    nomorSertifikat: "",
+    tautan: "",
   },
   {
     id: 3,
-    title: "Leadership Training Seminar",
-    date: "2025-10-10",
-    location: "Gedung H Teknik Elektro",
+    judul: "Leadership Training Seminar",
+    tanggal: "10 Okt 2025",
+    lokasi: "Gedung H Teknik Elektro",
     kategori: "Seminar",
     tingkatan: "Fakultas",
     jabatan: "Peserta",
-    tags: ["Seminar", "Fakultas"],
+    dosenPembimbing: "",
     status: "Divalidasi",
-    statusColor: "text-[#16A34A] bg-[#DCFCE7]",
-    dot: "bg-[#16A34A]",
     poin: 10,
-    certificate: null,
+    catatanValidator: "",
+    nomorSertifikat: "SK/SEM/2025/088",
+    tautan: "",
   },
   {
     id: 4,
-    title: "Ketua Himpunan Mahasiswa Teknik Elektro",
-    date: "2025-09-01",
-    location: "Teknik Elektro",
+    judul: "Ketua Himpunan Mahasiswa Teknik Elektro",
+    tanggal: "01 Sep 2025",
+    lokasi: "Teknik Elektro",
     kategori: "Organisasi",
     tingkatan: "Fakultas",
     jabatan: "Ketua",
-    tags: ["Organisasi", "Fakultas"],
+    dosenPembimbing: "",
     status: "Divalidasi",
-    statusColor: "text-[#16A34A] bg-[#DCFCE7]",
-    dot: "bg-[#16A34A]",
     poin: 25,
-    certificate: null,
+    catatanValidator: "",
+    nomorSertifikat: "SK/ORG/2025/012",
+    tautan: "",
   },
   {
     id: 5,
-    title: "International Conference Paper",
-    date: "2025-08-20",
-    location: "Singapore",
+    judul: "International Conference Paper",
+    tanggal: "20 Agu 2025",
+    lokasi: "Singapore",
     kategori: "Publikasi",
     tingkatan: "Internasional",
-    jabatan: "Pembicara",
-    tags: ["Publikasi", "Internasional"],
+    jabatan: "Penulis Utama",
+    dosenPembimbing: "",
     status: "Ditolak",
-    statusColor: "text-[#DC2626] bg-[#FEE2E2]",
-    dot: "bg-[#DC2626]",
     poin: null,
-    certificate: null,
+    catatanValidator: "Catatan dari validator: Bukti keikutsertaan tidak sesuai. Tidak dapat diproses sebagai poin SKPI.",
+    nomorSertifikat: "",
+    tautan: "",
   },
   {
     id: 6,
-    title: "Artificial Intelligence for Future Innovation",
-    date: "2025-08-10",
-    location: "Universitas Indonesia",
+    judul: "Artificial Intelligence for Future Innovation",
+    tanggal: "10 Agu 2025",
+    lokasi: "Universitas Indonesia",
     kategori: "Seminar",
     tingkatan: "Nasional",
     jabatan: "Peserta",
-    tags: ["Seminar", "Nasional"],
+    dosenPembimbing: "",
     status: "Divalidasi",
-    statusColor: "text-[#16A34A] bg-[#DCFCE7]",
-    dot: "bg-[#16A34A]",
     poin: 12,
-    certificate: null,
+    catatanValidator: "",
+    nomorSertifikat: "",
+    tautan: "",
   },
   {
     id: 7,
-    title: "International Robotics Competition 2025",
-    date: "2025-11-05",
-    location: "Singapore Exhibition Centre",
+    judul: "International Robotics Competition 2025",
+    tanggal: "05 Nov 2025",
+    lokasi: "Singapore Exhibition Centre",
     kategori: "Lomba",
     tingkatan: "Internasional",
-    jabatan: "Ketua",
-    pembimbing: "Dr. Eng. Admi Syarif",
-    tags: ["Lomba", "Internasional"],
+    jabatan: "Peserta",
+    dosenPembimbing: "Dr. Eng. Admi Syarif",
     status: "Belum Diperiksa",
-    statusColor: "text-[#B45309] bg-[#FEF9C3]",
-    dot: "bg-[#F59E0B]",
     poin: null,
-    certificate: null,
+    catatanValidator: "",
+    nomorSertifikat: "",
+    tautan: "",
   },
   {
     id: 8,
-    title: "Desain UI/UX Aplikasi Akademik MyUnila",
-    date: "2025-11-20",
-    location: "-",
-    kategori: "Karya",
-    bentukKarya: "Karya Seni / Desain",
-    tautanSertifikat: "https://dribbble.com/contoh-karya",
-    tags: ["Karya", "Karya Seni / Desain"],
-    status: "Diarsipkan",
-    statusColor: "text-slate-600 bg-slate-100 border border-slate-200",
-    dot: "bg-slate-400",
-    poin: null,
-    certificate: null,
-  },
-  {
-    id: 9,
-    title: "PKKMB UNIVERSITAS",
-    date: "2022-08-15",
-    location: "Universitas Lampung",
+    judul: "PKKMB Universitas Lampung",
+    tanggal: "15 Agu 2022",
+    lokasi: "Universitas Lampung",
     kategori: "PKKMB Universitas",
     tingkatan: "Universitas",
     jabatan: "Peserta",
-    tags: ["PKKMB Universitas", "Universitas"],
+    dosenPembimbing: "",
     status: "Belum Diperiksa",
-    statusColor: "text-[#B45309] bg-[#FEF9C3]",
-    dot: "bg-[#F59E0B]",
-    poin: 0,
-    certificate: null,
-    isNew: true,
+    poin: null,
+    catatanValidator: "",
+    nomorSertifikat: "",
+    tautan: "",
   },
 ];
 
-// Helper: normalkan tag warna untuk item yang datang dari TambahKegiatan
-const TAG_COLOR_MAP = {
-  Seminar:       "text-[#6D28D9] bg-[#F3E8FF] border border-[#D8B4FE]",
-  Lomba:         "text-[#0EA5E9] bg-[#E0F2FE] border border-[#BAE6FD]",
-  Organisasi:    "text-[#3AB8BA] bg-[#E6F4F4] border border-[#99F6E4]",
-  Kepanitiaan:   "text-[#10B981] bg-[#DCFCE7] border border-[#BBF7D0]",
-  Pelatihan:     "text-[#F59E0B] bg-[#FEF3C7] border border-[#FDE68A]",
-  Publikasi:     "text-[#F59E0B] bg-[#FEF3C7] border border-[#FDE68A]",
-  "PKKMB Universitas": "text-[#F59E0B] bg-[#FEF3C7] border border-[#FDE68A]",
-  Karya:         "text-[#F59E0B] bg-[#FEF3C7] border border-[#FDE68A]",
+export default function DataSKPIMahasiswa() {
+  const navigate = useNavigate();
+  const [items, setItems] = useState(initialDataSKPI);
+  const [search, setSearch] = useState("");
+  const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
+  const [statusFilter, setStatusFilter] = useState("Semua Status");
+  const [isLocked, setIsLocked] = useState(false);
 
-  Internasional: "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Nasional:      "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Regional:      "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Provinsi:      "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Universitas:   "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Fakultas:      "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-  Jurusan:       "text-[#1E3A8A] bg-[#EFF3FF] border border-[#C7D2FE]",
-};
+  // Modals state
+  const [deleteModalItem, setDeleteModalItem] = useState(null);
+  const [detailModalItem, setDetailModalItem] = useState(null);
+  const [editModalItem, setEditModalItem] = useState(null);
 
-function normalizeItem(item) {
-  // Selalu hitung ulang tagColors agar perubahan pada TAG_COLOR_MAP langsung terlihat meskipun data lama ada di localStorage
-  const tags = item.tags || [item.kategori, item.tingkatan].filter(Boolean);
-  return {
-    ...item,
-    tags,
-    tagColors: tags.map((t) => TAG_COLOR_MAP[t] || "text-[#F59E0B] bg-[#FEF3C7] border border-[#FDE68A]"),
-    statusColor: item.statusColor || "text-[#B45309] bg-[#FEF9C3]",
-    dot:         item.dot        || "bg-[#F59E0B]",
-  };
-}
-
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    let dataToLoad = SEED_DATA;
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.length) dataToLoad = parsed;
-    }
-    
-    // Pastikan ada contoh "Karya" dan "PKKMB Universitas" untuk didemokan
-    if (!dataToLoad.some(d => d.kategori === "Karya")) {
-      const contohKarya = SEED_DATA.filter(d => d.kategori === "Karya");
-      dataToLoad = [...dataToLoad, ...contohKarya];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToLoad));
-    }
-    if (!dataToLoad.some(d => d.kategori === "PKKMB Universitas")) {
-      const contohPkkmb = SEED_DATA.filter(d => d.kategori === "PKKMB Universitas");
-      dataToLoad = [...dataToLoad, ...contohPkkmb];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToLoad));
-    }
-    
-    return dataToLoad.map(normalizeItem);
-  } catch {
-    return SEED_DATA.map(normalizeItem);
-  }
-}
-
-// ─── Preview Modal ────────────────────────────────────────────────────────────
-function PreviewModal({ item, onClose }) {
-  const [zoom, setZoom] = useState(1);
+  // Document controls
+  const [zoomLevel, setZoomLevel] = useState(100);
   const [rotation, setRotation] = useState(0);
 
-  // Format date helper (e.g. "2025-10-20" -> "20 Okt 2025")
-  const formatDateStr = (dateStr) => {
-    if (!dateStr) return "-";
-    try {
-      const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
-      const parts = dateStr.split("-");
-      if (parts.length === 3) {
-        const day = parseInt(parts[2], 10);
-        const month = months[parseInt(parts[1], 10) - 1];
-        const year = parts[0];
-        return `${day} ${month} ${year}`;
-      }
-      return dateStr;
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const isKarya = item.kategori === "Karya";
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl w-full max-w-6xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
-        
-        {/* SISI KIRI: DATA DETAIL */}
-        <div className="flex-1 p-8 overflow-y-auto border-r border-[#E5E7EB] bg-white">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <span className="text-[11px] font-bold tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full uppercase">
-                {isKarya ? "Detail Karya" : "Detail Kegiatan"}
-              </span>
-              <h2 className="text-2xl font-bold text-[#0F172A] mt-2 font-poppins">
-                {item.title}
-              </h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors md:hidden"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {/* PROFIL MAHASISWA */}
-            <div className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0]">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-blue-600">👤</span>
-                <h3 className="text-sm font-bold text-[#334155] font-poppins">
-                  PROFIL MAHASISWA
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nama</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">Hanifa Azzahra</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">NPM</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">2020021001</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Program Studi</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">Teknik Elektro</p>
-                </div>
-              </div>
-            </div>
-
-            {/* INFO LENGKAP */}
-            <div className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0]">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-blue-600">📋</span>
-                <h3 className="text-sm font-bold text-[#334155] font-poppins uppercase">
-                  {isKarya ? "INFORMASI KARYA" : "INFORMASI KEGIATAN"}
-                </h3>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Kategori</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.kategori || "-"}</p>
-                </div>
-                {isKarya ? (
-                  <div>
-                    <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Bentuk Karya</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.bentukKarya || "-"}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Jabatan / Peran</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.jabatan || "-"}</p>
-                  </div>
-                )}
-                
-                {!isKarya && (
-                  <div>
-                    <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Tingkatan</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.tingkatan || "-"}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">
-                    {isKarya ? "Tanggal Pembuatan" : "Tanggal Sertifikat"}
-                  </p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{formatDateStr(item.date)}</p>
-                </div>
-
-                {!isKarya && (
-                  <div>
-                    <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Nomor Sertifikat</p>
-                    <p className="text-sm font-semibold text-[#0F172A] mt-0.5 font-mono">{item.nomorSertifikat || "-"}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Poin</p>
-                  <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{item.poin || "-"}</p>
-                </div>
-              </div>
-
-              {/* STATUS & TAGS */}
-              <div className="mt-5 pt-4 border-t border-[#E2E8F0] flex items-center gap-3">
-                <span className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide">Status</span>
-                <div className="flex flex-wrap gap-2">
-                  {item.status === "Divalidasi" ? (
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] border border-[#A7F3D0] font-poppins">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#049D71]"></span> Divalidasi
-                    </span>
-                  ) : item.status === "Ditangguhkan" ? (
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] border border-[#FDE68A] font-poppins">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span> Ditangguhkan
-                    </span>
-                  ) : item.status === "Ditolak" ? (
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] font-poppins">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]"></span> Ditolak
-                    </span>
-                  ) : item.status === "Diarsipkan" ? (
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] font-poppins">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#64748B]"></span> Diarsipkan
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF9E6] text-[#D97706] border border-[#FDE68A] font-poppins">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> Belum Diperiksa
-                    </span>
-                  )}
-                  {item.kategori && (
-                    <span className="px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF3C7] text-[#D97706] border border-[#FDE68A] font-poppins">
-                      {item.kategori}
-                    </span>
-                  )}
-                  {item.tingkatan && (
-                    <span className="px-3 py-1 rounded-full text-[12px] font-medium bg-[#E8EFFF] text-[#1E40AF] border border-[#BFDBFE] font-poppins">
-                      {item.tingkatan}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* TAUTAN */}
-              <div className="mt-5 pt-4 border-t border-[#E2E8F0]">
-                <p className="text-[11px] text-[#94A3B8] font-medium uppercase tracking-wide mb-1">
-                  {isKarya ? "Tautan Karya / Portofolio" : "Tautan Sertifikat"}
-                </p>
-                <a href={item.tautanSertifikat || "#"} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-1.5 font-medium break-all font-poppins">
-                  <ExternalLink size={14} />
-                  {item.tautanSertifikat || "-"}
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SISI KANAN: SERTIFIKAT PREVIEW */}
-        <div className="flex-1 bg-[#F8FAFC] flex flex-col relative">
-          <div className="px-6 md:px-8 py-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0 font-poppins">
-            <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
-              <span className="text-blue-600">📄</span>
-              Lampiran Pendukung
-            </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="px-6 md:px-8 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center gap-4 bg-white shrink-0 font-poppins">
-            <button 
-              onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
-            >
-              <ZoomOut size={16} />
-              Perkecil
-            </button>
-            <span className="text-[13px] font-bold text-[#94A3B8] w-12 text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button 
-              onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
-            >
-              <ZoomIn size={16} />
-              Perbesar
-            </button>
-            <div className="w-px h-4 bg-[#E2E8F0]"></div>
-            <button 
-              onClick={() => setRotation(r => r + 90)}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors"
-            >
-              <RotateCw size={16} />
-              Putar
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-auto p-8 flex flex-col items-center justify-center gap-8 bg-[#F1F5F9] min-h-[300px]">
-            {item.certificate ? (
-              <div className="flex flex-col items-center gap-2">
-                <p className="text-sm font-semibold text-gray-600 font-poppins">Sertifikat</p>
-                {item.certificate.startsWith("data:application/pdf") ? (
-                  <iframe src={item.certificate} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200 bg-white" />
-                ) : (
-                  <img
-                    src={item.certificate}
-                    alt="sertifikat"
-                    className="transition-all duration-300 shadow-sm border border-gray-200 bg-white"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      maxWidth: "90%",
-                      maxHeight: "90%",
-                    }}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="w-full max-w-sm aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 gap-3 p-6 bg-white shadow-sm">
-                <FileText size={48} className="text-gray-300 stroke-[1.5]" />
-                <p className="text-[13px] font-medium text-gray-500 font-poppins">
-                  Belum ada berkas lampiran diunggah
-                </p>
-              </div>
-            )}
-            
-            {item.kategori === "Lomba" && item.skFile && (
-              <div className="flex flex-col items-center gap-2 mt-4">
-                <p className="text-sm font-semibold text-gray-600 font-poppins">SK Pembimbing</p>
-                {item.skFile.startsWith("data:application/pdf") ? (
-                  <iframe src={item.skFile} style={{ width: "100%", height: "400px", transform: `scale(${zoom})`, transformOrigin: "top center" }} className="shadow-sm border border-gray-200 bg-white" />
-                ) : (
-                  <img
-                    src={item.skFile}
-                    alt="sk pembimbing"
-                    className="transition-all duration-300 shadow-sm border border-gray-200 bg-white"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      maxWidth: "90%",
-                      maxHeight: "90%",
-                    }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* SISI KANAN FOOTER */}
-          <div className="px-6 md:px-8 py-4 border-t border-[#E2E8F0] flex items-center justify-end bg-white shrink-0">
-            <button
-              disabled={!item.certificate}
-              onClick={() => {
-                if (item.certificate) {
-                  const link = document.createElement("a");
-                  link.href = item.certificate;
-                  link.download = "sertifikat.png";
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }
-              }}
-              className="flex items-center gap-2 text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:shadow-lg hover:shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed font-poppins"
-            >
-              <Download size={16} />
-              Unduh
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Edit Modal Mahasiswa ─────────────────────────────────────────────────────
-function ModalEditMahasiswa({ item, onClose, onSave }) {
-  const KATEGORI_LIST = ["Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi", "Karya", "PKKMB Universitas"];
-  const TAHUN_LIST = ["2025", "2024", "2023", "2022", "2021"];
-  const BENTUK_KARYA_LIST = ["Aplikasi / Software", "Karya Tulis / Jurnal", "Karya Seni / Desain", "Proyek Multimedia", "Lainnya"];
-  const TINGKATAN_LIST = ["Internasional", "Nasional", "Regional", "Provinsi", "Universitas", "Fakultas", "Jurusan"];
-  const DOSEN_LIST = [
-    "Dr. Eng. Admi Syarif",
-    "Prof. Dr. Ir. Suharno, M.S.",
-    "Ahmad Zakaria, Ph.D.",
-    "Dr. Ryan Randy Suryono"
-  ];
-
-  const getJabatanOpts = (kat) => {
-    if (kat === "Lomba") return ["Peserta", "Juara 1", "Juara 2", "Juara 3", "Harapan 1", "Harapan 2", "Harapan 3"];
-    if (kat === "Organisasi" || kat === "Kepanitiaan") return ["Ketua", "Wakil Ketua", "Sekretaris", "Wakil Sekretaris", "Bendahara", "Wakil Bendahara", "Anggota", "Ketua Bidang / Koordinator / Departemen"];
-    if (kat === "Pelatihan" || kat === "Seminar") return ["Narasumber / Pembicara", "Moderator", "Peserta"];
-    if (kat === "Publikasi") return ["Ketua", "Anggota"];
-    return ["Peserta", "Ketua", "Anggota", "Panitia", "Pembicara", "Juri"];
-  };
-
-  const [judul, setJudul] = useState(item.title || item.kegiatan || "");
-  const [kategori, setKategori] = useState(item.kategori || "Seminar");
-  const [tahun, setTahun] = useState(item.date ? item.date.slice(0, 4) : "2025");
-  const [bentukKarya, setBentukKarya] = useState(item.bentukKarya || "");
-  const [tingkatan, setTingkatan] = useState(item.tingkatan || "");
-  const [jabatan, setJabatan] = useState(item.jabatan || "");
-  const [pembimbing, setPembimbing] = useState(item.pembimbing || "");
-  const [anggotaTim, setAnggotaTim] = useState(
-    Array.isArray(item.anggotaTim) && item.anggotaTim.length > 0
-      ? item.anggotaTim
-      : [{ nama: "", npm: "" }]
-  );
-  const [skFile, setSkFile] = useState(item.skFile || null);
-  const [nomorSertifikat, setNomorSertifikat] = useState(item.nomorSertifikat || "");
-  const [tanggalSertifikat, setTanggalSertifikat] = useState(item.date || "");
-  const [tautanSertifikat, setTautanSertifikat] = useState(item.tautanSertifikat || "");
-  const [certificate, setCertificate] = useState(item.certificate || null);
-  const [error, setError] = useState("");
-
-  const handleKategoriChange = (val) => {
-    setKategori(val);
-    if (val === "Karya") {
-      setJabatan("");
-      setTingkatan("");
-      setPembimbing("");
-      setNomorSertifikat("");
-      setAnggotaTim([{ nama: "", npm: "" }]);
-      setSkFile(null);
-    } else if (val === "Lomba") {
-      setBentukKarya("");
-    } else {
-      setBentukKarya("");
-      setPembimbing("");
-      setAnggotaTim([{ nama: "", npm: "" }]);
-      setSkFile(null);
-    }
-  };
-
-  const handleAddAnggota = () => setAnggotaTim([...anggotaTim, { nama: "", npm: "" }]);
-  const handleRemoveAnggota = (idx) => setAnggotaTim(anggotaTim.filter((_, i) => i !== idx));
-  const handleChangeAnggota = (idx, f, v) => {
-    const next = [...anggotaTim];
-    next[idx][f] = v;
-    setAnggotaTim(next);
-  };
-
-  const handleSave = () => {
-    if (!judul.trim()) {
-      setError(kategori === "Karya" ? "Judul karya wajib diisi." : "Judul kegiatan wajib diisi.");
-      return;
-    }
-    if (!kategori) { setError("Kategori wajib dipilih."); return; }
-    if (!tahun) { setError("Tahun wajib dipilih."); return; }
-
-    if (kategori === "Karya") {
-      if (!bentukKarya) { setError("Bentuk karya wajib dipilih."); return; }
-    } else if (kategori === "Lomba") {
-      if (!jabatan) { setError("Prestasi / Pencapaian wajib dipilih."); return; }
-      if (!tingkatan) { setError("Tingkatan wajib dipilih."); return; }
-    } else {
-      if (!jabatan) { setError("Jabatan / Peran wajib dipilih."); return; }
-      if (!tingkatan) { setError("Tingkatan wajib dipilih."); return; }
-    }
-
-    setError("");
-
-    onSave({
-      ...item,
-      title: judul.trim(),
-      kategori,
-      date: tanggalSertifikat || `${tahun}-01-01`,
-      bentukKarya: kategori === "Karya" ? bentukKarya : "",
-      tingkatan: kategori === "Karya" ? "" : tingkatan,
-      jabatan: kategori === "Karya" ? "" : jabatan,
-      pembimbing: kategori === "Lomba" ? pembimbing : "",
-      anggotaTim: kategori === "Lomba" ? anggotaTim.filter(a => a.nama.trim() || a.npm.trim()) : [],
-      skFile: kategori === "Lomba" ? skFile : null,
-      nomorSertifikat: kategori === "Karya" ? "" : nomorSertifikat,
-      tautanSertifikat,
-      certificate,
-      tags: kategori === "Karya"
-        ? ["Karya", bentukKarya].filter(Boolean)
-        : [kategori, tingkatan].filter(Boolean),
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
-          <h3 className="font-bold text-[#0F172A] text-lg font-poppins">Edit Kegiatan &amp; Karya</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Form Content */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
-          {error && (
-            <div className="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-xs font-semibold font-poppins">
-              {error}
-            </div>
-          )}
-
-          {/* Judul */}
-          <div>
-            <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-              {kategori === "Karya" ? "Judul Karya" : "Judul Kegiatan"} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={judul}
-              onChange={(e) => setJudul(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-            />
-          </div>
-
-          {/* Kategori & Tahun */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                Kategori <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={kategori}
-                  onChange={(e) => handleKategoriChange(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                >
-                  {KATEGORI_LIST.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <ChevronDown size={16} />
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tahun <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select
-                  value={tahun}
-                  onChange={(e) => setTahun(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                >
-                  {TAHUN_LIST.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <ChevronDown size={16} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* KONDISI 1: KARYA */}
-          {kategori === "Karya" && (
-            <>
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                  Bentuk Karya <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={bentukKarya}
-                    onChange={(e) => setBentukKarya(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                  >
-                    <option value="" disabled>Pilih Bentuk Karya</option>
-                    {BENTUK_KARYA_LIST.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Karya / Pembuatan</label>
-                <input
-                  type="date"
-                  value={tanggalSertifikat}
-                  onChange={(e) => setTanggalSertifikat(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Karya / Portofolio</label>
-                <input
-                  type="text"
-                  value={tautanSertifikat}
-                  onChange={(e) => setTautanSertifikat(e.target.value)}
-                  placeholder="https://github.com/... atau link Drive"
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-            </>
-          )}
-
-          {/* KONDISI 2: LOMBA */}
-          {kategori === "Lomba" && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                    Prestasi / Pencapaian <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={jabatan}
-                      onChange={(e) => setJabatan(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    >
-                      <option value="" disabled>Pilih Prestasi</option>
-                      {getJabatanOpts("Lomba").map((j) => (
-                        <option key={j} value={j}>{j}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <ChevronDown size={16} />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                    Tingkatan <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={tingkatan}
-                      onChange={(e) => setTingkatan(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    >
-                      <option value="" disabled>Pilih Tingkatan</option>
-                      {TINGKATAN_LIST.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <ChevronDown size={16} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Dosen Pembimbing Lomba (Opsional)</label>
-                <div className="relative">
-                  <select
-                    value={pembimbing}
-                    onChange={(e) => setPembimbing(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                  >
-                    <option value="">Pilih Dosen Pembimbing</option>
-                    {DOSEN_LIST.map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Anggota Tim */}
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-2 font-poppins">Anggota Tim (Opsional)</label>
-                {anggotaTim.map((anggota, idx) => (
-                  <div key={idx} className="flex items-center gap-3 mb-2">
-                    <input
-                      type="text"
-                      placeholder="Nama"
-                      value={anggota.nama}
-                      onChange={(e) => handleChangeAnggota(idx, "nama", e.target.value)}
-                      className="w-1/2 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] font-poppins"
-                    />
-                    <input
-                      type="text"
-                      placeholder="NPM"
-                      value={anggota.npm}
-                      onChange={(e) => handleChangeAnggota(idx, "npm", e.target.value)}
-                      className="w-1/3 px-4 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] font-poppins"
-                    />
-                    {anggotaTim.length > 1 && (
-                      <button type="button" onClick={() => handleRemoveAnggota(idx)} className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition">
-                        <Trash2 size={18} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={handleAddAnggota} className="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-[#2563EB] hover:text-[#1D4ED8] transition font-poppins">
-                  <Plus size={16} /> Tambah Anggota
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Nomor Sertifikat</label>
-                <input
-                  type="text"
-                  value={nomorSertifikat}
-                  onChange={(e) => setNomorSertifikat(e.target.value)}
-                  placeholder="Masukkan nomor sertifikat"
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Sertifikat</label>
-                <input
-                  type="date"
-                  value={tanggalSertifikat}
-                  onChange={(e) => setTanggalSertifikat(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Sertifikat</label>
-                <input
-                  type="text"
-                  value={tautanSertifikat}
-                  onChange={(e) => setTautanSertifikat(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-            </>
-          )}
-
-          {/* KONDISI 3: NON-KARYA BIASA */}
-          {kategori && kategori !== "Karya" && kategori !== "Lomba" && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                    Jabatan / Peran <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={jabatan}
-                      onChange={(e) => setJabatan(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    >
-                      <option value="" disabled>Pilih Jabatan</option>
-                      {getJabatanOpts(kategori).map((j) => (
-                        <option key={j} value={j}>{j}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <ChevronDown size={16} />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">
-                    Tingkatan <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={tingkatan}
-                      onChange={(e) => setTingkatan(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none font-poppins appearance-none cursor-pointer focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    >
-                      <option value="" disabled>Pilih Tingkatan</option>
-                      {TINGKATAN_LIST.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <ChevronDown size={16} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Nomor Sertifikat</label>
-                <input
-                  type="text"
-                  value={nomorSertifikat}
-                  onChange={(e) => setNomorSertifikat(e.target.value)}
-                  placeholder="Masukkan nomor sertifikat"
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tanggal Sertifikat</label>
-                <input
-                  type="date"
-                  value={tanggalSertifikat}
-                  onChange={(e) => setTanggalSertifikat(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[13px] font-semibold text-[#374151] mb-1.5 font-poppins">Tautan Sertifikat</label>
-                <input
-                  type="text"
-                  value={tautanSertifikat}
-                  onChange={(e) => setTautanSertifikat(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors font-poppins"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0 bg-white">
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-semibold text-[#475569] hover:bg-gray-50 transition font-poppins bg-white"
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition active:scale-[0.98] font-poppins bg-[#2563EB] hover:bg-[#1D4ED8] flex items-center gap-2 shadow-lg shadow-blue-600/10"
-          >
-            <Save size={16} className="text-white" />
-            <span>Simpan Perubahan</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Download Success Modal ──────────────────────────────────────────────────
-function ModalDownloadSukses({ onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center border border-gray-100 flex flex-col items-center">
-        <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-500 mb-4 border border-green-100">
-          <CheckCircle size={24} />
-        </div>
-        <h3 className="font-semibold text-[#0F172A] text-[16px] font-poppins">Unduhan Berhasil!</h3>
-        <p className="text-xs text-gray-500 mt-2 leading-relaxed font-poppins">
-          Transkrip Final SKPI resmi Anda (Format PDF) telah berhasil diekspor dan diunduh ke perangkat Anda.
-        </p>
-        <button
-          onClick={onClose}
-          className="mt-6 w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-[0.98] font-poppins"
-        >
-          Tutup
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Draft Alert Modal ───────────────────────────────────────────────────────
-function ModalDraftAlert({ onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center border border-gray-100 flex flex-col items-center">
-        <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mb-4 border border-amber-100">
-          <Lock size={24} />
-        </div>
-        <h3 className="font-semibold text-[#0F172A] text-[16px] font-poppins">Transkrip Belum Final</h3>
-        <p className="text-xs text-gray-500 mt-2 leading-relaxed font-poppins">
-          SKPI Anda masih dalam status draf dan belum dikunci oleh Program Studi. Anda belum dapat mengunduh transkrip final.
-        </p>
-        <button
-          onClick={onClose}
-          className="mt-6 w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-[0.98] font-poppins"
-        >
-          Mengerti
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Confirm Delete Modal ────────────────────────────────────────────────────
-function ModalConfirmDelete({ onConfirm, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center border border-gray-100 flex flex-col items-center">
-        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4 border border-red-100">
-          <Trash2 size={24} />
-        </div>
-        <h3 className="font-semibold text-[#0F172A] text-[16px] font-poppins">Konfirmasi Hapus</h3>
-        <p className="text-xs text-gray-500 mt-2 leading-relaxed font-poppins">
-          Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
-        </p>
-        <div className="flex gap-3 mt-6 w-full">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition font-poppins"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-[0.98] font-poppins"
-          >
-            Hapus
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-const KATEGORI_OPTS = ["Semua Kategori", "Seminar", "Lomba", "Organisasi", "Kepanitiaan", "Pelatihan", "Publikasi"];
-const STATUS_OPTS   = ["Semua Status", "Divalidasi", "Ditangguhkan", "Menunggu", "Ditolak", "Diarsipkan"];
-
-export default function Pengajuan() {
-  const [data, setData]                     = useState([]);
-  const [search, setSearch]                 = useState("");
-  const [kategori, setKategori]             = useState("Semua Kategori");
-  const [status, setStatus]                 = useState("Semua Status");
-  const [preview, setPreview]               = useState(false);
-  const [selectedItem, setSelectedItem]     = useState(null);
-  const [editItem, setEditItem]             = useState(null);
-  const [deleteItem, setDeleteItem]         = useState(null);
-  const [downloadModal, setDownloadModal]   = useState(false);
-  const [draftAlertModal, setDraftAlertModal] = useState(false);
-
-  const navigate = useNavigate();
-
-  // Baca status kunci dari localStorage (NPM mahasiswa Hanifa = 2020021001)
-  const isLocked = typeof window !== "undefined" ? localStorage.getItem("skpi_lock_2020021001") === "true" : false;
-
-  // Baca localStorage setiap kali halaman dimuat
-  useEffect(() => {
-    setData(loadData());
-  }, []);
-
-  const confirmDelete = () => {
-    if (deleteItem) {
-      const updated = data.filter((d) => d.id !== deleteItem.id);
-      setData(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setDeleteItem(null);
-    }
-  };
-
-  const handleSaveEdit = (updatedItem) => {
-    // Setelah disimpan, reset status menjadi "Menunggu" agar bisa divalidasi ulang admin
-    const normalized = normalizeItem({
-      ...updatedItem,
-      status: "Menunggu",
-      statusColor: "text-[#B45309] bg-[#FEF9C3]",
-      dot: "bg-[#F59E0B]",
-      catatanRevisi: "",
-      isNew: false,
-    });
-    const updated = data.map((d) => d.id === normalized.id ? normalized : d);
-    setData(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setEditItem(null);
-  };
-
-  const totalPoin = data.filter((d) => d.poin).reduce((a, b) => a + (b.poin || 0), 0);
-
-  const filtered = data.filter((d) => {
-    if (d.kategori === "Karya") return false;
-    const matchSearch = d.title.toLowerCase().includes(search.toLowerCase());
-    const matchKat    = kategori === "Semua Kategori" || d.tags?.some((t) => t === kategori);
-    const matchSt     = status  === "Semua Status"   || d.status === status;
-    return matchSearch && matchKat && matchSt;
+  const filteredItems = items.filter((item) => {
+    const matchSearch = item.judul.toLowerCase().includes(search.toLowerCase());
+    const matchCat = kategoriFilter === "Semua Kategori" || item.kategori === kategoriFilter;
+    const matchStat = statusFilter === "Semua Status" || item.status === statusFilter;
+    return matchSearch && matchCat && matchStat;
   });
 
+  const handleDelete = () => {
+    if (!deleteModalItem) return;
+    setItems((prev) => prev.filter((i) => i.id !== deleteModalItem.id));
+    setDeleteModalItem(null);
+  };
+
+  const totalPoinValid = items
+    .filter((i) => i.status === "Divalidasi")
+    .reduce((acc, curr) => acc + (curr.poin || 0), 0);
+
   return (
-    <div className="flex bg-[#F4F6FB] min-h-screen">
-      <Sidebar />
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
+      <SidebarMahasiswa />
 
-      {/* MODAL PRATINJAU SERTIFIKAT */}
-      {preview && selectedItem && (
-        <PreviewModal
-          item={selectedItem}
-          onClose={() => { setPreview(false); setSelectedItem(null); }}
-        />
-      )}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Navbar role="mahasiswa" />
 
-      {/* MODAL EDIT KEGIATAN MAHASISWA */}
-      {editItem && (
-        <ModalEditMahasiswa
-          item={editItem}
-          onClose={() => setEditItem(null)}
-          onSave={handleSaveEdit}
-        />
-      )}
-
-      {/* MODAL SUKSES DOWNLOAD */}
-      {downloadModal && (
-        <ModalDownloadSukses onClose={() => setDownloadModal(false)} />
-      )}
-
-      {/* MODAL PERINGATAN DRAF */}
-      {draftAlertModal && (
-        <ModalDraftAlert onClose={() => setDraftAlertModal(false)} />
-      )}
-
-      {/* MODAL KONFIRMASI HAPUS */}
-      {deleteItem && (
-        <ModalConfirmDelete
-          onClose={() => setDeleteItem(null)}
-          onConfirm={confirmDelete}
-        />
-      )}
-
-      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
-
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A] font-poppins">Data SKPI</h1>
-            <p className="text-[14px] text-[#94A3B8] mt-1 font-poppins">
-              Lihat dan kelola semua aktivitas yang telah diajukan
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/tambah-kegiatan"
-              className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 shadow-sm hover:bg-[#1D4ED8] active:scale-[0.98] font-poppins bg-[#2563EB]"
-            >
-              <Plus size={16} /> Tambah Kegiatan
-            </Link>
-            {/* TOMBOL UNDUH — berbeda tampilan tergantung status kunci */}
-            {isLocked ? (
-              <button
-                onClick={() => navigate("/cetak-skpi")}
-                className="flex items-center gap-2 text-[#334155] bg-white border border-[#E2E8F0] px-5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.98] font-poppins shadow-sm"
-              >
-                <Download size={16} />
-                Unduh Transkrip
-              </button>
-            ) : (
-              <button
-                onClick={() => setDraftAlertModal(true)}
-                className="flex items-center gap-2 text-[#334155] bg-white border border-[#E2E8F0] px-5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.98] font-poppins shadow-sm"
-              >
-                <Download size={16} /> Unduh Transkrip
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* BANNER KUNCI SKPI */}
-        {isLocked && (
-          <div className="mb-5 px-5 py-4 bg-gradient-to-r from-red-500/10 to-amber-400/10 border border-red-200/40 rounded-2xl flex items-center gap-3 shadow-sm">
-            <Lock size={18} className="text-red-600 shrink-0" />
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6">
+          {/* TOP HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-red-700 font-poppins">Transkrip SKPI Anda Telah Dikunci & Diterbitkan</p>
-              <p className="text-xs text-gray-500 font-poppins mt-0.5">
-                Data kegiatan tidak dapat diubah atau dihapus. Silakan unduh transkrip final menggunakan tombol di atas.
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">
+                Data SKPI
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                Kelola semua kegiatan yang telah diajukan.
               </p>
             </div>
-          </div>
-        )}
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-          <div className="flex items-center gap-2 mb-3 text-[14px] font-semibold text-[#475569] font-poppins">
-            <Filter size={15} color="#475569" /> Filter &amp; Pencarian
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/tambah-kegiatan")}
+                disabled={isLocked}
+                className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer ${
+                  isLocked ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <Plus size={16} />
+                <span>Tambah Kegiatan</span>
+              </button>
+
+              <button
+                onClick={() => navigate("/cetak-skpi")}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <Download size={14} />
+                <span>Unduh Transkrip</span>
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
-            <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+
+          {/* LOCKED BANNER */}
+          {isLocked && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center gap-3">
+              <Lock size={18} className="text-amber-600 shrink-0" />
+              <div className="text-xs text-amber-800 dark:text-amber-300">
+                <span className="font-bold">Transkrip SKPI Anda Telah Dikunci & Diterbitkan.</span> Data kegiatan tidak dapat diubah atau dihapus. Silakan unduh transkrip final menggunakan tombol di atas.
+              </div>
+            </div>
+          )}
+
+          {/* FILTER & SEARCH BAR */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="relative flex-1 w-full">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
+                type="text"
+                placeholder="Cari kegiatan..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama, NPM, atau kegiatan..."
-                className="w-full pl-9 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] focus:outline-none focus:border-[#2563EB] transition-colors font-poppins text-[#0F172A] placeholder:text-[#94A3B8]"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
               />
             </div>
-            <select
-              value={kategori}
-              onChange={(e) => setKategori(e.target.value)}
-              className="px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#475569] focus:outline-none focus:border-[#2563EB] cursor-pointer font-poppins"
-            >
-              {KATEGORI_OPTS.map((o) => <option key={o}>{o}</option>)}
-            </select>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl text-[14px] text-[#475569] focus:outline-none focus:border-[#2563EB] cursor-pointer font-poppins"
-            >
-              {STATUS_OPTS.map((o) => <option key={o}>{o}</option>)}
-            </select>
-          </div>
-        </div>
 
-        {/* List */}
-        <div className="space-y-3">
-          {filtered.length === 0 ? (
-            <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-              <p className="text-[#94A3B8] text-[14px] font-poppins">Belum ada kegiatan ditemukan.</p>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
+                value={kategoriFilter}
+                onChange={(e) => setKategoriFilter(e.target.value)}
+                className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none"
+              >
+                <option value="Semua Kategori">Semua Kategori</option>
+                <option value="Pelatihan">Pelatihan</option>
+                <option value="Lomba">Lomba</option>
+                <option value="Seminar">Seminar</option>
+                <option value="Organisasi">Organisasi</option>
+                <option value="Publikasi">Publikasi</option>
+                <option value="PKKMB Universitas">PKKMB Universitas</option>
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none"
+              >
+                <option value="Semua Status">Semua Status</option>
+                <option value="Belum Diperiksa">Belum Diperiksa</option>
+                <option value="Divalidasi">Divalidasi</option>
+                <option value="Ditangguhkan">Ditangguhkan</option>
+                <option value="Ditolak">Ditolak</option>
+              </select>
             </div>
-          ) : (
-            filtered.map((item) => {
-              const canEdit = !isLocked && (item.status === "Ditangguhkan" || item.status === "Belum Diperiksa" || item.status === "Menunggu" || item.status === "Diarsipkan");
-              const canDelete = !isLocked && item.status !== "Divalidasi";
-              return (
-                <div key={item.id} className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-2">
-                  <div className="flex items-center gap-4">
-                    {/* Ikon */}
-                    <div className="w-10 h-10 bg-[#EEF4FF] rounded-xl flex items-center justify-center shrink-0">
-                      <FileText className="text-[#1D4ED8]" size={20} />
+          </div>
+
+          {/* STACKED ACTIVITY CARDS LIST (EXACT MATCH IMAGE 2 SCREENSHOT) */}
+          <div className="space-y-4">
+            {filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-gray-100 dark:border-slate-800 shadow-xs space-y-3 transition-all hover:border-blue-200 dark:hover:border-slate-700"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4 min-w-0">
+                    <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <FileText size={20} />
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[15px] font-semibold text-[#0F172A] font-poppins">{item.title}</p>
-                        {((item.createdAt && Date.now() - item.createdAt < 24 * 60 * 60 * 1000) || (!item.createdAt && item.isNew)) && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-[#DCFCE7] text-[#16A34A] font-poppins">
-                            BARU
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <span className="flex items-center gap-1 text-[12px] text-[#94A3B8] font-poppins">
-                          <Calendar size={12} /> {item.date}
+                    <div className="space-y-2 min-w-0">
+                      <h3 className="text-sm font-extrabold text-gray-900 dark:text-slate-100">
+                        {item.judul}
+                      </h3>
+
+                      {/* Line 2: Metadata Row */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="text-gray-400 flex items-center gap-1.5 font-medium">
+                          <Calendar size={14} className="text-gray-400 shrink-0" />
+                          <span>{item.tanggal}</span>
                         </span>
-                        {item.location && item.location !== "-" && (
-                          <span className="flex items-center gap-1 text-[12px] text-[#94A3B8] font-poppins">
-                            <MapPin size={12} /> {item.location}
+
+                        {item.lokasi && (
+                          <span className="text-gray-400 flex items-center gap-1.5 font-medium">
+                            <MapPin size={14} className="text-gray-400 shrink-0" />
+                            <span>{item.lokasi}</span>
                           </span>
                         )}
-                        {item.tags?.map((tag, i) => (
-                          <span
-                            key={i}
-                            className={`text-[11px] px-2 py-0.5 rounded-full font-medium font-poppins ${item.tagColors?.[i] || ""}`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {item.pembimbing && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full font-medium font-poppins text-[#1E3A8A] bg-blue-50 border border-blue-200">
-                            Pembimbing: {item.pembimbing}
+
+                        <span
+                          className={`px-3 py-0.5 rounded-full text-xs font-semibold ${
+                            item.kategori === "Pelatihan"
+                              ? "bg-amber-100/70 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              : item.kategori === "Lomba"
+                              ? "bg-sky-100/70 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300"
+                              : item.kategori === "Seminar"
+                              ? "bg-purple-100/70 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
+                              : item.kategori === "Organisasi"
+                              ? "bg-emerald-100/70 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                              : "bg-pink-100/70 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300"
+                          }`}
+                        >
+                          {item.kategori}
+                        </span>
+
+                        <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                          {item.tingkatan}
+                        </span>
+
+                        {item.dosenPembimbing && (
+                          <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-indigo-100/70 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+                            Pembimbing: {item.dosenPembimbing}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
+
+                      {/* Line 3: Status & Poin Row */}
+                      <div className="flex items-center gap-3 pt-0.5">
                         {item.status === "Divalidasi" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#E6F8F3] text-[#049D71] font-poppins">
-                            <CheckCircle size={14} /> {item.status}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                            <CheckCircle2 size={13} /> Divalidasi
                           </span>
                         ) : item.status === "Ditangguhkan" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FFF5E6] text-[#F59E0B] font-poppins">
-                            <Clock size={14} /> {item.status}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                            <Clock size={13} /> Ditangguhkan
                           </span>
                         ) : item.status === "Ditolak" ? (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-[#FEE2E2] text-[#DC2626] font-poppins">
-                            <XCircle size={14} /> {item.status}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 whitespace-nowrap">
+                            <XCircle size={13} /> Ditolak
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-gray-100 text-gray-600 font-poppins">
-                            <Clock size={14} /> {item.status === "Menunggu" ? "Belum Diperiksa" : (item.status || "Belum Diperiksa")}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+                            <Clock size={13} /> Belum Diperiksa
                           </span>
                         )}
-                        {item.poin > 0 && (
-                          <span className="text-[12px] text-[#64748B] font-poppins">
-                            Poin: <span className="text-[#1D4ED8] font-semibold">{item.poin}</span>
+
+                        {item.poin !== null && (
+                          <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
+                            Poin: <strong className="font-bold text-gray-900 dark:text-slate-100">{item.poin}</strong>
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {item.tautanSertifikat && (
-                        <a
-                          href={item.tautanSertifikat.startsWith('http') ? item.tautanSertifikat : `https://${item.tautanSertifikat}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#EEF4FF] hover:text-[#1D4ED8] transition-colors"
-                          title="Buka Tautan / Portofolio"
-                        >
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
-                      <button
-                        onClick={() => { setSelectedItem(item); setPreview(true); }}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#EEF4FF] hover:text-[#1D4ED8] transition-colors"
-                        title="Pratinjau Sertifikat"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      {/* Tampilkan tombol Edit hanya jika belum dikunci dan boleh diedit */}
-                      {canEdit ? (
-                        <button
-                          onClick={() => setEditItem(item)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#FFFBEB] hover:text-[#F59E0B] transition-colors"
-                          title="Edit & Ajukan Ulang"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 cursor-not-allowed"
-                          title={isLocked ? "SKPI Terkunci (Final)" : "Tidak dapat diedit"}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      )}
-                      {/* Tampilkan tombol Hapus hanya jika boleh dihapus */}
-                      {canDelete && (
-                        <button 
-                          onClick={() => setDeleteItem(item)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#FEE2E2] hover:text-[#DC2626] transition-colors"
-                          title="Hapus Kegiatan"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
                     </div>
                   </div>
 
-                  {/* CATATAN REVISI dari Admin (hanya tampil jika status Ditangguhkan) */}
-                  {item.status === "Ditangguhkan" && item.catatanRevisi && (
-                    <div className="flex items-start gap-2.5 mt-1 px-3 py-2.5 bg-amber-50 border border-amber-200/70 rounded-xl">
-                      <AlertCircle size={15} className="text-amber-500 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-[11px] font-semibold text-amber-700 font-poppins">Catatan Revisi dari Admin:</p>
-                        <p className="text-[12px] text-amber-800 mt-0.5 leading-relaxed font-poppins">{item.catatanRevisi}</p>
-                        {!isLocked && (
-                          <button
-                            onClick={() => setEditItem(item)}
-                            className="mt-2 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-semibold transition active:scale-[0.97] font-poppins"
-                          >
-                            Perbaiki &amp; Ajukan Ulang →
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+                  {/* Top-Right Action Icons */}
+                  <div className="flex items-center gap-4 text-gray-400 shrink-0">
+                    {item.tautan && (
+                      <a
+                        href={item.tautan}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-blue-600 transition-colors"
+                        title="Buka Tautan"
+                      >
+                        <ExternalLink size={18} />
+                      </a>
+                    )}
 
-        {/* Footer */}
-        <div className="flex justify-between items-center mt-4 px-1">
-          <p className="text-[13px] text-[#94A3B8] font-poppins">
-            Menampilkan {filtered.length} dari {data.length} kegiatan
-          </p>
-          <p className="text-[13px] text-[#64748B] font-medium font-poppins">
-            Total Poin: <span className="text-[#1D4ED8] font-bold">{totalPoin}</span>
-          </p>
+                    <button
+                      onClick={() => setDetailModalItem(item)}
+                      className="hover:text-blue-600 transition-colors cursor-pointer"
+                      title="Detail"
+                    >
+                      <Eye size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => setEditModalItem(item)}
+                      disabled={isLocked || item.status === "Divalidasi" || item.status === "Ditolak"}
+                      className="hover:text-blue-600 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={
+                        item.status === "Divalidasi"
+                          ? "Kegiatan divalidasi tidak dapat diedit"
+                          : item.status === "Ditolak"
+                          ? "Kegiatan ditolak tidak dapat diedit"
+                          : "Edit"
+                      }
+                    >
+                      <Pencil size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => setDeleteModalItem(item)}
+                      disabled={isLocked || item.status === "Divalidasi"}
+                      className="hover:text-rose-600 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={item.status === "Divalidasi" ? "Kegiatan divalidasi tidak dapat dihapus" : "Hapus"}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* VALIDATOR REVISION INSET ALERT */}
+                {item.catatanValidator && (
+                  <div className="p-4 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl text-xs space-y-1 mt-3">
+                    <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">
+                      <span className="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-black">!</span>
+                      <span>Catatan dari validator:</span>
+                    </div>
+                    <p className="text-amber-900 dark:text-amber-200 pl-6">
+                      {item.catatanValidator.replace("Catatan dari validator: ", "")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* FOOTER SUMMARY */}
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 pt-2">
+            <span>Menampilkan {filteredItems.length} dari {items.length} kegiatan</span>
+            <span className="font-bold text-gray-800 dark:text-slate-200">Total Poin: {totalPoinValid}</span>
+          </div>
+        </main>
+      </div>
+
+      {/* DETAIL KEGIATAN MODAL (EXACT IMAGE 1 MATCH) */}
+      {detailModalItem && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col lg:flex-row border border-gray-100 dark:border-slate-800">
+            {/* Left Info Pane */}
+            <div className="lg:w-1/2 p-6 overflow-y-auto space-y-5 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-slate-800">
+              <div>
+                <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 inline-block">
+                  DETAIL KEGIATAN
+                </span>
+                <h2 className="text-lg font-extrabold text-gray-900 dark:text-slate-100 mt-2">
+                  {detailModalItem.judul}
+                </h2>
+              </div>
+
+              {/* Card 1: PROFIL MAHASISWA */}
+              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-2 border border-gray-100 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">PROFIL MAHASISWA</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">NAMA</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.nama || "NOVIA FITRIANA HUDA"}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">NPM</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.npm || "2215061024"}</span>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <span className="text-gray-400 block text-[10px] uppercase font-semibold">PROGRAM STUDI</span>
+                  <span className="font-extrabold text-gray-900 dark:text-slate-100">Program Studi S1 Teknik Informatika (S1)</span>
+                </div>
+              </div>
+
+              {/* Card 2: INFORMASI KEGIATAN */}
+              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-3 border border-gray-100 dark:border-slate-800 text-xs">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">INFORMASI KEGIATAN</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">KATEGORI</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.kategori}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">JABATAN / PERAN</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.jabatan || "Peserta"}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">TINGKATAN</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.tingkatan}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">TANGGAL SERTIFIKAT</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.tanggal}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">NOMOR SERTIFIKAT</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.nomorSertifikat || "SERT/PLT/2025/0192"}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">POIN</span>
+                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.poin || 15}</span>
+                  </div>
+                </div>
+
+                {/* Status Badges Row */}
+                <div className="pt-2 flex items-center gap-2 flex-wrap">
+                  <span className="text-gray-400 text-[10px] uppercase font-semibold mr-1">STATUS</span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <CheckCircle2 size={12} /> Divalidasi
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    {detailModalItem.kategori}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                    {detailModalItem.tingkatan}
+                  </span>
+                </div>
+
+                {/* Tautan Sertifikat */}
+                <div className="pt-2 border-t border-gray-200/60 dark:border-slate-700/60">
+                  <span className="text-gray-400 block text-[10px] uppercase font-semibold">TAUTAN SERTIFIKAT</span>
+                  <a
+                    href={detailModalItem.tautan || "https://drive.google.com/contoh-sertifikat"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold hover:underline mt-1"
+                  >
+                    <ExternalLink size={13} />
+                    <span>{detailModalItem.tautan || "https://drive.google.com/contoh-sertifikat"}</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Previewer Pane */}
+            <div className="lg:w-1/2 p-6 flex flex-col justify-between bg-gray-50/50 dark:bg-slate-950">
+              <div>
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-200 dark:border-slate-800">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-slate-200">
+                    <FileText size={16} className="text-blue-600" />
+                    <span>Lampiran Pendukung</span>
+                  </div>
+                  <button onClick={() => setDetailModalItem(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Controls Bar */}
+                <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-slate-400 mb-4 px-1">
+                  <button onClick={() => setZoomLevel((z) => Math.max(50, z - 10))} className="flex items-center gap-1 hover:text-gray-800 cursor-pointer">
+                    <ZoomOut size={13} /> <span>Perkecil</span>
+                  </button>
+                  <span>100%</span>
+                  <button onClick={() => setZoomLevel((z) => Math.min(200, z + 10))} className="flex items-center gap-1 hover:text-gray-800 cursor-pointer">
+                    <ZoomIn size={13} /> <span>Perbesar</span>
+                  </button>
+                  <button onClick={() => setRotation((r) => (r + 90) % 360)} className="flex items-center gap-1 hover:text-gray-800 cursor-pointer ml-2">
+                    <RotateCw size={13} /> <span>Putar</span>
+                  </button>
+                </div>
+
+                {/* Center Preview Box */}
+                <div className="min-h-[260px] bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-800 p-8 flex flex-col items-center justify-center text-center text-gray-400">
+                  <FileText size={48} className="mb-2 opacity-25" />
+                  <p className="text-xs font-medium">Belum ada berkas lampiran diunggah</p>
+                </div>
+              </div>
+
+              {/* Bottom Right Download Button */}
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => alert("Mengunduh berkas...")}
+                  className="px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Unduh</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* EDIT KEGIATAN MODAL (EXACT MATCH PDF PAGE 9) */}
+      {editModalItem && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800">
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">
+                Edit Kegiatan
+              </h3>
+              <button
+                onClick={() => setEditModalItem(null)}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setItems((prev) =>
+                  prev.map((i) => (i.id === editModalItem.id ? editModalItem : i))
+                );
+                setEditModalItem(null);
+              }}
+              className="space-y-4 text-xs"
+            >
+              {/* Judul Kegiatan */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                  Judul Kegiatan *
+                </label>
+                <input
+                  type="text"
+                  value={editModalItem.judul}
+                  onChange={(e) =>
+                    setEditModalItem({ ...editModalItem, judul: e.target.value })
+                  }
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {/* Kategori & Tahun */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                    Kategori *
+                  </label>
+                  <select
+                    value={editModalItem.kategori}
+                    onChange={(e) =>
+                      setEditModalItem({ ...editModalItem, kategori: e.target.value })
+                    }
+                    className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="Pelatihan">Pelatihan</option>
+                    <option value="Lomba">Lomba</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Organisasi">Organisasi</option>
+                    <option value="Publikasi">Publikasi</option>
+                    <option value="PKKMB Universitas">PKKMB Universitas</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                    Tahun *
+                  </label>
+                  <select
+                    value={editModalItem.tahun || "2025"}
+                    onChange={(e) =>
+                      setEditModalItem({ ...editModalItem, tahun: e.target.value })
+                    }
+                    className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Dynamic Row: Lomba vs General */}
+              {editModalItem.kategori === "Lomba" ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Prestasi / Pencapaian
+                      </label>
+                      <select
+                        value={editModalItem.jabatan || "Peserta"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jabatan: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="Juara 1">Juara 1</option>
+                        <option value="Juara 2">Juara 2</option>
+                        <option value="Juara 3">Juara 3</option>
+                        <option value="Harapan 1">Harapan 1</option>
+                        <option value="Finalis">Finalis</option>
+                        <option value="Peserta">Peserta</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Tingkatan
+                      </label>
+                      <select
+                        value={editModalItem.tingkatan}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, tingkatan: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="Fakultas">Fakultas</option>
+                        <option value="Universitas">Universitas</option>
+                        <option value="Regional">Regional</option>
+                        <option value="Nasional">Nasional</option>
+                        <option value="Internasional">Internasional</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                      Dosen Pembimbing *
+                    </label>
+                    <select
+                      value={editModalItem.dosenPembimbing || "Dr. Eng. Admi Syarif"}
+                      onChange={(e) =>
+                        setEditModalItem({ ...editModalItem, dosenPembimbing: e.target.value })
+                      }
+                      className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                    >
+                      <option value="Dr. Eng. Admi Syarif">Dr. Eng. Admi Syarif</option>
+                      <option value="Prof. Dr. Ir. Admi Syarif">Prof. Dr. Ir. Admi Syarif</option>
+                      <option value="Dr. Ir. Gigih Forda Nama, S.T., M.T.">Dr. Ir. Gigih Forda Nama, S.T., M.T.</option>
+                    </select>
+                  </div>
+
+                  {/* Anggota Tim */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                      Anggota Tim (opsional)
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Nama anggota"
+                        className="p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="NPM"
+                        className="p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>Tambah Anggota</span>
+                    </button>
+                  </div>
+
+                  {/* Unggah SK Pembimbing / Tim */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                      Unggah SK Pembimbing / Tim
+                    </label>
+                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
+                      <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                        <Upload size={18} />
+                      </div>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
+                        Klik untuk unggah atau tarik berkas ke sini
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, atau PDF</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                      Jabatan
+                    </label>
+                    <select
+                      value={editModalItem.jabatan || "Peserta"}
+                      onChange={(e) =>
+                        setEditModalItem({ ...editModalItem, jabatan: e.target.value })
+                      }
+                      className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                    >
+                      <option value="Peserta">Peserta</option>
+                      <option value="Ketua">Ketua</option>
+                      <option value="Wakil Ketua">Wakil Ketua</option>
+                      <option value="Anggota">Anggota</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                      Tingkatan
+                    </label>
+                    <select
+                      value={editModalItem.tingkatan}
+                      onChange={(e) =>
+                        setEditModalItem({ ...editModalItem, tingkatan: e.target.value })
+                      }
+                      className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                    >
+                      <option value="Fakultas">Fakultas</option>
+                      <option value="Universitas">Universitas</option>
+                      <option value="Regional">Regional</option>
+                      <option value="Nasional">Nasional</option>
+                      <option value="Internasional">Internasional</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Nomor Sertifikat */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                  Nomor Sertifikat
+                </label>
+                <input
+                  type="text"
+                  value={editModalItem.nomorSertifikat || ""}
+                  placeholder="Masukkan nomor sertifikat"
+                  onChange={(e) =>
+                    setEditModalItem({ ...editModalItem, nomorSertifikat: e.target.value })
+                  }
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                />
+              </div>
+
+              {/* Tanggal Sertifikat */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                  Tanggal Sertifikat
+                </label>
+                <input
+                  type="text"
+                  value={editModalItem.tanggal || ""}
+                  onChange={(e) =>
+                    setEditModalItem({ ...editModalItem, tanggal: e.target.value })
+                  }
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                />
+              </div>
+
+              {/* Tautan Sertifikat */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                  Tautan Sertifikat
+                </label>
+                <input
+                  type="url"
+                  value={editModalItem.tautan || ""}
+                  placeholder="https://..."
+                  onChange={(e) =>
+                    setEditModalItem({ ...editModalItem, tautan: e.target.value })
+                  }
+                  className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                />
+              </div>
+
+              {/* Unggah Dokumen Pendukung */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                  Unggah Dokumen Pendukung
+                </label>
+                <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                    <Upload size={18} />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
+                    Klik untuk unggah atau tarik berkas ke sini
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, PDF (maks. 5MB)</p>
+                </div>
+              </div>
+
+              {/* Bottom Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditModalItem(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-100 cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-xs cursor-pointer"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModalItem && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto">
+              <Trash2 size={28} />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">Konfirmasi Hapus</h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+                Yakin ingin menghapus <span className="font-bold text-gray-800 dark:text-slate-200">"{deleteModalItem.judul}"</span>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setDeleteModalItem(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-xs cursor-pointer"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

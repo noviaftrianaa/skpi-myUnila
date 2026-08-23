@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import "./index.css";
 
 const basename = window.location.pathname.startsWith("/dashboard/skpi")
@@ -10,8 +11,10 @@ const basename = window.location.pathname.startsWith("/dashboard/skpi")
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter basename={basename}>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter basename={basename}>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </React.StrictMode>
 );

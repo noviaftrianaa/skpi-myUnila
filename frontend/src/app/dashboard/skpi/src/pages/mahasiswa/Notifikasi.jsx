@@ -1,175 +1,218 @@
 // src/pages/mahasiswa/Notifikasi.jsx
-import { useState } from "react";
-import { CheckCheck } from "lucide-react";
-import Sidebar from "../../components/common/SidebarMahasiswa";
+import React, { useState } from "react";
+import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
+import Navbar from "../../components/common/Navbar";
+import {
+  Bell,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  AlertTriangle,
+  Check,
+} from "lucide-react";
 
-const ALL_NOTIFS = [
+const initialNotifikasi = [
   {
     id: 1,
+    type: "validated",
     title: "Kegiatan Divalidasi",
     message: "Pengajuan 'Pelatihan UI/UX Design' telah divalidasi dan poin SKPI bertambah 15.",
     time: "2 jam lalu",
-    read: false,
-    icon: "✓",
-    iconBg: "bg-[#DCFCE7]",
-    iconColor: "text-[#16A34A]",
+    unread: true,
   },
   {
     id: 2,
+    type: "info",
     title: "Pembaruan Sistem",
-    message: "Sistem Informasi SKPI kini hadir dengan tampilan!",
+    message: "Sistem Informasi SKPI kini hadir dengan tampilan baru yang lebih rapi.",
     time: "5 jam lalu",
-    read: false,
-    icon: "ℹ",
-    iconBg: "bg-[#EEF4FF]",
-    iconColor: "text-[#1D4ED8]",
+    unread: true,
   },
   {
     id: 3,
+    type: "warning",
     title: "Pengingat Kelengkapan Dokumen",
     message: "Segera unggah sertifikat \"National Hackathon 2025\" untuk melengkapi data SKPI-mu.",
     time: "1 hari lalu",
-    read: true,
-    icon: "⏰",
-    iconBg: "bg-[#FEF9C3]",
-    iconColor: "text-[#CA8A04]",
+    unread: false,
   },
   {
     id: 4,
+    type: "alert",
     title: "Data Kegiatan Perlu Diperbaiki",
     message: "Dokumen untuk \"International Conference Paper\" belum lengkap. Silakan lakukan pengunggahan ulang.",
     time: "2 hari lalu",
-    read: true,
-    icon: "✕",
-    iconBg: "bg-[#FEE2E2]",
-    iconColor: "text-[#DC2626]",
+    unread: false,
   },
   {
     id: 5,
+    type: "validated",
     title: "Poin Telah Ditambahkan",
-    message: "Verifikasi berhasil! \"Leadership Training Seminar\" telah menambahkan 10 poin SKPI ke akunmu.",
+    message: "Verifikasi berhasil! \"Leadership Training Seminar\" menambahkan 10 poin SKPI ke akunmu.",
     time: "3 hari lalu",
-    read: true,
-    icon: "✓",
-    iconBg: "bg-[#DCFCE7]",
-    iconColor: "text-[#16A34A]",
+    unread: false,
   },
   {
     id: 6,
+    type: "info",
     title: "Pencapaian Baru Berhasil Diraih",
-    message: "Kamu berhasil mengumpulkan 70 poin SKPI! Tetap semangat mencapai target berikutnya.",
+    message: "Kamu berhasil mengumpulkan 60+ poin SKPI. Tetap semangat mencapai target berikutnya!",
     time: "4 hari lalu",
-    read: true,
-    icon: "ℹ",
-    iconBg: "bg-[#EEF4FF]",
-    iconColor: "text-[#1D4ED8]",
+    unread: false,
   },
   {
     id: 7,
+    type: "warning",
     title: "Target SKPI Hampir Tercapai",
-    message: "Kamu hanya membutuhkan 28 poin lagi untuk mencapai target 100 poin",
+    message: "Kamu membutuhkan beberapa poin lagi untuk mencapai target 100 poin.",
     time: "5 hari lalu",
-    read: true,
-    icon: "⏰",
-    iconBg: "bg-[#FEF9C3]",
-    iconColor: "text-[#CA8A04]",
+    unread: false,
   },
 ];
 
 export default function Notifikasi() {
-  const [tab, setTab] = useState("semua");
-  const [notifs, setNotifs] = useState(ALL_NOTIFS);
+  const [notifications, setNotifications] = useState(initialNotifikasi);
+  const [activeTab, setActiveTab] = useState("semua"); // "semua" | "unread"
 
-  const unreadCount = notifs.filter((n) => !n.read).length;
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  };
 
-  const displayed =
-    tab === "semua" ? notifs : notifs.filter((n) => !n.read);
+  const filteredNotifs = notifications.filter((n) => {
+    if (activeTab === "unread") return n.unread;
+    return true;
+  });
 
-  const markAllRead = () => {
-    setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const renderIcon = (type) => {
+    switch (type) {
+      case "validated":
+        return (
+          <div className="w-9 h-9 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={18} />
+          </div>
+        );
+      case "warning":
+        return (
+          <div className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <AlertTriangle size={18} />
+          </div>
+        );
+      case "alert":
+        return (
+          <div className="w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <AlertCircle size={18} />
+          </div>
+        );
+      default:
+        return (
+          <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <Info size={18} />
+          </div>
+        );
+    }
   };
 
   return (
-    <div className="flex bg-[#F4F6FB] min-h-screen">
-      <Sidebar />
-      <main className="flex-1 p-4 md:p-8 pt-20 lg:pt-8 overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A]">Pemberitahuan</h1>
-            <p className="text-[14px] text-[#94A3B8] mt-1">Pantau status validasi datamu</p>
-          </div>
-          <button
-  onClick={markAllRead}
-  className="flex items-center gap-2 border border-[#E2E8F0] text-[#0B5EA8] px-4 py-2 rounded-xl text-[13px] font-medium hover:bg-[#F8FAFC] transition-colors"
->
-  <CheckCheck size={15} color="#0B5EA8" />
-  Tandai Telah Dibaca
-</button>
-        </div>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
+      <SidebarMahasiswa />
 
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          {/* Tabs */}
-          <div className="flex border-b border-[#E5E7EB] px-2 pt-2">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Navbar role="mahasiswa" />
+
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6 max-w-5xl">
+          {/* HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">
+                Pemberitahuan
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                Pantau status validasi & pembaruan SKPI-mu.
+              </p>
+            </div>
+
             <button
-              onClick={() => setTab("semua")}
-              className={`px-5 py-2.5 text-[14px] font-medium rounded-t-lg transition-colors ${
-                tab === "semua"
-                  ? "text-[#1D4ED8] border-b-2 border-[#1D4ED8] bg-[#EEF4FF]"
-                  : "text-[#64748B] hover:text-[#374151]"
+              onClick={markAllAsRead}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              <Check size={14} />
+              <span>Tandai Semua Dibaca</span>
+            </button>
+          </div>
+
+          {/* UNDERLINE TAB BUTTONS (EXACT MATCH PDF PAGE 13) */}
+          <div className="flex items-center gap-6 border-b border-gray-200 dark:border-slate-800">
+            <button
+              onClick={() => setActiveTab("semua")}
+              className={`pb-3 text-xs font-bold transition-all cursor-pointer border-b-2 -mb-px ${
+                activeTab === "semua"
+                  ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
               }`}
             >
               Semua
             </button>
+
             <button
-              onClick={() => setTab("belum")}
-              className={`px-5 py-2.5 text-[14px] font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
-                tab === "belum"
-                  ? "text-[#1D4ED8] border-b-2 border-[#1D4ED8] bg-[#EEF4FF]"
-                  : "text-[#64748B] hover:text-[#374151]"
+              onClick={() => setActiveTab("unread")}
+              className={`pb-3 text-xs font-bold transition-all cursor-pointer border-b-2 -mb-px inline-flex items-center gap-1.5 ${
+                activeTab === "unread"
+                  ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
               }`}
             >
-              Belum Dibaca
+              <span>Belum Dibaca</span>
               {unreadCount > 0 && (
-                <span className="bg-[#1D4ED8] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full">
+                <span className="px-2 py-0.5 rounded-full text-[11px] bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 font-bold">
                   {unreadCount}
                 </span>
               )}
             </button>
           </div>
 
-          {/* Notif List */}
-          <div className="divide-y divide-[#F1F5F9]">
-            {displayed.length === 0 ? (
-              <div className="py-16 text-center text-[#94A3B8] text-[14px]">
-                Tidak ada pemberitahuan
-              </div>
-            ) : (
-              displayed.map((n) => (
+          {/* NOTIFICATION ITEMS CONTAINER (SINGLE DIVIDED CONTAINER - EXACT MATCH PDF PAGE 13) */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-xs divide-y divide-gray-100 dark:divide-slate-800 overflow-hidden">
+            {filteredNotifs.length > 0 ? (
+              filteredNotifs.map((item) => (
                 <div
-                  key={n.id}
-                  className={`flex items-start gap-4 px-6 py-4 transition-colors ${
-                    !n.read ? "bg-[#FAFBFF]" : "bg-white"
+                  key={item.id}
+                  className={`p-5 flex items-start gap-4 transition-colors ${
+                    item.unread
+                      ? "bg-blue-50/30 dark:bg-blue-950/20"
+                      : "hover:bg-gray-50/50 dark:hover:bg-slate-800/40"
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[16px] font-bold ${n.iconBg} ${n.iconColor}`}>
-                    {n.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[14px] font-semibold text-[#0F172A]">{n.title}</p>
-                      {!n.read && (
-                        <span className="w-2 h-2 bg-[#1D4ED8] rounded-full shrink-0" />
+                  {renderIcon(item.type)}
+
+                  <div className="flex-1 space-y-1 min-w-0">
+                    <h4 className="text-xs font-extrabold text-gray-900 dark:text-slate-100 inline-flex items-center gap-2">
+                      <span>{item.title}</span>
+                      {item.unread && (
+                        <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 inline-block" />
                       )}
-                    </div>
-                    <p className="text-[13px] text-[#64748B] mt-0.5 leading-relaxed">{n.message}</p>
-                    <p className="text-[12px] text-[#94A3B8] mt-1">{n.time}</p>
+                    </h4>
+
+                    <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
+                      {item.message}
+                    </p>
+
+                    <span className="text-[11px] text-gray-400 dark:text-slate-500 mt-1 block">
+                      {item.time}
+                    </span>
                   </div>
                 </div>
               ))
+            ) : (
+              <div className="py-16 text-center text-gray-400 dark:text-slate-500 space-y-3">
+                <Bell size={48} className="mx-auto opacity-20" />
+                <p className="text-xs font-semibold">Tidak ada pemberitahuan</p>
+              </div>
             )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
