@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import {
   Home,
   FileText,
-  Palette,
+  Folder,
   Bell,
   Menu,
   X,
@@ -120,7 +120,7 @@ export default function SidebarMahasiswa() {
 
               <MenuItem
                 to="/data-karya"
-                icon={<Palette size={18} />}
+                icon={<Folder size={18} />}
                 label="Data Karya"
                 onClose={() => setIsOpen(false)}
               />
