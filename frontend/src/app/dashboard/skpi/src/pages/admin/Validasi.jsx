@@ -27,6 +27,7 @@ import {
   Plus,
   Trash2,
   ExternalLink,
+  Inbox,
 } from "lucide-react";
 
 const initialKegiatanData = [
@@ -408,50 +409,50 @@ export default function ValidasiAdmin() {
               </button>
 
               {/* STUDENT PROFILE CARD */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs mb-6">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-gray-100 dark:border-slate-800 shadow-xs mb-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg">
-                      <User size={24} />
+                    <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
+                      <User size={22} />
                     </div>
                     <div>
                       <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">
-                        {selectedStudent.nama}
+                        {selectedStudent?.nama}
                       </h2>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">
-                        {selectedStudent.npm} · {selectedStudent.programStudi}
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 font-medium">
+                        {selectedStudent?.npm} · {selectedStudent?.programStudi}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-start sm:items-end gap-2.5">
+                  <div className="flex flex-col items-end gap-2 self-start sm:self-auto">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border ${
-                        lockedStudents[selectedStudent.nama]
-                          ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
-                          : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold border ${
+                        lockedStudents[selectedStudent?.nama]
+                          ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                          : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                       }`}
                     >
-                      <Lock size={14} />
-                      {lockedStudents[selectedStudent.nama] ? "SKPI final terkunci" : "SKPI final terbuka"}
+                      {lockedStudents[selectedStudent?.nama] ? <Lock size={14} /> : <Unlock size={14} />}
+                      {lockedStudents[selectedStudent?.nama] ? "SKPI final terkunci" : "SKPI final terbuka"}
                     </span>
 
                     <button
-                      onClick={() => toggleLockStatus(selectedStudent.nama)}
-                      className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold text-white shadow-xs transition-colors cursor-pointer ${
-                        lockedStudents[selectedStudent.nama]
+                      onClick={() => toggleLockStatus(selectedStudent?.nama)}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition-colors cursor-pointer ${
+                        lockedStudents[selectedStudent?.nama]
                           ? "bg-emerald-600 hover:bg-emerald-700"
                           : "bg-blue-600 hover:bg-blue-700"
                       }`}
                     >
                       <Lock size={14} />
-                      {lockedStudents[selectedStudent.nama] ? "Buka kunci" : "Kunci SKPI final"}
+                      {lockedStudents[selectedStudent?.nama] ? "Buka kunci" : "Kunci SKPI final"}
                     </button>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-4 pt-3 border-t border-gray-100 dark:border-slate-800">
-                  {lockedStudents[selectedStudent.nama]
+                <p className="text-xs text-gray-400 dark:text-slate-500 pt-2 font-medium">
+                  {lockedStudents[selectedStudent?.nama]
                     ? "Transkrip terkunci — mahasiswa tidak dapat menambah atau mengubah kegiatan, dan validasi baru tidak diproses."
                     : "Transkrip terbuka — mahasiswa masih dapat mengajukan kegiatan baru."}
                 </p>
@@ -459,32 +460,52 @@ export default function ValidasiAdmin() {
 
               {/* 4 STUDENT STAT CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-xs">
-                  <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">Total Poin</span>
-                  <div className="text-3xl font-extrabold mt-1">
-                    {data.filter((d) => d.nama === selectedStudent.nama && d.status === "Divalidasi").reduce((acc, curr) => acc + (curr.poin || 0), 0)}
+                {/* CARD 1: TOTAL POIN */}
+                <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
+                    <Award size={13} />
+                    <span>TOTAL POIN</span>
                   </div>
+                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                    {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Divalidasi").reduce((acc, curr) => acc + (curr.poin || 0), 0)}
+                  </div>
+                  <Award size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
                 </div>
 
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xs">
-                  <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">Divalidasi</span>
-                  <div className="text-3xl font-extrabold mt-1">
-                    {data.filter((d) => d.nama === selectedStudent.nama && d.status === "Divalidasi").length}
+                {/* CARD 2: DIVALIDASI */}
+                <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
+                    <CheckCircle2 size={13} />
+                    <span>DIVALIDASI</span>
                   </div>
+                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                    {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Divalidasi").length}
+                  </div>
+                  <CheckCircle2 size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
                 </div>
 
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-xs">
-                  <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">Perlu Ditindaklanjuti</span>
-                  <div className="text-3xl font-extrabold mt-1">
-                    {data.filter((d) => d.nama === selectedStudent.nama && d.status === "Ditangguhkan").length}
+                {/* CARD 3: PERLU DITINDAKLANJUTI */}
+                <div className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
+                    <Clock size={13} />
+                    <span>PERLU DITINDAKLANJUTI</span>
                   </div>
+                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                    {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Ditangguhkan").length}
+                  </div>
+                  <Clock size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-5 text-white shadow-xs">
-                  <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">Total Kegiatan</span>
-                  <div className="text-3xl font-extrabold mt-1">
-                    {data.filter((d) => d.nama === selectedStudent.nama).length}
+                {/* CARD 4: TOTAL KEGIATAN */}
+                <div className="bg-gradient-to-br from-purple-500 to-violet-700 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
+                    <Inbox size={13} />
+                    <span>TOTAL KEGIATAN</span>
                   </div>
+                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                    {data.filter((d) => d.nama === selectedStudent?.nama).length}
+                  </div>
+                  <Inbox size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
                 </div>
               </div>
             </div>
