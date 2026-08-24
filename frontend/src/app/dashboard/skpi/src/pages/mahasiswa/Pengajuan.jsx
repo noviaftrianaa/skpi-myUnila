@@ -904,31 +904,33 @@ export default function DataSKPIMahasiswa() {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* DELETE CONFIRMATION MODAL (EXACT MATCH SCREENSHOT) */}
       {deleteModalItem && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4">
-            <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center mx-auto">
-              <Trash2 size={28} />
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-rose-50 border border-rose-100 dark:bg-rose-950/40 dark:border-rose-900/40 text-red-600 flex items-center justify-center mx-auto mb-2">
+              <Trash2 size={26} strokeWidth={1.8} />
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">Konfirmasi Hapus</h3>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-                Yakin ingin menghapus <span className="text-gray-800 dark:text-slate-200">"{deleteModalItem.judul}"</span>? Tindakan ini tidak dapat dibatalkan.
+              <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+                Konfirmasi Hapus
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 leading-relaxed px-1">
+                Yakin ingin menghapus "{deleteModalItem.judul}"? Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-3">
               <button
                 onClick={() => setDeleteModalItem(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 cursor-pointer"
+                className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-xs cursor-pointer"
+                className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-sm font-bold text-white shadow-xs transition-colors cursor-pointer"
               >
                 Hapus
               </button>
