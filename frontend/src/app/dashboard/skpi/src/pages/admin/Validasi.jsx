@@ -846,51 +846,62 @@ export default function ValidasiAdmin() {
         </div>
       )}
 
-      {/* MODAL 2: VALIDASI & BERI POIN */}
+      {/* MODAL 2: VALIDASI & BERI POIN (EXACT MATCH SCREENSHOT) */}
       {validateModalItem && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-5">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center mx-auto">
-              <CheckCircle2 size={32} />
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-left relative z-10 animate-in zoom-in-95 duration-200">
+            {/* Header: Icon + Titles */}
+            <div className="flex items-center gap-3.5 pb-4 border-b border-gray-100 dark:border-slate-800">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Award size={24} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base font-extrabold text-gray-900 dark:text-slate-100">
+                  Validasi Kegiatan
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">
+                  {validateModalItem.nama} · {validateModalItem.kegiatan}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">Validasi Kegiatan</h3>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                {validateModalItem.nama} · {validateModalItem.kegiatan}
-              </p>
-            </div>
-
-            <div className="flex justify-center gap-2">
-              <CategoryBadge category={validateModalItem.kategori} />
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300">
+            {/* Badges */}
+            <div className="flex items-center gap-2 pt-1">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-600 border border-sky-200/80 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800">
+                {validateModalItem.kategori}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
                 {validateModalItem.tingkatan || "Nasional"}
               </span>
             </div>
 
-            <div className="text-left space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 dark:text-slate-300">
+            {/* Point Input */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-xs font-bold text-gray-800 dark:text-slate-200">
                 Poin SKPI <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
                 value={pointInput}
                 onChange={(e) => setPointInput(e.target.value)}
-                className="w-full p-3 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-left text-gray-800 dark:text-slate-200 bg-gray-50 dark:bg-slate-800 focus:outline-none"
+                className="w-full px-3.5 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none"
               />
-              <p className="text-[11px] text-gray-400">Saran otomatis berdasarkan tingkatan kegiatan. Sesuaikan bila perlu.</p>
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 leading-relaxed">
+                Saran otomatis berdasarkan tingkatan kegiatan. Sesuaikan bila perlu.
+              </p>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-3">
               <button
                 onClick={() => setValidateModalItem(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={handleValidasi}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-[#008A5E] hover:bg-emerald-700 text-xs font-bold text-white shadow-xs cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Check size={16} />
                 <span>Validasi & Beri Poin</span>
