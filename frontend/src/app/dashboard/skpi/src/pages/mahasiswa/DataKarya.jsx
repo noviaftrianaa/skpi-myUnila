@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
+import { useLock } from "../../contexts/LockContext";
 import {
   Search,
   Plus,
@@ -18,6 +19,7 @@ import {
   Download,
   Upload,
   Calendar,
+  Lock,
 } from "lucide-react";
 
 const initialKaryaMahasiswa = [
@@ -41,6 +43,7 @@ const initialKaryaMahasiswa = [
 
 export default function DataKaryaMahasiswa() {
   const navigate = useNavigate();
+  const { isLocked } = useLock();
   const [karyaList, setKaryaList] = useState(initialKaryaMahasiswa);
   const [search, setSearch] = useState("");
 
@@ -81,14 +84,43 @@ export default function DataKaryaMahasiswa() {
               </p>
             </div>
 
-            <button
-              onClick={() => navigate("/tambah-kegiatan", { state: { kategori: "Karya" } })}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              <Plus size={16} />
-              <span>Tambah Karya</span>
-            </button>
+            {!isLocked && (
+              <button
+                onClick={() => navigate("/tambah-kegiatan", { state: { kategori: "Karya" } })}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+              >
+                <Plus size={16} />
+                <span>Tambah Karya</span>
+              </button>
+            )}
           </div>
+
+          {/* LOCKED BANNER */}
+          {isLocked && (
+            <div className="bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-[#E02424] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Lock size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#E02424] dark:text-rose-300">
+                    Transkrip SKPI telah dikunci (final)
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300/80 mt-0.5">
+                    Karya tidak dapat ditambah, diubah, atau dihapus lagi.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate("/cetak-skpi")}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E02424] hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
+              >
+                <Download size={14} />
+                <span>Unduh Transkrip</span>
+              </button>
+            </div>
+          )}
 
           {/* SEARCH BAR */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xs flex items-center justify-between">
@@ -104,7 +136,7 @@ export default function DataKaryaMahasiswa() {
             </div>
           </div>
 
-          {/* KARYA CARDS LIST (EXACT MATCH IMAGE 1 SCREENSHOT) */}
+          {/* KARYA CARDS LIST */}
           <div className="space-y-4">
             {filteredKarya.map((item) => (
               <div
@@ -130,7 +162,7 @@ export default function DataKaryaMahasiswa() {
                         {item.kategori}
                       </span>
 
-                      <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-100/70 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                         {item.bentukKarya}
                       </span>
                     </div>
@@ -158,21 +190,25 @@ export default function DataKaryaMahasiswa() {
                     <Eye size={18} />
                   </button>
 
-                  <button
-                    onClick={() => setEditModalItem(item)}
-                    className="hover:text-blue-600 transition-colors cursor-pointer"
-                    title="Edit Karya"
-                  >
-                    <Pencil size={18} />
-                  </button>
+                  {!isLocked && (
+                    <>
+                      <button
+                        onClick={() => setEditModalItem(item)}
+                        className="hover:text-blue-600 transition-colors cursor-pointer"
+                        title="Edit Karya"
+                      >
+                        <Pencil size={18} />
+                      </button>
 
-                  <button
-                    onClick={() => setDeleteModalItem(item)}
-                    className="hover:text-rose-600 transition-colors cursor-pointer"
-                    title="Hapus Karya"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                      <button
+                        onClick={() => setDeleteModalItem(item)}
+                        className="hover:text-rose-600 transition-colors cursor-pointer"
+                        title="Hapus Karya"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

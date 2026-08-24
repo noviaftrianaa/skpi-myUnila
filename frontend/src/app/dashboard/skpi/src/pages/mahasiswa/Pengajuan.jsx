@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
+import { useLock } from "../../contexts/LockContext";
 import {
   Search,
   Plus,
@@ -154,7 +155,7 @@ export default function DataSKPIMahasiswa() {
   const [search, setSearch] = useState("");
   const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
-  const [isLocked, setIsLocked] = useState(false);
+  const { isLocked } = useLock();
 
   // Modals state
   const [deleteModalItem, setDeleteModalItem] = useState(null);
@@ -202,16 +203,15 @@ export default function DataSKPIMahasiswa() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate("/tambah-kegiatan")}
-                disabled={isLocked}
-                className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer ${
-                  isLocked ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <Plus size={16} />
-                <span>Tambah Kegiatan</span>
-              </button>
+              {!isLocked && (
+                <button
+                  onClick={() => navigate("/tambah-kegiatan")}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  <Plus size={16} />
+                  <span>Tambah Kegiatan</span>
+                </button>
+              )}
 
               <button
                 onClick={() => navigate("/cetak-skpi")}
@@ -223,12 +223,19 @@ export default function DataSKPIMahasiswa() {
             </div>
           </div>
 
-          {/* LOCKED BANNER */}
+          {/* LOCKED BANNER (EXACT MATCH SCREENSHOT 2) */}
           {isLocked && (
-            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center gap-3">
-              <Lock size={18} className="text-amber-600 shrink-0" />
-              <div className="text-xs text-amber-800 dark:text-amber-300">
-                <span className="font-bold">Transkrip SKPI Anda Telah Dikunci & Diterbitkan.</span> Data kegiatan tidak dapat diubah atau dihapus. Silakan unduh transkrip final menggunakan tombol di atas.
+            <div className="bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 rounded-2xl p-4 flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#E02424] text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Lock size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#E02424] dark:text-rose-300">
+                  Transkrip SKPI Anda telah dikunci & diterbitkan
+                </h3>
+                <p className="text-xs text-rose-700 dark:text-rose-300/80 mt-0.5">
+                  Data kegiatan tidak dapat diubah atau dihapus. Silakan unduh transkrip final memakai tombol di atas.
+                </p>
               </div>
             </div>
           )}

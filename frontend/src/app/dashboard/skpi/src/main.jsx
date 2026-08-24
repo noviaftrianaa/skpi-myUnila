@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LockProvider } from "./contexts/LockContext";
 import "./index.css";
 
 const basename = window.location.pathname.startsWith("/dashboard/skpi")
@@ -12,9 +13,11 @@ const basename = window.location.pathname.startsWith("/dashboard/skpi")
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
-      <BrowserRouter basename={basename}>
-        <App />
-      </BrowserRouter>
+      <LockProvider>
+        <BrowserRouter basename={basename}>
+          <App />
+        </BrowserRouter>
+      </LockProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

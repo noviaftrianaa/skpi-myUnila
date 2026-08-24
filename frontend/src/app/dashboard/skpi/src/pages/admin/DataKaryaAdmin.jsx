@@ -92,24 +92,28 @@ export default function DataKaryaAdmin() {
             </p>
           </div>
 
-          {/* STAT METRIC CARDS (EXACT MATCH DASHBOARD DOSEN) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
-            <div className="bg-gradient-to-r from-blue-600 via-blue-600 to-blue-500 rounded-3xl p-6 sm:p-7 text-white shadow-xs relative overflow-hidden">
-              <div className="flex items-center gap-2 text-xs font-bold tracking-wider opacity-90 uppercase">
+          {/* STAT METRIC CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="lg:col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase">
                 <Users size={16} />
                 <span>TOTAL MAHASISWA</span>
               </div>
-              <div className="text-4xl sm:text-5xl font-extrabold mt-3">2</div>
-              <Users size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />
+              <div className="text-4xl font-extrabold tracking-tight mt-3">2</div>
+              <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                <Users size={80} />
+              </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-600 via-purple-600 to-fuchsia-600 rounded-3xl p-6 sm:p-7 text-white shadow-xs relative overflow-hidden">
-              <div className="flex items-center gap-2 text-xs font-bold tracking-wider opacity-90 uppercase">
+            <div className="lg:col-span-2 bg-gradient-to-r from-purple-600 via-purple-600 to-fuchsia-600 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+              <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase">
                 <Folder size={16} />
                 <span>TOTAL KARYA</span>
               </div>
-              <div className="text-4xl sm:text-5xl font-extrabold mt-3">2</div>
-              <Folder size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />
+              <div className="text-4xl font-extrabold tracking-tight mt-3">2</div>
+              <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                <Folder size={80} />
+              </div>
             </div>
           </div>
 

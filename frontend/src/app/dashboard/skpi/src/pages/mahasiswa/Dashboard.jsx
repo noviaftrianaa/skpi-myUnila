@@ -29,36 +29,36 @@ import {
 } from "lucide-react";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
+import { useLock } from "../../contexts/LockContext";
 
 const statCards = [
   {
     label: "TOTAL KEGIATAN",
     value: 8,
     icon: <FileText size={16} />,
-    watermark: <FileText size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
-    bgGradient: "from-blue-600 via-blue-600 to-blue-500",
+    bgGradient: "from-blue-600 to-blue-700",
+    watermarkIcon: <FileText size={80} />,
   },
   {
     label: "TOTAL POIN SKPI",
     value: 68,
-    subtitle: "Target 100 poin",
     icon: <Award size={16} />,
-    watermark: <Award size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
-    bgGradient: "from-purple-600 via-purple-600 to-fuchsia-600",
+    bgGradient: "from-purple-600 to-fuchsia-600",
+    watermarkIcon: <Award size={80} />,
   },
   {
     label: "DIVALIDASI",
     value: 4,
     icon: <CheckCircle2 size={16} />,
-    watermark: <CheckCircle2 size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
-    bgGradient: "from-emerald-500 via-emerald-600 to-teal-600",
+    bgGradient: "from-emerald-500 to-teal-600",
+    watermarkIcon: <CheckCircle2 size={80} />,
   },
   {
     label: "MENUNGGU VALIDASI",
     value: 3,
     icon: <Clock size={16} />,
-    watermark: <Clock size={96} className="absolute -right-4 -bottom-4 opacity-15 text-white pointer-events-none" />,
-    bgGradient: "from-amber-500 via-amber-600 to-orange-500",
+    bgGradient: "from-amber-500 to-orange-500",
+    watermarkIcon: <Clock size={80} />,
   },
 ];
 
@@ -86,16 +86,16 @@ const kategoriDistributionData = [
 
 const aktivitasTerbaru = [
   {
-    title: "Desain UI/UX Aplikasi Akademik MyUnila",
-    date: "20 Nov 2025",
-    badges: ["Karya", "Karya Seni / Desain"],
-    status: "Divalidasi",
-  },
-  {
-    title: "International Robotics Competition 2025",
-    date: "08 Nov 2025",
+    title: "International IoT Challenge",
+    date: "25 Okt 2025",
     badges: ["Lomba", "Internasional"],
     status: "Belum Diperiksa",
+  },
+  {
+    title: "Regional Line Follower Competition",
+    date: "25 Okt 2025",
+    badges: ["Lomba", "Regional"],
+    status: "Ditangguhkan",
   },
   {
     title: "Pelatihan UI/UX Design",
@@ -119,7 +119,7 @@ const aktivitasTerbaru = [
 
 export default function DashboardMahasiswa() {
   const navigate = useNavigate();
-  const [isLocked, setIsLocked] = useState(false);
+  const { isLocked } = useLock();
 
   const totalScore = 68;
   const targetScore = 100;
@@ -133,33 +133,6 @@ export default function DashboardMahasiswa() {
         <Navbar role="mahasiswa" />
 
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6">
-          {/* LOCKED SKPI BANNER (if transcript is locked) */}
-          {isLocked && (
-            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0">
-                  <Lock size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-rose-900 dark:text-rose-200">
-                    Transkrip SKPI Telah Dikunci (Final)
-                  </h3>
-                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
-                    Transkrip final SKPI Anda telah diterbitkan oleh program studi dan siap untuk diunduh. Anda tidak dapat lagi menambah atau mengedit kegiatan.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate("/cetak-skpi")}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs shrink-0 cursor-pointer"
-              >
-                <Download size={14} />
-                <span>Unduh Transkrip</span>
-              </button>
-            </div>
-          )}
-
           {/* GREETING HEADER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -178,24 +151,50 @@ export default function DashboardMahasiswa() {
             </div>
           </div>
 
-          {/* 4 METRIC STAT CARDS (EXACT MATCH USER ATTACHMENT) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* LOCKED SKPI BANNER (EXACT MATCH SCREENSHOT 1) */}
+          {isLocked && (
+            <div className="bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-[#E02424] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Lock size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#E02424] dark:text-rose-300">
+                    Transkrip SKPI telah dikunci (final)
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300/80 mt-0.5">
+                    Transkrip final SKPI Anda sudah diterbitkan program studi dan siap diunduh. Kegiatan tidak dapat ditambah atau diubah lagi.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate("/cetak-skpi")}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E02424] hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
+              >
+                <Download size={14} />
+                <span>Unduh Transkrip</span>
+              </button>
+            </div>
+          )}
+
+          {/* STAT METRIC CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {statCards.map((card, i) => (
               <div
                 key={i}
-                className={`bg-gradient-to-r ${card.bgGradient} rounded-3xl p-6 sm:p-7 text-white shadow-xs relative overflow-hidden flex flex-col justify-between`}
+                className={`bg-gradient-to-r ${card.bgGradient} rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200`}
               >
-                <div className="flex items-center gap-2 text-xs font-bold tracking-wider opacity-90 uppercase">
+                <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90">
                   {card.icon}
                   <span>{card.label}</span>
                 </div>
-                <div className="mt-3">
-                  <div className="text-4xl sm:text-5xl font-extrabold">{card.value}</div>
-                  {card.subtitle && (
-                    <div className="text-xs opacity-80 mt-1">{card.subtitle}</div>
-                  )}
+                <div className="text-4xl font-extrabold tracking-tight mt-3">
+                  {card.value}
                 </div>
-                {card.watermark}
+                <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                  {card.watermarkIcon}
+                </div>
               </div>
             ))}
           </div>

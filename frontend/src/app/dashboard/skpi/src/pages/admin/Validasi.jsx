@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import SidebarAdmin from "../../components/common/SidebarAdmin";
 import Navbar from "../../components/common/Navbar";
+import { useLock } from "../../contexts/LockContext";
 import {
   Search,
   Eye,
@@ -321,7 +322,7 @@ export default function ValidasiAdmin() {
   const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [lockedStudents, setLockedStudents] = useState({ "Novia Fitriana": false });
+  const { lockedStudents, toggleLock: toggleLockStatus } = useLock();
 
   // Modals state
   const [detailModalItem, setDetailModalItem] = useState(null);
@@ -343,50 +344,60 @@ export default function ValidasiAdmin() {
       item.nama.toLowerCase().includes(search.toLowerCase()) ||
       item.npm.includes(search) ||
       item.kegiatan.toLowerCase().includes(search.toLowerCase());
-    const matchCat = kategoriFilter === "Semua Kategori" || item.kategori === kategoriFilter;
-    const matchStat = statusFilter === "Semua Status" || item.status === statusFilter;
-    return matchSearch && matchCat && matchStat;
+    const matchKategori =
+      kategoriFilter === "Semua Kategori" || item.kategori === kategoriFilter;
+    const matchStatus =
+      statusFilter === "Semua Status" || item.status === statusFilter;
+    return matchSearch && matchKategori && matchStatus;
   });
 
-  const handleValidasi = () => {
+  const handleValidasiPoin = () => {
     if (!validateModalItem) return;
     setData((prev) =>
       prev.map((item) =>
         item.id === validateModalItem.id
-          ? { ...item, status: "Divalidasi", poin: Number(pointInput) }
+          ? {
+              ...item,
+              status: "Divalidasi",
+              poin: Number(pointInput),
+              catatanRevisi: "",
+            }
           : item
       )
     );
     setValidateModalItem(null);
   };
 
-  const handleRejectOrSuspend = () => {
+  const handleTolakSubmit = () => {
     if (!rejectModalItem) return;
-    if (actionType === "tolak") {
-      // Tolak Permanen -> Langsung hapus dari daftar validasi admin
-      setData((prev) => prev.filter((item) => item.id !== rejectModalItem.id));
+    if (actionType === "ditolak") {
+      setData((prev) =>
+        prev.map((item) =>
+          item.id === rejectModalItem.id
+            ? {
+                ...item,
+                status: "Ditolak",
+                poin: null,
+                catatanRevisi: revisiNote,
+              }
+            : item
+        )
+      );
     } else {
-      // Ditangguhkan -> Update status & catatan revisi
       setData((prev) =>
         prev.map((item) =>
           item.id === rejectModalItem.id
             ? {
                 ...item,
                 status: "Ditangguhkan",
-                catatanRevisi: revisiNote || "Perlu revisi data/dokumen.",
+                poin: null,
+                catatanRevisi: revisiNote,
               }
             : item
         )
       );
     }
     setRejectModalItem(null);
-  };
-
-  const toggleLockStatus = (nama) => {
-    setLockedStudents((prev) => ({
-      ...prev,
-      [nama]: !prev[nama],
-    }));
   };
 
   return (
@@ -461,51 +472,59 @@ export default function ValidasiAdmin() {
               {/* 4 STUDENT STAT CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* CARD 1: TOTAL POIN */}
-                <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
-                    <Award size={13} />
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase z-10 relative">
+                    <Award size={16} />
                     <span>TOTAL POIN</span>
                   </div>
-                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                  <div className="text-4xl font-extrabold tracking-tight mt-3 z-10 relative">
                     {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Divalidasi").reduce((acc, curr) => acc + (curr.poin || 0), 0)}
                   </div>
-                  <Award size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
+                  <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                    <Award size={80} />
+                  </div>
                 </div>
 
                 {/* CARD 2: DIVALIDASI */}
-                <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
-                    <CheckCircle2 size={13} />
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase z-10 relative">
+                    <CheckCircle2 size={16} />
                     <span>DIVALIDASI</span>
                   </div>
-                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                  <div className="text-4xl font-extrabold tracking-tight mt-3 z-10 relative">
                     {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Divalidasi").length}
                   </div>
-                  <CheckCircle2 size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
+                  <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                    <CheckCircle2 size={80} />
+                  </div>
                 </div>
 
                 {/* CARD 3: PERLU DITINDAKLANJUTI */}
-                <div className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
-                    <Clock size={13} />
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase z-10 relative">
+                    <Clock size={16} />
                     <span>PERLU DITINDAKLANJUTI</span>
                   </div>
-                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                  <div className="text-4xl font-extrabold tracking-tight mt-3 z-10 relative">
                     {data.filter((d) => d.nama === selectedStudent?.nama && d.status === "Ditangguhkan").length}
                   </div>
-                  <Clock size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
+                  <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                    <Clock size={80} />
+                  </div>
                 </div>
 
                 {/* CARD 4: TOTAL KEGIATAN */}
-                <div className="bg-gradient-to-br from-purple-500 to-violet-700 rounded-2xl px-5 py-4 text-white shadow-sm relative overflow-hidden flex flex-col justify-between" style={{minHeight:"88px"}}>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase z-10 relative">
-                    <Inbox size={13} />
+                <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[110px] transform hover:-translate-y-0.5 transition-all duration-200">
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wider opacity-90 uppercase z-10 relative">
+                    <Inbox size={16} />
                     <span>TOTAL KEGIATAN</span>
                   </div>
-                  <div className="text-[40px] leading-none font-extrabold mt-2 z-10 relative">
+                  <div className="text-4xl font-extrabold tracking-tight mt-3 z-10 relative">
                     {data.filter((d) => d.nama === selectedStudent?.nama).length}
                   </div>
-                  <Inbox size={88} className="absolute -right-6 -top-6 opacity-[0.22] text-white pointer-events-none" />
+                  <div className="absolute -right-2 -top-2 opacity-15 pointer-events-none">
+                    <Inbox size={80} />
+                  </div>
                 </div>
               </div>
             </div>

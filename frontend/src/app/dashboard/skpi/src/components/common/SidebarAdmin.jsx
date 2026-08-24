@@ -1,7 +1,7 @@
 // src/components/common/SidebarAdmin.jsx
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Menu, X, Home } from "lucide-react";
+import { Menu, X, Home, Folder, BadgeCheck } from "lucide-react";
 
 function DashboardIcon({ size = 18, className = "" }) {
   return (
@@ -127,12 +127,14 @@ export default function SidebarAdmin() {
 
               <MenuItem
                 to="/admin/data-karya"
+                icon={<Folder size={18} />}
                 label="Data Karya"
                 onClose={() => setIsOpen(false)}
               />
 
               <MenuItem
                 to="/admin/validasi"
+                icon={<BadgeCheck size={18} />}
                 label="Validasi Kegiatan"
                 onClose={() => setIsOpen(false)}
               />
