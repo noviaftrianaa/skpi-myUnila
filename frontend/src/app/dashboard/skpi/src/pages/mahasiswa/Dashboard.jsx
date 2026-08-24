@@ -126,7 +126,7 @@ export default function DashboardMahasiswa() {
   const scorePercent = Math.round((totalScore / targetScore) * 100);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
       <SidebarMahasiswa />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

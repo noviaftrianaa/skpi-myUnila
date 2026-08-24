@@ -351,7 +351,7 @@ export default function ValidasiAdmin() {
     return matchSearch && matchKategori && matchStatus;
   });
 
-  const handleValidasiPoin = () => {
+  const handleValidasi = () => {
     if (!validateModalItem) return;
     setData((prev) =>
       prev.map((item) =>
@@ -368,9 +368,9 @@ export default function ValidasiAdmin() {
     setValidateModalItem(null);
   };
 
-  const handleTolakSubmit = () => {
+  const handleRejectOrSuspend = () => {
     if (!rejectModalItem) return;
-    if (actionType === "ditolak") {
+    if (actionType === "tolak" || actionType === "ditolak") {
       setData((prev) =>
         prev.map((item) =>
           item.id === rejectModalItem.id
@@ -401,7 +401,7 @@ export default function ValidasiAdmin() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
       <SidebarAdmin />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -651,62 +651,38 @@ export default function ValidasiAdmin() {
                       <td className="py-3.5 px-4 text-center">
                         <div className="inline-flex items-center gap-2 justify-center">
                           {/* 1. Pencil Edit Icon */}
-                          {row.status === "Divalidasi" ? (
-                            <button
-                              disabled
-                              className="p-1.5 text-gray-200 dark:text-slate-700 cursor-not-allowed opacity-50"
-                              title="Tidak dapat diedit karena sudah divalidasi"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setEditModalItem(row)}
-                              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-                              title="Edit Kegiatan"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setEditModalItem(row)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                            title="Edit Kegiatan"
+                          >
+                            <Pencil size={16} />
+                          </button>
 
                           {/* 2. Green Check Validate Button */}
-                          {row.status === "Divalidasi" ? (
-                            <button
-                              disabled
-                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-200 dark:bg-emerald-950/40 text-white cursor-not-allowed opacity-80"
-                            >
-                              <Check size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setValidateModalItem(row);
-                                setPointInput(row.poin || 15);
-                              }}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer shadow-2xs transition-colors"
-                              title="Validasi & Beri Poin"
-                            >
-                              <Check size={16} />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => {
+                              setValidateModalItem(row);
+                              setPointInput(row.poin || 15);
+                            }}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-white cursor-pointer shadow-2xs transition-colors ${
+                              row.status === "Divalidasi"
+                                ? "bg-emerald-600 hover:bg-emerald-700"
+                                : "bg-emerald-500 hover:bg-emerald-600"
+                            }`}
+                            title="Validasi & Beri Poin"
+                          >
+                            <Check size={16} />
+                          </button>
 
                           {/* 3. Red Cross Reject Button */}
-                          {row.status === "Divalidasi" ? (
-                            <button
-                              disabled
-                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50/50 dark:bg-rose-950/20 text-rose-200 dark:text-rose-900 cursor-not-allowed opacity-60"
-                            >
-                              <X size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setRejectModalItem(row)}
-                              className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 hover:bg-rose-100 hover:text-rose-600 transition-colors flex items-center justify-center cursor-pointer"
-                              title="Tolak / Tangguhkan"
-                            >
-                              <X size={16} />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setRejectModalItem(row)}
+                            className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 hover:bg-rose-100 hover:text-rose-600 transition-colors flex items-center justify-center cursor-pointer"
+                            title="Tolak / Tangguhkan"
+                          >
+                            <X size={16} />
+                          </button>
                         </div>
                       </td>
                     </tr>
