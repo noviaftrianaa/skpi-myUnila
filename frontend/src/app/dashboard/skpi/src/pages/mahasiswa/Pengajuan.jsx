@@ -937,32 +937,31 @@ export default function DataSKPIMahasiswa() {
         </div>
       )}
 
-      {/* MODAL TRANSKRIP BELUM FINAL (EXACT MATCH SCREENSHOT) */}
+      {/* MODAL TRANSKRIP BELUM FINAL (MATCH POPUP KONFIRMASI HAPUS SIZE) */}
       {showDraftModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div
-            className="fixed inset-0"
-            onClick={() => setShowDraftModal(false)}
-          />
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-gray-100 dark:border-slate-800 text-center relative z-10 animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center mx-auto mb-5">
-              <Lock size={28} className="text-[#FF9900]" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4 relative z-10 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center mx-auto">
+              <Lock size={26} className="text-[#FF9900]" />
             </div>
 
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
-              Transkrip Belum Final
-            </h3>
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">
+                Transkrip Belum Final
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-2 leading-relaxed">
+                SKPI Anda masih dalam status draf dan belum dikunci oleh Program Studi. Anda belum dapat mengunduh transkrip final.
+              </p>
+            </div>
 
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-3 leading-relaxed px-2">
-              SKPI Anda masih dalam status draf dan belum dikunci oleh Program Studi. Anda belum dapat mengunduh transkrip final.
-            </p>
-
-            <button
-              onClick={() => setShowDraftModal(false)}
-              className="w-full py-3 px-4 rounded-2xl bg-[#FF9900] hover:bg-amber-600 text-white font-bold text-sm shadow-md transition-colors cursor-pointer mt-6"
-            >
-              Mengerti
-            </button>
+            <div className="pt-2">
+              <button
+                onClick={() => setShowDraftModal(false)}
+                className="w-full py-2.5 rounded-xl bg-[#FF9900] hover:bg-amber-600 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+              >
+                Mengerti
+              </button>
+            </div>
           </div>
         </div>
       )}
