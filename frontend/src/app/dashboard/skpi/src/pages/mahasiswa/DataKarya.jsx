@@ -471,7 +471,7 @@ export default function DataKaryaMahasiswa() {
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">Konfirmasi Hapus Karya</h3>
+              <h3 className="text-base font-medium text-gray-900 dark:text-slate-100">Konfirmasi Hapus Karya</h3>
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                 Yakin ingin menghapus <span className="font-bold text-gray-800 dark:text-slate-200">"{deleteModalItem.judul}"</span>?
               </p>
