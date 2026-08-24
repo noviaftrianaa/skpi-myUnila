@@ -913,9 +913,9 @@ export default function DataSKPIMahasiswa() {
             </div>
 
             <div>
-              <h3 className="text-base font-medium text-gray-900 dark:text-slate-100">Konfirmasi Hapus</h3>
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">Konfirmasi Hapus</h3>
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-                Yakin ingin menghapus <span className="font-bold text-gray-800 dark:text-slate-200">"{deleteModalItem.judul}"</span>? Tindakan ini tidak dapat dibatalkan.
+                Yakin ingin menghapus <span className="text-gray-800 dark:text-slate-200">"{deleteModalItem.judul}"</span>? Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
 
