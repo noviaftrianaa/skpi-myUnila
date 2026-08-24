@@ -156,6 +156,7 @@ export default function DataSKPIMahasiswa() {
   const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
   const { isLocked } = useLock();
+  const [showDraftModal, setShowDraftModal] = useState(false);
 
   // Modals state
   const [deleteModalItem, setDeleteModalItem] = useState(null);
@@ -214,7 +215,13 @@ export default function DataSKPIMahasiswa() {
               )}
 
               <button
-                onClick={() => navigate("/cetak-skpi")}
+                onClick={() => {
+                  if (!isLocked) {
+                    setShowDraftModal(true);
+                  } else {
+                    navigate("/cetak-skpi");
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 <Download size={14} />
@@ -926,6 +933,36 @@ export default function DataSKPIMahasiswa() {
                 Hapus
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TRANSKRIP BELUM FINAL (EXACT MATCH SCREENSHOT) */}
+      {showDraftModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0"
+            onClick={() => setShowDraftModal(false)}
+          />
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl border border-gray-100 dark:border-slate-800 text-center relative z-10 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center mx-auto mb-5">
+              <Lock size={28} className="text-[#FF9900]" />
+            </div>
+
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
+              Transkrip Belum Final
+            </h3>
+
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-3 leading-relaxed px-2">
+              SKPI Anda masih dalam status draf dan belum dikunci oleh Program Studi. Anda belum dapat mengunduh transkrip final.
+            </p>
+
+            <button
+              onClick={() => setShowDraftModal(false)}
+              className="w-full py-3 px-4 rounded-2xl bg-[#FF9900] hover:bg-amber-600 text-white font-bold text-sm shadow-md transition-colors cursor-pointer mt-6"
+            >
+              Mengerti
+            </button>
           </div>
         </div>
       )}
