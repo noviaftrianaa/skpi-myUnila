@@ -48,7 +48,7 @@ export default function Navbar({ role = "admin" }) {
   };
 
   return (
-    <header className="flex items-center justify-between py-3 px-6 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 transition-colors duration-200">
+    <header className="sticky top-0 z-30 flex items-center justify-between py-3 px-6 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 transition-colors duration-200">
       {/* LEFT: Date */}
       <div className="text-xs font-medium text-gray-500 dark:text-slate-400">
         Sabtu, 22 Agustus 2026
