@@ -88,6 +88,17 @@ export const JABATAN_DEFAULT = [
   "Anggota",
 ];
 
+export const JABATAN_ORGANISASI_KEPANITIAAN = [
+  "Ketua",
+  "Wakil Ketua",
+  "Sekretaris",
+  "Wakil Sekretaris",
+  "Bendahara",
+  "Wakil Bendahara",
+  "Kepala Bidang/Koor/Departemen/Divisi/Seksi",
+  "Anggota Pengurus",
+];
+
 export const JABATAN_PELATIHAN = [
   "Peserta",
   "Pembicara",
@@ -102,6 +113,9 @@ export const JABATAN_SEMINAR = [
 ];
 
 export function getJabatanOptions(kategori) {
+  if (kategori === "Organisasi" || kategori === "Kepanitiaan") {
+    return JABATAN_ORGANISASI_KEPANITIAAN;
+  }
   if (kategori === "Pelatihan" || kategori === "Pelatihan Kepemimpinan") {
     return JABATAN_PELATIHAN;
   }
@@ -110,3 +124,11 @@ export function getJabatanOptions(kategori) {
   }
   return JABATAN_DEFAULT;
 }
+
+export const PRESTASI_LOMBA_OPTIONS = [
+  "Juara 1",
+  "Juara 2",
+  "Juara 3",
+  "Finalis",
+  "Peserta",
+];

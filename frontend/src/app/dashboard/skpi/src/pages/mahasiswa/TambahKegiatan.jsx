@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
-import { KATEGORI_OPTIONS, getTingkatanOptions, getJabatanOptions } from "../../constants/categories";
+import { KATEGORI_OPTIONS, getTingkatanOptions, getJabatanOptions, PRESTASI_LOMBA_OPTIONS } from "../../constants/categories";
 import {
   Upload,
   Check,
@@ -256,10 +256,11 @@ export default function TambahKegiatan() {
                         className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                       >
                         <option value="">Pilih Prestasi</option>
-                        <option value="Juara 1">Juara 1</option>
-                        <option value="Juara 2">Juara 2</option>
-                        <option value="Juara 3">Juara 3</option>
-                        <option value="Peserta">Peserta / Finalis</option>
+                        {PRESTASI_LOMBA_OPTIONS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
