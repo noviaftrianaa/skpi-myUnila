@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import SidebarAdmin from "../../components/common/SidebarAdmin";
 import Navbar from "../../components/common/Navbar";
+import { KATEGORI_OPTIONS, KATEGORI_BADGE_STYLE, getTingkatanOptions, getJabatanOptions } from "../../constants/categories";
 import { useLock } from "../../contexts/LockContext";
 import {
   Search,
@@ -273,15 +274,12 @@ const initialKegiatanData = [
 ];
 
 function CategoryBadge({ category }) {
-  const map = {
-    Lomba: "bg-sky-100 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300",
-    Seminar: "bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300",
-    Organisasi: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
-    Pelatihan: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
-    Kepanitiaan: "bg-teal-100 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300",
-  };
   return (
-    <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${map[category] || "bg-gray-100 text-gray-700"}`}>
+    <span
+      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+        KATEGORI_BADGE_STYLE[category] || "bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300"
+      }`}
+    >
       {category}
     </span>
   );
@@ -565,11 +563,11 @@ export default function ValidasiAdmin() {
                 className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none"
               >
                 <option value="Semua Kategori">Semua Kategori</option>
-                <option value="Lomba">Lomba</option>
-                <option value="Seminar">Seminar</option>
-                <option value="Organisasi">Organisasi</option>
-                <option value="Pelatihan">Pelatihan</option>
-                <option value="Kepanitiaan">Kepanitiaan</option>
+                {KATEGORI_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -1048,30 +1046,30 @@ export default function ValidasiAdmin() {
                     }
                     className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                   >
-                    <option value="Pelatihan">Pelatihan</option>
-                    <option value="Lomba">Lomba</option>
-                    <option value="Seminar">Seminar</option>
-                    <option value="Organisasi">Organisasi</option>
-                    <option value="Kepanitiaan">Kepanitiaan</option>
+                    {KATEGORI_OPTIONS.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                    Tingkatan
+                    {editModalItem.kategori === "Pendanaan" ? "Sumber *" : "Tingkatan *"}
                   </label>
                   <select
-                    value={editModalItem.tingkatan || "Nasional"}
+                    value={editModalItem.tingkatan}
                     onChange={(e) =>
                       setEditModalItem({ ...editModalItem, tingkatan: e.target.value })
                     }
                     className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                   >
-                    <option value="Fakultas">Fakultas</option>
-                    <option value="Universitas">Universitas</option>
-                    <option value="Regional">Regional</option>
-                    <option value="Nasional">Nasional</option>
-                    <option value="Internasional">Internasional</option>
+                    {getTingkatanOptions(editModalItem.kategori).map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1159,27 +1157,64 @@ export default function ValidasiAdmin() {
                       <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, atau PDF</p>
                     </div>
                   </div>
-                </>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Jabatan
+                      Jenis Penyelenggara
                     </label>
                     <select
-                      value={editModalItem.jabatan || "Peserta"}
+                      value={editModalItem.jenisPenyelenggara || "Belmawa"}
                       onChange={(e) =>
-                        setEditModalItem({ ...editModalItem, jabatan: e.target.value })
+                        setEditModalItem({ ...editModalItem, jenisPenyelenggara: e.target.value })
                       }
                       className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                     >
-                      <option value="Peserta">Peserta</option>
-                      <option value="Ketua">Ketua</option>
-                      <option value="Wakil Ketua">Wakil Ketua</option>
-                      <option value="Anggota">Anggota</option>
+                      <option value="Belmawa">Belmawa</option>
+                      <option value="Non-Belmawa">Non-Belmawa</option>
                     </select>
                   </div>
-                </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jabatan
+                      </label>
+                      <select
+                        value={editModalItem.jabatan || "Peserta"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jabatan: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        {getJabatanOptions(editModalItem.kategori).map((j) => (
+                          <option key={j} value={j}>
+                            {j}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {editModalItem.kategori === "Publikasi" && (
+                    <div className="space-y-1.5 mt-3">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jenis Publikasi
+                      </label>
+                      <select
+                        value={editModalItem.jenisPublikasi || "Ilmiah"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jenisPublikasi: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="Ilmiah">Ilmiah</option>
+                        <option value="Populer">Populer</option>
+                      </select>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Nomor Sertifikat */}

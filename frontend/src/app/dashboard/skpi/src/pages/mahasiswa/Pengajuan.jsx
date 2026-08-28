@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
+import { KATEGORI_OPTIONS, KATEGORI_BADGE_STYLE, getTingkatanOptions, getJabatanOptions } from "../../constants/categories";
 import { useLock } from "../../contexts/LockContext";
 import {
   Search,
@@ -267,12 +268,11 @@ export default function DataSKPIMahasiswa() {
                 className="px-3 py-2 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-700 dark:text-slate-300 focus:outline-none"
               >
                 <option value="Semua Kategori">Semua Kategori</option>
-                <option value="Pelatihan">Pelatihan</option>
-                <option value="Lomba">Lomba</option>
-                <option value="Seminar">Seminar</option>
-                <option value="Organisasi">Organisasi</option>
-                <option value="Publikasi">Publikasi</option>
-                <option value="PKKMB Universitas">PKKMB Universitas</option>
+                {KATEGORI_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -323,15 +323,8 @@ export default function DataSKPIMahasiswa() {
 
                         <span
                           className={`px-3 py-0.5 rounded-full text-xs font-semibold ${
-                            item.kategori === "Pelatihan"
-                              ? "bg-amber-100/70 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-                              : item.kategori === "Lomba"
-                              ? "bg-sky-100/70 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300"
-                              : item.kategori === "Seminar"
-                              ? "bg-purple-100/70 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
-                              : item.kategori === "Organisasi"
-                              ? "bg-emerald-100/70 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "bg-pink-100/70 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300"
+                            KATEGORI_BADGE_STYLE[item.kategori] ||
+                            "bg-pink-100/70 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300"
                           }`}
                         >
                           {item.kategori}
@@ -496,7 +489,9 @@ export default function DataSKPIMahasiswa() {
                     <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.jabatan || "Peserta"}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">TINGKATAN</span>
+                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">
+                      {detailModalItem.kategori === "Pendanaan" ? "SUMBER" : "TINGKATAN"}
+                    </span>
                     <span className="font-extrabold text-gray-900 dark:text-slate-100">{detailModalItem.tingkatan}</span>
                   </div>
                   <div>
@@ -647,12 +642,11 @@ export default function DataSKPIMahasiswa() {
                     }
                     className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                   >
-                    <option value="Pelatihan">Pelatihan</option>
-                    <option value="Lomba">Lomba</option>
-                    <option value="Seminar">Seminar</option>
-                    <option value="Organisasi">Organisasi</option>
-                    <option value="Publikasi">Publikasi</option>
-                    <option value="PKKMB Universitas">PKKMB Universitas</option>
+                    {KATEGORI_OPTIONS.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -711,11 +705,27 @@ export default function DataSKPIMahasiswa() {
                         }
                         className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                       >
-                        <option value="Fakultas">Fakultas</option>
-                        <option value="Universitas">Universitas</option>
-                        <option value="Regional">Regional</option>
-                        <option value="Nasional">Nasional</option>
-                        <option value="Internasional">Internasional</option>
+                        {getTingkatanOptions(editModalItem.kategori).map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5 col-span-2">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jenis Penyelenggara
+                      </label>
+                      <select
+                        value={editModalItem.jenisPenyelenggara || "Belmawa"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jenisPenyelenggara: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="Belmawa">Belmawa</option>
+                        <option value="Non-Belmawa">Non-Belmawa</option>
                       </select>
                     </div>
                   </div>
@@ -780,44 +790,65 @@ export default function DataSKPIMahasiswa() {
                   </div>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Jabatan
-                    </label>
-                    <select
-                      value={editModalItem.jabatan || "Peserta"}
-                      onChange={(e) =>
-                        setEditModalItem({ ...editModalItem, jabatan: e.target.value })
-                      }
-                      className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
-                    >
-                      <option value="Peserta">Peserta</option>
-                      <option value="Ketua">Ketua</option>
-                      <option value="Wakil Ketua">Wakil Ketua</option>
-                      <option value="Anggota">Anggota</option>
-                    </select>
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jabatan
+                      </label>
+                      <select
+                        value={editModalItem.jabatan || "Peserta"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jabatan: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        {getJabatanOptions(editModalItem.kategori).map((j) => (
+                          <option key={j} value={j}>
+                            {j}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        {editModalItem.kategori === "Pendanaan" ? "Sumber" : "Tingkatan"}
+                      </label>
+                      <select
+                        value={editModalItem.tingkatan}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, tingkatan: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        {getTingkatanOptions(editModalItem.kategori).map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Tingkatan
-                    </label>
-                    <select
-                      value={editModalItem.tingkatan}
-                      onChange={(e) =>
-                        setEditModalItem({ ...editModalItem, tingkatan: e.target.value })
-                      }
-                      className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
-                    >
-                      <option value="Fakultas">Fakultas</option>
-                      <option value="Universitas">Universitas</option>
-                      <option value="Regional">Regional</option>
-                      <option value="Nasional">Nasional</option>
-                      <option value="Internasional">Internasional</option>
-                    </select>
-                  </div>
-                </div>
+                  {editModalItem.kategori === "Publikasi" && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jenis Publikasi
+                      </label>
+                      <select
+                        value={editModalItem.jenisPublikasi || "Ilmiah"}
+                        onChange={(e) =>
+                          setEditModalItem({ ...editModalItem, jenisPublikasi: e.target.value })
+                        }
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="Ilmiah">Ilmiah</option>
+                        <option value="Populer">Populer</option>
+                      </select>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Nomor Sertifikat */}

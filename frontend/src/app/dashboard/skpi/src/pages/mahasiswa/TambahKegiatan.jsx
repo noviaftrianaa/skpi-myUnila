@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
+import { KATEGORI_OPTIONS, getTingkatanOptions, getJabatanOptions } from "../../constants/categories";
 import {
   Upload,
   Check,
@@ -32,6 +33,8 @@ export default function TambahKegiatan() {
   const [nomorSertifikat, setNomorSertifikat] = useState("");
   const [tanggalSertifikat, setTanggalSertifikat] = useState("");
   const [tautanSertifikat, setTautanSertifikat] = useState("");
+  const [jenisPenyelenggara, setJenisPenyelenggara] = useState("");
+  const [jenisPublikasi, setJenisPublikasi] = useState("");
   const [anggotaTim, setAnggotaTim] = useState([]);
 
   const handleAddAnggota = () => {
@@ -56,6 +59,8 @@ export default function TambahKegiatan() {
     setNomorSertifikat("");
     setTanggalSertifikat("");
     setTautanSertifikat("");
+    setJenisPenyelenggara("");
+    setJenisPublikasi("");
     setAnggotaTim([]);
   };
 
@@ -144,14 +149,11 @@ export default function TambahKegiatan() {
                     className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                   >
                     <option value="">Pilih Kategori</option>
-                    <option value="Lomba">Lomba</option>
-                    <option value="Karya">Karya</option>
-                    <option value="Seminar">Seminar</option>
-                    <option value="Pelatihan">Pelatihan</option>
-                    <option value="Organisasi">Organisasi</option>
-                    <option value="Kepanitiaan">Kepanitiaan</option>
-                    <option value="Publikasi">Publikasi</option>
-                    <option value="PKKMB Universitas">PKKMB Universitas</option>
+                    {KATEGORI_OPTIONS.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -271,10 +273,26 @@ export default function TambahKegiatan() {
                         className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                       >
                         <option value="">Pilih Tingkatan</option>
-                        <option value="Internasional">Internasional</option>
-                        <option value="Nasional">Nasional</option>
-                        <option value="Regional">Regional</option>
-                        <option value="Universitas">Universitas</option>
+                        {getTingkatanOptions(kategori).map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jenis Penyelenggara
+                      </label>
+                      <select
+                        value={jenisPenyelenggara}
+                        onChange={(e) => setJenisPenyelenggara(e.target.value)}
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="">Pilih Jenis Penyelenggara</option>
+                        <option value="Belmawa">Belmawa</option>
+                        <option value="Non-Belmawa">Non-Belmawa</option>
                       </select>
                     </div>
                   </div>
@@ -429,29 +447,49 @@ export default function TambahKegiatan() {
                         className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                       >
                         <option value="">Pilih Jabatan</option>
-                        <option value="Peserta">Peserta</option>
-                        <option value="Ketua">Ketua</option>
-                        <option value="Anggota">Anggota</option>
+                        {getJabatanOptions(kategori).map((j) => (
+                          <option key={j} value={j}>
+                            {j}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                        Tingkatan
+                        {kategori === "Pendanaan" ? "Sumber" : "Tingkatan"}
                       </label>
                       <select
                         value={tingkatan}
                         onChange={(e) => setTingkatan(e.target.value)}
                         className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                       >
-                        <option value="">Pilih Tingkatan</option>
-                        <option value="Universitas">Universitas</option>
-                        <option value="Fakultas">Fakultas</option>
-                        <option value="Nasional">Nasional</option>
-                        <option value="Internasional">Internasional</option>
+                        <option value="">{kategori === "Pendanaan" ? "Pilih Sumber" : "Pilih Tingkatan"}</option>
+                        {getTingkatanOptions(kategori).map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
+
+                  {kategori === "Publikasi" && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+                        Jenis Publikasi
+                      </label>
+                      <select
+                        value={jenisPublikasi}
+                        onChange={(e) => setJenisPublikasi(e.target.value)}
+                        className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
+                      >
+                        <option value="">Pilih Jenis Publikasi</option>
+                        <option value="Ilmiah">Ilmiah</option>
+                        <option value="Populer">Populer</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">

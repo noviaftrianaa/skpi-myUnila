@@ -23,6 +23,7 @@ import {
   ArrowRight,
   Lock,
   Download,
+  BarChart2,
   Flame,
   PieChart as PieIcon,
   TrendingUp,
@@ -122,8 +123,31 @@ export default function DashboardMahasiswa() {
   const { isLocked } = useLock();
 
   const totalScore = 68;
-  const targetScore = 100;
-  const scorePercent = Math.round((totalScore / targetScore) * 100);
+
+  // Sistem predikat berbasis SKP
+  const PREDIKAT_LEVELS = [
+    { label: "Cukup",      min: 25,  max: 75,  color: "#f59e0b", bgColor: "#fef3c7", darkBg: "#451a03" },
+    { label: "Baik",       min: 76,  max: 150, color: "#10b981", bgColor: "#d1fae5", darkBg: "#022c22" },
+    { label: "Sangat Baik",min: 151, max: 225, color: "#3b82f6", bgColor: "#dbeafe", darkBg: "#1e3a5f" },
+    { label: "Unggul",     min: 226, max: null, color: "#8b5cf6", bgColor: "#ede9fe", darkBg: "#2e1065" },
+  ];
+  const MAX_DISPLAY = 225; // titik penuh progress bar = 225 SKP (target Sangat Baik)
+  const UNGGUL_TARGET = 226;
+
+  const getCurrentPredikat = (score) => {
+    if (score < 25)  return { label: "Belum Memenuhi", color: "#94a3b8", next: PREDIKAT_LEVELS[0] };
+    if (score <= 75) return { ...PREDIKAT_LEVELS[0], next: PREDIKAT_LEVELS[1] };
+    if (score <= 150) return { ...PREDIKAT_LEVELS[1], next: PREDIKAT_LEVELS[2] };
+    if (score <= 225) return { ...PREDIKAT_LEVELS[2], next: PREDIKAT_LEVELS[3] };
+    return { ...PREDIKAT_LEVELS[3], next: null };
+  };
+
+  const currentPredikat = getCurrentPredikat(totalScore);
+  // Progress bar ditampilkan relatif ke next milestone
+  const progressToNext = currentPredikat.next
+    ? Math.round(((totalScore - (currentPredikat.min ?? 0)) / ((currentPredikat.next.min - 1) - (currentPredikat.min ?? 0))) * 100)
+    : 100;
+  const skpToNext = currentPredikat.next ? (currentPredikat.next.min - totalScore) : 0;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
@@ -205,7 +229,7 @@ export default function DashboardMahasiswa() {
             <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs">
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                  <TrendingUp size={18} />
+                  <BarChart2 size={18} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
@@ -239,7 +263,7 @@ export default function DashboardMahasiswa() {
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                     <Award size={18} />
                   </div>
                   <div>
@@ -289,42 +313,74 @@ export default function DashboardMahasiswa() {
                 </div>
               </div>
 
-              {/* Score Circular Indicator */}
+              {/* Score Circular Indicator — berbasis SKP */}
               <div className="flex flex-col items-center justify-center my-4 w-full">
+
+                {/* Lingkaran utama */}
                 <div className="relative w-36 h-36 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-slate-800" fill="transparent" />
+                    {/* Track abu */}
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8"
+                      className="text-gray-100 dark:text-slate-800" fill="transparent" />
+                    {/* Arc progress ke milestone berikutnya */}
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
+                      cx="50" cy="50" r="40"
                       stroke="#0B437D"
                       strokeWidth="8"
                       strokeDasharray="251.2"
-                      strokeDashoffset={251.2 - (251.2 * scorePercent) / 100}
+                      strokeDashoffset={251.2 - (251.2 * Math.min(progressToNext, 100)) / 100}
                       strokeLinecap="round"
                       fill="transparent"
                     />
                   </svg>
-                  <div className="absolute text-center leading-none">
+                  <div className="absolute text-center leading-none px-2">
                     <div className="text-3xl font-extrabold text-gray-900 dark:text-slate-100">{totalScore}</div>
-                    <div className="text-xs text-gray-400 mt-1">dari {targetScore}</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">SKP</div>
                   </div>
                 </div>
 
-                <div className="w-full mt-4 space-y-1.5 px-1">
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
-                    <span>Progress</span>
-                    <span className="font-extrabold text-gray-900 dark:text-slate-100">{scorePercent}%</span>
+                {/* Badge predikat saat ini */}
+                <div
+                  className="mt-3 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300"
+                >
+                  {currentPredikat.label}
+                </div>
+
+                {/* Segmented milestone bar */}
+                <div className="w-full mt-4 px-1">
+                  <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-slate-500 mb-1">
+                    <span>0</span>
+                    <span>75</span>
+                    <span>150</span>
+                    <span>225+</span>
                   </div>
-                  <div className="w-full bg-gray-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#0B437D] rounded-full transition-all duration-500" style={{ width: `${scorePercent}%` }} />
+                  <div className="w-full flex gap-0.5 h-2.5 rounded-full overflow-hidden bg-gray-100 dark:bg-slate-800">
+                    {/* Cukup: 25–75 */}
+                    <div className="h-full rounded-l-full" style={{ width: "33.3%", background: totalScore >= 25 ? "#0B437D" : "#e2e8f0", opacity: totalScore >= 25 ? 1 : 0.4 }} />
+                    {/* Baik: 76–150 */}
+                    <div className="h-full" style={{ width: "33.3%", background: totalScore >= 76 ? "#0B63C6" : "#e2e8f0", opacity: totalScore >= 76 ? 1 : 0.4 }} />
+                    {/* Sangat Baik & Unggul: 151–225+ */}
+                    <div className="h-full rounded-r-full" style={{ width: "33.4%", background: totalScore >= 151 ? "#5097E1" : "#e2e8f0", opacity: totalScore >= 151 ? 1 : 0.4 }} />
+                  </div>
+                  {/* Label di bawah segmen */}
+                  <div className="flex text-[9px] text-gray-400 mt-0.5 px-0.5">
+                    <span style={{ width: "33.3%", color: totalScore >= 25 ? "#0B437D" : undefined }}>Cukup</span>
+                    <span style={{ width: "33.3%", color: totalScore >= 76 ? "#0B63C6" : undefined }}>Baik</span>
+                    <span style={{ width: "33.4%", color: totalScore >= 151 ? "#5097E1" : undefined }}>Sangat Baik / Unggul</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-gray-500 dark:text-slate-400 text-center mt-3">
-                  Skormu mencapai <span className="font-bold text-gray-900 dark:text-slate-100">{totalScore} dari {targetScore} poin SKPI</span>
-                </p>
+                {/* Info ke predikat berikutnya */}
+                {currentPredikat.next ? (
+                  <p className="text-xs text-gray-500 dark:text-slate-400 text-center mt-3">
+                    Butuh <span className="font-bold text-gray-900 dark:text-slate-100">{skpToNext} SKP lagi</span> untuk mencapai{" "}
+                    <span className="font-bold text-gray-900 dark:text-slate-100">{currentPredikat.next.label}</span>
+                  </p>
+                ) : (
+                  <p className="text-xs text-center mt-3 font-bold text-blue-700 dark:text-blue-300">
+                    Predikat Unggul tercapai!
+                  </p>
+                )}
               </div>
 
               <button
@@ -339,8 +395,8 @@ export default function DashboardMahasiswa() {
             {/* Distribusi Kategori Donut Chart */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-100 dark:border-slate-800 shadow-xs">
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/50 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
-                  <PieIcon size={18} />
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <TrendingUp size={18} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">
