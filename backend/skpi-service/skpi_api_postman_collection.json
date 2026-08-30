@@ -1,0 +1,783 @@
+{
+	"info": {
+		"_postman_id": "bfded5c7-c758-4cd8-95b4-0a00719c7ad4",
+		"name": "MyUnila SKPI API",
+		"description": "Collection for testing MyUnila SKPI Backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Master Data",
+			"item": [
+				{
+					"name": "Get All Kategori",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/master/kategori",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"master",
+								"kategori"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tingkatan",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/master/tingkatan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"master",
+								"tingkatan"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Kategori Detail by Kategori ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/master/kategori-detail/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"master",
+								"kategori-detail",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lookup Bobot",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/master/bobot?kategori_id=1&tingkatan_id=1&kategori_detail_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"master",
+								"bobot"
+							],
+							"query": [
+								{
+									"key": "kategori_id",
+									"value": "1"
+								},
+								{
+									"key": "tingkatan_id",
+									"value": "1"
+								},
+								{
+									"key": "kategori_detail_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Mahasiswa",
+			"item": [
+				{
+					"name": "Get Mahasiswa Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard/{{nim}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"2217031142"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Prestasi by NIM",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/2217031142",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"2217031142"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prestasi Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/detail/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"detail",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Prestasi",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nim\": \"2217031142\",\n    \"kategori_id\": 1,\n    \"tingkatan_id\": 1,\n    \"kategori_detail_id\": 1,\n    \"judul_kegiatan\": \"Juara 1 Web Design Competition\",\n    \"tahun\": 2025,\n    \"nomor_sertifikat\": \"CERT/2025/001\",\n    \"tanggal_sertifikat\": \"2025-08-15\",\n    \"tautan_sertifikat\": \"https://drive.google.com/file/d/contoh/view\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Prestasi",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"judul_kegiatan\": \"Juara 1 Web Design Competition (Terupdate)\",\n    \"tahun\": 2025,\n    \"nomor_sertifikat\": \"CERT/2025/001-A\",\n    \"tanggal_sertifikat\": \"2025-08-15\",\n    \"tautan_sertifikat\": \"https://drive.google.com/file/d/contoh/view\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Prestasi",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notifications by NIM",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/notifikasi/2217031142",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"notifikasi",
+								"2217031142"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Mahasiswa Prestasi Anggota",
+			"item": [
+				{
+					"name": "Get All Anggota",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/anggota",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"anggota"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Anggota",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nim\": \"2217031145\",\n    \"nama\": \"Budi Santoso\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/anggota",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"anggota"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Anggota",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nim\": \"2217031145\",\n    \"nama\": \"Budi Santoso Nugroho\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/anggota/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"anggota",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Anggota",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/anggota/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"anggota",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Mahasiswa Prestasi Pembimbing",
+			"item": [
+				{
+					"name": "Get All Pembimbing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/pembimbing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"pembimbing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Pembimbing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nidn\": \"0012128801\",\n    \"nama_dosen\": \"Dr. Ahmad Fauzi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/pembimbing",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"pembimbing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Pembimbing",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nidn\": \"0012128801\",\n    \"nama_dosen\": \"Dr. Ahmad Fauzi, M.T.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/pembimbing/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"pembimbing",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Pembimbing",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/pembimbing/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"pembimbing",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Mahasiswa Prestasi Lampiran",
+			"item": [
+				{
+					"name": "Get All Lampiran",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/lampiran",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"lampiran"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Lampiran",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"jenis_dokumen\": \"Sertifikat\",\n    \"nama_file\": \"sertifikat_web_design.pdf\",\n    \"nama_file_storage\": \"storage/lampiran/abc123xyz.pdf\",\n    \"path_file\": \"/storage/lampiran/abc123xyz.pdf\",\n    \"mime_type\": \"application/pdf\",\n    \"ukuran_file\": 102400\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/prestasi/1/lampiran",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"prestasi",
+								"1",
+								"lampiran"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Lampiran",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/mahasiswa/lampiran/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mahasiswa",
+								"lampiran",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Karya",
+			"item": [
+				{
+					"name": "Get All Karya by NIM",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/karya/karya/2217031142",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"karya",
+								"karya",
+								"2217031142"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Karya Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/karya/karya/detail/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"karya",
+								"karya",
+								"detail",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Karya",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nim\": \"2217031142\",\n    \"kategori_karya\": \"Aplikasi Web\",\n    \"judul\": \"Sistem Informasi Akademik MyUnila\",\n    \"tahun\": 2025,\n    \"deskripsi\": \"Membangun sistem informasi akademik mahasiswa berbasis web laravel.\",\n    \"tautan\": \"https://github.com/myunila/sisfo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/karya/karya",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"karya",
+								"karya"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Karya",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"kategori_karya\": \"Aplikasi Web\",\n    \"judul\": \"Sistem Informasi Akademik MyUnila (V2)\",\n    \"tahun\": 2026,\n    \"deskripsi\": \"Update sistem informasi akademik mahasiswa berbasis web Next.js.\",\n    \"tautan\": \"https://github.com/myunila/sisfo-v2\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/karya/karya/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"karya",
+								"karya",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Karya",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/karya/karya/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"karya",
+								"karya",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get Admin Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Validation Submissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/validasi?status=belum diperiksa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"validasi"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "belum diperiksa"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Submission Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/validasi/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"validasi",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate / Update Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"divalidasi\",\n    \"catatan_admin\": \"Sertifikat valid dan sesuai ketentuan.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/validasi/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"validasi",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	]
+}
