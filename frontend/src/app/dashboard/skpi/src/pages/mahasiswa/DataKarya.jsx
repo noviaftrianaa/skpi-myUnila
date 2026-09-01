@@ -415,9 +415,12 @@ export default function DataKaryaMahasiswa() {
               </div>
 
               <div>
-                <label className="font-bold text-gray-700 dark:text-slate-300 block mb-1">Tautan Karya / Portofolio</label>
+                <label className="font-bold text-gray-700 dark:text-slate-300 block mb-1">
+                  Tautan Karya / Portofolio <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="url"
+                  required
                   defaultValue={editModalItem?.tautan || "https://github.com/contoh/energy-monitor"}
                   placeholder="https://github.com/..."
                   className="w-full p-3 border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 focus:outline-none"
@@ -425,7 +428,9 @@ export default function DataKaryaMahasiswa() {
               </div>
 
               <div>
-                <label className="font-bold text-gray-700 dark:text-slate-300 block mb-1">Unggah Dokumen Pendukung</label>
+                <label className="font-bold text-gray-700 dark:text-slate-300 block mb-1">
+                  Unggah Dokumen Pendukung <span className="text-rose-500">*</span>
+                </label>
                 <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center text-gray-400 bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
                   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
                     <Upload size={18} />

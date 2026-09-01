@@ -447,7 +447,40 @@ export default function ValidasiAdmin() {
                     </span>
 
                     <button
-                      onClick={() => toggleLockStatus(selectedStudent?.nama)}
+                      onClick={() => {
+                        const studentNama = selectedStudent?.nama;
+                        if (!lockedStudents[studentNama]) {
+                          const studentActivities = kegiatanList.filter(
+                            (k) => k.nama === studentNama || k.npm === selectedStudent?.npm
+                          );
+                          const totalValidPoin = studentActivities
+                            .filter((k) => k.status === "Divalidasi")
+                            .reduce((acc, curr) => acc + (curr.poin || 0), 0);
+                          const hasPKKMB = studentActivities.some(
+                            (k) => k.kategori === "PKKMB Universitas"
+                          );
+
+                          if (totalValidPoin < 25 || !hasPKKMB) {
+                            const reasons = [];
+                            if (totalValidPoin < 25)
+                              reasons.push(
+                                `Total poin divalidasi baru ${totalValidPoin} (minimal 25 poin)`
+                              );
+                            if (!hasPKKMB)
+                              reasons.push(
+                                "Kegiatan PKKMB Universitas belum dilampirkan/divalidasi"
+                              );
+
+                            alert(
+                              `SKPI Belum Bisa Dikunci Final oleh Admin:\n- ${reasons.join(
+                                "\n- "
+                              )}`
+                            );
+                            return;
+                          }
+                        }
+                        toggleLockStatus(studentNama);
+                      }}
                       className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition-colors cursor-pointer ${
                         lockedStudents[selectedStudent?.nama]
                           ? "bg-emerald-600 hover:bg-emerald-700"

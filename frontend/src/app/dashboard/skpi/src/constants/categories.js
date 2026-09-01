@@ -95,20 +95,13 @@ export const JABATAN_ORGANISASI_KEPANITIAAN = [
   "Wakil Sekretaris",
   "Bendahara",
   "Wakil Bendahara",
-  "Kepala Bidang/Koor/Departemen/Divisi/Seksi",
-  "Anggota Pengurus",
-];
-
-export const JABATAN_PELATIHAN = [
-  "Peserta",
-  "Pembicara",
-  "Ketua",
+  "Ketua bidang/koordinator/departemen/divisi/seksi",
   "Anggota",
 ];
 
-export const JABATAN_SEMINAR = [
+export const JABATAN_SEMINAR_SOSIAL_PELATIHAN = [
   "Peserta",
-  "Pembicara",
+  "Pembicara/Narasumber",
   "Moderator",
 ];
 
@@ -116,11 +109,16 @@ export function getJabatanOptions(kategori) {
   if (kategori === "Organisasi" || kategori === "Kepanitiaan") {
     return JABATAN_ORGANISASI_KEPANITIAAN;
   }
-  if (kategori === "Pelatihan" || kategori === "Pelatihan Kepemimpinan") {
-    return JABATAN_PELATIHAN;
-  }
-  if (kategori === "Seminar/Lokakarya/Workshop" || kategori === "Seminar" || kategori === "Kuliah Umum") {
-    return JABATAN_SEMINAR;
+  if (
+    kategori === "Seminar/Lokakarya/Workshop" ||
+    kategori === "Seminar" ||
+    kategori === "Kuliah Umum" ||
+    kategori === "Pelatihan" ||
+    kategori === "Pelatihan Kepemimpinan" ||
+    kategori === "PKKMB Universitas" ||
+    kategori === "Kegiatan Bidang Sosial, kerohanian dan lainnya"
+  ) {
+    return JABATAN_SEMINAR_SOSIAL_PELATIHAN;
   }
   return JABATAN_DEFAULT;
 }

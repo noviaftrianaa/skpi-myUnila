@@ -36,6 +36,9 @@ export default function TambahKegiatan() {
   const [jenisPenyelenggara, setJenisPenyelenggara] = useState("");
   const [jenisPublikasi, setJenisPublikasi] = useState("");
   const [anggotaTim, setAnggotaTim] = useState([]);
+  const [dokumenPendukung, setDokumenPendukung] = useState(null);
+  const [dokumenError, setDokumenError] = useState("");
+  const [skPembimbing, setSkPembimbing] = useState(null);
 
   const handleAddAnggota = () => {
     setAnggotaTim([...anggotaTim, { nama: "", npm: "" }]);
@@ -62,13 +65,133 @@ export default function TambahKegiatan() {
     setJenisPenyelenggara("");
     setJenisPublikasi("");
     setAnggotaTim([]);
+    setDokumenPendukung(null);
+    setDokumenError("");
+    setSkPembimbing(null);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (kategori === "Karya" && !tautanKarya.trim()) {
+      alert("Tautan karya / portofolio wajib diisi!");
+      return;
+    }
+    if (kategori !== "Karya" && !tautanSertifikat.trim()) {
+      alert("Tautan sertifikat wajib diisi!");
+      return;
+    }
+    if (!dokumenPendukung) {
+      setDokumenError("Unggah dokumen pendukung wajib diisi sebelum melakukan submit.");
+      return;
+    }
+    setDokumenError("");
     alert("Kegiatan berhasil disimpan!");
     navigate("/pengajuan");
   };
+
+  const renderDokumenPendukungInput = () => (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+        Unggah Dokumen Pendukung <span className="text-rose-500">*</span>
+      </label>
+      <label
+        className={`border-2 border-dashed rounded-2xl p-6 text-center bg-gray-50/50 dark:bg-slate-800/40 transition-colors cursor-pointer block relative ${
+          dokumenError
+            ? "border-rose-400 dark:border-rose-700 bg-rose-50/20"
+            : "border-gray-200 dark:border-slate-700 hover:border-blue-500"
+        }`}
+      >
+        <input
+          type="file"
+          className="hidden"
+          accept=".pdf,.png,.jpg,.jpeg"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              setDokumenPendukung(e.target.files[0]);
+              setDokumenError("");
+            }
+          }}
+        />
+        {dokumenPendukung ? (
+          <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+            <Check size={18} />
+            <span className="truncate max-w-xs">{dokumenPendukung.name}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setDokumenPendukung(null);
+              }}
+              className="ml-2 p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg cursor-pointer"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+              <Upload size={20} />
+            </div>
+            <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
+              Klik untuk unggah atau tarik berkas ke sini
+            </p>
+            <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, PDF (maks. 5MB)</p>
+          </>
+        )}
+      </label>
+      {dokumenError && (
+        <p className="text-xs text-rose-500 font-medium mt-1">{dokumenError}</p>
+      )}
+    </div>
+  );
+
+  const renderSkPembimbingInput = () => (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
+        Unggah SK Pembimbing / Tim (opsional)
+      </label>
+      <label className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer block relative">
+        <input
+          type="file"
+          className="hidden"
+          accept=".pdf,.png,.jpg,.jpeg"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              setSkPembimbing(e.target.files[0]);
+            }
+          }}
+        />
+        {skPembimbing ? (
+          <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+            <Check size={18} />
+            <span className="truncate max-w-xs">{skPembimbing.name}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setSkPembimbing(null);
+              }}
+              className="ml-2 p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg cursor-pointer"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+              <Upload size={18} />
+            </div>
+            <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
+              Klik untuk unggah atau tarik berkas ke sini
+            </p>
+            <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, atau PDF</p>
+          </>
+        )}
+      </label>
+    </div>
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-poppins transition-colors duration-200">
@@ -212,10 +335,11 @@ export default function TambahKegiatan() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Tautan Karya / Portofolio
+                      Tautan Karya / Portofolio *
                     </label>
                     <input
                       type="url"
+                      required
                       placeholder="https://..."
                       value={tautanKarya}
                       onChange={(e) => setTautanKarya(e.target.value)}
@@ -223,20 +347,7 @@ export default function TambahKegiatan() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Unggah Dokumen Pendukung
-                    </label>
-                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                        <Upload size={20} />
-                      </div>
-                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
-                        Klik untuk unggah atau tarik berkas ke sini
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, PDF (maks. 5MB)</p>
-                    </div>
-                  </div>
+                  {renderDokumenPendukungInput()}
                 </>
               )}
 
@@ -300,15 +411,14 @@ export default function TambahKegiatan() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Dosen Pembimbing *
+                      Dosen Pembimbing (opsional)
                     </label>
                     <select
-                      required
                       value={dosenPembimbing}
                       onChange={(e) => setDosenPembimbing(e.target.value)}
                       className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                     >
-                      <option value="">Pilih Dosen Pembimbing</option>
+                      <option value="">Pilih Dosen Pembimbing (Opsional)</option>
                       <option value="Dr. Eng. Admi Syarif">Dr. Eng. Admi Syarif</option>
                       <option value="Prof. Dr. Ir. Ahmad">Prof. Dr. Ir. Ahmad</option>
                     </select>
@@ -362,20 +472,7 @@ export default function TambahKegiatan() {
                     </button>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Unggah SK Pembimbing / Tim
-                    </label>
-                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                        <Upload size={20} />
-                      </div>
-                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
-                        Klik untuk unggah atau tarik berkas ke sini
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, atau PDF</p>
-                    </div>
-                  </div>
+                  {renderSkPembimbingInput()}
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
@@ -404,10 +501,11 @@ export default function TambahKegiatan() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Tautan Sertifikat
+                      Tautan Sertifikat *
                     </label>
                     <input
                       type="url"
+                      required
                       placeholder="https://..."
                       value={tautanSertifikat}
                       onChange={(e) => setTautanSertifikat(e.target.value)}
@@ -415,20 +513,7 @@ export default function TambahKegiatan() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Unggah Dokumen Pendukung
-                    </label>
-                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                        <Upload size={20} />
-                      </div>
-                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
-                        Klik untuk unggah atau tarik berkas ke sini
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, PDF (maks. 5MB)</p>
-                    </div>
-                  </div>
+                  {renderDokumenPendukungInput()}
                 </>
               )}
 
@@ -519,10 +604,11 @@ export default function TambahKegiatan() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Tautan Sertifikat
+                      Tautan Sertifikat *
                     </label>
                     <input
                       type="url"
+                      required
                       placeholder="https://..."
                       value={tautanSertifikat}
                       onChange={(e) => setTautanSertifikat(e.target.value)}
@@ -530,20 +616,7 @@ export default function TambahKegiatan() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Unggah Dokumen Pendukung
-                    </label>
-                    <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                        <Upload size={20} />
-                      </div>
-                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-300">
-                        Klik untuk unggah atau tarik berkas ke sini
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-1">PNG, JPG, PDF (maks. 5MB)</p>
-                    </div>
-                  </div>
+                  {renderDokumenPendukungInput()}
                 </>
               )}
 

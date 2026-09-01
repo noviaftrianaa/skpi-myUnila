@@ -218,7 +218,9 @@ export default function DataSKPIMahasiswa() {
               <button
                 onClick={() => {
                   if (!isLocked) {
-                    setShowDraftModal(true);
+                    alert(
+                      "Transkrip SKPI belum dikunci secara final oleh Admin. Mahasiswa belum dapat mengunduh transkrip SKPI sampai Admin melakukan kunci final."
+                    );
                   } else {
                     navigate("/cetak-skpi");
                   }
@@ -731,15 +733,16 @@ export default function DataSKPIMahasiswa() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                      Dosen Pembimbing *
+                      Dosen Pembimbing (opsional)
                     </label>
                     <select
-                      value={editModalItem.dosenPembimbing || "Dr. Eng. Admi Syarif"}
+                      value={editModalItem.dosenPembimbing || ""}
                       onChange={(e) =>
                         setEditModalItem({ ...editModalItem, dosenPembimbing: e.target.value })
                       }
                       className="w-full p-3 bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-800 dark:text-slate-200 focus:outline-none"
                     >
+                      <option value="">Pilih Dosen Pembimbing (Opsional)</option>
                       <option value="Dr. Eng. Admi Syarif">Dr. Eng. Admi Syarif</option>
                       <option value="Prof. Dr. Ir. Admi Syarif">Prof. Dr. Ir. Admi Syarif</option>
                       <option value="Dr. Ir. Gigih Forda Nama, S.T., M.T.">Dr. Ir. Gigih Forda Nama, S.T., M.T.</option>
@@ -884,10 +887,11 @@ export default function DataSKPIMahasiswa() {
               {/* Tautan Sertifikat */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                  Tautan Sertifikat
+                  Tautan Sertifikat <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="url"
+                  required
                   value={editModalItem.tautan || ""}
                   placeholder="https://..."
                   onChange={(e) =>
@@ -900,7 +904,7 @@ export default function DataSKPIMahasiswa() {
               {/* Unggah Dokumen Pendukung */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block">
-                  Unggah Dokumen Pendukung
+                  Unggah Dokumen Pendukung <span className="text-rose-500">*</span>
                 </label>
                 <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center bg-gray-50/50 dark:bg-slate-800/40 hover:border-blue-500 transition-colors cursor-pointer">
                   <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center mx-auto mb-2">
