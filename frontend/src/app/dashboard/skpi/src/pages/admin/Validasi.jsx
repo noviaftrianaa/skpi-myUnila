@@ -199,7 +199,7 @@ const initialKegiatanData = [
     nomorSertifikat: "SERT/PKKMB/2021/0012",
     dosenPembimbing: "Dr. Eng. Admi Syarif",
     tautanSertifikat: "",
-    poin: 15,
+    poin: 25,
     status: "Divalidasi",
     catatanRevisi: "",
   },

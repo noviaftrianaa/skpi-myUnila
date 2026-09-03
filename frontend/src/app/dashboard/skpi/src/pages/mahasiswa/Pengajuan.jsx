@@ -142,11 +142,11 @@ const initialDataSKPI = [
     tingkatan: "Universitas",
     jabatan: "Peserta",
     dosenPembimbing: "",
-    status: "Belum Diperiksa",
-    poin: null,
+    status: "Divalidasi",
+    poin: 25,
     catatanValidator: "",
-    nomorSertifikat: "",
-    tautan: "",
+    nomorSertifikat: "SERT/PKKMB/2022/0012",
+    tautan: "https://drive.google.com/pkkmb-cert",
   },
 ];
 

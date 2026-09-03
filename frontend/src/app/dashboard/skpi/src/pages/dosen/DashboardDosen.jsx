@@ -52,8 +52,8 @@ const bimbinganData = [
     nama: "Novia Fitriana",
     npm: "202110010",
     programStudi: "Teknik Elektro",
-    kegiatanCount: 2,
-    totalPoin: 35,
+    kegiatanCount: 3,
+    totalPoin: 60,
     kegiatanList: [
       {
         id: 201,
@@ -69,6 +69,18 @@ const bimbinganData = [
       },
       {
         id: 202,
+        judul: "PKKMB Universitas Lampung",
+        tingkatan: "Universitas",
+        poin: 25,
+        peran: "Peserta",
+        tanggal: "15 Agt 2021",
+        lokasi: "Universitas Lampung",
+        nomorSertifikat: "SERT/PKKMB/2021/0012",
+        status: "Divalidasi",
+        tautan: "",
+      },
+      {
+        id: 203,
         judul: "Regional UI/UX Design Competition",
         tingkatan: "Regional",
         poin: 10,
