@@ -187,6 +187,23 @@ const initialKegiatanData = [
     catatanRevisi: "",
   },
   {
+    id: 99,
+    nama: "Novia Fitriana",
+    npm: "202110010",
+    programStudi: "Teknik Elektro",
+    kegiatan: "PKKMB Universitas Lampung",
+    tanggal: "15 Agt 2021",
+    kategori: "PKKMB Universitas",
+    tingkatan: "Universitas",
+    jabatan: "Peserta",
+    nomorSertifikat: "SERT/PKKMB/2021/0012",
+    dosenPembimbing: "Dr. Eng. Admi Syarif",
+    tautanSertifikat: "",
+    poin: 15,
+    status: "Divalidasi",
+    catatanRevisi: "",
+  },
+  {
     id: 10,
     nama: "Hanifa Azzahra",
     npm: "2020021001",
@@ -471,12 +488,12 @@ export default function ValidasiAdmin() {
                                 "Kegiatan PKKMB Universitas belum dilampirkan/divalidasi"
                               );
 
-                            alert(
-                              `SKPI Belum Bisa Dikunci Final oleh Admin:\n- ${reasons.join(
+                            const confirmLock = window.confirm(
+                              `Perhatian - Syarat SKPI belum lengkap:\n- ${reasons.join(
                                 "\n- "
-                              )}`
+                              )}\n\nApakah Anda (Admin) tetap ingin mengunci (lock) SKPI final mahasiswa ini secara manual?`
                             );
-                            return;
+                            if (!confirmLock) return;
                           }
                         }
                         toggleLockStatus(studentNama);
