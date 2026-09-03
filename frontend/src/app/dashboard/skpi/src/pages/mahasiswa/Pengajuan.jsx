@@ -1,5 +1,5 @@
 // src/pages/mahasiswa/Pengajuan.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarMahasiswa from "../../components/common/SidebarMahasiswa";
 import Navbar from "../../components/common/Navbar";
@@ -153,6 +153,35 @@ const initialDataSKPI = [
 export default function DataSKPIMahasiswa() {
   const navigate = useNavigate();
   const [items, setItems] = useState(initialDataSKPI);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/mahasiswa/prestasi/2115061001')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+          const dbItems = resData.data.map(item => ({
+            id: `db-${item.id}`,
+            judul: item.judul_kegiatan,
+            tanggal: item.tanggal_sertifikat || item.tahun?.toString() || "-",
+            lokasi: "Universitas Lampung",
+            kategori: item.kategori?.nama || "Lomba",
+            tingkatan: item.tingkatan?.nama || "Nasional",
+            jabatan: item.kategori_detail?.nama || "Peserta",
+            dosenPembimbing: "-",
+            status: item.status === "belum diperiksa" ? "Belum Diperiksa" : item.status,
+            poin: item.bobot,
+            catatanValidator: item.catatan_admin || "",
+            nomorSertifikat: item.nomor_sertifikat || "",
+            tautan: item.tautan_sertifikat || "",
+          }));
+          setItems(prev => {
+            const filteredPrev = prev.filter(i => typeof i.id !== 'string' || !i.id.startsWith('db-'));
+            return [...dbItems, ...filteredPrev];
+          });
+        }
+      })
+      .catch(err => console.error("Error fetching API from database:", err));
+  }, []);
   const [search, setSearch] = useState("");
   const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
   const [statusFilter, setStatusFilter] = useState("Semua Status");
@@ -218,9 +247,7 @@ export default function DataSKPIMahasiswa() {
               <button
                 onClick={() => {
                   if (!isLocked) {
-                    alert(
-                      "Transkrip SKPI belum dikunci secara final oleh Admin. Mahasiswa belum dapat mengunduh transkrip SKPI sampai Admin melakukan kunci final."
-                    );
+                    setShowDraftModal(true);
                   } else {
                     navigate("/cetak-skpi");
                   }
@@ -991,7 +1018,7 @@ export default function DataSKPIMahasiswa() {
             <div className="pt-2">
               <button
                 onClick={() => setShowDraftModal(false)}
-                className="w-full py-2.5 rounded-xl bg-[#FF9900] hover:bg-amber-600 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
               >
                 Mengerti
               </button>

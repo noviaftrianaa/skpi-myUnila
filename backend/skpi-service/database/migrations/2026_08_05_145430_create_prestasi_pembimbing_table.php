@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('prestasi_pembimbing', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('prestasi_id')->constrained('prestasi')->onDelete('cascade');
+            $table->string('nidn')->nullable();
+            $table->string('nama_dosen')->nullable();
             $table->timestamps();
         });
     }

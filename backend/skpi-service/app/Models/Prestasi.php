@@ -48,4 +48,28 @@ class Prestasi extends Model
     {
         return $this->belongsTo(KategoriDetail::class, 'kategori_detail_id');
     }
+
+    /**
+     * Relasi ke lampiran prestasi
+     */
+    public function lampiran()
+    {
+        return $this->hasMany(PrestasiLampiran::class, 'prestasi_id');
+    }
+
+    /**
+     * Relasi ke anggota prestasi
+     */
+    public function anggota()
+    {
+        return $this->hasMany(PrestasiAnggota::class, 'prestasi_id');
+    }
+
+    /**
+     * Relasi ke pembimbing prestasi
+     */
+    public function pembimbing()
+    {
+        return $this->hasMany(PrestasiPembimbing::class, 'prestasi_id');
+    }
 }

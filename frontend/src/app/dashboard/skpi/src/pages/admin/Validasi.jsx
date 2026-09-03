@@ -450,7 +450,7 @@ export default function ValidasiAdmin() {
                       onClick={() => {
                         const studentNama = selectedStudent?.nama;
                         if (!lockedStudents[studentNama]) {
-                          const studentActivities = kegiatanList.filter(
+                          const studentActivities = data.filter(
                             (k) => k.nama === studentNama || k.npm === selectedStudent?.npm
                           );
                           const totalValidPoin = studentActivities

@@ -121,6 +121,7 @@ const aktivitasTerbaru = [
 export default function DashboardMahasiswa() {
   const navigate = useNavigate();
   const { isLocked } = useLock();
+  const [showDraftModal, setShowDraftModal] = useState(false);
 
   const totalScore = 68;
 
@@ -168,10 +169,21 @@ export default function DashboardMahasiswa() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-xs self-start sm:self-auto">
-              <span>🪪 2215061024</span>
-              <span className="text-gray-300 dark:text-slate-700">•</span>
-              <span>Program Studi S1 Teknik Informatika (S1)</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start sm:self-auto">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-xs">
+                <span>🪪 2215061024</span>
+                <span className="text-gray-300 dark:text-slate-700">•</span>
+                <span>Program Studi S1 Teknik Informatika (S1)</span>
+              </div>
+              {!isLocked && (
+                <button
+                  onClick={() => setShowDraftModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Unduh Transkrip</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -501,6 +513,35 @@ export default function DashboardMahasiswa() {
           </div>
         </main>
       </div>
+
+      {/* MODAL TRANSKRIP BELUM FINAL */}
+      {showDraftModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4 relative z-10 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center mx-auto">
+              <Lock size={26} className="text-[#FF9900]" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">
+                Transkrip Belum Final
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-2 leading-relaxed">
+                SKPI Anda masih dalam status draf dan belum dikunci oleh Program Studi. Anda belum dapat mengunduh transkrip final.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setShowDraftModal(false)}
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+              >
+                Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

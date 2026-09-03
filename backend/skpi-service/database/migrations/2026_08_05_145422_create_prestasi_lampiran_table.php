@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('prestasi_lampiran', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('prestasi_id')->constrained('prestasi')->onDelete('cascade');
+            $table->string('jenis_dokumen')->nullable();
+            $table->string('nama_file')->nullable();
+            $table->string('nama_file_storage')->nullable();
+            $table->string('path_file')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->integer('ukuran_file')->nullable();
             $table->timestamps();
         });
     }

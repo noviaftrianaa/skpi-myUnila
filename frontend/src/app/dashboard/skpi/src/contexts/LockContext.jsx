@@ -5,22 +5,26 @@ const LockContext = createContext();
 
 export function LockProvider({ children }) {
   const [lockedStudents, setLockedStudents] = useState(() => {
-    try {
-      const saved = localStorage.getItem("skpi_locked_students");
-      if (saved) {
-        return JSON.parse(saved);
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("skpi_locked_students");
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error("Failed to load locked students", e);
       }
-    } catch (e) {
-      console.error("Failed to load locked students", e);
     }
     return { "Novia Fitriana": false, "Ahmad Rizki": false };
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem("skpi_locked_students", JSON.stringify(lockedStudents));
-    } catch (e) {
-      console.error("Failed to save locked students", e);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("skpi_locked_students", JSON.stringify(lockedStudents));
+      } catch (e) {
+        console.error("Failed to save locked students", e);
+      }
     }
   }, [lockedStudents]);
 
